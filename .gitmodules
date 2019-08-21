@@ -1,0 +1,9 @@
+[submodule "external/injector"]
+	path = external/injector
+	url = https://github.com/thelink2012/injector
+[submodule "external/hooking"]
+	path = external/hooking
+	url = https://github.com/ThirteenAG/Hooking.Patterns
+[submodule "external/inireader"]
+	path = external/inireader
+	url = https://github.com/ThirteenAG/IniReader
