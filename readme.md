@@ -1,4 +1,6 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/wwokiviriq3m52t6?svg=true)](https://ci.appveyor.com/project/ThirteenAG/gtaiv-eflc-fusionfix)
+[![Build Status](https://dev.azure.com/thirteenag/GTAIV.EFLC.FusionFix/_apis/build/status/ThirteenAG.GTAIV.EFLC.FusionFix?branchName=master)](https://dev.azure.com/thirteenag/GTAIV.EFLC.FusionFix/_build/latest?definitionId=1&branchName=master)
+[![Discord](https://img.shields.io/badge/chat-on%20discord-7289da.svg?logo=discord)](https://discord.gg/y2cZFRA)
 
 <p align="center">
   <img height="100" src="https://user-images.githubusercontent.com/4904157/63623173-921aaf00-c601-11e9-8b84-fc5803269323.png">
@@ -68,7 +70,7 @@ to
     pc/data/maps/props/vegetation/ext_veg.ide
     pc/data/maps/props/vegetation/ext_veg.img
 
-**Trees shadows fix**
+**Trees shadows fix.**
 
     common/shaders/win32_30/gta_emissivestrong.fxc
     common/shaders/win32_30_atidx10/gta_emissivestrong.fxc
@@ -77,7 +79,7 @@ to
     common/shaders/win32_30_nv7/gta_emissivestrong.fxc
     common/shaders/win32_30_nv8/gta_emissivestrong.fxc
 
-**Corrected shaders to make the lights appear. Used in conjunction with GTAIV.EFLC.FusionFix.asi**
+**Corrected shaders to make the lights appear. Used in conjunction with GTAIV.EFLC.FusionFix.asi.**
 
     plugins/GTAIV.EFLC.FusionFix.asi
     plugins/GTAIV.EFLC.FusionFix.ini
