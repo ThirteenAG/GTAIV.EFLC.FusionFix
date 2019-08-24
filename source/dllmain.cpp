@@ -39,7 +39,27 @@ void Init()
                     *(uint32_t*)(regs.edx + 0x28) == 0x3D93A92A
                 )
                 {
-                    *(float*)(regs.edx + 0x00) = -*(float*)(regs.edx + 0x00);
+
+                    auto f_ptr = (uint32_t*)(regs.edx - 0x158);
+                    if (f_ptr)
+                    {
+                        //auto f_00 = f_ptr[3];
+                        //auto f_01 = f_ptr[7];
+                        auto f_02 = f_ptr[18];
+                        auto f_04 = f_ptr[10];
+                        auto f_05 = f_ptr[13];
+                        //auto f_06 = f_ptr[12];
+                        //auto f_07 = f_ptr[17];
+                        auto f_08 = f_ptr[19];
+                        //auto f_09 = f_ptr[22];
+                        //auto f_10 = f_ptr[23];
+                        //auto f_11 = f_ptr[24];
+
+                        if (f_05 != 0x7f800001 && f_05 != 0xcdcdcdcd && f_04 == 0x00000000 && f_08 != 0xba8bfc22 && f_02 != 0x3f800000)
+                        {
+                            *(float*)(regs.edx + 0x00) = -*(float*)(regs.edx + 0x00);
+                        }
+                    }
                 }
 
                 regs.edi = regs.edi << 4;
