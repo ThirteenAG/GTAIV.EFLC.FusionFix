@@ -26,28 +26,15 @@ This fix is tested only with latest official update and [XLiveLessAddon](https:/
 
 The following installation instructions assume that you're either have it already, or willing to install it.
 Online features of the game are not available with [XLiveLessAddon](https://bitbucket.org/ThirteenAG/xlivelessaddon/downloads/).
+I can not guarantee that the package will work without [XLiveLessAddon](https://bitbucket.org/ThirteenAG/xlivelessaddon/downloads/).
 
 ---
 
 If you only want the core package, that includes all aforementioned fixes,
 
-### **Download**: [GTAIV.EFLC.FusionFix.Min.zip](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFix.Min.zip)
+### **Download**: [GTAIV.EFLC.FusionFix.zip](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFix.zip)
 
 This requires ASI Loader.
-
----
-
-If you want complete package for easy installation, that includes all aforementioned fixes and [Ultimate ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader) as **XLiveLess**, plus [XLiveLessAddon](https://bitbucket.org/ThirteenAG/xlivelessaddon/downloads/) to make the game work without xlive,
-
-### **Download**: [GTAIV.EFLC.FusionFix.Mid.zip](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFix.Mid.zip)
-
----
-
-If you want to install other mods along the way, including all aforementioned fixes, [Ultimate ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader) as **XLiveLess**, plus [XLiveLessAddon](https://bitbucket.org/ThirteenAG/xlivelessaddon/downloads/) to make the game work without xlive, [ColAccel](https://github.com/ThirteenAG/IV.EFLC.ColAccel), a plugin that reduces loading times, [Project2DFX](https://github.com/ThirteenAG/III.VC.SA.IV.Project2DFX), a plugin that adds lod lights,
-
-### **Download**: [GTAIV.EFLC.FusionFix.Max.zip](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFix.Max.zip)
-
----
 
 Unpack the content of archive to your **GTAIV** or **EFLC** directory.
 
