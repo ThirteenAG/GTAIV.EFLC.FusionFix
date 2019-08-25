@@ -17,24 +17,22 @@ Changelog:
 - [Partially fixed emissive shader bug, namely BAWSAQ building is still rendered incorrectly, but the rest of the lights are now present in the game (e.g. Rotterdam Tower, Comrades Bar area)](https://github.com/GTAmodding/GTAIV-Issues-List/issues/4)
 - [Fixed DLC car lights in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/3)
 - [Tree foliage casts dynamic shadows instead of static](https://github.com/GTAmodding/GTAIV-Issues-List/issues/9)
+- [Fixed handbrake camera, that doesn't work with high fps](https://github.com/GTAmodding/GTAIV-Issues-List/issues/10)
 
 ## Installation:
 
 #### GTAIV 1.0.8.0 / GTAIV 1.0.8.0 + DLC Episodes / GTA EFLC 1.0.3.0
 
-This fix is tested only with latest official update and [XLiveLessAddon](https://bitbucket.org/ThirteenAG/xlivelessaddon/downloads/).
+This fix is tested only with latest official update and [XLiveLessAddon](https://bitbucket.org/ThirteenAG/xlivelessaddon/downloads/), and I can not guarantee that the package will work without it.
 
-The following installation instructions assume that you're either have it already, or willing to install it.
+The following installation instructions assume that you're either have [XLiveLessAddon](https://bitbucket.org/ThirteenAG/xlivelessaddon/downloads/) already, or willing to install it.
 Online features of the game are not available with [XLiveLessAddon](https://bitbucket.org/ThirteenAG/xlivelessaddon/downloads/).
-I can not guarantee that the package will work without [XLiveLessAddon](https://bitbucket.org/ThirteenAG/xlivelessaddon/downloads/).
 
 ---
 
-If you only want the core package, that includes all aforementioned fixes,
-
 ### **Download**: [GTAIV.EFLC.FusionFix.zip](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFix.zip)
 
-This requires ASI Loader.
+This requires ASI Loader or [XLiveLessAddon](https://bitbucket.org/ThirteenAG/xlivelessaddon/downloads/).
 
 Unpack the content of archive to your **GTAIV** or **EFLC** directory.
 

@@ -6,6 +6,8 @@ void Init()
     bool bRecoilFix = iniReader.ReadInteger("MAIN", "RecoilFix", 1) != 0;
     bool bDefinitionFix = iniReader.ReadInteger("MAIN", "DefinitionFix", 1) != 0;
     bool bEmissiveShaderFix = iniReader.ReadInteger("MAIN", "EmissiveShaderFix", 1) != 0;
+    bool bHandbrakeCamFix = iniReader.ReadInteger("MAIN", "HandbrakeCamFix", 1) != 0;
+    bool bCutsceneZoomFix = iniReader.ReadInteger("MAIN", "CutsceneZoomFix", 0) != 0;
 
     if (bRecoilFix)
     {
@@ -39,7 +41,6 @@ void Init()
                     *(uint32_t*)(regs.edx + 0x28) == 0x3D93A92A
                 )
                 {
-
                     auto f_ptr = (uint32_t*)(regs.edx - 0x158);
                     if (f_ptr)
                     {
@@ -76,6 +77,48 @@ void Init()
         //        *(uint8_t*)&regs.esi = *(uint8_t*)(regs.edx + 0x00);
         //    }
         //}; injector::MakeInline<ShaderTest2>(pattern.count(6).get(3).get<void>(0), pattern.count(6).get(3).get<void>(6)); //41782D
+    }
+
+    if (bHandbrakeCamFix)
+    {
+        auto pattern = hook::pattern("D8 0D ? ? ? ? 83 C0 30");
+        static float& fTimeStep = **pattern.get_first<float*>(-9);
+        pattern = hook::pattern("D9 44 24 20 8B 54 24 64 F3 0F 10 02 51 D9 1C 24 8D 44 24 20 50");
+        struct HandbrakeCam
+        {
+            void operator()(injector::reg_pack& regs)
+            {
+                *(float*)(regs.esp + 0x20) *= (1.0f / 30.0f) / fTimeStep;
+                float f = *(float*)(regs.esp + 0x20);
+                regs.edx = *(uint32_t*)(regs.esp + 0x64);
+                _asm fld dword ptr[f]
+            }
+        }; injector::MakeInline<HandbrakeCam>(pattern.get_first(0), pattern.get_first(8));
+    }
+
+    if (bCutsceneZoomFix)
+    {
+        //static float fECX, fEAX;
+        //auto pattern = hook::pattern("0F B7 47 08 83 E8 01 F3 0F 2A C8 0F 28 C1 F3 0F 5E 47 ? F3 0F 59 45 ? F3 0F 58 05");
+        //struct CutsceneZoomCam
+        //{
+        //    void operator()(injector::reg_pack& regs)
+        //    {
+        //        fEAX = (float)(*(uint16_t*)(regs.edi + 8) - 1);
+        //        if (*(float*)(regs.ebp + 8) != 0.0f)
+        //            fECX = (float)(((fEAX / *(float*)(regs.edi + 12)) * *(float*)(regs.ebp + 8)) + 500.0f);
+        //        else
+        //            fECX = (float)(((fEAX / *(float*)(regs.edi + 12)) * *(float*)(regs.ebp + 8)) + 0.5f);
+        //
+        //        regs.eax = (uint32_t)&fEAX;
+        //        regs.ecx = (uint32_t)&fECX;
+        //    }
+        //}; injector::MakeInline<CutsceneZoomCam>(pattern.get_first(0), pattern.get_first(40));
+        //injector::WriteMemory(pattern.get_first(5), 0x8100FF3, true); //movss xmm1, eax
+        //injector::WriteMemory(pattern.get_first(9), 0x1100FF3, true); //movss xmm0, ecx
+
+        auto pattern = hook::pattern("6A 01 51 8B CE D9 1C 24 E8 ? ? ? ? D9 54 24 2C D9 EE 8A 44 24 1B D9 C9 DF F1 DD D8 76 18");
+        injector::WriteMemory<uint8_t>(pattern.get_first(1), 0, true);
     }
 
     //draw distance adjuster
