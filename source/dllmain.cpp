@@ -1,5 +1,182 @@
 #include <misc.h>
 
+uint32_t* dword_11CC9D0;
+int32_t* dword_112EAC0;
+int32_t* dword_11402D4;
+int32_t* dword_F30468;
+float* float_F33C18;
+LARGE_INTEGER(*sub_456F60)();
+int64_t* qword_11CCA80;
+float* float_18CAE9C;
+void* unk_11CC9D8;
+double* qword_10FCB84;
+float* float_F33C24;
+float* float_11CC9D4;
+void(__cdecl* sub_855470)(float a1);
+bool(*CCutscenes__hasCutsceneFinished)();
+bool(*CCamera__isWidescreenBordersActive)();
+
+int32_t nFrameLimitType;
+float fFpsLimit;
+float fCutsceneFpsLimit;
+float fScriptCutsceneFpsLimit;
+bool SET_CAM_FOV_invoked;
+
+void __cdecl sub_855640()
+{
+    static float* arg_esp;
+    _asm mov arg_esp, esp
+    injector::thiscall<void(float*)>::call(*(uintptr_t*)(*(uintptr_t*)(*dword_11CC9D0) + 20), arg_esp);
+
+    static auto wants_to_limit_fps = []() -> bool
+    {
+        if (fFpsLimit)
+            return true;
+
+        if (CCamera__isWidescreenBordersActive())
+        {
+            if (CCutscenes__hasCutsceneFinished())
+            {
+                if (fCutsceneFpsLimit)
+                    return true;
+            }
+            else if (fScriptCutsceneFpsLimit)
+                return true;
+        }
+
+        return false;
+    };
+
+    static auto get_fps_limit = []() -> float
+    {
+        float limit = 30.0f;
+
+        if (fFpsLimit)
+            limit = fFpsLimit;
+
+        if (CCamera__isWidescreenBordersActive())
+        {
+            if (CCutscenes__hasCutsceneFinished())
+            {
+                if (fCutsceneFpsLimit)
+                    limit = fCutsceneFpsLimit;
+            }
+            else if (fScriptCutsceneFpsLimit)
+                limit = fScriptCutsceneFpsLimit;
+        }
+
+        return limit;
+    };
+
+    if (wants_to_limit_fps() || *dword_112EAC0 == 1 || *dword_11402D4 != -1 || *dword_F30468 == 18)
+    {
+        if (nFrameLimitType == 0)
+        {
+            *float_F33C18 = 2.0f;
+            if (*dword_112EAC0 == 1 || *dword_11402D4 != -1 || *dword_F30468 == 18)
+                * float_F33C18 = 1.0f;
+            double v1 = (double)((*float_F33C18 - 0.1f) * ((1.0f / get_fps_limit()) / 2.0f));
+            double v3 = (double)(sub_456F60().QuadPart - *qword_11CCA80);
+            if (v1 > v3 * *float_18CAE9C)
+            {
+                do
+                {
+                    v3 = (double)(sub_456F60().QuadPart - *qword_11CCA80) * *float_18CAE9C;
+                    Sleep(0);
+                }
+                while (v1 > v3);
+            }
+            *qword_11CCA80 = sub_456F60().QuadPart;
+        }
+        else
+        {
+            static LARGE_INTEGER PerformanceCount1;
+            static LARGE_INTEGER PerformanceCount2;
+            static bool bOnce1 = false;
+            static double t = 0.0;
+            static DWORD i = 0;
+            double targetFrameTime = 1000.0 / get_fps_limit();
+
+            if (!bOnce1)
+            {
+                bOnce1 = true;
+                QueryPerformanceCounter(&PerformanceCount1);
+                PerformanceCount1.QuadPart = PerformanceCount1.QuadPart >> i;
+            }
+
+            while (true)
+            {
+                QueryPerformanceCounter(&PerformanceCount2);
+                if (t == 0.0)
+                {
+                    LARGE_INTEGER PerformanceCount3;
+                    static bool bOnce2 = false;
+
+                    if (!bOnce2)
+                    {
+                        bOnce2 = true;
+                        QueryPerformanceFrequency(&PerformanceCount3);
+                        i = 0;
+                        t = 1000.0 / (double)PerformanceCount3.QuadPart;
+                        auto v = t * 2147483648.0;
+                        if (60000.0 > v)
+                        {
+                            while (true)
+                            {
+                                ++i;
+                                v *= 2.0;
+                                t *= 2.0;
+                                if (60000.0 <= v)
+                                    break;
+                            }
+                        }
+                    }
+                    SleepEx(0, 1);
+                    break;
+                }
+
+                if (((double)((PerformanceCount2.QuadPart >> i) - PerformanceCount1.QuadPart) * t) >= targetFrameTime)
+                    break;
+
+                SleepEx(0, 1);
+            }
+            QueryPerformanceCounter(&PerformanceCount2);
+            PerformanceCount1.QuadPart = PerformanceCount2.QuadPart >> i;
+        }
+        SET_CAM_FOV_invoked = false;
+    }
+
+    //is that even used?
+    {
+        auto v2 = 0.0f;
+        auto v01 = (uint8_t * *)unk_11CC9D8;
+        auto v02 = v01[2];
+        if (v02 && *v02)
+            v2 = atof((const char*)v01[2]); //v01 has autoconfig string
+
+        if (v2 > 0.0f)
+        {
+            auto v0 = *qword_10FCB84;
+            if (*qword_10FCB84 < 0.0083333002f)
+                v0 = 0.0083333002f;
+            *float_F33C24 = (((60.0f - 1.0f) * (1.0f / 60.0f)) * *float_F33C24) + ((1.0f / v0) * (1.0f / 60.0f));
+            if ((v2 - 3.0f) <= *float_F33C24)
+            {
+                if (*float_F33C24 > (v2 + 3.0f))
+                {
+                    sub_855470(1.0 + 0.029999999f);
+                    *float_11CC9D4 = 1.0f;
+                }
+            }
+            else
+            {
+                sub_855470(1.0f - 0.029999999f);
+                *float_11CC9D4 = -1.0f;
+            }
+        }
+    }
+}
+
 void Init()
 {
     CIniReader iniReader("");
@@ -7,7 +184,11 @@ void Init()
     bool bDefinitionFix = iniReader.ReadInteger("MAIN", "DefinitionFix", 1) != 0;
     bool bEmissiveShaderFix = iniReader.ReadInteger("MAIN", "EmissiveShaderFix", 1) != 0;
     bool bHandbrakeCamFix = iniReader.ReadInteger("MAIN", "HandbrakeCamFix", 1) != 0;
-    bool bCutsceneZoomFix = iniReader.ReadInteger("MAIN", "CutsceneZoomFix", 0) != 0;
+
+    nFrameLimitType = iniReader.ReadInteger("FRAMELIMIT", "FrameLimitType", 0);
+    fFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "FpsLimit", 0));
+    fCutsceneFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "CutsceneFpsLimit", 0));
+    fScriptCutsceneFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "ScriptCutsceneFpsLimit", 0));
 
     if (bRecoilFix)
     {
@@ -96,29 +277,35 @@ void Init()
         }; injector::MakeInline<HandbrakeCam>(pattern.get_first(0), pattern.get_first(8));
     }
 
-    if (bCutsceneZoomFix)
+    if (fFpsLimit || fCutsceneFpsLimit || fScriptCutsceneFpsLimit)
     {
-        //static float fECX, fEAX;
-        //auto pattern = hook::pattern("0F B7 47 08 83 E8 01 F3 0F 2A C8 0F 28 C1 F3 0F 5E 47 ? F3 0F 59 45 ? F3 0F 58 05");
-        //struct CutsceneZoomCam
-        //{
-        //    void operator()(injector::reg_pack& regs)
-        //    {
-        //        fEAX = (float)(*(uint16_t*)(regs.edi + 8) - 1);
-        //        if (*(float*)(regs.ebp + 8) != 0.0f)
-        //            fECX = (float)(((fEAX / *(float*)(regs.edi + 12)) * *(float*)(regs.ebp + 8)) + 500.0f);
-        //        else
-        //            fECX = (float)(((fEAX / *(float*)(regs.edi + 12)) * *(float*)(regs.ebp + 8)) + 0.5f);
-        //
-        //        regs.eax = (uint32_t)&fEAX;
-        //        regs.ecx = (uint32_t)&fECX;
-        //    }
-        //}; injector::MakeInline<CutsceneZoomCam>(pattern.get_first(0), pattern.get_first(40));
-        //injector::WriteMemory(pattern.get_first(5), 0x8100FF3, true); //movss xmm1, eax
-        //injector::WriteMemory(pattern.get_first(9), 0x1100FF3, true); //movss xmm0, ecx
+        //auto pattern = hook::pattern("6A 01 51 8B CE D9 1C 24 E8 ? ? ? ? D9 54 24 2C D9 EE 8A 44 24 1B D9 C9 DF F1 DD D8 76 18");
+        //injector::WriteMemory<uint8_t>(pattern.get_first(1), 0, true); //intro cutscene fix?
 
-        auto pattern = hook::pattern("6A 01 51 8B CE D9 1C 24 E8 ? ? ? ? D9 54 24 2C D9 EE 8A 44 24 1B D9 C9 DF F1 DD D8 76 18");
-        injector::WriteMemory<uint8_t>(pattern.get_first(1), 0, true);
+        dword_11CC9D0 = *hook::get_pattern<uint32_t*>("81 F9 ? ? ? ? 7C BC", 2);
+        dword_112EAC0 = *hook::get_pattern<int32_t*>("39 05 ? ? ? ? 74 14 83 3D", 2);
+        dword_11402D4 = *hook::get_pattern<int32_t*>("8B 0D ? ? ? ? 3B 0D ? ? ? ? 75 2A", 2);
+        dword_F30468 = *hook::get_pattern<int32_t*>("A1 ? ? ? ? 83 F8 02 74 05 83 F8 07 75 0F 80 3D", 1);
+        float_F33C18 = *hook::get_pattern<float*>("F3 0F 11 05 ? ? ? ? 74 09 3B CA", 4);
+        sub_456F60 = (LARGE_INTEGER(*)()) *hook::get_pattern<void*>("55 8B EC 83 E4 F8 83 EC 18 53 55 56 33 F6 39 35", 0);
+        qword_11CCA80 = *hook::get_pattern<int64_t*>("8B 0D ? ? ? ? 8B 35 ? ? ? ? 2B C1 1B D6 89 44 24 0C 89 54 24 10 DF 6C 24 0C D8 0D ? ? ? ? D9 44 24 04 DF F1 DD D8", 2);
+        float_18CAE9C = *hook::get_pattern<float*>("D8 0D ? ? ? ? D9 44 24 04 DF F1", 2);
+        unk_11CC9D8 = *hook::get_pattern<void*>("3D ? ? ? ? 7C D5 5F", 1);
+        qword_10FCB84 = *hook::get_pattern<double*>("D9 05 ? ? ? ? 53 D8 0D ? ? ? ? 56 D9 7C 24 0C", 2);
+        float_F33C24 = *hook::get_pattern<float*>("F3 0F 11 05 ? ? ? ? 76 2A", 4);
+        float_11CC9D4 = *hook::get_pattern<float*>("81 FE ? ? ? ? 0F 8C ? ? ? ? 5F 5E 8A C3", 2);
+        sub_855470 = (void(*)(float)) *hook::get_pattern<void*>("F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? F3 0F 10 0D ? ? ? ? F3 0F 2A 15", 0);
+
+        auto pattern = hook::pattern("6A 01 55 E8 ? ? ? ? 83 C4 08 E8 ? ? ? ? 5F 5E 5D 5B 8B E5 5D C3");
+        injector::MakeCALL(pattern.get_first(11), sub_855640, true);
+        pattern = hook::pattern("89 48 24 E8 ? ? ? ? E8 ? ? ? ? 8B 8C 24 ? ? ? ? 5F 5E 33 CC E8 ? ? ? ? 81 C4 ? ? ? ? C3");
+        injector::MakeCALL(pattern.get_first(8), sub_855640, true);
+        pattern = hook::pattern("C7 40 ? ? ? ? ? EB 02 33 C0 8B C8 E8 ? ? ? ? 6A 00 6A 08 E8 ? ? ? ? 83 C4 08 85 C0 74 0E 8B C8 E8");
+        injector::WriteMemory(pattern.get_first(3), sub_855640, true);
+        pattern = hook::pattern("E8 ? ? ? ? 84 C0 75 89");
+        CCutscenes__hasCutsceneFinished = (bool(*)()) injector::GetBranchDestination(pattern.get_first(0)).get();
+        pattern = hook::pattern("E8 ? ? ? ? 84 C0 75 42 38 05");
+        CCamera__isWidescreenBordersActive = (bool(*)()) injector::GetBranchDestination(pattern.get_first(0)).get();
     }
 
     //draw distance adjuster
