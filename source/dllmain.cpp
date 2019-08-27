@@ -20,13 +20,11 @@ int32_t nFrameLimitType;
 float fFpsLimit;
 float fCutsceneFpsLimit;
 float fScriptCutsceneFpsLimit;
-bool SET_CAM_FOV_invoked;
+float fScriptCutsceneFovLimit;
 
 void __cdecl sub_855640()
 {
-    static float* arg_esp;
-    _asm mov arg_esp, esp
-    injector::thiscall<void(float*)>::call(*(uintptr_t*)(*(uintptr_t*)(*dword_11CC9D0) + 20), arg_esp);
+    //injector::fastcall<void(uintptr_t)>::call(*(uintptr_t*)(*(uintptr_t*)(*dword_11CC9D0) + 20), *dword_11CC9D0);
 
     static auto wants_to_limit_fps = []() -> bool
     {
@@ -74,7 +72,7 @@ void __cdecl sub_855640()
         {
             *float_F33C18 = 2.0f;
             if (*dword_112EAC0 == 1 || *dword_11402D4 != -1 || *dword_F30468 == 18)
-                * float_F33C18 = 1.0f;
+                *float_F33C18 = 1.0f;
             double v1 = (double)((*float_F33C18 - 0.1f) * ((1.0f / get_fps_limit()) / 2.0f));
             double v3 = (double)(sub_456F60().QuadPart - *qword_11CCA80);
             if (v1 > v3 * *float_18CAE9C)
@@ -143,16 +141,15 @@ void __cdecl sub_855640()
             QueryPerformanceCounter(&PerformanceCount2);
             PerformanceCount1.QuadPart = PerformanceCount2.QuadPart >> i;
         }
-        SET_CAM_FOV_invoked = false;
     }
 
     //is that even used?
     {
         auto v2 = 0.0f;
-        auto v01 = (uint8_t * *)unk_11CC9D8;
+        auto v01 = (uint8_t **)unk_11CC9D8;
         auto v02 = v01[2];
         if (v02 && *v02)
-            v2 = atof((const char*)v01[2]); //v01 has autoconfig string
+            v2 = atof((const char*)v01[2]);
 
         if (v2 > 0.0f)
         {
@@ -185,10 +182,13 @@ void Init()
     bool bEmissiveShaderFix = iniReader.ReadInteger("MAIN", "EmissiveShaderFix", 1) != 0;
     bool bHandbrakeCamFix = iniReader.ReadInteger("MAIN", "HandbrakeCamFix", 1) != 0;
 
-    nFrameLimitType = iniReader.ReadInteger("FRAMELIMIT", "FrameLimitType", 0);
+    nFrameLimitType = iniReader.ReadInteger("FRAMELIMIT", "FrameLimitType", 1);
     fFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "FpsLimit", 0));
     fCutsceneFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "CutsceneFpsLimit", 0));
     fScriptCutsceneFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "ScriptCutsceneFpsLimit", 0));
+    fScriptCutsceneFovLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "ScriptCutsceneFovLimit", 0));
+
+    static float& fTimeStep = **hook::get_pattern<float*>("D8 0D ? ? ? ? 83 C0 30", -9);
 
     if (bRecoilFix)
     {
@@ -262,9 +262,7 @@ void Init()
 
     if (bHandbrakeCamFix)
     {
-        auto pattern = hook::pattern("D8 0D ? ? ? ? 83 C0 30");
-        static float& fTimeStep = **pattern.get_first<float*>(-9);
-        pattern = hook::pattern("D9 44 24 20 8B 54 24 64 F3 0F 10 02 51 D9 1C 24 8D 44 24 20 50");
+        auto pattern = hook::pattern("D9 44 24 20 8B 54 24 64 F3 0F 10 02 51 D9 1C 24 8D 44 24 20 50");
         struct HandbrakeCam
         {
             void operator()(injector::reg_pack& regs)
@@ -282,30 +280,47 @@ void Init()
         //auto pattern = hook::pattern("6A 01 51 8B CE D9 1C 24 E8 ? ? ? ? D9 54 24 2C D9 EE 8A 44 24 1B D9 C9 DF F1 DD D8 76 18");
         //injector::WriteMemory<uint8_t>(pattern.get_first(1), 0, true); //intro cutscene fix?
 
-        dword_11CC9D0 = *hook::get_pattern<uint32_t*>("81 F9 ? ? ? ? 7C BC", 2);
-        dword_112EAC0 = *hook::get_pattern<int32_t*>("39 05 ? ? ? ? 74 14 83 3D", 2);
-        dword_11402D4 = *hook::get_pattern<int32_t*>("8B 0D ? ? ? ? 3B 0D ? ? ? ? 75 2A", 2);
-        dword_F30468 = *hook::get_pattern<int32_t*>("A1 ? ? ? ? 83 F8 02 74 05 83 F8 07 75 0F 80 3D", 1);
-        float_F33C18 = *hook::get_pattern<float*>("F3 0F 11 05 ? ? ? ? 74 09 3B CA", 4);
-        sub_456F60 = (LARGE_INTEGER(*)()) *hook::get_pattern<void*>("55 8B EC 83 E4 F8 83 EC 18 53 55 56 33 F6 39 35", 0);
-        qword_11CCA80 = *hook::get_pattern<int64_t*>("8B 0D ? ? ? ? 8B 35 ? ? ? ? 2B C1 1B D6 89 44 24 0C 89 54 24 10 DF 6C 24 0C D8 0D ? ? ? ? D9 44 24 04 DF F1 DD D8", 2);
-        float_18CAE9C = *hook::get_pattern<float*>("D8 0D ? ? ? ? D9 44 24 04 DF F1", 2);
-        unk_11CC9D8 = *hook::get_pattern<void*>("3D ? ? ? ? 7C D5 5F", 1);
+        dword_11CC9D0 = *hook::get_pattern<uint32_t*>("8B 0D ? ? ? ? 8B 01 8B 50 14 83 EC 18", 2);
+        float_11CC9D4 = (float*)(dword_11CC9D0 + 1);
+        unk_11CC9D8 = dword_11CC9D0 + 2;
+        dword_112EAC0 = *hook::get_pattern<int32_t*>("D9 5C 24 0C A1", 5);
+        dword_11402D4 = *hook::get_pattern<int32_t*>("A3 ? ? ? ? E8 ? ? ? ? 83 C4 08 C7 05", 1);
+        dword_F30468 = *hook::get_pattern<int32_t*>("A1 ? ? ? ? 74 0E 83 3D", 1);
+        float_F33C18 = *hook::get_pattern<float*>("D9 05 ? ? ? ? D8 25 ? ? ? ? D8 0D", 2);
+        float_F33C24 = *hook::get_pattern<float*>("F3 0F 59 05 ? ? ? ? 0F 28 EA F3 0F 5E EB", 4);
+        qword_11CCA80 = *hook::get_pattern<int64_t*>("A3 ? ? ? ? 89 15 ? ? ? ? 0F 57 C0", 1);
+        float_18CAE9C = *hook::get_pattern<float*>("89 75 E4 F3 0F 10 05", 7);
         qword_10FCB84 = *hook::get_pattern<double*>("D9 05 ? ? ? ? 53 D8 0D ? ? ? ? 56 D9 7C 24 0C", 2);
-        float_F33C24 = *hook::get_pattern<float*>("F3 0F 11 05 ? ? ? ? 76 2A", 4);
-        float_11CC9D4 = *hook::get_pattern<float*>("81 FE ? ? ? ? 0F 8C ? ? ? ? 5F 5E 8A C3", 2);
-        sub_855470 = (void(*)(float)) *hook::get_pattern<void*>("F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? F3 0F 10 0D ? ? ? ? F3 0F 2A 15", 0);
+        sub_456F60 = (LARGE_INTEGER(*)()) hook::get_pattern<void*>("55 8B EC 83 E4 F8 83 EC 18 53 55 56 33 F6 39 35", 0);
+        sub_855470 = (void(*)(float)) hook::get_pattern<void*>("F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? F3 0F 10 0D ? ? ? ? F3 0F 2A 15", 0);
 
-        auto pattern = hook::pattern("6A 01 55 E8 ? ? ? ? 83 C4 08 E8 ? ? ? ? 5F 5E 5D 5B 8B E5 5D C3");
-        injector::MakeCALL(pattern.get_first(11), sub_855640, true);
-        pattern = hook::pattern("89 48 24 E8 ? ? ? ? E8 ? ? ? ? 8B 8C 24 ? ? ? ? 5F 5E 33 CC E8 ? ? ? ? 81 C4 ? ? ? ? C3");
-        injector::MakeCALL(pattern.get_first(8), sub_855640, true);
-        pattern = hook::pattern("C7 40 ? ? ? ? ? EB 02 33 C0 8B C8 E8 ? ? ? ? 6A 00 6A 08 E8 ? ? ? ? 83 C4 08 85 C0 74 0E 8B C8 E8");
-        injector::WriteMemory(pattern.get_first(3), sub_855640, true);
-        pattern = hook::pattern("E8 ? ? ? ? 84 C0 75 89");
+        auto pattern = hook::pattern("E8 ? ? ? ? 84 C0 75 89");
         CCutscenes__hasCutsceneFinished = (bool(*)()) injector::GetBranchDestination(pattern.get_first(0)).get();
         pattern = hook::pattern("E8 ? ? ? ? 84 C0 75 42 38 05");
         CCamera__isWidescreenBordersActive = (bool(*)()) injector::GetBranchDestination(pattern.get_first(0)).get();
+
+        //pattern = hook::pattern("6A 01 55 E8 ? ? ? ? 83 C4 08 E8 ? ? ? ? 5F 5E 5D 5B 8B E5 5D C3");
+        //injector::MakeCALL(pattern.get_first(11), sub_855640, true);
+        //pattern = hook::pattern("89 48 24 E8 ? ? ? ? E8 ? ? ? ? 8B 8C 24 ? ? ? ? 5F 5E 33 CC E8 ? ? ? ? 81 C4 ? ? ? ? C3");
+        //injector::MakeCALL(pattern.get_first(8), sub_855640, true);
+        //pattern = hook::pattern("C7 40 ? ? ? ? ? EB 02 33 C0 8B C8 E8 ? ? ? ? 6A 00 6A 08 E8 ? ? ? ? 83 C4 08 85 C0 74 0E 8B C8 E8");
+        //injector::WriteMemory(pattern.get_first(3), sub_855640, true);
+        pattern = hook::pattern("A1 ? ? ? ? 83 F8 01 8B 0D ? ? ? ? 8B 15 ? ? ? ? 8B 35 ? ? ? ? 74 0D 3B CA");
+        injector::WriteMemory(pattern.get_first(0), 0x901CC483, true);
+        injector::MakeJMP(pattern.get_first(4), sub_855640, true);
+    }
+
+    if (fScriptCutsceneFovLimit)
+    {
+        auto pattern = hook::pattern("D9 46 0C D9 58 60 5E C3");
+        struct SetFOVHook
+        {
+            void operator()(injector::reg_pack& regs)
+            {
+                float f = *(float*)(regs.esi + 0x0C);
+                *(float*)(regs.eax + 0x60) = f > fScriptCutsceneFovLimit ? f : fScriptCutsceneFovLimit;
+            }
+        }; injector::MakeInline<SetFOVHook>(pattern.get_first(0), pattern.get_first(6));
     }
 
     //draw distance adjuster

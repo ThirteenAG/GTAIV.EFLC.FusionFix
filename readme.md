@@ -18,6 +18,7 @@ Changelog:
 - [Fixed DLC car lights in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/3)
 - [Tree foliage casts dynamic shadows instead of static](https://github.com/GTAmodding/GTAIV-Issues-List/issues/9)
 - [Fixed handbrake camera, that doesn't work with high fps](https://github.com/GTAmodding/GTAIV-Issues-List/issues/10)
+- [Added various frame limiting options to address cutscene zoom and other fps related issues](https://github.com/GTAmodding/GTAIV-Issues-List/issues/1)
 
 ## Installation:
 
@@ -36,13 +37,23 @@ This requires ASI Loader or [XLiveLessAddon](https://bitbucket.org/ThirteenAG/xl
 
 Unpack the content of archive to your **GTAIV** or **EFLC** directory.
 
-**TBoGT as DLC note**: if you have episodes installed as DLC in your **GTAIV** folder, you need to move
+#### **TBoGT as DLC note**:
 
-**Grand Theft Auto IV/TBoGT/pc/models/cdimages/vehicles.img**
+if you have episodes installed as DLC in your **GTAIV** folder, you need to move
+
+`Grand Theft Auto IV/TBoGT/pc/models/cdimages/vehicles.img`
 
 to
 
-**Grand Theft Auto IV/DLC/TBoGT/content/pc/models/cdimages/vehicles.img**
+`Grand Theft Auto IV/DLC/TBoGT/content/pc/models/cdimages/vehicles.img`
+
+#### **FRAMELIMIT section note**:
+
+**FpsLimit** - enter a desired value to specify the number of frames per second you want for the game. Like 30, 45, 60 or more. This will affect all gameplay.
+
+**CutsceneFpsLimit** - enter a desired value to specify the number of frames per second you want for the game to use on cutscenes only. Recommended 60 or lower, this option aims to fix the cutscene zoom that happens when playing on high fps.
+
+**ScriptCutsceneFovLimit** - this is the minimum fov value the game can set during script cutscenes, [like this one](https://www.youtube.com/watch?v=NzKw7ijHG10&hd=1). It prevents the game to zoom in too much on high fps. Since it's not a proper fix for the issue, you may disable it and use _hidden_ setting **ScriptCutsceneFpsLimit** that works the same way as **CutsceneFpsLimit**.
 
 ---
 
