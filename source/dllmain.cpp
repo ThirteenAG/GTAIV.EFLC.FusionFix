@@ -336,7 +336,7 @@ void Init()
         while (f >> value >> key)
         {
             std::transform(value.begin(), value.end(), value.begin(), ::tolower);
-            if (value.starts_with("lod"))
+            if (value.starts_with("lod") || value.starts_with("slod"))
                 hashes[key] = value;
         }
 
@@ -352,9 +352,18 @@ void Init()
 
                 if (hashes.count(hash) > 0)
                 {
-                    *(float*)(regs.ebx + 0x00) -= 0.5f;
-                    *(float*)(regs.ebx + 0x04) += 0.5f;
-                    *(float*)(regs.ebx + 0x08) -= 0.4f;
+                    if (hashes[hash].starts_with("lod"))
+                    {
+                        *(float*)(regs.ebx + 0x00) -= fLodShift;
+                        *(float*)(regs.ebx + 0x04) -= fLodShift;
+                        *(float*)(regs.ebx + 0x08) -= fLodShift;
+                    }
+                    else if(hashes[hash].starts_with("slod"))
+                    {
+                        *(float*)(regs.ebx + 0x00) += (fLodShift / 4.0f);
+                        *(float*)(regs.ebx + 0x04) += (fLodShift / 4.0f);
+                        *(float*)(regs.ebx + 0x08) -= (fLodShift / 4.0f);
+                    }
                 }
 
                 float f = *(float*)(regs.ebx + 0x00);
