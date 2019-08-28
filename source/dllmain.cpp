@@ -188,6 +188,10 @@ void Init()
     fScriptCutsceneFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "ScriptCutsceneFpsLimit", 0));
     fScriptCutsceneFovLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "ScriptCutsceneFovLimit", 0));
 
+    static float fLodShift = static_cast<float>(iniReader.ReadFloat("EXPERIMENTAL", "LodShift", 0.0f));
+    if (fLodShift > 0.5f)
+        fLodShift = 0.5f;
+
     static float& fTimeStep = **hook::get_pattern<float*>("D8 0D ? ? ? ? 83 C0 30", -9);
 
     if (bRecoilFix)
@@ -321,6 +325,42 @@ void Init()
                 *(float*)(regs.eax + 0x60) = f > fScriptCutsceneFovLimit ? f : fScriptCutsceneFovLimit;
             }
         }; injector::MakeInline<SetFOVHook>(pattern.get_first(0), pattern.get_first(6));
+    }
+
+    if (fLodShift)
+    {
+        static std::map<uint32_t, std::string> hashes;
+        std::ifstream f(iniReader.GetIniPath().substr(0, iniReader.GetIniPath().find_last_of('.')) + ".dat");
+        uint32_t key;
+        std::string value;
+        while (f >> value >> key)
+        {
+            std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+            if (value.starts_with("lod"))
+                hashes[key] = value;
+        }
+
+        auto pattern = hook::pattern("F3 0F 10 03 8B 17");
+        struct addIplInstHook
+        {
+            void operator()(injector::reg_pack& regs)
+            {
+                regs.edx = *(uint32_t*)(regs.edi + 0x00);
+                regs.edx = *(uint32_t*)(regs.edx + 0x08);
+
+                uint32_t hash = *(uint32_t*)(regs.ebx + 0x1C);
+
+                if (hashes.count(hash) > 0)
+                {
+                    *(float*)(regs.ebx + 0x00) -= 0.5f;
+                    *(float*)(regs.ebx + 0x04) += 0.5f;
+                    *(float*)(regs.ebx + 0x08) -= 0.4f;
+                }
+
+                float f = *(float*)(regs.ebx + 0x00);
+                _asm movss   xmm0, dword ptr[f]
+            }
+        }; injector::MakeInline<addIplInstHook>(pattern.get_first(4));
     }
 
     //draw distance adjuster
