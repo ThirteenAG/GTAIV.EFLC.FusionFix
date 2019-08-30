@@ -55,6 +55,12 @@ to
 
 **ScriptCutsceneFovLimit** - this is the minimum fov value the game can set during script cutscenes, [like this one](https://www.youtube.com/watch?v=NzKw7ijHG10&hd=1). It prevents the game to zoom in too much on high fps. Since it's not a proper fix for the issue, you may disable it and use _hidden_ setting **ScriptCutsceneFpsLimit** that works the same way as **CutsceneFpsLimit**.
 
+#### **EXPERIMENTAL section note**:
+
+**LodShift** allows to move position of all lods in the game, which reduces z-fighting. Use values in the range (-0.5; 0.5).
+
+**LodForceDistance** increases the draw distance of lods that have it lower than 300.
+
 ---
 
 ## Files rundown:

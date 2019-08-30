@@ -191,6 +191,7 @@ void Init()
     static float fLodShift = static_cast<float>(iniReader.ReadFloat("EXPERIMENTAL", "LodShift", 0.0f));
     if (fLodShift > 0.5f)
         fLodShift = 0.5f;
+    bool bLodForceDistance = iniReader.ReadInteger("EXPERIMENTAL", "LodForceDistance", 0) != 0;
 
     static float& fTimeStep = **hook::get_pattern<float*>("D8 0D ? ? ? ? 83 C0 30", -9);
 
@@ -371,6 +372,29 @@ void Init()
                 _asm movss   xmm0, dword ptr[f]
             }
         }; injector::MakeInline<addIplInstHook>(pattern.get_first(4));
+    }
+
+    if (bLodForceDistance)
+    {
+        auto pattern = hook::pattern("F3 0F 10 44 24 1C 0D 00 0C");
+        struct ParseIdeObjsHook
+        {
+            void operator()(injector::reg_pack& regs)
+            {
+                auto xmmZero = *(float*)(regs.esp + 0x1C);
+                std::string_view s = (char*)(regs.esp + 0x54);
+
+                if (xmmZero < 300.0f)
+                {
+                    if ((s[0] == 'L' || s[0] == 'l') && (s[1] == 'O' || s[1] == 'o') && (s[2] == 'D' || s[2] == 'd'))
+                    {
+                        xmmZero += 300.0f;
+                    }
+                }
+
+                _asm movss   xmm0, xmmZero
+            }
+        }; injector::MakeInline<ParseIdeObjsHook>(pattern.get_first(0), pattern.get_first(6));
     }
 
     //draw distance adjuster
