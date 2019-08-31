@@ -195,6 +195,14 @@ void Init()
 
     static float& fTimeStep = **hook::get_pattern<float*>("D8 0D ? ? ? ? 83 C0 30", -9);
 
+    //fix for lods appearing inside normal model, unless the graphics menu was opened once
+    {
+        auto pattern = hook::pattern("E8 ? ? ? ? 8D 44 24 10 83 C4 04");
+        auto sub_477300 = injector::GetBranchDestination(pattern.get_first(0));
+        pattern = hook::pattern("E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? 8B 35 ? ? ? ? E8 ? ? ? ? 25 ? ? ? ? 89 44 24 0C DB");
+        injector::MakeCALL(pattern.get_first(0), sub_477300, true);
+    }
+
     if (bRecoilFix)
     {
         static float fRecMult = 0.65f;
@@ -329,7 +337,7 @@ void Init()
         }; injector::MakeInline<SetFOVHook>(pattern.get_first(0), pattern.get_first(6));
     }
 
-    static std::map<uint32_t, std::string> hashes;
+    static std::vector<uint32_t> lods;
     static std::vector<uint32_t> models;
 
     static auto jenkins_one_at_a_time_hash = [](std::string_view key) -> uint32_t
@@ -369,21 +377,11 @@ void Init()
         {
             auto s = split(line, ' ');
 
-            if (s.size() >= 2)
+            if (s.size() >= 1)
             {
-                std::string value = s[0];
-                std::transform(value.begin(), value.end(), value.begin(), ::tolower);
-                if (value.starts_with("lod") || value.starts_with("slod"))
-                {
-                    uint32_t key;
-                    std::istringstream ss(s[1]);
-                    ss >> key;
-
-                    hashes[key] = value;
-
-                    for (size_t i = 2; i < s.size(); i++)
-                        models.push_back(jenkins_one_at_a_time_hash(s[i]));
-                }
+                lods.push_back(jenkins_one_at_a_time_hash(s[0]));
+                for (size_t i = 1; i < s.size(); i++)
+                    models.push_back(jenkins_one_at_a_time_hash(s[i]));
             }
         }
     }
@@ -400,20 +398,11 @@ void Init()
 
                 uint32_t hash = *(uint32_t*)(regs.ebx + 0x1C);
 
-                if (hashes.count(hash) > 0)
+                if (std::find(lods.begin(), lods.end(), hash) != lods.end())
                 {
-                    if (hashes[hash].starts_with("lod"))
-                    {
-                        *(float*)(regs.ebx + 0x00) -= fLodShift;
-                        *(float*)(regs.ebx + 0x04) -= fLodShift;
-                        //*(float*)(regs.ebx + 0x08) -= fLodShift;
-                    }
-                    else if(hashes[hash].starts_with("slod"))
-                    {
-                        *(float*)(regs.ebx + 0x00) += (fLodShift / 4.0f);
-                        *(float*)(regs.ebx + 0x04) += (fLodShift / 4.0f);
-                        //*(float*)(regs.ebx + 0x08) -= (fLodShift / 4.0f);
-                    }
+                    *(float*)(regs.ebx + 0x00) -= fLodShift;
+                    *(float*)(regs.ebx + 0x04) -= fLodShift;
+                    *(float*)(regs.ebx + 0x08) -= fLodShift;
                 }
 
                 float f = *(float*)(regs.ebx + 0x00);
