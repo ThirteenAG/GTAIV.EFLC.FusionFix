@@ -329,19 +329,67 @@ void Init()
         }; injector::MakeInline<SetFOVHook>(pattern.get_first(0), pattern.get_first(6));
     }
 
+    static std::map<uint32_t, std::string> hashes;
+    static std::vector<uint32_t> models;
+
+    static auto jenkins_one_at_a_time_hash = [](std::string_view key) -> uint32_t
+    {
+        std::string temp;
+        temp.resize(key.size());
+        std::transform(key.begin(), key.end(), temp.begin(), ::tolower);
+        uint32_t hash, i, len = temp.length();
+        for (hash = i = 0; i < len; ++i)
+        {
+            hash += temp[i];
+            hash += (hash << 10);
+            hash ^= (hash >> 6);
+        }
+        hash += (hash << 3);
+        hash ^= (hash >> 11);
+        hash += (hash << 15);
+        return hash;
+    };
+
+    if (fLodShift || bLodForceDistance)
+    {
+        auto split = [](const std::string& s, char delim) -> std::vector<std::string>
+        {
+            std::stringstream ss(s);
+            std::string item;
+            std::vector<std::string> elems;
+            while (std::getline(ss, item, delim))
+            {
+                elems.push_back(item);
+            }
+            return elems;
+        };
+
+        std::ifstream f(iniReader.GetIniPath().substr(0, iniReader.GetIniPath().find_last_of('.')) + ".dat");
+        for (std::string line; std::getline(f, line); )
+        {
+            auto s = split(line, ' ');
+
+            if (s.size() >= 2)
+            {
+                std::string value = s[0];
+                std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+                if (value.starts_with("lod") || value.starts_with("slod"))
+                {
+                    uint32_t key;
+                    std::istringstream ss(s[1]);
+                    ss >> key;
+
+                    hashes[key] = value;
+
+                    for (size_t i = 2; i < s.size(); i++)
+                        models.push_back(jenkins_one_at_a_time_hash(s[i]));
+                }
+            }
+        }
+    }
+
     if (fLodShift)
     {
-        static std::map<uint32_t, std::string> hashes;
-        std::ifstream f(iniReader.GetIniPath().substr(0, iniReader.GetIniPath().find_last_of('.')) + ".dat");
-        uint32_t key;
-        std::string value;
-        while (f >> value >> key)
-        {
-            std::transform(value.begin(), value.end(), value.begin(), ::tolower);
-            if (value.starts_with("lod") || value.starts_with("slod"))
-                hashes[key] = value;
-        }
-
         auto pattern = hook::pattern("F3 0F 10 03 8B 17");
         struct addIplInstHook
         {
@@ -358,13 +406,13 @@ void Init()
                     {
                         *(float*)(regs.ebx + 0x00) -= fLodShift;
                         *(float*)(regs.ebx + 0x04) -= fLodShift;
-                        *(float*)(regs.ebx + 0x08) -= fLodShift;
+                        //*(float*)(regs.ebx + 0x08) -= fLodShift;
                     }
                     else if(hashes[hash].starts_with("slod"))
                     {
                         *(float*)(regs.ebx + 0x00) += (fLodShift / 4.0f);
                         *(float*)(regs.ebx + 0x04) += (fLodShift / 4.0f);
-                        *(float*)(regs.ebx + 0x08) -= (fLodShift / 4.0f);
+                        //*(float*)(regs.ebx + 0x08) -= (fLodShift / 4.0f);
                     }
                 }
 
@@ -384,12 +432,9 @@ void Init()
                 auto xmmZero = *(float*)(regs.esp + 0x1C);
                 std::string_view s = (char*)(regs.esp + 0x54);
 
-                if (xmmZero < 300.0f)
+                if (xmmZero < 300.0f && std::find(models.begin(), models.end(), jenkins_one_at_a_time_hash(s)) != models.end())
                 {
-                    if ((s[0] == 'L' || s[0] == 'l') && (s[1] == 'O' || s[1] == 'o') && (s[2] == 'D' || s[2] == 'd'))
-                    {
-                        xmmZero += 300.0f;
-                    }
+                    xmmZero = min(299.0f, xmmZero * 2.0f);
                 }
 
                 _asm movss   xmm0, xmmZero

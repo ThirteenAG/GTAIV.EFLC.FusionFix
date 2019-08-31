@@ -59,7 +59,7 @@ to
 
 **LodShift** allows to move position of all lods in the game, which reduces z-fighting. Use values in the range (-0.5; 0.5).
 
-**LodForceDistance** increases the draw distance of lods that have it lower than 300.
+**LodForceDistance** increases the draw distance of objects affected by **LodShift**. Set to 1 to enable.
 
 ---
 
