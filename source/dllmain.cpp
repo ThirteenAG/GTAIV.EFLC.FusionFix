@@ -177,30 +177,54 @@ void __cdecl sub_855640()
 void Init()
 {
     CIniReader iniReader("");
+    //[MAIN]
     bool bRecoilFix = iniReader.ReadInteger("MAIN", "RecoilFix", 1) != 0;
     bool bDefinitionFix = iniReader.ReadInteger("MAIN", "DefinitionFix", 1) != 0;
     bool bEmissiveShaderFix = iniReader.ReadInteger("MAIN", "EmissiveShaderFix", 1) != 0;
     bool bHandbrakeCamFix = iniReader.ReadInteger("MAIN", "HandbrakeCamFix", 1) != 0;
+    bool bAimingZoomFix = iniReader.ReadInteger("MAIN", "AimingZoomFix", 1) != 0;
 
+    //[FRAMELIMIT]
     nFrameLimitType = iniReader.ReadInteger("FRAMELIMIT", "FrameLimitType", 1);
     fFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "FpsLimit", 0));
     fCutsceneFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "CutsceneFpsLimit", 0));
     fScriptCutsceneFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "ScriptCutsceneFpsLimit", 0));
     fScriptCutsceneFovLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "ScriptCutsceneFovLimit", 0));
 
+    //[MISC]
+    bool bDefaultCameraAngleInTLAD = iniReader.ReadInteger("MISC", "DefaultCameraAngleInTLAD", 0) != 0;
+
+    //[EXPERIMENTAL]
     static float fLodShift = static_cast<float>(iniReader.ReadFloat("EXPERIMENTAL", "LodShift", 0.0f));
+    bool bLodForceDistance = iniReader.ReadInteger("EXPERIMENTAL", "LodForceDistance", 0) != 0;
     if (fLodShift > 0.5f)
         fLodShift = 0.5f;
-    bool bLodForceDistance = iniReader.ReadInteger("EXPERIMENTAL", "LodForceDistance", 0) != 0;
+    else if (fLodShift < -0.5f)
+        fLodShift = -0.5f;
 
     static float& fTimeStep = **hook::get_pattern<float*>("D8 0D ? ? ? ? 83 C0 30", -9);
 
-    //fix for lods appearing inside normal model, unless the graphics menu was opened once
+    //fix for lods appearing inside normal models, unless the graphics menu was opened once (draw distances aren't set properly?)
     {
         auto pattern = hook::pattern("E8 ? ? ? ? 8D 44 24 10 83 C4 04");
         auto sub_477300 = injector::GetBranchDestination(pattern.get_first(0));
         pattern = hook::pattern("E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? 8B 35 ? ? ? ? E8 ? ? ? ? 25 ? ? ? ? 89 44 24 0C DB");
         injector::MakeCALL(pattern.get_first(0), sub_477300, true);
+    }
+
+    //fix for aiming zoom enabled by default in TBOGT
+    if (bAimingZoomFix)
+    {
+        auto pattern = hook::pattern("8A D0 32 15 ? ? ? ? 80 E2 01 32 D0 88 96");
+        injector::WriteMemory<uint8_t>(pattern.get_first(-2), 0xEB, true);
+    }
+
+    //camera position in TLAD
+    if (bDefaultCameraAngleInTLAD)
+    {
+        static uint32_t episode_id = 0;
+        auto pattern = hook::pattern("83 3D ? ? ? ? ? 75 06 C7 00 ? ? ? ? B0 01 C2 08 00");
+        injector::WriteMemory(pattern.count(2).get(0).get<void>(2), &episode_id, true);
     }
 
     if (bRecoilFix)

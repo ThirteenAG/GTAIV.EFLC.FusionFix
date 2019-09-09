@@ -19,6 +19,7 @@ Changelog:
 - [Tree foliage casts dynamic shadows instead of static](https://github.com/GTAmodding/GTAIV-Issues-List/issues/9)
 - [Fixed handbrake camera, that doesn't work with high fps](https://github.com/GTAmodding/GTAIV-Issues-List/issues/10)
 - [Added various frame limiting options to address cutscene zoom and other fps related issues](https://github.com/GTAmodding/GTAIV-Issues-List/issues/1)
+- [Fixed forced aiming zoom in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/19)
 
 ## Installation:
 
@@ -37,7 +38,7 @@ This requires ASI Loader or [XLiveLessAddon](https://bitbucket.org/ThirteenAG/xl
 
 Unpack the content of archive to your **GTAIV** or **EFLC** directory.
 
-#### **TBoGT as DLC note**:
+### **TBoGT as DLC note**:
 
 if you have episodes installed as DLC in your **GTAIV** folder, you need to move
 
@@ -47,7 +48,7 @@ to
 
 `Grand Theft Auto IV/DLC/TBoGT/content/pc/models/cdimages/vehicles.img`
 
-#### **FRAMELIMIT section note**:
+### **FRAMELIMIT section note**:
 
 **FpsLimit** - enter a desired value to specify the number of frames per second you want for the game. Like 30, 45, 60 or more. This will affect all gameplay.
 
@@ -55,11 +56,17 @@ to
 
 **ScriptCutsceneFovLimit** - this is the minimum fov value the game can set during script cutscenes, [like this one](https://www.youtube.com/watch?v=NzKw7ijHG10&hd=1). It prevents the game to zoom in too much on high fps. Since it's not a proper fix for the issue, you may disable it and use _hidden_ setting **ScriptCutsceneFpsLimit** that works the same way as **CutsceneFpsLimit**.
 
-#### **EXPERIMENTAL section note**:
+### **MISC section note**:
+
+**DefaultCameraAngleInTLAD** - TLAD uses a different camera angle on bikes, this option can force the original IV camera angle. [Enabled](https://i.imgur.com/PqFHJfU.jpg) / [Disabled](https://i.imgur.com/5kM5Sgn.jpg)
+
+### **EXPERIMENTAL section note**:
 
 **LodShift** allows to move position of all lods in the game, which reduces z-fighting. Use values in the range (-0.5; 0.5).
 
 **LodForceDistance** increases the draw distance of objects affected by **LodShift**. Set to 1 to enable.
+
+`It is not recommended to enable these options, so use them at your own risk.`
 
 ---
 
@@ -86,7 +93,7 @@ to
     plugins/GTAIV.EFLC.FusionFix.asi
     plugins/GTAIV.EFLC.FusionFix.ini
 
-**Recoil, definition and shader bugs are fixed here.**
+**Recoil, definition, shader and other bugs are fixed here.**
 
 # Reporting more issues
 
