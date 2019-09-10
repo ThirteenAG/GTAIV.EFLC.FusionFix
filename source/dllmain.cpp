@@ -182,7 +182,7 @@ void Init()
     bool bDefinitionFix = iniReader.ReadInteger("MAIN", "DefinitionFix", 1) != 0;
     bool bEmissiveShaderFix = iniReader.ReadInteger("MAIN", "EmissiveShaderFix", 1) != 0;
     bool bHandbrakeCamFix = iniReader.ReadInteger("MAIN", "HandbrakeCamFix", 1) != 0;
-    bool bAimingZoomFix = iniReader.ReadInteger("MAIN", "AimingZoomFix", 1) != 0;
+    int32_t nAimingZoomFix = iniReader.ReadInteger("MAIN", "AimingZoomFix", 1);
 
     //[FRAMELIMIT]
     nFrameLimitType = iniReader.ReadInteger("FRAMELIMIT", "FrameLimitType", 1);
@@ -193,6 +193,7 @@ void Init()
 
     //[MISC]
     bool bDefaultCameraAngleInTLAD = iniReader.ReadInteger("MISC", "DefaultCameraAngleInTLAD", 0) != 0;
+    bool bPedDeathAnimFixFromTBOGT = iniReader.ReadInteger("MISC", "PedDeathAnimFixFromTBOGT", 1) != 0;
 
     //[EXPERIMENTAL]
     static float fLodShift = static_cast<float>(iniReader.ReadFloat("EXPERIMENTAL", "LodShift", 0.0f));
@@ -212,19 +213,39 @@ void Init()
         injector::MakeCALL(pattern.get_first(0), sub_477300, true);
     }
 
-    //fix for aiming zoom enabled by default in TBOGT
-    if (bAimingZoomFix)
+    //fix for zoom flag in tbogt
+    if (nAimingZoomFix)
     {
-        auto pattern = hook::pattern("8A D0 32 15 ? ? ? ? 80 E2 01 32 D0 88 96");
-        injector::WriteMemory<uint8_t>(pattern.get_first(-2), 0xEB, true);
-    }
+        auto pattern = hook::pattern("8A D0 32 15");
+        static auto& byte_F47AB1 = **pattern.get_first<uint8_t*>(4);
+        if (nAimingZoomFix > 1)
+            injector::MakeNOP(pattern.get_first(-2), 2, true);
+        else if (nAimingZoomFix < 0)
+            injector::WriteMemory<uint8_t>(pattern.get_first(-2), 0xEB, true);
 
-    //camera position in TLAD
-    if (bDefaultCameraAngleInTLAD)
-    {
-        static uint32_t episode_id = 0;
-        auto pattern = hook::pattern("83 3D ? ? ? ? ? 75 06 C7 00 ? ? ? ? B0 01 C2 08 00");
-        injector::WriteMemory(pattern.count(2).get(0).get<void>(2), &episode_id, true);
+        pattern = hook::pattern("08 9E ? ? ? ? E9");
+        struct AimZoomHook1
+        {
+            void operator()(injector::reg_pack& regs)
+            {
+                *(uint8_t*)(regs.esi + 0x200) |= 1;
+                byte_F47AB1 = 1;
+            }
+        }; injector::MakeInline<AimZoomHook1>(pattern.get_first(0), pattern.get_first(6));
+
+        pattern = hook::pattern("80 A6 ? ? ? ? ? EB 25");
+        struct AimZoomHook2
+        {
+            void operator()(injector::reg_pack& regs)
+            {
+                *(uint8_t*)(regs.esi + 0x200) &= 0xFE;
+                byte_F47AB1 = 0;
+            }
+        }; injector::MakeInline<AimZoomHook2>(pattern.get_first(0), pattern.get_first(7));
+
+        //let's default to 0 as well
+        pattern = hook::pattern("88 1D ? ? ? ? 74 10");
+        injector::WriteMemory<uint8_t>(pattern.get_first(1), 0x25, true); //mov ah
     }
 
     if (bRecoilFix)
@@ -311,6 +332,20 @@ void Init()
                 _asm fld dword ptr[f]
             }
         }; injector::MakeInline<HandbrakeCam>(pattern.get_first(0), pattern.get_first(8));
+    }
+
+    //camera position in TLAD
+    if (bDefaultCameraAngleInTLAD)
+    {
+        static uint32_t episode_id = 0;
+        auto pattern = hook::pattern("83 3D ? ? ? ? ? 75 06 C7 00 ? ? ? ? B0 01 C2 08 00");
+        injector::WriteMemory(pattern.count(2).get(0).get<void>(2), &episode_id, true);
+    }
+
+    if (bPedDeathAnimFixFromTBOGT)
+    {
+        auto pattern = hook::pattern("BB ? ? ? ? 75 29");
+        injector::MakeNOP(pattern.get_first(5), 2, true);
     }
 
     if (fFpsLimit || fCutsceneFpsLimit || fScriptCutsceneFpsLimit)

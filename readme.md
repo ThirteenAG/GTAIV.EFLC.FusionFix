@@ -19,7 +19,7 @@ Changelog:
 - [Tree foliage casts dynamic shadows instead of static](https://github.com/GTAmodding/GTAIV-Issues-List/issues/9)
 - [Fixed handbrake camera, that doesn't work with high fps](https://github.com/GTAmodding/GTAIV-Issues-List/issues/10)
 - [Added various frame limiting options to address cutscene zoom and other fps related issues](https://github.com/GTAmodding/GTAIV-Issues-List/issues/1)
-- [Fixed forced aiming zoom in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/19)
+- [Fixed aiming zoom in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/19)
 
 ## Installation:
 
@@ -48,7 +48,13 @@ to
 
 `Grand Theft Auto IV/DLC/TBoGT/content/pc/models/cdimages/vehicles.img`
 
-### **FRAMELIMIT section note**:
+### **MAIN section notes**:
+
+**HandbrakeCamFix** - this only affects handbrake camera when using a keyboard, with gamepad handbrake camera is handled differently and is too fast with high fps. No solution for that at the moment. Regular camera movement is fixed as well, which is too slow without this fix on high fps.
+
+**AimingZoomFix** - set to **1** for proper fix, so it behaves like on xbox, set to **2** to have this fixed feature enabled in IV and TLAD, set to **-1** to disable this feature. **0** disables the fix, as usual.
+
+### **FRAMELIMIT section notes**:
 
 **FpsLimit** - enter a desired value to specify the number of frames per second you want for the game. Like 30, 45, 60 or more. This will affect all gameplay.
 
@@ -56,11 +62,13 @@ to
 
 **ScriptCutsceneFovLimit** - this is the minimum fov value the game can set during script cutscenes, [like this one](https://www.youtube.com/watch?v=NzKw7ijHG10&hd=1). It prevents the game to zoom in too much on high fps. Since it's not a proper fix for the issue, you may disable it and use _hidden_ setting **ScriptCutsceneFpsLimit** that works the same way as **CutsceneFpsLimit**.
 
-### **MISC section note**:
+### **MISC section notes**:
 
 **DefaultCameraAngleInTLAD** - TLAD uses a different camera angle on bikes, this option can force the original IV camera angle. [Enabled](https://i.imgur.com/PqFHJfU.jpg) / [Disabled](https://i.imgur.com/5kM5Sgn.jpg)
 
-### **EXPERIMENTAL section note**:
+**PedDeathAnimFixFromTBOGT** - when you perform a counter attack after a dodge in IV & TLAD, the ped after falling and dying performs an additional death animation, which doesn't happen in TBOGT.
+
+### **EXPERIMENTAL section notes**:
 
 **LodShift** allows to move position of all lods in the game, which reduces z-fighting. Use values in the range (-0.5; 0.5).
 
