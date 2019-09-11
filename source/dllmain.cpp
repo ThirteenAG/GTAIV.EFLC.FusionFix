@@ -194,6 +194,7 @@ void Init()
     //[MISC]
     bool bDefaultCameraAngleInTLAD = iniReader.ReadInteger("MISC", "DefaultCameraAngleInTLAD", 0) != 0;
     bool bPedDeathAnimFixFromTBOGT = iniReader.ReadInteger("MISC", "PedDeathAnimFixFromTBOGT", 1) != 0;
+    bool bDisableCameraCenteringInCover = iniReader.ReadInteger("MISC", "DisableCameraCenteringInCover", 1) != 0;
 
     //[EXPERIMENTAL]
     static float fLodShift = static_cast<float>(iniReader.ReadFloat("EXPERIMENTAL", "LodShift", 0.0f));
@@ -346,6 +347,13 @@ void Init()
     {
         auto pattern = hook::pattern("BB ? ? ? ? 75 29");
         injector::MakeNOP(pattern.get_first(5), 2, true);
+    }
+
+    if (bDisableCameraCenteringInCover)
+    {
+        static constexpr float xmm_0 = FLT_MAX / 2.0f;
+        auto pattern = hook::pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 46 ? 89 8C 24");
+        injector::WriteMemory(pattern.get_first(4), &xmm_0, true);
     }
 
     if (fFpsLimit || fCutsceneFpsLimit || fScriptCutsceneFpsLimit)
