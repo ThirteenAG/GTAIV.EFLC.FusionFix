@@ -183,6 +183,7 @@ void Init()
     bool bEmissiveShaderFix = iniReader.ReadInteger("MAIN", "EmissiveShaderFix", 1) != 0;
     bool bHandbrakeCamFix = iniReader.ReadInteger("MAIN", "HandbrakeCamFix", 1) != 0;
     int32_t nAimingZoomFix = iniReader.ReadInteger("MAIN", "AimingZoomFix", 1);
+    bool bFlickeringShadowsFix = iniReader.ReadInteger("MAIN", "FlickeringShadowsFix", 1) != 0;
 
     //[FRAMELIMIT]
     nFrameLimitType = iniReader.ReadInteger("FRAMELIMIT", "FrameLimitType", 1);
@@ -247,6 +248,12 @@ void Init()
         //let's default to 0 as well
         pattern = hook::pattern("88 1D ? ? ? ? 74 10");
         injector::WriteMemory<uint8_t>(pattern.get_first(1), 0x25, true); //mov ah
+    }
+
+    if (bFlickeringShadowsFix)
+    {
+        auto pattern = hook::pattern("52 8D 44 24 50 50 68");
+        injector::WriteMemory(pattern.get_first(7), 0x100, true);
     }
 
     if (bRecoilFix)
