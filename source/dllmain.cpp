@@ -192,12 +192,31 @@ void __cdecl sub_7870A0(int a1)
     return hbsub_7870A0.fun(a1);
 }
 
+void MakeBorderless(HWND hWnd)
+{
+    HMONITOR monitor = MonitorFromWindow(GetDesktopWindow(), MONITOR_DEFAULTTONEAREST);
+    MONITORINFO info = {};
+    info.cbSize = sizeof(MONITORINFO);
+    GetMonitorInfo(monitor, &info);
+    int32_t DesktopResW = info.rcMonitor.right - info.rcMonitor.left;
+    int32_t DesktopResH = info.rcMonitor.bottom - info.rcMonitor.top;
+
+    RECT rc, rect;
+    GetWindowRect(hWnd, &rc);
+    rect.left = (LONG)(((float)DesktopResW / 2.0f) - (rc.right / 2.0f));
+    rect.top = (LONG)(((float)DesktopResH / 2.0f) - (rc.bottom / 2.0f));
+    rect.right = rc.right;
+    rect.bottom = rc.bottom;
+    SetWindowLong(hWnd, GWL_STYLE, GetWindowLong(hWnd, GWL_STYLE) & ~WS_OVERLAPPEDWINDOW);
+    SetWindowPos(hWnd, NULL, rect.left, rect.top, rect.right, rect.bottom, SWP_NOACTIVATE | SWP_NOZORDER);
+}
+
 LRESULT WINAPI DefWindowProcAProxy(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
     static bool bOnce = false;
     if (!bOnce)
     {
-        SetWindowLong(hWnd, GWL_STYLE, GetWindowLong(hWnd, GWL_STYLE) & ~WS_OVERLAPPEDWINDOW);
+        MakeBorderless(hWnd);
         bOnce = true;
     }
 
@@ -209,7 +228,7 @@ LRESULT WINAPI DefWindowProcWProxy(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lP
     static bool bOnce = false;
     if (!bOnce)
     {
-        SetWindowLong(hWnd, GWL_STYLE, GetWindowLong(hWnd, GWL_STYLE) & ~WS_OVERLAPPEDWINDOW);
+        MakeBorderless(hWnd);
         bOnce = true;
     }
 
