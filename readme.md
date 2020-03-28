@@ -8,7 +8,7 @@
 
 # GTAIV.EFLC.FusionFix
 
-This projects aims to fix some issues in Grand Theft Auto IV and Episodes from Liberty City.
+This projects aims to fix some issues in Grand Theft Auto IV Complete Edition.
 
 Changelog:
 
@@ -20,33 +20,26 @@ Changelog:
 - [Fixed handbrake camera, that doesn't work with high fps](https://github.com/GTAmodding/GTAIV-Issues-List/issues/10)
 - [Added various frame limiting options to address cutscene zoom and other fps related issues](https://github.com/GTAmodding/GTAIV-Issues-List/issues/1)
 - [Fixed aiming zoom in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/19)
+- Added an option to skip intro
+- Added an option to skip main menu after startup
+- Added an option to force borderless windowed mode
+- Added an option to fix mouse
 
 ## Installation:
 
-#### GTAIV 1.0.8.0 / GTAIV 1.0.8.0 + DLC Episodes / GTA EFLC 1.0.3.0
+### Install Grand Theft Auto IV Complete Edition (v1.2.0.30 and above required)
 
-This fix is tested only with latest official update and [XLiveLessAddon](https://bitbucket.org/ThirteenAG/xlivelessaddon/downloads/), and I can not guarantee that the package will work without it.
+### **Download**: [Ultimate-ASI-Loader.zip](https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/latest/download/Ultimate-ASI-Loader.zip)
 
-The following installation instructions assume that you're either have [XLiveLessAddon](https://bitbucket.org/ThirteenAG/xlivelessaddon/downloads/) already, or willing to install it.
-Online features of the game are not available with [XLiveLessAddon](https://bitbucket.org/ThirteenAG/xlivelessaddon/downloads/).
-
----
+##### Unpack **dinput8.dll** to your **GTAIV Complete Edition** root directory.
 
 ### **Download**: [GTAIV.EFLC.FusionFix.zip](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFix.zip)
 
-This requires ASI Loader or [XLiveLessAddon](https://bitbucket.org/ThirteenAG/xlivelessaddon/downloads/).
+##### Unpack content of the archive to your **GTAIV Complete Edition** root directory.
 
-Unpack the content of archive to your **GTAIV** or **EFLC** directory.
+This fix was tested only with latest official update and latest [ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/latest/download/Ultimate-ASI-Loader.zip).
 
-### **TBoGT as DLC note**:
-
-if you have episodes installed as DLC in your **GTAIV** folder, you need to move
-
-`Grand Theft Auto IV/TBoGT/pc/models/cdimages/vehicles.img`
-
-to
-
-`Grand Theft Auto IV/DLC/TBoGT/content/pc/models/cdimages/vehicles.img`
+---
 
 ### **MAIN section notes**:
 
@@ -70,15 +63,7 @@ to
 
 **DisableCameraCenteringInCover** - [see issue 20](https://github.com/GTAmodding/GTAIV-Issues-List/issues/20).
 
-### **EXPERIMENTAL section notes**:
-
-**LodShift** allows to move position of all lods in the game, which reduces z-fighting. Use values in the range (-0.5; 0.5).
-
-**LodForceDistance** increases the draw distance of objects affected by **LodShift**. Set to 1 to enable.
-
-`It is not recommended to enable these options, so use them at your own risk.`
-
----
+**MouseFix** - fixes small mouse movements not being recognized.
 
 ## Files rundown:
 
