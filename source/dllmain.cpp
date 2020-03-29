@@ -288,6 +288,10 @@ void Init()
     bool bDisableCameraCenteringInCover = iniReader.ReadInteger("MISC", "DisableCameraCenteringInCover", 1) != 0;
     bool bMouseFix = iniReader.ReadInteger("MISC", "MouseFix", 0) != 0;
 
+    //[BudgetedIV]
+    uint32_t nVehicleBudget = iniReader.ReadInteger("BudgetedIV", "VehicleBudget", 0);
+    uint32_t nPedBudget = iniReader.ReadInteger("BudgetedIV", "PedBudget", 0);
+
     static float& fTimeStep = **hook::get_pattern<float*>("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? 8B 43 20 53", 4);
 
     //fix for lods appearing inside normal models, unless the graphics menu was opened once (draw distances aren't set properly?)
@@ -518,6 +522,18 @@ void Init()
                 *(float*)(regs.eax + 0x60) = f > fScriptCutsceneFovLimit ? f : fScriptCutsceneFovLimit;
             }
         }; injector::MakeInline<SetFOVHook>(pattern.get_first(0), pattern.get_first(6));
+    }
+
+    if (nVehicleBudget)
+    {
+        auto pattern = hook::pattern("F7 2D ? ? ? ? 8B CA C1 E9 1F 03 CA B8 ? ? ? ? F7 2D ? ? ? ? 8B C2 C1 E8 1F 03 C2 89 0D ? ? ? ? A3 ? ? ? ? 83 C4 10 C3");
+        injector::WriteMemory(*pattern.get_first<void*>(2), nVehicleBudget, true);
+    }
+
+    if (nPedBudget)
+    {
+        auto pattern = hook::pattern("F7 2D ? ? ? ? 8B C2 C1 E8 1F 03 C2 89 0D ? ? ? ? A3 ? ? ? ? 83 C4 10 C3");
+        injector::WriteMemory(*pattern.get_first<void*>(2), nPedBudget, true);
     }
 }
 
