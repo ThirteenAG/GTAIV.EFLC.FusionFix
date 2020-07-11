@@ -14,9 +14,8 @@ Changelog:
 
 - [Fixed recoil behavior that was different when playing with keyboard/mouse and gamepad](https://github.com/GTAmodding/GTAIV-Issues-List/issues/6)
 - [Fixed forced "definition off" setting in cutscenes, now cutscenes will respect the menu setting](https://github.com/GTAmodding/GTAIV-Issues-List/issues/5)
-- [Partially fixed emissive shader bug, namely BAWSAQ building is still rendered incorrectly, but the rest of the lights are now present in the game (e.g. Rotterdam Tower, Comrades Bar area)](https://github.com/GTAmodding/GTAIV-Issues-List/issues/4)
+- [Partially fixed emissive shader bug, lights are now present in the game (e.g. Rotterdam Tower, Comrades Bar area)](https://github.com/GTAmodding/GTAIV-Issues-List/issues/4)
 - [Fixed DLC car lights in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/3)
-- [Tree foliage casts dynamic shadows instead of static](https://github.com/GTAmodding/GTAIV-Issues-List/issues/9)
 - [Fixed handbrake camera, that doesn't work with high fps](https://github.com/GTAmodding/GTAIV-Issues-List/issues/10)
 - [Added various frame limiting options to address cutscene zoom and other fps related issues](https://github.com/GTAmodding/GTAIV-Issues-List/issues/1)
 - [Fixed aiming zoom in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/19)
@@ -71,19 +70,15 @@ This fix was tested only with latest official update and latest [ASI Loader](htt
 
 **Car lights fix for TBoGT.**
 
-    pc/data/maps/props/vegetation/ext_veg.ide
-    pc/data/maps/props/vegetation/ext_veg.img
-
-**Trees shadows fix.**
-
     common/shaders/win32_30/gta_emissivestrong.fxc
     common/shaders/win32_30_atidx10/gta_emissivestrong.fxc
     common/shaders/win32_30_low_ati/gta_emissivestrong.fxc
     common/shaders/win32_30_nv6/gta_emissivestrong.fxc
     common/shaders/win32_30_nv7/gta_emissivestrong.fxc
     common/shaders/win32_30_nv8/gta_emissivestrong.fxc
+    common/GTAIV.EFLC.FusionFix.img
 
-**Corrected shaders to make the lights appear. Used in conjunction with GTAIV.EFLC.FusionFix.asi.**
+**Corrected shaders to make emissive lights appear. Used in conjunction with GTAIV.EFLC.FusionFix.asi.**
 
     plugins/GTAIV.EFLC.FusionFix.asi
     plugins/GTAIV.EFLC.FusionFix.ini

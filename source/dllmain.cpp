@@ -220,7 +220,7 @@ void MakeBorderless(HWND hWnd)
 
 LRESULT WINAPI DefWindowProcAProxy(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
-    if (Msg == WM_PAINT)
+    if ((GetWindowLongA(hWnd, GWL_STYLE) & WS_OVERLAPPEDWINDOW) != 0)
         MakeBorderless(hWnd);
 
     return DefWindowProcA(hWnd, Msg, wParam, lParam);
@@ -228,7 +228,7 @@ LRESULT WINAPI DefWindowProcAProxy(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lP
 
 LRESULT WINAPI DefWindowProcWProxy(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
-    if (Msg == WM_PAINT)
+    if ((GetWindowLongW(hWnd, GWL_STYLE) & WS_OVERLAPPEDWINDOW) != 0)
         MakeBorderless(hWnd);
 
     return DefWindowProcW(hWnd, Msg, wParam, lParam);
@@ -355,7 +355,7 @@ void Init()
             }
         }; injector::MakeInline<AimZoomHook1>(pattern.get_first(0), pattern.get_first(7));
 
-        pattern = hook::pattern("80 A6 ? ? ? ? ? 5B 5F 5E C2 14 00");
+        pattern = hook::pattern("76 09 80 A6 ? ? ? ? ? EB 26");
         struct AimZoomHook2
         {
             void operator()(injector::reg_pack& regs)
@@ -363,7 +363,7 @@ void Init()
                 *(uint8_t*)(regs.esi + 0x200) &= 0xFE;
                 byte_F47AB1 = 0;
             }
-        }; injector::MakeInline<AimZoomHook2>(pattern.get_first(0), pattern.get_first(7));
+        }; injector::MakeInline<AimZoomHook2>(pattern.get_first(2), pattern.get_first(9));
 
         //let's default to 0 as well
         pattern = hook::pattern("C6 05 ? ? ? ? ? 74 12 83 3D");
@@ -435,6 +435,25 @@ void Init()
                 regs.eax = regs.eax << 4;
             }
         }; injector::MakeInline<ShaderTest>(pattern.count(2).get(1).get<void>(0), pattern.count(2).get(1).get<void>(6));
+
+        //BAWSAQ
+        pattern = hook::pattern("E8 ? ? ? ? 6A 00 E8 ? ? ? ? 83 C4 14 6A 00");
+        static auto CImgManager__addImgFile = (void(__cdecl*)(char*, char, int)) injector::GetBranchDestination(pattern.get_first(0)).get();
+        static auto sub_A95980 = (void(__cdecl*)(char)) injector::GetBranchDestination(pattern.get_first(7)).get();
+
+        pattern = hook::pattern("B9 ? ? ? ? E8 ? ? ? ? 84 C0 74 22 68");
+        static auto g_assetManager = *pattern.get_first<uint32_t>(1);
+        struct AddImgHook
+        {
+            void operator()(injector::reg_pack& regs)
+            {
+                regs.ecx = g_assetManager;
+
+                sub_A95980(255);
+                CImgManager__addImgFile("common:/GTAIV.EFLC.FusionFix.img", 1, -1);
+                sub_A95980(0);
+            }
+        }; injector::MakeInline<AddImgHook>(pattern.get_first(0));
     }
 
     if (bHandbrakeCamFix)
