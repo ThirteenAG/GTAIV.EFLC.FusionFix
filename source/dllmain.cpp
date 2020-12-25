@@ -174,6 +174,33 @@ void __cdecl sub_855640()
     }
 }
 
+uint32_t dword_F43AD8;
+uint32_t dword_1826D48;
+uint32_t dword_1826D34;
+uint32_t dword_1826D4C;
+uint32_t dword_1826D6C;
+double __cdecl MouseFix(void*, int32_t axis)
+{
+    auto address = *(int32_t*)(dword_F43AD8 + 0xC);
+    if (*(BYTE*)(address + 0x1C4) & 8)
+    {
+        *(int32_t*)(dword_1826D48) = 0;
+        *(int32_t*)(dword_1826D34) = 0;
+        *(int32_t*)(dword_1826D4C) = 0;
+        *(int32_t*)(dword_1826D6C) = 0;
+    }
+    if (axis == 0)
+    {
+        return (double)(*(int32_t*)(dword_1826D48)) * 0.0078125;
+    }
+    else if (axis == 1)
+    {
+        return (double)(*(int32_t*)(dword_1826D34)) * 0.0078125;
+    }
+
+    return 0.0;
+}
+
 void Init()
 {
     CIniReader iniReader("");
@@ -196,14 +223,7 @@ void Init()
     bool bDefaultCameraAngleInTLAD = iniReader.ReadInteger("MISC", "DefaultCameraAngleInTLAD", 0) != 0;
     bool bPedDeathAnimFixFromTBOGT = iniReader.ReadInteger("MISC", "PedDeathAnimFixFromTBOGT", 1) != 0;
     bool bDisableCameraCenteringInCover = iniReader.ReadInteger("MISC", "DisableCameraCenteringInCover", 1) != 0;
-
-    //[EXPERIMENTAL]
-    static float fLodShift = static_cast<float>(iniReader.ReadFloat("EXPERIMENTAL", "LodShift", 0.0f));
-    bool bLodForceDistance = iniReader.ReadInteger("EXPERIMENTAL", "LodForceDistance", 0) != 0;
-    if (fLodShift > 0.5f)
-        fLodShift = 0.5f;
-    else if (fLodShift < -0.5f)
-        fLodShift = -0.5f;
+    bool bMouseFix = iniReader.ReadInteger("MISC", "MouseFix", 0) != 0;
 
     static float& fTimeStep = **hook::get_pattern<float*>("D8 0D ? ? ? ? 83 C0 30", -9);
 
@@ -325,6 +345,25 @@ void Init()
         //        *(uint8_t*)&regs.esi = *(uint8_t*)(regs.edx + 0x00);
         //    }
         //}; injector::MakeInline<ShaderTest2>(pattern.count(6).get(3).get<void>(0), pattern.count(6).get(3).get<void>(6)); //41782D
+
+        //BAWSAQ
+        pattern = hook::pattern("E8 ? ? ? ? 6A 00 E8 ? ? ? ? 83 C4 14 6A 00 B9 ? ? ? ? E8 ? ? ? ? 39 35 ? ? ? ? 75 09 6A 01");
+        static auto CImgManager__addImgFile = (void(__cdecl*)(const char*, char, int)) injector::GetBranchDestination(pattern.get_first(0)).get();
+        static auto sub_A95980 = (void(__cdecl*)(char)) injector::GetBranchDestination(pattern.get_first(7)).get();
+
+        pattern = hook::pattern("B9 ? ? ? ? E8 ? ? ? ? 84 C0 74 22 68");
+        static auto g_assetManager = *pattern.get_first<uint32_t>(1);
+        struct AddImgHook
+        {
+            void operator()(injector::reg_pack& regs)
+            {
+                regs.ecx = g_assetManager;
+
+                sub_A95980(255);
+                CImgManager__addImgFile("common:/GTAIV.EFLC.FusionFix.img", 1, -1);
+                sub_A95980(0);
+            }
+        }; injector::MakeInline<AddImgHook>(pattern.get_first(0));
     }
 
     if (bHandbrakeCamFix)
@@ -361,6 +400,19 @@ void Init()
         static constexpr float xmm_0 = FLT_MAX / 2.0f;
         auto pattern = hook::pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 46 ? 89 8C 24");
         injector::WriteMemory(pattern.get_first(4), &xmm_0, true);
+    }
+
+    if (bMouseFix)
+    {
+        auto pattern = hook::pattern("B9 ? ? ? ? E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 80 7D 08 00");
+        dword_F43AD8 = *pattern.get_first<uint32_t>(1);
+        pattern = hook::pattern("53 33 DB 38 5C 24 08 74 26");
+        dword_1826D48 = *pattern.get_first<int32_t>(11);
+        dword_1826D34 = *pattern.get_first<int32_t>(11+6);
+        dword_1826D4C = *pattern.get_first<int32_t>(11+6+6);
+        dword_1826D6C = *pattern.get_first<int32_t>(11+6+6+6);
+        pattern = hook::pattern("51 8B 44 24 0C 85 C0 0F 57 D2 56 8B 35");
+        injector::MakeJMP(pattern.get_first(0), MouseFix, true);
     }
 
     if (fFpsLimit || fCutsceneFpsLimit || fScriptCutsceneFpsLimit)
@@ -410,106 +462,6 @@ void Init()
             }
         }; injector::MakeInline<SetFOVHook>(pattern.get_first(0), pattern.get_first(6));
     }
-
-    static std::vector<uint32_t> lods;
-    static std::vector<uint32_t> models;
-
-    static auto jenkins_one_at_a_time_hash = [](std::string_view key) -> uint32_t
-    {
-        std::string temp;
-        temp.resize(key.size());
-        std::transform(key.begin(), key.end(), temp.begin(), ::tolower);
-        uint32_t hash, i, len = temp.length();
-        for (hash = i = 0; i < len; ++i)
-        {
-            hash += temp[i];
-            hash += (hash << 10);
-            hash ^= (hash >> 6);
-        }
-        hash += (hash << 3);
-        hash ^= (hash >> 11);
-        hash += (hash << 15);
-        return hash;
-    };
-
-    if (fLodShift || bLodForceDistance)
-    {
-        auto split = [](const std::string& s, char delim) -> std::vector<std::string>
-        {
-            std::stringstream ss(s);
-            std::string item;
-            std::vector<std::string> elems;
-            while (std::getline(ss, item, delim))
-            {
-                elems.push_back(item);
-            }
-            return elems;
-        };
-
-        std::ifstream f(iniReader.GetIniPath().substr(0, iniReader.GetIniPath().find_last_of('.')) + ".dat");
-        for (std::string line; std::getline(f, line); )
-        {
-            auto s = split(line, ' ');
-
-            if (s.size() >= 1)
-            {
-                lods.push_back(jenkins_one_at_a_time_hash(s[0]));
-                for (size_t i = 1; i < s.size(); i++)
-                    models.push_back(jenkins_one_at_a_time_hash(s[i]));
-            }
-        }
-    }
-
-    if (fLodShift)
-    {
-        auto pattern = hook::pattern("F3 0F 10 03 8B 17");
-        struct addIplInstHook
-        {
-            void operator()(injector::reg_pack& regs)
-            {
-                regs.edx = *(uint32_t*)(regs.edi + 0x00);
-                regs.edx = *(uint32_t*)(regs.edx + 0x08);
-
-                uint32_t hash = *(uint32_t*)(regs.ebx + 0x1C);
-
-                if (std::find(lods.begin(), lods.end(), hash) != lods.end())
-                {
-                    *(float*)(regs.ebx + 0x00) -= fLodShift;
-                    *(float*)(regs.ebx + 0x04) -= fLodShift;
-                    *(float*)(regs.ebx + 0x08) -= fLodShift;
-                }
-
-                float f = *(float*)(regs.ebx + 0x00);
-                _asm movss   xmm0, dword ptr[f]
-            }
-        }; injector::MakeInline<addIplInstHook>(pattern.get_first(4));
-    }
-
-    if (bLodForceDistance)
-    {
-        auto pattern = hook::pattern("F3 0F 10 44 24 1C 0D 00 0C");
-        struct ParseIdeObjsHook
-        {
-            void operator()(injector::reg_pack& regs)
-            {
-                auto xmmZero = *(float*)(regs.esp + 0x1C);
-                std::string_view s = (char*)(regs.esp + 0x54);
-
-                if (xmmZero < 300.0f && std::find(models.begin(), models.end(), jenkins_one_at_a_time_hash(s)) != models.end())
-                {
-                    xmmZero = min(299.0f, xmmZero * 2.0f);
-                }
-
-                _asm movss   xmm0, xmmZero
-            }
-        }; injector::MakeInline<ParseIdeObjsHook>(pattern.get_first(0), pattern.get_first(6));
-    }
-
-    //draw distance adjuster
-    //static float f_dist_mult = 10.0f;
-    //pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 11 05 ? ? ? ? F3 0F 10 86"); //0x95F8AA
-    //injector::WriteMemory(pattern.get_first(4), &f_dist_mult, true);
-    //injector::WriteMemory(pattern.get_first(-12), &f_dist_mult, true);
 }
 
 CEXP void InitializeASI()
