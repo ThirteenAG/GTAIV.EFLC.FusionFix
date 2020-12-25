@@ -438,7 +438,7 @@ void Init()
 
         //BAWSAQ
         pattern = hook::pattern("E8 ? ? ? ? 6A 00 E8 ? ? ? ? 83 C4 14 6A 00");
-        static auto CImgManager__addImgFile = (void(__cdecl*)(char*, char, int)) injector::GetBranchDestination(pattern.get_first(0)).get();
+        static auto CImgManager__addImgFile = (void(__cdecl*)(const char*, char, int)) injector::GetBranchDestination(pattern.get_first(0)).get();
         static auto sub_A95980 = (void(__cdecl*)(char)) injector::GetBranchDestination(pattern.get_first(7)).get();
 
         pattern = hook::pattern("B9 ? ? ? ? E8 ? ? ? ? 84 C0 74 22 68");
