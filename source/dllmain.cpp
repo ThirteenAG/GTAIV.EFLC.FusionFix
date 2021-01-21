@@ -294,6 +294,12 @@ void Init()
 
     static float& fTimeStep = **hook::get_pattern<float*>("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? 8B 43 20 53", 4);
 
+	// reverse lights fix
+	{
+		auto pattern = hook::pattern("8B 40 64 FF D0 F3 0F 10 40 ? 8D 44 24 40 50");
+		injector::WriteMemory<uint8_t>(pattern.get_first(2), 0x60, true);
+	}
+
     //fix for lods appearing inside normal models, unless the graphics menu was opened once (draw distances aren't set properly?)
     {
         auto pattern = hook::pattern("E8 ? ? ? ? 8D 4C 24 10 F3 0F 11 05 ? ? ? ? E8 ? ? ? ? 8B F0 E8 ? ? ? ? DF 2D");
@@ -554,6 +560,8 @@ void Init()
         auto pattern = hook::pattern("F7 2D ? ? ? ? 8B C2 C1 E8 1F 03 C2 89 0D ? ? ? ? A3 ? ? ? ? 83 C4 10 C3");
         injector::WriteMemory(*pattern.get_first<void*>(2), nPedBudget, true);
     }
+
+	
 }
 
 CEXP void InitializeASI()
