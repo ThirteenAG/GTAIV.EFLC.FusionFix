@@ -300,6 +300,12 @@ void Init()
         injector::WriteMemory<uint8_t>(pattern.get_first(2), 0x60, true);
     }
 
+    // animation fix for phone interaction on bikes
+    {
+	auto pattern = hook::pattern("83 3D ? ? ? ? 01 0F 8C 18 01 00 00");
+	injector::MakeNOP(pattern.get(0).get<int>(0), 13, true);
+    }
+
     //fix for lods appearing inside normal models, unless the graphics menu was opened once (draw distances aren't set properly?)
     {
         auto pattern = hook::pattern("E8 ? ? ? ? 8D 4C 24 10 F3 0F 11 05 ? ? ? ? E8 ? ? ? ? 8B F0 E8 ? ? ? ? DF 2D");
