@@ -1,4 +1,6 @@
 #include <misc.h>
+#include <mmsystem.h>
+#pragma comment(lib, "winmm.lib") // needed for timeBeginPeriod()/timeEndPeriod()
 
 uint32_t* dword_11CC9D0;
 int32_t* dword_112EAC0;
@@ -22,125 +24,100 @@ float fCutsceneFpsLimit;
 float fScriptCutsceneFpsLimit;
 float fScriptCutsceneFovLimit;
 
+class FrameLimiter
+{
+public:
+    enum FPSLimitMode { FPS_NONE, FPS_REALTIME, FPS_ACCURATE };
+    FPSLimitMode mFPSLimitMode = FPS_NONE;
+private:
+    double TIME_Frequency = 0.0;
+    double TIME_Ticks = 0.0;
+    double TIME_Frametime = 0.0;
+    float  fFPSLimit = 0.0f;
+public:
+    void Init(FPSLimitMode mode, float fps_limit)
+    {
+        mFPSLimitMode = mode;
+        fFPSLimit = fps_limit;
+
+        LARGE_INTEGER frequency;
+        QueryPerformanceFrequency(&frequency);
+        static constexpr auto TICKS_PER_FRAME = 1;
+        auto TICKS_PER_SECOND = (TICKS_PER_FRAME * fFPSLimit);
+        if (mFPSLimitMode == FPS_ACCURATE)
+        {
+            TIME_Frametime = 1000.0 / (double)fFPSLimit;
+            TIME_Frequency = (double)frequency.QuadPart / 1000.0; // ticks are milliseconds
+        }
+        else // FPS_REALTIME
+        {
+            TIME_Frequency = (double)frequency.QuadPart / (double)TICKS_PER_SECOND; // ticks are 1/n frames (n = fFPSLimit)
+        }
+        Ticks();
+    }
+    DWORD Sync_RT()
+    {
+        DWORD lastTicks, currentTicks;
+        LARGE_INTEGER counter;
+
+        QueryPerformanceCounter(&counter);
+        lastTicks = (DWORD)TIME_Ticks;
+        TIME_Ticks = (double)counter.QuadPart / TIME_Frequency;
+        currentTicks = (DWORD)TIME_Ticks;
+
+        return (currentTicks > lastTicks) ? currentTicks - lastTicks : 0;
+    }
+    DWORD Sync_SLP()
+    {
+        LARGE_INTEGER counter;
+        QueryPerformanceCounter(&counter);
+        double millis_current = (double)counter.QuadPart / TIME_Frequency;
+        double millis_delta = millis_current - TIME_Ticks;
+        if (TIME_Frametime <= millis_delta)
+        {
+            TIME_Ticks = millis_current;
+            return 1;
+        }
+        else if (TIME_Frametime - millis_delta > 2.0) // > 2ms
+            Sleep(1); // Sleep for ~1ms
+        else
+            Sleep(0); // yield thread's time-slice (does not actually sleep)
+
+        return 0;
+    }
+    void Sync()
+    {
+        if (mFPSLimitMode == FPS_REALTIME)
+            while (!Sync_RT());
+        else if (mFPSLimitMode == FPS_ACCURATE)
+            while (!Sync_SLP());
+    }
+private:
+    void Ticks()
+    {
+        LARGE_INTEGER counter;
+        QueryPerformanceCounter(&counter);
+        TIME_Ticks = (double)counter.QuadPart / TIME_Frequency;
+    }
+};
+
+FrameLimiter FpsLimiter;
+FrameLimiter CutsceneFpsLimiter;
+FrameLimiter ScriptCutsceneFpsLimiter;
 void __cdecl sub_855640()
 {
     //injector::fastcall<void(uintptr_t)>::call(*(uintptr_t*)(*(uintptr_t*)(*dword_11CC9D0) + 20), *dword_11CC9D0);
 
-    static auto wants_to_limit_fps = []() -> bool
-    {
-        if (fFpsLimit)
-            return true;
+    if (fFpsLimit)
+        FpsLimiter.Sync();
 
-        if (CCamera__isWidescreenBordersActive())
-        {
-            if (CCutscenes__hasCutsceneFinished())
-            {
-                if (fCutsceneFpsLimit)
-                    return true;
-            }
+    if (CCamera__isWidescreenBordersActive())
+    {
+        if (CCutscenes__hasCutsceneFinished())
+            if (fCutsceneFpsLimit)
+                CutsceneFpsLimiter.Sync();
             else if (fScriptCutsceneFpsLimit)
-                return true;
-        }
-
-        return false;
-    };
-
-    static auto get_fps_limit = []() -> float
-    {
-        float limit = 30.0f;
-
-        if (fFpsLimit)
-            limit = fFpsLimit;
-
-        if (CCamera__isWidescreenBordersActive())
-        {
-            if (CCutscenes__hasCutsceneFinished())
-            {
-                if (fCutsceneFpsLimit)
-                    limit = fCutsceneFpsLimit;
-            }
-            else if (fScriptCutsceneFpsLimit)
-                limit = fScriptCutsceneFpsLimit;
-        }
-
-        return limit;
-    };
-
-    if (wants_to_limit_fps() || *dword_112EAC0 == 1 || *dword_11402D4 != -1 || *dword_F30468 == 18)
-    {
-        if (nFrameLimitType == 0)
-        {
-            *float_F33C18 = 2.0f;
-            if (*dword_112EAC0 == 1 || *dword_11402D4 != -1 || *dword_F30468 == 18)
-                *float_F33C18 = 1.0f;
-            double v1 = (double)((*float_F33C18 - 0.1f) * ((1.0f / get_fps_limit()) / 2.0f));
-            double v3 = (double)(sub_456F60().QuadPart - *qword_11CCA80);
-            if (v1 > v3 * *float_18CAE9C)
-            {
-                do
-                {
-                    v3 = (double)(sub_456F60().QuadPart - *qword_11CCA80) * *float_18CAE9C;
-                    Sleep(0);
-                }
-                while (v1 > v3);
-            }
-            *qword_11CCA80 = sub_456F60().QuadPart;
-        }
-        else
-        {
-            static LARGE_INTEGER PerformanceCount1;
-            static LARGE_INTEGER PerformanceCount2;
-            static bool bOnce1 = false;
-            static double t = 0.0;
-            static DWORD i = 0;
-            double targetFrameTime = 1000.0 / get_fps_limit();
-
-            if (!bOnce1)
-            {
-                bOnce1 = true;
-                QueryPerformanceCounter(&PerformanceCount1);
-                PerformanceCount1.QuadPart = PerformanceCount1.QuadPart >> i;
-            }
-
-            while (true)
-            {
-                QueryPerformanceCounter(&PerformanceCount2);
-                if (t == 0.0)
-                {
-                    LARGE_INTEGER PerformanceCount3;
-                    static bool bOnce2 = false;
-
-                    if (!bOnce2)
-                    {
-                        bOnce2 = true;
-                        QueryPerformanceFrequency(&PerformanceCount3);
-                        i = 0;
-                        t = 1000.0 / (double)PerformanceCount3.QuadPart;
-                        auto v = t * 2147483648.0;
-                        if (60000.0 > v)
-                        {
-                            while (true)
-                            {
-                                ++i;
-                                v *= 2.0;
-                                t *= 2.0;
-                                if (60000.0 <= v)
-                                    break;
-                            }
-                        }
-                    }
-                    SleepEx(0, 1);
-                    break;
-                }
-
-                if (((double)((PerformanceCount2.QuadPart >> i) - PerformanceCount1.QuadPart) * t) >= targetFrameTime)
-                    break;
-
-                SleepEx(0, 1);
-            }
-            QueryPerformanceCounter(&PerformanceCount2);
-            PerformanceCount1.QuadPart = PerformanceCount2.QuadPart >> i;
-        }
+                ScriptCutsceneFpsLimiter.Sync();
     }
 
     //is that even used?
@@ -302,8 +279,8 @@ void Init()
 
     // animation fix for phone interaction on bikes
     {
-	auto pattern = hook::pattern("83 3D ? ? ? ? 01 0F 8C 18 01 00 00");
-	injector::MakeNOP(pattern.get(0).get<int>(0), 13, true);
+    auto pattern = hook::pattern("83 3D ? ? ? ? 01 0F 8C 18 01 00 00");
+    injector::MakeNOP(pattern.get(0).get<int>(0), 13, true);
     }
 
     //fix for lods appearing inside normal models, unless the graphics menu was opened once (draw distances aren't set properly?)
@@ -518,6 +495,14 @@ void Init()
 
     if (fFpsLimit || fCutsceneFpsLimit || fScriptCutsceneFpsLimit)
     {
+        auto mode = (nFrameLimitType == 2) ? FrameLimiter::FPSLimitMode::FPS_ACCURATE : FrameLimiter::FPSLimitMode::FPS_REALTIME;
+        if (mode == FrameLimiter::FPSLimitMode::FPS_ACCURATE)
+            timeBeginPeriod(1);
+
+        FpsLimiter.Init(mode, fFpsLimit);
+        CutsceneFpsLimiter.Init(mode, fCutsceneFpsLimit);
+        ScriptCutsceneFpsLimiter.Init(mode, fScriptCutsceneFpsLimit);
+
         dword_11CC9D0 = *hook::get_pattern<uint32_t*>("8B 0D ? ? ? ? 83 EC 18 8B 01 56 FF 50 14", 2);
         float_11CC9D4 = (float*)(dword_11CC9D0 + 1);
         unk_11CC9D8 = dword_11CC9D0 + 2;
@@ -581,6 +566,11 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved)
     if (reason == DLL_PROCESS_ATTACH)
     {
         if (!IsUALPresent()) { InitializeASI(); }
+    }
+    if (reason == DLL_PROCESS_DETACH)
+    {
+        if (nFrameLimitType == FrameLimiter::FPSLimitMode::FPS_ACCURATE)
+            timeEndPeriod(1);
     }
     return TRUE;
 }
