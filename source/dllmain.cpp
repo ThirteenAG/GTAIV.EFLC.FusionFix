@@ -253,7 +253,7 @@ void Init()
     bool bFlickeringShadowsFix = iniReader.ReadInteger("MAIN", "FlickeringShadowsFix", 1) != 0;
 
     //[FRAMELIMIT]
-    nFrameLimitType = iniReader.ReadInteger("FRAMELIMIT", "FrameLimitType", 1);
+    nFrameLimitType = iniReader.ReadInteger("FRAMELIMIT", "FrameLimitType", 2);
     fFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "FpsLimit", 0));
     fCutsceneFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "CutsceneFpsLimit", 0));
     fScriptCutsceneFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "ScriptCutsceneFpsLimit", 0));
@@ -263,7 +263,7 @@ void Init()
     bool bDefaultCameraAngleInTLAD = iniReader.ReadInteger("MISC", "DefaultCameraAngleInTLAD", 0) != 0;
     bool bPedDeathAnimFixFromTBOGT = iniReader.ReadInteger("MISC", "PedDeathAnimFixFromTBOGT", 1) != 0;
     bool bDisableCameraCenteringInCover = iniReader.ReadInteger("MISC", "DisableCameraCenteringInCover", 1) != 0;
-    bool bMouseFix = iniReader.ReadInteger("MISC", "MouseFix", 0) != 0;
+    bool bMouseFix = iniReader.ReadInteger("MISC", "MouseFix", 1) != 0;
 
     //[BudgetedIV]
     uint32_t nVehicleBudget = iniReader.ReadInteger("BudgetedIV", "VehicleBudget", 0);
@@ -447,12 +447,22 @@ void Init()
 
     if (bHandbrakeCamFix)
     {
+        static auto unk_117E700 = hook::get_pattern("68 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? F6 D8 1A C0", 1);
+        static auto GET_POSITION_OF_ANALOGUE_STICKS = hook::get_pattern("6A 00 E8 ? ? ? ? 83 C4 04 80 B8 ? ? ? ? ? 74 78", 0);
         auto pattern = hook::pattern("F3 0F 10 44 24 ? F3 0F 11 04 24 8D 44 24 34 50 8D 44 24 28 50 53 8B CF");
         struct HandbrakeCam
         {
             void operator()(injector::reg_pack& regs)
             {
-                *(float*)(regs.esp + 0x2C) *= (1.0f / 30.0f) / fTimeStep;
+                int pLeftX = 0;
+                int pLeftY = 0;
+                int pRightX = 0;
+                int pRightY = 0;
+                injector::cstd<void(int, int*, int*, int*, int*)>::call(GET_POSITION_OF_ANALOGUE_STICKS, 0, &pLeftX, &pLeftY, &pRightX, &pRightY);
+                if (pRightX == 0 && pRightY == 0)
+                    *(float*)(regs.esp + 0x2C) *= (1.0f / 30.0f) / fTimeStep;
+                //if (!*(uint8_t*)(*(uint32_t*)unk_117E700 + 0x328C))
+                //    *(float*)(regs.esp + 0x2C) *= (1.0f / 30.0f) / fTimeStep;
                 float f = *(float*)(regs.esp + 0x2C);
                 _asm movss xmm0, dword ptr[f]
             }
@@ -491,6 +501,22 @@ void Init()
         dword_1826D6C = *pattern.get_first<int32_t>(34);
         pattern = hook::pattern("51 8B 54 24 0C C7 04 24 ? ? ? ? 85 D2 75 0D 39 15 ? ? ? ? 75 17 D9 04 24 59 C3");
         injector::MakeJMP(pattern.get_first(0), MouseFix, true);
+
+        //ped cam behaves the same way as aiming cam
+        static constexpr float f255 = 255.0f;
+        pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 2C C0 83 C4 0C");
+        injector::WriteMemory(pattern.get_first(4), &f255, true);
+
+        //sniper scope is slow
+        static constexpr float f01 = 0.1f;
+        pattern = hook::pattern("F3 0F 59 15 ? ? ? ? F3 0F 58 97");
+        injector::WriteMemory(pattern.get_first(4), &f01, true);
+        injector::WriteMemory(pattern.get_first(28), &f01, true);
+
+        //first person vehicle view is slow
+        pattern = hook::pattern("F3 0F 59 15 ? ? ? ? F3 0F 58 96");
+        injector::WriteMemory(pattern.get_first(4), &f01, true);
+        injector::WriteMemory(pattern.get_first(28), &f01, true);
     }
 
     if (fFpsLimit || fCutsceneFpsLimit || fScriptCutsceneFpsLimit)
