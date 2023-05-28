@@ -1,0 +1,9 @@
+-create "GTAIV.EFLC.FusionFix.img" "3" "IMG_VERSION_3_ENCRYPTION_TYPE_NONE"
+-importFromDirectory "GTAIV.EFLC.FusionFix"
+-rebuild
+-close
+
+-create "TBOGT.FixedVehicles.img" "3" "IMG_VERSION_3_ENCRYPTION_TYPE_NONE"
+-importFromDirectory "TBOGT.FixedVehicles"
+-rebuild
+-close

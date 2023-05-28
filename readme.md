@@ -1,6 +1,5 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/wwokiviriq3m52t6?svg=true)](https://ci.appveyor.com/project/ThirteenAG/gtaiv-eflc-fusionfix)
-[![Build Status](https://dev.azure.com/thirteenag/GTAIV.EFLC.FusionFix/_apis/build/status/ThirteenAG.GTAIV.EFLC.FusionFix?branchName=master)](https://dev.azure.com/thirteenag/GTAIV.EFLC.FusionFix/_build/latest?definitionId=1&branchName=master)
-[![Discord](https://img.shields.io/badge/chat-on%20discord-7289da.svg?logo=discord)](https://discord.gg/y2cZFRA)
+[![Discord](https://img.shields.io/badge/chat-on%20discord-7289da.svg?logo=discord)](https://discord.gg/PJEJHaB5)
 
 <p align="center">
   <img height="100" src="https://user-images.githubusercontent.com/4904157/63623173-921aaf00-c601-11e9-8b84-fc5803269323.png">
@@ -63,27 +62,6 @@ This fix was tested only with latest official update and latest [ASI Loader](htt
 **DisableCameraCenteringInCover** - [see issue 20](https://github.com/GTAmodding/GTAIV-Issues-List/issues/20).
 
 **MouseFix** - fixes small mouse movements not being recognized.
-
-## Files rundown:
-
-    TBoGT/pc/models/cdimages/vehicles.img
-
-**Car lights fix for TBoGT.**
-
-    common/shaders/win32_30/gta_emissivestrong.fxc
-    common/shaders/win32_30_atidx10/gta_emissivestrong.fxc
-    common/shaders/win32_30_low_ati/gta_emissivestrong.fxc
-    common/shaders/win32_30_nv6/gta_emissivestrong.fxc
-    common/shaders/win32_30_nv7/gta_emissivestrong.fxc
-    common/shaders/win32_30_nv8/gta_emissivestrong.fxc
-    common/GTAIV.EFLC.FusionFix.img
-
-**Corrected shaders to make emissive lights appear. Used in conjunction with GTAIV.EFLC.FusionFix.asi.**
-
-    plugins/GTAIV.EFLC.FusionFix.asi
-    plugins/GTAIV.EFLC.FusionFix.ini
-
-**Recoil, definition, shader and other bugs are fixed here.**
 
 # Reporting more issues
 

@@ -1,6 +1,7 @@
 #include <misc.h>
 #include <mmsystem.h>
 #pragma comment(lib, "winmm.lib") // needed for timeBeginPeriod()/timeEndPeriod()
+#include <filesystem>
 
 uint32_t* dword_11CC9D0;
 int32_t* dword_112EAC0;
@@ -238,6 +239,114 @@ double __cdecl MouseFix(void*, int32_t axis)
     return 0.0;
 }
 
+template<class T>
+T GetModulePath(HMODULE hModule)
+{
+    static constexpr auto INITIAL_BUFFER_SIZE = MAX_PATH;
+    static constexpr auto MAX_ITERATIONS = 7;
+    T ret;
+    auto bufferSize = INITIAL_BUFFER_SIZE;
+    for (size_t iterations = 0; iterations < MAX_ITERATIONS; ++iterations)
+    {
+        ret.resize(bufferSize);
+        size_t charsReturned = 0;
+        if constexpr (std::is_same_v<T, std::string>)
+            charsReturned = GetModuleFileNameA(hModule, &ret[0], bufferSize);
+        else
+            charsReturned = GetModuleFileNameW(hModule, &ret[0], bufferSize);
+        if (charsReturned < ret.length())
+        {
+            ret.resize(charsReturned);
+            return ret;
+        }
+        else
+        {
+            bufferSize *= 2;
+        }
+    }
+    return T();
+}
+
+template<class T>
+T GetExeModulePath()
+{
+    T r = GetModulePath<T>(NULL);
+    if constexpr (std::is_same_v<T, std::string>)
+        r = r.substr(0, r.find_last_of("/\\") + 1);
+    else
+        r = r.substr(0, r.find_last_of(L"/\\") + 1);
+    return r;
+}
+
+template <typename T, typename V>
+bool iequals(const T& s1, const V& s2)
+{
+    T str1(s1); T str2(s2);
+    std::transform(str1.begin(), str1.end(), str1.begin(), ::tolower);
+    std::transform(str2.begin(), str2.end(), str2.begin(), ::tolower);
+    return (str1 == str2);
+}
+
+std::filesystem::path gamePath;
+std::filesystem::path GetFileName(auto lpFilename)
+{
+    auto filePath = std::filesystem::path(lpFilename);
+    auto relativePath = std::filesystem::relative(filePath, gamePath);
+
+    static auto updatePath = std::filesystem::path("update/").make_preferred();
+    static std::vector<std::filesystem::path> redirectedPaths = {
+        std::filesystem::path("pc/").make_preferred(),
+        std::filesystem::path("TLAD/pc/").make_preferred(),
+        std::filesystem::path("TBoGT/pc/").make_preferred(),
+        std::filesystem::path("common/").make_preferred(),
+        std::filesystem::path("TLAD/common/").make_preferred(),
+        std::filesystem::path("TBoGT/common/").make_preferred(),
+        std::filesystem::path("movies/").make_preferred(),
+        std::filesystem::path("TLAD/movies/").make_preferred(),
+        std::filesystem::path("TBoGT/movies/").make_preferred()
+    };
+
+    auto starts_with = [](const std::filesystem::path& path, const std::filesystem::path& base) -> bool {
+        std::wstring str1(path.wstring()); std::wstring str2(base.wstring());
+        std::transform(str1.begin(), str1.end(), str1.begin(), ::tolower);
+        std::transform(str2.begin(), str2.end(), str2.begin(), ::tolower);
+        return str1.starts_with(str2);
+    };
+
+    auto find = [](const std::filesystem::path& path, const std::filesystem::path& base) -> auto {
+        std::wstring str1(path.wstring()); std::wstring str2(base.wstring());
+        std::transform(str1.begin(), str1.end(), str1.begin(), ::tolower);
+        std::transform(str2.begin(), str2.end(), str2.begin(), ::tolower);
+        return str1.find(str2);
+    };
+
+    if (std::any_of(std::begin(redirectedPaths), std::end(redirectedPaths), [&](auto& it) { return starts_with(relativePath, it); }))
+    {
+        auto newPath = filePath.native();
+        auto pos = find(newPath, relativePath);
+        if (pos != newPath.npos)
+        {
+            newPath.insert(pos, updatePath);
+        
+            if (std::filesystem::exists(newPath) && !std::filesystem::is_directory(newPath) && std::filesystem::is_regular_file(newPath))
+                return newPath;
+        }
+    }
+    return lpFilename;
+}
+
+HANDLE(WINAPI* ptrCreateFileA)(LPCSTR lpFilename, DWORD dwAccess, DWORD dwSharing, LPSECURITY_ATTRIBUTES saAttributes, DWORD dwCreation, DWORD dwAttributes, HANDLE hTemplate);
+HANDLE WINAPI CreateFileAHook(LPCSTR lpFilename, DWORD dwAccess, DWORD dwSharing, LPSECURITY_ATTRIBUTES saAttributes, DWORD dwCreation, DWORD dwAttributes, HANDLE hTemplate)
+{
+    return ptrCreateFileA(GetFileName(lpFilename).string().c_str(), dwAccess, dwSharing, saAttributes, dwCreation, dwAttributes, hTemplate);
+}
+
+HANDLE(WINAPI* ptrCreateFileW)(LPCWSTR lpFilename, DWORD dwAccess, DWORD dwSharing, LPSECURITY_ATTRIBUTES saAttributes, DWORD dwCreation, DWORD dwAttributes, HANDLE hTemplate);
+HANDLE WINAPI CreateFileWHook(LPCWSTR lpFilename, DWORD dwAccess, DWORD dwSharing, LPSECURITY_ATTRIBUTES saAttributes, DWORD dwCreation, DWORD dwAttributes, HANDLE hTemplate)
+{
+    return ptrCreateFileW(GetFileName(lpFilename).wstring().c_str(), dwAccess, dwSharing, saAttributes, dwCreation, dwAttributes, hTemplate);
+}
+
 void Init()
 {
     CIniReader iniReader("");
@@ -279,8 +388,8 @@ void Init()
 
     // animation fix for phone interaction on bikes
     {
-    auto pattern = hook::pattern("83 3D ? ? ? ? 01 0F 8C 18 01 00 00");
-    injector::MakeNOP(pattern.get(0).get<int>(0), 13, true);
+        auto pattern = hook::pattern("83 3D ? ? ? ? 01 0F 8C 18 01 00 00");
+        injector::MakeNOP(pattern.get(0).get<int>(0), 13, true);
     }
 
     //fix for lods appearing inside normal models, unless the graphics menu was opened once (draw distances aren't set properly?)
@@ -424,25 +533,6 @@ void Init()
                 regs.eax = regs.eax << 4;
             }
         }; injector::MakeInline<ShaderTest>(pattern.count(2).get(1).get<void>(0), pattern.count(2).get(1).get<void>(6));
-
-        //BAWSAQ
-        pattern = hook::pattern("E8 ? ? ? ? 6A 00 E8 ? ? ? ? 83 C4 14 6A 00");
-        static auto CImgManager__addImgFile = (void(__cdecl*)(const char*, char, int)) injector::GetBranchDestination(pattern.get_first(0)).get();
-        static auto sub_A95980 = (void(__cdecl*)(char)) injector::GetBranchDestination(pattern.get_first(7)).get();
-
-        pattern = hook::pattern("B9 ? ? ? ? E8 ? ? ? ? 84 C0 74 22 68");
-        static auto g_assetManager = *pattern.get_first<uint32_t>(1);
-        struct AddImgHook
-        {
-            void operator()(injector::reg_pack& regs)
-            {
-                regs.ecx = g_assetManager;
-
-                sub_A95980(255);
-                CImgManager__addImgFile("common:/GTAIV.EFLC.FusionFix.img", 1, -1);
-                sub_A95980(0);
-            }
-        }; injector::MakeInline<AddImgHook>(pattern.get_first(0));
     }
 
     if (bHandbrakeCamFix)
@@ -576,6 +666,88 @@ void Init()
     {
         auto pattern = hook::pattern("F7 2D ? ? ? ? 8B C2 C1 E8 1F 03 C2 89 0D ? ? ? ? A3 ? ? ? ? 83 C4 10 C3");
         injector::WriteMemory(*pattern.get_first<void*>(2), nPedBudget, true);
+    }
+
+    {
+        gamePath = std::filesystem::path(GetExeModulePath<std::wstring>()).remove_filename();
+
+        auto pattern = hook::pattern("FF 15 ? ? ? ? 8B F0 32 C0");
+        ptrCreateFileW = (HANDLE(WINAPI*)(LPCWSTR, DWORD, DWORD, LPSECURITY_ATTRIBUTES, DWORD, DWORD, HANDLE))injector::GetBranchDestination(pattern.get_first(0)).get();
+        injector::WriteMemory(*pattern.get_first<void*>(2), CreateFileWHook);
+
+        pattern = hook::pattern("FF 15 ? ? ? ? 8B F0 83 FE FF 74 21");
+        ptrCreateFileA = (HANDLE(WINAPI*)(LPCSTR, DWORD, DWORD, LPSECURITY_ATTRIBUTES, DWORD, DWORD, HANDLE))injector::GetBranchDestination(pattern.get_first(0)).get();
+        injector::WriteMemory(*pattern.get_first<void*>(2), CreateFileAHook);
+
+        //IMG Loader
+        pattern = hook::pattern("E8 ? ? ? ? 6A 00 E8 ? ? ? ? 83 C4 14 6A 00");
+        static auto CImgManager__addImgFile = (void(__cdecl*)(const char*, char, int)) injector::GetBranchDestination(pattern.get_first(0)).get();
+        static auto sub_A95980 = (void(__cdecl*)(char)) injector::GetBranchDestination(pattern.get_first(7)).get();
+
+        pattern = hook::pattern("83 3D ? ? ? ? ? 75 0F 6A 02");
+        static auto _dwCurrentEpisode = *pattern.get_first<int*>(2);
+
+        pattern = hook::pattern("89 44 24 44 8B 44 24 4C 53");
+        struct ImgListHook
+        {
+            void operator()(injector::reg_pack& regs)
+            {
+                *(uint32_t*)(regs.esp + 0x44) = regs.eax;
+                regs.eax = *(uint32_t*)(regs.esp + 0x4C);
+
+                auto exePath = std::filesystem::path(GetExeModulePath<std::wstring>());
+                auto updatePath = exePath.remove_filename() / L"update";
+
+                if (std::filesystem::exists(updatePath))
+                {
+                    for (const auto& file : std::filesystem::recursive_directory_iterator(updatePath, std::filesystem::directory_options::skip_permission_denied))
+                    {
+                        auto filePath = std::filesystem::path(file.path());
+                        auto relativePath = std::filesystem::relative(filePath, gamePath);
+
+                        if (!std::filesystem::is_directory(file) && file.is_regular_file() && iequals(filePath.extension().wstring(), L".img"))
+                        {
+                            static std::vector<std::filesystem::path> episodicPaths = {
+                                std::filesystem::path("/IV/").make_preferred(),
+                                std::filesystem::path("/TLAD/").make_preferred(),
+                                std::filesystem::path("/TBoGT/").make_preferred(),
+                            };
+
+                            auto is_subpath = [](const std::filesystem::path& path, const std::filesystem::path& base) -> bool {
+                                std::wstring str1(path.wstring()); std::wstring str2(base.wstring());
+                                std::transform(str1.begin(), str1.end(), str1.begin(), ::tolower);
+                                std::transform(str2.begin(), str2.end(), str2.begin(), ::tolower);
+                                return str1.contains(str2);
+                            };
+                            
+                            auto imgPath = std::filesystem::relative(filePath, exePath).native();
+                            std::replace(std::begin(imgPath), std::end(imgPath), L'\\', L'/');
+                            auto pos = imgPath.find(std::filesystem::path("/").native());
+
+                            if (pos != imgPath.npos)
+                            {
+                                imgPath.replace(pos, 1, std::filesystem::path(":/").native());
+                                if (std::any_of(std::begin(episodicPaths), std::end(episodicPaths), [&](auto& it) { return is_subpath(relativePath, it); }))
+                                {
+                                    if (*_dwCurrentEpisode < episodicPaths.size() && is_subpath(relativePath, episodicPaths[*_dwCurrentEpisode]))
+                                    {
+                                        sub_A95980(255);
+                                        CImgManager__addImgFile(std::filesystem::path(imgPath).string().c_str(), 1, -1);
+                                        sub_A95980(0);
+                                    }
+                                }
+                                else
+                                {
+                                    sub_A95980(255);
+                                    CImgManager__addImgFile(std::filesystem::path(imgPath).string().c_str(), 1, -1);
+                                    sub_A95980(0);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }; injector::MakeInline<ImgListHook>(pattern.get_first(0), pattern.get_first(8));
     }
 }
 
