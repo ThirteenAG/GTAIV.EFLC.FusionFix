@@ -15,7 +15,6 @@ Changelog:
 - [Fixed forced "definition off" setting in cutscenes, now cutscenes will respect the menu setting](https://github.com/GTAmodding/GTAIV-Issues-List/issues/5)
 - [Partially fixed emissive shader bug, lights are now present in the game (e.g. Rotterdam Tower, Comrades Bar area)](https://github.com/GTAmodding/GTAIV-Issues-List/issues/4)
 - [Fixed DLC car lights in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/3)
-- [Fixed handbrake camera, that doesn't work with high fps](https://github.com/GTAmodding/GTAIV-Issues-List/issues/10)
 - [Added various frame limiting options to address cutscene zoom and other fps related issues](https://github.com/GTAmodding/GTAIV-Issues-List/issues/1)
 - [Fixed aiming zoom in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/19)
 - Added an option to skip intro
@@ -27,21 +26,15 @@ Changelog:
 
 ### Install Grand Theft Auto IV Complete Edition (v1.2.0.30 and above required)
 
-### **Download**: [Ultimate-ASI-Loader.zip](https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/latest/download/Ultimate-ASI-Loader.zip)
-
-##### Unpack **dinput8.dll** to your **GTAIV Complete Edition** root directory.
-
 ### **Download**: [GTAIV.EFLC.FusionFix.zip](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFix.zip)
 
 ##### Unpack content of the archive to your **GTAIV Complete Edition** root directory.
 
-This fix was tested only with latest official update and latest [ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/latest/download/Ultimate-ASI-Loader.zip).
+This fix was tested only with latest official update and latest [ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/latest/download/Ultimate-ASI-Loader.zip) (included in the archive).
 
 ---
 
 ### **MAIN section notes**:
-
-**HandbrakeCamFix** - this only affects handbrake camera when using a keyboard, with gamepad handbrake camera is handled differently and is too fast with high fps. No solution for that at the moment. Regular camera movement is fixed as well, which is too slow without this fix on high fps.
 
 **AimingZoomFix** - set to **1** for proper fix, so it behaves like on xbox, set to **2** to have this fixed feature enabled in IV and TLAD, set to **-1** to disable this feature. **0** disables the fix, as usual.
 

@@ -287,66 +287,6 @@ bool iequals(const T& s1, const V& s2)
     return (str1 == str2);
 }
 
-std::filesystem::path gamePath;
-std::filesystem::path GetFileName(auto lpFilename)
-{
-    auto filePath = std::filesystem::path(lpFilename);
-    auto relativePath = std::filesystem::relative(filePath, gamePath);
-
-    static auto updatePath = std::filesystem::path("update/").make_preferred();
-    static std::vector<std::filesystem::path> redirectedPaths = {
-        std::filesystem::path("pc/").make_preferred(),
-        std::filesystem::path("TLAD/pc/").make_preferred(),
-        std::filesystem::path("TBoGT/pc/").make_preferred(),
-        std::filesystem::path("common/").make_preferred(),
-        std::filesystem::path("TLAD/common/").make_preferred(),
-        std::filesystem::path("TBoGT/common/").make_preferred(),
-        std::filesystem::path("movies/").make_preferred(),
-        std::filesystem::path("TLAD/movies/").make_preferred(),
-        std::filesystem::path("TBoGT/movies/").make_preferred()
-    };
-
-    auto starts_with = [](const std::filesystem::path& path, const std::filesystem::path& base) -> bool {
-        std::wstring str1(path.wstring()); std::wstring str2(base.wstring());
-        std::transform(str1.begin(), str1.end(), str1.begin(), ::tolower);
-        std::transform(str2.begin(), str2.end(), str2.begin(), ::tolower);
-        return str1.starts_with(str2);
-    };
-
-    auto find = [](const std::filesystem::path& path, const std::filesystem::path& base) -> auto {
-        std::wstring str1(path.wstring()); std::wstring str2(base.wstring());
-        std::transform(str1.begin(), str1.end(), str1.begin(), ::tolower);
-        std::transform(str2.begin(), str2.end(), str2.begin(), ::tolower);
-        return str1.find(str2);
-    };
-
-    if (std::any_of(std::begin(redirectedPaths), std::end(redirectedPaths), [&](auto& it) { return starts_with(relativePath, it); }))
-    {
-        auto newPath = filePath.native();
-        auto pos = find(newPath, relativePath);
-        if (pos != newPath.npos)
-        {
-            newPath.insert(pos, updatePath);
-        
-            if (std::filesystem::exists(newPath) && !std::filesystem::is_directory(newPath) && std::filesystem::is_regular_file(newPath))
-                return newPath;
-        }
-    }
-    return lpFilename;
-}
-
-HANDLE(WINAPI* ptrCreateFileA)(LPCSTR lpFilename, DWORD dwAccess, DWORD dwSharing, LPSECURITY_ATTRIBUTES saAttributes, DWORD dwCreation, DWORD dwAttributes, HANDLE hTemplate);
-HANDLE WINAPI CreateFileAHook(LPCSTR lpFilename, DWORD dwAccess, DWORD dwSharing, LPSECURITY_ATTRIBUTES saAttributes, DWORD dwCreation, DWORD dwAttributes, HANDLE hTemplate)
-{
-    return ptrCreateFileA(GetFileName(lpFilename).string().c_str(), dwAccess, dwSharing, saAttributes, dwCreation, dwAttributes, hTemplate);
-}
-
-HANDLE(WINAPI* ptrCreateFileW)(LPCWSTR lpFilename, DWORD dwAccess, DWORD dwSharing, LPSECURITY_ATTRIBUTES saAttributes, DWORD dwCreation, DWORD dwAttributes, HANDLE hTemplate);
-HANDLE WINAPI CreateFileWHook(LPCWSTR lpFilename, DWORD dwAccess, DWORD dwSharing, LPSECURITY_ATTRIBUTES saAttributes, DWORD dwCreation, DWORD dwAttributes, HANDLE hTemplate)
-{
-    return ptrCreateFileW(GetFileName(lpFilename).wstring().c_str(), dwAccess, dwSharing, saAttributes, dwCreation, dwAttributes, hTemplate);
-}
-
 void Init()
 {
     CIniReader iniReader("");
@@ -669,18 +609,8 @@ void Init()
     }
 
     {
-        gamePath = std::filesystem::path(GetExeModulePath<std::wstring>()).remove_filename();
-
-        auto pattern = hook::pattern("FF 15 ? ? ? ? 8B F0 32 C0");
-        ptrCreateFileW = (HANDLE(WINAPI*)(LPCWSTR, DWORD, DWORD, LPSECURITY_ATTRIBUTES, DWORD, DWORD, HANDLE))injector::GetBranchDestination(pattern.get_first(0)).get();
-        injector::WriteMemory(*pattern.get_first<void*>(2), CreateFileWHook);
-
-        pattern = hook::pattern("FF 15 ? ? ? ? 8B F0 83 FE FF 74 21");
-        ptrCreateFileA = (HANDLE(WINAPI*)(LPCSTR, DWORD, DWORD, LPSECURITY_ATTRIBUTES, DWORD, DWORD, HANDLE))injector::GetBranchDestination(pattern.get_first(0)).get();
-        injector::WriteMemory(*pattern.get_first<void*>(2), CreateFileAHook);
-
         //IMG Loader
-        pattern = hook::pattern("E8 ? ? ? ? 6A 00 E8 ? ? ? ? 83 C4 14 6A 00");
+        auto pattern = hook::pattern("E8 ? ? ? ? 6A 00 E8 ? ? ? ? 83 C4 14 6A 00");
         static auto CImgManager__addImgFile = (void(__cdecl*)(const char*, char, int)) injector::GetBranchDestination(pattern.get_first(0)).get();
         static auto sub_A95980 = (void(__cdecl*)(char)) injector::GetBranchDestination(pattern.get_first(7)).get();
 
@@ -702,6 +632,7 @@ void Init()
                 {
                     for (const auto& file : std::filesystem::recursive_directory_iterator(updatePath, std::filesystem::directory_options::skip_permission_denied))
                     {
+                        static auto gamePath = std::filesystem::path(GetExeModulePath<std::wstring>()).remove_filename();
                         auto filePath = std::filesystem::path(file.path());
                         auto relativePath = std::filesystem::relative(filePath, gamePath);
 
