@@ -39,6 +39,7 @@ Shader changelog:
 - Fixed disconnected shadows/excessively high depth bias for cascaded shadow maps
 - Fixed improper reflection mipmap dimming which made ambient reflections weaker than they're supposed to be
 - Fixed distorted projection on mirrors
+
 Credits: AssaultKifle47, Parallellines, robi29, Vaani, RaphaelK12
 
 ## Installation:
