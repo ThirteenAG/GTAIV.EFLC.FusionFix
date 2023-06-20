@@ -13,7 +13,6 @@ Changelog:
 
 - [Fixed recoil behavior that was different when playing with keyboard/mouse and gamepad](https://github.com/GTAmodding/GTAIV-Issues-List/issues/6)
 - [Fixed forced "definition off" setting in cutscenes, now cutscenes will respect the menu setting](https://github.com/GTAmodding/GTAIV-Issues-List/issues/5)
-- [Partially fixed emissive shader bug, lights are now present in the game (e.g. Rotterdam Tower, Comrades Bar area)](https://github.com/GTAmodding/GTAIV-Issues-List/issues/4)
 - [Fixed DLC car lights in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/3)
 - [Added various frame limiting options to address cutscene zoom and other fps related issues](https://github.com/GTAmodding/GTAIV-Issues-List/issues/1)
 - [Fixed aiming zoom in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/19)
@@ -21,6 +20,24 @@ Changelog:
 - Added an option to skip main menu after startup
 - Added an option to force borderless windowed mode
 - Added an option to fix mouse
+
+Shader changelog:
+- [Partially fixed emissive shader bug, lights are now present in the game (e.g. Rotterdam Tower, Comrades Bar area)](https://github.com/GTAmodding/GTAIV-Issues-List/issues/4)
+- Restored stippled transparency/LOD fading from 1.0.5.0 and older versions, and reduced the stippling effect on vegetation and fences
+- Restored volumetric light shafts thanks to Vaani
+- Improved depth of field and fixed resolution scaling
+- Remade bloom shader with proper resolution scaling
+- Fixed the entire screen being blurry with definition off
+- Fixed distorted car reflections thanks to AssaultKifle47 and increased their intensity to match consoles
+- Included native FXAA thanks to RaphaelK12
+- Included RaphaelK12's 5x5 gaussian [shadow filter](https://github.com/RaphaelK12/GTA4-Improved-Soft-Shadows)
+- Fixed excessively strong vertex AO and static vehicle shadows
+- Fixed water tiling (medium water tiling for very high water while keeping high resolution reflections)
+- Fixed textureless water on AMD graphics cards
+- Increased rain and splash intensity to mostly match consoles
+- Fixed black water droplets on screen (although refraction isn't restored yet)
+- Fixed disconnected shadows/excessively high depth bias for cascaded shadow maps
+- Fixed improper reflection mipmap dimming which made ambient reflections weaker than they're supposed to be
 
 ## Installation:
 
