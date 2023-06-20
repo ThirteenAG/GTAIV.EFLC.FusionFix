@@ -331,3 +331,4 @@ ASALocalRun/
 .mfractor/
 
 data/**/*.img
+data/update/common/shaders/**/*.fxc
