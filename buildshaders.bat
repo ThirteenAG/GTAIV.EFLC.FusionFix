@@ -48,4 +48,4 @@ goto :eof
 echo D | xcopy "%~1" "%win32_30%" /K /H /Y
 echo D | xcopy "%~1" "%win32_30_atidx10%" /K /H /Y
 echo D | xcopy "%~1" "%win32_30_nv8%" /K /H /Y
-goto :eof
+EXIT /B %ERRORLEVEL%
