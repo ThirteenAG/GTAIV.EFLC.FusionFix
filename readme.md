@@ -28,9 +28,9 @@ Shader changelog:
 - Improved depth of field and fixed resolution scaling
 - Remade bloom shader with proper resolution scaling
 - Fixed the entire screen being blurry with definition off
-- Fixed distorted car reflections thanks to AssaultKifle47 and increased their intensity to match consoles
-- Included native FXAA thanks to RaphaelK12
-- Included RaphaelK12's 5x5 gaussian [shadow filter](https://github.com/RaphaelK12/GTA4-Improved-Soft-Shadows)
+- Fixed distorted car reflections thanks to  and increased their intensity to match consoles
+- Included native FXAA
+- Included [RaphaelK12's 5x5 gaussian shadow filter](https://github.com/RaphaelK12/GTA4-Improved-Soft-Shadows)
 - Fixed excessively strong vertex AO and static vehicle shadows
 - Fixed water tiling (medium water tiling for very high water while keeping high resolution reflections)
 - Fixed textureless water on AMD graphics cards
@@ -38,6 +38,8 @@ Shader changelog:
 - Fixed black water droplets on screen (although refraction isn't restored yet)
 - Fixed disconnected shadows/excessively high depth bias for cascaded shadow maps
 - Fixed improper reflection mipmap dimming which made ambient reflections weaker than they're supposed to be
+- Fixed distorted projection on mirrors
+Credits: AssaultKifle47, Parallellines, robi29, Vaani, RaphaelK12
 
 ## Installation:
 
