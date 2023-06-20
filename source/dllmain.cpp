@@ -170,46 +170,35 @@ void __cdecl sub_7870A0(int a1)
     return hbsub_7870A0.fun(a1);
 }
 
-uint32_t* grcWindow__m_dwWidth;
-uint32_t* grcWindow__m_dwHeight;
-void MakeBorderless(HWND hWnd)
+BOOL WINAPI MoveWindow_Hook(HWND hWnd, int X, int Y, int nWidth, int nHeight, BOOL bRepaint)
 {
-    if (grcWindow__m_dwWidth && grcWindow__m_dwHeight)
-    {
-        if (*grcWindow__m_dwWidth && *grcWindow__m_dwHeight)
-        {
-            HMONITOR monitor = MonitorFromWindow(GetDesktopWindow(), MONITOR_DEFAULTTONEAREST);
-            MONITORINFO info = {};
-            info.cbSize = sizeof(MONITORINFO);
-            GetMonitorInfo(monitor, &info);
-            int32_t DesktopResW = info.rcMonitor.right - info.rcMonitor.left;
-            int32_t DesktopResH = info.rcMonitor.bottom - info.rcMonitor.top;
+    HMONITOR monitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+    MONITORINFO info = {};
+    info.cbSize = sizeof(MONITORINFO);
+    GetMonitorInfo(monitor, &info);
+    int32_t DesktopResW = info.rcMonitor.right - info.rcMonitor.left;
+    int32_t DesktopResH = info.rcMonitor.bottom - info.rcMonitor.top;
 
-            RECT rect;
-            rect.left = (LONG)(((float)DesktopResW / 2.0f) - ((float)*grcWindow__m_dwWidth / 2.0f));
-            rect.top = (LONG)(((float)DesktopResH / 2.0f) - ((float)*grcWindow__m_dwHeight / 2.0f));
-            rect.right = *grcWindow__m_dwWidth;
-            rect.bottom = *grcWindow__m_dwHeight;
-            SetWindowLong(hWnd, GWL_STYLE, GetWindowLong(hWnd, GWL_STYLE) & ~WS_OVERLAPPEDWINDOW);
-            SetWindowPos(hWnd, NULL, rect.left, rect.top, rect.right, rect.bottom, SWP_NOACTIVATE | SWP_NOZORDER);
-        }
-    }
+    RECT rect = { X, Y, nWidth, nHeight };
+    rect.left = (LONG)(((float)DesktopResW / 2.0f) - ((float)rect.right / 2.0f));
+    rect.top = (LONG)(((float)DesktopResH / 2.0f) - ((float)rect.bottom / 2.0f));
+    return MoveWindow(hWnd, rect.left, rect.top, rect.right, rect.bottom, bRepaint);
 }
 
-LRESULT WINAPI DefWindowProcAProxy(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+HWND WINAPI CreateWindowExA_Hook(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
 {
-    if ((GetWindowLongA(hWnd, GWL_STYLE) & WS_OVERLAPPEDWINDOW) != 0)
-        MakeBorderless(hWnd);
-
-    return DefWindowProcA(hWnd, Msg, wParam, lParam);
+    auto hwnd = CreateWindowExA(dwExStyle, lpClassName, lpWindowName, 0, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
+    LONG lStyle = GetWindowLong(hwnd, GWL_STYLE);
+    lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU);
+    SetWindowLong(hwnd, GWL_STYLE, lStyle);
+    MoveWindow_Hook(hwnd, 0, 0, nWidth - X, nHeight - Y, TRUE);
+    return hwnd;
 }
 
-LRESULT WINAPI DefWindowProcWProxy(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+BOOL WINAPI AdjustWindowRect_Hook(LPRECT lpRect, DWORD dwStyle, BOOL bMenu)
 {
-    if ((GetWindowLongW(hWnd, GWL_STYLE) & WS_OVERLAPPEDWINDOW) != 0)
-        MakeBorderless(hWnd);
-
-    return DefWindowProcW(hWnd, Msg, wParam, lParam);
+    dwStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU);
+    return AdjustWindowRect(lpRect, dwStyle, bMenu);
 }
 
 uint32_t dword_F43AD8;
@@ -364,13 +353,23 @@ void Init()
 
     if (bBorderlessWindowed)
     {
-        grcWindow__m_dwWidth = *hook::get_pattern<uint32_t*>("8B 0D ? ? ? ? F3 0F 10 8C B7 ? ? ? ? F3 0F 59 C2 84 C0 0F 45 0D ? ? ? ? F3 0F 5C C8 66 0F 6E C1 0F 5B C0 F3 0F 59 C8 0F 57 C0 0F 2F C1", 2);
-        grcWindow__m_dwHeight = *hook::get_pattern<uint32_t*>("8B 0D ? ? ? ? F3 0F 10 94 B7 ? ? ? ? F3 0F 59 C1 84 C0 0F 45 0D ? ? ? ? F3 0F 5C D0 66 0F 6E C1 0F 5B C0 F3 0F 59 D0 0F 57 C0 0F 2F C2", 2);
-        auto pattern = hook::pattern("FF 15 ? ? ? ? 5F 5E 5D 5B 83 C4 10 C2 10 00");
-        injector::MakeNOP(pattern.count(2).get(0).get<void>(0), 6, true);
-        injector::MakeCALL(pattern.count(2).get(0).get<void>(0), DefWindowProcWProxy, true);
-        injector::MakeNOP(pattern.count(2).get(1).get<void>(0), 6, true);
-        injector::MakeCALL(pattern.count(2).get(1).get<void>(0), DefWindowProcAProxy, true);
+        //grcWindow__m_dwWidth = *hook::get_pattern<uint32_t*>("8B 0D ? ? ? ? F3 0F 10 8C B7 ? ? ? ? F3 0F 59 C2 84 C0 0F 45 0D ? ? ? ? F3 0F 5C C8 66 0F 6E C1 0F 5B C0 F3 0F 59 C8 0F 57 C0 0F 2F C1", 2);
+        //grcWindow__m_dwHeight = *hook::get_pattern<uint32_t*>("8B 0D ? ? ? ? F3 0F 10 94 B7 ? ? ? ? F3 0F 59 C1 84 C0 0F 45 0D ? ? ? ? F3 0F 5C D0 66 0F 6E C1 0F 5B C0 F3 0F 59 D0 0F 57 C0 0F 2F C2", 2);
+        auto pattern = hook::pattern("FF 15 ? ? ? ? 8B F0 6A 01");
+        injector::MakeNOP(pattern.get_first(0), 6, true);
+        injector::MakeCALL(pattern.get_first(0), CreateWindowExA_Hook, true);
+        pattern = hook::pattern("FF 15 ? ? ? ? 8B 44 24 34");
+        injector::MakeNOP(pattern.get_first(0), 6, true);
+        injector::MakeCALL(pattern.get_first(0), MoveWindow_Hook, true);
+        pattern = hook::pattern("FF 15 ? ? ? ? 8B 54 24 24 8B 74 24 20");
+        injector::MakeNOP(pattern.get_first(0), 6, true);
+        injector::MakeCALL(pattern.get_first(0), AdjustWindowRect_Hook, true);
+        pattern = hook::pattern("FF 15 ? ? ? ? 8B 44 24 10 85 C0");
+        injector::MakeNOP(pattern.get_first(0), 6, true);
+        injector::MakeCALL(pattern.get_first(0), AdjustWindowRect_Hook, true);
+        pattern = hook::pattern("FF 15 ? ? ? ? 8B 74 24 1C 8B 44 24 24");
+        injector::MakeNOP(pattern.get_first(0), 6, true);
+        injector::MakeCALL(pattern.get_first(0), AdjustWindowRect_Hook, true);
     }
 
     //fix for zoom flag in tbogt
