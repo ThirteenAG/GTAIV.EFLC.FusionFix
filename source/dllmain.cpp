@@ -2,6 +2,8 @@
 #include <mmsystem.h>
 #pragma comment(lib, "winmm.lib") // needed for timeBeginPeriod()/timeEndPeriod()
 #include <filesystem>
+#include <map>
+#include <d3d9.h>
 
 enum MenuItems
 {
@@ -151,6 +153,8 @@ enum eSettings
     bSkipMenu = PREF_EPISODIC_GAMEMODE_1,
     bBorderlessWindowed = PREF_EPISODIC_GAMEMODE_2,
     nFpsLimitPreset = PREF_EPISODIC_GAMEMODE_3,
+    bFXAA = PREF_EPISODIC_GAMEMODE_4,
+    bConsoleGamma = PREF_EPISODIC_GAMEMODE_5,
 };
 
 class CSettings
@@ -186,6 +190,8 @@ public:
             { bSkipMenu,                      "MAIN",       "SkipMenu",                      1 },
             { bBorderlessWindowed,            "MAIN",       "BorderlessWindowed",            1 },
             { nFpsLimitPreset,                "FRAMELIMIT", "FpsLimitPreset",                1 },
+            { bFXAA,                          "MISC",       "FXAA",                          1 },
+            { bConsoleGamma,                  "MISC",       "ConsoleGamma",                  0 },
         };
 
         for (auto& it : arr)
@@ -919,7 +925,94 @@ void Init()
         pattern = hook::pattern("E8 ? ? ? ? C6 05 ? ? ? ? ? C6 05 ? ? ? ? ? E8 ? ? ? ? B9");
         sub_5A8FE0 = (void(__cdecl*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
         injector::MakeCALL(pattern.get_first(0), sub_5A8FE0_hook, true);
+    }
 
+    {
+        static std::map<IDirect3DPixelShader9*, std::tuple<IDirect3DPixelShader9*, IDirect3DPixelShader9*, IDirect3DPixelShader9*, IDirect3DPixelShader9*>> shadermap;
+        auto pattern = hook::pattern("53 57 51 FF 90");
+        struct CreatePixelShaderHook
+        {
+            void operator()(injector::reg_pack& regs)
+            {
+                auto pDevice = (IDirect3DDevice9*)regs.ecx;
+                DWORD* pFunction = (DWORD*)regs.edi;
+                IDirect3DPixelShader9** ppShader = (IDirect3DPixelShader9**)regs.ebx;
+                pDevice->CreatePixelShader(pFunction, ppShader);
+                IDirect3DPixelShader9* pShader = *ppShader;
+
+                if (pShader != nullptr)
+                {
+                    static std::vector<uint8_t> pbFunc;
+                    UINT len;
+                    pShader->GetFunction(nullptr, &len);
+                    if (pbFunc.size() < len)
+                        pbFunc.resize(len);
+
+                    pShader->GetFunction(pbFunc.data(), &len);
+
+                    //def c27, 1, 77, 88, 99            // FXAA Toggle
+                    //def c28, 0, 77, 88, 99            // Console Gamma Toggle
+                    auto pattern = hook::pattern((uintptr_t)pbFunc.data(), (uintptr_t)pbFunc.data() + pbFunc.size(), "05 ? 00 0F A0 ? ? ? ? 00 00 00 00 00 00 B0 42 00 00 C6 42");
+                    if (!pattern.empty())
+                    {
+                        if (!shadermap.contains(pShader))
+                        {
+                            auto create_shader_variation = [&](int32_t fxaa, int32_t gamma) -> IDirect3DPixelShader9*
+                            {
+                                IDirect3DPixelShader9* shader;
+                                pattern.for_each_result([&](hook::pattern_match match) {
+                                    if (*match.get<uint8_t>(1) == 0x1B) // fxaa
+                                        injector::WriteMemory(match.get<void>(5), fxaa, true);
+                                    else if (*match.get<uint8_t>(1) == 0x1C) // gamma
+                                        injector::WriteMemory(match.get<void>(5), gamma, true);
+                                });
+                                pDevice->CreatePixelShader((DWORD*)pbFunc.data(), &shader);
+                                return shader;
+                            };
+
+                            static constexpr auto ENABLE  = 0x3F800000;
+                            static constexpr auto DISABLE = 0x00000000;
+                            auto fxaa_off_gamma_off = create_shader_variation(DISABLE, DISABLE);
+                            auto fxaa_off_gamma_on = create_shader_variation(DISABLE, ENABLE);
+                            auto fxaa_on_gamma_off = create_shader_variation(ENABLE, DISABLE);
+                            auto fxaa_on_gamma_on = create_shader_variation(ENABLE, ENABLE);
+                            shadermap.emplace(pShader, std::make_tuple(fxaa_off_gamma_off, fxaa_off_gamma_on, fxaa_on_gamma_off, fxaa_on_gamma_on));
+                        }
+                    }
+                }
+            }
+        }; injector::MakeInline<CreatePixelShaderHook>(pattern.get_first(0), pattern.get_first(9));
+
+
+        pattern = hook::pattern("8D A4 24 00 00 00 00 8B 40 04 8B 54 24 28");
+        static auto ptr = pattern.get_first(0);
+
+        pattern = hook::pattern("A1 ? ? ? ? 52 8B 08 50 89 15 ? ? ? ? FF 91 ? ? ? ? 8B 44 24 10");
+        static auto pD3DDevice = *pattern.get_first<IDirect3DDevice9**>(1);
+        struct SetPixelShaderHook
+        {
+            void operator()(injector::reg_pack& regs)
+            {
+                regs.eax = *(uint32_t*)pD3DDevice;
+                auto pDevice = *pD3DDevice;
+                {
+                    auto pShader = (IDirect3DPixelShader9*)regs.edx;
+                    if (shadermap.contains(pShader))
+                    {
+                        if (FusionFixSettings(bFXAA))
+                            if (FusionFixSettings(bConsoleGamma))
+                                regs.edx = (uint32_t)std::get<3>(shadermap.at(pShader));
+                            else
+                                regs.edx = (uint32_t)std::get<2>(shadermap.at(pShader));
+                        else
+                            if (FusionFixSettings(bConsoleGamma))
+                                regs.edx = (uint32_t)std::get<1>(shadermap.at(pShader));
+                            else
+                                regs.edx = (uint32_t)std::get<0>(shadermap.at(pShader));
+                    }
+                }
+            }
+        }; injector::MakeInline<SetPixelShaderHook>(pattern.get_first(0));
     }
 }
 
