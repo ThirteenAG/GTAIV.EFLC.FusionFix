@@ -19,7 +19,8 @@ Changelog:
 - Added an option to skip intro
 - Added an option to skip main menu after startup
 - Added an option to force borderless windowed mode
-- Added an option to fix mouse
+- Added an option to fix mouse deadzones
+- Restored transparency on pool minigame
 
 Shader changelog:
 - [Partially fixed emissive shader bug, lights are now present in the game (e.g. Rotterdam Tower, Comrades Bar area)](https://github.com/GTAmodding/GTAIV-Issues-List/issues/4)
