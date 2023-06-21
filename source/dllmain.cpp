@@ -3,19 +3,203 @@
 #pragma comment(lib, "winmm.lib") // needed for timeBeginPeriod()/timeEndPeriod()
 #include <filesystem>
 
-uint32_t* dword_11CC9D0;
-int32_t* dword_112EAC0;
-int32_t* dword_11402D4;
-int32_t* dword_F30468;
-float* float_F33C18;
-LARGE_INTEGER(*sub_456F60)();
-int64_t* qword_11CCA80;
-float* float_18CAE9C;
-void* unk_11CC9D8;
-double* qword_10FCB84;
-float* float_F33C24;
-float* float_11CC9D4;
-void(__cdecl* sub_855470)(float a1);
+enum MenuItems
+{
+    PREF_NULL,
+    PREF_WAYPOINT_ID,
+    PREF_AUTOSAVE,
+    PREF_AUTOSAVE_SLOT_UNUSED,
+    PREF_VIBRATION,
+    PREF_CONTROL_METHOD,
+    PREF_INVERT_MOUSE,
+    PREF_INVERT_LOOK,
+    PREF_AUTO_AIM,
+    PREF_CONTROLLER_SENSITIVITY,
+    PREF_SNIPER_CONTROL,
+    PREF_CONTROL_CONFIG,
+    PREF_BRIGHTNESS,
+    PREF_CONTRAST,
+    PREF_SATURATION,
+    PREF_LOD,
+    PREF_SUBTITLES,
+    PREF_DISPLAY_HUD,
+    PREF_RETICULE,
+    PREF_DISPLAY_GPS,
+    PREF_HANDBRAKE_CAM,
+    PREF_RADAR_MODE,
+    PREF_MAP_LEGEND,
+    PREF_MUSIC_VOLUME,
+    PREF_MUSIC_VOLUME_IN_MP,
+    PREF_SFX_VOLUME,
+    PREF_FRAME_LIMITER,
+    PREF_AUDIO_OUTPUT,
+    PREF_BASS,
+    PREF_GPS_SPEECH,
+    PREF_KEYBOARD_LANGUAGE,
+    PREF_SYSTEM_LANGUAGE,
+    PREF_CURRENT_LANGUAGE,
+    PREF_PREVIOUS_LANGUAGE,
+    PREF_REDEFINE_SCREEN,
+    PREF_NETWORK_GAME_NAME,
+    PREF_NETWORK_GAME_TYPE,
+    PREF_NETWORK_GAME_PARAM_1,
+    PREF_NETWORK_GAME_PARAM_2,
+    PREF_NETWORK_GAME_PARAM_3,
+    PREF_NETWORK_GAME_PARAM_4,
+    PREF_NETWORK_GAME_PARAM_5,
+    PREF_NETWORK_GAME_PARAM_6,
+    PREF_GAMEMODE,
+    PREF_GAMETYPE,
+    PREF_SCORES,
+    PREF_RACETYPE,
+    PREF_RACENAME,
+    PREF_GAMECLASS,
+    PREF_GENRE,
+    PREF_HEAD_FEMALE,
+    PREF_TORSO_FEMALE,
+    PREF_LEGS_FEMALE,
+    PREF_GLASSES_FEMALE,
+    PREF_HATS_FEMALE,
+    PREF_UNK1,
+    PREF_UNK2,
+    PREF_HEAD_MALE,
+    PREF_TORSO_MALE,
+    PREF_LEGS_MALE,
+    PREF_GLASSES_MALE,
+    PREF_HATS_MALE,
+    PREF_HEAD_MALE_UNDRESSED,
+    PREF_HAIR_MALE,
+    PREF_UNK3,
+    PREF_UNK4,
+    PREF_UNK5,
+    PREF_UNK6,
+    PREF_HAIR_FEMALE,
+    PREF_SUSE_FEMALE,
+    PREF_SUSE_MALE,
+    PREF_HAND_FEMALE,
+    PREF_HAND_MALE,
+    PREF_RADIO_STATION,
+    PREF_HDR,
+    PREF_SPEAKER_OUTPUT,
+    PREF_FLICKER_FILTER,
+    PREF_DISPLAY_BLIPS,
+    PREF_VOICE_OUTPUT,
+    PREF_GAMETYPE_COMP,
+    PREF_SCORES_COMP,
+    PREF_GAMETYPE_TEAM,
+    PREF_SCORES_TEAM,
+    PREF_GAMETYPE_COOP,
+    PREF_SCORES_COOP,
+    PREF_GAMETYPE_RACE,
+    PREF_GAMETYPE_GAMER_RANK,
+    PREF_GAMETYPE_TRUESKILL,
+    PREF_GAMEMODE_TRUESKILL,
+    PREF_EPISODIC_GAMEMODE_0,
+    PREF_EPISODIC_GAMEMODE_1,
+    PREF_EPISODIC_GAMEMODE_2,
+    PREF_EPISODIC_GAMEMODE_3,
+    PREF_EPISODIC_GAMEMODE_4,
+    PREF_EPISODIC_GAMEMODE_5,
+    PREF_EPISODIC_GAMEMODE_6,
+    PREF_EPISODIC_GAMEMODE_7,
+    PREF_EPISODIC_GAMEMODE_8,
+    PREF_EPISODIC_GAMEMODE_9,
+    PREF_EPISODIC_SCORES_0,
+    PREF_EPISODIC_SCORES_1,
+    PREF_EPISODIC_SCORES_2,
+    PREF_EPISODIC_SCORES_3,
+    PREF_EPISODIC_SCORES_4,
+    PREF_EPISODIC_SCORES_5,
+    PREF_EPISODIC_SCORES_6,
+    PREF_EPISODIC_SCORES_7,
+    PREF_EPISODIC_SCORES_8,
+    PREF_EPISODIC_SCORES_9,
+    PREF_EPISODIC_GAMETYPE_0,
+    PREF_EPISODIC_GAMETYPE_1,
+    PREF_EPISODIC_GAMETYPE_2,
+    PREF_EPISODIC_GAMETYPE_3,
+    PREF_EPISODIC_GAMETYPE_4,
+    PREF_EPISODIC_GAMETYPE_5,
+    PREF_EPISODIC_GAMETYPE_6,
+    PREF_EPISODIC_GAMETYPE_7,
+    PREF_EPISODIC_GAMETYPE_8,
+    PREF_EPISODIC_GAMETYPE_9,
+    PREF_EPISODIC_GAMETYPE_RACE_0,
+    PREF_EPISODIC_GAMETYPE_RACE_1,
+    PREF_EPISODIC_GAMETYPE_RACE_2,
+    PREF_EPISODIC_GAMETYPE_RACE_3,
+    PREF_EPISODIC_GAMETYPE_RACE_4,
+    PREF_EPISODIC_GAMETYPE_RACE_5,
+    PREF_EPISODIC_RACENAME_RACE_0,
+    PREF_EPISODIC_RACENAME_RACE_1,
+    PREF_EPISODIC_RACENAME_RACE_2,
+    PREF_EPISODIC_RACENAME_RACE_3,
+    PREF_EPISODIC_RACENAME_RACE_4,
+    PREF_EPISODIC_RACENAME_RACE_5,
+    PREF_EPISODIC_RACECLASS_RACE_0,
+    PREF_EPISODIC_RACECLASS_RACE_1,
+    PREF_EPISODIC_RACECLASS_RACE_2,
+    PREF_EPISODIC_RACECLASS_RACE_3,
+    PREF_EPISODIC_RACECLASS_RACE_4,
+    PREF_EPISODIC_RACECLASS_RACE_5,
+    PREF_EPISODIC_NOISE_FILTER,
+};
+
+enum eSettings
+{
+    bSkipIntro = PREF_EPISODIC_GAMEMODE_0,
+    bSkipMenu = PREF_EPISODIC_GAMEMODE_1,
+    bBorderlessWindowed = PREF_EPISODIC_GAMEMODE_2,
+    nFpsLimitPreset = PREF_EPISODIC_GAMEMODE_3,
+};
+
+class CSettings
+{
+private:
+    struct CSetting
+    {
+        eSettings assocEnum;
+        std::string_view iniSec;
+        std::string_view iniName;
+        int32_t iniDefValInt;
+
+        int32_t operator()() { return mPrefs[assocEnum]; }
+        void ReadFromIni(auto& iniReader) { mPrefs[assocEnum] = iniReader.ReadInteger(iniSec, iniName, iniDefValInt); }
+        void ReadFromIni() { CIniReader iniReader(""); ReadFromIni(iniReader); }
+        void WriteToIni(auto& iniWriter, auto value) { iniWriter.WriteInteger(iniSec, iniName, value); }
+        void WriteToIni(auto value) { CIniReader iniWriter(""); iniWriter.WriteInteger(iniSec, iniName, value); }
+    };
+public:
+    static inline int32_t* mPrefs;
+    static inline std::map<eSettings, CSetting> mSettings;
+
+public:
+    CSettings()
+    {
+        auto pattern = hook::pattern("89 1C 95 ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 83 C4 04");
+        mPrefs = *pattern.get_first<int32_t*>(3);
+
+        CIniReader iniReader("");
+
+        CSetting arr[] = {
+            { bSkipIntro,                     "MAIN",       "SkipIntro",                     1 },
+            { bSkipMenu,                      "MAIN",       "SkipMenu",                      1 },
+            { bBorderlessWindowed,            "MAIN",       "BorderlessWindowed",            1 },
+            { nFpsLimitPreset,                "FRAMELIMIT", "FpsLimitPreset",                1 },
+        };
+
+        for (auto& it : arr)
+        {
+            it.ReadFromIni(iniReader);
+            mSettings.emplace(it.assocEnum, it);
+        }
+    }
+public:
+    auto operator()(eSettings i) { return mSettings[i](); }
+    auto Get(eSettings i) { return mSettings[i]; }
+    bool Exists(eSettings key) { return mSettings.count(key) > 0; }
+} FusionFixSettings;
+
 bool(*CCutscenes__hasCutsceneFinished)();
 bool(*CCamera__isWidescreenBordersActive)();
 
@@ -24,6 +208,7 @@ float fFpsLimit;
 float fCutsceneFpsLimit;
 float fScriptCutsceneFpsLimit;
 float fScriptCutsceneFovLimit;
+std::vector<int32_t> fpsCaps = { 0, 1, 30, 40, 50, 60, 75, 100, 120, 144, 165, 240 };
 
 class FrameLimiter
 {
@@ -107,10 +292,10 @@ FrameLimiter CutsceneFpsLimiter;
 FrameLimiter ScriptCutsceneFpsLimiter;
 void __cdecl sub_855640()
 {
-    //injector::fastcall<void(uintptr_t)>::call(*(uintptr_t*)(*(uintptr_t*)(*dword_11CC9D0) + 20), *dword_11CC9D0);
-
-    if (fFpsLimit)
-        FpsLimiter.Sync();
+    if (FusionFixSettings(nFpsLimitPreset) >= 1) {
+        if (fFpsLimit > 0.0f || FusionFixSettings(nFpsLimitPreset) > 1)
+            FpsLimiter.Sync();
+    }
 
     if (CCamera__isWidescreenBordersActive())
     {
@@ -119,36 +304,6 @@ void __cdecl sub_855640()
                 CutsceneFpsLimiter.Sync();
             else if (fScriptCutsceneFpsLimit)
                 ScriptCutsceneFpsLimiter.Sync();
-    }
-
-    //is that even used?
-    {
-        auto v2 = 0.0f;
-        auto v01 = (uint8_t **)unk_11CC9D8;
-        auto v02 = v01[2];
-        if (v02 && *v02)
-            v2 = atof((const char*)v01[2]);
-
-        if (v2 > 0.0f)
-        {
-            auto v0 = *qword_10FCB84;
-            if (*qword_10FCB84 < 0.0083333002f)
-                v0 = 0.0083333002f;
-            *float_F33C24 = (((60.0f - 1.0f) * (1.0f / 60.0f)) * *float_F33C24) + ((1.0f / v0) * (1.0f / 60.0f));
-            if ((v2 - 3.0f) <= *float_F33C24)
-            {
-                if (*float_F33C24 > (v2 + 3.0f))
-                {
-                    sub_855470(1.0 + 0.029999999f);
-                    *float_11CC9D4 = 1.0f;
-                }
-            }
-            else
-            {
-                sub_855470(1.0f - 0.029999999f);
-                *float_11CC9D4 = -1.0f;
-            }
-        }
     }
 }
 
@@ -274,6 +429,44 @@ bool iequals(const T& s1, const V& s2)
     std::transform(str1.begin(), str1.end(), str1.begin(), ::tolower);
     std::transform(str2.begin(), str2.end(), str2.begin(), ::tolower);
     return (str1 == str2);
+}
+
+void ReadIni()
+{
+    CIniReader iniReader("");
+    for (auto& it : FusionFixSettings.mSettings)
+    {
+        it.second.ReadFromIni(iniReader);
+    }
+}
+
+void (*sub_8C00D0)();
+void sub_8C00D0_hook()
+{
+    sub_8C00D0();
+    ReadIni();
+}
+
+int (*sub_8B7830)();
+int sub_8B7830_hook()
+{
+    auto res = sub_8B7830();
+    ReadIni();
+    return res;
+}
+
+void(__cdecl* sub_59E1C0)();
+void __cdecl sub_59E1C0_hook()
+{
+    sub_59E1C0();
+    ReadIni();
+}
+
+void (*sub_5A8FE0)();
+void sub_5A8FE0_hook()
+{
+    sub_5A8FE0();
+    ReadIni();
 }
 
 void Init()
@@ -548,29 +741,19 @@ void Init()
         injector::WriteMemory(pattern.get_first(28), &f01, true);
     }
 
-    if (fFpsLimit || fCutsceneFpsLimit || fScriptCutsceneFpsLimit)
+    //if (fFpsLimit || fCutsceneFpsLimit || fScriptCutsceneFpsLimit)
     {
         auto mode = (nFrameLimitType == 2) ? FrameLimiter::FPSLimitMode::FPS_ACCURATE : FrameLimiter::FPSLimitMode::FPS_REALTIME;
         if (mode == FrameLimiter::FPSLimitMode::FPS_ACCURATE)
             timeBeginPeriod(1);
 
-        FpsLimiter.Init(mode, fFpsLimit);
+        auto preset = FusionFixSettings(nFpsLimitPreset);
+        if (preset > 1 && preset < fpsCaps.size())
+            FpsLimiter.Init(mode, (float)fpsCaps[preset]);
+        else
+            FpsLimiter.Init(mode, fFpsLimit);
         CutsceneFpsLimiter.Init(mode, fCutsceneFpsLimit);
         ScriptCutsceneFpsLimiter.Init(mode, fScriptCutsceneFpsLimit);
-
-        dword_11CC9D0 = *hook::get_pattern<uint32_t*>("8B 0D ? ? ? ? 83 EC 18 8B 01 56 FF 50 14", 2);
-        float_11CC9D4 = (float*)(dword_11CC9D0 + 1);
-        unk_11CC9D8 = dword_11CC9D0 + 2;
-        dword_112EAC0 = *hook::get_pattern<int32_t*>("83 3D ? ? ? ? ? F3 0F 10 15 ? ? ? ? 8B 15 ? ? ? ? 8B 35 ? ? ? ? A1 ? ? ? ? 0F 28 CA", 2);
-        dword_11402D4 = *hook::get_pattern<int32_t*>("A1 ? ? ? ? 3B 05 ? ? ? ? 0F 85 ? ? ? ? 57 B9", 1);
-        dword_F30468 = *hook::get_pattern<int32_t*>("83 3D ? ? ? ? ? 0F 84 ? ? ? ? A1 ? ? ? ? A8 01", 2);
-        float_F33C18 = *hook::get_pattern<float*>("F3 0F 11 05 ? ? ? ? 83 FE 01 74 09 3B CA 75 05 83 F8 12 75 10", 4);
-        float_F33C24 = *hook::get_pattern<float*>("F3 0F 59 1D ? ? ? ? F3 0F 58 D8 0F 28 C5 F3 0F 5C C1 F3 0F 11 1D ? ? ? ? 0F 2F C3", 4);
-        qword_11CCA80 = *hook::get_pattern<int64_t*>("A3 ? ? ? ? 89 15 ? ? ? ? 8D 44 24 08", 1);
-        float_18CAE9C = *hook::get_pattern<float*>("89 5D E4 F3 0F 10 05", 7);
-        qword_10FCB84 = *hook::get_pattern<double*>("F3 0F 10 05 ? ? ? ? 0F 2F E0 77 03 0F 28 E0 F3 0F 10 15 ? ? ? ? F3 0F 10 1D", 2);
-        sub_456F60 = (LARGE_INTEGER(*)()) hook::get_pattern<void*>("55 8B EC 83 E4 F8 83 EC 18 83 3D ? ? ? ? ? 53 55 56 8B 35 ? ? ? ? 57", 0);
-        sub_855470 = (void(*)(float)) hook::get_pattern<void*>("F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? F3 0F 10 0D ? ? ? ? 66 0F 6E 1D", 0);
 
         auto pattern = hook::pattern("E8 ? ? ? ? 84 C0 75 89");
         CCutscenes__hasCutsceneFinished = (bool(*)()) injector::GetBranchDestination(pattern.get_first(0)).get();
@@ -678,6 +861,65 @@ void Init()
                 }
             }
         }; injector::MakeInline<ImgListHook>(pattern.get_first(0), pattern.get_first(8));
+    }
+
+    // runtime settings
+    {
+        ReadIni();
+
+        auto pattern = hook::pattern("89 1C 95 ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 83 C4 04");
+        struct IniWriter
+        {
+            void operator()(injector::reg_pack& regs)
+            {
+                auto s = (eSettings)regs.edx;
+                if (FusionFixSettings.Exists(s))
+                {
+                    switch (s)
+                    {
+                    case nFpsLimitPreset:
+                    {
+                        auto preset = regs.ebx;
+                        auto mode = (nFrameLimitType == 2) ? FrameLimiter::FPSLimitMode::FPS_ACCURATE : FrameLimiter::FPSLimitMode::FPS_REALTIME;
+                        if (preset > 1 && preset < fpsCaps.size())
+                            FpsLimiter.Init(mode, (float)fpsCaps[preset]);
+                        else
+                            FpsLimiter.Init(mode, fFpsLimit);
+                    }
+                    [[fallthrough]];
+                    default:
+                        FusionFixSettings.Get(s).WriteToIni(regs.ebx);
+                        break;
+                    }
+                }
+
+                FusionFixSettings.mPrefs[s] = regs.ebx;
+            }
+        }; injector::MakeInline<IniWriter>(pattern.get_first(0), pattern.get_first(7));
+
+        // Additional ini reader
+        pattern = hook::pattern("E8 ? ? ? ? B1 01 E8");
+        sub_8C00D0 = (void(*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
+        injector::MakeCALL(pattern.get_first(0), sub_8C00D0_hook, true);
+        pattern = hook::pattern("E8 ? ? ? ? E8 ? ? ? ? 8B 0D ? ? ? ? 89 41 14");
+        injector::MakeCALL(pattern.get_first(0), sub_8C00D0_hook, true);
+        pattern = hook::pattern("68 ? ? ? ? 6A 00 8D 4C 24 10 E8 ? ? ? ? A1");
+        injector::WriteMemory(pattern.get_first(1), sub_8C00D0_hook, true);
+        pattern = hook::pattern("E9 ? ? ? ? CC A1 ? ? ? ? 85 C0");
+        injector::MakeJMP(pattern.get_first(0), sub_8C00D0_hook, true);
+
+        pattern = hook::pattern("E8 ? ? ? ? 80 3D ? ? ? ? ? A3 ? ? ? ? A3");
+        sub_8B7830 = (int(*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
+        injector::MakeCALL(pattern.get_first(0), sub_8B7830_hook, true);
+
+        pattern = hook::pattern("E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? 6A 32");
+        sub_59E1C0 = (void(__cdecl*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
+        injector::MakeCALL(pattern.get_first(0), sub_59E1C0_hook, true);
+
+        pattern = hook::pattern("E8 ? ? ? ? C6 05 ? ? ? ? ? C6 05 ? ? ? ? ? E8 ? ? ? ? B9");
+        sub_5A8FE0 = (void(__cdecl*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
+        injector::MakeCALL(pattern.get_first(0), sub_5A8FE0_hook, true);
+
     }
 }
 
