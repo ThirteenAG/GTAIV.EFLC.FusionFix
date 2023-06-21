@@ -538,8 +538,12 @@ void Init()
             {
                 *(int32_t*)&regs.ecx = *dword_15A6F0C;
                 *(int32_t*)&regs.eax = *(int32_t*)(regs.esp + 0x18);
-                if (*(int32_t*)&regs.eax < 8000)
+                static int once = 0;
+                if (once < 5 && *(int32_t*)&regs.eax < 8000)
+                {
                     regs.eax = 0;
+                    once++;
+                }
             }
         }; injector::MakeInline<Loadsc>(pattern.count(2).get(1).get<void*>(0), pattern.count(2).get(1).get<void*>(10));
     }
