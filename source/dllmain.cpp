@@ -929,6 +929,10 @@ void Init()
         pattern = hook::pattern("E8 ? ? ? ? C6 05 ? ? ? ? ? C6 05 ? ? ? ? ? E8 ? ? ? ? B9");
         sub_5A8FE0 = (void(__cdecl*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
         injector::MakeCALL(pattern.get_first(0), sub_5A8FE0_hook, true);
+
+        // show game in display menu
+        pattern = hook::pattern("75 1F FF 35 ? ? ? ? E8 ? ? ? ? 8B 4C 24 18");
+        injector::MakeNOP(pattern.get_first(), 2);
     }
 
     {
