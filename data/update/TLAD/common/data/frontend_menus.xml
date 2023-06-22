@@ -560,6 +560,7 @@
       <options action="MENUOPT_ADJUST" label="MO_BRI" value="PREF_BRIGHTNESS" scaler="11" displayValue="MENU_DISPLAY_SLIDERBAR" />
       <options action="MENUOPT_ADJUST" label="MO_CON" value="PREF_CONTRAST" scaler="11" displayValue="MENU_DISPLAY_SLIDERBAR" />
       <options action="MENUOPT_ADJUST" label="MO_SAT" value="PREF_SATURATION" scaler="11" displayValue="MENU_DISPLAY_SLIDERBAR" />
+      <optionspc action="MENUOPT_ADJUST_GAMEMODE"  label="Console Gamma"              value="PREF_EPISODIC_GAMEMODE_5"            scaler="2" displayValue="MENU_DISPLAY_ON_OFF"/>
       <options action="MENUOPT_ADJUST" label="MO_NOISE" value="PREF_EPISODIC_NOISE_FILTER" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_ADJUST" label="MO_SUB" value="PREF_SUBTITLES" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_ADJUST" label="MO_RAD" value="PREF_RADAR_MODE" scaler="3" displayValue="MENU_DISPLAY_RADAR_MODE" />
@@ -1100,7 +1101,6 @@
       <optionspc action="MENUOPT_ADJUST" label="MO_CARS" value="PREF_CAR_DENSITY" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
       <optionspc action="MENUOPT_ADJUST" label="MO_DOF" value="PREF_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="MENUOPT_ADJUST_GAMEMODE" label="FXAA" value="PREF_EPISODIC_GAMEMODE_4" scaler="2" displayValue="MENU_DISPLAY_ON_OFF"/>
-      <optionspc action="MENUOPT_ADJUST_GAMEMODE"  label="Console Gamma"              value="PREF_EPISODIC_GAMEMODE_5"            scaler="2" displayValue="MENU_DISPLAY_ON_OFF"/>
       <optionspc action="MENUOPT_GRAPHICS_ANALYZER" label="MO_ANALYZER" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />
       <optionspc action="MENUOPT_BENCHMARK" label="MO_BENCHMARK" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />
       <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
@@ -1120,7 +1120,6 @@
       <optionspc action="MENUOPT_ADJUST" label="MO_CARS" value="PREF_CAR_DENSITY" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
       <optionspc action="MENUOPT_ADJUST" label="MO_DOF" value="PREF_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="MENUOPT_ADJUST_GAMEMODE" label="FXAA" value="PREF_EPISODIC_GAMEMODE_4" scaler="2" displayValue="MENU_DISPLAY_ON_OFF"/>
-      <optionspc action="MENUOPT_ADJUST_GAMEMODE"  label="Console Gamma"              value="PREF_EPISODIC_GAMEMODE_5"            scaler="2" displayValue="MENU_DISPLAY_ON_OFF"/>
       <optionspc action="MENUOPT_GRAPHICS_ANALYZER" label="MO_ANALYZER" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />
       <optionspc action="MENUOPT_BENCHMARK" label="MO_BENCHMARK" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />
       <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
