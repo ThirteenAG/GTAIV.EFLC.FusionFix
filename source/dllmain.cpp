@@ -539,7 +539,7 @@ void Init()
                 *(int32_t*)&regs.ecx = *dword_15A6F0C;
                 *(int32_t*)&regs.eax = *(int32_t*)(regs.esp + 0x18);
                 static int once = 0;
-                if (once < 5 && *(int32_t*)&regs.eax < 8000)
+                if (once < 8 && *(int32_t*)&regs.eax < 8000)
                 {
                     regs.eax = 0;
                     once++;
