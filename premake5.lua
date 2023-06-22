@@ -63,4 +63,4 @@ workspace "GTAIV.EFLC.FusionFix"
       staticruntime "On"
 	  
 project "GTAIV.EFLC.FusionFix"
-   setpaths("G:/Games/Grand Theft Auto IV v1.0.8.0 - DLC/", "GTAIV.exe", "plugins/")
+   setpaths("H:/SteamLibrary/steamapps/common/Grand Theft Auto IV/GTAIV/", "GTAIV.exe", "plugins/")
