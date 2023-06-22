@@ -513,7 +513,6 @@
       <options action="MENUOPT_ADJUST" label="MO_SAT"
       value="PREF_SATURATION" scaler="11"
       displayValue="MENU_DISPLAY_SLIDERBAR" />
-<optionspc action="MENUOPT_ADJUST_GAMEMODE"  label="Console Gamma"              value="PREF_EPISODIC_GAMEMODE_5"            scaler="2" displayValue="MENU_DISPLAY_ON_OFF"/>
       <options action="MENUOPT_ADJUST" label="MO_SUB"
       value="PREF_SUBTITLES" scaler="2"
       displayValue="MENU_DISPLAY_ON_OFF" />
@@ -540,9 +539,7 @@
       displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_NONE" label="" value="PREF_NULL"
       scaler="0" displayValue="MENU_DISPLAY_NONE" />
-      <optionspc action="MENUOPT_ADJUST"		label="MO_ASPRAT"		value="PREF_ASPECT"				scaler="6"		displayValue="MENU_DISPLAY_ASPECT"/>
       <optionspc action="MENUOPT_ADJUST_GAMEMODE"  label="Borderless"                 value="PREF_EPISODIC_GAMEMODE_2"            scaler="2" displayValue="MENU_DISPLAY_ON_OFF"/>
-      <options action="MENUOPT_NONE"				label=""				value="PREF_NULL"			scaler="0"	displayValue="MENU_DISPLAY_NONE"/>
       <optionspc action="MENUOPT_ADJUST"		label="MO_VSYNC"		value="PREF_VSYNC"					scaler="2"		displayValue="MENU_DISPLAY_ON_OFF"/>
       <optionspc action="MENUOPT_ADJUST_GAMEMODE"  label="FPS limiter"                  value="PREF_EPISODIC_GAMEMODE_3"            scaler="12" displayValue="MENU_DISPLAY_FRAMELIMIT"/>
       <options action="MENUOPT_NONE"				label=""				value="PREF_NULL"			scaler="0"	displayValue="MENU_DISPLAY_NONE"/>
@@ -1011,6 +1008,7 @@
       displayValue="MENU_DISPLAY_RESOLUTION_SLIDERBAR" />
       <options action="MENUOPT_NONE" label="" value="PREF_NULL"
       scaler="0" displayValue="MENU_DISPLAY_NONE" />
+      <optionspc action="MENUOPT_ADJUST"		label="MO_ASPRAT"		value="PREF_ASPECT"				scaler="6"		displayValue="MENU_DISPLAY_ASPECT"/>
       <optionspc action="MENUOPT_ADJUST" label="MO_TEX"
       value="PREF_TEXTURE_QUALITY" scaler="3"
       displayValue="MENU_DISPLAY_QUALITY_SETTINGS" />
@@ -1042,7 +1040,7 @@
       value="PREF_DOF" scaler="2"
       displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="MENUOPT_ADJUST_GAMEMODE"  label="FXAA"                       value="PREF_EPISODIC_GAMEMODE_4"            scaler="2" displayValue="MENU_DISPLAY_ON_OFF"/>
-      <optionspc action="MENUOPT_NONE"				label=""				value="PREF_NULL"			scaler="0"	displayValue="MENU_DISPLAY_NONE"/>
+<optionspc action="MENUOPT_ADJUST_GAMEMODE"  label="Console Gamma"              value="PREF_EPISODIC_GAMEMODE_5"            scaler="2" displayValue="MENU_DISPLAY_ON_OFF"/>
       <optionspc action="MENUOPT_GRAPHICS_ANALYZER"
       label="MO_ANALYZER" value="PREF_NULL" scaler="1"
       displayValue="MENU_DISPLAY_NONE" />
@@ -1058,6 +1056,7 @@
       displayValue="MENU_DISPLAY_RESOLUTION_SLIDERBAR" />
       <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL"
       scaler="0" displayValue="MENU_DISPLAY_NONE" />
+      <optionspc action="MENUOPT_ADJUST"		label="MO_ASPRAT"		value="PREF_ASPECT"				scaler="6"		displayValue="MENU_DISPLAY_ASPECT"/>
       <optionspc action="MENUOPT_ADJUST" label="MO_TEX"
       value="PREF_TEXTURE_QUALITY" scaler="3"
       displayValue="MENU_DISPLAY_QUALITY_SETTINGS" />
@@ -1089,7 +1088,7 @@
       value="PREF_DOF" scaler="2"
       displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="MENUOPT_ADJUST_GAMEMODE"  label="FXAA"                       value="PREF_EPISODIC_GAMEMODE_4"            scaler="2" displayValue="MENU_DISPLAY_ON_OFF"/>
-      <optionspc action="MENUOPT_NONE"				label=""				value="PREF_NULL"			scaler="0"	displayValue="MENU_DISPLAY_NONE"/>
+      <optionspc action="MENUOPT_ADJUST_GAMEMODE"  label="Console Gamma"              value="PREF_EPISODIC_GAMEMODE_5"            scaler="2" displayValue="MENU_DISPLAY_ON_OFF"/>
       <optionspc action="MENUOPT_GRAPHICS_ANALYZER"
       label="MO_ANALYZER" value="PREF_NULL" scaler="1"
       displayValue="MENU_DISPLAY_NONE" />
@@ -1220,7 +1219,6 @@
       <options action="MENUOPT_NONE"				label=""				value="PREF_NULL"			scaler="0"	displayValue="MENU_DISPLAY_NONE"/>
       <optionspc action="MENUOPT_ADJUST"		label="MO_ASPRAT"		value="PREF_ASPECT"				scaler="6"		displayValue="MENU_DISPLAY_ASPECT"/>
       <optionspc action="MENUOPT_ADJUST_GAMEMODE"  label="Borderless"                 value="PREF_EPISODIC_GAMEMODE_2"            scaler="2" displayValue="MENU_DISPLAY_ON_OFF"/>
-      <options action="MENUOPT_NONE"				label=""				value="PREF_NULL"			scaler="0"	displayValue="MENU_DISPLAY_NONE"/>
       <optionspc action="MENUOPT_ADJUST"		label="MO_VSYNC"		value="PREF_VSYNC"					scaler="2"		displayValue="MENU_DISPLAY_ON_OFF"/>
       <optionspc action="MENUOPT_ADJUST_GAMEMODE"  label="FPS limiter"                  value="PREF_EPISODIC_GAMEMODE_3"            scaler="12" displayValue="MENU_DISPLAY_FRAMELIMIT"/>
       <options action="MENUOPT_NONE"				label=""				value="PREF_NULL"			scaler="0"	displayValue="MENU_DISPLAY_NONE"/>
