@@ -11,7 +11,3 @@
 	path = shaders/GTAIV.ShaderFixesCollection
 	url = https://github.com/Parallellines0451/GTAIV.ShaderFixesCollection
 	ignore = dirty
-[submodule "shaders/GTA-IV-Shaders"]
-	path = shaders/GTA-IV-Shaders
-	url = https://github.com/robi29/GTA-IV-Shaders
-	ignore = dirty
