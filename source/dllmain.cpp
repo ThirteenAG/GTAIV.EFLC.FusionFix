@@ -933,6 +933,18 @@ void Init()
         // show game in display menu
         pattern = hook::pattern("75 1F FF 35 ? ? ? ? E8 ? ? ? ? 8B 4C 24 18");
         injector::MakeNOP(pattern.get_first(), 2);
+
+        pattern = hook::pattern("83 F8 03 0F 44 CE");
+        struct MenuHook
+        {
+            void operator()(injector::reg_pack& regs)
+            {
+                regs.ecx = 1;
+            }
+        }; injector::MakeInline<MenuHook>(pattern.get_first(0), pattern.get_first(6));
+
+        pattern = hook::pattern("7E 4E 8A 1D");
+        injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
     }
 
     {
