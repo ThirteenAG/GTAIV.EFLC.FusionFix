@@ -15,9 +15,10 @@ private:
         std::string iniSec;
         std::string iniName;
         int32_t iniDefValInt = 0;
+        std::function<void(int32_t value)> callback;
 
         auto GetValue() { return value; }
-        auto SetValue(auto v) { value = v; WriteToIni(); }
+        auto SetValue(auto v) { value = v; WriteToIni(); if (callback) callback(value); }
         auto ReadFromIni(auto& iniReader) { return iniReader.ReadInteger(iniSec, iniName, iniDefValInt); }
         auto ReadFromIni() { CIniReader iniReader(""); return ReadFromIni(iniReader); }
         void WriteToIni(auto& iniWriter) { iniWriter.WriteInteger(iniSec, iniName, value); }
@@ -37,13 +38,17 @@ private:
     static inline std::map<uint32_t, CSetting> mFusionPrefs;
 
     std::optional<std::string> GetPrefNameByID(auto prefID) {
-        auto it = std::find_if(std::begin(aMenuPrefs), std::end(aMenuPrefs), [&prefID](auto& it) { return it.prefID == prefID; });
+        auto it = std::find_if(std::begin(aMenuPrefs), std::end(aMenuPrefs), [&prefID](auto& it) {
+            return it.prefID == prefID; 
+        });
         if (it != std::end(aMenuPrefs))
             return std::string(it->name);
         return std::nullopt;
     }
     std::optional<int32_t> GetPrefIDByName(auto prefName) {
-        auto it = std::find_if(std::begin(aMenuPrefs), std::end(aMenuPrefs), [&prefName](auto& it) { return std::string_view(it.name) == prefName; });
+        auto it = std::find_if(std::begin(aMenuPrefs), std::end(aMenuPrefs), [&prefName](auto& it) {
+            return std::string_view(it.name) == prefName;
+        });
         if (it != std::end(aMenuPrefs))
             return it->prefID;
         return std::nullopt;
@@ -73,12 +78,12 @@ public:
         CIniReader iniReader("");
 
         CSetting arr[] = {
-            { 0, "PREF_SKIP_INTRO",          "MAIN",       "SkipIntro",                     1 },
-            { 0, "PREF_SKIP_MENU",           "MAIN",       "SkipMenu",                      1 },
-            { 0, "PREF_BORDERLESS",          "MAIN",       "BorderlessWindowed",            1 },
-            { 0, "PREF_FPS_LIMIT_PRESET",    "FRAMELIMIT", "FpsLimitPreset",                1 },
-            { 0, "PREF_FXAA",                "MISC",       "FXAA",                          1 },
-            { 0, "PREF_CONSOLE_GAMMA",       "MISC",       "ConsoleGamma",                  0 },
+            { 0, "PREF_SKIP_INTRO",       "MAIN",       "SkipIntro",          1, nullptr },
+            { 0, "PREF_SKIP_MENU",        "MAIN",       "SkipMenu",           1, nullptr },
+            { 0, "PREF_BORDERLESS",       "MAIN",       "BorderlessWindowed", 1, nullptr },
+            { 0, "PREF_FPS_LIMIT_PRESET", "FRAMELIMIT", "FpsLimitPreset",     1, nullptr },
+            { 0, "PREF_FXAA",             "MISC",       "FXAA",               1, nullptr },
+            { 0, "PREF_CONSOLE_GAMMA",    "MISC",       "ConsoleGamma",       0, nullptr },
         };
 
         auto i = firstCustomID;
@@ -133,6 +138,11 @@ public:
                 return std::ref(mPrefs[*prefID]);
         }
         return std::nullopt;
+    }
+    void SetCallback(std::string_view name, std::function<void(int32_t)>&& cb)
+    {
+        auto prefID = GetPrefIDByName(name);
+        if (prefID) mFusionPrefs[*prefID].callback = cb;
     }
     auto operator()(int32_t i) { return Get(i); }
     auto operator()(std::string_view name) { return Get(name); }
@@ -264,8 +274,17 @@ void __cdecl sub_7870A0(int a1)
     return hbsub_7870A0.fun(a1);
 }
 
+HWND gWnd;
+RECT gRect;
+BOOL WINAPI SetRect_Hook(LPRECT lprc, int xLeft, int yTop, int xRight, int yBottom)
+{
+    gRect = { xLeft, yTop, xRight, yBottom };
+    return SetRect(lprc, xLeft, yTop, xRight, yBottom);
+}
+
 BOOL WINAPI MoveWindow_Hook(HWND hWnd, int X, int Y, int nWidth, int nHeight, BOOL bRepaint)
 {
+    RECT rect = { X, Y, nWidth, nHeight };
     HMONITOR monitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
     MONITORINFO info = {};
     info.cbSize = sizeof(MONITORINFO);
@@ -273,25 +292,48 @@ BOOL WINAPI MoveWindow_Hook(HWND hWnd, int X, int Y, int nWidth, int nHeight, BO
     int32_t DesktopResW = info.rcMonitor.right - info.rcMonitor.left;
     int32_t DesktopResH = info.rcMonitor.bottom - info.rcMonitor.top;
 
-    RECT rect = { X, Y, nWidth, nHeight };
+    if ((rect.right - rect.left >= DesktopResW) || (rect.bottom - rect.top >= DesktopResH))
+        rect = gRect;
     rect.left = (LONG)(((float)DesktopResW / 2.0f) - ((float)rect.right / 2.0f));
     rect.top = (LONG)(((float)DesktopResH / 2.0f) - ((float)rect.bottom / 2.0f));
     return MoveWindow(hWnd, rect.left, rect.top, rect.right, rect.bottom, bRepaint);
 }
 
+void SwitchWindowStyle()
+{
+    if (gWnd)
+    {
+        RECT rect = gRect;
+        LONG lStyle = GetWindowLong(gWnd, GWL_STYLE);
+        if (FusionFixSettings("PREF_BORDERLESS"))
+        {
+            lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU);
+        }
+        else
+        {
+            GetWindowRect(gWnd, &rect);
+            lStyle |= (WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU);
+        }
+        AdjustWindowRect(&rect, lStyle, FALSE);
+        SetWindowLong(gWnd, GWL_STYLE, lStyle);
+        MoveWindow_Hook(gWnd, 0, 0, rect.right - rect.left, rect.bottom - rect.top, TRUE);
+    }
+}
+
 HWND WINAPI CreateWindowExA_Hook(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
 {
-    auto hwnd = CreateWindowExA(dwExStyle, lpClassName, lpWindowName, 0, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
-    LONG lStyle = GetWindowLong(hwnd, GWL_STYLE);
-    lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU);
-    SetWindowLong(hwnd, GWL_STYLE, lStyle);
-    MoveWindow_Hook(hwnd, 0, 0, nWidth - X, nHeight - Y, TRUE);
-    return hwnd;
+    gWnd = CreateWindowExA(dwExStyle, lpClassName, lpWindowName, 0, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
+    SwitchWindowStyle();
+    return gWnd;
 }
 
 BOOL WINAPI AdjustWindowRect_Hook(LPRECT lpRect, DWORD dwStyle, BOOL bMenu)
 {
-    dwStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU);
+    if (FusionFixSettings("PREF_BORDERLESS"))
+        dwStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU);
+    else
+        dwStyle |= (WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU);
+
     return AdjustWindowRect(lpRect, dwStyle, bMenu);
 }
 
@@ -457,10 +499,8 @@ void Init()
         hbsub_7870A0.fun = injector::MakeCALL(pattern.count(5).get(1).get<void*>(0), sub_7870A0).get();
     }
 
-    if (bBorderlessWindowed)
+    //if (bBorderlessWindowed)
     {
-        //grcWindow__m_dwWidth = *hook::get_pattern<uint32_t*>("8B 0D ? ? ? ? F3 0F 10 8C B7 ? ? ? ? F3 0F 59 C2 84 C0 0F 45 0D ? ? ? ? F3 0F 5C C8 66 0F 6E C1 0F 5B C0 F3 0F 59 C8 0F 57 C0 0F 2F C1", 2);
-        //grcWindow__m_dwHeight = *hook::get_pattern<uint32_t*>("8B 0D ? ? ? ? F3 0F 10 94 B7 ? ? ? ? F3 0F 59 C1 84 C0 0F 45 0D ? ? ? ? F3 0F 5C D0 66 0F 6E C1 0F 5B C0 F3 0F 59 D0 0F 57 C0 0F 2F C2", 2);
         auto pattern = hook::pattern("FF 15 ? ? ? ? 8B F0 6A 01");
         injector::MakeNOP(pattern.get_first(0), 6, true);
         injector::MakeCALL(pattern.get_first(0), CreateWindowExA_Hook, true);
@@ -476,6 +516,19 @@ void Init()
         pattern = hook::pattern("FF 15 ? ? ? ? 8B 74 24 1C 8B 44 24 24");
         injector::MakeNOP(pattern.get_first(0), 6, true);
         injector::MakeCALL(pattern.get_first(0), AdjustWindowRect_Hook, true);
+        pattern = hook::pattern("FF 15 ? ? ? ? 80 3D ? ? ? ? ? 74 12");
+        injector::MakeNOP(pattern.get_first(0), 6, true);
+        injector::MakeCALL(pattern.get_first(0), SetRect_Hook, true);
+        pattern = hook::pattern("FF 15 ? ? ? ? 6A 00 FF 35");
+        injector::MakeNOP(pattern.get_first(0), 6, true);
+        injector::MakeCALL(pattern.get_first(0), SetRect_Hook, true);
+        pattern = hook::pattern("FF 15 ? ? ? ? 6A 00 68 ? ? ? ? 8D 44 24 20");
+        injector::MakeNOP(pattern.get_first(0), 6, true);
+        injector::MakeCALL(pattern.get_first(0), SetRect_Hook, true);
+
+        FusionFixSettings.SetCallback("PREF_BORDERLESS", [](int32_t value) {
+            SwitchWindowStyle();
+        });
     }
 
     //fix for zoom flag in tbogt
@@ -676,6 +729,14 @@ void Init()
         pattern = hook::pattern("8B 35 ? ? ? ? 8B 0D ? ? ? ? 8B 15 ? ? ? ? A1");
         injector::WriteMemory(pattern.get_first(0), 0x901CC483, true); //nop + add esp,1C
         injector::MakeJMP(pattern.get_first(4), sub_855640, true); // + jmp
+
+        FusionFixSettings.SetCallback("PREF_FPS_LIMIT_PRESET", [](int32_t value) {
+            auto mode = (nFrameLimitType == 2) ? FrameLimiter::FPSLimitMode::FPS_ACCURATE : FrameLimiter::FPSLimitMode::FPS_REALTIME;
+            if (value > 1 && value < fpsCaps.size())
+                FpsLimiter.Init(mode, (float)fpsCaps[value]);
+            else
+                FpsLimiter.Init(mode, fFpsLimit);
+        });
     }
 
     if (fScriptCutsceneFovLimit)
@@ -800,15 +861,6 @@ void Init()
             {
                 auto id = regs.edx;
                 auto value = regs.ebx;
-                if (FusionFixSettings.isSame(id, "PREF_FPS_LIMIT_PRESET"))
-                {
-                    auto mode = (nFrameLimitType == 2) ? FrameLimiter::FPSLimitMode::FPS_ACCURATE : FrameLimiter::FPSLimitMode::FPS_REALTIME;
-                    if (value > 1 && value < fpsCaps.size())
-                        FpsLimiter.Init(mode, (float)fpsCaps[value]);
-                    else
-                        FpsLimiter.Init(mode, fFpsLimit);
-                }
-
                 FusionFixSettings.Set(id, value);
             }
         }; injector::MakeInline<IniWriter>(pattern.get_first(0), pattern.get_first(7));
