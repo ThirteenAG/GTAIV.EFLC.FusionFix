@@ -256,16 +256,18 @@ void __cdecl sub_855640()
     }
 }
 
+bool bSkipIntroNotNeeded = false;
 injector::hook_back<void(__cdecl*)(int)> hbsub_7870A0;
 void __cdecl sub_7870A0(int a1)
 {
     static bool bOnce = false;
     if (!bOnce)
     {
+        bSkipIntroNotNeeded = true;
         if (a1 == 0)
         {
             bool bNoLoad = (GetAsyncKeyState(VK_SHIFT) & 0xF000) != 0;
-            if (!bNoLoad)
+            if (!bNoLoad && FusionFixSettings("PREF_SKIP_MENU"))
                 a1 = 6;
 
             bOnce = true;
@@ -291,7 +293,6 @@ BOOL WINAPI MoveWindow_Hook(HWND hWnd, int X, int Y, int nWidth, int nHeight, BO
     GetMonitorInfo(monitor, &info);
     int32_t DesktopResW = info.rcMonitor.right - info.rcMonitor.left;
     int32_t DesktopResH = info.rcMonitor.bottom - info.rcMonitor.top;
-
     if ((rect.right - rect.left >= DesktopResW) || (rect.bottom - rect.top >= DesktopResH))
         rect = gRect;
     rect.left = (LONG)(((float)DesktopResW / 2.0f) - ((float)rect.right / 2.0f));
@@ -483,17 +484,15 @@ void Init()
             {
                 *(int32_t*)&regs.ecx = *dword_15A6F0C;
                 *(int32_t*)&regs.eax = *(int32_t*)(regs.esp + 0x18);
-                static int once = 0;
-                if (once < 8 && *(int32_t*)&regs.eax < 8000)
+                if (!bSkipIntroNotNeeded && FusionFixSettings("PREF_SKIP_INTRO") && *(int32_t*)&regs.eax < 8000)
                 {
                     regs.eax = 0;
-                    once++;
                 }
             }
         }; injector::MakeInline<Loadsc>(pattern.count(2).get(1).get<void*>(0), pattern.count(2).get(1).get<void*>(10));
     }
 
-    if (bSkipMenu)
+    //if (bSkipMenu)
     {
         auto pattern = hook::pattern("E8 ? ? ? ? 83 C4 04 8B 8C 24 ? ? ? ? 5F 5E 5D 5B 33 CC E8 ? ? ? ? 81 C4 ? ? ? ? C3");
         hbsub_7870A0.fun = injector::MakeCALL(pattern.count(5).get(1).get<void*>(0), sub_7870A0).get();
