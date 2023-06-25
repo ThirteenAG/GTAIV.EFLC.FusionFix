@@ -5,209 +5,148 @@
 #include <map>
 #include <d3d9.h>
 
-enum MenuItems
-{
-    PREF_NULL,
-    PREF_WAYPOINT_ID,
-    PREF_AUTOSAVE,
-    PREF_AUTOSAVE_SLOT_UNUSED,
-    PREF_VIBRATION,
-    PREF_CONTROL_METHOD,
-    PREF_INVERT_MOUSE,
-    PREF_INVERT_LOOK,
-    PREF_AUTO_AIM,
-    PREF_CONTROLLER_SENSITIVITY,
-    PREF_SNIPER_CONTROL,
-    PREF_CONTROL_CONFIG,
-    PREF_BRIGHTNESS,
-    PREF_CONTRAST,
-    PREF_SATURATION,
-    PREF_LOD,
-    PREF_SUBTITLES,
-    PREF_DISPLAY_HUD,
-    PREF_RETICULE,
-    PREF_DISPLAY_GPS,
-    PREF_HANDBRAKE_CAM,
-    PREF_RADAR_MODE,
-    PREF_MAP_LEGEND,
-    PREF_MUSIC_VOLUME,
-    PREF_MUSIC_VOLUME_IN_MP,
-    PREF_SFX_VOLUME,
-    PREF_FRAME_LIMITER,
-    PREF_AUDIO_OUTPUT,
-    PREF_BASS,
-    PREF_GPS_SPEECH,
-    PREF_KEYBOARD_LANGUAGE,
-    PREF_SYSTEM_LANGUAGE,
-    PREF_CURRENT_LANGUAGE,
-    PREF_PREVIOUS_LANGUAGE,
-    PREF_REDEFINE_SCREEN,
-    PREF_NETWORK_GAME_NAME,
-    PREF_NETWORK_GAME_TYPE,
-    PREF_NETWORK_GAME_PARAM_1,
-    PREF_NETWORK_GAME_PARAM_2,
-    PREF_NETWORK_GAME_PARAM_3,
-    PREF_NETWORK_GAME_PARAM_4,
-    PREF_NETWORK_GAME_PARAM_5,
-    PREF_NETWORK_GAME_PARAM_6,
-    PREF_GAMEMODE,
-    PREF_GAMETYPE,
-    PREF_SCORES,
-    PREF_RACETYPE,
-    PREF_RACENAME,
-    PREF_GAMECLASS,
-    PREF_GENRE,
-    PREF_HEAD_FEMALE,
-    PREF_TORSO_FEMALE,
-    PREF_LEGS_FEMALE,
-    PREF_GLASSES_FEMALE,
-    PREF_HATS_FEMALE,
-    PREF_UNK1,
-    PREF_UNK2,
-    PREF_HEAD_MALE,
-    PREF_TORSO_MALE,
-    PREF_LEGS_MALE,
-    PREF_GLASSES_MALE,
-    PREF_HATS_MALE,
-    PREF_HEAD_MALE_UNDRESSED,
-    PREF_HAIR_MALE,
-    PREF_UNK3,
-    PREF_UNK4,
-    PREF_UNK5,
-    PREF_UNK6,
-    PREF_HAIR_FEMALE,
-    PREF_SUSE_FEMALE,
-    PREF_SUSE_MALE,
-    PREF_HAND_FEMALE,
-    PREF_HAND_MALE,
-    PREF_RADIO_STATION,
-    PREF_HDR,
-    PREF_SPEAKER_OUTPUT,
-    PREF_FLICKER_FILTER,
-    PREF_DISPLAY_BLIPS,
-    PREF_VOICE_OUTPUT,
-    PREF_GAMETYPE_COMP,
-    PREF_SCORES_COMP,
-    PREF_GAMETYPE_TEAM,
-    PREF_SCORES_TEAM,
-    PREF_GAMETYPE_COOP,
-    PREF_SCORES_COOP,
-    PREF_GAMETYPE_RACE,
-    PREF_GAMETYPE_GAMER_RANK,
-    PREF_GAMETYPE_TRUESKILL,
-    PREF_GAMEMODE_TRUESKILL,
-    PREF_EPISODIC_GAMEMODE_0,
-    PREF_EPISODIC_GAMEMODE_1,
-    PREF_EPISODIC_GAMEMODE_2,
-    PREF_EPISODIC_GAMEMODE_3,
-    PREF_EPISODIC_GAMEMODE_4,
-    PREF_EPISODIC_GAMEMODE_5,
-    PREF_EPISODIC_GAMEMODE_6,
-    PREF_EPISODIC_GAMEMODE_7,
-    PREF_EPISODIC_GAMEMODE_8,
-    PREF_EPISODIC_GAMEMODE_9,
-    PREF_EPISODIC_SCORES_0,
-    PREF_EPISODIC_SCORES_1,
-    PREF_EPISODIC_SCORES_2,
-    PREF_EPISODIC_SCORES_3,
-    PREF_EPISODIC_SCORES_4,
-    PREF_EPISODIC_SCORES_5,
-    PREF_EPISODIC_SCORES_6,
-    PREF_EPISODIC_SCORES_7,
-    PREF_EPISODIC_SCORES_8,
-    PREF_EPISODIC_SCORES_9,
-    PREF_EPISODIC_GAMETYPE_0,
-    PREF_EPISODIC_GAMETYPE_1,
-    PREF_EPISODIC_GAMETYPE_2,
-    PREF_EPISODIC_GAMETYPE_3,
-    PREF_EPISODIC_GAMETYPE_4,
-    PREF_EPISODIC_GAMETYPE_5,
-    PREF_EPISODIC_GAMETYPE_6,
-    PREF_EPISODIC_GAMETYPE_7,
-    PREF_EPISODIC_GAMETYPE_8,
-    PREF_EPISODIC_GAMETYPE_9,
-    PREF_EPISODIC_GAMETYPE_RACE_0,
-    PREF_EPISODIC_GAMETYPE_RACE_1,
-    PREF_EPISODIC_GAMETYPE_RACE_2,
-    PREF_EPISODIC_GAMETYPE_RACE_3,
-    PREF_EPISODIC_GAMETYPE_RACE_4,
-    PREF_EPISODIC_GAMETYPE_RACE_5,
-    PREF_EPISODIC_RACENAME_RACE_0,
-    PREF_EPISODIC_RACENAME_RACE_1,
-    PREF_EPISODIC_RACENAME_RACE_2,
-    PREF_EPISODIC_RACENAME_RACE_3,
-    PREF_EPISODIC_RACENAME_RACE_4,
-    PREF_EPISODIC_RACENAME_RACE_5,
-    PREF_EPISODIC_RACECLASS_RACE_0,
-    PREF_EPISODIC_RACECLASS_RACE_1,
-    PREF_EPISODIC_RACECLASS_RACE_2,
-    PREF_EPISODIC_RACECLASS_RACE_3,
-    PREF_EPISODIC_RACECLASS_RACE_4,
-    PREF_EPISODIC_RACECLASS_RACE_5,
-    PREF_EPISODIC_NOISE_FILTER,
-};
-
-enum eSettings
-{
-    bSkipIntro = PREF_EPISODIC_GAMEMODE_0,
-    bSkipMenu = PREF_EPISODIC_GAMEMODE_1,
-    bBorderlessWindowed = PREF_EPISODIC_GAMEMODE_2,
-    nFpsLimitPreset = PREF_EPISODIC_GAMEMODE_3,
-    bFXAA = PREF_EPISODIC_GAMEMODE_4,
-    bConsoleGamma = PREF_EPISODIC_GAMEMODE_5,
-};
-
 class CSettings
 {
 private:
     struct CSetting
     {
-        eSettings assocEnum;
-        std::string_view iniSec;
-        std::string_view iniName;
-        int32_t iniDefValInt;
+        int32_t value = 0;
+        std::string prefName;
+        std::string iniSec;
+        std::string iniName;
+        int32_t iniDefValInt = 0;
+        std::function<void(int32_t value)> callback;
 
-        int32_t operator()() { return mPrefs[assocEnum]; }
-        void ReadFromIni(auto& iniReader) { mPrefs[assocEnum] = iniReader.ReadInteger(iniSec, iniName, iniDefValInt); }
-        void ReadFromIni() { CIniReader iniReader(""); ReadFromIni(iniReader); }
-        void WriteToIni(auto& iniWriter, auto value) { iniWriter.WriteInteger(iniSec, iniName, value); }
-        void WriteToIni(auto value) { CIniReader iniWriter(""); iniWriter.WriteInteger(iniSec, iniName, value); }
+        auto GetValue() { return value; }
+        auto SetValue(auto v) { value = v; WriteToIni(); if (callback) callback(value); }
+        auto ReadFromIni(auto& iniReader) { return iniReader.ReadInteger(iniSec, iniName, iniDefValInt); }
+        auto ReadFromIni() { CIniReader iniReader(""); return ReadFromIni(iniReader); }
+        void WriteToIni(auto& iniWriter) { iniWriter.WriteInteger(iniSec, iniName, value); }
+        void WriteToIni() { CIniReader iniWriter(""); iniWriter.WriteInteger(iniSec, iniName, value); }
     };
-public:
-    static inline int32_t* mPrefs;
-    static inline std::map<eSettings, CSetting> mSettings;
 
+    struct MenuPrefs
+    {
+        uint32_t prefID;
+        char* name;
+    };
+
+    static inline std::vector<MenuPrefs> aMenuPrefs;
+    static inline auto firstCustomID = 0;
+private:
+    static inline int32_t* mPrefs;
+    static inline std::map<uint32_t, CSetting> mFusionPrefs;
+
+    std::optional<std::string> GetPrefNameByID(auto prefID) {
+        auto it = std::find_if(std::begin(aMenuPrefs), std::end(aMenuPrefs), [&prefID](auto& it) {
+            return it.prefID == prefID; 
+        });
+        if (it != std::end(aMenuPrefs))
+            return std::string(it->name);
+        return std::nullopt;
+    }
+    std::optional<int32_t> GetPrefIDByName(auto prefName) {
+        auto it = std::find_if(std::begin(aMenuPrefs), std::end(aMenuPrefs), [&prefName](auto& it) {
+            return std::string_view(it.name) == prefName;
+        });
+        if (it != std::end(aMenuPrefs))
+            return it->prefID;
+        return std::nullopt;
+    }
 public:
     CSettings()
     {
-        auto pattern = hook::pattern("89 1C 95 ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 83 C4 04");
+        auto pattern = hook::pattern("8B 04 FD ? ? ? ? 5F 5E C3");
+        auto pattern2 = hook::pattern("FF 34 FD ? ? ? ? 56 E8 ? ? ? ? 83 C4 08 85 C0 0F 84 ? ? ? ? 47 81 FF");
+        auto originalPrefs = *pattern.count(4).get(3).get<MenuPrefs*>(3);
+        auto pOriginalPrefsNum = pattern2.get_first<uint32_t>(27);
+
+        for (auto i = 0; originalPrefs[i].prefID < *pOriginalPrefsNum; i++)
+        {
+            aMenuPrefs.emplace_back(originalPrefs[i].prefID, originalPrefs[i].name);
+        }
+        
+        aMenuPrefs.reserve(aMenuPrefs.size() * 2);
+        firstCustomID = aMenuPrefs.back().prefID + 1;
+
+        injector::WriteMemory(pattern.count(4).get(3).get<void*>(3), &aMenuPrefs[0].prefID, true);
+        injector::WriteMemory(pattern2.get_first(3), &aMenuPrefs[0].name, true);
+
+        pattern = hook::pattern("89 1C 95 ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 83 C4 04");
         mPrefs = *pattern.get_first<int32_t*>(3);
 
         CIniReader iniReader("");
 
         CSetting arr[] = {
-            { bSkipIntro,                     "MAIN",       "SkipIntro",                     1 },
-            { bSkipMenu,                      "MAIN",       "SkipMenu",                      1 },
-            { bBorderlessWindowed,            "MAIN",       "BorderlessWindowed",            1 },
-            { nFpsLimitPreset,                "FRAMELIMIT", "FpsLimitPreset",                1 },
-            { bFXAA,                          "MISC",       "FXAA",                          1 },
-            { bConsoleGamma,                  "MISC",       "ConsoleGamma",                  0 },
+            { 0, "PREF_SKIP_INTRO",       "MAIN",       "SkipIntro",          1, nullptr },
+            { 0, "PREF_SKIP_MENU",        "MAIN",       "SkipMenu",           1, nullptr },
+            { 0, "PREF_BORDERLESS",       "MAIN",       "BorderlessWindowed", 1, nullptr },
+            { 0, "PREF_FPS_LIMIT_PRESET", "FRAMELIMIT", "FpsLimitPreset",     1, nullptr },
+            { 0, "PREF_FXAA",             "MISC",       "FXAA",               1, nullptr },
+            { 0, "PREF_CONSOLE_GAMMA",    "MISC",       "ConsoleGamma",       0, nullptr },
         };
 
+        auto i = firstCustomID;
         for (auto& it : arr)
         {
-            it.ReadFromIni(iniReader);
-            mSettings.emplace(it.assocEnum, it);
+            mFusionPrefs[i] = it;
+            mFusionPrefs[i].SetValue(it.ReadFromIni(iniReader));
+            aMenuPrefs.emplace_back(i, mFusionPrefs[i].prefName.data());
+            i++;
         }
+
+        injector::WriteMemory(pOriginalPrefsNum, aMenuPrefs.size(), true);
     }
 public:
-    auto operator()(eSettings i) { return mSettings[i](); }
-    auto Get(eSettings i) { return mSettings[i]; }
-    bool Exists(eSettings key) { return mSettings.count(key) > 0; }
+    int32_t Get(int32_t prefID)
+    {
+        if (prefID >= firstCustomID)
+            return mFusionPrefs[prefID].GetValue();
+        else
+            return mPrefs[prefID];
+    }
+    auto Set(int32_t prefID, int32_t value) {
+        if (prefID >= firstCustomID) {
+            mFusionPrefs[prefID].SetValue(value);
+        }
+        else
+            mPrefs[prefID] = value;
+    }
+    int32_t Get(std::string_view name)
+    {
+        auto prefID = GetPrefIDByName(name);
+        if (prefID) { return Get(*prefID); }
+        return 0;
+    }
+    auto Set(std::string_view name, int32_t value) {
+        auto prefID = GetPrefIDByName(name);
+        if (prefID) return Set(*prefID, value);
+    }
+    auto isSame(int32_t id, std::string_view name) {
+        auto prefID = GetPrefIDByName(name);
+        if (prefID && *prefID == id)
+            return true;
+        return false;
+    }
+    std::optional<std::reference_wrapper<int32_t>> GetRef(std::string_view name)
+    {
+        auto prefID = GetPrefIDByName(name);
+        if (prefID) { 
+            if (prefID >= firstCustomID)
+                return std::ref(mFusionPrefs[*prefID].value);
+            else
+                return std::ref(mPrefs[*prefID]);
+        }
+        return std::nullopt;
+    }
+    void SetCallback(std::string_view name, std::function<void(int32_t)>&& cb)
+    {
+        auto prefID = GetPrefIDByName(name);
+        if (prefID) mFusionPrefs[*prefID].callback = cb;
+    }
+    auto operator()(int32_t i) { return Get(i); }
+    auto operator()(std::string_view name) { return Get(name); }
 } FusionFixSettings;
-
-bool(*CCutscenes__hasCutsceneFinished)();
-bool(*CCamera__isWidescreenBordersActive)();
 
 int32_t nFrameLimitType;
 float fFpsLimit;
@@ -296,10 +235,14 @@ private:
 FrameLimiter FpsLimiter;
 FrameLimiter CutsceneFpsLimiter;
 FrameLimiter ScriptCutsceneFpsLimiter;
+bool(*CCutscenes__hasCutsceneFinished)();
+bool(*CCamera__isWidescreenBordersActive)();
 void __cdecl sub_855640()
 {
-    if (FusionFixSettings(nFpsLimitPreset) >= 1) {
-        if (fFpsLimit > 0.0f || FusionFixSettings(nFpsLimitPreset) > 1)
+    static auto preset = FusionFixSettings.GetRef("PREF_FPS_LIMIT_PRESET");
+
+    if (preset && *preset >= 1) {
+        if (fFpsLimit > 0.0f || *preset > 1)
             FpsLimiter.Sync();
     }
 
@@ -313,16 +256,18 @@ void __cdecl sub_855640()
     }
 }
 
+bool bSkipIntroNotNeeded = false;
 injector::hook_back<void(__cdecl*)(int)> hbsub_7870A0;
 void __cdecl sub_7870A0(int a1)
 {
     static bool bOnce = false;
     if (!bOnce)
     {
+        bSkipIntroNotNeeded = true;
         if (a1 == 0)
         {
             bool bNoLoad = (GetAsyncKeyState(VK_SHIFT) & 0xF000) != 0;
-            if (!bNoLoad)
+            if (!bNoLoad && FusionFixSettings("PREF_SKIP_MENU"))
                 a1 = 6;
 
             bOnce = true;
@@ -331,34 +276,65 @@ void __cdecl sub_7870A0(int a1)
     return hbsub_7870A0.fun(a1);
 }
 
+HWND gWnd;
+RECT gRect;
+BOOL WINAPI SetRect_Hook(LPRECT lprc, int xLeft, int yTop, int xRight, int yBottom)
+{
+    gRect = { xLeft, yTop, xRight, yBottom };
+    return SetRect(lprc, xLeft, yTop, xRight, yBottom);
+}
+
 BOOL WINAPI MoveWindow_Hook(HWND hWnd, int X, int Y, int nWidth, int nHeight, BOOL bRepaint)
 {
+    RECT rect = { X, Y, nWidth, nHeight };
     HMONITOR monitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
     MONITORINFO info = {};
     info.cbSize = sizeof(MONITORINFO);
     GetMonitorInfo(monitor, &info);
     int32_t DesktopResW = info.rcMonitor.right - info.rcMonitor.left;
     int32_t DesktopResH = info.rcMonitor.bottom - info.rcMonitor.top;
-
-    RECT rect = { X, Y, nWidth, nHeight };
+    if ((rect.right - rect.left >= DesktopResW) || (rect.bottom - rect.top >= DesktopResH))
+        rect = gRect;
     rect.left = (LONG)(((float)DesktopResW / 2.0f) - ((float)rect.right / 2.0f));
     rect.top = (LONG)(((float)DesktopResH / 2.0f) - ((float)rect.bottom / 2.0f));
     return MoveWindow(hWnd, rect.left, rect.top, rect.right, rect.bottom, bRepaint);
 }
 
+void SwitchWindowStyle()
+{
+    if (gWnd)
+    {
+        RECT rect = gRect;
+        LONG lStyle = GetWindowLong(gWnd, GWL_STYLE);
+        if (FusionFixSettings("PREF_BORDERLESS"))
+        {
+            lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU);
+        }
+        else
+        {
+            GetWindowRect(gWnd, &rect);
+            lStyle |= (WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU);
+        }
+        AdjustWindowRect(&rect, lStyle, FALSE);
+        SetWindowLong(gWnd, GWL_STYLE, lStyle);
+        MoveWindow_Hook(gWnd, 0, 0, rect.right - rect.left, rect.bottom - rect.top, TRUE);
+    }
+}
+
 HWND WINAPI CreateWindowExA_Hook(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
 {
-    auto hwnd = CreateWindowExA(dwExStyle, lpClassName, lpWindowName, 0, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
-    LONG lStyle = GetWindowLong(hwnd, GWL_STYLE);
-    lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU);
-    SetWindowLong(hwnd, GWL_STYLE, lStyle);
-    MoveWindow_Hook(hwnd, 0, 0, nWidth - X, nHeight - Y, TRUE);
-    return hwnd;
+    gWnd = CreateWindowExA(dwExStyle, lpClassName, lpWindowName, 0, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
+    SwitchWindowStyle();
+    return gWnd;
 }
 
 BOOL WINAPI AdjustWindowRect_Hook(LPRECT lpRect, DWORD dwStyle, BOOL bMenu)
 {
-    dwStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU);
+    if (FusionFixSettings("PREF_BORDERLESS"))
+        dwStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU);
+    else
+        dwStyle |= (WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU);
+
     return AdjustWindowRect(lpRect, dwStyle, bMenu);
 }
 
@@ -437,51 +413,21 @@ bool iequals(const T& s1, const V& s2)
     return (str1 == str2);
 }
 
-void ReadIni()
+void* fnAE3DE0 = nullptr;
+void* fnAE3310 = nullptr;
+int __cdecl sub_AE3DE0(int a1, int a2)
 {
-    CIniReader iniReader("");
-    for (auto& it : FusionFixSettings.mSettings)
-    {
-        it.second.ReadFromIni(iniReader);
-    }
-}
-
-void (*sub_8C00D0)();
-void sub_8C00D0_hook()
-{
-    sub_8C00D0();
-    ReadIni();
-}
-
-int (*sub_8B7830)();
-int sub_8B7830_hook()
-{
-    auto res = sub_8B7830();
-    ReadIni();
-    return res;
-}
-
-void(__cdecl* sub_59E1C0)();
-void __cdecl sub_59E1C0_hook()
-{
-    sub_59E1C0();
-    ReadIni();
-}
-
-void (*sub_5A8FE0)();
-void sub_5A8FE0_hook()
-{
-    sub_5A8FE0();
-    ReadIni();
+    injector::cstd<void(int, int, int, int, int)>::call(fnAE3310, a1, 0, 0, 0, a2);
+    return injector::cstd<int(int, int)>::call(fnAE3DE0, a1, a2);
 }
 
 void Init()
 {
     CIniReader iniReader("");
     //[MAIN]
-    bool bSkipIntro = iniReader.ReadInteger("MAIN", "SkipIntro", 1) != 0;
-    bool bSkipMenu = iniReader.ReadInteger("MAIN", "SkipMenu", 1) != 0;
-    bool bBorderlessWindowed = iniReader.ReadInteger("MAIN", "BorderlessWindowed", 1) != 0;
+    bool bSkipIntro = FusionFixSettings("PREF_SKIP_INTRO") != 0;
+    bool bSkipMenu = FusionFixSettings("PREF_SKIP_MENU") != 0;
+    bool bBorderlessWindowed = FusionFixSettings("PREF_BORDERLESS") != 0;
     bool bRecoilFix = iniReader.ReadInteger("MAIN", "RecoilFix", 1) != 0;
     bool bDefinitionFix = iniReader.ReadInteger("MAIN", "DefinitionFix", 1) != 0;
     bool bEmissiveShaderFix = iniReader.ReadInteger("MAIN", "EmissiveShaderFix", 1) != 0;
@@ -538,26 +484,22 @@ void Init()
             {
                 *(int32_t*)&regs.ecx = *dword_15A6F0C;
                 *(int32_t*)&regs.eax = *(int32_t*)(regs.esp + 0x18);
-                static int once = 0;
-                if (once < 8 && *(int32_t*)&regs.eax < 8000)
+                if (!bSkipIntroNotNeeded && FusionFixSettings("PREF_SKIP_INTRO") && *(int32_t*)&regs.eax < 8000)
                 {
                     regs.eax = 0;
-                    once++;
                 }
             }
         }; injector::MakeInline<Loadsc>(pattern.count(2).get(1).get<void*>(0), pattern.count(2).get(1).get<void*>(10));
     }
 
-    if (bSkipMenu)
+    //if (bSkipMenu)
     {
         auto pattern = hook::pattern("E8 ? ? ? ? 83 C4 04 8B 8C 24 ? ? ? ? 5F 5E 5D 5B 33 CC E8 ? ? ? ? 81 C4 ? ? ? ? C3");
         hbsub_7870A0.fun = injector::MakeCALL(pattern.count(5).get(1).get<void*>(0), sub_7870A0).get();
     }
 
-    if (bBorderlessWindowed)
+    //if (bBorderlessWindowed)
     {
-        //grcWindow__m_dwWidth = *hook::get_pattern<uint32_t*>("8B 0D ? ? ? ? F3 0F 10 8C B7 ? ? ? ? F3 0F 59 C2 84 C0 0F 45 0D ? ? ? ? F3 0F 5C C8 66 0F 6E C1 0F 5B C0 F3 0F 59 C8 0F 57 C0 0F 2F C1", 2);
-        //grcWindow__m_dwHeight = *hook::get_pattern<uint32_t*>("8B 0D ? ? ? ? F3 0F 10 94 B7 ? ? ? ? F3 0F 59 C1 84 C0 0F 45 0D ? ? ? ? F3 0F 5C D0 66 0F 6E C1 0F 5B C0 F3 0F 59 D0 0F 57 C0 0F 2F C2", 2);
         auto pattern = hook::pattern("FF 15 ? ? ? ? 8B F0 6A 01");
         injector::MakeNOP(pattern.get_first(0), 6, true);
         injector::MakeCALL(pattern.get_first(0), CreateWindowExA_Hook, true);
@@ -573,6 +515,19 @@ void Init()
         pattern = hook::pattern("FF 15 ? ? ? ? 8B 74 24 1C 8B 44 24 24");
         injector::MakeNOP(pattern.get_first(0), 6, true);
         injector::MakeCALL(pattern.get_first(0), AdjustWindowRect_Hook, true);
+        pattern = hook::pattern("FF 15 ? ? ? ? 80 3D ? ? ? ? ? 74 12");
+        injector::MakeNOP(pattern.get_first(0), 6, true);
+        injector::MakeCALL(pattern.get_first(0), SetRect_Hook, true);
+        pattern = hook::pattern("FF 15 ? ? ? ? 6A 00 FF 35");
+        injector::MakeNOP(pattern.get_first(0), 6, true);
+        injector::MakeCALL(pattern.get_first(0), SetRect_Hook, true);
+        pattern = hook::pattern("FF 15 ? ? ? ? 6A 00 68 ? ? ? ? 8D 44 24 20");
+        injector::MakeNOP(pattern.get_first(0), 6, true);
+        injector::MakeCALL(pattern.get_first(0), SetRect_Hook, true);
+
+        FusionFixSettings.SetCallback("PREF_BORDERLESS", [](int32_t value) {
+            SwitchWindowStyle();
+        });
     }
 
     //fix for zoom flag in tbogt
@@ -757,7 +712,7 @@ void Init()
         if (mode == FrameLimiter::FPSLimitMode::FPS_ACCURATE)
             timeBeginPeriod(1);
 
-        auto preset = FusionFixSettings(nFpsLimitPreset);
+        auto preset = FusionFixSettings("PREF_FPS_LIMIT_PRESET");
         if (preset > 1 && preset < fpsCaps.size())
             FpsLimiter.Init(mode, (float)fpsCaps[preset]);
         else
@@ -773,6 +728,14 @@ void Init()
         pattern = hook::pattern("8B 35 ? ? ? ? 8B 0D ? ? ? ? 8B 15 ? ? ? ? A1");
         injector::WriteMemory(pattern.get_first(0), 0x901CC483, true); //nop + add esp,1C
         injector::MakeJMP(pattern.get_first(4), sub_855640, true); // + jmp
+
+        FusionFixSettings.SetCallback("PREF_FPS_LIMIT_PRESET", [](int32_t value) {
+            auto mode = (nFrameLimitType == 2) ? FrameLimiter::FPSLimitMode::FPS_ACCURATE : FrameLimiter::FPSLimitMode::FPS_REALTIME;
+            if (value > 1 && value < fpsCaps.size())
+                FpsLimiter.Init(mode, (float)fpsCaps[value]);
+            else
+                FpsLimiter.Init(mode, fFpsLimit);
+        });
     }
 
     if (fScriptCutsceneFovLimit)
@@ -873,62 +836,51 @@ void Init()
         }; injector::MakeInline<ImgListHook>(pattern.get_first(0), pattern.get_first(8));
     }
 
+    if (false)
+    {
+        auto pattern = hook::pattern("E8 ? ? ? ? 83 C4 08 57 56");
+        fnAE3DE0 = injector::GetBranchDestination(pattern.get_first()).get();
+        injector::MakeCALL(pattern.get_first(), sub_AE3DE0, true);
+
+        pattern = hook::pattern("55 8B EC 83 E4 F0 83 EC 28 80 3D ? ? ? ? ? 56 57 74 27");
+        fnAE3310 = pattern.get_first();
+
+        pattern = hook::pattern("75 14 F6 86 ? ? ? ? ? 74 0B");
+        injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
+        pattern = hook::pattern("75 12 8B 86 ? ? ? ? C1 E8 0B");
+        injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
+    }
+
     // runtime settings
     {
-        ReadIni();
-
         auto pattern = hook::pattern("89 1C 95 ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 83 C4 04");
         struct IniWriter
         {
             void operator()(injector::reg_pack& regs)
             {
-                auto s = (eSettings)regs.edx;
-                if (FusionFixSettings.Exists(s))
-                {
-                    switch (s)
-                    {
-                    case nFpsLimitPreset:
-                    {
-                        auto preset = regs.ebx;
-                        auto mode = (nFrameLimitType == 2) ? FrameLimiter::FPSLimitMode::FPS_ACCURATE : FrameLimiter::FPSLimitMode::FPS_REALTIME;
-                        if (preset > 1 && preset < fpsCaps.size())
-                            FpsLimiter.Init(mode, (float)fpsCaps[preset]);
-                        else
-                            FpsLimiter.Init(mode, fFpsLimit);
-                    }
-                    [[fallthrough]];
-                    default:
-                        FusionFixSettings.Get(s).WriteToIni(regs.ebx);
-                        break;
-                    }
-                }
-
-                FusionFixSettings.mPrefs[s] = regs.ebx;
+                auto id = regs.edx;
+                auto value = regs.ebx;
+                FusionFixSettings.Set(id, value);
             }
         }; injector::MakeInline<IniWriter>(pattern.get_first(0), pattern.get_first(7));
 
-        // Additional ini reader
-        pattern = hook::pattern("E8 ? ? ? ? B1 01 E8");
-        sub_8C00D0 = (void(*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
-        injector::MakeCALL(pattern.get_first(0), sub_8C00D0_hook, true);
-        pattern = hook::pattern("E8 ? ? ? ? E8 ? ? ? ? 8B 0D ? ? ? ? 89 41 14");
-        injector::MakeCALL(pattern.get_first(0), sub_8C00D0_hook, true);
-        pattern = hook::pattern("68 ? ? ? ? 6A 00 8D 4C 24 10 E8 ? ? ? ? A1");
-        injector::WriteMemory(pattern.get_first(1), sub_8C00D0_hook, true);
-        pattern = hook::pattern("E9 ? ? ? ? CC A1 ? ? ? ? 85 C0");
-        injector::MakeJMP(pattern.get_first(0), sub_8C00D0_hook, true);
+        pattern = hook::pattern("8B 1C 95 ? ? ? ? 89 54 24 14");
+        struct MenuTogglesHook1
+        {
+            void operator()(injector::reg_pack& regs)
+            {
+                regs.ebx = FusionFixSettings.Get(regs.edx);
+            }
+        }; injector::MakeInline<MenuTogglesHook1>(pattern.get_first(0), pattern.get_first(7));
 
-        pattern = hook::pattern("E8 ? ? ? ? 80 3D ? ? ? ? ? A3 ? ? ? ? A3");
-        sub_8B7830 = (int(*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
-        injector::MakeCALL(pattern.get_first(0), sub_8B7830_hook, true);
-
-        pattern = hook::pattern("E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? 6A 32");
-        sub_59E1C0 = (void(__cdecl*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
-        injector::MakeCALL(pattern.get_first(0), sub_59E1C0_hook, true);
-
-        pattern = hook::pattern("E8 ? ? ? ? C6 05 ? ? ? ? ? C6 05 ? ? ? ? ? E8 ? ? ? ? B9");
-        sub_5A8FE0 = (void(__cdecl*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
-        injector::MakeCALL(pattern.get_first(0), sub_5A8FE0_hook, true);
+        pattern = hook::pattern("8B 14 85 ? ? ? ? 66 83 F9 31");
+        struct MenuTogglesHook2
+        {
+            void operator()(injector::reg_pack& regs)
+            {
+                regs.edx = FusionFixSettings.Get(regs.eax);
+            }
+        }; injector::MakeInline<MenuTogglesHook2>(pattern.get_first(0), pattern.get_first(7));
 
         // show game in display menu
         pattern = hook::pattern("75 1F FF 35 ? ? ? ? E8 ? ? ? ? 8B 4C 24 18");
@@ -1019,16 +971,21 @@ void Init()
                     auto pShader = (IDirect3DPixelShader9*)regs.edx;
                     if (shadermap.contains(pShader))
                     {
-                        if (FusionFixSettings(bFXAA))
-                            if (FusionFixSettings(bConsoleGamma))
-                                regs.edx = (uint32_t)std::get<3>(shadermap.at(pShader));
+                        static auto fxaa = FusionFixSettings.GetRef("PREF_FXAA");
+                        static auto gamma = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA");
+                        if (fxaa && gamma)
+                        {
+                            if (*fxaa)
+                                if (*gamma)
+                                    regs.edx = (uint32_t)std::get<3>(shadermap.at(pShader));
+                                else
+                                    regs.edx = (uint32_t)std::get<2>(shadermap.at(pShader));
                             else
-                                regs.edx = (uint32_t)std::get<2>(shadermap.at(pShader));
-                        else
-                            if (FusionFixSettings(bConsoleGamma))
-                                regs.edx = (uint32_t)std::get<1>(shadermap.at(pShader));
-                            else
-                                regs.edx = (uint32_t)std::get<0>(shadermap.at(pShader));
+                                if (*gamma)
+                                    regs.edx = (uint32_t)std::get<1>(shadermap.at(pShader));
+                                else
+                                    regs.edx = (uint32_t)std::get<0>(shadermap.at(pShader));
+                        }
                     }
                 }
             }
