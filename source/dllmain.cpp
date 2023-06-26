@@ -81,9 +81,10 @@ public:
             { 0, "PREF_SKIP_INTRO",       "MAIN",       "SkipIntro",          1, nullptr },
             { 0, "PREF_SKIP_MENU",        "MAIN",       "SkipMenu",           1, nullptr },
             { 0, "PREF_BORDERLESS",       "MAIN",       "BorderlessWindowed", 1, nullptr },
-            { 0, "PREF_FPS_LIMIT_PRESET", "FRAMELIMIT", "FpsLimitPreset",     1, nullptr },
+            { 0, "PREF_FPS_LIMIT_PRESET", "FRAMELIMIT", "FpsLimitPreset",     0, nullptr },
             { 0, "PREF_FXAA",             "MISC",       "FXAA",               1, nullptr },
             { 0, "PREF_CONSOLE_GAMMA",    "MISC",       "ConsoleGamma",       0, nullptr },
+            { 0, "PREF_TIMECYC",          "MISC",       "ScreenFilter",       5, nullptr },
         };
 
         auto i = firstCustomID;
@@ -96,6 +97,41 @@ public:
         }
 
         injector::WriteMemory(pOriginalPrefsNum, aMenuPrefs.size(), true);
+
+        // MENU_DISPLAY enums hook
+        static std::vector<MenuPrefs> aMenuEnums;
+        pattern = hook::pattern("8B 04 FD ? ? ? ? 5F 5E C3");
+        pattern2 = hook::pattern("FF 34 FD ? ? ? ? 56 E8 ? ? ? ? 83 C4 08 85 C0 0F 84 ? ? ? ? 47 83 FF 3C");
+        auto pattern3 = hook::pattern("83 FE 3C 7C E6");
+        auto originalEnums = *pattern.count(4).get(1).get<MenuPrefs*>(3);
+        auto pOriginalEnumsNum = pattern2.get_first<uint8_t>(27);
+        auto pOriginalEnumsNum2 = pattern3.get_first<uint8_t>(2);
+
+        for (auto i = 0; originalEnums[i].prefID < *pOriginalEnumsNum; i++)
+        {
+            aMenuEnums.emplace_back(originalEnums[i].prefID, originalEnums[i].name);
+        }
+        aMenuEnums.reserve(aMenuEnums.size() * 2);
+        firstCustomID = aMenuEnums.back().prefID + 1;
+
+        injector::WriteMemory(pattern.count(4).get(1).get<void*>(3), &aMenuEnums[0].prefID, true);
+        injector::WriteMemory(pattern2.get_first(3), &aMenuEnums[0].name, true);
+        pattern = hook::pattern("8B 04 F5 ? ? ? ? 5F 5E C3 8B 04 F5");
+        injector::WriteMemory(pattern.get_first(3), &aMenuEnums[0].prefID, true);
+        pattern = hook::pattern("FF 34 F5 ? ? ? ? 57 E8 ? ? ? ? 83 C4 08 85 C0 74 0B 46 83 FE 3C");
+        injector::WriteMemory(pattern.get_first(3), &aMenuEnums[0].name, true);
+
+        static auto MENU_DISPLAY_FRAMELIMIT = "MENU_DISPLAY_FRAMELIMIT";
+        static auto MENU_DISPLAY_TIMECYC = "MENU_DISPLAY_TIMECYC";
+        static auto eMENU_DISPLAY_ON_OFF = 0;
+
+        aMenuEnums.emplace_back(eMENU_DISPLAY_ON_OFF, (char*)MENU_DISPLAY_FRAMELIMIT);
+        firstCustomID += 1;
+        aMenuEnums.emplace_back(firstCustomID, (char*)MENU_DISPLAY_TIMECYC);
+        firstCustomID += 1;
+
+        injector::WriteMemory<uint8_t>(pOriginalEnumsNum, aMenuEnums.size(), true);
+        injector::WriteMemory<uint8_t>(pOriginalEnumsNum2, aMenuEnums.size(), true);
     }
 public:
     int32_t Get(int32_t prefID)
@@ -153,7 +189,7 @@ float fFpsLimit;
 float fCutsceneFpsLimit;
 float fScriptCutsceneFpsLimit;
 float fScriptCutsceneFovLimit;
-std::vector<int32_t> fpsCaps = { 0, 1, 30, 40, 50, 60, 75, 100, 120, 144, 165, 240 };
+std::vector<int32_t> fpsCaps = { 0, 1, 2, 30, 40, 50, 60, 75, 100, 120, 144, 165, 240 };
 
 class FrameLimiter
 {
@@ -241,8 +277,8 @@ void __cdecl sub_855640()
 {
     static auto preset = FusionFixSettings.GetRef("PREF_FPS_LIMIT_PRESET");
 
-    if (preset && *preset >= 1) {
-        if (fFpsLimit > 0.0f || *preset > 1)
+    if (preset && *preset >= 2) {
+        if (fFpsLimit > 0.0f || (*preset > 2 && *preset < fpsCaps.size()))
             FpsLimiter.Sync();
     }
 
@@ -419,6 +455,67 @@ int __cdecl sub_AE3DE0(int a1, int a2)
 {
     injector::cstd<void(int, int, int, int, int)>::call(fnAE3310, a1, 0, 0, 0, a2);
     return injector::cstd<int(int, int)>::call(fnAE3DE0, a1, a2);
+}
+
+void* CFileMgrOpenFile = nullptr;
+void* __cdecl sub_8C4CF0(char* a1, char* a2)
+{
+    if (FusionFixSettings("PREF_TIMECYC"))
+    {
+        static constexpr auto timecyc = "timecyc.dat";
+        auto full_path = std::string_view(a1);
+        if (full_path.ends_with(timecyc))
+        {
+            enum
+            {
+                eLow,
+                eMedium,
+                eHigh,
+                eVeryHigh,
+                eHighest,
+                eMO_DEF,
+                eOFF,
+                eIV,
+                eTLAD,
+                eTBOGT,
+            };
+            auto path = full_path.substr(0, full_path.find(timecyc));
+            switch (FusionFixSettings("PREF_TIMECYC"))
+            {
+            case eOFF:
+            {
+                auto new_path = std::string(path) + std::string("timecycOFF.dat");
+                auto opened = injector::cstd<void* (const char*, const char*)>::call(CFileMgrOpenFile, new_path.c_str(), a2);
+                if (opened) return opened;
+            }
+            break;
+            case eIV:
+            {
+                auto new_path = std::string(path) + std::string("timecycIV.dat");
+                auto opened = injector::cstd<void* (const char*, const char*)>::call(CFileMgrOpenFile, new_path.c_str(), a2);
+                if (opened) return opened;
+            }
+            break;
+            case eTLAD:
+            {
+                auto new_path = std::string(path) + std::string("timecycTLAD.dat");
+                auto opened = injector::cstd<void* (const char*, const char*)>::call(CFileMgrOpenFile, new_path.c_str(), a2);
+                if (opened) return opened;
+            }
+            break;
+            case eTBOGT:
+            {
+                auto new_path = std::string(path) + std::string("timecycTBOGT.dat");
+                auto opened = injector::cstd<void* (const char*, const char*)>::call(CFileMgrOpenFile, new_path.c_str(), a2);
+                if (opened) return opened;
+            }
+            break;
+            default:
+                break;
+            }
+        }
+    }
+    return injector::cstd<void* (char*, char*)>::call(CFileMgrOpenFile, a1, a2);
 }
 
 void Init()
@@ -713,10 +810,14 @@ void Init()
             timeBeginPeriod(1);
 
         auto preset = FusionFixSettings("PREF_FPS_LIMIT_PRESET");
-        if (preset > 1 && preset < fpsCaps.size())
+        if (preset > 2 && preset < fpsCaps.size())
             FpsLimiter.Init(mode, (float)fpsCaps[preset]);
         else
+        {
+            if (preset >= fpsCaps.size())
+                FusionFixSettings.Set("PREF_FPS_LIMIT_PRESET", 0);
             FpsLimiter.Init(mode, fFpsLimit);
+        }
         CutsceneFpsLimiter.Init(mode, fCutsceneFpsLimit);
         ScriptCutsceneFpsLimiter.Init(mode, fScriptCutsceneFpsLimit);
 
@@ -731,7 +832,7 @@ void Init()
 
         FusionFixSettings.SetCallback("PREF_FPS_LIMIT_PRESET", [](int32_t value) {
             auto mode = (nFrameLimitType == 2) ? FrameLimiter::FPSLimitMode::FPS_ACCURATE : FrameLimiter::FPSLimitMode::FPS_REALTIME;
-            if (value > 1 && value < fpsCaps.size())
+            if (value > 2 && value < fpsCaps.size())
                 FpsLimiter.Init(mode, (float)fpsCaps[value]);
             else
                 FpsLimiter.Init(mode, fFpsLimit);
@@ -851,6 +952,43 @@ void Init()
         injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
     }
 
+    //timecycb
+    static const char* timecycText[] = { "Low", "Medium", "High", "Very High", "Highest", "MO_DEF", "OFF", "IV", "TLAD", "TBOGT" };
+    {
+        if (FusionFixSettings("PREF_TIMECYC") < 5 || FusionFixSettings("PREF_TIMECYC") >= std::size(timecycText))
+            FusionFixSettings.Set("PREF_TIMECYC", 5);
+
+        auto pattern = hook::pattern("E8 ? ? ? ? 8B F0 83 C4 08 85 F6 0F 84 ? ? ? ? BB");
+        CFileMgrOpenFile = injector::GetBranchDestination(pattern.get_first(0)).get();
+        injector::MakeCALL(pattern.get_first(0), sub_8C4CF0, true);
+
+        pattern = hook::pattern("55 8B EC 83 E4 F0 81 EC ? ? ? ? 8B 0D ? ? ? ? 53 0F B7 41 04");
+        static auto CTimeCycleInitialise = pattern.get_first(0);
+
+        static int bTimecycUpdated = 0;
+        FusionFixSettings.SetCallback("PREF_TIMECYC", [](int32_t value) {
+            injector::fastcall<void()>::call(CTimeCycleInitialise);
+            bTimecycUpdated = 200;
+        });
+
+        // make timecyc changes visible in menu
+        pattern = hook::pattern("0A 05 ? ? ? ? 0A 05 ? ? ? ? 0F 85 ? ? ? ? E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 11 04 24");
+        static auto byte_1173590 = *pattern.get_first<uint8_t*>(2);
+        struct MenuTimecycHook
+        {
+            void operator()(injector::reg_pack& regs)
+            {
+                *(uint8_t*)&regs.eax |= *byte_1173590;
+                if (bTimecycUpdated > 0) {
+                    *(uint8_t*)&regs.eax = 0;
+                    bTimecycUpdated--;
+                }
+            }
+        }; injector::MakeInline<MenuTimecycHook>(pattern.get_first(0), pattern.get_first(6));
+        pattern = hook::pattern("0A 05 ? ? ? ? 0A 05 ? ? ? ? 74 20");
+        injector::MakeInline<MenuTimecycHook>(pattern.get_first(0), pattern.get_first(6));
+    }
+
     // runtime settings
     {
         auto pattern = hook::pattern("89 1C 95 ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 83 C4 04");
@@ -860,6 +998,23 @@ void Init()
             {
                 auto id = regs.edx;
                 auto value = regs.ebx;
+                if (FusionFixSettings.isSame(id, "PREF_FPS_LIMIT_PRESET")) {
+                    if (regs.ebx == 1) {
+                        auto old = FusionFixSettings(id);
+                        if (old >= 2)
+                            value = 0;
+                        else
+                            value = 2;
+                    }
+                } else if (FusionFixSettings.isSame(id, "PREF_TIMECYC")) {
+                    if (value <= 5) {
+                        auto old = FusionFixSettings(id);
+                        if (old > 5)
+                            value = 5;
+                        else
+                            value = std::distance(std::begin(timecycText), std::end(timecycText)) - 1;
+                    }
+                }
                 FusionFixSettings.Set(id, value);
             }
         }; injector::MakeInline<IniWriter>(pattern.get_first(0), pattern.get_first(7));
@@ -975,13 +1130,13 @@ void Init()
                         static auto gamma = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA");
                         if (fxaa && gamma)
                         {
-                            if (*fxaa)
-                                if (*gamma)
+                            if (fxaa->get())
+                                if (gamma->get())
                                     regs.edx = (uint32_t)std::get<3>(shadermap.at(pShader));
                                 else
                                     regs.edx = (uint32_t)std::get<2>(shadermap.at(pShader));
                             else
-                                if (*gamma)
+                                if (gamma->get())
                                     regs.edx = (uint32_t)std::get<1>(shadermap.at(pShader));
                                 else
                                     regs.edx = (uint32_t)std::get<0>(shadermap.at(pShader));
