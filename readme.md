@@ -9,6 +9,8 @@
 
 This projects aims to fix some issues in Grand Theft Auto IV Complete Edition.
 
+![](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/assets/4904157/7e5ece68-6b00-4023-b87d-ed865d3e7997)
+
 Changelog:
 
 - [Fixed recoil behavior that was different when playing with keyboard/mouse and gamepad](https://github.com/GTAmodding/GTAIV-Issues-List/issues/6)
