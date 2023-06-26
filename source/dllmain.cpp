@@ -112,7 +112,7 @@ public:
             aMenuEnums.emplace_back(originalEnums[i].prefID, originalEnums[i].name);
         }
         aMenuEnums.reserve(aMenuEnums.size() * 2);
-        firstCustomID = aMenuEnums.back().prefID + 1;
+        auto firstEnumCustomID = aMenuEnums.back().prefID + 1;
 
         injector::WriteMemory(pattern.count(4).get(1).get<void*>(3), &aMenuEnums[0].prefID, true);
         injector::WriteMemory(pattern2.get_first(3), &aMenuEnums[0].name, true);
@@ -126,9 +126,9 @@ public:
         static auto eMENU_DISPLAY_ON_OFF = 0;
 
         aMenuEnums.emplace_back(eMENU_DISPLAY_ON_OFF, (char*)MENU_DISPLAY_FRAMELIMIT);
-        firstCustomID += 1;
-        aMenuEnums.emplace_back(firstCustomID, (char*)MENU_DISPLAY_TIMECYC);
-        firstCustomID += 1;
+        firstEnumCustomID += 1;
+        aMenuEnums.emplace_back(firstEnumCustomID, (char*)MENU_DISPLAY_TIMECYC);
+        firstEnumCustomID += 1;
 
         injector::WriteMemory<uint8_t>(pOriginalEnumsNum, aMenuEnums.size(), true);
         injector::WriteMemory<uint8_t>(pOriginalEnumsNum2, aMenuEnums.size(), true);
