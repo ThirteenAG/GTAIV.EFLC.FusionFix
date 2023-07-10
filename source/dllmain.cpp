@@ -57,8 +57,8 @@ private:
 public:
     CSettings()
     {
-        auto pattern = hook::pattern("8B 04 F5 ? ? ? ? 5E C3 8B 04 F5"); // ported to 1080
-        auto pattern2 = hook::pattern("8B 04 F5 ? ? ? ? 50 57 E8 ? ? ? ? 83 C4 08 85 C0 74 7C 83 C6 01"); // ported to 1080
+        auto pattern = hook::pattern("8B 04 F5 ? ? ? ? 5E C3 8B 04 F5");
+        auto pattern2 = hook::pattern("8B 04 F5 ? ? ? ? 50 57 E8 ? ? ? ? 83 C4 08 85 C0 74 7C 83 C6 01");
         auto originalPrefs = *pattern.count(4).get(0).get<MenuPrefs*>(3);
         auto pOriginalPrefsNum = pattern2.get_first<uint32_t>(26);
 
@@ -73,7 +73,7 @@ public:
         injector::WriteMemory(pattern.count(4).get(0).get<void*>(3), &aMenuPrefs[0].prefID, true);
         injector::WriteMemory(pattern2.get_first(3), &aMenuPrefs[0].name, true);
 
-        pattern = hook::pattern("89 1C 8D ? ? ? ? E8"); // ported to 1080
+        pattern = hook::pattern("89 1C 8D ? ? ? ? E8");
         mPrefs = *pattern.get_first<int32_t*>(3);
 
         CIniReader iniReader("");
@@ -101,9 +101,9 @@ public:
 
         // MENU_DISPLAY enums hook
         static std::vector<MenuPrefs> aMenuEnums;
-        pattern = hook::pattern("8B 04 F5 ? ? ? ? 5E C3 8B 04 F5"); // ported to 1080
-        pattern2 = hook::pattern("8B 14 F5 ? ? ? ? 52 57 E8"); // ported to 1080
-        auto pattern3 = hook::pattern("83 FE 3C 7C E3 33 C0 5E"); // ported to 1080
+        pattern = hook::pattern("8B 04 F5 ? ? ? ? 5E C3 8B 04 F5");
+        pattern2 = hook::pattern("8B 14 F5 ? ? ? ? 52 57 E8");
+        auto pattern3 = hook::pattern("83 FE 3C 7C E3 33 C0 5E");
         auto originalEnums = *pattern.count(4).get(2).get<MenuPrefs*>(3);
         auto pOriginalEnumsNum = pattern2.get_first<uint8_t>(26);
         auto pOriginalEnumsNum2 = pattern3.get_first<uint8_t>(2);
@@ -619,13 +619,13 @@ void Init()
     uint32_t nVehicleBudget = iniReader.ReadInteger("BudgetedIV", "VehicleBudget", 0);
     uint32_t nPedBudget = iniReader.ReadInteger("BudgetedIV", "PedBudget", 0);
 
-    static float& fTimeStep = **hook::get_pattern<float*>("F3 0F 59 44 24 18 83 C4 04", -4); // ported to 1080
+    static float& fTimeStep = **hook::get_pattern<float*>("F3 0F 59 44 24 18 83 C4 04", -4);
 
     // reverse lights fix
 	// same fix is in ZPatch
 	if (!IsZPatchPresent())
     {
-        auto pattern = hook::pattern("11 01 00 00 8B 16 8B 42 64 8B CE FF D0 F3 0F 10"); // ported to 1080, from ZPatch
+        auto pattern = hook::pattern("11 01 00 00 8B 16 8B 42 64 8B CE FF D0 F3 0F 10");
         injector::WriteMemory<uint8_t>(pattern.get_first(8), 0x60, true);
     }
 
@@ -633,19 +633,19 @@ void Init()
 	// same fix is in ZPatch
 	if (!IsZPatchPresent())
     {
-        auto pattern = hook::pattern("80 BE 18 02 00 00 00 0F 85 36 01 00 00 80 BE"); // ported to 1080, from ZPatch
+        auto pattern = hook::pattern("80 BE 18 02 00 00 00 0F 85 36 01 00 00 80 BE");
         injector::MakeNOP(pattern.get(0).get<int>(0x21), 6, true);
     }
 
     //fix for lods appearing inside normal models, unless the graphics menu was opened once (draw distances aren't set properly?)
     {
-        auto pattern = hook::pattern("E8 ? ? ? ? 8D 44 24 10 83 C4 04 50"); // ported to 1080
+        auto pattern = hook::pattern("E8 ? ? ? ? 8D 44 24 10 83 C4 04 50");
         auto sub_477300 = injector::GetBranchDestination(pattern.get_first(0)); // sub_19E620
-        pattern = hook::pattern("E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? 8B 35 ? ? ? ? E8 ? ? ? ? 25 FF FF 00 00"); // ported to 1080
+        pattern = hook::pattern("E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? 8B 35 ? ? ? ? E8 ? ? ? ? 25 FF FF 00 00");
         injector::MakeCALL(pattern.get_first(0), sub_477300, true);
     }
 
-    if (bSkipIntro) // ported to 1080
+    if (bSkipIntro)
     {
 		auto pattern = hook::pattern("89 91 ? ? ? ? 8D 44 24 ? 68 ? ? ? ? 50");
 		struct Loadsc
@@ -661,25 +661,25 @@ void Init()
 
     //if (bSkipMenu)
     {
-        auto pattern = hook::pattern("83 F8 03 75 ? A1 ? ? ? ? 80 88 ? ? ? ? ? 84 DB 74 0A 6A 00 E8 ? ? ? ? 83 C4 04 5F 5E"); // ported to 1080, from xlivelessaddon
+        auto pattern = hook::pattern("83 F8 03 75 ? A1 ? ? ? ? 80 88 ? ? ? ? ? 84 DB 74 0A 6A 00 E8 ? ? ? ? 83 C4 04 5F 5E");
 		hbsub_7870A0.fun = injector::MakeCALL(pattern.get_first(23), sub_7870A0).get();
     }
 
     //if (bBorderlessWindowed)
     {
-        auto pattern = hook::pattern("FF 15 ? ? ? ? 8B F0 6A 01 56 FF 15"); // ported to 1080
+        auto pattern = hook::pattern("FF 15 ? ? ? ? 8B F0 6A 01 56 FF 15");
         injector::MakeNOP(pattern.get_first(0), 6, true);
         injector::MakeCALL(pattern.get_first(0), CreateWindowExW_Hook, true);
-        pattern = hook::pattern("FF 15 ? ? ? ? 8B 4C 24 2C 89 3D"); // ported to 1080
+        pattern = hook::pattern("FF 15 ? ? ? ? 8B 4C 24 2C 89 3D");
         injector::MakeNOP(pattern.get_first(0), 6, true);
         injector::MakeCALL(pattern.get_first(0), MoveWindow_Hook, true);
-        pattern = hook::pattern("FF 15 ? ? ? ? 8B 7D F0 85 DB 8B 5D EC"); // ported to 1080
+        pattern = hook::pattern("FF 15 ? ? ? ? 8B 7D F0 85 DB 8B 5D EC");
         injector::MakeNOP(pattern.get_first(0), 6, true);
         injector::MakeCALL(pattern.get_first(0), AdjustWindowRect_Hook, true);
-        pattern = hook::pattern("FF 15 ? ? ? ? 8B 4C 24 14 2B 4C 24 1C"); // ported to 1080
+        pattern = hook::pattern("FF 15 ? ? ? ? 8B 4C 24 14 2B 4C 24 1C");
         injector::MakeNOP(pattern.get_first(0), 6, true);
         injector::MakeCALL(pattern.get_first(0), SetRect_Hook, true);
-        pattern = hook::pattern("FF 15 ? ? ? ? 6A 00 68 00 00 CF 00 8D 55 E4"); // ported to 1080
+        pattern = hook::pattern("FF 15 ? ? ? ? 6A 00 68 00 00 CF 00 8D 55 E4");
         injector::MakeNOP(pattern.get_first(0), 6, true);
         injector::MakeCALL(pattern.get_first(0), SetRect_Hook, true);
 
@@ -689,7 +689,7 @@ void Init()
     }
 
     //fix for zoom flag in tbogt
-    if (nAimingZoomFix) // ported to 1080, from old pre-ivce
+    if (nAimingZoomFix)
     {
 		auto pattern = hook::pattern("8A D0 32 15");
 		static auto& byte_F47AB1 = **pattern.get_first<uint8_t*>(4);
@@ -723,27 +723,27 @@ void Init()
 		injector::WriteMemory<uint8_t>(pattern.get_first(1), 0x25, true); //mov ah  
     }
 
-    if (bFlickeringShadowsFix) // ported to 1080, from old pre-ivce
+    if (bFlickeringShadowsFix)
     {
 		auto pattern = hook::pattern("52 8D 44 24 50 50 68");
 		injector::WriteMemory(pattern.get_first(7), 0x100, true);
     }
 
-    if (bRecoilFix) // ported to 1080, from old pre-ivce
+    if (bRecoilFix)
     {
 		static float fRecMult = 0.65f;
 		auto pattern = hook::pattern("F3 0F 10 44 24 ? F3 0F 59 05 ? ? ? ? EB ? E8");
 		injector::WriteMemory(pattern.get_first(10), &fRecMult, true);
     }
 
-    if (bDefinitionFix) // ported to 1080, from old pre-ivce
+    if (bDefinitionFix)
     {
 		//disable forced definition-off in cutscenes
 		auto pattern = hook::pattern("E8 ? ? ? ? F6 D8 1A C0 F6 D0 22 05 ? ? ? ? C3"); //0x88CC6B
 		injector::WriteMemory<uint16_t>(pattern.get_first(11), 0xA090, true); //mov al ...
     }
 
-    if (bEmissiveShaderFix) // ported to 1080, from old pre-ivce
+    if (bEmissiveShaderFix)
     { 
 		// workaround for gta_emissivestrong.fxc lights on patch 6+,
         //"A0 01 00 00 02 00 00 08" replaced in shader files with "A1 01 00 00 02 00 00 08" (5 occurrences)
@@ -790,7 +790,7 @@ void Init()
         }; injector::MakeInline<ShaderTest>(pattern.count(2).get(1).get<void>(0), pattern.count(2).get(1).get<void>(6)); //417800  
     }
 
-    if (bHandbrakeCamFix) // ported to 1080
+    if (bHandbrakeCamFix)
     {
 		static auto GET_POSITION_OF_ANALOGUE_STICKS = hook::get_pattern("6A 00 E8 ? ? ? ? 83 C4 04 80 B8 8C 32 00 00 00 74 78", 0);
 		auto pattern = hook::pattern("D9 44 24 20 8B 54 24 64 F3 0F 10 02 51 D9 1C 24 8D 44 24 20 50");
@@ -813,20 +813,20 @@ void Init()
     }
 
     //camera position in TLAD
-    if (bDefaultCameraAngleInTLAD) // ported to 1080, from old pre-ivce
+    if (bDefaultCameraAngleInTLAD)
     {
         static uint32_t episode_id = 0;
 		auto pattern = hook::pattern("83 3D ? ? ? ? ? 75 06 C7 00 ? ? ? ? B0 01 C2 08 00");
 		injector::WriteMemory(pattern.count(2).get(0).get<void>(2), &episode_id, true);
     }
 
-    if (bPedDeathAnimFixFromTBOGT) // ported to 1080, from old pre-ivce
+    if (bPedDeathAnimFixFromTBOGT)
     {
 		auto pattern = hook::pattern("BB ? ? ? ? 75 29");
 		injector::MakeNOP(pattern.get_first(5), 2, true);
     }
 
-    if (bDisableCameraCenteringInCover) // ported to 1080, from old pre-ivce
+    if (bDisableCameraCenteringInCover)
     {
 		static constexpr float xmm_0 = FLT_MAX / 2.0f;
 		auto pattern = hook::pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 46 ? 89 8C 24");
@@ -834,7 +834,7 @@ void Init()
     }
 
 	// a better fix is in ZPatch
-    if (bMouseFix && !IsZPatchPresent()) // ported to 1080
+    if (bMouseFix && !IsZPatchPresent())
     {
         auto pattern = hook::pattern("B9 ? ? ? ? E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 80 7D 08 00");
         dword_F43AD8 = *pattern.get_first<uint32_t>(1);
@@ -881,12 +881,12 @@ void Init()
         CutsceneFpsLimiter.Init(mode, fCutsceneFpsLimit);
         ScriptCutsceneFpsLimiter.Init(mode, fScriptCutsceneFpsLimit);
 
-        auto pattern = hook::pattern("E8 ? ? ? ? 84 C0 75 15 38 05"); // ported to 1080
+        auto pattern = hook::pattern("E8 ? ? ? ? 84 C0 75 15 38 05");
         CCutscenes__hasCutsceneFinished = (bool(*)()) injector::GetBranchDestination(pattern.get_first(0)).get();
-        pattern = hook::pattern("E8 ? ? ? ? 84 C0 75 42 38 05"); // ported to 1080
+        pattern = hook::pattern("E8 ? ? ? ? 84 C0 75 42 38 05");
         CCamera__isWidescreenBordersActive = (bool(*)()) injector::GetBranchDestination(pattern.get_first(0)).get();
 
-		pattern = hook::pattern("A1 ? ? ? ? 83 F8 01 8B 0D ? ? ? ? 8B 15 ? ? ? ? 8B 35 ? ? ? ? 74 0D 3B CA"); // ported to 1080, from old pre-ivce
+		pattern = hook::pattern("A1 ? ? ? ? 83 F8 01 8B 0D ? ? ? ? 8B 15 ? ? ? ? 8B 35 ? ? ? ? 74 0D 3B CA");
 		injector::WriteMemory(pattern.get_first(0), 0x901CC483, true);
 		injector::MakeJMP(pattern.get_first(4), sub_855640, true);
 
@@ -899,7 +899,7 @@ void Init()
         });
     }
 
-    if (fScriptCutsceneFovLimit) // ported to 1080, from old pre-ivce
+    if (fScriptCutsceneFovLimit)
     {
 		auto pattern = hook::pattern("D9 46 0C D9 58 60 5E C3");
 		struct SetFOVHook
@@ -912,13 +912,13 @@ void Init()
 		}; injector::MakeInline<SetFOVHook>(pattern.get_first(0), pattern.get_first(6));
     }
 
-    if (nVehicleBudget) // ported to 1080
+    if (nVehicleBudget)
     {
         auto pattern = hook::pattern("B8 56 55 55 55 F7 E9 8B 0D");
         injector::WriteMemory(*pattern.get_first<void*>(-4), nVehicleBudget, true);
     }
 
-    if (nPedBudget) // ported to 1080
+    if (nPedBudget)
     {
         auto pattern = hook::pattern("B8 56 55 55 55 F7 E9 8B 0D");
         injector::WriteMemory(*pattern.get_first<void*>(9), nPedBudget, true);
@@ -926,14 +926,14 @@ void Init()
 
     {
         //IMG Loader
-        auto pattern = hook::pattern("E8 ? ? ? ? 6A 00 E8 ? ? ? ? 83 C4 14 6A 00 B9"); // ported to 1080
+        auto pattern = hook::pattern("E8 ? ? ? ? 6A 00 E8 ? ? ? ? 83 C4 14 6A 00 B9");
         static auto CImgManager__addImgFile = (void(__cdecl*)(const char*, char, int)) injector::GetBranchDestination(pattern.get_first(0)).get();
         static auto sub_A95980 = (void(__cdecl*)(char)) injector::GetBranchDestination(pattern.get_first(7)).get();
 
-        pattern = hook::pattern("39 35 ? ? ? ? 75 0E 56"); // ported to 1080
+        pattern = hook::pattern("39 35 ? ? ? ? 75 0E 56");
         static auto _dwCurrentEpisode = *pattern.get_first<int*>(2);
 
-        pattern = hook::pattern("89 44 24 44 8B 44 24 4C 57"); // ported to 1080
+        pattern = hook::pattern("89 44 24 44 8B 44 24 4C 57");
         struct ImgListHook
         {
             void operator()(injector::reg_pack& regs)
@@ -1018,11 +1018,11 @@ void Init()
         if (FusionFixSettings("PREF_TIMECYC") < 5 || FusionFixSettings("PREF_TIMECYC") >= std::size(timecycText))
             FusionFixSettings.Set("PREF_TIMECYC", 5);
 
-        auto pattern = hook::pattern("E8 ? ? ? ? 8B D8 83 C4 08 85 DB 0F 84 99 0D 00 00"); // ported to 1080
+        auto pattern = hook::pattern("E8 ? ? ? ? 8B D8 83 C4 08 85 DB 0F 84 99 0D 00 00");
         CFileMgrOpenFile = injector::GetBranchDestination(pattern.get_first(0)).get();
         injector::MakeCALL(pattern.get_first(0), sub_8C4CF0, true);
 
-        pattern = hook::pattern("55 8B EC 83 E4 F0 81 EC C4 02 00 00 A1 ? ? ? ? 33 C4 89 84 24 C0 02"); // ported to 1080
+        pattern = hook::pattern("55 8B EC 83 E4 F0 81 EC C4 02 00 00 A1 ? ? ? ? 33 C4 89 84 24 C0 02");
         static auto CTimeCycleInitialise = pattern.get_first(0);
 
         static int bTimecycUpdated = 0;
@@ -1033,15 +1033,15 @@ void Init()
 
         // make timecyc changes visible in menu
 		// this is a hack for 1080 because the code differs too much and im lazy
-        pattern = hook::pattern("E8 ? ? ? ? 84 C0 5F 0F 85 85 00 00 00"); // ported to 1080
+        pattern = hook::pattern("E8 ? ? ? ? 84 C0 5F 0F 85 85 00 00 00");
 		injector::MakeJMP(pattern.get_first(8), pattern.get_first(23));
-        pattern = hook::pattern("E8 ? ? ? ? 84 C0 74 1F A1 ? ? ? ? 69 C0"); // ported to 1080
+        pattern = hook::pattern("E8 ? ? ? ? 84 C0 74 1F A1 ? ? ? ? 69 C0");
         injector::MakeJMP(pattern.get_first(0), pattern.get_first(40));
     }
 
     // runtime settings
     {
-        auto pattern = hook::pattern("89 1C 8D ? ? ? ? E8"); // ported to 1080
+        auto pattern = hook::pattern("89 1C 8D ? ? ? ? E8");
         struct IniWriter
         {
             void operator()(injector::reg_pack& regs)
@@ -1069,7 +1069,7 @@ void Init()
             }
         }; injector::MakeInline<IniWriter>(pattern.get_first(0), pattern.get_first(7));
 
-        pattern = hook::pattern("8B 1C 8D ? ? ? ? 89 4C 24 18"); // ported to 1080
+        pattern = hook::pattern("8B 1C 8D ? ? ? ? 89 4C 24 18");
         struct MenuTogglesHook1
         {
             void operator()(injector::reg_pack& regs)
@@ -1078,7 +1078,7 @@ void Init()
             }
         }; injector::MakeInline<MenuTogglesHook1>(pattern.get_first(0), pattern.get_first(7));
 
-        pattern = hook::pattern("8B 0C 8D ? ? ? ? 75 12"); // ported to 1080
+        pattern = hook::pattern("8B 0C 8D ? ? ? ? 75 12");
         struct MenuTogglesHook2
         {
             void operator()(injector::reg_pack& regs)
@@ -1088,16 +1088,16 @@ void Init()
         }; injector::MakeInline<MenuTogglesHook2>(pattern.get_first(0), pattern.get_first(7));
 
         // show game in display menu
-        pattern = hook::pattern("75 10 57 E8 ? ? ? ? 83 C4 04 83 F8 03"); // ported to 1080
+        pattern = hook::pattern("75 10 57 E8 ? ? ? ? 83 C4 04 83 F8 03");
         injector::WriteMemory(pattern.get_first(), 0x0EEB);
 
-        pattern = hook::pattern("83 F8 03 7F 06 B8 01 00 00 00 C3 33 C0 C3"); // ported to 1080
+        pattern = hook::pattern("83 F8 03 7F 06 B8 01 00 00 00 C3 33 C0 C3");
         injector::MakeNOP(pattern.get_first(3), 2);
     }
 
     {
         static std::map<IDirect3DPixelShader9*, std::tuple<IDirect3DPixelShader9*, IDirect3DPixelShader9*, IDirect3DPixelShader9*, IDirect3DPixelShader9*>> shadermap;
-        auto pattern = hook::pattern("50 8B 82 A8 01 00 00 56 51 FF D0"); // ported to 1080
+        auto pattern = hook::pattern("50 8B 82 A8 01 00 00 56 51 FF D0");
         struct CreatePixelShaderHook
         {
             void operator()(injector::reg_pack& regs)
@@ -1188,12 +1188,12 @@ void Init()
 
     if (bExtraDynamicShadows || bDynamicShadowForTrees)
     {
-        auto pattern = hook::pattern("E8 ? ? ? ? EB 0E 09 4C 24 08"); // ported to 1080
+        auto pattern = hook::pattern("E8 ? ? ? ? EB 0E 09 4C 24 08");
         CModelInfoStore__allocateBaseModel = injector::GetBranchDestination(pattern.get_first(0));
         injector::MakeCALL(pattern.get_first(0), CModelInfoStore__allocateBaseModelHook, true);
         CModelInfoStore__allocateInstanceModel = injector::GetBranchDestination(pattern.get_first(16));
         injector::MakeCALL(pattern.get_first(16), CModelInfoStore__allocateInstanceModelHook, true);
-        pattern = hook::pattern("E8 ? ? ? ? F3 0F 10 44 24 40 F3 0F 10 4C 24 44 F3 0F 10 54 24 3C"); // ported to 1080
+        pattern = hook::pattern("E8 ? ? ? ? F3 0F 10 44 24 40 F3 0F 10 4C 24 44 F3 0F 10 54 24 3C");
         CBaseModelInfo__setFlags = injector::GetBranchDestination(pattern.get_first(0));
         injector::MakeCALL(pattern.get_first(0), CBaseModelInfo__setFlagsHook, true);
 
@@ -1207,11 +1207,11 @@ void Init()
         //sway
         if (bDynamicShadowForTrees)
         {
-            static auto dw1036C00 = *hook::get_pattern<float*>("F3 0F 10 1D ? ? ? ? F3 0F 10 2D ? ? ? ? F3 0F 10 05", 4); // ported to 1080
+            static auto dw1036C00 = *hook::get_pattern<float*>("F3 0F 10 1D ? ? ? ? F3 0F 10 2D ? ? ? ? F3 0F 10 05", 4);
             static auto dw1036C04 = dw1036C00 + 1;
             static auto dw1036C08 = dw1036C00 + 2;
-            static auto dw11A2948 = *hook::get_pattern<float*>("F3 0F 11 05 ? ? ? ? 0F 85 04 03 00 00", 4); // ported to 1080
-            pattern = hook::pattern("8B 81 AC 11 00 00 8B 4C 24 2C 8B 10 8B 92 78 01 00 00 83 C4 0C 51"); // ported to 1080
+            static auto dw11A2948 = *hook::get_pattern<float*>("F3 0F 11 05 ? ? ? ? 0F 85 04 03 00 00", 4);
+            pattern = hook::pattern("8B 81 AC 11 00 00 8B 4C 24 2C 8B 10 8B 92 78 01 00 00 83 C4 0C 51");
             struct SetVertexShaderConstantFHook
             {
                 void operator()(injector::reg_pack& regs)
