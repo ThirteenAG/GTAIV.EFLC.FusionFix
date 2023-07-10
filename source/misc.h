@@ -37,6 +37,16 @@ bool IsUALPresent()
     return false;
 }
 
+bool IsXLivelessPresent()
+{
+	wchar_t path[MAX_PATH];
+	GetCurrentDirectory(MAX_PATH, path);
+	wcscat_s(path, MAX_PATH, L"\\xlive.dll");
+
+	struct _stat64 ret;
+	return !_wstat64(path, &ret);
+}
+
 // ZPatch loads later than FusionFix, can't just do GetModuleHandle
 bool IsZPatchPresent()
 {

@@ -1088,11 +1088,15 @@ void Init()
         }; injector::MakeInline<MenuTogglesHook2>(pattern.get_first(0), pattern.get_first(7));
 
         // show game in display menu
-        pattern = hook::pattern("75 10 57 E8 ? ? ? ? 83 C4 04 83 F8 03");
-        injector::WriteMemory(pattern.get_first(), 0x0EEB);
-
-        pattern = hook::pattern("83 F8 03 7F 06 B8 01 00 00 00 C3 33 C0 C3");
-        injector::MakeNOP(pattern.get_first(3), 2);
+        // this seems to make the game not launch on GFWL for some reason, should be looked into further
+		if (IsXLivelessPresent())
+		{
+			pattern = hook::pattern("75 10 57 E8 ? ? ? ? 83 C4 04 83 F8 03");
+			injector::WriteMemory(pattern.get_first(), 0x0EEB);
+		
+			pattern = hook::pattern("83 F8 03 7F 06 B8 01 00 00 00 C3 33 C0 C3");
+			injector::MakeNOP(pattern.get_first(3), 2);
+		}
     }
 
     {
