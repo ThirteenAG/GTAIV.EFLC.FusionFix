@@ -621,6 +621,9 @@ void Init()
 
     static float& fTimeStep = **hook::get_pattern<float*>("F3 0F 59 44 24 18 83 C4 04", -4);
 
+	// cutscene zoom & stutter are fixed by ZPatch, this isn't needed
+	if (IsZPatchPresent()) fCutsceneFpsLimit = 0;
+
     // reverse lights fix
 	// same fix is in ZPatch
 	if (!IsZPatchPresent())
