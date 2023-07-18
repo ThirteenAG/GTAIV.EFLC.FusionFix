@@ -6,7 +6,7 @@
 
 # GTAIV.EFLC.FusionFix
 
-This projects aims to fix some issues in Grand Theft Auto IV Complete Edition.
+This projects aims to fix some issues in Grand Theft Auto IV - The Complete Edition.
 
 ![](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/assets/4904157/7e5ece68-6b00-4023-b87d-ed865d3e7997)
 
@@ -15,8 +15,10 @@ Changelog:
 - [Fixed recoil behavior that was different when playing with keyboard/mouse and gamepad](https://github.com/GTAmodding/GTAIV-Issues-List/issues/6)
 - [Fixed forced "definition off" setting in cutscenes, now cutscenes will respect the menu setting](https://github.com/GTAmodding/GTAIV-Issues-List/issues/5)
 - [Fixed DLC car lights in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/3)
-- [Added various frame limiting options to address cutscene zoom and other fps related issues](https://github.com/GTAmodding/GTAIV-Issues-List/issues/1)
 - [Fixed aiming zoom in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/19)
+- [Fixed a bug that only make taxis spawn](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/issues/85)
+- [Added various frame limiting options to address cutscene zoom and other fps related issues](https://github.com/GTAmodding/GTAIV-Issues-List/issues/1)
+- [Added a modloader that allows to add models and data files without replacing them](https://twitter.com/Ash_735/status/1671992742883328006?ref_src=twsrc%5Etfw%7Ctwcamp%5Etweetembed%7Ctwterm%5E1671992742883328006%7Ctwgr%5Ecb3157a3142ff4912575fc0887a5df55412d17b6%7Ctwcon%5Es1_&ref_url=https%3A%2F%2Fgtaforums.com%2Findex.php%3Fapp%3Dcoremodule%3Dsystemcontroller%3Dembedurl%3Dhttps%3A%2F%2Ftwitter.com%2FAsh_735%2Fstatus%2F1671992742883328006%3Fs%3D20)
 - Added an option to skip intro
 - Added an option to skip main menu after startup
 - Added an option to force borderless windowed mode
@@ -46,7 +48,7 @@ Credits: AssaultKifle47, Parallellines, robi29, Vaani, RaphaelK12
 
 ## Installation:
 
-### Install Grand Theft Auto IV Complete Edition (v1.2.0.30 and above required)
+### Install Grand Theft Auto IV - The Complete Edition (v1.2.0.30 and above required)
 
 ### **Download**: [GTAIV.EFLC.FusionFix.zip](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFix.zip)
 
@@ -77,6 +79,11 @@ This fix was tested only with latest official update and latest [ASI Loader](htt
 **DisableCameraCenteringInCover** - [see issue 20](https://github.com/GTAmodding/GTAIV-Issues-List/issues/20).
 
 **MouseFix** - fixes small mouse movements not being recognized.
+
+### **BudgetedIV section notes**:
+**VehicleBudget** - allows to increase the budget of vehicles.
+
+**PedBudget** - allows to increase the budget of pedestrians.
 
 # Reporting more issues
 
