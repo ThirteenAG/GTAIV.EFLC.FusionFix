@@ -6,7 +6,7 @@
 
 # GTAIV.EFLC.FusionFix
 
-This projects aims to fix some issues in Grand Theft Auto IV Complete Edition.
+This projects aims to fix some issues in Grand Theft Auto IV: Complete Edition.
 
 ![](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/assets/4904157/7e5ece68-6b00-4023-b87d-ed865d3e7997)
 
@@ -17,6 +17,8 @@ Changelog:
 - [Fixed DLC car lights in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/3)
 - [Added various frame limiting options to address cutscene zoom and other fps related issues](https://github.com/GTAmodding/GTAIV-Issues-List/issues/1)
 - [Fixed aiming zoom in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/19)
+- [Fixed a bug that only make taxis spawn](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/issues/85)
+- [Added a modloader that allows to add models and data files without replacing them](https://twitter.com/Ash_735/status/1671992742883328006)
 - Added an option to skip intro
 - Added an option to skip main menu after startup
 - Added an option to force borderless windowed mode
@@ -46,7 +48,7 @@ Credits: AssaultKifle47, Parallellines, robi29, Vaani, RaphaelK12
 
 ## Installation:
 
-### Install Grand Theft Auto IV Complete Edition (v1.2.0.30 and above required)
+### Install Grand Theft Auto IV: Complete Edition (v1.2.0.30 and above required)
 
 ### **Download**: [GTAIV.EFLC.FusionFix.zip](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFix.zip)
 
@@ -77,6 +79,11 @@ This fix was tested only with latest official update and latest [ASI Loader](htt
 **DisableCameraCenteringInCover** - [see issue 20](https://github.com/GTAmodding/GTAIV-Issues-List/issues/20).
 
 **MouseFix** - fixes small mouse movements not being recognized.
+
+### **BudgetedIV section notes**:
+**VehicleBudget** - allows to increase the budget of vehicles.
+
+**PedBudget** - allows to increase the budget of pedestrians.
 
 # Reporting more issues
 
