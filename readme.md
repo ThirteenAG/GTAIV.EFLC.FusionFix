@@ -6,7 +6,7 @@
 
 # GTAIV.EFLC.FusionFix
 
-This projects aims to fix some issues in Grand Theft Auto IV: Complete Edition.
+This projects aims to fix some issues in Grand Theft Auto IV nonCE
 
 ![](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/assets/4904157/7e5ece68-6b00-4023-b87d-ed865d3e7997)
 
@@ -15,7 +15,7 @@ Changelog:
 - [Fixed recoil behavior that was different when playing with keyboard/mouse and gamepad](https://github.com/GTAmodding/GTAIV-Issues-List/issues/6)
 - [Fixed forced "definition off" setting in cutscenes, now cutscenes will respect the menu setting](https://github.com/GTAmodding/GTAIV-Issues-List/issues/5)
 - [Fixed DLC car lights in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/3)
-- [Added various frame limiting options to address cutscene zoom and other fps related issues](https://github.com/GTAmodding/GTAIV-Issues-List/issues/1)
+- [Added various frame limiting options to address some of the fps related issues](https://github.com/GTAmodding/GTAIV-Issues-List/issues/1)
 - [Fixed aiming zoom in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/19)
 - [Fixed a bug that only make taxis spawn](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/issues/85)
 - [Added a modloader that allows to add models and data files without replacing them](https://twitter.com/Ash_735/status/1671992742883328006)
@@ -48,11 +48,11 @@ Credits: AssaultKifle47, Parallellines, robi29, Vaani, RaphaelK12
 
 ## Installation:
 
-### Install Grand Theft Auto IV: Complete Edition (v1.2.0.30 and above required)
+### Install Grand Theft Auto IV nonCE (v1.0.6.0-1.0.8.0)
 
 ### **Download**: [GTAIV.EFLC.FusionFix.zip](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFix.zip)
 
-##### Unpack content of the archive to your **GTAIV Complete Edition** root directory.
+##### Unpack content of the archive to your **GTAIV** root directory.
 ##### Non-Windows users (Proton/Wine) need to perform a [DLL override](https://cookieplmonster.github.io/setup-instructions/#proton-wine).
 
 This fix was tested only with latest official update and latest [ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/latest/download/Ultimate-ASI-Loader.zip) (included in the archive).
