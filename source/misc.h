@@ -47,17 +47,6 @@ bool IsXLivelessPresent()
 	return !_wstat64(path, &ret);
 }
 
-// ZPatch loads later than FusionFix, can't just do GetModuleHandle
-bool IsZPatchPresent()
-{
-	wchar_t path[MAX_PATH];
-	GetCurrentDirectory(MAX_PATH, path);
-	wcscat_s(path, MAX_PATH, L"\\ZolikaPatch.asi");
-
-	struct _stat64 ret;
-	return !_wstat64(path, &ret);
-}
-
 class CallbackHandler
 {
 public:

@@ -185,7 +185,6 @@ public:
 
 int32_t nFrameLimitType;
 float fFpsLimit;
-float fCutsceneFpsLimit;
 float fScriptCutsceneFpsLimit;
 float fScriptCutsceneFovLimit;
 std::vector<int32_t> fpsCaps = { 0, 1, 2, 30, 40, 50, 60, 75, 100, 120, 144, 165, 240 };
@@ -268,7 +267,6 @@ private:
 };
 
 FrameLimiter FpsLimiter;
-FrameLimiter CutsceneFpsLimiter;
 FrameLimiter ScriptCutsceneFpsLimiter;
 bool(*CCutscenes__hasCutsceneFinished)();
 bool(*CCamera__isWidescreenBordersActive)();
@@ -284,9 +282,7 @@ void __cdecl sub_855640()
     if (CCamera__isWidescreenBordersActive())
     {
         if (CCutscenes__hasCutsceneFinished())
-            if (fCutsceneFpsLimit)
-                CutsceneFpsLimiter.Sync();
-            else if (fScriptCutsceneFpsLimit)
+            if (fScriptCutsceneFpsLimit)
                 ScriptCutsceneFpsLimiter.Sync();
     }
 }
@@ -605,7 +601,6 @@ void Init()
     //[FRAMELIMIT]
     nFrameLimitType = iniReader.ReadInteger("FRAMELIMIT", "FrameLimitType", 2);
     fFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "FpsLimit", 0));
-    fCutsceneFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "CutsceneFpsLimit", 0));
     fScriptCutsceneFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "ScriptCutsceneFpsLimit", 0));
     fScriptCutsceneFovLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "ScriptCutsceneFovLimit", 0));
 
@@ -620,25 +615,6 @@ void Init()
     uint32_t nPedBudget = iniReader.ReadInteger("BudgetedIV", "PedBudget", 0);
 
     static float& fTimeStep = **hook::get_pattern<float*>("F3 0F 59 44 24 18 83 C4 04", -4);
-
-	// cutscene zoom & stutter are fixed by ZPatch, this isn't needed
-	if (IsZPatchPresent()) fCutsceneFpsLimit = 0;
-
-    // reverse lights fix
-	// same fix is in ZPatch
-	if (!IsZPatchPresent())
-    {
-        auto pattern = hook::pattern("11 01 00 00 8B 16 8B 42 64 8B CE FF D0 F3 0F 10");
-        injector::WriteMemory<uint8_t>(pattern.get_first(8), 0x60, true);
-    }
-
-    // animation fix for phone interaction on bikes
-	// same fix is in ZPatch
-	if (!IsZPatchPresent())
-    {
-        auto pattern = hook::pattern("80 BE 18 02 00 00 00 0F 85 36 01 00 00 80 BE");
-        injector::MakeNOP(pattern.get(0).get<int>(0x21), 6, true);
-    }
 
     //fix for lods appearing inside normal models, unless the graphics menu was opened once (draw distances aren't set properly?)
     {
@@ -836,36 +812,6 @@ void Init()
 		injector::WriteMemory(pattern.get_first(4), &xmm_0, true);
     }
 
-	// a better fix is in ZPatch
-    if (bMouseFix && !IsZPatchPresent())
-    {
-        auto pattern = hook::pattern("B9 ? ? ? ? E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 80 7D 08 00");
-        dword_F43AD8 = *pattern.get_first<uint32_t>(1);
-		pattern = hook::pattern("53 33 DB 38 5C 24 08 74 26");
-        dword_1826D48 = *pattern.get_first<int32_t>(11);
-        dword_1826D34 = *pattern.get_first<int32_t>(11+6);
-        dword_1826D4C = *pattern.get_first<int32_t>(11+6+6);
-        dword_1826D6C = *pattern.get_first<int32_t>(11+6+6+6);
-		pattern = hook::pattern("51 8B 44 24 0C 85 C0 0F 57 D2 56 8B 35");
-		injector::MakeJMP(pattern.get_first(0), MouseFix, true);
-
-        //ped cam behaves the same way as aiming cam
-        static constexpr float f255 = 255.0f;
-        pattern = hook::pattern("50 51 E8 ? ? ? ? D8 0D ? ? ? ? 83 C4 08 E9");
-        injector::WriteMemory(pattern.get_first(9), &f255, true);
-
-        //sniper scope is slow
-        static constexpr float f01 = 0.1f;
-        pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 59 C2 F3 0F 58 86 44 01");
-        injector::WriteMemory(pattern.get_first(4), &f01, true);
-        injector::WriteMemory(pattern.get_first(32), &f01, true);
-
-        //first person vehicle view is slow
-        pattern = hook::pattern("F3 0F 10 1D ? ? ? ? F3 0F 59 D9 F3 0F 59 DA");
-        injector::WriteMemory(pattern.get_first(4), &f01, true);
-        injector::WriteMemory(pattern.get_first(28), &f01, true);
-    }
-
     //if (fFpsLimit || fCutsceneFpsLimit || fScriptCutsceneFpsLimit)
     {
         auto mode = (nFrameLimitType == 2) ? FrameLimiter::FPSLimitMode::FPS_ACCURATE : FrameLimiter::FPSLimitMode::FPS_REALTIME;
@@ -881,7 +827,6 @@ void Init()
                 FusionFixSettings.Set("PREF_FPS_LIMIT_PRESET", 0);
             FpsLimiter.Init(mode, fFpsLimit);
         }
-        CutsceneFpsLimiter.Init(mode, fCutsceneFpsLimit);
         ScriptCutsceneFpsLimiter.Init(mode, fScriptCutsceneFpsLimit);
 
         auto pattern = hook::pattern("E8 ? ? ? ? 84 C0 75 15 38 05");
