@@ -1,6 +1,4 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/wwokiviriq3m52t6?svg=true)](https://ci.appveyor.com/project/ThirteenAG/gtaiv-eflc-fusionfix)
-[![Build Status](https://dev.azure.com/thirteenag/GTAIV.EFLC.FusionFix/_apis/build/status/ThirteenAG.GTAIV.EFLC.FusionFix?branchName=master)](https://dev.azure.com/thirteenag/GTAIV.EFLC.FusionFix/_build/latest?definitionId=1&branchName=master)
-[![Discord](https://img.shields.io/badge/chat-on%20discord-7289da.svg?logo=discord)](https://discord.gg/y2cZFRA)
 
 <p align="center">
   <img height="100" src="https://user-images.githubusercontent.com/4904157/63623173-921aaf00-c601-11e9-8b84-fc5803269323.png">
@@ -8,49 +6,59 @@
 
 # GTAIV.EFLC.FusionFix
 
-This projects aims to fix some issues in Grand Theft Auto IV and Episodes from Liberty City.
+This projects aims to fix some issues in Grand Theft Auto IV: Complete Edition.
+
+![](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/assets/4904157/7e5ece68-6b00-4023-b87d-ed865d3e7997)
 
 Changelog:
 
 - [Fixed recoil behavior that was different when playing with keyboard/mouse and gamepad](https://github.com/GTAmodding/GTAIV-Issues-List/issues/6)
 - [Fixed forced "definition off" setting in cutscenes, now cutscenes will respect the menu setting](https://github.com/GTAmodding/GTAIV-Issues-List/issues/5)
-- [Partially fixed emissive shader bug, namely BAWSAQ building is still rendered incorrectly, but the rest of the lights are now present in the game (e.g. Rotterdam Tower, Comrades Bar area)](https://github.com/GTAmodding/GTAIV-Issues-List/issues/4)
 - [Fixed DLC car lights in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/3)
-- [Tree foliage casts dynamic shadows instead of static](https://github.com/GTAmodding/GTAIV-Issues-List/issues/9)
-- [Fixed handbrake camera, that doesn't work with high fps](https://github.com/GTAmodding/GTAIV-Issues-List/issues/10)
 - [Added various frame limiting options to address cutscene zoom and other fps related issues](https://github.com/GTAmodding/GTAIV-Issues-List/issues/1)
 - [Fixed aiming zoom in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/19)
+- [Fixed a bug that only make taxis spawn](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/issues/85)
+- [Added a modloader that allows to add models and data files without replacing them](https://twitter.com/Ash_735/status/1671992742883328006)
+- Added an option to skip intro
+- Added an option to skip main menu after startup
+- Added an option to force borderless windowed mode
+- Added an option to fix mouse deadzones
+- Restored transparency on pool minigame
+
+Shader changelog:
+- [Partially fixed emissive shader bug, lights are now present in the game (e.g. Rotterdam Tower, Comrades Bar area)](https://github.com/GTAmodding/GTAIV-Issues-List/issues/4)
+- Restored stippled transparency/LOD fading from 1.0.5.0 and older versions, and reduced the stippling effect on vegetation and fences
+- Restored volumetric light shafts thanks to Vaani
+- Improved depth of field and fixed resolution scaling
+- Remade bloom shader with proper resolution scaling
+- Fixed the entire screen being blurry with definition off
+- Fixed distorted car reflections thanks to  and increased their intensity to match consoles
+- Included native FXAA
+- Included [RaphaelK12's 5x5 gaussian shadow filter](https://github.com/RaphaelK12/GTA4-Improved-Soft-Shadows)
+- Fixed excessively strong vertex AO and static vehicle shadows
+- Fixed water tiling (medium water tiling for very high water while keeping high resolution reflections)
+- Fixed textureless water on AMD graphics cards
+- Increased rain and splash intensity to mostly match consoles
+- Fixed black water droplets on screen (although refraction isn't restored yet)
+- Fixed disconnected shadows/excessively high depth bias for cascaded shadow maps
+- Fixed improper reflection mipmap dimming which made ambient reflections weaker than they're supposed to be
+- Fixed distorted projection on mirrors
+
+Credits: AssaultKifle47, Parallellines, robi29, Vaani, RaphaelK12
 
 ## Installation:
 
-#### GTAIV 1.0.8.0 / GTAIV 1.0.8.0 + DLC Episodes / GTA EFLC 1.0.3.0
-
-This fix is tested only with latest official update and [XLiveLessAddon](https://bitbucket.org/ThirteenAG/xlivelessaddon/downloads/), and I can not guarantee that the package will work without it.
-
-The following installation instructions assume that you're either have [XLiveLessAddon](https://bitbucket.org/ThirteenAG/xlivelessaddon/downloads/) already, or willing to install it.
-Online features of the game are not available with [XLiveLessAddon](https://bitbucket.org/ThirteenAG/xlivelessaddon/downloads/).
-
----
+### Install Grand Theft Auto IV: Complete Edition (v1.2.0.30 and above required)
 
 ### **Download**: [GTAIV.EFLC.FusionFix.zip](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFix.zip)
 
-This requires ASI Loader or [XLiveLessAddon](https://bitbucket.org/ThirteenAG/xlivelessaddon/downloads/).
+##### Unpack content of the archive to your **GTAIV Complete Edition** root directory.
+##### Non-Windows users (Proton/Wine) need to perform a [DLL override](https://cookieplmonster.github.io/setup-instructions/#proton-wine).
 
-Unpack the content of archive to your **GTAIV** or **EFLC** directory.
-
-### **TBoGT as DLC note**:
-
-if you have episodes installed as DLC in your **GTAIV** folder, you need to move
-
-`Grand Theft Auto IV/TBoGT/pc/models/cdimages/vehicles.img`
-
-to
-
-`Grand Theft Auto IV/DLC/TBoGT/content/pc/models/cdimages/vehicles.img`
+This fix was tested only with latest official update and latest [ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/latest/download/Ultimate-ASI-Loader.zip) (included in the archive).
+---
 
 ### **MAIN section notes**:
-
-**HandbrakeCamFix** - this only affects handbrake camera when using a keyboard, with gamepad handbrake camera is handled differently and is too fast with high fps. No solution for that at the moment. Regular camera movement is fixed as well, which is too slow without this fix on high fps.
 
 **AimingZoomFix** - set to **1** for proper fix, so it behaves like on xbox, set to **2** to have this fixed feature enabled in IV and TLAD, set to **-1** to disable this feature. **0** disables the fix, as usual.
 
@@ -70,40 +78,12 @@ to
 
 **DisableCameraCenteringInCover** - [see issue 20](https://github.com/GTAmodding/GTAIV-Issues-List/issues/20).
 
-### **EXPERIMENTAL section notes**:
+**MouseFix** - fixes small mouse movements not being recognized.
 
-**LodShift** allows to move position of all lods in the game, which reduces z-fighting. Use values in the range (-0.5; 0.5).
+### **BudgetedIV section notes**:
+**VehicleBudget** - allows to increase the budget of vehicles.
 
-**LodForceDistance** increases the draw distance of objects affected by **LodShift**. Set to 1 to enable.
-
-`It is not recommended to enable these options, so use them at your own risk.`
-
----
-
-## Files rundown:
-
-    TBoGT/pc/models/cdimages/vehicles.img
-
-**Car lights fix for TBoGT.**
-
-    pc/data/maps/props/vegetation/ext_veg.ide
-    pc/data/maps/props/vegetation/ext_veg.img
-
-**Trees shadows fix.**
-
-    common/shaders/win32_30/gta_emissivestrong.fxc
-    common/shaders/win32_30_atidx10/gta_emissivestrong.fxc
-    common/shaders/win32_30_low_ati/gta_emissivestrong.fxc
-    common/shaders/win32_30_nv6/gta_emissivestrong.fxc
-    common/shaders/win32_30_nv7/gta_emissivestrong.fxc
-    common/shaders/win32_30_nv8/gta_emissivestrong.fxc
-
-**Corrected shaders to make the lights appear. Used in conjunction with GTAIV.EFLC.FusionFix.asi.**
-
-    plugins/GTAIV.EFLC.FusionFix.asi
-    plugins/GTAIV.EFLC.FusionFix.ini
-
-**Recoil, definition, shader and other bugs are fixed here.**
+**PedBudget** - allows to increase the budget of pedestrians.
 
 # Reporting more issues
 
