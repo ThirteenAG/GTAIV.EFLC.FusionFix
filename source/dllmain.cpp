@@ -616,6 +616,18 @@ void Init()
 
     static float& fTimeStep = **hook::get_pattern<float*>("F3 0F 59 44 24 18 83 C4 04", -4);
 
+	// reverse lights fix
+	{
+		auto pattern = hook::pattern("11 01 00 00 8B 16 8B 42 64 8B CE FF D0 F3 0F 10");
+		if (!pattern.empty()) injector::WriteMemory<uint8_t>(pattern.get_first(8), 0x60, true);
+	}
+
+	// animation fix for phone interaction on bikes
+	{
+		auto pattern = hook::pattern("80 BE 18 02 00 00 00 0F 85 36 01 00 00 80 BE");
+		if (!pattern.empty()) injector::MakeNOP(pattern.get(0).get<int>(0x21), 6, true);
+	}
+
     //fix for lods appearing inside normal models, unless the graphics menu was opened once (draw distances aren't set properly?)
     {
         auto pattern = hook::pattern("E8 ? ? ? ? 8D 44 24 10 83 C4 04 50");
