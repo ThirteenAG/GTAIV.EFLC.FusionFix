@@ -50,7 +50,7 @@ Credits: AssaultKifle47, Parallellines, robi29, Vaani, RaphaelK12
 
 ### Install Grand Theft Auto IV nonCE (v1.0.6.0-1.0.8.0)
 
-### **Download**: [GTAIV.EFLC.FusionFix.zip](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFix.zip)
+### **Download**: [GTAIV.EFLC.FusionFix.zip](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/download/v1.10/GTAIV.EFLC.FusionFix.zip)
 
 ##### Unpack content of the archive to your **GTAIV** root directory.
 ##### Non-Windows users (Proton/Wine) need to perform a [DLL override](https://cookieplmonster.github.io/setup-instructions/#proton-wine).
