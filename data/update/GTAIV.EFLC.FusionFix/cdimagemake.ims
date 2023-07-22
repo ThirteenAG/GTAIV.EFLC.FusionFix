@@ -1,0 +1,19 @@
+-create "GTAIV.EFLC.FusionFix.img" "3" "IMG_VERSION_3_ENCRYPTION_TYPE_NONE"
+-importFromDirectory "GTAIV.EFLC.FusionFix"
+-rebuild
+-close
+
+-create "IV\\GTAIV.FusionFix.img" "3" "IMG_VERSION_3_ENCRYPTION_TYPE_NONE"
+-importFromDirectory "GTAIV.FusionFix"
+-rebuild
+-close
+
+-create "TLAD\\TLAD.FusionFix.img" "3" "IMG_VERSION_3_ENCRYPTION_TYPE_NONE"
+-importFromDirectory "TLAD.FusionFix"
+-rebuild
+-close
+
+-create "TBOGT\\TBOGT.FusionFix.img" "3" "IMG_VERSION_3_ENCRYPTION_TYPE_NONE"
+-importFromDirectory "TBOGT.FusionFix"
+-rebuild
+-close

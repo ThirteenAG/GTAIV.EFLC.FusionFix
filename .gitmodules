@@ -7,3 +7,7 @@
 [submodule "external/inireader"]
 	path = external/inireader
 	url = https://github.com/ThirteenAG/IniReader
+[submodule "shaders/GTAIV.ShaderFixesCollection"]
+	path = shaders/GTAIV.ShaderFixesCollection
+	url = https://github.com/Parallellines0451/GTAIV.ShaderFixesCollection
+	ignore = dirty

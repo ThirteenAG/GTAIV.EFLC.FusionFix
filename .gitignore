@@ -329,3 +329,7 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
+
+data/**/*.img
+data/update/common/shaders/**/*.fxc
+!data/plugins/OverloadFromFolderDLL.asi
