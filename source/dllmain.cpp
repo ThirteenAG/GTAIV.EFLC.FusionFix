@@ -537,7 +537,7 @@ void* __cdecl CModelInfoStore__allocateInstanceModelHook(char* modelName)
 
     if (bDynamicShadowForTrees) {
         static std::vector<std::string> treeNames = {
-            "ag_bigandbushy", "ag_bigandbushygrn", "ag_tree00", "ag_tree06", "azalea_md_ingame",
+            "ag_bigandbushy", "ag_bigandbushygrn", "ag_tree00", "ag_tree02", "ag_tree06", "azalea_md_ingame",
             "azalea_md_ingame_05", "azalea_md_ingame_06", "azalea_md_ingame_2", "azalea_md_ingame_3",
             "azalea_md_ingame_4", "bholly_md_ingame", "bholly_md_ingame_2", "bholly_md_s_ingame",
             "bholly_md_s_ingame_2", "beech_md_ingame_2", "c_apple_md_ingame", "c_apple_md_ingame01",
