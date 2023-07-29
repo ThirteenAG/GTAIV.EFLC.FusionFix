@@ -190,7 +190,7 @@ float fFpsLimit;
 float fCutsceneFpsLimit;
 float fScriptCutsceneFpsLimit;
 float fScriptCutsceneFovLimit;
-std::vector<int32_t> fpsCaps = { 0, 1, 2, 30, 40, 50, 60, 75, 100, 120, 144, 165, 240 };
+std::vector<int32_t> fpsCaps = { 0, 1, 2, 30, 40, 50, 60, 75, 100, 120, 144, 165, 240, 360 };
 
 class FrameLimiter
 {
@@ -202,9 +202,11 @@ private:
     double TIME_Ticks = 0.0;
     double TIME_Frametime = 0.0;
     float  fFPSLimit = 0.0f;
+    bool   bFpsLimitWasUpdated = false;
 public:
     void Init(FPSLimitMode mode, float fps_limit)
     {
+        bFpsLimitWasUpdated = true;
         mFPSLimitMode = mode;
         fFPSLimit = fps_limit;
 
@@ -225,6 +227,12 @@ public:
     }
     DWORD Sync_RT()
     {
+        if (bFpsLimitWasUpdated)
+        {
+            bFpsLimitWasUpdated = false;
+            return 1;
+        }
+
         DWORD lastTicks, currentTicks;
         LARGE_INTEGER counter;
 
@@ -237,6 +245,12 @@ public:
     }
     DWORD Sync_SLP()
     {
+        if (bFpsLimitWasUpdated)
+        {
+            bFpsLimitWasUpdated = false;
+            return 1;
+        }
+
         LARGE_INTEGER counter;
         QueryPerformanceCounter(&counter);
         double millis_current = (double)counter.QuadPart / TIME_Frequency;
@@ -274,13 +288,17 @@ FrameLimiter CutsceneFpsLimiter;
 FrameLimiter ScriptCutsceneFpsLimiter;
 bool(*CCutscenes__hasCutsceneFinished)();
 bool(*CCamera__isWidescreenBordersActive)();
+uint8_t* bLoadscreenShown = nullptr;
 void __cdecl sub_855640()
 {
     static auto preset = FusionFixSettings.GetRef("PREF_FPS_LIMIT_PRESET");
 
-    if (preset && *preset >= 2) {
-        if (fFpsLimit > 0.0f || (*preset > 2 && *preset < fpsCaps.size()))
-            FpsLimiter.Sync();
+    if (bLoadscreenShown && !*bLoadscreenShown)
+    {
+        if (preset && *preset >= 2) {
+            if (fFpsLimit > 0.0f || (*preset > 2 && *preset < fpsCaps.size()))
+                FpsLimiter.Sync();
+        }
     }
 
     if (CCamera__isWidescreenBordersActive())
@@ -909,6 +927,9 @@ void Init()
             else
                 FpsLimiter.Init(mode, fFpsLimit);
         });
+
+        pattern = hook::pattern("80 3D ? ? ? ? ? 53 56 8A FA");
+        bLoadscreenShown = *pattern.get_first<uint8_t*>(2);
     }
 
     if (fScriptCutsceneFovLimit)
@@ -1071,7 +1092,7 @@ void Init()
                 auto id = regs.edx;
                 auto value = regs.ebx;
                 if (FusionFixSettings.isSame(id, "PREF_FPS_LIMIT_PRESET")) {
-                    if (regs.ebx == 1) {
+                    if (value == 1) {
                         auto old = FusionFixSettings(id);
                         if (old >= 2)
                             value = 0;
