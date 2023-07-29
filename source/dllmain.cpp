@@ -283,6 +283,24 @@ private:
     }
 };
 
+bool bLoadingShown = false;
+bool __cdecl sub_411F50(uint32_t* a1, uint32_t* a2)
+{
+    bLoadingShown = false;
+    if (!a1[2] && !a2[2]) {
+        bLoadingShown = *a1 == *a2;
+        return *a1 == *a2;
+    }
+    if (a1[2] != a2[2])
+        return false;
+    if (a1[0] != a2[0])
+        return false;
+    if (a1[1] != a2[1])
+        return false;
+    bLoadingShown = true;
+    return true;
+}
+
 FrameLimiter FpsLimiter;
 FrameLimiter CutsceneFpsLimiter;
 FrameLimiter ScriptCutsceneFpsLimiter;
@@ -293,7 +311,7 @@ void __cdecl sub_855640()
 {
     static auto preset = FusionFixSettings.GetRef("PREF_FPS_LIMIT_PRESET");
 
-    if (bLoadscreenShown && !*bLoadscreenShown)
+    if (bLoadscreenShown && !*bLoadscreenShown && !bLoadingShown)
     {
         if (preset && *preset >= 2) {
             if (fFpsLimit > 0.0f || (*preset > 2 && *preset < fpsCaps.size()))
@@ -930,6 +948,9 @@ void Init()
 
         pattern = hook::pattern("80 3D ? ? ? ? ? 53 56 8A FA");
         bLoadscreenShown = *pattern.get_first<uint8_t*>(2);
+
+        pattern = hook::pattern("8B 4C 24 04 8B 54 24 08 8B 41 08");
+        injector::MakeJMP(pattern.get_first(0), sub_411F50, true);
     }
 
     if (fScriptCutsceneFovLimit)
