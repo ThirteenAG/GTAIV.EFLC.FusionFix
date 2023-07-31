@@ -52,6 +52,8 @@ Credits: AssaultKifle47, Parallellines, robi29, Vaani, RaphaelK12
 
 ### **Download**: [GTAIV.EFLC.FusionFix.zip](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFix.zip)
 
+### **Installation Video**: https://www.youtube.com/watch?v=hZEv6Rcz-iQ
+
 ##### Unpack content of the archive to your **GTAIV Complete Edition** root directory.
 ##### Non-Windows users (Proton/Wine) need to perform a [DLL override](https://cookieplmonster.github.io/setup-instructions/#proton-wine).
 
