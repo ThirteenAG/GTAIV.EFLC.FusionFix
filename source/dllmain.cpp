@@ -187,7 +187,7 @@ int32_t nFrameLimitType;
 float fFpsLimit;
 float fScriptCutsceneFpsLimit;
 float fScriptCutsceneFovLimit;
-std::vector<int32_t> fpsCaps = { 0, 1, 2, 30, 40, 50, 60, 75, 100, 120, 144, 165, 240 };
+std::vector<int32_t> fpsCaps = { 0, 1, 2, 30, 40, 50, 60, 75, 100, 120, 144, 165, 240, 360 };
 
 class FrameLimiter
 {
@@ -199,9 +199,11 @@ private:
     double TIME_Ticks = 0.0;
     double TIME_Frametime = 0.0;
     float  fFPSLimit = 0.0f;
+	bool   bFpsLimitWasUpdated = false;
 public:
     void Init(FPSLimitMode mode, float fps_limit)
     {
+		bFpsLimitWasUpdated = true;
         mFPSLimitMode = mode;
         fFPSLimit = fps_limit;
 
@@ -222,6 +224,12 @@ public:
     }
     DWORD Sync_RT()
     {
+		if (bFpsLimitWasUpdated)
+		{
+			bFpsLimitWasUpdated = false;
+			return 1;
+		}
+
         DWORD lastTicks, currentTicks;
         LARGE_INTEGER counter;
 
@@ -234,6 +242,12 @@ public:
     }
     DWORD Sync_SLP()
     {
+		if (bFpsLimitWasUpdated)
+		{
+			bFpsLimitWasUpdated = false;
+			return 1;
+		}
+
         LARGE_INTEGER counter;
         QueryPerformanceCounter(&counter);
         double millis_current = (double)counter.QuadPart / TIME_Frequency;
@@ -266,18 +280,40 @@ private:
     }
 };
 
+bool bLoadingShown = false;
+bool __cdecl sub_411F50(uint32_t* a1, uint32_t* a2)
+{
+	bLoadingShown = false;
+	if (!a1[2] && !a2[2]) {
+		bLoadingShown = *a1 == *a2;
+		return *a1 == *a2;
+	}
+	if (a1[2] != a2[2])
+		return false;
+	if (a1[0] != a2[0])
+		return false;
+	if (a1[1] != a2[1])
+		return false;
+	bLoadingShown = true;
+	return true;
+}
+
 FrameLimiter FpsLimiter;
 FrameLimiter ScriptCutsceneFpsLimiter;
 bool(*CCutscenes__hasCutsceneFinished)();
 bool(*CCamera__isWidescreenBordersActive)();
+uint8_t* bLoadscreenShown = nullptr;
 void __cdecl sub_855640()
 {
     static auto preset = FusionFixSettings.GetRef("PREF_FPS_LIMIT_PRESET");
 
-    if (preset && *preset >= 2) {
-        if (fFpsLimit > 0.0f || (*preset > 2 && *preset < fpsCaps.size()))
-            FpsLimiter.Sync();
-    }
+	if (bLoadscreenShown && !*bLoadscreenShown && !bLoadingShown)
+	{
+		if (preset && *preset >= 2) {
+			if (fFpsLimit > 0.0f || (*preset > 2 && *preset < fpsCaps.size()))
+				FpsLimiter.Sync();
+		}
+	}
 
     if (CCamera__isWidescreenBordersActive())
     {
@@ -452,6 +488,19 @@ int __cdecl sub_AE3DE0(int a1, int a2)
     return injector::cstd<int(int, int)>::call(fnAE3DE0, a1, a2);
 }
 
+static int bTimecycUpdated = 0;
+
+void* fnAD0B0 = nullptr;
+int __cdecl sub_AD0B0(int a1, int a2)
+{
+	if (bTimecycUpdated > 0)
+	{
+		bTimecycUpdated--;
+		return 0;
+	}
+	return injector::cstd<int()>::call(fnAD0B0);
+}
+
 void* CFileMgrOpenFile = nullptr;
 void* __cdecl sub_8C4CF0(char* a1, char* a2)
 {
@@ -513,6 +562,34 @@ void* __cdecl sub_8C4CF0(char* a1, char* a2)
     return injector::cstd<void* (char*, char*)>::call(CFileMgrOpenFile, a1, a2);
 }
 
+int timecyc_scanf(const char* i, const char* fmt, int* a1, int* a2, int* a3, int* a4, int* a5, int* a6, int* a7, int* a8, int* a9, int* a10,
+	int* a11, int* a12, int* a13, int* a14, int* a15, int* a16, int* a17, int* a18, int* a19, int* a20, int* a21, float* a22, float* a23,
+	float* a24, float* a25, int* a26, int* a27, int* a28, int* a29, int* a30, int* a31, int* a32, int* a33, int* a34, int* a35, float* a36,
+	float* a37, float* a38, float* a39, int* a40, int* a41, int* a42, int* a43, int* a44, int* a45, float* a46, float* a47, float* a48, float* a49,
+	float* a50, float* a51, float* a52, float* a53, float* a54, float* a55, float* a56, int* a57, float* a58, float* a59, float* a60, float* a61,
+	float* a62, int* a63, float* a64, float* a65, float* a66, float* a67, float* a68, float* a69, float* a70, float* a71, float* a72, float* a73,
+	float* a74, float* a75, float* a76, float* a77, float* a78, float* a79, float* a80, float* a81, float* a82, float* a83, float* a84, float* a85,
+	float* a86, float* a87, float* a88, float* a89, float* a90, float* a91, float* a92, float* a93, float* a94, float* a95, float* a96, float* a97,
+	float* a98, float* a99, float* a100, float* a101, float* a102, float* a103, float* a104, float* a105, float* a106, float* a107, float* a108,
+	float* a109, float* a110, float* a111, float* a112, float* a113, float* a114, float* a115, float* a116, float* a117, float* a118, float* a119,
+	float* a120, float* a121, float* a122, float* a123, float* a124, float* a125, float* a126, float* a127, float* a128, float* a129, float* a130,
+	float* a131, float* a132, float* a133, float* a134)
+{
+	auto res = sscanf(i, fmt, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27,
+		a28, a29, a30, a31, a32, a33, a34, a35, a36, a37, a38, a39, a40, a41, a42, a43, a44, a45, a46, a47, a48, a49, a50, a51, a52, a53, a54, a55,
+		a56, a57, a58, a59, a60, a61, a62, a63, a64, a65, a66, a67, a68, a69, a70, a71, a72, a73, a74, a75, a76, a77, a78, a79, a80, a81, a82, a83,
+		a84, a85, a86, a87, a88, a89, a90, a91, a92, a93, a94, a95, a96, a97, a98, a99, a100, a101, a102, a103, a104, a105, a106, a107, a108, a109,
+		a110, a111, a112, a113, a114, a115, a116, a117, a118, a119, a120, a121, a122, a123, a124, a125, a126, a127, a128, a129, a130, a131, a132,
+		a133, a134);
+
+	if (FusionFixSettings("PREF_TCYC_DOF") == 0) {
+		*a124 = 0.0f;
+		*a125 = 0.0f;
+	}
+
+	return res;
+}
+
 int32_t bExtraDynamicShadows;
 bool bDynamicShadowForTrees;
 std::string curModelName;
@@ -531,7 +608,7 @@ void* __cdecl CModelInfoStore__allocateInstanceModelHook(char* modelName)
 
     if (bDynamicShadowForTrees) {
         static std::vector<std::string> treeNames = {
-            "ag_bigandbushy", "ag_bigandbushygrn", "ag_tree00", "ag_tree06", "azalea_md_ingame",
+            "ag_bigandbushy", "ag_bigandbushygrn", "ag_tree00", "ag_tree02", "ag_tree06", "azalea_md_ingame",
             "azalea_md_ingame_05", "azalea_md_ingame_06", "azalea_md_ingame_2", "azalea_md_ingame_3",
             "azalea_md_ingame_4", "bholly_md_ingame", "bholly_md_ingame_2", "bholly_md_s_ingame",
             "bholly_md_s_ingame_2", "beech_md_ingame_2", "c_apple_md_ingame", "c_apple_md_ingame01",
@@ -857,6 +934,12 @@ void Init()
             else
                 FpsLimiter.Init(mode, fFpsLimit);
         });
+
+		pattern = hook::pattern("80 3D ? ? ? ? 00 53 8A 5C 24 1C");
+		bLoadscreenShown = *pattern.get_first<uint8_t*>(2);
+
+		pattern = hook::pattern("8B 54 24 04 8B 42 08 85 C0");
+		injector::MakeJMP(pattern.get_first(0), sub_411F50, true);
     }
 
     if (fScriptCutsceneFovLimit)
@@ -985,7 +1068,6 @@ void Init()
         pattern = hook::pattern("55 8B EC 83 E4 F0 81 EC C4 02 00 00 A1 ? ? ? ? 33 C4 89 84 24 C0 02");
         static auto CTimeCycleInitialise = pattern.get_first(0);
 
-        static int bTimecycUpdated = 0;
         FusionFixSettings.SetCallback("PREF_TIMECYC", [](int32_t value) {
             injector::fastcall<void()>::call(CTimeCycleInitialise);
             bTimecycUpdated = 200;
@@ -996,7 +1078,16 @@ void Init()
         pattern = hook::pattern("E8 ? ? ? ? 84 C0 5F 0F 85 85 00 00 00");
 		injector::MakeJMP(pattern.get_first(8), pattern.get_first(23));
         pattern = hook::pattern("E8 ? ? ? ? 84 C0 74 1F A1 ? ? ? ? 69 C0");
-        injector::MakeJMP(pattern.get_first(0), pattern.get_first(40));
+		fnAD0B0 = injector::GetBranchDestination(pattern.get_first(0)).get();
+        injector::MakeCALL(pattern.get_first(0), sub_AD0B0);
+		
+		pattern = hook::pattern("E8 ? ? ? ? 0F B6 84 24 10 04 00 00");
+		injector::MakeCALL(pattern.get_first(0), timecyc_scanf, true);
+
+		FusionFixSettings.SetCallback("PREF_TCYC_DOF", [](int32_t value) {
+			injector::fastcall<void()>::call(CTimeCycleInitialise);
+			bTimecycUpdated = 200;
+			});
     }
 
     // runtime settings
