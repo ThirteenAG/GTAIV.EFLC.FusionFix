@@ -86,6 +86,7 @@ public:
             { 0, "PREF_FXAA",             "MISC",       "FXAA",               1, nullptr },
             { 0, "PREF_CONSOLE_GAMMA",    "MISC",       "ConsoleGamma",       0, nullptr },
             { 0, "PREF_TIMECYC",          "MISC",       "ScreenFilter",       5, nullptr },
+			{ 0, "PREF_TCYC_DOF",         "MISC",       "DepthOfField",       1, nullptr },
         };
 
         auto i = firstCustomID;
