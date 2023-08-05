@@ -1295,13 +1295,13 @@ void Init()
 
     // Make LOD lights appear at the appropriate time like on the console versions (consoles: 7 PM, pc: 10 PM)
     {
-        auto pattern = hook::pattern("8D 51 13 3B C2 75 ? E8 ? ? ? ? F3 0F 2A 0D");
+        auto pattern = hook::pattern("8D 51 13");
         if (!pattern.empty()) injector::WriteMemory<uint8_t>(pattern.get_first(2), 0x10, true);
-        pattern = hook::pattern("83 C1 14 3B C1 7D ? B9 06 ? ? ? 2B 0D ? ?");
+        pattern = hook::pattern("83 C1 14 3B C1");
         if (!pattern.empty()) injector::WriteMemory<uint8_t>(pattern.get_first(2), 0x10, true);
         if (!pattern.empty()) injector::WriteMemory<uint8_t>(pattern.get_first(8), 0x07, true);
         // Removing episode id check that resulted in flickering LOD lights at certain camera angles in TBOGT
-        pattern = hook::pattern("83 3D ? ? ? 01 02 75 68 F3 0F 10 05 ? ? ?");
+        pattern = hook::pattern("83 3D ? ? ? ? ? 75 68 F3 0F 10 05 ? ? ? ?");
         if (!pattern.empty()) injector::MakeNOP(pattern.get_first(0), 113, true);
     }
 }
