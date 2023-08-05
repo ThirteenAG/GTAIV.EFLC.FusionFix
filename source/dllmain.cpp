@@ -1350,6 +1350,18 @@ void Init()
             }; injector::MakeInline<SetVertexShaderConstantFHook>(pattern.count(2).get(1).get<void*>(0), pattern.count(2).get(1).get<void*>(6));
         }
     }
+
+    // Make LOD lights appear at the appropriate time like on the console version (consoles: 7 PM, pc: 10 PM)
+    {
+        auto pattern = hook::pattern("8D ? 13 3B ? 75 ? ? ? ? ? ? ? FF ? ?");
+        if (!pattern.empty()) injector::WriteMemory<uint8_t>(pattern.get_first(2), 0x10, true);
+        pattern = hook::pattern("? ? 14 3B ? 7D ? ? 06 00 00 00 2B ? ? ?");
+        if (!pattern.empty()) injector::WriteMemory<uint8_t>(pattern.get_first(2), 0x10, true);
+        if (!pattern.empty()) injector::WriteMemory<uint8_t>(pattern.get_first(8), 0x07, true);
+        // Removing episode id check that resulted in flickering LOD lights at certain camera angles in TBOGT
+        pattern = hook::pattern("83 3D ? ? ? 01 02 0F ? ? ? ? ? F3 0F 10 ? ? ?");
+        if (!pattern.empty()) injector::MakeNOP(pattern.get_first(0), 150, true);
+    }
 }
 
 CEXP void InitializeASI()
