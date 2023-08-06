@@ -1360,7 +1360,7 @@ void Init()
         if (!pattern.empty()) injector::WriteMemory<uint8_t>(pattern.get_first(8), 0x07, true);
         // Removing episode id check that resulted in flickering LOD lights at certain camera angles in TBOGT
         pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 10 8C 24");
-        if (!pattern.empty()) injector::MakeNOP(pattern.get_first(0), 150, true);
+        if (!pattern.empty()) injector::WriteMemory<uint16_t>(pattern.get_first(7), 0xE990, true); // jnz -> jmp
     }
 }
 
