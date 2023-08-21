@@ -713,7 +713,7 @@
 			<optionspc action="MENUOPT_ADJUST" label="MO_VIEWDIST" value="PREF_VIEW_DISTANCE" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
 			<optionspc action="MENUOPT_ADJUST" label="MO_DETAIL" value="PREF_DETAIL_QUALITY" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
 			<optionspc action="MENUOPT_ADJUST" label="MO_CARS" value="PREF_CAR_DENSITY" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_DOF" value="PREF_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+			<optionspc action="MENUOPT_ADJUST" label="Motion Blur" value="PREF_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
 			<optionspc action="MENUOPT_ADJUST_GAMEMODE" label="FXAA" value="PREF_FXAA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
 			<optionspc action="MENUOPT_ADJUST" label="MO_VSYNC" value="PREF_VSYNC" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
 			<optionspc action="MENUOPT_GRAPHICS_ANALYZER" label="MO_ANALYZER" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />
@@ -733,7 +733,7 @@
 			<optionspc action="MENUOPT_ADJUST" label="MO_VIEWDIST" value="PREF_VIEW_DISTANCE" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
 			<optionspc action="MENUOPT_ADJUST" label="MO_DETAIL" value="PREF_DETAIL_QUALITY" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
 			<optionspc action="MENUOPT_ADJUST" label="MO_CARS" value="PREF_CAR_DENSITY" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_DOF" value="PREF_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+			<optionspc action="MENUOPT_ADJUST" label="Motion Blur" value="PREF_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
 			<optionspc action="MENUOPT_ADJUST_GAMEMODE" label="FXAA" value="PREF_FXAA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
 			<optionspc action="MENUOPT_ADJUST" label="MO_VSYNC" value="PREF_VSYNC" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
 			<optionspc action="MENUOPT_GRAPHICS_ANALYZER" label="MO_ANALYZER" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />

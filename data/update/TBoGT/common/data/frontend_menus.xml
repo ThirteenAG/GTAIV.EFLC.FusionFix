@@ -1048,7 +1048,7 @@
       <optionspc action="MENUOPT_ADJUST" label="MO_CARS"
         value="PREF_CAR_DENSITY" scaler="100"
         displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
-      <optionspc action="MENUOPT_ADJUST" label="MO_DOF"
+      <optionspc action="MENUOPT_ADJUST" label="Motion Blur"
         value="PREF_DOF" scaler="2"
         displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="MENUOPT_ADJUST_GAMEMODE" label="FXAA" value="PREF_FXAA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
@@ -1096,7 +1096,7 @@
       <optionspc action="MENUOPT_ADJUST" label="MO_CARS"
         value="PREF_CAR_DENSITY" scaler="100"
         displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
-      <optionspc action="MENUOPT_ADJUST" label="MO_DOF"
+      <optionspc action="MENUOPT_ADJUST" label="Motion Blur"
         value="PREF_DOF" scaler="2"
         displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="MENUOPT_ADJUST_GAMEMODE" label="FXAA" value="PREF_FXAA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
