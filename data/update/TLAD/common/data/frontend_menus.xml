@@ -447,6 +447,7 @@
       <options text="TBOGT" action="ACTION_NONE" value="5" />
     </menupc>
     <menupc enum="MENU_DISPLAY_FRAMELIMIT">
+      <options text="OFF" action="ACTION_NONE" value="0" />
       <options text="Custom" action="ACTION_NONE" value="1" />
       <options text="30" action="ACTION_NONE" value="2" />
       <options text="40" action="ACTION_NONE" value="3" />
@@ -460,6 +461,24 @@
       <options text="240" action="ACTION_NONE" value="11" />
       <options text="360" action="ACTION_NONE" value="12" />
     </menupc>
+    <menupc enum="MENU_DISPLAY_SHADOWFILTER">
+      <options text="MO_DEF" action="ACTION_NONE" value="1" />
+      <options text="vanilla+" action="ACTION_NONE" value="2" />
+      <options text="Simple Bilinear" action="ACTION_NONE" value="3" />
+      <options text="screen noise" action="ACTION_NONE" value="4" />
+      <options text="screen noise fpcss" action="ACTION_NONE" value="5" />
+      <options text="1040" action="ACTION_NONE" value="6" />
+      <options text="1040 fpcss" action="ACTION_NONE" value="7" />
+      <options text="soft 3x3 box" action="ACTION_NONE" value="8" />
+      <options text="soft 3x3 gausian" action="ACTION_NONE" value="9" />
+      <options text="soft 5x5 box" action="ACTION_NONE" value="10" />
+      <options text="soft 5x5 gausian" action="ACTION_NONE" value="11" />
+      <options text="very soft 7x7 box" action="ACTION_NONE" value="12" />
+      <options text="very soft 7x7 gausian" action="ACTION_NONE" value="13" />
+      <options text="test 1" action="ACTION_NONE" value="14" />
+      <options text="test 2" action="ACTION_NONE" value="15" />
+      <options text="test 3" action="ACTION_NONE" value="16" />
+    </menupc>
   </sMenuDisplayValue>
   <sMenuScreen>
     <menu HeaderText="MH_GAM" enum="SCR_GAME">
@@ -470,9 +489,9 @@
       <optionspc action="MENUOPT_ADJUST" label="MO_REPLAY" value="PREF_REPLAY_MODE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="MENUOPT_JUMP_GUIDE" label="MO_GUIDE" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
       <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-      <optionspc action="MENUOPT_ADJUST_GAMEMODE" label="Skip Intro" value="PREF_SKIP_INTRO" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-      <optionspc action="MENUOPT_ADJUST_GAMEMODE" label="Skip Menu" value="PREF_SKIP_MENU" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-      <optionspc action="MENUOPT_ADJUST_GAMEMODE" label="Borderless" value="PREF_BORDERLESS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="Skip Intro" value="PREF_SKIP_INTRO" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="Skip Menu" value="PREF_SKIP_MENU" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="Borderless" value="PREF_BORDERLESS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
       <optionspc action="MENUOPT_QUIT" label="MO_EXITGAM" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
       <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
@@ -581,10 +600,8 @@
       <options action="MENUOPT_ADJUST" label="MO_LAN" value="PREF_CURRENT_LANGUAGE" scaler="7" displayValue="MENU_DISPLAY_LANGUAGE" />
       <optionsps3 action="MENUOPT_ADJUST" label="MO_FLIC" value="PREF_FLICKER_FILTER" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-      <optionspc action="MENUOPT_ADJUST_GAMEMODE" label="Console Gamma" value="PREF_CONSOLE_GAMMA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-      <optionspc action="MENUOPT_ADJUST_GAMEMODE" label="FPS limiter" value="PREF_FPS_LIMIT_PRESET" scaler="14" displayValue="MENU_DISPLAY_FRAMELIMIT" />
-      <optionspc action="MENUOPT_ADJUST_GAMEMODE" label="Screen Filter" value="PREF_TIMECYC" scaler="10" displayValue="MENU_DISPLAY_TIMECYC" />
-      <optionspc action="MENUOPT_ADJUST_GAMEMODE" label="Depth of Field" value="PREF_TCYC_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="Console Gamma" value="PREF_CONSOLE_GAMMA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="Screen Filter" value="PREF_TIMECYC" scaler="10" displayValue="MENU_DISPLAY_TIMECYC" />
       <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
       <options action="MENUOPT_SET" label="MO_DEF" value="SET_DEFAULT_DISPLAY" scaler="0" displayValue="MENU_DISPLAY_NONE" />
       <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
@@ -1121,9 +1138,16 @@
       <optionspc action="MENUOPT_ADJUST" label="MO_VIEWDIST" value="PREF_VIEW_DISTANCE" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
       <optionspc action="MENUOPT_ADJUST" label="MO_DETAIL" value="PREF_DETAIL_QUALITY" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
       <optionspc action="MENUOPT_ADJUST" label="MO_CARS" value="PREF_CAR_DENSITY" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
-      <optionspc action="MENUOPT_ADJUST" label="Motion Blur" value="PREF_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-      <optionspc action="MENUOPT_ADJUST_GAMEMODE" label="FXAA" value="PREF_FXAA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="MENUOPT_ADJUST" label="MO_VSYNC" value="PREF_VSYNC" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+      <!--optionspc action="MENUOPT_ADJUST" label="Shadow Filter" value="PREF_SHADOW_FILTER" scaler="19" displayValue="MENU_DISPLAY_SHADOWFILTER" /-->
+      <optionspc action="MENUOPT_ADJUST" label="Console Shadows" value="PREF_CONSOLE_SHADOWS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="TreeFX" value="PREF_TREE_LIGHTING" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="FXAA" value="PREF_FXAA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="Motion Blur" value="PREF_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="Depth of Field" value="PREF_TCYC_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="FPS Limiter" value="PREF_FPS_LIMIT_PRESET" scaler="15" displayValue="MENU_DISPLAY_FRAMELIMIT" />
+      <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
       <optionspc action="MENUOPT_GRAPHICS_ANALYZER" label="MO_ANALYZER" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />
       <optionspc action="MENUOPT_BENCHMARK" label="MO_BENCHMARK" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />
       <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
@@ -1141,9 +1165,16 @@
       <optionspc action="MENUOPT_ADJUST" label="MO_VIEWDIST" value="PREF_VIEW_DISTANCE" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
       <optionspc action="MENUOPT_ADJUST" label="MO_DETAIL" value="PREF_DETAIL_QUALITY" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
       <optionspc action="MENUOPT_ADJUST" label="MO_CARS" value="PREF_CAR_DENSITY" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
-      <optionspc action="MENUOPT_ADJUST" label="Motion Blur" value="PREF_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-      <optionspc action="MENUOPT_ADJUST_GAMEMODE" label="FXAA" value="PREF_FXAA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="MENUOPT_ADJUST" label="MO_VSYNC" value="PREF_VSYNC" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+      <!--optionspc action="MENUOPT_ADJUST" label="Shadow Filter" value="PREF_SHADOW_FILTER" scaler="19" displayValue="MENU_DISPLAY_SHADOWFILTER" /-->
+      <optionspc action="MENUOPT_ADJUST" label="Console Shadows" value="PREF_CONSOLE_SHADOWS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="TreeFX" value="PREF_TREE_LIGHTING" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="FXAA" value="PREF_FXAA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="Motion Blur" value="PREF_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="Depth of Field" value="PREF_TCYC_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="FPS Limiter" value="PREF_FPS_LIMIT_PRESET" scaler="15" displayValue="MENU_DISPLAY_FRAMELIMIT" />
+      <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
       <optionspc action="MENUOPT_GRAPHICS_ANALYZER" label="MO_ANALYZER" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />
       <optionspc action="MENUOPT_BENCHMARK" label="MO_BENCHMARK" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />
       <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
@@ -1201,9 +1232,7 @@
       <options action="MENUOPT_ADJUST" label="MO_LAN" value="PREF_CURRENT_LANGUAGE" scaler="7" displayValue="MENU_DISPLAY_LANGUAGE" />
       <optionsps3 action="MENUOPT_ADJUST" label="MO_FLIC" value="PREF_FLICKER_FILTER" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-      <optionspc action="MENUOPT_ADJUST_GAMEMODE" label="FPS limiter" value="PREF_FPS_LIMIT_PRESET" scaler="14" displayValue="MENU_DISPLAY_FRAMELIMIT" />
-      <optionspc action="MENUOPT_ADJUST_GAMEMODE" label="Screen Filter" value="PREF_TIMECYC" scaler="10" displayValue="MENU_DISPLAY_TIMECYC" />
-      <optionspc action="MENUOPT_ADJUST_GAMEMODE" label="Depth of Field" value="PREF_TCYC_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="Screen Filter" value="PREF_TIMECYC" scaler="10" displayValue="MENU_DISPLAY_TIMECYC" />
       <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
       <options action="MENUOPT_SET" label="MO_DEF" value="SET_DEFAULT_DISPLAY" scaler="0" displayValue="MENU_DISPLAY_NONE" />
       <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />

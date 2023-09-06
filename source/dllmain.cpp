@@ -6,6 +6,176 @@
 #include <d3d9.h>
 #include <bitset>
 
+struct Vector3
+{
+    float fX;
+    float fY;
+    float fZ;
+};
+
+struct Vector4
+{
+    float fX;
+    float fY;
+    float fZ;
+    float fW;
+};
+
+class scrNativeCallContext
+{
+protected:
+    void*    m_pReturn;
+    uint32_t m_nArgCount;
+    void*    m_pArgs;
+    uint32_t m_nDataCount;
+    Vector3* m_pOriginalData[4];
+    Vector4  m_TemporaryData[4];
+
+public:
+    template<typename T>
+    inline T GetArgument(int idx)
+    {
+        auto arguments = (intptr_t*)m_pArgs;
+        return *reinterpret_cast<T*>(&arguments[idx]);
+    }
+
+    inline void* GetArgumentBuffer()
+    {
+        return m_pArgs;
+    }
+
+    template<typename T>
+    inline void SetResult(int idx, T value)
+    {
+        auto returnValues = (intptr_t*)m_pReturn;
+        *reinterpret_cast<T*>(&returnValues[idx]) = value;
+    }
+
+    inline int GetArgumentCount()
+    {
+        return m_nArgCount;
+    }
+
+    template<typename T>
+    inline T GetResult(int idx)
+    {
+        while (m_nDataCount > 0)
+        {
+            m_nDataCount--;
+            Vector3* pVec3 =  m_pOriginalData[m_nDataCount];
+            Vector4* pVec4 = &m_TemporaryData[m_nDataCount];
+            pVec3->fX = pVec4->fX;
+            pVec3->fY = pVec4->fY;
+            pVec3->fZ = pVec4->fZ;
+        }
+        auto returnValues = (intptr_t*)m_pReturn;
+        return *reinterpret_cast<T*>(&returnValues[idx]);
+    }
+};
+
+class NativeContext : public scrNativeCallContext
+{
+private:
+    // Configuration
+    enum
+    {
+        MaxNativeParams = 16,
+        ArgSize = 4,
+    };
+
+    // Anything temporary that we need
+    uint8_t m_TempStack[MaxNativeParams * ArgSize] = {};
+
+public:
+    inline NativeContext()
+    {
+        m_pArgs = &m_TempStack;
+        m_pReturn = &m_TempStack;		// It's okay to point both args and return at the same pointer. The game should handle this.
+        m_nArgCount = 0;
+        m_nDataCount = 0;
+    }
+
+    template <typename T>
+    inline void Push(T value)
+    {
+        if (sizeof(T) > ArgSize)
+        {
+            // We only accept sized 4 or less arguments... that means no double/f64 or large structs are allowed.
+            throw "Argument has an invalid size";
+        }
+        else if (sizeof(T) < ArgSize)
+        {
+            // Ensure we don't have any stray data
+            *reinterpret_cast<uintptr_t*>(m_TempStack + ArgSize * m_nArgCount) = 0;
+        }
+
+        *reinterpret_cast<T*>(m_TempStack + ArgSize * m_nArgCount) = value;
+        m_nArgCount++;
+    }
+
+    template <typename T>
+    inline T GetResult()
+    {
+        return *reinterpret_cast<T*>(m_TempStack);
+    }
+};
+
+class NativeInvoke
+{
+public:
+    template<uint32_t Hash, typename R, typename... Args>
+    static inline R Invoke(Args... args)
+    {
+        NativeContext cxt;
+        (cxt.Push(args), ...);
+
+        static auto GetNativeHandler = hook::pattern("56 8B 35 ? ? ? ? 85 F6 75 06").count(2).get(1).get<void*(__stdcall)(uint32_t)>(0);
+        auto fn = GetNativeHandler(Hash);
+        if (fn)
+            ((void(*)(NativeContext*))fn)(&cxt);
+
+        if constexpr (!std::is_void_v<R>)
+        {
+            return cxt.GetResult<R>();
+        }
+    }
+};
+
+enum class NATIVES : uint32_t {
+    GET_ROOT_CAM = 0x75E005F1,
+    GET_CAM_NEAR_CLIP = 0x2EF477FD,
+    GET_CAM_FAR_CLIP = 0x752643C9,
+};
+
+using Cam = int32_t;
+static auto GET_ROOT_CAM(Cam* rootcam) { return NativeInvoke::Invoke<std::to_underlying(NATIVES::GET_ROOT_CAM), void>(rootcam); }
+static auto GET_CAM_NEAR_CLIP(Cam cam, float* clip) { return NativeInvoke::Invoke<std::to_underlying(NATIVES::GET_CAM_NEAR_CLIP), void>(cam, clip); }
+static auto GET_CAM_FAR_CLIP(Cam cam, float* clip) { return NativeInvoke::Invoke<std::to_underlying(NATIVES::GET_CAM_FAR_CLIP), void>(cam, clip); }
+
+struct
+{
+    enum eFpsCaps { eTOGGLE, eHOLD, eOFF, eCustom, e30 = 30, e40 = 40, e50 = 50, e60 = 60, e75 = 75, e100 = 100, e120 = 120, e144 = 144, e165 = 165, e240 = 240, e360 = 360 };
+    std::vector<int32_t> data = { eTOGGLE, eHOLD, eOFF, eCustom, e30, e40, e50, e60, e75, e100, e120, e144, e165, e240, e360 };
+} FpsCaps;
+
+struct
+{
+    enum eTimecycText { eLow, eMedium, eHigh, eVeryHigh, eHighest, eMO_DEF, eOFF, eIV, eTLAD, eTBOGT };
+    std::vector<const char*> data = { "Low", "Medium", "High", "Very High", "Highest", "MO_DEF", "OFF", "IV", "TLAD", "TBOGT" };
+} TimecycText;
+
+struct
+{
+    enum eShadowFilterText {
+        eRadio, eSequential, eShuffle, evanilla, evanillaplus, eSimpleBilinear, escreennoise,
+        escreennoisefpcss, e1040, e1040fpcss, esoft3x3box, esoft3x3gausian, esoft5x5box, esoft5x5gausian, everysoft7x7box,
+        everysoft7x7gausian, etest1, etest2, etest3
+    };
+    std::vector<const char*> data = { "Radio", "Sequential", "Shuffle", "vanilla", "vanilla+", "Simple Bilinear", "screen noise", "screen noise fpcss",
+        "1040", "1040 fpcss", "soft 3x3 box", "soft 3x3 gausian", "soft 5x5 box", "soft 5x5 gausian", "very soft 7x7 box",
+        "very soft 7x7 gausian", "test 1", "test 2", "test 3" };
+} ShadowFilterText;
+
 class CSettings
 {
 private:
@@ -15,8 +185,11 @@ private:
         std::string prefName;
         std::string iniSec;
         std::string iniName;
+        std::string strEnum;
         int32_t iniDefValInt = 0;
         std::function<void(int32_t value)> callback;
+        int32_t idStart;
+        int32_t idEnd;
 
         auto GetValue() { return value; }
         auto SetValue(auto v) { value = v; WriteToIni(); if (callback) callback(value); }
@@ -78,22 +251,25 @@ public:
 
         CIniReader iniReader("");
 
-        CSetting arr[] = {
-            { 0, "PREF_SKIP_INTRO",       "MAIN",       "SkipIntro",          1, nullptr },
-            { 0, "PREF_SKIP_MENU",        "MAIN",       "SkipMenu",           1, nullptr },
-            { 0, "PREF_BORDERLESS",       "MAIN",       "BorderlessWindowed", 1, nullptr },
-            { 0, "PREF_FPS_LIMIT_PRESET", "FRAMELIMIT", "FpsLimitPreset",     0, nullptr },
-            { 0, "PREF_FXAA",             "MISC",       "FXAA",               1, nullptr },
-            { 0, "PREF_CONSOLE_GAMMA",    "MISC",       "ConsoleGamma",       0, nullptr },
-            { 0, "PREF_TIMECYC",          "MISC",       "ScreenFilter",       5, nullptr },
-            { 0, "PREF_TCYC_DOF",         "MISC",       "DepthOfField",       1, nullptr },
+        static CSetting arr[] = {
+            { 0, "PREF_SKIP_INTRO",       "MAIN",       "SkipIntro",          "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_SKIP_MENU",        "MAIN",       "SkipMenu",           "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_BORDERLESS",       "MAIN",       "BorderlessWindowed", "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_FPS_LIMIT_PRESET", "FRAMELIMIT", "FpsLimitPreset",     "MENU_DISPLAY_FRAMELIMIT",    0, nullptr, FpsCaps.eOFF, std::distance(std::begin(FpsCaps.data), std::end(FpsCaps.data)) - 1 },
+            { 0, "PREF_FXAA",             "MISC",       "FXAA",               "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_CONSOLE_GAMMA",    "MISC",       "ConsoleGamma",       "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_TIMECYC",          "MISC",       "ScreenFilter",       "MENU_DISPLAY_TIMECYC",       5, nullptr, TimecycText.eMO_DEF, std::distance(std::begin(TimecycText.data), std::end(TimecycText.data)) - 1 },
+            { 0, "PREF_TCYC_DOF",         "MISC",       "DepthOfField",       "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_CONSOLE_SHADOWS",  "SHADOWS",    "ConsoleShadows",     "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_SHADOW_FILTER",    "SHADOWS",    "ShadowFilter",       "MENU_DISPLAY_SHADOWFILTER",  0, nullptr, ShadowFilterText.evanilla, std::distance(std::begin(ShadowFilterText.data), std::end(ShadowFilterText.data)) - 1 },
+            { 0, "PREF_TREE_LIGHTING",    "MISC",       "TreeLighting",       "MENU_DISPLAY_TREE_LIGHTING", 0, nullptr, 0, 1 },
         };
 
         auto i = firstCustomID;
         for (auto& it : arr)
         {
             mFusionPrefs[i] = it;
-            mFusionPrefs[i].SetValue(it.ReadFromIni(iniReader));
+            mFusionPrefs[i].value = it.ReadFromIni(iniReader);
             aMenuPrefs.emplace_back(i, mFusionPrefs[i].prefName.data());
             i++;
         }
@@ -116,21 +292,20 @@ public:
         aMenuEnums.reserve(aMenuEnums.size() * 2);
         auto firstEnumCustomID = aMenuEnums.back().prefID + 1;
 
+        for (auto& it : arr)
+        {
+            if (!it.strEnum.empty()) {
+                aMenuEnums.emplace_back(firstEnumCustomID, it.strEnum.data());
+                firstEnumCustomID += 1;
+            }
+        }
+
         injector::WriteMemory(pattern.count(4).get(1).get<void*>(3), &aMenuEnums[0].prefID, true);
         injector::WriteMemory(pattern2.get_first(3), &aMenuEnums[0].name, true);
         pattern = hook::pattern("8B 04 F5 ? ? ? ? 5F 5E C3 8B 04 F5");
         injector::WriteMemory(pattern.get_first(3), &aMenuEnums[0].prefID, true);
         pattern = hook::pattern("FF 34 F5 ? ? ? ? 57 E8 ? ? ? ? 83 C4 08 85 C0 74 0B 46 83 FE 3C");
         injector::WriteMemory(pattern.get_first(3), &aMenuEnums[0].name, true);
-
-        static auto MENU_DISPLAY_FRAMELIMIT = "MENU_DISPLAY_FRAMELIMIT";
-        static auto MENU_DISPLAY_TIMECYC = "MENU_DISPLAY_TIMECYC";
-        static auto eMENU_DISPLAY_ON_OFF = 0;
-
-        aMenuEnums.emplace_back(eMENU_DISPLAY_ON_OFF, (char*)MENU_DISPLAY_FRAMELIMIT);
-        firstEnumCustomID += 1;
-        aMenuEnums.emplace_back(firstEnumCustomID, (char*)MENU_DISPLAY_TIMECYC);
-        firstEnumCustomID += 1;
 
         injector::WriteMemory<uint8_t>(pOriginalEnumsNum, aMenuEnums.size(), true);
         injector::WriteMemory<uint8_t>(pOriginalEnumsNum2, aMenuEnums.size(), true);
@@ -182,6 +357,13 @@ public:
         auto prefID = GetPrefIDByName(name);
         if (prefID) mFusionPrefs[*prefID].callback = cb;
     }
+    void ForEachPref(std::function<void(int32_t id, int32_t idStart, int32_t idEnd)>&& cb)
+    {
+        for (auto& it : mFusionPrefs)
+        {
+            cb(it.first, it.second.idStart, it.second.idEnd);
+        }
+    }
     auto operator()(int32_t i) { return Get(i); }
     auto operator()(std::string_view name) { return Get(name); }
 } FusionFixSettings;
@@ -191,7 +373,6 @@ float fFpsLimit;
 float fCutsceneFpsLimit;
 float fScriptCutsceneFpsLimit;
 float fScriptCutsceneFovLimit;
-std::vector<int32_t> fpsCaps = { 0, 1, 2, 30, 40, 50, 60, 75, 100, 120, 144, 165, 240, 360 };
 
 class FrameLimiter
 {
@@ -314,8 +495,8 @@ void __cdecl sub_855640()
 
     if (bLoadscreenShown && !*bLoadscreenShown && !bLoadingShown)
     {
-        if (preset && *preset >= 2) {
-            if (fFpsLimit > 0.0f || (*preset > 2 && *preset < fpsCaps.size()))
+        if (preset && *preset >= FpsCaps.eCustom) {
+            if (fFpsLimit > 0.0f || (*preset > FpsCaps.eCustom && *preset < FpsCaps.data.size()))
                 FpsLimiter.Sync();
         }
     }
@@ -349,6 +530,36 @@ void __cdecl sub_7870A0(int a1)
     }
     return hbsub_7870A0.fun(a1);
 }
+
+void* fnAE3DE0 = nullptr;
+void* fnAE3310 = nullptr;
+int __cdecl sub_AE3DE0(int a1, int a2)
+{
+    static auto console_shadows = FusionFixSettings.GetRef("PREF_CONSOLE_SHADOWS");
+    if (console_shadows->get())
+        injector::cstd<void(int, int, int, int, int)>::call(fnAE3310, a1, 0, 0, 0, a2);
+    return injector::cstd<int(int, int)>::call(fnAE3DE0, a1, a2);
+}
+
+injector::hook_back<void(__cdecl*)(int, int, int, float*, int*, float*, int, int, int, int, float, float, float, int, int, int, int, int)> hbsub_ABCCD0;
+void __cdecl sub_ABCCD0(int a1, int a2, int a3, float* a4, int* a5, float* a6, int a7, int a8, int a9, int a10, float a11, float a12, float a13, int a14, int a15, int a16, int a17, int a18)
+{
+    static auto console_shadows = FusionFixSettings.GetRef("PREF_CONSOLE_SHADOWS");
+    if (console_shadows->get())
+        return;
+    else
+        return hbsub_ABCCD0.fun(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18);
+}
+
+injector::hook_back<bool(*)()> hbsub_924D90;
+bool sub_924D90()
+{
+    static auto console_shadows = FusionFixSettings.GetRef("PREF_CONSOLE_SHADOWS");
+    if (console_shadows->get())
+        return false;
+    else
+        return hbsub_924D90.fun();
+};
 
 HWND gWnd;
 RECT gRect;
@@ -487,75 +698,56 @@ bool iequals(const T& s1, const V& s2)
     return (str1 == str2);
 }
 
-void* fnAE3DE0 = nullptr;
-void* fnAE3310 = nullptr;
-int __cdecl sub_AE3DE0(int a1, int a2)
-{
-    injector::cstd<void(int, int, int, int, int)>::call(fnAE3310, a1, 0, 0, 0, a2);
-    return injector::cstd<int(int, int)>::call(fnAE3DE0, a1, a2);
-}
+//void* CFileMgrOpenFile = nullptr;
+//void* __cdecl sub_8C4CF0(char* a1, char* a2)
+//{
+//    if (FusionFixSettings("PREF_TIMECYC"))
+//    {
+//        static constexpr auto timecyc = "timecyc.dat";
+//        auto full_path = std::string_view(a1);
+//        if (full_path.ends_with(timecyc))
+//        {
+//            auto path = full_path.substr(0, full_path.find(timecyc));
+//            switch (FusionFixSettings("PREF_TIMECYC"))
+//            {
+//            case TimecycText.eOFF:
+//            {
+//                auto new_path = std::string(path) + std::string("timecycOFF.dat");
+//                auto opened = injector::cstd<void* (const char*, const char*)>::call(CFileMgrOpenFile, new_path.c_str(), a2);
+//                if (opened) return opened;
+//            }
+//            break;
+//            case TimecycText.eIV:
+//            {
+//                auto new_path = std::string(path) + std::string("timecycIV.dat");
+//                auto opened = injector::cstd<void* (const char*, const char*)>::call(CFileMgrOpenFile, new_path.c_str(), a2);
+//                if (opened) return opened;
+//            }
+//            break;
+//            case TimecycText.eTLAD:
+//            {
+//                auto new_path = std::string(path) + std::string("timecycTLAD.dat");
+//                auto opened = injector::cstd<void* (const char*, const char*)>::call(CFileMgrOpenFile, new_path.c_str(), a2);
+//                if (opened) return opened;
+//            }
+//            break;
+//            case TimecycText.eTBOGT:
+//            {
+//                auto new_path = std::string(path) + std::string("timecycTBOGT.dat");
+//                auto opened = injector::cstd<void* (const char*, const char*)>::call(CFileMgrOpenFile, new_path.c_str(), a2);
+//                if (opened) return opened;
+//            }
+//            break;
+//            default:
+//                break;
+//            }
+//        }
+//    }
+//    return injector::cstd<void* (char*, char*)>::call(CFileMgrOpenFile, a1, a2);
+//}
 
-void* CFileMgrOpenFile = nullptr;
-void* __cdecl sub_8C4CF0(char* a1, char* a2)
-{
-    if (FusionFixSettings("PREF_TIMECYC"))
-    {
-        static constexpr auto timecyc = "timecyc.dat";
-        auto full_path = std::string_view(a1);
-        if (full_path.ends_with(timecyc))
-        {
-            enum
-            {
-                eLow,
-                eMedium,
-                eHigh,
-                eVeryHigh,
-                eHighest,
-                eMO_DEF,
-                eOFF,
-                eIV,
-                eTLAD,
-                eTBOGT,
-            };
-            auto path = full_path.substr(0, full_path.find(timecyc));
-            switch (FusionFixSettings("PREF_TIMECYC"))
-            {
-            case eOFF:
-            {
-                auto new_path = std::string(path) + std::string("timecycOFF.dat");
-                auto opened = injector::cstd<void* (const char*, const char*)>::call(CFileMgrOpenFile, new_path.c_str(), a2);
-                if (opened) return opened;
-            }
-            break;
-            case eIV:
-            {
-                auto new_path = std::string(path) + std::string("timecycIV.dat");
-                auto opened = injector::cstd<void* (const char*, const char*)>::call(CFileMgrOpenFile, new_path.c_str(), a2);
-                if (opened) return opened;
-            }
-            break;
-            case eTLAD:
-            {
-                auto new_path = std::string(path) + std::string("timecycTLAD.dat");
-                auto opened = injector::cstd<void* (const char*, const char*)>::call(CFileMgrOpenFile, new_path.c_str(), a2);
-                if (opened) return opened;
-            }
-            break;
-            case eTBOGT:
-            {
-                auto new_path = std::string(path) + std::string("timecycTBOGT.dat");
-                auto opened = injector::cstd<void* (const char*, const char*)>::call(CFileMgrOpenFile, new_path.c_str(), a2);
-                if (opened) return opened;
-            }
-            break;
-            default:
-                break;
-            }
-        }
-    }
-    return injector::cstd<void* (char*, char*)>::call(CFileMgrOpenFile, a1, a2);
-}
-
+int32_t* _dwCurrentEpisode;
+int scanfCount = 0;
 int timecyc_scanf(const char* i, const char* fmt, int* a1, int* a2, int* a3, int* a4, int* a5, int* a6, int* a7, int* a8, int* a9, int* a10,
     int* a11, int* a12, int* a13, int* a14, int* a15, int* a16, int* a17, int* a18, int* a19, int* a20, int* a21, float* a22, float* a23,
     float* a24, float* a25, int* a26, int* a27, int* a28, int* a29, int* a30, int* a31, int* a32, int* a33, int* a34, int* a35, float* a36,
@@ -580,6 +772,152 @@ int timecyc_scanf(const char* i, const char* fmt, int* a1, int* a2, int* a3, int
         *a124 = 0.0f;
         *a125 = 0.0f;
     }
+
+    {
+        static int IV2TLAD[3][100] =
+        {
+            { 96,101,92,130,158,161,156,143,140,138,107,128,128,101,122,143,125,133,122,122,133,128,119,119,110,115,138,133,138,148,133,133,119,155,155,78,98,135,130,130,138,98,98,155,99,99,89,104,136,133,133,104,102,91,91,91,91,104,104,121,121,121,121,117,117,117,96,96,96,109,117,117,109,117,99,107,107,104,104,130,92,99,104,104,124,104,104,104,99,119,122,128,120,128,115,118,122,122,128 },
+            { 146,142,136,111,133,117,129,104,104,108,133,128,128,130,110,104,109,106,110,110,96,128,140,140,120,101,127,122,125,132,96,96,140,181,181,100,108,127,124,118,119,108,108,181,112,112,88,117,138,143,143,120,97,125,125,125,125,131,131,133,133,133,142,130,130,130,111,111,111,121,117,117,122,117,105,120,120,120,120,120,112,117,117,117,130,124,120,120,112,141,110,128,114,128,122,140,110,110,128 },
+            { 156,148,138,83,92,74,73,54,56,69,138,128,128,109,94,69,77,68,94,94,66,128,144,144,102,64,90,82,80,75,66,66,144,186,186,105,110,88,95,86,85,110,110,186,120,120,60,130,118,142,142,99,80,116,116,116,116,140,140,143,143,143,143,125,125,125,120,120,120,122,117,117,122,117,97,103,103,99,99,104,120,130,130,130,104,130,99,99,120,145,94,128,90,128,108,134,94,94,128 },
+        };
+
+        static int IV2TBOGT[3][100] =
+        {
+            { 107,103,86,120,130,115,130,138,138,138,107,128,128,130,122,109,109,94,122,94,133,128,119,119,108,122,116,138,138,138,133,133,119,155,155,78,98,107,107,107,138,115,115,155,99,99,89,104,136,133,133,104,102,91,91,91,91,104,104,121,121,121,121,117,117,117,96,96,96,109,117,117,109,117,99,107,107,104,104,130,92,99,104,104,124,104,104,104,99,119,122,128,120,128,115,118,122,122,128 },
+            { 133,130,116,105,120,122,120,108,108,108,133,128,128,101,110,120,120,111,110,111,103,128,140,140,120,110,140,131,131,131,96,96,140,181,181,100,108,124,124,126,124,126,126,181,112,112,88,117,138,143,143,120,97,125,125,125,125,131,131,133,133,133,142,130,130,130,111,111,111,121,117,117,122,117,105,120,120,120,120,120,112,117,117,117,130,124,120,120,112,141,110,128,114,128,122,140,110,110,128 },
+            { 138,134,117,84,98,113,98,69,69,69,138,128,128,125,94,122,122,122,94,122,101,128,144,144,99,94,128,106,106,106,66,66,144,186,186,105,110,128,128,128,98,128,128,186,120,120,60,130,118,142,142,99,80,116,116,116,116,140,140,143,143,143,143,125,125,125,120,120,120,122,117,117,122,117,97,103,103,99,99,104,120,130,130,130,104,130,99,99,120,145,94,128,90,128,108,134,94,94,128 },
+        };
+
+        static int IV2OFF[3][100] =
+        {
+            { 125,123,107,103,116,117,116,105,105,105,125,128,128,113,109,117,117,108,109,109,98,128,134,134,109,109,128,125,125,125,98,98,134,174,174,94,105,120,120,120,120,105,105,174,110,110,79,117,131,139,139,108,93,111,111,111,111,125,125,132,132,132,135,124,124,124,109,109,109,117,117,117,117,117,100,110,110,108,108,118,108,115,117,117,119,119,108,108,110,135,109,128,108,128,115,131,109,109,128 },
+            { 125,123,107,103,116,117,116,105,105,105,125,128,128,113,109,117,117,108,109,109,98,128,134,134,109,109,128,125,125,125,98,98,134,174,174,94,105,120,120,120,120,105,105,174,110,110,79,117,131,139,139,108,93,111,111,111,111,125,125,132,132,132,135,124,124,124,109,109,109,117,117,117,117,117,100,110,110,108,108,118,108,115,117,117,119,119,108,108,110,135,109,128,108,128,115,131,109,109,128 },
+            { 125,123,107,103,116,117,116,105,105,105,125,128,128,113,109,117,117,108,109,109,98,128,134,134,109,109,128,125,125,125,98,98,134,174,174,94,105,120,120,120,120,105,105,174,110,110,79,117,131,139,139,108,93,111,111,111,111,125,125,132,132,132,135,124,124,124,109,109,109,117,117,117,117,117,100,110,110,108,108,118,108,115,117,117,119,119,108,108,110,135,109,128,108,128,115,131,109,109,128 },
+        };
+
+        static int TLAD2IV[3][100] =
+        {
+            { 107,103,86,120,130,115,130,138,138,138,107,128,128,101,122,109,125,122,122,122,133,128,119,119,108,122,116,138,138,138,133,133,119,155,155,78,98,107,107,138,98,98,98,155,99,99,89,104,136,133,133,104,102,91,91,91,91,104,104,121,121,121,121,117,117,117,96,96,96,109,117,117,109,117,99,107,107,104,104,130,92,99,104,104,124,104,104,104,99,119,122,128,120,128,115,118,122,122,128 },
+            { 133,130,116,105,120,122,120,108,108,108,133,128,128,130,110,120,110,110,110,110,96,128,140,140,120,110,140,131,131,131,96,96,140,181,181,100,108,124,126,124,108,108,108,181,112,112,88,117,138,143,143,120,97,125,125,125,125,131,131,133,133,133,142,130,130,130,111,111,111,121,117,117,122,117,105,120,120,120,120,120,112,117,117,117,130,124,120,120,112,141,110,128,114,128,122,140,110,110,128 },
+            { 138,134,117,84,98,113,98,69,69,69,138,128,128,109,94,122,90,94,94,94,66,128,144,144,99,94,128,106,106,106,66,66,144,186,186,105,110,128,128,98,110,110,110,186,120,120,60,130,118,142,142,99,80,116,116,116,116,140,140,143,143,143,143,125,125,125,120,120,120,122,117,117,122,117,97,103,103,99,99,104,120,130,130,130,104,130,99,99,120,145,94,128,90,128,108,134,94,94,128 },
+        };
+
+        static int TLAD2TBOGT[3][100] =
+        {
+            { 107,103,86,120,130,115,130,122,122,138,107,128,128,130,122,109,94,94,94,94,133,128,119,119,108,122,116,138,138,138,133,133,119,155,155,78,98,107,107,138,115,115,115,155,99,99,89,104,136,133,133,104,102,91,91,91,91,104,104,121,121,121,121,117,117,117,96,96,96,109,117,117,109,117,99,107,107,104,104,130,92,99,104,104,124,104,104,104,99,119,122,128,120,128,115,118,122,122,128 },
+            { 133,130,116,105,120,122,120,110,110,108,133,128,128,101,110,120,111,111,103,103,103,128,140,140,120,110,140,131,131,131,96,96,140,181,181,100,108,124,126,124,126,126,126,181,112,112,88,117,138,143,143,120,97,125,125,125,125,131,131,133,133,133,142,130,130,130,111,111,111,121,117,117,122,117,105,120,120,120,120,120,112,117,117,117,130,124,120,120,112,141,110,128,114,128,122,140,110,110,128 },
+            { 138,134,117,84,98,113,98,94,94,69,138,128,128,125,94,122,122,122,122,122,101,128,144,144,99,94,128,106,106,106,66,66,144,186,186,105,110,128,128,98,128,128,128,186,120,120,60,130,118,142,142,99,80,116,116,116,116,140,140,143,143,143,143,125,125,125,120,120,120,122,117,117,122,117,97,103,103,99,99,104,120,130,130,130,104,130,99,99,120,145,94,128,90,128,108,134,94,94,128 },
+        };
+
+        static int TLAD2OFF[3][100] =
+        {
+            { 133,130,122,108,128,117,119,100,100,105,129,128,128,113,109,105,104,102,109,109,98,128,134,134,111,93,118,112,114,118,98,98,134,174,174,94,105,117,116,111,114,105,105,174,110,110,79,117,131,139,139,108,93,111,111,116,116,125,125,132,132,132,135,124,124,124,109,109,109,117,117,117,118,117,101,110,110,108,108,118,108,115,117,117,119,119,108,108,110,135,109,128,108,128,115,130,109,109,128 },
+            { 133,130,122,108,128,117,119,100,100,105,129,128,128,113,109,105,104,102,109,109,98,128,134,134,111,93,118,112,114,118,98,98,134,174,174,94,105,117,116,111,114,105,105,174,110,110,79,117,131,139,139,108,93,111,111,116,116,125,125,132,132,132,135,124,124,124,109,109,109,117,117,117,118,117,101,110,110,108,108,118,108,115,117,117,119,119,108,108,110,135,109,128,108,128,115,130,109,109,128 },
+            { 133,130,122,108,128,117,119,100,100,105,129,128,128,113,109,105,104,102,109,109,98,128,134,134,111,93,118,112,114,118,98,98,134,174,174,94,105,117,116,111,114,105,105,174,110,110,79,117,131,139,139,108,93,111,111,116,116,125,125,132,132,132,135,124,124,124,109,109,109,117,117,117,118,117,101,110,110,108,108,118,108,115,117,117,119,119,108,108,110,135,109,128,108,128,115,130,109,109,128 },
+        };
+
+        static int TBOGT2IV[3][100] =
+        {
+            { 107,103,86,120,130,115,130,138,122,138,107,128,128,101,122,109,109,125,122,122,133,128,119,119,108,122,116,138,138,138,133,133,119,155,155,78,98,107,107,107,138,115,115,155,99,99,89,104,136,133,133,104,102,91,91,91,91,104,104,121,121,121,121,117,117,117,96,96,96,109,117,117,109,117,99,107,107,104,104,130,92,99,104,104,124,104,104,104,99,119,122,128,120,128,115,118,122,122,128 },
+            { 133,130,116,105,120,122,120,108,110,108,133,128,128,130,110,120,120,110,110,110,96,128,140,140,120,110,140,131,131,131,96,96,140,181,181,100,108,124,124,126,124,126,126,181,112,112,88,117,138,143,143,120,97,125,125,125,125,131,131,133,133,133,142,130,130,130,111,111,111,121,117,117,122,117,105,120,120,120,120,120,112,117,117,117,130,124,120,120,112,141,110,128,114,128,122,140,110,110,128 },
+            { 138,134,117,84,98,113,98,69,94,69,138,128,128,109,94,122,122,90,94,94,66,128,144,144,99,94,128,106,106,106,66,66,144,186,186,105,110,128,128,128,98,128,128,186,120,120,60,130,118,142,142,99,80,116,116,116,116,140,140,143,143,143,143,125,125,125,120,120,120,122,117,117,122,117,97,103,103,99,99,104,120,130,130,130,104,130,99,99,120,145,94,128,90,128,108,134,94,94,128 },
+        };
+
+        static int TBOGT2TLAD[3][100] =
+        {
+            { 96,101,92,130,158,161,156,143,140,138,90,128,128,101,122,143,125,133,122,122,133,128,119,119,110,115,138,133,138,148,133,133,119,155,155,78,98,135,130,130,138,98,98,155,99,99,89,104,136,133,133,104,102,91,91,91,91,104,104,121,121,121,121,117,117,117,96,96,96,109,117,117,109,117,99,107,107,104,104,130,92,99,104,104,124,104,104,104,99,119,122,128,120,128,115,118,122,122,128 },
+            { 146,142,136,111,133,117,129,104,104,108,143,128,128,130,110,104,109,106,110,110,96,128,140,140,120,101,127,122,125,132,96,96,140,181,181,100,108,127,124,118,119,108,108,181,112,112,88,117,138,143,143,120,97,125,125,125,125,131,131,133,133,133,142,130,130,130,111,111,111,121,117,117,122,117,105,120,120,120,120,120,112,117,117,117,130,124,120,120,112,141,110,128,114,128,122,140,110,110,128 },
+            { 156,148,138,83,92,74,73,54,56,69,153,128,128,109,94,69,77,68,94,94,66,128,144,144,102,64,90,82,80,75,66,66,144,186,186,105,110,88,95,86,85,110,110,186,120,120,60,130,118,142,142,99,80,116,116,116,116,140,140,143,143,143,143,125,125,125,120,120,120,122,117,117,122,117,97,103,103,99,99,104,120,130,130,130,104,130,99,99,120,145,94,128,90,128,108,134,94,94,128 },
+        };
+
+        static int TBOGT2OFF[3][100] =
+        {
+            { 126,122,106,103,116,117,116,105,109,105,126,128,128,119,109,117,117,109,109,106,112,128,134,134,109,109,128,125,125,125,98,98,134,174,174,94,105,120,120,120,120,123,123,174,110,110,79,117,131,139,139,108,93,111,111,111,111,125,125,132,132,132,135,124,124,124,109,109,109,117,117,117,117,117,100,110,110,108,108,118,108,115,117,117,119,119,108,108,110,135,109,128,108,128,115,131,109,109,128 },
+            { 126,122,106,103,116,117,116,105,109,105,126,128,128,119,109,117,117,109,109,106,112,128,134,134,109,109,128,125,125,125,98,98,134,174,174,94,105,120,120,120,120,123,123,174,110,110,79,117,131,139,139,108,93,111,111,111,111,125,125,132,132,132,135,124,124,124,109,109,109,117,117,117,117,117,100,110,110,108,108,118,108,115,117,117,119,119,108,108,110,135,109,128,108,128,115,131,109,109,128 },
+            { 126,122,106,103,116,117,116,105,109,105,126,128,128,119,109,117,117,109,109,106,112,128,134,134,109,109,128,125,125,125,98,98,134,174,174,94,105,120,120,120,120,123,123,174,110,110,79,117,131,139,139,108,93,111,111,111,111,125,125,132,132,132,135,124,124,124,109,109,109,117,117,117,117,117,100,110,110,108,108,118,108,115,117,117,119,119,108,108,110,135,109,128,108,128,115,131,109,109,128 },
+        };
+
+        switch (FusionFixSettings("PREF_TIMECYC"))
+        {
+        case TimecycText.eOFF:
+        {
+            if (*_dwCurrentEpisode == 0)
+            {
+                *a40 = IV2OFF[0][scanfCount];
+                *a41 = IV2OFF[1][scanfCount];
+                *a42 = IV2OFF[2][scanfCount];
+            }
+            else if (*_dwCurrentEpisode == 1)
+            {
+                *a40 = TLAD2OFF[0][scanfCount];
+                *a41 = TLAD2OFF[1][scanfCount];
+                *a42 = TLAD2OFF[2][scanfCount];
+            }
+            else if(*_dwCurrentEpisode == 2)
+            {
+                *a40 = TBOGT2OFF[0][scanfCount];
+                *a41 = TBOGT2OFF[1][scanfCount];
+                *a42 = TBOGT2OFF[2][scanfCount];
+            }
+        }
+        break;
+        case TimecycText.eIV:
+        {
+            if (*_dwCurrentEpisode == 1)
+            {
+                *a40 = TLAD2IV[0][scanfCount];
+                *a41 = TLAD2IV[1][scanfCount];
+                *a42 = TLAD2IV[2][scanfCount];
+            }
+            else if (*_dwCurrentEpisode == 2)
+            {
+                *a40 = TBOGT2IV[0][scanfCount];
+                *a41 = TBOGT2IV[1][scanfCount];
+                *a42 = TBOGT2IV[2][scanfCount];
+            }
+        }
+        break;
+        case TimecycText.eTLAD:
+        {
+            if (*_dwCurrentEpisode == 0)
+            {
+                *a40 = IV2TLAD[0][scanfCount];
+                *a41 = IV2TLAD[1][scanfCount];
+                *a42 = IV2TLAD[2][scanfCount];
+            }
+            else if (*_dwCurrentEpisode == 2)
+            {
+                *a40 = TBOGT2TLAD[0][scanfCount];
+                *a41 = TBOGT2TLAD[1][scanfCount];
+                *a42 = TBOGT2TLAD[2][scanfCount];
+            }
+        }
+        break;
+        case TimecycText.eTBOGT:
+        {
+            if (*_dwCurrentEpisode == 0)
+            {
+                *a40 = IV2TBOGT[0][scanfCount];
+                *a41 = IV2TBOGT[1][scanfCount];
+                *a42 = IV2TBOGT[2][scanfCount];
+            }
+            else if (*_dwCurrentEpisode == 1)
+            {
+                *a40 = TLAD2TBOGT[0][scanfCount];
+                *a41 = TLAD2TBOGT[1][scanfCount];
+                *a42 = TLAD2TBOGT[2][scanfCount];
+            }
+        }
+        break;
+        default:
+            break;
+        }
+    }
+
+    scanfCount++;
+
+    if (scanfCount >= 99)
+        scanfCount = 0;
 
     return res;
 }
@@ -661,13 +999,14 @@ void Init()
     bool bSkipMenu = FusionFixSettings("PREF_SKIP_MENU") != 0;
     bool bBorderlessWindowed = FusionFixSettings("PREF_BORDERLESS") != 0;
     bool bRecoilFix = iniReader.ReadInteger("MAIN", "RecoilFix", 1) != 0;
-    bool bDefinitionFix = iniReader.ReadInteger("MAIN", "DefinitionFix", 1) != 0;
-    bool bEmissiveShaderFix = iniReader.ReadInteger("MAIN", "EmissiveShaderFix", 1) != 0;
     bool bHandbrakeCamFix = iniReader.ReadInteger("MAIN", "HandbrakeCamFix", 0) != 0;
     int32_t nAimingZoomFix = iniReader.ReadInteger("MAIN", "AimingZoomFix", 1);
+
+    //[SHADOWS]
     bool bFlickeringShadowsFix = iniReader.ReadInteger("SHADOWS", "FlickeringShadowsFix", 1) != 0;
     bExtraDynamicShadows = iniReader.ReadInteger("SHADOWS", "ExtraDynamicShadows", 1);
     bDynamicShadowForTrees = iniReader.ReadInteger("SHADOWS", "DynamicShadowForTrees", 0) != 0;
+    static auto bFixCascadedShadowMapResolution = iniReader.ReadInteger("SHADOWS", "FixCascadedShadowMapResolution", 0) != 0;
 
     //[FRAMELIMIT]
     nFrameLimitType = iniReader.ReadInteger("FRAMELIMIT", "FrameLimitType", 2);
@@ -681,6 +1020,18 @@ void Init()
     bool bPedDeathAnimFixFromTBOGT = iniReader.ReadInteger("MISC", "PedDeathAnimFixFromTBOGT", 1) != 0;
     bool bDisableCameraCenteringInCover = iniReader.ReadInteger("MISC", "DisableCameraCenteringInCover", 1) != 0;
     bool bMouseFix = iniReader.ReadInteger("MISC", "MouseFix", 1) != 0;
+    static auto bForceDepthOfFieldInCutscenes = iniReader.ReadInteger("MISC", "ForceDepthOfFieldInCutscenes", 0) != 0;
+    static auto bFixRainDrops = iniReader.ReadInteger("MISC", "FixRainDrops", 1) != 0;
+    static auto nRainDropsBlur = iniReader.ReadInteger("MISC", "RainDropsBlur", 2);
+    if (nRainDropsBlur < 1) {
+        nRainDropsBlur = 1;
+    }
+    if (nRainDropsBlur > 4) {
+        nRainDropsBlur = 4;
+    }
+    if (nRainDropsBlur != 1 && nRainDropsBlur != 2 && nRainDropsBlur != 4) {
+        nRainDropsBlur = 2;
+    }
 
     //[BudgetedIV]
     uint32_t nVehicleBudget = iniReader.ReadInteger("BudgetedIV", "VehicleBudget", 0);
@@ -812,59 +1163,12 @@ void Init()
         injector::WriteMemory(pattern.get_first(10), &fRecMult, true);
     }
 
-    if (bDefinitionFix)
-    {
-        //disable forced definition-off in cutscenes
-        auto pattern = hook::pattern("E8 ? ? ? ? 0F B6 0D ? ? ? ? 33 D2 84 C0 0F 45 CA 8A C1 C3");
-        injector::MakeNOP(pattern.count(2).get(1).get<void*>(12), 7, true);
-    }
-
-    if (bEmissiveShaderFix)
-    {
-        // workaround for gta_emissivestrong.fxc lights on patch 6+,
-        //"A0 01 00 00 02 00 00 08" replaced in shader files with "A1 01 00 00 02 00 00 08" (5 occurrences)
-        auto pattern = hook::pattern("C1 E7 04 C1 E0 04 8B F7 8D 80 ? ? ? ? 89 4C 24 10 89 44 24 0C");
-        struct ShaderTest
-        {
-            void operator()(injector::reg_pack& regs)
-            {
-                if (
-                    *(uint32_t*)(regs.ebx + 0x00) == 0x39D1B717 &&
-                    *(uint32_t*)(regs.ebx + 0x10) == 0x41000000 && //traffic lights and lamps
-                    *(uint32_t*)(regs.ebx - 0x10) == 0x3B03126F &&
-                    *(uint32_t*)(regs.ebx + 0x20) == 0x3E59999A &&
-                    *(uint32_t*)(regs.ebx + 0x24) == 0x3F372474 &&
-                    *(uint32_t*)(regs.ebx + 0x28) == 0x3D93A92A
-                )
-                {
-                    auto f_ptr = (uint32_t*)(regs.ebx - 0x158);
-                    if (f_ptr)
-                    {
-                        //auto f_00 = f_ptr[3];
-                        //auto f_01 = f_ptr[7];
-                        auto f_02 = f_ptr[18];
-                        auto f_04 = f_ptr[10];
-                        auto f_05 = f_ptr[13];
-                        //auto f_06 = f_ptr[12];
-                        //auto f_07 = f_ptr[17];
-                        auto f_08 = f_ptr[19];
-                        //auto f_09 = f_ptr[22];
-                        //auto f_10 = f_ptr[23];
-                        //auto f_11 = f_ptr[24];
-
-                        if ((f_05 != 0x7f800001 && f_05 != 0xcdcdcdcd && f_04 == 0x00000000 && f_08 != 0xba8bfc22 && f_02 != 0x3f800000)
-                                || (f_02 == 0x3f800000 && f_04 == 0x42480000 && f_05 == 0x00000000 && f_08 == 0x00000000))
-                        {
-                            *(float*)(regs.ebx + 0x00) = -*(float*)(regs.ebx + 0x00);
-                        }
-                    }
-                }
-
-                regs.edi = regs.edi << 4;
-                regs.eax = regs.eax << 4;
-            }
-        }; injector::MakeInline<ShaderTest>(pattern.count(2).get(1).get<void>(0), pattern.count(2).get(1).get<void>(6));
-    }
+    //if (bDefinitionFix)
+    //{
+    //    //disable forced definition-off in cutscenes
+    //    auto pattern = hook::pattern("E8 ? ? ? ? 0F B6 0D ? ? ? ? 33 D2 84 C0 0F 45 CA 8A C1 C3");
+    //    injector::MakeNOP(pattern.count(2).get(1).get<void*>(12), 7, true);
+    //}
 
     if (bHandbrakeCamFix)
     {
@@ -947,12 +1251,12 @@ void Init()
             timeBeginPeriod(1);
 
         auto preset = FusionFixSettings("PREF_FPS_LIMIT_PRESET");
-        if (preset > 2 && preset < fpsCaps.size())
-            FpsLimiter.Init(mode, (float)fpsCaps[preset]);
+        if (preset > FpsCaps.eCustom && preset < FpsCaps.data.size())
+            FpsLimiter.Init(mode, (float)FpsCaps.data[preset]);
         else
         {
-            if (preset >= fpsCaps.size())
-                FusionFixSettings.Set("PREF_FPS_LIMIT_PRESET", 0);
+            if (preset >= FpsCaps.data.size() || preset < FpsCaps.eOFF)
+                FusionFixSettings.Set("PREF_FPS_LIMIT_PRESET", FpsCaps.eOFF);
             FpsLimiter.Init(mode, fFpsLimit);
         }
         CutsceneFpsLimiter.Init(mode, fCutsceneFpsLimit);
@@ -969,8 +1273,8 @@ void Init()
 
         FusionFixSettings.SetCallback("PREF_FPS_LIMIT_PRESET", [](int32_t value) {
             auto mode = (nFrameLimitType == 2) ? FrameLimiter::FPSLimitMode::FPS_ACCURATE : FrameLimiter::FPSLimitMode::FPS_REALTIME;
-            if (value > 2 && value < fpsCaps.size())
-                FpsLimiter.Init(mode, (float)fpsCaps[value]);
+            if (value > FpsCaps.eCustom && value < FpsCaps.data.size())
+                FpsLimiter.Init(mode, (float)FpsCaps.data[value]);
             else
                 FpsLimiter.Init(mode, fFpsLimit);
         });
@@ -1016,10 +1320,10 @@ void Init()
         //IMG Loader
         auto pattern = hook::pattern("E8 ? ? ? ? 6A 00 E8 ? ? ? ? 83 C4 14 6A 00");
         static auto CImgManager__addImgFile = (void(__cdecl*)(const char*, char, int)) injector::GetBranchDestination(pattern.get_first(0)).get();
-        static auto sub_A95980 = (void(__cdecl*)(char)) injector::GetBranchDestination(pattern.get_first(7)).get();
+        static auto sub_A95980 = (void(__cdecl*)(unsigned char)) injector::GetBranchDestination(pattern.get_first(7)).get();
 
         pattern = hook::pattern("83 3D ? ? ? ? ? 75 0F 6A 02");
-        static auto _dwCurrentEpisode = *pattern.get_first<int*>(2);
+        _dwCurrentEpisode = *pattern.get_first<int*>(2);
 
         pattern = hook::pattern("89 44 24 44 8B 44 24 4C 53");
         struct ImgListHook
@@ -1085,32 +1389,34 @@ void Init()
         }; injector::MakeInline<ImgListHook>(pattern.get_first(0), pattern.get_first(8));
     }
 
-    if (false)
+    // Console Shadows
     {
         auto pattern = hook::pattern("E8 ? ? ? ? 83 C4 08 57 56");
         fnAE3DE0 = injector::GetBranchDestination(pattern.get_first()).get();
         injector::MakeCALL(pattern.get_first(), sub_AE3DE0, true);
-
+        
         pattern = hook::pattern("55 8B EC 83 E4 F0 83 EC 28 80 3D ? ? ? ? ? 56 57 74 27");
         fnAE3310 = pattern.get_first();
-
-        pattern = hook::pattern("75 14 F6 86 ? ? ? ? ? 74 0B");
-        injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
-        pattern = hook::pattern("75 12 8B 86 ? ? ? ? C1 E8 0B");
-        injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
+        
+        pattern = hook::pattern("E8 ? ? ? ? 8B 3D ? ? ? ? 84 C0 75 59");
+        hbsub_924D90.fun = injector::MakeCALL(pattern.get_first(0), static_cast<bool(*)()>(sub_924D90)).get();
+        pattern = hook::pattern("E8 ? ? ? ? 8B 0D ? ? ? ? 84 C0 75 4F");
+        hbsub_924D90.fun = injector::MakeCALL(pattern.get_first(0), static_cast<bool(*)()>(sub_924D90)).get();
+        
+        pattern = hook::pattern("E8 ? ? ? ? F3 0F 10 2D ? ? ? ? F3 0F 10 9C 24");
+        hbsub_ABCCD0.fun = injector::MakeCALL(pattern.get_first(0), sub_ABCCD0).get();
     }
 
     //timecycb
-    static const char* timecycText[] = { "Low", "Medium", "High", "Very High", "Highest", "MO_DEF", "OFF", "IV", "TLAD", "TBOGT" };
     {
-        if (FusionFixSettings("PREF_TIMECYC") < 5 || FusionFixSettings("PREF_TIMECYC") >= std::size(timecycText))
-            FusionFixSettings.Set("PREF_TIMECYC", 5);
+        if (FusionFixSettings("PREF_TIMECYC") < TimecycText.eMO_DEF || FusionFixSettings("PREF_TIMECYC") >= std::size(TimecycText.data))
+            FusionFixSettings.Set("PREF_TIMECYC", TimecycText.eMO_DEF);
 
-        auto pattern = hook::pattern("E8 ? ? ? ? 8B F0 83 C4 08 85 F6 0F 84 ? ? ? ? BB");
-        CFileMgrOpenFile = injector::GetBranchDestination(pattern.get_first(0)).get();
-        injector::MakeCALL(pattern.get_first(0), sub_8C4CF0, true);
+        //auto pattern = hook::pattern("E8 ? ? ? ? 8B F0 83 C4 08 85 F6 0F 84 ? ? ? ? BB");
+        //CFileMgrOpenFile = injector::GetBranchDestination(pattern.get_first(0)).get();
+        //injector::MakeCALL(pattern.get_first(0), sub_8C4CF0, true);
 
-        pattern = hook::pattern("55 8B EC 83 E4 F0 81 EC ? ? ? ? 8B 0D ? ? ? ? 53 0F B7 41 04");
+        auto pattern = hook::pattern("55 8B EC 83 E4 F0 81 EC ? ? ? ? 8B 0D ? ? ? ? 53 0F B7 41 04");
         static auto CTimeCycleInitialise = pattern.get_first(0);
 
         static int bTimecycUpdated = 0;
@@ -1154,23 +1460,18 @@ void Init()
             {
                 auto id = regs.edx;
                 auto value = regs.ebx;
-                if (FusionFixSettings.isSame(id, "PREF_FPS_LIMIT_PRESET")) {
-                    if (value == 1) {
-                        auto old = FusionFixSettings(id);
-                        if (old >= 2)
-                            value = 0;
-                        else
-                            value = 2;
+                auto old = FusionFixSettings(id);
+
+                FusionFixSettings.ForEachPref([&](int32_t prefID, int32_t idStart, int32_t idEnd) {
+                    if (prefID == id) {
+                        if (value <= idStart) {
+                            if (old > idStart)
+                                value = idStart;
+                            else
+                                value = idEnd;
+                        }
                     }
-                } else if (FusionFixSettings.isSame(id, "PREF_TIMECYC")) {
-                    if (value <= 5) {
-                        auto old = FusionFixSettings(id);
-                        if (old > 5)
-                            value = 5;
-                        else
-                            value = std::distance(std::begin(timecycText), std::end(timecycText)) - 1;
-                    }
-                }
+                });
                 FusionFixSettings.Set(id, value);
             }
         }; injector::MakeInline<IniWriter>(pattern.get_first(0), pattern.get_first(7));
@@ -1208,95 +1509,107 @@ void Init()
 
         pattern = hook::pattern("7E 4E 8A 1D");
         injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
+
+        //menu scrolling
+        pattern = hook::pattern("83 F8 10 7E 37 6A 00 E8 ? ? ? ? 83 C4 04 8D 70 F8 E8 ? ? ? ? D9 5C 24 30");
+        injector::WriteMemory<uint8_t>(pattern.get_first(2), 0x10 * 2, true);
+        injector::WriteMemory<uint8_t>(pattern.get_first(17), 0xF0, true);
+        pattern = hook::pattern("83 FE 10 7F 08");
+        injector::WriteMemory<uint8_t>(pattern.get_first(2), 0x10 * 2, true);
+        pattern = hook::pattern("83 F8 10 7E 37 6A 00 E8 ? ? ? ? 83 C4 04 8D 70 F8 E8 ? ? ? ? D9 5C 24 38");
+        injector::WriteMemory<uint8_t>(pattern.get_first(2), 0x10 * 2, true);
+        injector::WriteMemory<uint8_t>(pattern.get_first(17), 0xF0, true);
+        pattern = hook::pattern("8D 46 F0 66 0F 6E C0");
+        injector::WriteMemory<uint8_t>(pattern.get_first(2), 0xE0, true);
     }
 
     {
-        static std::map<IDirect3DPixelShader9*, std::tuple<IDirect3DPixelShader9*, IDirect3DPixelShader9*, IDirect3DPixelShader9*, IDirect3DPixelShader9*>> shadermap;
-        auto pattern = hook::pattern("53 57 51 FF 90");
-        struct CreatePixelShaderHook
-        {
-            void operator()(injector::reg_pack& regs)
-            {
-                auto pDevice = (IDirect3DDevice9*)regs.ecx;
-                DWORD* pFunction = (DWORD*)regs.edi;
-                IDirect3DPixelShader9** ppShader = (IDirect3DPixelShader9**)regs.ebx;
-                pDevice->CreatePixelShader(pFunction, ppShader);
-                IDirect3DPixelShader9* pShader = *ppShader;
+        //static std::map<IDirect3DPixelShader9*, std::tuple<IDirect3DPixelShader9*, IDirect3DPixelShader9*, IDirect3DPixelShader9*, IDirect3DPixelShader9*>> shadermap;
+        //auto pattern = hook::pattern("53 57 51 FF 90");
+        //struct CreatePixelShaderHook
+        //{
+        //    void operator()(injector::reg_pack& regs)
+        //    {
+        //        auto pDevice = (IDirect3DDevice9*)regs.ecx;
+        //        DWORD* pFunction = (DWORD*)regs.edi;
+        //        IDirect3DPixelShader9** ppShader = (IDirect3DPixelShader9**)regs.ebx;
+        //        pDevice->CreatePixelShader(pFunction, ppShader);
+        //        IDirect3DPixelShader9* pShader = *ppShader;
+        //
+        //        if (pShader != nullptr)
+        //        {
+        //            static std::vector<uint8_t> pbFunc;
+        //            UINT len;
+        //            pShader->GetFunction(nullptr, &len);
+        //            if (pbFunc.size() < len)
+        //                pbFunc.resize(len);
+        //
+        //            pShader->GetFunction(pbFunc.data(), &len);
+        //
+        //            //def c27, 1, 77, 88, 99            // FXAA Toggle
+        //            //def c28, 0, 77, 88, 99            // Console Gamma Toggle
+        //            auto pattern = hook::pattern((uintptr_t)pbFunc.data(), (uintptr_t)pbFunc.data() + pbFunc.size(), "05 ? 00 0F A0 ? ? ? ? 00 00 00 00 00 00 B0 42 00 00 C6 42");
+        //            if (!pattern.empty())
+        //            {
+        //                if (!shadermap.contains(pShader))
+        //                {
+        //                    auto create_shader_variation = [&](int32_t fxaa, int32_t gamma) -> IDirect3DPixelShader9*
+        //                    {
+        //                        IDirect3DPixelShader9* shader;
+        //                        pattern.for_each_result([&](hook::pattern_match match) {
+        //                            if (*match.get<uint8_t>(1) == 0x1B) // fxaa
+        //                                injector::WriteMemory(match.get<void>(5), fxaa, true);
+        //                            else if (*match.get<uint8_t>(1) == 0x1C) // gamma
+        //                                injector::WriteMemory(match.get<void>(5), gamma, true);
+        //                        });
+        //                        pDevice->CreatePixelShader((DWORD*)pbFunc.data(), &shader);
+        //                        return shader;
+        //                    };
+        //
+        //                    static constexpr auto ENABLE  = 0x3F800000;
+        //                    static constexpr auto DISABLE = 0x00000000;
+        //                    auto fxaa_off_gamma_off = create_shader_variation(DISABLE, DISABLE);
+        //                    auto fxaa_off_gamma_on = create_shader_variation(DISABLE, ENABLE);
+        //                    auto fxaa_on_gamma_off = create_shader_variation(ENABLE, DISABLE);
+        //                    auto fxaa_on_gamma_on = create_shader_variation(ENABLE, ENABLE);
+        //                    shadermap.emplace(pShader, std::make_tuple(fxaa_off_gamma_off, fxaa_off_gamma_on, fxaa_on_gamma_off, fxaa_on_gamma_on));
+        //                }
+        //            }
+        //        }
+        //    }
+        //}; injector::MakeInline<CreatePixelShaderHook>(pattern.get_first(0), pattern.get_first(9));
 
-                if (pShader != nullptr)
-                {
-                    static std::vector<uint8_t> pbFunc;
-                    UINT len;
-                    pShader->GetFunction(nullptr, &len);
-                    if (pbFunc.size() < len)
-                        pbFunc.resize(len);
-
-                    pShader->GetFunction(pbFunc.data(), &len);
-
-                    //def c27, 1, 77, 88, 99            // FXAA Toggle
-                    //def c28, 0, 77, 88, 99            // Console Gamma Toggle
-                    auto pattern = hook::pattern((uintptr_t)pbFunc.data(), (uintptr_t)pbFunc.data() + pbFunc.size(), "05 ? 00 0F A0 ? ? ? ? 00 00 00 00 00 00 B0 42 00 00 C6 42");
-                    if (!pattern.empty())
-                    {
-                        if (!shadermap.contains(pShader))
-                        {
-                            auto create_shader_variation = [&](int32_t fxaa, int32_t gamma) -> IDirect3DPixelShader9*
-                            {
-                                IDirect3DPixelShader9* shader;
-                                pattern.for_each_result([&](hook::pattern_match match) {
-                                    if (*match.get<uint8_t>(1) == 0x1B) // fxaa
-                                        injector::WriteMemory(match.get<void>(5), fxaa, true);
-                                    else if (*match.get<uint8_t>(1) == 0x1C) // gamma
-                                        injector::WriteMemory(match.get<void>(5), gamma, true);
-                                });
-                                pDevice->CreatePixelShader((DWORD*)pbFunc.data(), &shader);
-                                return shader;
-                            };
-
-                            static constexpr auto ENABLE  = 0x3F800000;
-                            static constexpr auto DISABLE = 0x00000000;
-                            auto fxaa_off_gamma_off = create_shader_variation(DISABLE, DISABLE);
-                            auto fxaa_off_gamma_on = create_shader_variation(DISABLE, ENABLE);
-                            auto fxaa_on_gamma_off = create_shader_variation(ENABLE, DISABLE);
-                            auto fxaa_on_gamma_on = create_shader_variation(ENABLE, ENABLE);
-                            shadermap.emplace(pShader, std::make_tuple(fxaa_off_gamma_off, fxaa_off_gamma_on, fxaa_on_gamma_off, fxaa_on_gamma_on));
-                        }
-                    }
-                }
-            }
-        }; injector::MakeInline<CreatePixelShaderHook>(pattern.get_first(0), pattern.get_first(9));
-
-        pattern = hook::pattern("A1 ? ? ? ? 52 8B 08 50 89 15 ? ? ? ? FF 91 ? ? ? ? 8B 44 24 10");
-        static auto pD3DDevice = *pattern.get_first<IDirect3DDevice9**>(1);
-        struct SetPixelShaderHook
-        {
-            void operator()(injector::reg_pack& regs)
-            {
-                regs.eax = *(uint32_t*)pD3DDevice;
-                auto pDevice = *pD3DDevice;
-                {
-                    auto pShader = (IDirect3DPixelShader9*)regs.edx;
-                    if (shadermap.contains(pShader))
-                    {
-                        static auto fxaa = FusionFixSettings.GetRef("PREF_FXAA");
-                        static auto gamma = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA");
-                        if (fxaa && gamma)
-                        {
-                            if (fxaa->get())
-                                if (gamma->get())
-                                    regs.edx = (uint32_t)std::get<3>(shadermap.at(pShader));
-                                else
-                                    regs.edx = (uint32_t)std::get<2>(shadermap.at(pShader));
-                            else
-                                if (gamma->get())
-                                    regs.edx = (uint32_t)std::get<1>(shadermap.at(pShader));
-                                else
-                                    regs.edx = (uint32_t)std::get<0>(shadermap.at(pShader));
-                        }
-                    }
-                }
-            }
-        }; injector::MakeInline<SetPixelShaderHook>(pattern.get_first(0));
+        //auto pattern = hook::pattern("A1 ? ? ? ? 52 8B 08 50 89 15 ? ? ? ? FF 91 ? ? ? ? 8B 44 24 10");
+        //static auto pD3DDevice = *pattern.get_first<IDirect3DDevice9**>(1);
+        //struct SetPixelShaderHook
+        //{
+        //    void operator()(injector::reg_pack& regs)
+        //    {
+        //        regs.eax = *(uint32_t*)pD3DDevice;
+        //        auto pDevice = *pD3DDevice;
+        //        {
+        //            auto pShader = (IDirect3DPixelShader9*)regs.edx;
+        //            if (shadermap.contains(pShader))
+        //            {
+        //                static auto fxaa = FusionFixSettings.GetRef("PREF_FXAA");
+        //                static auto gamma = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA");
+        //                if (fxaa && gamma)
+        //                {
+        //                    if (fxaa->get())
+        //                        if (gamma->get())
+        //                            regs.edx = (uint32_t)std::get<3>(shadermap.at(pShader));
+        //                        else
+        //                            regs.edx = (uint32_t)std::get<2>(shadermap.at(pShader));
+        //                    else
+        //                        if (gamma->get())
+        //                            regs.edx = (uint32_t)std::get<1>(shadermap.at(pShader));
+        //                        else
+        //                            regs.edx = (uint32_t)std::get<0>(shadermap.at(pShader));
+        //                }
+        //            }
+        //        }
+        //    }
+        //}; injector::MakeInline<SetPixelShaderHook>(pattern.get_first(0));
     }
 
     if (bExtraDynamicShadows || bDynamicShadowForTrees)
@@ -1317,25 +1630,39 @@ void Init()
 
         if (bExtraDynamicShadows == 2)
             modelNames.insert(modelNames.end(), vegetationNames.begin(), vegetationNames.end());
+    }
 
-        //sway
-        if (bDynamicShadowForTrees)
+    static UINT oldCascadesWidth = 0;
+    static UINT oldCascadesHeight = 0;
+    static IDirect3DTexture9** ppHDRTexQuarter = nullptr;
+    static IDirect3DTexture9* pHDRTexQuarter = nullptr;
+
+    //sway, z-fighting fix
+    {
+        //SetRenderState D3DRS_ADAPTIVETESS_X
         {
-            static auto dw1036C00 = *hook::get_pattern<float*>("F3 0F 5C 2D ? ? ? ? F3 0F 10 35", 4);
-            static auto dw1036C04 = dw1036C00 + 1;
-            static auto dw1036C08 = dw1036C00 + 2;
-            static auto dw11A2948 = *hook::get_pattern<float*>("C7 05 ? ? ? ? ? ? ? ? 0F 85 ? ? ? ? 6A 00", 2);
-            pattern = hook::pattern("8B 80 ? ? ? ? FF 74 24 20 8B 08 53 FF 74 24 20");
-            struct SetVertexShaderConstantFHook
-            {
-                void operator()(injector::reg_pack& regs)
-                {
-                    regs.eax = *(uint32_t*)(regs.eax + 0x11AC);
-                    auto pD3DDevice = (IDirect3DDevice9*)(regs.eax);
-                    auto StartRegister = *(UINT*)(regs.esp + 0x18);
-                    auto pConstantData = (float*)regs.ebx;
-                    auto Vector4fCount = *(UINT*)(regs.esp + 0x20);
+            auto pattern = hook::pattern("74 ? 68 4E 56 44 42 68");
+            injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
+        }
 
+        static auto dw1036C00 = *hook::get_pattern<float*>("F3 0F 5C 2D ? ? ? ? F3 0F 10 35", 4);
+        static auto dw1036C04 = dw1036C00 + 1;
+        static auto dw1036C08 = dw1036C00 + 2;
+        static auto dw11A2948 = *hook::get_pattern<float*>("C7 05 ? ? ? ? ? ? ? ? 0F 85 ? ? ? ? 6A 00", 2);
+        static auto dw103E49C = *hook::get_pattern<void**>("A1 ? ? ? ? 6A 00 89 74 24 50", 1);
+        auto pattern = hook::pattern("8B 80 ? ? ? ? FF 74 24 20 8B 08 53 FF 74 24 20");
+        struct SetVertexShaderConstantFHook
+        {
+            void operator()(injector::reg_pack& regs)
+            {
+                regs.eax = *(uint32_t*)(regs.eax + 0x11AC);
+                auto pD3DDevice = (IDirect3DDevice9*)(regs.eax);
+                auto StartRegister = *(UINT*)(regs.esp + 0x18);
+                auto pConstantData = (float*)regs.ebx;
+                auto Vector4fCount = *(UINT*)(regs.esp + 0x20);
+
+                if (bDynamicShadowForTrees)
+                {
                     if (StartRegister == 51 && Vector4fCount == 1) {
                         if (pConstantData[0] == 1.0f && pConstantData[1] == 1.0f && pConstantData[2] == 1.0f && pConstantData[3] == 1.0f) {
                             static float arr[4];
@@ -1347,8 +1674,153 @@ void Init()
                         }
                     }
                 }
-            }; injector::MakeInline<SetVertexShaderConstantFHook>(pattern.count(2).get(1).get<void*>(0), pattern.count(2).get(1).get<void*>(6));
-        }
+
+                if (*dw103E49C)
+                {
+                    static Cam cam = 0;
+                    GET_ROOT_CAM(&cam);
+                    if (cam)
+                    {
+                        static float farclip;
+                        static float nearclip;
+
+                        GET_CAM_FAR_CLIP(cam, &farclip);
+                        GET_CAM_NEAR_CLIP(cam, &nearclip);
+
+                        static float arr[4];
+                        arr[0] = nearclip;
+                        arr[1] = farclip;
+                        arr[2] = nearclip;
+                        arr[3] = farclip;
+
+                        pD3DDevice->SetVertexShaderConstantF(227, &arr[0], 1);
+                    }
+                }
+            }
+        }; injector::MakeInline<SetVertexShaderConstantFHook>(pattern.count(2).get(1).get<void*>(0), pattern.count(2).get(1).get<void*>(6));
+
+        struct SetPixelShaderConstantFHook
+        {
+            void operator()(injector::reg_pack& regs)
+            {
+                regs.eax = *(uint32_t*)(regs.eax + 0x11AC);
+
+                auto pD3DDevice = (IDirect3DDevice9*)(regs.eax);
+                auto StartRegister = *(UINT*)(regs.esp + 0x18);
+                auto pConstantData = (float*)regs.ebx;
+                auto Vector4fCount = *(UINT*)(regs.esp + 0x20);
+
+                {
+                    //Tree Translucency
+                    static auto tree_lighting = FusionFixSettings.GetRef("PREF_TREE_LIGHTING");
+                    static float arr[4];
+                    arr[0] = static_cast<float>(tree_lighting->get());
+                    arr[1] = 0.0f;
+                    arr[2] = 0.0f;
+                    arr[3] = 0.0f;
+                    pD3DDevice->SetPixelShaderConstantF(221, &arr[0], 1);
+                }
+
+                {
+                    static auto fxaa = FusionFixSettings.GetRef("PREF_FXAA");
+                    static auto dof = FusionFixSettings.GetRef("PREF_TCYC_DOF");
+                    static auto gamma = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA");
+                    static float arr[4];
+                    arr[0] = static_cast<float>(fxaa->get() ? 0 : 1);
+                    arr[1] = static_cast<float>(dof->get() ? 0 : (bForceDepthOfFieldInCutscenes ? 1 : -1));
+                    arr[2] = static_cast<float>(gamma->get());
+                    arr[3] = 0.0f;
+                    pD3DDevice->SetPixelShaderConstantF(222, &arr[0], 1);
+                }
+
+                {
+                    static auto shadowFilter = FusionFixSettings.GetRef("PREF_SHADOW_FILTER");
+                    static float arr[4];
+                    arr[0] = static_cast<float>(shadowFilter->get());
+                    arr[1] = static_cast<float>(shadowFilter->get());
+                    arr[2] = static_cast<float>(shadowFilter->get());
+                    arr[3] = bFixCascadedShadowMapResolution ? 1.0f : 0.0f;
+                    pD3DDevice->SetPixelShaderConstantF(223, &arr[0], 1);
+                }
+
+                if (bFixCascadedShadowMapResolution) {
+                    if (StartRegister == 53 && Vector4fCount == 1 &&
+                        oldCascadesWidth != 0 && oldCascadesHeight != 0 &&
+                        pConstantData[0] == 1.0f / (float)oldCascadesWidth && pConstantData[1] == 1.0f / (float)oldCascadesHeight)
+                    {
+                        // set pixel size to pixel shader
+                        pConstantData[0] = 1.0f / float(oldCascadesWidth * 2);
+                        pConstantData[1] = 1.0f / float(oldCascadesHeight * 2);
+                        pConstantData[2] = 1.0f / float(oldCascadesHeight * 2);
+                    };
+                }
+            }
+        }; injector::MakeInline<SetPixelShaderConstantFHook>(pattern.count(2).get(0).get<void*>(0), pattern.count(2).get(0).get<void*>(6));
+
+        pattern = hook::pattern("8B 88 ? ? ? ? 8D 7D 40 8B 01 57 FF 75 10 FF 75 24 FF 75 0C FF 75 20 FF 75 18");
+        struct CreateTextureHook
+        {
+            void operator()(injector::reg_pack& regs)
+            {
+                regs.ecx = *(uint32_t*)(regs.eax + 0x11AC);
+
+                UINT& Width = *(UINT*)(regs.ebp + 0x14);
+                UINT& Height = *(UINT*)(regs.ebp + 0x18);
+                UINT& Levels = *(UINT*)(regs.ebp + 0x20);
+                DWORD& Usage = *(DWORD*)(regs.ebp + 0x0C);
+                D3DFORMAT& Format = *(D3DFORMAT*)(regs.ebp + 0x24);
+                D3DPOOL& Pool = *(D3DPOOL*)(regs.ebp + 0x10);
+                IDirect3DTexture9** ppTexture = (IDirect3DTexture9**)(regs.ebp + 0x40);
+
+                if (bFixCascadedShadowMapResolution)
+                {
+                    if (Format == D3DFORMAT(D3DFMT_R16F) && Height >= 256 && Width == Height * 4 && Levels == 1)
+                    {
+                        oldCascadesWidth = Width;
+                        oldCascadesHeight = Height;
+                
+                        Width *= 2;
+                        Height *= 2;
+                    }
+                }
+
+                if (bFixRainDrops && Format == D3DFMT_A16B16G16R16F && Width == (gRect.right - gRect.left) / nRainDropsBlur &&
+                    Height == (gRect.bottom - gRect.top) / nRainDropsBlur && ppTexture != nullptr) {
+                    ppHDRTexQuarter = ppTexture;
+                }
+            }
+        }; injector::MakeInline<CreateTextureHook>(pattern.get_first(0), pattern.get_first(6));
+
+        pattern = hook::pattern("E9 ? ? ? ? A1 ? ? ? ? 6A 00 8B 88 ? ? ? ? 8D 7D 40 8B 01 57 FF 75 10 FF 75 24 FF 75 0C FF 75 20 FF 75 1C");
+        static auto loc_429427 = injector::GetBranchDestination(pattern.get_first(0)).as_int();
+        struct CreateTextureHook2
+        {
+            void operator()(injector::reg_pack& regs)
+            {
+                if (ppHDRTexQuarter) {
+                    pHDRTexQuarter = *ppHDRTexQuarter;
+                    ppHDRTexQuarter = nullptr;
+                }
+
+                *(uintptr_t*)(regs.esp - 4) = loc_429427;
+            }
+        }; injector::MakeInline<CreateTextureHook2>(pattern.get_first(0));
+
+        pattern = hook::pattern("8B 82 ? ? ? ? 57 8B 08 56 50 FF 91 ? ? ? ? 5F 5E C2 0C 00");
+        struct SetTextureHook
+        {
+            void operator()(injector::reg_pack& regs)
+            {
+                regs.eax = *(uint32_t*)(regs.edx + 0x11AC);
+
+                auto Stage = (DWORD)regs.esi;
+                auto pTexture = (IDirect3DBaseTexture9*)regs.edi;
+
+                if (bFixRainDrops && Stage == 1 && pTexture == nullptr && pHDRTexQuarter) {
+                    regs.edi = (uint32_t)pHDRTexQuarter;
+                }
+            }
+        }; injector::MakeInline<SetTextureHook>(pattern.count(2).get(1).get<void*>(0), pattern.count(2).get(1).get<void*>(6));
     }
 
     // Make LOD lights appear at the appropriate time like on the console version (consoles: 7 PM, pc: 10 PM)
@@ -1362,6 +1834,23 @@ void Init()
         pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 10 8C 24");
         if (!pattern.empty()) injector::WriteMemory<uint16_t>(pattern.get_first(7), 0xE990, true); // jnz -> jmp
     }
+
+    //if (bFixCascadedShadowMapResolution)
+    //{
+    //    //crashes randomly
+    //    injector::hook_back<void(__cdecl*)(int, int, int)> hbsub_92C840;
+    //    void __cdecl sub_92C840(int a1, int a2, int a3)
+    //    {
+    //        return hbsub_92C840.fun(a1 * 2, a2, a3);
+    //    }
+    //    auto pattern = hook::pattern("E8 ? ? ? ? 83 C4 0C C3 6A 01 E8");
+    //    hbsub_92C840.fun = injector::MakeCALL(pattern.get_first(0), sub_92C840).get();
+    //    pattern = hook::pattern("E8 ? ? ? ? 83 C4 0C C3 E9");
+    //    hbsub_92C840.fun = injector::MakeCALL(pattern.get_first(0), sub_92C840).get();
+    //    
+    //    pattern = hook::pattern("03 F6 E8 ? ? ? ? 8B 0D");
+    //    injector::MakeNOP(pattern.get_first(0), 2, true);
+    //}
 }
 
 CEXP void InitializeASI()

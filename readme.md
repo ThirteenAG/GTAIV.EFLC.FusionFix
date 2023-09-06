@@ -18,7 +18,7 @@ Changelog:
 - [Added various frame limiting options to address cutscene zoom and other fps related issues](https://github.com/GTAmodding/GTAIV-Issues-List/issues/1)
 - [Fixed aiming zoom in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/19)
 - [Fixed a bug that only make taxis spawn](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/issues/85)
-- [Added a modloader that allows to add models and data files without replacing them](https://twitter.com/Ash_735/status/1671992742883328006)
+- [Added a file overload solution that allows to add models and data files without replacing them](https://twitter.com/Ash_735/status/1671992742883328006)
 - Added an option to skip intro
 - Added an option to skip main menu after startup
 - Added an option to force borderless windowed mode
@@ -26,7 +26,7 @@ Changelog:
 - Restored transparency on pool minigame
 
 Shader changelog:
-- [Partially fixed emissive shader bug, lights are now present in the game (e.g. Rotterdam Tower, Comrades Bar area)](https://github.com/GTAmodding/GTAIV-Issues-List/issues/4)
+- [Fixed emissive shader bug, lights are now present in the game (e.g. Rotterdam Tower, Comrades Bar area)](https://github.com/GTAmodding/GTAIV-Issues-List/issues/4)
 - Restored stippled transparency/LOD fading from 1.0.5.0 and older versions, and reduced the stippling effect on vegetation and fences
 - Restored volumetric light shafts thanks to Vaani
 - Improved depth of field and fixed resolution scaling

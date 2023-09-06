@@ -17,3 +17,8 @@
 -importFromDirectory "TBOGT.FusionFix"
 -rebuild
 -close
+
+-create "GTATrees.img" "3" "IMG_VERSION_3_ENCRYPTION_TYPE_NONE"
+-importFromDirectory "GTATrees"
+-rebuild
+-close

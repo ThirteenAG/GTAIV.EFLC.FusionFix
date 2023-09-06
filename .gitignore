@@ -332,3 +332,8 @@ ASALocalRun/
 
 data/**/*.img
 data/update/common/shaders/**/*.fxc
+
+data/update/common/shaders/db/gta_trees_new.sps
+data/update/common/shaders/db/gta_wire.sps
+data/update/common/shaders/preload.list
+data/update/pc/textures/stipple.wtd
