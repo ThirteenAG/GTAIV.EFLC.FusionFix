@@ -24,25 +24,35 @@ Changelog:
 - Added an option to force borderless windowed mode
 - Added an option to fix mouse deadzones
 - Restored transparency on pool minigame
+- Added better stipple texture
+- Added Console Shadows option - disables headlight shadows in exchange for vehicle shadows from non-sun light sources
+- Restored traffic cops in toll booths
+- Restored non-cop pedestrians in helicopters flying around city
+- Split Definition into Motion Blur and Depth Of Field options (DoF option can be overridden to be disabled in cutscenes)
+- Added an option to change color filters in each episode
+
 
 Shader changelog:
+- Fixed Z-Fighting
 - [Fixed emissive shader bug, lights are now present in the game (e.g. Rotterdam Tower, Comrades Bar area)](https://github.com/GTAmodding/GTAIV-Issues-List/issues/4)
 - Restored stippled transparency/LOD fading from 1.0.5.0 and older versions, and reduced the stippling effect on vegetation and fences
 - Restored volumetric light shafts thanks to Vaani
 - Improved depth of field and fixed resolution scaling
 - Remade bloom shader with proper resolution scaling
-- Fixed the entire screen being blurry with definition off
+- Removed broken near blur (previously part of Definition off)
 - Fixed distorted car reflections thanks to  and increased their intensity to match consoles
 - Included native FXAA
-- Included [RaphaelK12's 5x5 gaussian shadow filter](https://github.com/RaphaelK12/GTA4-Improved-Soft-Shadows)
+- Included pre1.0.6.0 shadow filtering (more options to come in future update)
 - Fixed excessively strong vertex AO and static vehicle shadows
 - Fixed water tiling (medium water tiling for very high water while keeping high resolution reflections)
 - Fixed textureless water on AMD graphics cards
 - Increased rain and splash intensity to mostly match consoles
-- Fixed black water droplets on screen (although refraction isn't restored yet)
+- Fixed black water droplets on screen and restored rain refractions
 - Fixed disconnected shadows/excessively high depth bias for cascaded shadow maps
 - Fixed improper reflection mipmap dimming which made ambient reflections weaker than they're supposed to be
 - Fixed distorted projection on mirrors
+- Added Tree Translucency option from consoles (TreeFX option in Graphics menu)
+- Added Soft Particles
 
 Credits: AssaultKifle47, Parallellines, robi29, Vaani, RaphaelK12
 
