@@ -1,338 +1,338 @@
 <FrontendMenu version="1">
 
-	<sMenuDisplayValue>
-		<menu enum="MENU_DISPLAY_ON_OFF">
-			<options text="MO_OFF" action="ACTION_NONE" value="0" />
-			<options text="MO_ON" action="ACTION_NONE" value="0" />
-		</menu>
+    <sMenuDisplayValue>
+        <menu enum="MENU_DISPLAY_ON_OFF">
+            <options text="MO_OFF" action="ACTION_NONE" value="0" />
+            <options text="MO_ON" action="ACTION_NONE" value="0" />
+        </menu>
 
-		<menu enum="MENU_DISPLAY_CONTROL_METHOD">
-			<options text="MO_JOY" action="ACTION_NONE" value="0" />
-			<options text="MO_KEY" action="ACTION_NONE" value="0" />
-		</menu>
+        <menu enum="MENU_DISPLAY_CONTROL_METHOD">
+            <options text="MO_JOY" action="ACTION_NONE" value="0" />
+            <options text="MO_KEY" action="ACTION_NONE" value="0" />
+        </menu>
 
-		<menu enum="MENU_DISPLAY_CONTROL_CONFIG">
-			<options text="MO_CCONF_1" action="ACTION_NONE" value="0" />
-			<options text="MO_CCONF_2" action="ACTION_NONE" value="0" />
-		</menu>
+        <menu enum="MENU_DISPLAY_CONTROL_CONFIG">
+            <options text="MO_CCONF_1" action="ACTION_NONE" value="0" />
+            <options text="MO_CCONF_2" action="ACTION_NONE" value="0" />
+        </menu>
 
-		<menu enum="MENU_DISPLAY_SNIPER_TYPE">
-			<options360 text="MO_SN1" action="ACTION_NONE" value="0" />
-			<options360 text="MO_SN2" action="ACTION_NONE" value="0" />
-			<optionsps3 text="MO_SN1_PS3" action="ACTION_NONE" value="0" />
-			<optionsps3 text="MO_SN2_PS3" action="ACTION_NONE" value="0" />
-			<optionspc text="MO_SN1" action="ACTION_NONE" value="0" />
-			<optionspc text="MO_SN2" action="ACTION_NONE" value="0" />
-		</menu>
+        <menu enum="MENU_DISPLAY_SNIPER_TYPE">
+            <options360 text="MO_SN1" action="ACTION_NONE" value="0" />
+            <options360 text="MO_SN2" action="ACTION_NONE" value="0" />
+            <optionsps3 text="MO_SN1_PS3" action="ACTION_NONE" value="0" />
+            <optionsps3 text="MO_SN2_PS3" action="ACTION_NONE" value="0" />
+            <optionspc text="MO_SN1" action="ACTION_NONE" value="0" />
+            <optionspc text="MO_SN2" action="ACTION_NONE" value="0" />
+        </menu>
 
-		<menupc enum="MENU_DISPLAY_SNIPER_ZOOM_TYPE">
-			<optionspc text="MO_SNZOOM1" action="ACTION_NONE" value="0" />
-			<optionspc text="MO_SNZOOM2" action="ACTION_NONE" value="1" />
-		</menupc>
+        <menupc enum="MENU_DISPLAY_SNIPER_ZOOM_TYPE">
+            <optionspc text="MO_SNZOOM1" action="ACTION_NONE" value="0" />
+            <optionspc text="MO_SNZOOM2" action="ACTION_NONE" value="1" />
+        </menupc>
 
-		<menu enum="MENU_DISPLAY_CONTROLLER_SENSITIVITY">
-			<options text="MO_CS_LOW" action="ACTION_NONE" value="0" />
-			<options text="MO_CS_MED" action="ACTION_NONE" value="0" />
-			<options text="MO_CS_HIGH" action="ACTION_NONE" value="0" />
-		</menu>
+        <menu enum="MENU_DISPLAY_CONTROLLER_SENSITIVITY">
+            <options text="MO_CS_LOW" action="ACTION_NONE" value="0" />
+            <options text="MO_CS_MED" action="ACTION_NONE" value="0" />
+            <options text="MO_CS_HIGH" action="ACTION_NONE" value="0" />
+        </menu>
 
-		<menu enum="MENU_DISPLAY_LANGUAGE">
-			<options text="LANG_E" action="ACTION_NONE" value="0" />
-			<options text="LANG_F" action="ACTION_NONE" value="0" />
-			<options text="LANG_G" action="ACTION_NONE" value="0" />
-			<options text="LANG_I" action="ACTION_NONE" value="0" />
-			<options text="LANG_S" action="ACTION_NONE" value="0" />
-			<options text="LANG_R" action="ACTION_NONE" value="0" />
-			<options text="LANG_J" action="ACTION_NONE" value="0" />
-		</menu>
+        <menu enum="MENU_DISPLAY_LANGUAGE">
+            <options text="LANG_E" action="ACTION_NONE" value="0" />
+            <options text="LANG_F" action="ACTION_NONE" value="0" />
+            <options text="LANG_G" action="ACTION_NONE" value="0" />
+            <options text="LANG_I" action="ACTION_NONE" value="0" />
+            <options text="LANG_S" action="ACTION_NONE" value="0" />
+            <options text="LANG_R" action="ACTION_NONE" value="0" />
+            <options text="LANG_J" action="ACTION_NONE" value="0" />
+        </menu>
 
-		<menu enum="MENU_DISPLAY_PLAYMODE">
-			<options text="ME_IND_FM_16" action="ACTION_NONE" value="0" />
-			<options text="ME_IND_FM_08" action="ACTION_NONE" value="0" />
-			<options text="ME_IND_FM_09" action="ACTION_NONE" value="0" />
-		</menu>
+        <menu enum="MENU_DISPLAY_PLAYMODE">
+            <options text="ME_IND_FM_16" action="ACTION_NONE" value="0" />
+            <options text="ME_IND_FM_08" action="ACTION_NONE" value="0" />
+            <options text="ME_IND_FM_09" action="ACTION_NONE" value="0" />
+        </menu>
 
-		<menu enum="MENU_DISPLAY_GPS_SPEECH">
-			<options text="MO_OFF" action="ACTION_NONE" value="0" />
-			<options text="MO_GPS1" action="ACTION_NONE" value="0" />
-			<options text="MO_ON" action="ACTION_NONE" value="0" />
-		</menu>
+        <menu enum="MENU_DISPLAY_GPS_SPEECH">
+            <options text="MO_OFF" action="ACTION_NONE" value="0" />
+            <options text="MO_GPS1" action="ACTION_NONE" value="0" />
+            <options text="MO_ON" action="ACTION_NONE" value="0" />
+        </menu>
 
-		<menupc enum="MENU_DISPLAY_QUALITY_SETTINGS">
-			<options text="MO_LOW" action="ACTION_NONE" value="0" />
-			<options text="MO_MED" action="ACTION_NONE" value="1" />
-			<options text="MO_HIGH" action="ACTION_NONE" value="2" />
-			<options text="MO_VHIGH" action="ACTION_NONE" value="3" />
-			<options text="MO_UHIGH" action="ACTION_NONE" value="4" />
-		</menupc>
+        <menupc enum="MENU_DISPLAY_QUALITY_SETTINGS">
+            <options text="MO_LOW" action="ACTION_NONE" value="0" />
+            <options text="MO_MED" action="ACTION_NONE" value="1" />
+            <options text="MO_HIGH" action="ACTION_NONE" value="2" />
+            <options text="MO_VHIGH" action="ACTION_NONE" value="3" />
+            <options text="MO_UHIGH" action="ACTION_NONE" value="4" />
+        </menupc>
 
-		<menupc enum="MENU_DISPLAY_ASPECT">
-			<options text="MO_ASPRAT_AUTO" action="ACTION_NONE" value="0" />
-			<options text="MO_ASPRAT_43" action="ACTION_NONE" value="1" />
-			<options text="MO_ASPRAT_54" action="ACTION_NONE" value="2" />
-			<options text="MO_ASPRAT_159" action="ACTION_NONE" value="3" />
-			<options text="MO_ASPRAT_169" action="ACTION_NONE" value="4" />
-			<options text="MO_ASPRAT_1610" action="ACTION_NONE" value="5" />
-		</menupc>
+        <menupc enum="MENU_DISPLAY_ASPECT">
+            <options text="MO_ASPRAT_AUTO" action="ACTION_NONE" value="0" />
+            <options text="MO_ASPRAT_43" action="ACTION_NONE" value="1" />
+            <options text="MO_ASPRAT_54" action="ACTION_NONE" value="2" />
+            <options text="MO_ASPRAT_159" action="ACTION_NONE" value="3" />
+            <options text="MO_ASPRAT_169" action="ACTION_NONE" value="4" />
+            <options text="MO_ASPRAT_1610" action="ACTION_NONE" value="5" />
+        </menupc>
 
-		<menupc enum="MENU_DISPLAY_SHADOW_QUALITY">
-			<options text="MO_OFF" action="ACTION_NONE" value="0" />
-			<options text="MO_LOW" action="ACTION_NONE" value="1" />
-			<options text="MO_MED" action="ACTION_NONE" value="2" />
-			<options text="MO_HIGH" action="ACTION_NONE" value="3" />
-			<options text="MO_VHIGH" action="ACTION_NONE" value="4" />
-		</menupc>
+        <menupc enum="MENU_DISPLAY_SHADOW_QUALITY">
+            <options text="MO_OFF" action="ACTION_NONE" value="0" />
+            <options text="MO_LOW" action="ACTION_NONE" value="1" />
+            <options text="MO_MED" action="ACTION_NONE" value="2" />
+            <options text="MO_HIGH" action="ACTION_NONE" value="3" />
+            <options text="MO_VHIGH" action="ACTION_NONE" value="4" />
+        </menupc>
 
-		<menupc enum="MENU_TEXTURE_QUALITY_SETTINGS">
-			<options text="MO_ANISO_01" action="ACTION_NONE" value="0" />
-			<options text="MO_ANISO_02" action="ACTION_NONE" value="1" />
-			<options text="MO_ANISO_03" action="ACTION_NONE" value="2" />
-			<options text="MO_ANISO_04" action="ACTION_NONE" value="3" />
-			<options text="MO_ANISO_05" action="ACTION_NONE" value="4" />
-		</menupc>
+        <menupc enum="MENU_TEXTURE_QUALITY_SETTINGS">
+            <options text="MO_ANISO_01" action="ACTION_NONE" value="0" />
+            <options text="MO_ANISO_02" action="ACTION_NONE" value="1" />
+            <options text="MO_ANISO_03" action="ACTION_NONE" value="2" />
+            <options text="MO_ANISO_04" action="ACTION_NONE" value="3" />
+            <options text="MO_ANISO_05" action="ACTION_NONE" value="4" />
+        </menupc>
 
-		<menupc enum="MENU_DISPLAY_SHADOW_DENSITY">
-			<options text="MO_OFF" action="ACTION_NONE" value="0" />
-			<options text="MO_MED" action="ACTION_NONE" value="1" />
-			<options text="MO_HIGH" action="ACTION_NONE" value="2" />
-			<options text="MO_VHIGH" action="ACTION_NONE" value="3" />
-		</menupc>
+        <menupc enum="MENU_DISPLAY_SHADOW_DENSITY">
+            <options text="MO_OFF" action="ACTION_NONE" value="0" />
+            <options text="MO_MED" action="ACTION_NONE" value="1" />
+            <options text="MO_HIGH" action="ACTION_NONE" value="2" />
+            <options text="MO_VHIGH" action="ACTION_NONE" value="3" />
+        </menupc>
 
-		<menupc enum="MENU_DISPLAY_REFLECTION_QUALITY">
-			<options text="MO_OFF" action="ACTION_NONE" value="0" />
-			<options text="MO_LOW" action="ACTION_NONE" value="1" />
-			<options text="MO_MED" action="ACTION_NONE" value="2" />
-			<options text="MO_HIGH" action="ACTION_NONE" value="3" />
-			<options text="MO_VHIGH" action="ACTION_NONE" value="4" />
-		</menupc>
+        <menupc enum="MENU_DISPLAY_REFLECTION_QUALITY">
+            <options text="MO_OFF" action="ACTION_NONE" value="0" />
+            <options text="MO_LOW" action="ACTION_NONE" value="1" />
+            <options text="MO_MED" action="ACTION_NONE" value="2" />
+            <options text="MO_HIGH" action="ACTION_NONE" value="3" />
+            <options text="MO_VHIGH" action="ACTION_NONE" value="4" />
+        </menupc>
 
-		<menu enum="MENU_DISPLAY_RADAR_MODE">
-			<options text="MO_OFF" action="ACTION_NONE" value="0" />
-			<options text="MO_ON" action="ACTION_NONE" value="0" />
-			<options text="BLIPS" action="ACTION_NONE" value="0" />
-		</menu>
+        <menu enum="MENU_DISPLAY_RADAR_MODE">
+            <options text="MO_OFF" action="ACTION_NONE" value="0" />
+            <options text="MO_ON" action="ACTION_NONE" value="0" />
+            <options text="BLIPS" action="ACTION_NONE" value="0" />
+        </menu>
 
-		<menu enum="MENU_DISPLAY_RETICULE_MODE">
-			<options text="MO_RETICULE_OF" action="ACTION_NONE" value="0" />
-			<options text="MO_RETICULE_ON" action="ACTION_NONE" value="0" />
-		</menu>
+        <menu enum="MENU_DISPLAY_RETICULE_MODE">
+            <options text="MO_RETICULE_OF" action="ACTION_NONE" value="0" />
+            <options text="MO_RETICULE_ON" action="ACTION_NONE" value="0" />
+        </menu>
 
-		<menu enum="MENU_DISPLAY_NETSTATS_GAMEMODE">
-			<options text="FNTGT_COMP_0" action="SCR_NETWORK_STATS_COMP" value="0" />
-			<options text="FNTGT_COMP_1" action="SCR_NETWORK_STATS_COMP" value="1" />
-			<options text="FNTGT_COMP_2" action="SCR_NETWORK_STATS_COMP" value="2" />
-			<options text="FNTGT_RACE_0" action="SCR_NETWORK_STATS_RACE" value="3" />
-			<options text="FNTGT_RACE_1" action="SCR_NETWORK_STATS_RACE" value="4" />
-			<options text="FNTGT_TEAM_0" action="SCR_NETWORK_STATS_TEAM" value="5" />
-			<options text="FNTGT_TEAM_1" action="SCR_NETWORK_STATS_TEAM" value="6" />
-			<options text="FNTGT_TEAM_2" action="SCR_NETWORK_STATS_TEAM" value="7" />
-			<options text="FNTGT_TEAM_3" action="SCR_NETWORK_STATS_TEAM" value="8" />
-			<options text="FNTGT_TEAM_4" action="SCR_NETWORK_STATS_TEAM" value="9" />
-			<options text="FNTGT_COOP_0" action="SCR_NETWORK_STATS_COOP" value="10" />
-			<options text="FNTGT_COOP_1" action="SCR_NETWORK_STATS_COOP" value="11" />
-			<options text="FNTGT_COOP_2" action="SCR_NETWORK_STATS_COOP" value="12" />
-			<options text="FNTGT_RANK" action="SCR_NETWORK_STATS_GAMER_RANK" value="34" />
-			<options360 text="NET_TRUESKILL" action="SCR_NETWORK_STATS_TRUESKILL" value="35" />
-			<optionspc text="NET_TRUESKILL" action="SCR_NETWORK_STATS_TRUESKILL" value="35" />
-		</menu>
+        <menu enum="MENU_DISPLAY_NETSTATS_GAMEMODE">
+            <options text="FNTGT_COMP_0" action="SCR_NETWORK_STATS_COMP" value="0" />
+            <options text="FNTGT_COMP_1" action="SCR_NETWORK_STATS_COMP" value="1" />
+            <options text="FNTGT_COMP_2" action="SCR_NETWORK_STATS_COMP" value="2" />
+            <options text="FNTGT_RACE_0" action="SCR_NETWORK_STATS_RACE" value="3" />
+            <options text="FNTGT_RACE_1" action="SCR_NETWORK_STATS_RACE" value="4" />
+            <options text="FNTGT_TEAM_0" action="SCR_NETWORK_STATS_TEAM" value="5" />
+            <options text="FNTGT_TEAM_1" action="SCR_NETWORK_STATS_TEAM" value="6" />
+            <options text="FNTGT_TEAM_2" action="SCR_NETWORK_STATS_TEAM" value="7" />
+            <options text="FNTGT_TEAM_3" action="SCR_NETWORK_STATS_TEAM" value="8" />
+            <options text="FNTGT_TEAM_4" action="SCR_NETWORK_STATS_TEAM" value="9" />
+            <options text="FNTGT_COOP_0" action="SCR_NETWORK_STATS_COOP" value="10" />
+            <options text="FNTGT_COOP_1" action="SCR_NETWORK_STATS_COOP" value="11" />
+            <options text="FNTGT_COOP_2" action="SCR_NETWORK_STATS_COOP" value="12" />
+            <options text="FNTGT_RANK" action="SCR_NETWORK_STATS_GAMER_RANK" value="34" />
+            <options360 text="NET_TRUESKILL" action="SCR_NETWORK_STATS_TRUESKILL" value="35" />
+            <optionspc text="NET_TRUESKILL" action="SCR_NETWORK_STATS_TRUESKILL" value="35" />
+        </menu>
 
-		<menu360 enum="MENU_DISPLAY_NETSTATS_GAMETYPE">
-			<options360 text="LB_UNRANKED" action="ACTION_NONE" value="0" />
-			<options360 text="LB_RANKED" action="ACTION_NONE" value="0" />
-		</menu360>
+        <menu360 enum="MENU_DISPLAY_NETSTATS_GAMETYPE">
+            <options360 text="LB_UNRANKED" action="ACTION_NONE" value="0" />
+            <options360 text="LB_RANKED" action="ACTION_NONE" value="0" />
+        </menu360>
 
-		<menupc enum="MENU_DISPLAY_NETSTATS_GAMETYPE">
-			<optionspc text="LB_UNRANKED" action="ACTION_NONE" value="0" />
-			<optionspc text="LB_RANKED" action="ACTION_NONE" value="0" />
-		</menupc>
+        <menupc enum="MENU_DISPLAY_NETSTATS_GAMETYPE">
+            <optionspc text="LB_UNRANKED" action="ACTION_NONE" value="0" />
+            <optionspc text="LB_RANKED" action="ACTION_NONE" value="0" />
+        </menupc>
 
 
-		<menu enum="MENU_DISPLAY_NETSTATS_SCORES">
-			<options text="NET_OV" action="ACTION_NONE" value="0" />
-			<options text="NET_BYS" action="ACTION_NONE" value="0" />
-			<options text="NET_BYT" action="ACTION_NONE" value="0" />
-		</menu>
+        <menu enum="MENU_DISPLAY_NETSTATS_SCORES">
+            <options text="NET_OV" action="ACTION_NONE" value="0" />
+            <options text="NET_BYS" action="ACTION_NONE" value="0" />
+            <options text="NET_BYT" action="ACTION_NONE" value="0" />
+        </menu>
 
-		<menu enum="MENU_DISPLAY_NETSTATS_COMP_TEAM">
-			<options text="NET_NO" action="ACTION_NONE" value="0" />
-			<options text="NET_YES" action="ACTION_NONE" value="0" />
-		</menu>
+        <menu enum="MENU_DISPLAY_NETSTATS_COMP_TEAM">
+            <options text="NET_NO" action="ACTION_NONE" value="0" />
+            <options text="NET_YES" action="ACTION_NONE" value="0" />
+        </menu>
 
-		<menu enum="MENU_DISPLAY_NETSTATS_RACETYPE">
-			<options text="RACECLASSRO" action="MENU_DISPLAY_NETSTATS_RACENAME0" value="0" />
-			<options text="RACECLASS16" action="MENU_DISPLAY_NETSTATS_RACENAME1" value="0" />
-			<options text="RACECLASS17" action="MENU_DISPLAY_NETSTATS_RACENAME2" value="0" />
-			<options text="RACECLASS18" action="MENU_DISPLAY_NETSTATS_RACENAME3" value="0" />
-			<options text="RACECLASS19" action="MENU_DISPLAY_NETSTATS_RACENAME4" value="0" />
-		</menu>
+        <menu enum="MENU_DISPLAY_NETSTATS_RACETYPE">
+            <options text="RACECLASSRO" action="MENU_DISPLAY_NETSTATS_RACENAME0" value="0" />
+            <options text="RACECLASS16" action="MENU_DISPLAY_NETSTATS_RACENAME1" value="0" />
+            <options text="RACECLASS17" action="MENU_DISPLAY_NETSTATS_RACENAME2" value="0" />
+            <options text="RACECLASS18" action="MENU_DISPLAY_NETSTATS_RACENAME3" value="0" />
+            <options text="RACECLASS19" action="MENU_DISPLAY_NETSTATS_RACENAME4" value="0" />
+        </menu>
 
-		<menu enum="MENU_DISPLAY_NETSTATS_RACENAME0">
-			<options text="RACE_1" action="ACTION_NONE" value="1" />
-			<options text="RACE_2" action="ACTION_NONE" value="2" />
-			<options text="RACE_3" action="ACTION_NONE" value="3" />
-			<options text="RACE_4" action="ACTION_NONE" value="4" />
-			<options text="RACE_5" action="ACTION_NONE" value="5" />
-			<options text="RACE_6" action="ACTION_NONE" value="6" />
-			<options text="RACE_7" action="ACTION_NONE" value="7" />
-			<options text="RACE_8" action="ACTION_NONE" value="8" />
-			<options text="RACE_9" action="ACTION_NONE" value="9" />
-			<options text="RACE_10" action="ACTION_NONE" value="10" />
-			<options text="RACE_11" action="ACTION_NONE" value="11" />
-			<options text="RACE_12" action="ACTION_NONE" value="12" />
-			<options text="RACE_13" action="ACTION_NONE" value="13" />
-			<options text="RACE_14" action="ACTION_NONE" value="14" />
-			<options text="RACE_15" action="ACTION_NONE" value="15" />
-			<options text="RACE_16" action="ACTION_NONE" value="16" />
-			<options text="RACE_17" action="ACTION_NONE" value="17" />
-			<options text="RACE_18" action="ACTION_NONE" value="18" />
-			<options text="RACE_19" action="ACTION_NONE" value="19" />
-			<options text="RACE_20" action="ACTION_NONE" value="20" />
-			<options text="RACE_21" action="ACTION_NONE" value="21" />
-			<options text="RACE_22" action="ACTION_NONE" value="22" />
-		</menu>
+        <menu enum="MENU_DISPLAY_NETSTATS_RACENAME0">
+            <options text="RACE_1" action="ACTION_NONE" value="1" />
+            <options text="RACE_2" action="ACTION_NONE" value="2" />
+            <options text="RACE_3" action="ACTION_NONE" value="3" />
+            <options text="RACE_4" action="ACTION_NONE" value="4" />
+            <options text="RACE_5" action="ACTION_NONE" value="5" />
+            <options text="RACE_6" action="ACTION_NONE" value="6" />
+            <options text="RACE_7" action="ACTION_NONE" value="7" />
+            <options text="RACE_8" action="ACTION_NONE" value="8" />
+            <options text="RACE_9" action="ACTION_NONE" value="9" />
+            <options text="RACE_10" action="ACTION_NONE" value="10" />
+            <options text="RACE_11" action="ACTION_NONE" value="11" />
+            <options text="RACE_12" action="ACTION_NONE" value="12" />
+            <options text="RACE_13" action="ACTION_NONE" value="13" />
+            <options text="RACE_14" action="ACTION_NONE" value="14" />
+            <options text="RACE_15" action="ACTION_NONE" value="15" />
+            <options text="RACE_16" action="ACTION_NONE" value="16" />
+            <options text="RACE_17" action="ACTION_NONE" value="17" />
+            <options text="RACE_18" action="ACTION_NONE" value="18" />
+            <options text="RACE_19" action="ACTION_NONE" value="19" />
+            <options text="RACE_20" action="ACTION_NONE" value="20" />
+            <options text="RACE_21" action="ACTION_NONE" value="21" />
+            <options text="RACE_22" action="ACTION_NONE" value="22" />
+        </menu>
 
-		<menu enum="MENU_DISPLAY_NETSTATS_RACENAME1">
-			<options text="RACE_23" action="ACTION_NONE" value="23" />
-			<options text="RACE_24" action="ACTION_NONE" value="24" />
-			<options text="RACE_25" action="ACTION_NONE" value="25" />
-			<options text="RACE_26" action="ACTION_NONE" value="26" />
-		</menu>
+        <menu enum="MENU_DISPLAY_NETSTATS_RACENAME1">
+            <options text="RACE_23" action="ACTION_NONE" value="23" />
+            <options text="RACE_24" action="ACTION_NONE" value="24" />
+            <options text="RACE_25" action="ACTION_NONE" value="25" />
+            <options text="RACE_26" action="ACTION_NONE" value="26" />
+        </menu>
 
-		<menu enum="MENU_DISPLAY_NETSTATS_RACENAME2">
-			<options text="RACE_27" action="ACTION_NONE" value="27" />
-			<options text="RACE_28" action="ACTION_NONE" value="28" />
-			<options text="RACE_29" action="ACTION_NONE" value="29" />
-			<options text="RACE_30" action="ACTION_NONE" value="30" />
-			<options text="RACE_31" action="ACTION_NONE" value="31" />
-			<options text="RACE_32" action="ACTION_NONE" value="32" />
-			<options text="RACE_33" action="ACTION_NONE" value="33" />
-			<options text="RACE_34" action="ACTION_NONE" value="34" />
-			<options text="RACE_35" action="ACTION_NONE" value="35" />
-			<options text="RACE_36" action="ACTION_NONE" value="36" />
-		</menu>
+        <menu enum="MENU_DISPLAY_NETSTATS_RACENAME2">
+            <options text="RACE_27" action="ACTION_NONE" value="27" />
+            <options text="RACE_28" action="ACTION_NONE" value="28" />
+            <options text="RACE_29" action="ACTION_NONE" value="29" />
+            <options text="RACE_30" action="ACTION_NONE" value="30" />
+            <options text="RACE_31" action="ACTION_NONE" value="31" />
+            <options text="RACE_32" action="ACTION_NONE" value="32" />
+            <options text="RACE_33" action="ACTION_NONE" value="33" />
+            <options text="RACE_34" action="ACTION_NONE" value="34" />
+            <options text="RACE_35" action="ACTION_NONE" value="35" />
+            <options text="RACE_36" action="ACTION_NONE" value="36" />
+        </menu>
 
-		<menu enum="MENU_DISPLAY_NETSTATS_RACENAME3">
-			<options text="RACE_37" action="ACTION_NONE" value="37" />
-			<options text="RACE_38" action="ACTION_NONE" value="38" />
-			<options text="RACE_39" action="ACTION_NONE" value="39" />
-			<options text="RACE_40" action="ACTION_NONE" value="40" />
-			<options text="RACE_41" action="ACTION_NONE" value="41" />
-			<options text="RACE_42" action="ACTION_NONE" value="42" />
-			<options text="RACE_43" action="ACTION_NONE" value="43" />
-			<options text="RACE_44" action="ACTION_NONE" value="44" />
-			<options text="RACE_45" action="ACTION_NONE" value="45" />
-			<options text="RACE_46" action="ACTION_NONE" value="46" />
-		</menu>
+        <menu enum="MENU_DISPLAY_NETSTATS_RACENAME3">
+            <options text="RACE_37" action="ACTION_NONE" value="37" />
+            <options text="RACE_38" action="ACTION_NONE" value="38" />
+            <options text="RACE_39" action="ACTION_NONE" value="39" />
+            <options text="RACE_40" action="ACTION_NONE" value="40" />
+            <options text="RACE_41" action="ACTION_NONE" value="41" />
+            <options text="RACE_42" action="ACTION_NONE" value="42" />
+            <options text="RACE_43" action="ACTION_NONE" value="43" />
+            <options text="RACE_44" action="ACTION_NONE" value="44" />
+            <options text="RACE_45" action="ACTION_NONE" value="45" />
+            <options text="RACE_46" action="ACTION_NONE" value="46" />
+        </menu>
 
-		<menu enum="MENU_DISPLAY_NETSTATS_RACENAME4">
-			<options text="RACE_47" action="ACTION_NONE" value="47" />
-			<options text="RACE_48" action="ACTION_NONE" value="48" />
-			<options text="RACE_49" action="ACTION_NONE" value="49" />
-			<options text="RACE_50" action="ACTION_NONE" value="50" />
-			<options text="RACE_51" action="ACTION_NONE" value="51" />
-			<options text="RACE_52" action="ACTION_NONE" value="52" />
-			<options text="RACE_53" action="ACTION_NONE" value="53" />
-			<options text="RACE_54" action="ACTION_NONE" value="54" />
-			<options text="RACE_55" action="ACTION_NONE" value="55" />
-			<options text="RACE_56" action="ACTION_NONE" value="56" />
-		</menu>
+        <menu enum="MENU_DISPLAY_NETSTATS_RACENAME4">
+            <options text="RACE_47" action="ACTION_NONE" value="47" />
+            <options text="RACE_48" action="ACTION_NONE" value="48" />
+            <options text="RACE_49" action="ACTION_NONE" value="49" />
+            <options text="RACE_50" action="ACTION_NONE" value="50" />
+            <options text="RACE_51" action="ACTION_NONE" value="51" />
+            <options text="RACE_52" action="ACTION_NONE" value="52" />
+            <options text="RACE_53" action="ACTION_NONE" value="53" />
+            <options text="RACE_54" action="ACTION_NONE" value="54" />
+            <options text="RACE_55" action="ACTION_NONE" value="55" />
+            <options text="RACE_56" action="ACTION_NONE" value="56" />
+        </menu>
 
-		<menu360 enum="MENU_DISPLAY_NETSTATS_TRUESKILLNAME">
-			<options text="FNTGT_COMP_0" action="ACTION_NONE" value="0" />
-			<options text="FNTGT_COMP_1" action="ACTION_NONE" value="1" />
-			<options text="FNTGT_COMP_2" action="ACTION_NONE" value="2" />
-			<options text="FNTGT_RACE_0" action="ACTION_NONE" value="3" />
-			<options text="FNTGT_RACE_1" action="ACTION_NONE" value="4" />
-			<options text="FNTGT_TEAM_0" action="ACTION_NONE" value="5" />
-			<options text="FNTGT_TEAM_1" action="ACTION_NONE" value="6" />
-			<options text="FNTGT_TEAM_2" action="ACTION_NONE" value="7" />
-			<options text="FNTGT_TEAM_3" action="ACTION_NONE" value="8" />
-			<options text="FNTGT_TEAM_4" action="ACTION_NONE" value="9" />
-			<options text="FNTGT_COOP_0" action="ACTION_NONE" value="10" />
-			<options text="FNTGT_COOP_1" action="ACTION_NONE" value="11" />
-			<options text="FNTGT_COOP_2" action="ACTION_NONE" value="12" />
-		</menu360>
+        <menu360 enum="MENU_DISPLAY_NETSTATS_TRUESKILLNAME">
+            <options text="FNTGT_COMP_0" action="ACTION_NONE" value="0" />
+            <options text="FNTGT_COMP_1" action="ACTION_NONE" value="1" />
+            <options text="FNTGT_COMP_2" action="ACTION_NONE" value="2" />
+            <options text="FNTGT_RACE_0" action="ACTION_NONE" value="3" />
+            <options text="FNTGT_RACE_1" action="ACTION_NONE" value="4" />
+            <options text="FNTGT_TEAM_0" action="ACTION_NONE" value="5" />
+            <options text="FNTGT_TEAM_1" action="ACTION_NONE" value="6" />
+            <options text="FNTGT_TEAM_2" action="ACTION_NONE" value="7" />
+            <options text="FNTGT_TEAM_3" action="ACTION_NONE" value="8" />
+            <options text="FNTGT_TEAM_4" action="ACTION_NONE" value="9" />
+            <options text="FNTGT_COOP_0" action="ACTION_NONE" value="10" />
+            <options text="FNTGT_COOP_1" action="ACTION_NONE" value="11" />
+            <options text="FNTGT_COOP_2" action="ACTION_NONE" value="12" />
+        </menu360>
 
-		<menupc enum="MENU_DISPLAY_NETSTATS_TRUESKILLNAME">
-			<options text="FNTGT_COMP_0" action="ACTION_NONE" value="0" />
-			<options text="FNTGT_COMP_1" action="ACTION_NONE" value="1" />
-			<options text="FNTGT_COMP_2" action="ACTION_NONE" value="2" />
-			<options text="FNTGT_RACE_0" action="ACTION_NONE" value="3" />
-			<options text="FNTGT_RACE_1" action="ACTION_NONE" value="4" />
-			<options text="FNTGT_TEAM_0" action="ACTION_NONE" value="5" />
-			<options text="FNTGT_TEAM_1" action="ACTION_NONE" value="6" />
-			<options text="FNTGT_TEAM_2" action="ACTION_NONE" value="7" />
-			<options text="FNTGT_TEAM_3" action="ACTION_NONE" value="8" />
-			<options text="FNTGT_TEAM_4" action="ACTION_NONE" value="9" />
-			<options text="FNTGT_COOP_0" action="ACTION_NONE" value="10" />
-			<options text="FNTGT_COOP_1" action="ACTION_NONE" value="11" />
-			<options text="FNTGT_COOP_2" action="ACTION_NONE" value="12" />
-		</menupc>
+        <menupc enum="MENU_DISPLAY_NETSTATS_TRUESKILLNAME">
+            <options text="FNTGT_COMP_0" action="ACTION_NONE" value="0" />
+            <options text="FNTGT_COMP_1" action="ACTION_NONE" value="1" />
+            <options text="FNTGT_COMP_2" action="ACTION_NONE" value="2" />
+            <options text="FNTGT_RACE_0" action="ACTION_NONE" value="3" />
+            <options text="FNTGT_RACE_1" action="ACTION_NONE" value="4" />
+            <options text="FNTGT_TEAM_0" action="ACTION_NONE" value="5" />
+            <options text="FNTGT_TEAM_1" action="ACTION_NONE" value="6" />
+            <options text="FNTGT_TEAM_2" action="ACTION_NONE" value="7" />
+            <options text="FNTGT_TEAM_3" action="ACTION_NONE" value="8" />
+            <options text="FNTGT_TEAM_4" action="ACTION_NONE" value="9" />
+            <options text="FNTGT_COOP_0" action="ACTION_NONE" value="10" />
+            <options text="FNTGT_COOP_1" action="ACTION_NONE" value="11" />
+            <options text="FNTGT_COOP_2" action="ACTION_NONE" value="12" />
+        </menupc>
 
-		<menu enum="MENU_DISPLAY_SPEAKER_OUTPUT_STEREO">
-			<options text="MO_SHEAD" action="ACTION_NONE" value="0" />
-			<options text="MO_STER" action="ACTION_NONE" value="0" />
-		</menu>
+        <menu enum="MENU_DISPLAY_SPEAKER_OUTPUT_STEREO">
+            <options text="MO_SHEAD" action="ACTION_NONE" value="0" />
+            <options text="MO_STER" action="ACTION_NONE" value="0" />
+        </menu>
 
-		<menu enum="MENU_DISPLAY_SPEAKER_OUTPUT_SURROUND">
-			<options text="MO_SHEAD" action="ACTION_NONE" value="0" />
-			<options text="MO_STER" action="ACTION_NONE" value="0" />
-			<options text="MO_SIDE" action="ACTION_NONE" value="0" />
-			<options text="MO_SREAR" action="ACTION_NONE" value="0" />
-		</menu>
+        <menu enum="MENU_DISPLAY_SPEAKER_OUTPUT_SURROUND">
+            <options text="MO_SHEAD" action="ACTION_NONE" value="0" />
+            <options text="MO_STER" action="ACTION_NONE" value="0" />
+            <options text="MO_SIDE" action="ACTION_NONE" value="0" />
+            <options text="MO_SREAR" action="ACTION_NONE" value="0" />
+        </menu>
 
-		<menu enum="MENU_DISPLAY_PLAYERSETTINGS_GENRE">
-			<options text="PLS_MALE" action="ACTION_NONE" value="0" />
-			<options text="PLS_FEMALE" action="ACTION_NONE" value="0" />
-		</menu>
+        <menu enum="MENU_DISPLAY_PLAYERSETTINGS_GENRE">
+            <options text="PLS_MALE" action="ACTION_NONE" value="0" />
+            <options text="PLS_FEMALE" action="ACTION_NONE" value="0" />
+        </menu>
 
-		<menu enum="MENU_DISPLAY_VOICE_OUTPUT">
-			<options text="MO_VFRV" action="ACTION_NONE" value="0" />
-			<options text="MO_VRRV" action="ACTION_NONE" value="0" />
-		</menu>
+        <menu enum="MENU_DISPLAY_VOICE_OUTPUT">
+            <options text="MO_VFRV" action="ACTION_NONE" value="0" />
+            <options text="MO_VRRV" action="ACTION_NONE" value="0" />
+        </menu>
 
-		<menupc enum="MENU_DISPLAY_TIMECYC">
-			<options text="MO_DEF" action="ACTION_NONE" value="1" />
-			<options text="OFF" action="ACTION_NONE" value="2" />
-			<options text="IV" action="ACTION_NONE" value="3" />
-			<options text="TLAD" action="ACTION_NONE" value="4" />
-			<options text="TBOGT" action="ACTION_NONE" value="5" />
-		</menupc>
+        <menupc enum="MENU_DISPLAY_TIMECYC">
+            <options text="MO_DEF" action="ACTION_NONE" value="1" />
+            <options text="OFF" action="ACTION_NONE" value="2" />
+            <options text="IV" action="ACTION_NONE" value="3" />
+            <options text="TLAD" action="ACTION_NONE" value="4" />
+            <options text="TBOGT" action="ACTION_NONE" value="5" />
+        </menupc>
 
-		<menupc enum="MENU_DISPLAY_FRAMELIMIT">
-			<options text="OFF" action="ACTION_NONE" value="0" />
-			<options text="Custom" action="ACTION_NONE" value="1" />
-			<options text="30" action="ACTION_NONE" value="2" />
-			<options text="40" action="ACTION_NONE" value="3" />
-			<options text="50" action="ACTION_NONE" value="4" />
-			<options text="60" action="ACTION_NONE" value="5" />
-			<options text="75" action="ACTION_NONE" value="6" />
-			<options text="100" action="ACTION_NONE" value="7" />
-			<options text="120" action="ACTION_NONE" value="8" />
-			<options text="144" action="ACTION_NONE" value="9" />
-			<options text="165" action="ACTION_NONE" value="10" />
-			<options text="240" action="ACTION_NONE" value="11" />
-			<options text="360" action="ACTION_NONE" value="12" />
-		</menupc>
+        <menupc enum="MENU_DISPLAY_FRAMELIMIT">
+            <options text="OFF" action="ACTION_NONE" value="0" />
+            <options text="Custom" action="ACTION_NONE" value="1" />
+            <options text="30" action="ACTION_NONE" value="2" />
+            <options text="40" action="ACTION_NONE" value="3" />
+            <options text="50" action="ACTION_NONE" value="4" />
+            <options text="60" action="ACTION_NONE" value="5" />
+            <options text="75" action="ACTION_NONE" value="6" />
+            <options text="100" action="ACTION_NONE" value="7" />
+            <options text="120" action="ACTION_NONE" value="8" />
+            <options text="144" action="ACTION_NONE" value="9" />
+            <options text="165" action="ACTION_NONE" value="10" />
+            <options text="240" action="ACTION_NONE" value="11" />
+            <options text="360" action="ACTION_NONE" value="12" />
+        </menupc>
 
-		<menupc enum="MENU_DISPLAY_SHADOWFILTER">
-			<options text="MO_DEF" action="ACTION_NONE" value="1" />
-			<options text="vanilla+" action="ACTION_NONE" value="2" />
-			<options text="Simple Bilinear" action="ACTION_NONE" value="3" />
-			<options text="screen noise" action="ACTION_NONE" value="4" />
-			<options text="screen noise fpcss" action="ACTION_NONE" value="5" />
-			<options text="1040" action="ACTION_NONE" value="6" />
-			<options text="1040 fpcss" action="ACTION_NONE" value="7" />
-			<options text="soft 3x3 box" action="ACTION_NONE" value="8" />
-			<options text="soft 3x3 gausian" action="ACTION_NONE" value="9" />
-			<options text="soft 5x5 box" action="ACTION_NONE" value="10" />
-			<options text="soft 5x5 gausian" action="ACTION_NONE" value="11" />
-			<options text="very soft 7x7 box" action="ACTION_NONE" value="12" />
-			<options text="very soft 7x7 gausian" action="ACTION_NONE" value="13" />
-			<options text="test 1" action="ACTION_NONE" value="14" />
-			<options text="test 2" action="ACTION_NONE" value="15" />
-			<options text="test 3" action="ACTION_NONE" value="16" />
-		</menupc>
+        <menupc enum="MENU_DISPLAY_SHADOWFILTER">
+            <options text="MO_DEF" action="ACTION_NONE" value="1" />
+            <options text="vanilla+" action="ACTION_NONE" value="2" />
+            <options text="Simple Bilinear" action="ACTION_NONE" value="3" />
+            <options text="screen noise" action="ACTION_NONE" value="4" />
+            <options text="screen noise fpcss" action="ACTION_NONE" value="5" />
+            <options text="1040" action="ACTION_NONE" value="6" />
+            <options text="1040 fpcss" action="ACTION_NONE" value="7" />
+            <options text="soft 3x3 box" action="ACTION_NONE" value="8" />
+            <options text="soft 3x3 gausian" action="ACTION_NONE" value="9" />
+            <options text="soft 5x5 box" action="ACTION_NONE" value="10" />
+            <options text="soft 5x5 gausian" action="ACTION_NONE" value="11" />
+            <options text="very soft 7x7 box" action="ACTION_NONE" value="12" />
+            <options text="very soft 7x7 gausian" action="ACTION_NONE" value="13" />
+            <options text="test 1" action="ACTION_NONE" value="14" />
+            <options text="test 2" action="ACTION_NONE" value="15" />
+            <options text="test 3" action="ACTION_NONE" value="16" />
+        </menupc>
 
     <menupc enum="MENU_DISPLAY_DOF">
       <options text="Off" action="ACTION_NONE" value="1" />
@@ -341,582 +341,582 @@
       <options text="High" action="ACTION_NONE" value="4" />
       <options text="Very High" action="ACTION_NONE" value="5" />
     </menupc>
-	</sMenuDisplayValue>
-
-	<sMenuScreen>
-		<menu HeaderText="MH_GAM" enum="SCR_GAME">
-			<options action="MENUOPT_JUMP_NEXT_MENU" label="MO_LOA" value="SCR_LOAD" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_JUMP_NEWGAME" label="MO_NEW" value="SCR_NEW_GAME" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_ADJUST" label="MO_AUTOSAV" value="PREF_AUTOSAVE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_ADJUST" label="MO_REPLAY" value="PREF_REPLAY_MODE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_JUMP_GUIDE" label="MO_GUIDE" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<optionspc action="MENUOPT_ADJUST_GAMEMODE" label="Skip Intro" value="PREF_SKIP_INTRO" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<optionspc action="MENUOPT_ADJUST_GAMEMODE" label="Skip Menu" value="PREF_SKIP_MENU" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<optionspc action="MENUOPT_ADJUST_GAMEMODE" label="Borderless" value="PREF_BORDERLESS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_QUIT" label="MO_EXITGAM" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MH_GAM" enum="SCR_NETWORK_GAME">
-			<options action="MENUOPT_LEAVE_GAME" label="MO_LEAVE" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_ADJUST" label="MO_REPLAY" value="PREF_REPLAY_MODE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_JUMP_GUIDE" label="MO_GUIDE" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MH_BRI" enum="SCR_BRIEF">
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MH_MAP" enum="SCR_MAP">
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MH_STA" enum="SCR_STATS">
-			<options action="MENUOPT_NONE" label="MO_STAT1" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="MO_STAT2" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="MO_STAT3" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="MO_STAT4" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="MO_STAT5" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="MO_STAT6" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="MO_STAT7" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="MO_STAT8" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options360 action="MENUOPT_NETWORK_STATS" label="MO_STAT9" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NET_STATS" />
-			<optionsps3 action="MENUOPT_NETWORK_STATS" label="MO_STAT9_PS3" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NET_STATS" />
-			<optionspc action="MENUOPT_NETWORK_STATS" label="MO_STAT9" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NET_STATS" />
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MH_CON" enum="SCR_CONTROLS">
-			<optionspc action="MENUOPT_KEYBOARD_OPTIONS" label="MO_KBOPT" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_CONTROLLER_OPTIONS" label="MO_CTRLOPT" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MH_CON" enum="SCR_KEYBOARD_OPTIONS">
-			<optionspc action="MENUOPT_ADJUST" label="MO_INVMS" value="PREF_INVERT_MOUSE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_SPRINT" value="PREF_SPRINT" scaler="2" displayValue="MENU_DISPLAY_SNIPER_ZOOM_TYPE" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_CROUCH" value="PREF_CROUCH" scaler="2" displayValue="MENU_DISPLAY_SNIPER_ZOOM_TYPE" />
-			<!--optionspc  action="MENUOPT_ADJUST"             label="MO_STRAFE"  value="PREF_STRAFE"                  scaler="2" displayValue="MENU_DISPLAY_ON_OFF"/-->
-			<optionspc action="MENUOPT_ADJUST" label="MO_ZOOMAIM" value="PREF_ZOOM_AIM" scaler="2" displayValue="MENU_DISPLAY_SNIPER_ZOOM_TYPE" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_MOUSE" value="PREF_MOUSE_SENSITIVITY" scaler="20" displayValue="MENU_DISPLAY_SLIDERBAR" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_MOWHEEL" value="PREF_MOUSE_WHEEL_SENSITIVITY" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_HELIKB" value="PREF_HELIKB" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<optionspc action="MENUOPT_REMAP_KEYBOARD" label="MO_KBMAP" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MH_CON" enum="SCR_CONTROLLER_OPTIONS">
-			<options action="MENUOPT_ADJUST" label="MO_CONFIG" value="PREF_CONTROL_CONFIG" scaler="2" displayValue="MENU_DISPLAY_CONTROL_CONFIG" />
-			<options action="MENUOPT_ADJUST" label="MO_VIB" value="PREF_VIBRATION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_ADJUST" label="MO_AIM" value="PREF_AUTO_AIM" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_ADJUST" label="MO_INV" value="PREF_INVERT_LOOK" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_ADJUST" label="MO_SNI" value="PREF_SNIPER_CONTROL" scaler="2" displayValue="MENU_DISPLAY_SNIPER_TYPE" />
-			<options action="MENUOPT_ADJUST" label="MO_SENS" value="PREF_CONTROLLER_SENSITIVITY" scaler="3" displayValue="MENU_DISPLAY_CONTROLLER_SENSITIVITY" />
-			<optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_DINPUT" value="PREF_DINPUT" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<optionspc action="MENUOPT_SHOW_CONTROLLER" label="MO_CTRLMAP" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<optionsps3 action="MENUOPT_CONTROLLER_SIXAXIS" label="MO_SIXAXIS" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MH_CON" enum="SCR_REMAP_KEYBOARD">
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MH_CON" enum="SCR_SHOW_CONTROLLER">
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MH_CON" enum="SCR_NETWORK_CONTROLS">
-			<options action="MENUOPT_ADJUST" label="MO_CONFIG" value="PREF_CONTROL_CONFIG" scaler="2" displayValue="MENU_DISPLAY_CONTROL_CONFIG" />
-			<options action="MENUOPT_ADJUST" label="MO_VIB" value="PREF_VIBRATION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_ADJUST" label="MO_AIM" value="PREF_AUTO_AIM" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_ADJUST" label="MO_INV" value="PREF_INVERT_LOOK" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_ADJUST" label="MO_SNI" value="PREF_SNIPER_CONTROL" scaler="2" displayValue="MENU_DISPLAY_SNIPER_TYPE" />
-			<options action="MENUOPT_ADJUST" label="MO_SENS" value="PREF_CONTROLLER_SENSITIVITY" scaler="3" displayValue="MENU_DISPLAY_CONTROLLER_SENSITIVITY" />
-			<optionsps3 action="MENUOPT_CONTROLLER_SIXAXIS" label="MO_SIXAXIS" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MH_AUD" enum="SCR_AUDIO">
-			<options action="MENUOPT_ADJUST" label="MO_SFX" value="PREF_SFX_VOLUME" scaler="11" displayValue="MENU_DISPLAY_SLIDERBAR" />
-			<options action="MENUOPT_ADJUST_MUSIC_VOLUME" label="MO_MUS" value="PREF_MUSIC_VOLUME" scaler="11" displayValue="MENU_DISPLAY_SLIDERBAR" />
-			<options action="MENUOPT_ADJUST" label="MO_GPS" value="PREF_GPS_SPEECH" scaler="3" displayValue="MENU_DISPLAY_GPS_SPEECH" />
-			<options action="MENUOPT_ADJUST_SPEAKER_OUTPUT" label="MO_OUTP" value="PREF_SPEAKER_OUTPUT" scaler="2" displayValue="MENU_DISPLAY_SPEAKER_OUTPUT_STEREO" />
-			<options action="MENUOPT_ADJUST_RADIO_STATION" label="MO_RST" value="PREF_RADIO_STATION" scaler="0" displayValue="MENU_DISPLAY_RADIO_STATIONS" />
-			<options action="MENUOPT_ADJUST_VOICE_OUTPUT" label="MO_VOUT" value="PREF_VOICE_OUTPUT" scaler="2" displayValue="MENU_DISPLAY_VOICE_OUTPUT" />
-			<options action="MENUOPT_ADJUST" label="MO_VMIC" value="PREF_MICROPHONE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_ADJUST" label="ME_IND_FM_17" value="PREF_PLAYMODE" scaler="3" displayValue="MENU_DISPLAY_PLAYMODE" />
-			<options action="MENUOPT_ADJUST" label="ME_IND_FM_02" value="PREF_AUTOSCAN" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_QUICKSCAN" label="ME_IND_FM_03" value="SET_SCAN" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_COMPLETESCAN" label="ME_IND_FM_04" value="SET_SCAN" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MH_DIS" enum="SCR_DISPLAY">
-			<options action="MENUOPT_ADJUST" label="MO_BRI" value="PREF_BRIGHTNESS" scaler="11" displayValue="MENU_DISPLAY_SLIDERBAR" />
-			<options action="MENUOPT_ADJUST" label="MO_CON" value="PREF_CONTRAST" scaler="11" displayValue="MENU_DISPLAY_SLIDERBAR" />
-			<options action="MENUOPT_ADJUST" label="MO_SAT" value="PREF_SATURATION" scaler="11" displayValue="MENU_DISPLAY_SLIDERBAR" />
-			<options action="MENUOPT_ADJUST" label="MO_SUB" value="PREF_SUBTITLES" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_ADJUST" label="MO_RAD" value="PREF_RADAR_MODE" scaler="3" displayValue="MENU_DISPLAY_RADAR_MODE" />
-			<options action="MENUOPT_ADJUST" label="MO_HUD" value="PREF_DISPLAY_HUD" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_ADJUST" label="MO_HUD_TARG" value="PREF_RETICULE" scaler="2" displayValue="MENU_DISPLAY_RETICULE_MODE" />
-			<options action="MENUOPT_ADJUST" label="MO_DISPGPS" value="PREF_DISPLAY_GPS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_ADJUST" label="MO_HB_CAM" value="PREF_HANDBRAKE_CAM" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_ADJUST" label="MO_LAN" value="PREF_CURRENT_LANGUAGE" scaler="7" displayValue="MENU_DISPLAY_LANGUAGE" />
-			<optionsps3 action="MENUOPT_ADJUST" label="MO_FLIC" value="PREF_FLICKER_FILTER" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<!--optionspc action="MENUOPT_ADJUST" label="Definition" value="PREF_DEFINITION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" /-->
-			<optionspc action="MENUOPT_ADJUST" label="Console Gamma" value="PREF_CONSOLE_GAMMA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<optionspc action="MENUOPT_ADJUST" label="Screen Filter" value="PREF_TIMECYC" scaler="10" displayValue="MENU_DISPLAY_TIMECYC" />
-			<optionspc action="MENUOPT_ADJUST" label="Motion Blur" value="PREF_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-      <optionspc action="MENUOPT_ADJUST" label="Depth of Field" value="PREF_TCYC_DOF" scaler="10" displayValue="MENU_DISPLAY_DOF" />
-      <optionspc action="MENUOPT_ADJUST" label="Cutscene DoF" value="PREF_CUTSCENE_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_SET" label="MO_DEF" value="SET_DEFAULT_DISPLAY" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MH_BASIC" enum="SCR_BASIC">
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MO_RED" enum="SCR_CONTROL_ON_FOOT">
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MO_RED" enum="SCR_CONTROL_MELEE">
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MO_RED" enum="SCR_CONTROL_IN_CAR">
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MO_NEW" enum="SCR_NEW_GAME">
-			<options action="MENUOPT_START_EPISODE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_START_EPISODE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_START_EPISODE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_START_EPISODE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_START_EPISODE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_START_EPISODE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_START_EPISODE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_START_EPISODE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_START_EPISODE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MO_LOA" enum="SCR_LOAD">
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MH_SAV" enum="SCR_SAVE">
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MO_STAT9" enum="SCR_NETWORK_STATS_COMP">
-			<options360 action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="15" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
-			<options360 action="MENUOPT_ADJUST_GAMETYPE" label="NET_GAMETYPE" value="PREF_GAMETYPE_COMP" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_GAMETYPE" />
-			<optionspc action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="15" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
-			<optionspc action="MENUOPT_ADJUST_GAMETYPE" label="NET_GAMETYPE" value="PREF_GAMETYPE_COMP" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_GAMETYPE" />
-			<optionsps3 action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="14" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
-			<options action="MENUOPT_ADJUST_GAMESCORE" label="NET_GAMESCORE" value="PREF_SCORES_COMP" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_SCORES" />
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MO_STAT9" enum="SCR_NETWORK_STATS_TEAM">
-			<options360 action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="15" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
-			<options360 action="MENUOPT_ADJUST_GAMETYPE" label="NET_GAMETYPE" value="PREF_GAMETYPE_TEAM" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_GAMETYPE" />
-			<optionspc action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="15" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
-			<optionspc action="MENUOPT_ADJUST_GAMETYPE" label="NET_GAMETYPE" value="PREF_GAMETYPE_TEAM" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_GAMETYPE" />
-			<optionsps3 action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="14" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
-			<options action="MENUOPT_ADJUST_GAMESCORE" label="NET_GAMESCORE" value="PREF_SCORES_TEAM" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_SCORES" />
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MO_STAT9" enum="SCR_NETWORK_STATS_RACE">
-			<options360 action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="15" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
-			<options360 action="MENUOPT_ADJUST_GAMETYPE" label="NET_GAMETYPE" value="PREF_GAMETYPE_RACE" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_GAMETYPE" />
-			<optionspc action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="15" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
-			<optionspc action="MENUOPT_ADJUST_GAMETYPE" label="NET_GAMETYPE" value="PREF_GAMETYPE_RACE" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_GAMETYPE" />
-			<optionsps3 action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="14" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
-			<options action="MENUOPT_ADJUST_RACECLASS" label="RACECLASS" value="PREF_RACETYPE" scaler="5" displayValue="MENU_DISPLAY_NETSTATS_RACETYPE" />
-			<options action="MENUOPT_ADJUST_RACENAME" label="NET_RACENAME" value="PREF_RACENAME" scaler="54" displayValue="MENU_DISPLAY_NETSTATS_RACENAME0" />
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MO_STAT9" enum="SCR_NETWORK_STATS_COOP">
-			<options360 action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="15" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
-			<options360 action="MENUOPT_ADJUST_GAMETYPE" label="NET_GAMETYPE" value="PREF_GAMETYPE_COOP" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_GAMETYPE" />
-			<optionspc action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="15" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
-			<optionspc action="MENUOPT_ADJUST_GAMETYPE" label="NET_GAMETYPE" value="PREF_GAMETYPE_COOP" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_GAMETYPE" />
-			<optionsps3 action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="14" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
-			<options action="MENUOPT_ADJUST_GAMESCORE" label="NET_GAMESCORE" value="PREF_SCORES_COOP" scaler="3" displayValue="MENU_DISPLAY_NETSTATS_SCORES" />
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MO_STAT9" enum="SCR_NETWORK_STATS_GAMER_RANK">
-			<options360 action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="15" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
-			<options360 action="MENUOPT_ADJUST_GAMETYPE" label="NET_GAMETYPE" value="PREF_GAMETYPE_GAMER_RANK" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_GAMETYPE" />
-			<optionspc action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="15" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
-			<optionspc action="MENUOPT_ADJUST_GAMETYPE" label="NET_GAMETYPE" value="PREF_GAMETYPE_GAMER_RANK" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_GAMETYPE" />
-			<optionsps3 action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="14" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu360 HeaderText="MO_STAT9" enum="SCR_NETWORK_STATS_TRUESKILL">
-			<options action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="15" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
-			<options action="MENUOPT_ADJUST_GAMETYPE" label="NET_GAMETYPE" value="PREF_GAMETYPE_TRUESKILL" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_GAMETYPE" />
-			<options action="MENUOPT_ADJUST_TRUESKILL_GAMEMODE" label="NET_GAMENAME" value="PREF_GAMEMODE_TRUESKILL" scaler="13" displayValue="MENU_DISPLAY_NETSTATS_TRUESKILLNAME" />
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu360>
-
-
-		<menupc HeaderText="MO_STAT9" enum="SCR_NETWORK_STATS_TRUESKILL">
-			<options action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="15" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
-			<options action="MENUOPT_ADJUST_GAMETYPE" label="NET_GAMETYPE" value="PREF_GAMETYPE_TRUESKILL" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_GAMETYPE" />
-			<options action="MENUOPT_ADJUST_TRUESKILL_GAMEMODE" label="NET_GAMENAME" value="PREF_GAMEMODE_TRUESKILL" scaler="13" displayValue="MENU_DISPLAY_NETSTATS_TRUESKILLNAME" />
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menupc>
-
-		<menu HeaderText="MO_STAT9" enum="SCR_NETWORK_STATS_VIEW">
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MH_PLS" enum="SCR_PLAYERSETTINGS_FEMALE">
-			<options action="MENUOPT_ADJUST" label="MO_GENRE" value="PREF_GENRE" scaler="2" displayValue="MENU_DISPLAY_PLAYERSETTINGS_GENRE" />
-			<options action="MENUOPT_ADJUST" label="MO_HAIR" value="PREF_HAIR_FEMALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-			<options action="MENUOPT_ADJUST" label="MO_HEAD" value="PREF_HEAD_FEMALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
-			<options action="MENUOPT_ADJUST" label="MO_TORSO" value="PREF_TORSO_FEMALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
-			<options action="MENUOPT_ADJUST" label="MO_LEGS" value="PREF_LEGS_FEMALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
-			<options action="MENUOPT_ADJUST" label="MO_GLASSES" value="PREF_GLASSES_FEMALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-			<options action="MENUOPT_ADJUST" label="MO_HATS" value="PREF_HATS_FEMALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MH_PLS" enum="SCR_PLAYERSETTINGS_MALE">
-			<options action="MENUOPT_ADJUST" label="MO_GENRE" value="PREF_GENRE" scaler="2" displayValue="MENU_DISPLAY_PLAYERSETTINGS_GENRE" />
-			<options action="MENUOPT_ADJUST" label="MO_HEAD" value="PREF_HEAD_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
-			<options action="MENUOPT_ADJUST" label="MO_TORSO" value="PREF_TORSO_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
-			<options action="MENUOPT_ADJUST" label="MO_LEGS" value="PREF_LEGS_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
-			<options action="MENUOPT_ADJUST" label="MO_GLASSES" value="PREF_GLASSES_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-			<options action="MENUOPT_ADJUST" label="MO_HATS" value="PREF_HATS_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-			<options action="MENUOPT_ADJUST" label="MO_HAIR" value="PREF_HAIR_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-			<options action="MENUOPT_ADJUST" label="MO_FACIAL_HAIR" value="PREF_FACIAL_HAIR_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-			<options action="MENUOPT_ADJUST" label="MO_OUTFIT" value="PREF_OUTFIT_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MH_PLS" enum="SCR_PLAYERSETTINGS_FEMALE_UNDRESSED">
-			<options action="MENUOPT_ADJUST" label="MO_GENRE" value="PREF_GENRE" scaler="2" displayValue="MENU_DISPLAY_PLAYERSETTINGS_GENRE" />
-			<options action="MENUOPT_ADJUST" label="MO_GLASSES" value="PREF_GLASSES_FEMALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-			<options action="MENUOPT_ADJUST" label="MO_HATS" value="PREF_HATS_FEMALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-			<options action="MENUOPT_ADJUST" label="MO_HAIR" value="PREF_HAIR_FEMALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MH_PLS" enum="SCR_PLAYERSETTINGS_MALE_UNDRESSED">
-			<options action="MENUOPT_ADJUST" label="MO_GENRE" value="PREF_GENRE" scaler="2" displayValue="MENU_DISPLAY_PLAYERSETTINGS_GENRE" />
-			<options action="MENUOPT_ADJUST" label="MO_HEAD" value="PREF_HEAD_MALE_UNDRESSED" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
-			<options action="MENUOPT_ADJUST" label="MO_GLASSES" value="PREF_GLASSES_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-			<options action="MENUOPT_ADJUST" label="MO_HATS" value="PREF_HATS_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-			<options action="MENUOPT_ADJUST" label="MO_HAIR" value="PREF_HAIR_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-			<options action="MENUOPT_ADJUST" label="MO_FACIAL_HAIR" value="PREF_FACIAL_HAIR_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-		<menu HeaderText="MH_PLS" enum="SCR_PLAYERSETTINGS_MALE_ZOMBIE">
-			<options action="MENUOPT_ADJUST" label="MO_GLASSES" value="PREF_GLASSES_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-			<options action="MENUOPT_ADJUST" label="MO_HATS" value="PREF_HATS_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menu>
-
-
-		<menups3 HeaderText="MO_SIXAXIS" enum="SCR_CONTROLLER_SIXAXIS">
-			<options action="MENUOPT_ADJUST" label="MO_6AXIS_HELI" value="PREF_SIXAXIS_HELI" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_ADJUST" label="MO_6AXIS_BIKE" value="PREF_SIXAXIS_BIKE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_ADJUST" label="MO_6AXIS_BOAT" value="PREF_SIXAXIS_BOAT" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_ADJUST" label="MO_6AXIS_AFTER" value="PREF_SIXAXIS_AFTERTOUCH" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_ADJUST" label="MO_6AXIS_RELOA" value="PREF_SIXAXIS_RELOAD" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_ADJUST" label="MO_6AXIS_ACT" value="PREF_SIXAXIS_ACTIVITY" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_ADJUST" label="MO_6AXIS_CALI" value="PREF_SIXAXIS_CALIBRATION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menups3>
-
-
-		<menupldebug HeaderText="MH_PLS" enum="SCR_PLAYERSETTINGS_DEBUG">
-			<options action="MENUOPT_ADJUST" label="PV_COMP_HEAD" value="PREF_PV_COMP_HEAD" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
-			<options action="MENUOPT_ADJUST" label="PV_COMP_UPPR" value="PREF_PV_COMP_UPPR" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
-			<options action="MENUOPT_ADJUST" label="PV_COMP_LOWR" value="PREF_PV_COMP_LOWR" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
-			<options action="MENUOPT_ADJUST" label="PV_COMP_SUSE" value="PREF_PV_COMP_SUSE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
-			<options action="MENUOPT_ADJUST" label="PV_COMP_HAND" value="PREF_PV_COMP_HAND" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
-			<options action="MENUOPT_ADJUST" label="PV_COMP_FEET" value="PREF_PV_COMP_FEET" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
-			<options action="MENUOPT_ADJUST" label="PV_COMP_JACK" value="PREF_PV_COMP_JACK" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
-			<options action="MENUOPT_ADJUST" label="PV_COMP_HAIR" value="PREF_PV_COMP_HAIR" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
-			<options action="MENUOPT_ADJUST" label="PV_COMP_SUS2" value="PREF_PV_COMP_SUS2" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
-			<options action="MENUOPT_ADJUST" label="PV_COMP_TEEF" value="PREF_PV_COMP_TEEF" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
-			<options action="MENUOPT_ADJUST" label="ANCHOR_HEAD" value="PREF_ANCHOR_HEAD" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-			<options action="MENUOPT_ADJUST" label="ANCHOR_EYES" value="PREF_ANCHOR_EYES" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-			<options action="MENUOPT_ADJUST" label="ANCHOR_EARS" value="PREF_ANCHOR_EARS" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-			<options action="MENUOPT_ADJUST" label="ANCHOR_MOUTH" value="PREF_ANCHOR_MOUTH" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-			<options action="MENUOPT_ADJUST" label="ANCHOR_L_HAND" value="PREF_ANCHOR_LEFT_HAND" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-			<options action="MENUOPT_ADJUST" label="ANCHOR_R_HAND" value="PREF_ANCHOR_RIGHT_HAND" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-			<options action="MENUOPT_ADJUST" label="ANCHOR_L_WRIST" value="PREF_ANCHOR_LEFT_WRIST" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-			<options action="MENUOPT_ADJUST" label="ANCHOR_R_WRIST" value="PREF_ANCHOR_RIGHT_WRIST" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-			<options action="MENUOPT_ADJUST" label="ANCHOR_HIP" value="PREF_ANCHOR_HIP" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-			<options action="MENUOPT_ADJUST" label="ANCHOR_L_FOOT" value="PREF_ANCHOR_LEFT_FOOT" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-			<options action="MENUOPT_ADJUST" label="ANCHOR_R_FOOT" value="PREF_ANCHOR_RIGHT_FOOT" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menupldebug>
-
-
-		<menupc HeaderText="MH_GFX" enum="SCR_ADVANCED">
-			<optionspc action="MENUOPT_ADJUST" label="MO_VM" value="PREF_VIDEO_MODE" scaler="11" displayValue="MENU_DISPLAY_RESOLUTION_SLIDERBAR" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_ASPRAT" value="PREF_ASPECT" scaler="6" displayValue="MENU_DISPLAY_ASPECT" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_TEX" value="PREF_TEXTURE_QUALITY" scaler="3" displayValue="MENU_DISPLAY_QUALITY_SETTINGS" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_RFLTRESO" value="PREF_REFLECTION_RESOLUTION" scaler="5" displayValue="MENU_DISPLAY_REFLECTION_QUALITY" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_WATERQUAL" value="PREF_WATER_QUALITY" scaler="4" displayValue="MENU_DISPLAY_QUALITY_SETTINGS" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_SDW" value="PREF_SHADOW_QUALITY" scaler="5" displayValue="MENU_DISPLAY_SHADOW_QUALITY" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_SHADOWDEN" value="PREF_SHADOW_DENSITY" scaler="4" displayValue="MENU_DISPLAY_SHADOW_DENSITY" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_ANISO" value="PREF_ANISO_QUALITY" scaler="5" displayValue="MENU_TEXTURE_QUALITY_SETTINGS" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_VIEWDIST" value="PREF_VIEW_DISTANCE" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_DETAIL" value="PREF_DETAIL_QUALITY" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_CARS" value="PREF_CAR_DENSITY" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_VSYNC" value="PREF_VSYNC" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<!--optionspc action="MENUOPT_ADJUST" label="Shadow Filter" value="PREF_SHADOW_FILTER" scaler="19" displayValue="MENU_DISPLAY_SHADOWFILTER"/-->
-			<optionspc action="MENUOPT_ADJUST" label="Console Shadows" value="PREF_CONSOLE_SHADOWS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<optionspc action="MENUOPT_ADJUST" label="TreeFX" value="PREF_TREE_LIGHTING" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<optionspc action="MENUOPT_ADJUST" label="FXAA" value="PREF_FXAA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<optionspc action="MENUOPT_ADJUST" label="FPS Limiter" value="PREF_FPS_LIMIT_PRESET" scaler="15" displayValue="MENU_DISPLAY_FRAMELIMIT" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<optionspc action="MENUOPT_GRAPHICS_ANALYZER" label="MO_ANALYZER" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />
-			<optionspc action="MENUOPT_BENCHMARK" label="MO_BENCHMARK" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-		</menupc>
-
-		<menupc HeaderText="MH_GFX" enum="SCR_TGRAPHICS">
-			<optionspc action="MENUOPT_ADJUST" label="MO_VM" value="PREF_VIDEO_MODE" scaler="11" displayValue="MENU_DISPLAY_RESOLUTION_SLIDERBAR" />
-			<optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_ASPRAT" value="PREF_ASPECT" scaler="6" displayValue="MENU_DISPLAY_ASPECT" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_TEX" value="PREF_TEXTURE_QUALITY" scaler="3" displayValue="MENU_DISPLAY_QUALITY_SETTINGS" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_RFLTRESO" value="PREF_REFLECTION_RESOLUTION" scaler="5" displayValue="MENU_DISPLAY_REFLECTION_QUALITY" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_WATERQUAL" value="PREF_WATER_QUALITY" scaler="4" displayValue="MENU_DISPLAY_QUALITY_SETTINGS" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_SDW" value="PREF_SHADOW_QUALITY" scaler="5" displayValue="MENU_DISPLAY_SHADOW_QUALITY" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_SHADOWDEN" value="PREF_SHADOW_DENSITY" scaler="4" displayValue="MENU_DISPLAY_SHADOW_DENSITY" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_ANISO" value="PREF_ANISO_QUALITY" scaler="5" displayValue="MENU_TEXTURE_QUALITY_SETTINGS" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_VIEWDIST" value="PREF_VIEW_DISTANCE" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_DETAIL" value="PREF_DETAIL_QUALITY" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_CARS" value="PREF_CAR_DENSITY" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
-			<optionspc action="MENUOPT_ADJUST" label="MO_VSYNC" value="PREF_VSYNC" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<!--optionspc action="MENUOPT_ADJUST" label="Shadow Filter" value="PREF_SHADOW_FILTER" scaler="19" displayValue="MENU_DISPLAY_SHADOWFILTER"/-->
-			<optionspc action="MENUOPT_ADJUST" label="Console Shadows" value="PREF_CONSOLE_SHADOWS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<optionspc action="MENUOPT_ADJUST" label="TreeFX" value="PREF_TREE_LIGHTING" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<optionspc action="MENUOPT_ADJUST" label="FXAA" value="PREF_FXAA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<optionspc action="MENUOPT_ADJUST" label="FPS Limiter" value="PREF_FPS_LIMIT_PRESET" scaler="15" displayValue="MENU_DISPLAY_FRAMELIMIT" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<optionspc action="MENUOPT_GRAPHICS_ANALYZER" label="MO_ANALYZER" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />
-			<optionspc action="MENUOPT_BENCHMARK" label="MO_BENCHMARK" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-		</menupc>
-
-		<menupc HeaderText="MH_GAM" enum="SCR_TGAME">
-			<optionspc action="MENUOPT_ADJUST" label="MO_REPLAY" value="PREF_REPLAY_MODE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<optionspc action="MENUOPT_ADJUST" label="Skip Intro" value="PREF_SKIP_INTRO" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<optionspc action="MENUOPT_ADJUST" label="Skip Menu" value="PREF_SKIP_MENU" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<optionspc action="MENUOPT_ADJUST" label="Borderless" value="PREF_BORDERLESS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<optionspc action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menupc>
-
-		<menupc HeaderText="MH_TITLE" enum="SCR_TITLE">
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-		</menupc>
-		<menupc HeaderText="MH_BENCHMARK" enum="SCR_BENCHMARK">
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-		</menupc>
-
-		<menupc HeaderText="MH_TOPTIONS" enum="SCR_TOPTIONS">
-			<optionspc action="MENUOPT_JUMP_NEXT_MENU" label="MO_TCONTROL" value="SCR_TCONTROL" scaler="1" displayValue="MENU_DISPLAY_NONE" />
-			<optionspc action="MENUOPT_JUMP_NEXT_MENU" label="MO_TAUDIO" value="SCR_TAUDIO" scaler="2" displayValue="MENU_DISPLAY_NONE" />
-			<optionspc action="MENUOPT_JUMP_NEXT_MENU" label="MO_TDISPLAY" value="SCR_TDISPLAY" scaler="3" displayValue="MENU_DISPLAY_NONE" />
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-		</menupc>
-
-		<menupc HeaderText="MH_CON" enum="SCR_TCONTROL">
-			<options action="MENUOPT_KEYBOARD_OPTIONS" label="MO_KBOPT" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_CONTROLLER_OPTIONS" label="MO_CTRLOPT" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-		</menupc>
-		<menupc HeaderText="MH_AUD" enum="SCR_TAUDIO">
-			<options action="MENUOPT_ADJUST" label="MO_SFX" value="PREF_SFX_VOLUME" scaler="11" displayValue="MENU_DISPLAY_SLIDERBAR" />
-			<options action="MENUOPT_ADJUST_MUSIC_VOLUME" label="MO_MUS" value="PREF_MUSIC_VOLUME" scaler="11" displayValue="MENU_DISPLAY_SLIDERBAR" />
-			<options action="MENUOPT_ADJUST" label="MO_GPS" value="PREF_GPS_SPEECH" scaler="3" displayValue="MENU_DISPLAY_GPS_SPEECH" />
-			<options action="MENUOPT_ADJUST_SPEAKER_OUTPUT" label="MO_OUTP" value="PREF_SPEAKER_OUTPUT" scaler="2" displayValue="MENU_DISPLAY_SPEAKER_OUTPUT_STEREO" />
-			<options action="MENUOPT_ADJUST_VOICE_OUTPUT" label="MO_VOUT" value="PREF_VOICE_OUTPUT" scaler="2" displayValue="MENU_DISPLAY_VOICE_OUTPUT" />
-			<options action="MENUOPT_ADJUST" label="MO_VMIC" value="PREF_MICROPHONE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_ADJUST" label="ME_IND_FM_17" value="PREF_PLAYMODE" scaler="3" displayValue="MENU_DISPLAY_PLAYMODE" />
-			<options action="MENUOPT_ADJUST" label="ME_IND_FM_02" value="PREF_AUTOSCAN" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_QUICKSCAN" label="ME_IND_FM_03" value="SET_SCAN" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_COMPLETESCAN" label="ME_IND_FM_04" value="SET_SCAN" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-		</menupc>
-		<menupc HeaderText="MH_DIS" enum="SCR_TDISPLAY">
-			<options action="MENUOPT_ADJUST" label="MO_SUB" value="PREF_SUBTITLES" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_ADJUST" label="MO_RAD" value="PREF_RADAR_MODE" scaler="3" displayValue="MENU_DISPLAY_RADAR_MODE" />
-			<options action="MENUOPT_ADJUST" label="MO_HUD" value="PREF_DISPLAY_HUD" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_ADJUST" label="MO_HUD_TARG" value="PREF_RETICULE" scaler="2" displayValue="MENU_DISPLAY_RETICULE_MODE" />
-			<options action="MENUOPT_ADJUST" label="MO_DISPGPS" value="PREF_DISPLAY_GPS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_ADJUST" label="MO_HB_CAM" value="PREF_HANDBRAKE_CAM" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_ADJUST" label="MO_LAN" value="PREF_CURRENT_LANGUAGE" scaler="7" displayValue="MENU_DISPLAY_LANGUAGE" />
-			<optionsps3 action="MENUOPT_ADJUST" label="MO_FLIC" value="PREF_FLICKER_FILTER" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<optionspc action="MENUOPT_ADJUST" label="Screen Filter" value="PREF_TIMECYC" scaler="10" displayValue="MENU_DISPLAY_TIMECYC" />
-			<optionspc action="MENUOPT_ADJUST" label="Motion Blur" value="PREF_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-      <optionspc action="MENUOPT_ADJUST" label="Depth of Field" value="PREF_TCYC_DOF" scaler="10" displayValue="MENU_DISPLAY_DOF" />
-      <optionspc action="MENUOPT_ADJUST" label="Cutscene DoF" value="PREF_CUTSCENE_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_SET" label="MO_DEF" value="SET_DEFAULT_DISPLAY" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-		</menupc>
-
-		<menupc HeaderText="MH_CUSTOM" enum="SCR_PLAYERSETTINGS_MALE_CUSTOM_HEAD">
-			<options action="MENUOPT_JUMP_NEXT_MENU" label="MO_FACE" value="SCR_PLAYERSETTINGS_CHOOSE_PICTURE_TYPE" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_ADJUST" label="MO_SKINTONE" value="PREF_SKINTONE_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
-			<options action="MENUOPT_ADJUST" label="MO_HEADSHAPE" value="PREF_HEADSHAPE_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
-			<options action="MENUOPT_ADJUST" label="MO_HAIR" value="PREF_HAIR_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-			<options action="MENUOPT_ADJUST" label="MO_FACIAL_HAIR" value="PREF_FACIAL_HAIR_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menupc>
-
-		<menupc HeaderText="MH_CUSTOM" enum="SCR_PLAYERSETTINGS_FEMALE_CUSTOM_HEAD">
-			<options action="MENUOPT_JUMP_NEXT_MENU" label="MO_FACE" value="SCR_PLAYERSETTINGS_CHOOSE_PICTURE_TYPE" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<options action="MENUOPT_ADJUST" label="MO_SKINTONE" value="PREF_SKINTONE_FEMALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
-			<options action="MENUOPT_ADJUST" label="MO_HEADSHAPE" value="PREF_HEADSHAPE_FEMALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
-			<options action="MENUOPT_ADJUST" label="MO_HAIR" value="PREF_HAIR_FEMALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menupc>
-
-
-		<menupc HeaderText="MH_CLIPS" enum="SCR_MONTAGE_CLIPS_MENU">
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menupc>
-
-		<menupc HeaderText="MH_EDITOR" enum="SCR_MONTAGE_EDITOR_MENU">
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menupc>
-
-		<menupc HeaderText="MH_VIEW" enum="SCR_MONTAGE_GALLERY_MENU">
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menupc>
-
-		<menupc HeaderText="MH_UPLOAD" enum="SCR_MONTAGE_UPLOAD_MENU">
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menupc>
-
-		<menupc HeaderText="MH_ONLINE" enum="SCR_MONTAGE_ONLINE_MENU">
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menupc>
-
-		<menupc HeaderText="MH_FACE" enum="SCR_PLAYERSETTINGS_CHOOSE_PICTURE_TYPE">
-			<options action="MENUOPT_JUMP_NEXT_MENU" label="MO_LPIC" value="SCR_PLAYERSETTINGS_BROWSE_PICTURES" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menupc>
-
-		<menupc HeaderText="MH_CAPT" enum="SCR_PLAYERSETTINGS_BROWSE_PICTURES">
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menupc>
-
-		<menupc HeaderText="MH_CAPT" enum="SCR_PLAYERSETTINGS_TWEAK_IMAGE">
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menupc>
-		<menupc HeaderText="MH_CAPT" enum="SCR_PLAYERSETTINGS_WEBCAM_PICTURE">
-
-			<options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
-		</menupc>
-
-
-	</sMenuScreen>
+    </sMenuDisplayValue>
+
+    <sMenuScreen>
+        <menu HeaderText="MH_GAM" enum="SCR_GAME">
+            <options action="MENUOPT_JUMP_NEXT_MENU" label="MO_LOA" value="SCR_LOAD" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_JUMP_NEWGAME" label="MO_NEW" value="SCR_NEW_GAME" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_ADJUST" label="MO_AUTOSAV" value="PREF_AUTOSAVE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_ADJUST" label="MO_REPLAY" value="PREF_REPLAY_MODE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_JUMP_GUIDE" label="MO_GUIDE" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <optionspc action="MENUOPT_ADJUST_GAMEMODE" label="Skip Intro" value="PREF_SKIP_INTRO" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST_GAMEMODE" label="Skip Menu" value="PREF_SKIP_MENU" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST_GAMEMODE" label="Borderless" value="PREF_BORDERLESS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_QUIT" label="MO_EXITGAM" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MH_GAM" enum="SCR_NETWORK_GAME">
+            <options action="MENUOPT_LEAVE_GAME" label="MO_LEAVE" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_ADJUST" label="MO_REPLAY" value="PREF_REPLAY_MODE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_JUMP_GUIDE" label="MO_GUIDE" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MH_BRI" enum="SCR_BRIEF">
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MH_MAP" enum="SCR_MAP">
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MH_STA" enum="SCR_STATS">
+            <options action="MENUOPT_NONE" label="MO_STAT1" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="MO_STAT2" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="MO_STAT3" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="MO_STAT4" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="MO_STAT5" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="MO_STAT6" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="MO_STAT7" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="MO_STAT8" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options360 action="MENUOPT_NETWORK_STATS" label="MO_STAT9" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NET_STATS" />
+            <optionsps3 action="MENUOPT_NETWORK_STATS" label="MO_STAT9_PS3" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NET_STATS" />
+            <optionspc action="MENUOPT_NETWORK_STATS" label="MO_STAT9" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NET_STATS" />
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MH_CON" enum="SCR_CONTROLS">
+            <optionspc action="MENUOPT_KEYBOARD_OPTIONS" label="MO_KBOPT" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_CONTROLLER_OPTIONS" label="MO_CTRLOPT" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MH_CON" enum="SCR_KEYBOARD_OPTIONS">
+            <optionspc action="MENUOPT_ADJUST" label="MO_INVMS" value="PREF_INVERT_MOUSE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_SPRINT" value="PREF_SPRINT" scaler="2" displayValue="MENU_DISPLAY_SNIPER_ZOOM_TYPE" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_CROUCH" value="PREF_CROUCH" scaler="2" displayValue="MENU_DISPLAY_SNIPER_ZOOM_TYPE" />
+            <!--optionspc  action="MENUOPT_ADJUST"             label="MO_STRAFE"  value="PREF_STRAFE"                  scaler="2" displayValue="MENU_DISPLAY_ON_OFF"/-->
+            <optionspc action="MENUOPT_ADJUST" label="MO_ZOOMAIM" value="PREF_ZOOM_AIM" scaler="2" displayValue="MENU_DISPLAY_SNIPER_ZOOM_TYPE" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_MOUSE" value="PREF_MOUSE_SENSITIVITY" scaler="20" displayValue="MENU_DISPLAY_SLIDERBAR" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_MOWHEEL" value="PREF_MOUSE_WHEEL_SENSITIVITY" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_HELIKB" value="PREF_HELIKB" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <optionspc action="MENUOPT_REMAP_KEYBOARD" label="MO_KBMAP" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MH_CON" enum="SCR_CONTROLLER_OPTIONS">
+            <options action="MENUOPT_ADJUST" label="MO_CONFIG" value="PREF_CONTROL_CONFIG" scaler="2" displayValue="MENU_DISPLAY_CONTROL_CONFIG" />
+            <options action="MENUOPT_ADJUST" label="MO_VIB" value="PREF_VIBRATION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_ADJUST" label="MO_AIM" value="PREF_AUTO_AIM" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_ADJUST" label="MO_INV" value="PREF_INVERT_LOOK" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_ADJUST" label="MO_SNI" value="PREF_SNIPER_CONTROL" scaler="2" displayValue="MENU_DISPLAY_SNIPER_TYPE" />
+            <options action="MENUOPT_ADJUST" label="MO_SENS" value="PREF_CONTROLLER_SENSITIVITY" scaler="3" displayValue="MENU_DISPLAY_CONTROLLER_SENSITIVITY" />
+            <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_DINPUT" value="PREF_DINPUT" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <optionspc action="MENUOPT_SHOW_CONTROLLER" label="MO_CTRLMAP" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <optionsps3 action="MENUOPT_CONTROLLER_SIXAXIS" label="MO_SIXAXIS" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MH_CON" enum="SCR_REMAP_KEYBOARD">
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MH_CON" enum="SCR_SHOW_CONTROLLER">
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MH_CON" enum="SCR_NETWORK_CONTROLS">
+            <options action="MENUOPT_ADJUST" label="MO_CONFIG" value="PREF_CONTROL_CONFIG" scaler="2" displayValue="MENU_DISPLAY_CONTROL_CONFIG" />
+            <options action="MENUOPT_ADJUST" label="MO_VIB" value="PREF_VIBRATION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_ADJUST" label="MO_AIM" value="PREF_AUTO_AIM" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_ADJUST" label="MO_INV" value="PREF_INVERT_LOOK" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_ADJUST" label="MO_SNI" value="PREF_SNIPER_CONTROL" scaler="2" displayValue="MENU_DISPLAY_SNIPER_TYPE" />
+            <options action="MENUOPT_ADJUST" label="MO_SENS" value="PREF_CONTROLLER_SENSITIVITY" scaler="3" displayValue="MENU_DISPLAY_CONTROLLER_SENSITIVITY" />
+            <optionsps3 action="MENUOPT_CONTROLLER_SIXAXIS" label="MO_SIXAXIS" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MH_AUD" enum="SCR_AUDIO">
+            <options action="MENUOPT_ADJUST" label="MO_SFX" value="PREF_SFX_VOLUME" scaler="11" displayValue="MENU_DISPLAY_SLIDERBAR" />
+            <options action="MENUOPT_ADJUST_MUSIC_VOLUME" label="MO_MUS" value="PREF_MUSIC_VOLUME" scaler="11" displayValue="MENU_DISPLAY_SLIDERBAR" />
+            <options action="MENUOPT_ADJUST" label="MO_GPS" value="PREF_GPS_SPEECH" scaler="3" displayValue="MENU_DISPLAY_GPS_SPEECH" />
+            <options action="MENUOPT_ADJUST_SPEAKER_OUTPUT" label="MO_OUTP" value="PREF_SPEAKER_OUTPUT" scaler="2" displayValue="MENU_DISPLAY_SPEAKER_OUTPUT_STEREO" />
+            <options action="MENUOPT_ADJUST_RADIO_STATION" label="MO_RST" value="PREF_RADIO_STATION" scaler="0" displayValue="MENU_DISPLAY_RADIO_STATIONS" />
+            <options action="MENUOPT_ADJUST_VOICE_OUTPUT" label="MO_VOUT" value="PREF_VOICE_OUTPUT" scaler="2" displayValue="MENU_DISPLAY_VOICE_OUTPUT" />
+            <options action="MENUOPT_ADJUST" label="MO_VMIC" value="PREF_MICROPHONE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_ADJUST" label="ME_IND_FM_17" value="PREF_PLAYMODE" scaler="3" displayValue="MENU_DISPLAY_PLAYMODE" />
+            <options action="MENUOPT_ADJUST" label="ME_IND_FM_02" value="PREF_AUTOSCAN" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_QUICKSCAN" label="ME_IND_FM_03" value="SET_SCAN" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_COMPLETESCAN" label="ME_IND_FM_04" value="SET_SCAN" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MH_DIS" enum="SCR_DISPLAY">
+            <options action="MENUOPT_ADJUST" label="MO_BRI" value="PREF_BRIGHTNESS" scaler="11" displayValue="MENU_DISPLAY_SLIDERBAR" />
+            <options action="MENUOPT_ADJUST" label="MO_CON" value="PREF_CONTRAST" scaler="11" displayValue="MENU_DISPLAY_SLIDERBAR" />
+            <options action="MENUOPT_ADJUST" label="MO_SAT" value="PREF_SATURATION" scaler="11" displayValue="MENU_DISPLAY_SLIDERBAR" />
+            <options action="MENUOPT_ADJUST" label="MO_SUB" value="PREF_SUBTITLES" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_ADJUST" label="MO_RAD" value="PREF_RADAR_MODE" scaler="3" displayValue="MENU_DISPLAY_RADAR_MODE" />
+            <options action="MENUOPT_ADJUST" label="MO_HUD" value="PREF_DISPLAY_HUD" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_ADJUST" label="MO_HUD_TARG" value="PREF_RETICULE" scaler="2" displayValue="MENU_DISPLAY_RETICULE_MODE" />
+            <options action="MENUOPT_ADJUST" label="MO_DISPGPS" value="PREF_DISPLAY_GPS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_ADJUST" label="MO_HB_CAM" value="PREF_HANDBRAKE_CAM" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_ADJUST" label="MO_LAN" value="PREF_CURRENT_LANGUAGE" scaler="7" displayValue="MENU_DISPLAY_LANGUAGE" />
+            <optionsps3 action="MENUOPT_ADJUST" label="MO_FLIC" value="PREF_FLICKER_FILTER" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <!--optionspc action="MENUOPT_ADJUST" label="Definition" value="PREF_DEFINITION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" /-->
+            <optionspc action="MENUOPT_ADJUST" label="Console Gamma" value="PREF_CONSOLE_GAMMA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="Screen Filter" value="PREF_TIMECYC" scaler="10" displayValue="MENU_DISPLAY_TIMECYC" />
+            <optionspc action="MENUOPT_ADJUST" label="Motion Blur" value="PREF_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="Distant Blur" value="PREF_TCYC_DOF" scaler="10" displayValue="MENU_DISPLAY_DOF" />
+            <optionspc action="MENUOPT_ADJUST" label="Depth of Field" value="PREF_CUTSCENE_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_SET" label="MO_DEF" value="SET_DEFAULT_DISPLAY" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MH_BASIC" enum="SCR_BASIC">
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MO_RED" enum="SCR_CONTROL_ON_FOOT">
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MO_RED" enum="SCR_CONTROL_MELEE">
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MO_RED" enum="SCR_CONTROL_IN_CAR">
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MO_NEW" enum="SCR_NEW_GAME">
+            <options action="MENUOPT_START_EPISODE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_START_EPISODE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_START_EPISODE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_START_EPISODE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_START_EPISODE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_START_EPISODE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_START_EPISODE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_START_EPISODE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_START_EPISODE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MO_LOA" enum="SCR_LOAD">
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MH_SAV" enum="SCR_SAVE">
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MO_STAT9" enum="SCR_NETWORK_STATS_COMP">
+            <options360 action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="15" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
+            <options360 action="MENUOPT_ADJUST_GAMETYPE" label="NET_GAMETYPE" value="PREF_GAMETYPE_COMP" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_GAMETYPE" />
+            <optionspc action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="15" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
+            <optionspc action="MENUOPT_ADJUST_GAMETYPE" label="NET_GAMETYPE" value="PREF_GAMETYPE_COMP" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_GAMETYPE" />
+            <optionsps3 action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="14" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
+            <options action="MENUOPT_ADJUST_GAMESCORE" label="NET_GAMESCORE" value="PREF_SCORES_COMP" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_SCORES" />
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MO_STAT9" enum="SCR_NETWORK_STATS_TEAM">
+            <options360 action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="15" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
+            <options360 action="MENUOPT_ADJUST_GAMETYPE" label="NET_GAMETYPE" value="PREF_GAMETYPE_TEAM" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_GAMETYPE" />
+            <optionspc action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="15" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
+            <optionspc action="MENUOPT_ADJUST_GAMETYPE" label="NET_GAMETYPE" value="PREF_GAMETYPE_TEAM" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_GAMETYPE" />
+            <optionsps3 action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="14" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
+            <options action="MENUOPT_ADJUST_GAMESCORE" label="NET_GAMESCORE" value="PREF_SCORES_TEAM" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_SCORES" />
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MO_STAT9" enum="SCR_NETWORK_STATS_RACE">
+            <options360 action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="15" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
+            <options360 action="MENUOPT_ADJUST_GAMETYPE" label="NET_GAMETYPE" value="PREF_GAMETYPE_RACE" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_GAMETYPE" />
+            <optionspc action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="15" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
+            <optionspc action="MENUOPT_ADJUST_GAMETYPE" label="NET_GAMETYPE" value="PREF_GAMETYPE_RACE" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_GAMETYPE" />
+            <optionsps3 action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="14" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
+            <options action="MENUOPT_ADJUST_RACECLASS" label="RACECLASS" value="PREF_RACETYPE" scaler="5" displayValue="MENU_DISPLAY_NETSTATS_RACETYPE" />
+            <options action="MENUOPT_ADJUST_RACENAME" label="NET_RACENAME" value="PREF_RACENAME" scaler="54" displayValue="MENU_DISPLAY_NETSTATS_RACENAME0" />
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MO_STAT9" enum="SCR_NETWORK_STATS_COOP">
+            <options360 action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="15" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
+            <options360 action="MENUOPT_ADJUST_GAMETYPE" label="NET_GAMETYPE" value="PREF_GAMETYPE_COOP" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_GAMETYPE" />
+            <optionspc action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="15" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
+            <optionspc action="MENUOPT_ADJUST_GAMETYPE" label="NET_GAMETYPE" value="PREF_GAMETYPE_COOP" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_GAMETYPE" />
+            <optionsps3 action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="14" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
+            <options action="MENUOPT_ADJUST_GAMESCORE" label="NET_GAMESCORE" value="PREF_SCORES_COOP" scaler="3" displayValue="MENU_DISPLAY_NETSTATS_SCORES" />
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MO_STAT9" enum="SCR_NETWORK_STATS_GAMER_RANK">
+            <options360 action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="15" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
+            <options360 action="MENUOPT_ADJUST_GAMETYPE" label="NET_GAMETYPE" value="PREF_GAMETYPE_GAMER_RANK" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_GAMETYPE" />
+            <optionspc action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="15" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
+            <optionspc action="MENUOPT_ADJUST_GAMETYPE" label="NET_GAMETYPE" value="PREF_GAMETYPE_GAMER_RANK" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_GAMETYPE" />
+            <optionsps3 action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="14" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu360 HeaderText="MO_STAT9" enum="SCR_NETWORK_STATS_TRUESKILL">
+            <options action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="15" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
+            <options action="MENUOPT_ADJUST_GAMETYPE" label="NET_GAMETYPE" value="PREF_GAMETYPE_TRUESKILL" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_GAMETYPE" />
+            <options action="MENUOPT_ADJUST_TRUESKILL_GAMEMODE" label="NET_GAMENAME" value="PREF_GAMEMODE_TRUESKILL" scaler="13" displayValue="MENU_DISPLAY_NETSTATS_TRUESKILLNAME" />
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu360>
+
+
+        <menupc HeaderText="MO_STAT9" enum="SCR_NETWORK_STATS_TRUESKILL">
+            <options action="MENUOPT_ADJUST_GAMEMODE" label="NET_GAMEMODE" value="PREF_GAMEMODE" scaler="15" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
+            <options action="MENUOPT_ADJUST_GAMETYPE" label="NET_GAMETYPE" value="PREF_GAMETYPE_TRUESKILL" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_GAMETYPE" />
+            <options action="MENUOPT_ADJUST_TRUESKILL_GAMEMODE" label="NET_GAMENAME" value="PREF_GAMEMODE_TRUESKILL" scaler="13" displayValue="MENU_DISPLAY_NETSTATS_TRUESKILLNAME" />
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menupc>
+
+        <menu HeaderText="MO_STAT9" enum="SCR_NETWORK_STATS_VIEW">
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MH_PLS" enum="SCR_PLAYERSETTINGS_FEMALE">
+            <options action="MENUOPT_ADJUST" label="MO_GENRE" value="PREF_GENRE" scaler="2" displayValue="MENU_DISPLAY_PLAYERSETTINGS_GENRE" />
+            <options action="MENUOPT_ADJUST" label="MO_HAIR" value="PREF_HAIR_FEMALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+            <options action="MENUOPT_ADJUST" label="MO_HEAD" value="PREF_HEAD_FEMALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
+            <options action="MENUOPT_ADJUST" label="MO_TORSO" value="PREF_TORSO_FEMALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
+            <options action="MENUOPT_ADJUST" label="MO_LEGS" value="PREF_LEGS_FEMALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
+            <options action="MENUOPT_ADJUST" label="MO_GLASSES" value="PREF_GLASSES_FEMALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+            <options action="MENUOPT_ADJUST" label="MO_HATS" value="PREF_HATS_FEMALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MH_PLS" enum="SCR_PLAYERSETTINGS_MALE">
+            <options action="MENUOPT_ADJUST" label="MO_GENRE" value="PREF_GENRE" scaler="2" displayValue="MENU_DISPLAY_PLAYERSETTINGS_GENRE" />
+            <options action="MENUOPT_ADJUST" label="MO_HEAD" value="PREF_HEAD_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
+            <options action="MENUOPT_ADJUST" label="MO_TORSO" value="PREF_TORSO_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
+            <options action="MENUOPT_ADJUST" label="MO_LEGS" value="PREF_LEGS_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
+            <options action="MENUOPT_ADJUST" label="MO_GLASSES" value="PREF_GLASSES_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+            <options action="MENUOPT_ADJUST" label="MO_HATS" value="PREF_HATS_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+            <options action="MENUOPT_ADJUST" label="MO_HAIR" value="PREF_HAIR_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+            <options action="MENUOPT_ADJUST" label="MO_FACIAL_HAIR" value="PREF_FACIAL_HAIR_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+            <options action="MENUOPT_ADJUST" label="MO_OUTFIT" value="PREF_OUTFIT_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MH_PLS" enum="SCR_PLAYERSETTINGS_FEMALE_UNDRESSED">
+            <options action="MENUOPT_ADJUST" label="MO_GENRE" value="PREF_GENRE" scaler="2" displayValue="MENU_DISPLAY_PLAYERSETTINGS_GENRE" />
+            <options action="MENUOPT_ADJUST" label="MO_GLASSES" value="PREF_GLASSES_FEMALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+            <options action="MENUOPT_ADJUST" label="MO_HATS" value="PREF_HATS_FEMALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+            <options action="MENUOPT_ADJUST" label="MO_HAIR" value="PREF_HAIR_FEMALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MH_PLS" enum="SCR_PLAYERSETTINGS_MALE_UNDRESSED">
+            <options action="MENUOPT_ADJUST" label="MO_GENRE" value="PREF_GENRE" scaler="2" displayValue="MENU_DISPLAY_PLAYERSETTINGS_GENRE" />
+            <options action="MENUOPT_ADJUST" label="MO_HEAD" value="PREF_HEAD_MALE_UNDRESSED" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
+            <options action="MENUOPT_ADJUST" label="MO_GLASSES" value="PREF_GLASSES_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+            <options action="MENUOPT_ADJUST" label="MO_HATS" value="PREF_HATS_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+            <options action="MENUOPT_ADJUST" label="MO_HAIR" value="PREF_HAIR_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+            <options action="MENUOPT_ADJUST" label="MO_FACIAL_HAIR" value="PREF_FACIAL_HAIR_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+        <menu HeaderText="MH_PLS" enum="SCR_PLAYERSETTINGS_MALE_ZOMBIE">
+            <options action="MENUOPT_ADJUST" label="MO_GLASSES" value="PREF_GLASSES_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+            <options action="MENUOPT_ADJUST" label="MO_HATS" value="PREF_HATS_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menu>
+
+
+        <menups3 HeaderText="MO_SIXAXIS" enum="SCR_CONTROLLER_SIXAXIS">
+            <options action="MENUOPT_ADJUST" label="MO_6AXIS_HELI" value="PREF_SIXAXIS_HELI" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_ADJUST" label="MO_6AXIS_BIKE" value="PREF_SIXAXIS_BIKE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_ADJUST" label="MO_6AXIS_BOAT" value="PREF_SIXAXIS_BOAT" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_ADJUST" label="MO_6AXIS_AFTER" value="PREF_SIXAXIS_AFTERTOUCH" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_ADJUST" label="MO_6AXIS_RELOA" value="PREF_SIXAXIS_RELOAD" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_ADJUST" label="MO_6AXIS_ACT" value="PREF_SIXAXIS_ACTIVITY" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_ADJUST" label="MO_6AXIS_CALI" value="PREF_SIXAXIS_CALIBRATION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menups3>
+
+
+        <menupldebug HeaderText="MH_PLS" enum="SCR_PLAYERSETTINGS_DEBUG">
+            <options action="MENUOPT_ADJUST" label="PV_COMP_HEAD" value="PREF_PV_COMP_HEAD" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
+            <options action="MENUOPT_ADJUST" label="PV_COMP_UPPR" value="PREF_PV_COMP_UPPR" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
+            <options action="MENUOPT_ADJUST" label="PV_COMP_LOWR" value="PREF_PV_COMP_LOWR" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
+            <options action="MENUOPT_ADJUST" label="PV_COMP_SUSE" value="PREF_PV_COMP_SUSE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
+            <options action="MENUOPT_ADJUST" label="PV_COMP_HAND" value="PREF_PV_COMP_HAND" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
+            <options action="MENUOPT_ADJUST" label="PV_COMP_FEET" value="PREF_PV_COMP_FEET" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
+            <options action="MENUOPT_ADJUST" label="PV_COMP_JACK" value="PREF_PV_COMP_JACK" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
+            <options action="MENUOPT_ADJUST" label="PV_COMP_HAIR" value="PREF_PV_COMP_HAIR" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
+            <options action="MENUOPT_ADJUST" label="PV_COMP_SUS2" value="PREF_PV_COMP_SUS2" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
+            <options action="MENUOPT_ADJUST" label="PV_COMP_TEEF" value="PREF_PV_COMP_TEEF" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
+            <options action="MENUOPT_ADJUST" label="ANCHOR_HEAD" value="PREF_ANCHOR_HEAD" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+            <options action="MENUOPT_ADJUST" label="ANCHOR_EYES" value="PREF_ANCHOR_EYES" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+            <options action="MENUOPT_ADJUST" label="ANCHOR_EARS" value="PREF_ANCHOR_EARS" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+            <options action="MENUOPT_ADJUST" label="ANCHOR_MOUTH" value="PREF_ANCHOR_MOUTH" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+            <options action="MENUOPT_ADJUST" label="ANCHOR_L_HAND" value="PREF_ANCHOR_LEFT_HAND" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+            <options action="MENUOPT_ADJUST" label="ANCHOR_R_HAND" value="PREF_ANCHOR_RIGHT_HAND" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+            <options action="MENUOPT_ADJUST" label="ANCHOR_L_WRIST" value="PREF_ANCHOR_LEFT_WRIST" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+            <options action="MENUOPT_ADJUST" label="ANCHOR_R_WRIST" value="PREF_ANCHOR_RIGHT_WRIST" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+            <options action="MENUOPT_ADJUST" label="ANCHOR_HIP" value="PREF_ANCHOR_HIP" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+            <options action="MENUOPT_ADJUST" label="ANCHOR_L_FOOT" value="PREF_ANCHOR_LEFT_FOOT" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+            <options action="MENUOPT_ADJUST" label="ANCHOR_R_FOOT" value="PREF_ANCHOR_RIGHT_FOOT" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menupldebug>
+
+
+        <menupc HeaderText="MH_GFX" enum="SCR_ADVANCED">
+            <optionspc action="MENUOPT_ADJUST" label="MO_VM" value="PREF_VIDEO_MODE" scaler="11" displayValue="MENU_DISPLAY_RESOLUTION_SLIDERBAR" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_ASPRAT" value="PREF_ASPECT" scaler="6" displayValue="MENU_DISPLAY_ASPECT" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_TEX" value="PREF_TEXTURE_QUALITY" scaler="3" displayValue="MENU_DISPLAY_QUALITY_SETTINGS" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_RFLTRESO" value="PREF_REFLECTION_RESOLUTION" scaler="5" displayValue="MENU_DISPLAY_REFLECTION_QUALITY" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_WATERQUAL" value="PREF_WATER_QUALITY" scaler="4" displayValue="MENU_DISPLAY_QUALITY_SETTINGS" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_SDW" value="PREF_SHADOW_QUALITY" scaler="5" displayValue="MENU_DISPLAY_SHADOW_QUALITY" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_SHADOWDEN" value="PREF_SHADOW_DENSITY" scaler="4" displayValue="MENU_DISPLAY_SHADOW_DENSITY" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_ANISO" value="PREF_ANISO_QUALITY" scaler="5" displayValue="MENU_TEXTURE_QUALITY_SETTINGS" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_VIEWDIST" value="PREF_VIEW_DISTANCE" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_DETAIL" value="PREF_DETAIL_QUALITY" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_CARS" value="PREF_CAR_DENSITY" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_VSYNC" value="PREF_VSYNC" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <!--optionspc action="MENUOPT_ADJUST" label="Shadow Filter" value="PREF_SHADOW_FILTER" scaler="19" displayValue="MENU_DISPLAY_SHADOWFILTER"/-->
+            <optionspc action="MENUOPT_ADJUST" label="Console Shadows" value="PREF_CONSOLE_SHADOWS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="TreeFX" value="PREF_TREE_LIGHTING" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="FXAA" value="PREF_FXAA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="FPS Limiter" value="PREF_FPS_LIMIT_PRESET" scaler="15" displayValue="MENU_DISPLAY_FRAMELIMIT" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <optionspc action="MENUOPT_GRAPHICS_ANALYZER" label="MO_ANALYZER" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />
+            <optionspc action="MENUOPT_BENCHMARK" label="MO_BENCHMARK" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+        </menupc>
+
+        <menupc HeaderText="MH_GFX" enum="SCR_TGRAPHICS">
+            <optionspc action="MENUOPT_ADJUST" label="MO_VM" value="PREF_VIDEO_MODE" scaler="11" displayValue="MENU_DISPLAY_RESOLUTION_SLIDERBAR" />
+            <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_ASPRAT" value="PREF_ASPECT" scaler="6" displayValue="MENU_DISPLAY_ASPECT" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_TEX" value="PREF_TEXTURE_QUALITY" scaler="3" displayValue="MENU_DISPLAY_QUALITY_SETTINGS" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_RFLTRESO" value="PREF_REFLECTION_RESOLUTION" scaler="5" displayValue="MENU_DISPLAY_REFLECTION_QUALITY" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_WATERQUAL" value="PREF_WATER_QUALITY" scaler="4" displayValue="MENU_DISPLAY_QUALITY_SETTINGS" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_SDW" value="PREF_SHADOW_QUALITY" scaler="5" displayValue="MENU_DISPLAY_SHADOW_QUALITY" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_SHADOWDEN" value="PREF_SHADOW_DENSITY" scaler="4" displayValue="MENU_DISPLAY_SHADOW_DENSITY" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_ANISO" value="PREF_ANISO_QUALITY" scaler="5" displayValue="MENU_TEXTURE_QUALITY_SETTINGS" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_VIEWDIST" value="PREF_VIEW_DISTANCE" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_DETAIL" value="PREF_DETAIL_QUALITY" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_CARS" value="PREF_CAR_DENSITY" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_VSYNC" value="PREF_VSYNC" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <!--optionspc action="MENUOPT_ADJUST" label="Shadow Filter" value="PREF_SHADOW_FILTER" scaler="19" displayValue="MENU_DISPLAY_SHADOWFILTER"/-->
+            <optionspc action="MENUOPT_ADJUST" label="Console Shadows" value="PREF_CONSOLE_SHADOWS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="TreeFX" value="PREF_TREE_LIGHTING" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="FXAA" value="PREF_FXAA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="FPS Limiter" value="PREF_FPS_LIMIT_PRESET" scaler="15" displayValue="MENU_DISPLAY_FRAMELIMIT" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <optionspc action="MENUOPT_GRAPHICS_ANALYZER" label="MO_ANALYZER" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />
+            <optionspc action="MENUOPT_BENCHMARK" label="MO_BENCHMARK" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+        </menupc>
+
+        <menupc HeaderText="MH_GAM" enum="SCR_TGAME">
+            <optionspc action="MENUOPT_ADJUST" label="MO_REPLAY" value="PREF_REPLAY_MODE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <optionspc action="MENUOPT_ADJUST" label="Skip Intro" value="PREF_SKIP_INTRO" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="Skip Menu" value="PREF_SKIP_MENU" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="Borderless" value="PREF_BORDERLESS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menupc>
+
+        <menupc HeaderText="MH_TITLE" enum="SCR_TITLE">
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+        </menupc>
+        <menupc HeaderText="MH_BENCHMARK" enum="SCR_BENCHMARK">
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+        </menupc>
+
+        <menupc HeaderText="MH_TOPTIONS" enum="SCR_TOPTIONS">
+            <optionspc action="MENUOPT_JUMP_NEXT_MENU" label="MO_TCONTROL" value="SCR_TCONTROL" scaler="1" displayValue="MENU_DISPLAY_NONE" />
+            <optionspc action="MENUOPT_JUMP_NEXT_MENU" label="MO_TAUDIO" value="SCR_TAUDIO" scaler="2" displayValue="MENU_DISPLAY_NONE" />
+            <optionspc action="MENUOPT_JUMP_NEXT_MENU" label="MO_TDISPLAY" value="SCR_TDISPLAY" scaler="3" displayValue="MENU_DISPLAY_NONE" />
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+        </menupc>
+
+        <menupc HeaderText="MH_CON" enum="SCR_TCONTROL">
+            <options action="MENUOPT_KEYBOARD_OPTIONS" label="MO_KBOPT" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_CONTROLLER_OPTIONS" label="MO_CTRLOPT" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+        </menupc>
+        <menupc HeaderText="MH_AUD" enum="SCR_TAUDIO">
+            <options action="MENUOPT_ADJUST" label="MO_SFX" value="PREF_SFX_VOLUME" scaler="11" displayValue="MENU_DISPLAY_SLIDERBAR" />
+            <options action="MENUOPT_ADJUST_MUSIC_VOLUME" label="MO_MUS" value="PREF_MUSIC_VOLUME" scaler="11" displayValue="MENU_DISPLAY_SLIDERBAR" />
+            <options action="MENUOPT_ADJUST" label="MO_GPS" value="PREF_GPS_SPEECH" scaler="3" displayValue="MENU_DISPLAY_GPS_SPEECH" />
+            <options action="MENUOPT_ADJUST_SPEAKER_OUTPUT" label="MO_OUTP" value="PREF_SPEAKER_OUTPUT" scaler="2" displayValue="MENU_DISPLAY_SPEAKER_OUTPUT_STEREO" />
+            <options action="MENUOPT_ADJUST_VOICE_OUTPUT" label="MO_VOUT" value="PREF_VOICE_OUTPUT" scaler="2" displayValue="MENU_DISPLAY_VOICE_OUTPUT" />
+            <options action="MENUOPT_ADJUST" label="MO_VMIC" value="PREF_MICROPHONE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_ADJUST" label="ME_IND_FM_17" value="PREF_PLAYMODE" scaler="3" displayValue="MENU_DISPLAY_PLAYMODE" />
+            <options action="MENUOPT_ADJUST" label="ME_IND_FM_02" value="PREF_AUTOSCAN" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_QUICKSCAN" label="ME_IND_FM_03" value="SET_SCAN" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_COMPLETESCAN" label="ME_IND_FM_04" value="SET_SCAN" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+        </menupc>
+        <menupc HeaderText="MH_DIS" enum="SCR_TDISPLAY">
+            <options action="MENUOPT_ADJUST" label="MO_SUB" value="PREF_SUBTITLES" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_ADJUST" label="MO_RAD" value="PREF_RADAR_MODE" scaler="3" displayValue="MENU_DISPLAY_RADAR_MODE" />
+            <options action="MENUOPT_ADJUST" label="MO_HUD" value="PREF_DISPLAY_HUD" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_ADJUST" label="MO_HUD_TARG" value="PREF_RETICULE" scaler="2" displayValue="MENU_DISPLAY_RETICULE_MODE" />
+            <options action="MENUOPT_ADJUST" label="MO_DISPGPS" value="PREF_DISPLAY_GPS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_ADJUST" label="MO_HB_CAM" value="PREF_HANDBRAKE_CAM" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_ADJUST" label="MO_LAN" value="PREF_CURRENT_LANGUAGE" scaler="7" displayValue="MENU_DISPLAY_LANGUAGE" />
+            <optionsps3 action="MENUOPT_ADJUST" label="MO_FLIC" value="PREF_FLICKER_FILTER" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <optionspc action="MENUOPT_ADJUST" label="Screen Filter" value="PREF_TIMECYC" scaler="10" displayValue="MENU_DISPLAY_TIMECYC" />
+            <optionspc action="MENUOPT_ADJUST" label="Motion Blur" value="PREF_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="Distant Blur" value="PREF_TCYC_DOF" scaler="10" displayValue="MENU_DISPLAY_DOF" />
+            <optionspc action="MENUOPT_ADJUST" label="Depth of Field" value="PREF_CUTSCENE_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_SET" label="MO_DEF" value="SET_DEFAULT_DISPLAY" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+        </menupc>
+
+        <menupc HeaderText="MH_CUSTOM" enum="SCR_PLAYERSETTINGS_MALE_CUSTOM_HEAD">
+            <options action="MENUOPT_JUMP_NEXT_MENU" label="MO_FACE" value="SCR_PLAYERSETTINGS_CHOOSE_PICTURE_TYPE" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_ADJUST" label="MO_SKINTONE" value="PREF_SKINTONE_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
+            <options action="MENUOPT_ADJUST" label="MO_HEADSHAPE" value="PREF_HEADSHAPE_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
+            <options action="MENUOPT_ADJUST" label="MO_HAIR" value="PREF_HAIR_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+            <options action="MENUOPT_ADJUST" label="MO_FACIAL_HAIR" value="PREF_FACIAL_HAIR_MALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS_SPECIAL" />
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menupc>
+
+        <menupc HeaderText="MH_CUSTOM" enum="SCR_PLAYERSETTINGS_FEMALE_CUSTOM_HEAD">
+            <options action="MENUOPT_JUMP_NEXT_MENU" label="MO_FACE" value="SCR_PLAYERSETTINGS_CHOOSE_PICTURE_TYPE" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_ADJUST" label="MO_SKINTONE" value="PREF_SKINTONE_FEMALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
+            <options action="MENUOPT_ADJUST" label="MO_HEADSHAPE" value="PREF_HEADSHAPE_FEMALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
+            <options action="MENUOPT_ADJUST" label="MO_HAIR" value="PREF_HAIR_FEMALE" scaler="0" displayValue="MENU_DISPLAY_TWO_NUMBERS" />
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menupc>
+
+
+        <menupc HeaderText="MH_CLIPS" enum="SCR_MONTAGE_CLIPS_MENU">
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menupc>
+
+        <menupc HeaderText="MH_EDITOR" enum="SCR_MONTAGE_EDITOR_MENU">
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menupc>
+
+        <menupc HeaderText="MH_VIEW" enum="SCR_MONTAGE_GALLERY_MENU">
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menupc>
+
+        <menupc HeaderText="MH_UPLOAD" enum="SCR_MONTAGE_UPLOAD_MENU">
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menupc>
+
+        <menupc HeaderText="MH_ONLINE" enum="SCR_MONTAGE_ONLINE_MENU">
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menupc>
+
+        <menupc HeaderText="MH_FACE" enum="SCR_PLAYERSETTINGS_CHOOSE_PICTURE_TYPE">
+            <options action="MENUOPT_JUMP_NEXT_MENU" label="MO_LPIC" value="SCR_PLAYERSETTINGS_BROWSE_PICTURES" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menupc>
+
+        <menupc HeaderText="MH_CAPT" enum="SCR_PLAYERSETTINGS_BROWSE_PICTURES">
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menupc>
+
+        <menupc HeaderText="MH_CAPT" enum="SCR_PLAYERSETTINGS_TWEAK_IMAGE">
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menupc>
+        <menupc HeaderText="MH_CAPT" enum="SCR_PLAYERSETTINGS_WEBCAM_PICTURE">
+
+            <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
+        </menupc>
+
+
+    </sMenuScreen>
 
 </FrontendMenu>

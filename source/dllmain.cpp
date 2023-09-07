@@ -267,11 +267,11 @@ public:
             { 0, "PREF_FXAA",             "MISC",       "FXAA",                         "",                           1, nullptr, 0, 1 },
             { 0, "PREF_CONSOLE_GAMMA",    "MISC",       "ConsoleGamma",                 "",                           0, nullptr, 0, 1 },
             { 0, "PREF_TIMECYC",          "MISC",       "ScreenFilter",                 "MENU_DISPLAY_TIMECYC",       5, nullptr, TimecycText.eMO_DEF, std::distance(std::begin(TimecycText.data), std::end(TimecycText.data)) - 1 },
-            { 0, "PREF_CUTSCENE_DOF",     "MISC",       "ForceDepthOfFieldInCutscenes", "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_CUTSCENE_DOF",     "MISC",       "DepthOfField",                 "",                           0, nullptr, 0, 1 },
             { 0, "PREF_CONSOLE_SHADOWS",  "SHADOWS",    "ConsoleShadows",               "",                           1, nullptr, 0, 1 },
             { 0, "PREF_SHADOW_FILTER",    "SHADOWS",    "ShadowFilter",                 "MENU_DISPLAY_SHADOWFILTER",  0, nullptr, ShadowFilterText.evanilla, std::distance(std::begin(ShadowFilterText.data), std::end(ShadowFilterText.data)) - 1 },
             { 0, "PREF_TREE_LIGHTING",    "MISC",       "TreeLighting",                 "MENU_DISPLAY_TREE_LIGHTING", 0, nullptr, 0, 1 },
-            { 0, "PREF_TCYC_DOF",         "MISC",       "DepthOfField",                 "MENU_DISPLAY_DOF",           5, nullptr, DofText.eOff, std::distance(std::begin(DofText.data), std::end(DofText.data)) - 1 },
+            { 0, "PREF_TCYC_DOF",         "MISC",       "DistantBlur",                  "MENU_DISPLAY_DOF",           5, nullptr, DofText.eOff, std::distance(std::begin(DofText.data), std::end(DofText.data)) - 1 },
             { 0, "PREF_DEFINITION",       "MAIN",       "Definition",                   ""                          , 0, nullptr, 0, 1 },
         };
 
@@ -1439,6 +1439,9 @@ void Init()
     {
         if (FusionFixSettings("PREF_TIMECYC") < TimecycText.eMO_DEF || FusionFixSettings("PREF_TIMECYC") >= std::size(TimecycText.data))
             FusionFixSettings.Set("PREF_TIMECYC", TimecycText.eMO_DEF);
+
+        if (FusionFixSettings("PREF_TCYC_DOF") < DofText.eOff || FusionFixSettings("PREF_TCYC_DOF") >= std::size(DofText.data))
+            FusionFixSettings.Set("PREF_TCYC_DOF", DofText.eVeryHigh);
 
         //auto pattern = hook::pattern("E8 ? ? ? ? 8B F0 83 C4 08 85 F6 0F 84 ? ? ? ? BB");
         //CFileMgrOpenFile = injector::GetBranchDestination(pattern.get_first(0)).get();

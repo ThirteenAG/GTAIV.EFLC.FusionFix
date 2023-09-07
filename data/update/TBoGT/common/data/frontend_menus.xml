@@ -575,12 +575,12 @@
         value="PREF_FLICKER_FILTER" scaler="2"
         displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-			<!--optionspc action="MENUOPT_ADJUST" label="Definition" value="PREF_DEFINITION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" /-->
+      <!--optionspc action="MENUOPT_ADJUST" label="Definition" value="PREF_DEFINITION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" /-->
       <optionspc action="MENUOPT_ADJUST" label="Console Gamma" value="PREF_CONSOLE_GAMMA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="MENUOPT_ADJUST" label="Screen Filter" value="PREF_TIMECYC" scaler="10" displayValue="MENU_DISPLAY_TIMECYC" />
       <optionspc action="MENUOPT_ADJUST" label="Motion Blur" value="PREF_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-      <optionspc action="MENUOPT_ADJUST" label="Depth of Field" value="PREF_TCYC_DOF" scaler="10" displayValue="MENU_DISPLAY_DOF" />
-      <optionspc action="MENUOPT_ADJUST" label="Cutscene DoF" value="PREF_CUTSCENE_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="Distant Blur" value="PREF_TCYC_DOF" scaler="10" displayValue="MENU_DISPLAY_DOF" />
+      <optionspc action="MENUOPT_ADJUST" label="Depth of Field" value="PREF_CUTSCENE_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
       <options action="MENUOPT_SET" label="MO_DEF"
         value="SET_DEFAULT_DISPLAY" scaler="0"
@@ -1266,8 +1266,8 @@
       <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
       <optionspc action="MENUOPT_ADJUST" label="Screen Filter" value="PREF_TIMECYC" scaler="10" displayValue="MENU_DISPLAY_TIMECYC" />
       <optionspc action="MENUOPT_ADJUST" label="Motion Blur" value="PREF_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-      <optionspc action="MENUOPT_ADJUST" label="Depth of Field" value="PREF_TCYC_DOF" scaler="10" displayValue="MENU_DISPLAY_DOF" />
-      <optionspc action="MENUOPT_ADJUST" label="Cutscene DoF" value="PREF_CUTSCENE_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="Distant Blur" value="PREF_TCYC_DOF" scaler="10" displayValue="MENU_DISPLAY_DOF" />
+      <optionspc action="MENUOPT_ADJUST" label="Depth of Field" value="PREF_CUTSCENE_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
       <options action="MENUOPT_SET" label="MO_DEF"
         value="SET_DEFAULT_DISPLAY" scaler="0"
