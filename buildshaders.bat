@@ -17,5 +17,4 @@ echo D | xcopy "%%i" "%win32_30_nv8%" /K /H /Y
 )
 
 echo D | xcopy "%cd%/shaders/GTAIV.ShaderFixesCollection/other_assets/Improved Stipple" "%cd%/data/update" /K /H /Y /S
-echo D | xcopy "%cd%/shaders/GTAIV.ShaderFixesCollection/other_assets/Opaque Wires" "%cd%/data/update" /K /H /Y /S
 echo D | xcopy "%cd%/shaders/GTAIV.ShaderFixesCollection/other_assets/gta_trees_new dependencies" "%cd%/data/update" /K /H /Y /S

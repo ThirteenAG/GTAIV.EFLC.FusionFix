@@ -176,6 +176,14 @@ struct
         "very soft 7x7 gausian", "test 1", "test 2", "test 3" };
 } ShadowFilterText;
 
+struct
+{
+    enum eDofText {
+        eAuto, e43, e54, e159, e169, eOff, eLow, eMedium, eHigh, eVeryHigh
+    };
+    std::vector<const char*> data = { "Auto", "4:3", "5:4", "15:9", "16:9", "Off", "Low", "Medium", "High", "Very High" };
+} DofText;
+
 class CSettings
 {
 private:
@@ -252,17 +260,19 @@ public:
         CIniReader iniReader("");
 
         static CSetting arr[] = {
-            { 0, "PREF_SKIP_INTRO",       "MAIN",       "SkipIntro",          "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_SKIP_MENU",        "MAIN",       "SkipMenu",           "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_BORDERLESS",       "MAIN",       "BorderlessWindowed", "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_FPS_LIMIT_PRESET", "FRAMELIMIT", "FpsLimitPreset",     "MENU_DISPLAY_FRAMELIMIT",    0, nullptr, FpsCaps.eOFF, std::distance(std::begin(FpsCaps.data), std::end(FpsCaps.data)) - 1 },
-            { 0, "PREF_FXAA",             "MISC",       "FXAA",               "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_CONSOLE_GAMMA",    "MISC",       "ConsoleGamma",       "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_TIMECYC",          "MISC",       "ScreenFilter",       "MENU_DISPLAY_TIMECYC",       5, nullptr, TimecycText.eMO_DEF, std::distance(std::begin(TimecycText.data), std::end(TimecycText.data)) - 1 },
-            { 0, "PREF_TCYC_DOF",         "MISC",       "DepthOfField",       "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_CONSOLE_SHADOWS",  "SHADOWS",    "ConsoleShadows",     "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_SHADOW_FILTER",    "SHADOWS",    "ShadowFilter",       "MENU_DISPLAY_SHADOWFILTER",  0, nullptr, ShadowFilterText.evanilla, std::distance(std::begin(ShadowFilterText.data), std::end(ShadowFilterText.data)) - 1 },
-            { 0, "PREF_TREE_LIGHTING",    "MISC",       "TreeLighting",       "MENU_DISPLAY_TREE_LIGHTING", 0, nullptr, 0, 1 },
+            { 0, "PREF_SKIP_INTRO",       "MAIN",       "SkipIntro",                    "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_SKIP_MENU",        "MAIN",       "SkipMenu",                     "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_BORDERLESS",       "MAIN",       "BorderlessWindowed",           "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_FPS_LIMIT_PRESET", "FRAMELIMIT", "FpsLimitPreset",               "MENU_DISPLAY_FRAMELIMIT",    0, nullptr, FpsCaps.eOFF, std::distance(std::begin(FpsCaps.data), std::end(FpsCaps.data)) - 1 },
+            { 0, "PREF_FXAA",             "MISC",       "FXAA",                         "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_CONSOLE_GAMMA",    "MISC",       "ConsoleGamma",                 "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_TIMECYC",          "MISC",       "ScreenFilter",                 "MENU_DISPLAY_TIMECYC",       5, nullptr, TimecycText.eMO_DEF, std::distance(std::begin(TimecycText.data), std::end(TimecycText.data)) - 1 },
+            { 0, "PREF_CUTSCENE_DOF",     "MISC",       "ForceDepthOfFieldInCutscenes", "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_CONSOLE_SHADOWS",  "SHADOWS",    "ConsoleShadows",               "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_SHADOW_FILTER",    "SHADOWS",    "ShadowFilter",                 "MENU_DISPLAY_SHADOWFILTER",  0, nullptr, ShadowFilterText.evanilla, std::distance(std::begin(ShadowFilterText.data), std::end(ShadowFilterText.data)) - 1 },
+            { 0, "PREF_TREE_LIGHTING",    "MISC",       "TreeLighting",                 "MENU_DISPLAY_TREE_LIGHTING", 0, nullptr, 0, 1 },
+            { 0, "PREF_TCYC_DOF",         "MISC",       "DepthOfField",                 "MENU_DISPLAY_DOF",           5, nullptr, DofText.eOff, std::distance(std::begin(DofText.data), std::end(DofText.data)) - 1 },
+            { 0, "PREF_DEFINITION",       "MAIN",       "Definition",                   ""                          , 0, nullptr, 0, 1 },
         };
 
         auto i = firstCustomID;
@@ -768,9 +778,28 @@ int timecyc_scanf(const char* i, const char* fmt, int* a1, int* a2, int* a3, int
         a110, a111, a112, a113, a114, a115, a116, a117, a118, a119, a120, a121, a122, a123, a124, a125, a126, a127, a128, a129, a130, a131, a132,
         a133, a134);
 
-    if (FusionFixSettings("PREF_TCYC_DOF") == 0) {
-        *a124 = 0.0f;
-        *a125 = 0.0f;
+    switch (FusionFixSettings("PREF_TCYC_DOF"))
+    {
+    case DofText.eOff:
+        *a124 *= 0.0f;
+        *a125 *= 0.0f;
+        break;
+    case DofText.eLow:
+        *a124 *= 0.7f;
+        *a125 *= 0.7f;
+        break;
+    case DofText.eMedium:
+        *a124 *= 0.8f;
+        *a125 *= 0.8f;
+        break;
+    case DofText.eHigh:
+        *a124 *= 0.9f;
+        *a125 *= 0.9f;
+        break;
+    case DofText.eVeryHigh:
+        [[fallthrough]];
+    default:
+        break;
     }
 
     {
@@ -1001,7 +1030,6 @@ void Init()
     bool bRecoilFix = iniReader.ReadInteger("MAIN", "RecoilFix", 1) != 0;
     bool bHandbrakeCamFix = iniReader.ReadInteger("MAIN", "HandbrakeCamFix", 0) != 0;
     int32_t nAimingZoomFix = iniReader.ReadInteger("MAIN", "AimingZoomFix", 1);
-    static bool bDefinition = iniReader.ReadInteger("MAIN", "Definition", 0);
 
     //[SHADOWS]
     bool bFlickeringShadowsFix = iniReader.ReadInteger("SHADOWS", "FlickeringShadowsFix", 1) != 0;
@@ -1021,7 +1049,6 @@ void Init()
     bool bPedDeathAnimFixFromTBOGT = iniReader.ReadInteger("MISC", "PedDeathAnimFixFromTBOGT", 1) != 0;
     bool bDisableCameraCenteringInCover = iniReader.ReadInteger("MISC", "DisableCameraCenteringInCover", 1) != 0;
     bool bMouseFix = iniReader.ReadInteger("MISC", "MouseFix", 1) != 0;
-    static auto bForceDepthOfFieldInCutscenes = iniReader.ReadInteger("MISC", "ForceDepthOfFieldInCutscenes", 0) != 0;
     static auto bFixRainDrops = iniReader.ReadInteger("MISC", "FixRainDrops", 1) != 0;
     static auto nRainDropsBlur = iniReader.ReadInteger("MISC", "RainDropsBlur", 2);
     if (nRainDropsBlur < 1) {
@@ -1713,8 +1740,9 @@ void Init()
 
                 // Definition
                 {
+                    static auto definition = FusionFixSettings.GetRef("PREF_DEFINITION");
                     static float arr[4];
-                    arr[0] = static_cast<float>(bDefinition ? 0 : 1);
+                    arr[0] = static_cast<float>(definition->get());
                     arr[1] = 0.0f;
                     arr[2] = 0.0f;
                     arr[3] = 0.0f;
@@ -1735,10 +1763,11 @@ void Init()
                 {
                     static auto fxaa = FusionFixSettings.GetRef("PREF_FXAA");
                     static auto dof = FusionFixSettings.GetRef("PREF_TCYC_DOF");
+                    static auto cutscene_dof = FusionFixSettings.GetRef("PREF_CUTSCENE_DOF");
                     static auto gamma = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA");
                     static float arr[4];
                     arr[0] = static_cast<float>(fxaa->get() ? 0 : 1);
-                    arr[1] = static_cast<float>(dof->get() ? 0 : (bForceDepthOfFieldInCutscenes ? 1 : -1));
+                    arr[1] = static_cast<float>(cutscene_dof->get() ? 0 : 1);
                     arr[2] = static_cast<float>(gamma->get());
                     arr[3] = 0.0f;
                     pD3DDevice->SetPixelShaderConstantF(222, &arr[0], 1);
