@@ -279,7 +279,7 @@ public:
         for (auto& it : arr)
         {
             mFusionPrefs[i] = it;
-            mFusionPrefs[i].value = it.ReadFromIni(iniReader);
+            mFusionPrefs[i].value = std::clamp(it.ReadFromIni(iniReader), it.idStart, it.idEnd);
             aMenuPrefs.emplace_back(i, mFusionPrefs[i].prefName.data());
             i++;
         }
@@ -1282,11 +1282,7 @@ void Init()
         if (preset > FpsCaps.eCustom && preset < FpsCaps.data.size())
             FpsLimiter.Init(mode, (float)FpsCaps.data[preset]);
         else
-        {
-            if (preset >= FpsCaps.data.size() || preset < FpsCaps.eOFF)
-                FusionFixSettings.Set("PREF_FPS_LIMIT_PRESET", FpsCaps.eOFF);
             FpsLimiter.Init(mode, fFpsLimit);
-        }
         CutsceneFpsLimiter.Init(mode, fCutsceneFpsLimit);
         ScriptCutsceneFpsLimiter.Init(mode, fScriptCutsceneFpsLimit);
 
@@ -1437,12 +1433,6 @@ void Init()
 
     //timecycb
     {
-        if (FusionFixSettings("PREF_TIMECYC") < TimecycText.eMO_DEF || FusionFixSettings("PREF_TIMECYC") >= std::size(TimecycText.data))
-            FusionFixSettings.Set("PREF_TIMECYC", TimecycText.eMO_DEF);
-
-        if (FusionFixSettings("PREF_TCYC_DOF") < DofText.eOff || FusionFixSettings("PREF_TCYC_DOF") >= std::size(DofText.data))
-            FusionFixSettings.Set("PREF_TCYC_DOF", DofText.eVeryHigh);
-
         //auto pattern = hook::pattern("E8 ? ? ? ? 8B F0 83 C4 08 85 F6 0F 84 ? ? ? ? BB");
         //CFileMgrOpenFile = injector::GetBranchDestination(pattern.get_first(0)).get();
         //injector::MakeCALL(pattern.get_first(0), sub_8C4CF0, true);
