@@ -11,3 +11,6 @@
 	path = shaders/GTAIV.ShaderFixesCollection
 	url = https://github.com/Parallellines0451/GTAIV.ShaderFixesCollection
 	ignore = dirty
+[submodule "external/minhook"]
+	path = external/minhook
+	url = https://github.com/TsudaKageyu/minhook
