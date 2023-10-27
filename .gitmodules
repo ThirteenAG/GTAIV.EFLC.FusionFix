@@ -10,3 +10,7 @@
 [submodule "external/minhook"]
 	path = external/minhook
 	url = https://github.com/TsudaKageyu/minhook
+[submodule "shaders/GTAIV.EFLC.FusionShaders"]
+	path = shaders/GTAIV.EFLC.FusionShaders
+	url = https://github.com/Parallellines0451/GTAIV.EFLC.FusionShaders
+	ignore = dirty
