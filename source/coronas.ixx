@@ -6,7 +6,6 @@ export module coronas;
 
 import common;
 
-static constexpr auto OldLimitExponent = 8;
 static constexpr auto NewLimitExponent = 14;
 
 void IncreaseCoronaLimit()
@@ -31,17 +30,17 @@ void IncreaseCoronaLimit()
     for (size_t i = dword_temp; i <= (dword_temp + 0x3C); i++)
     {
         auto GoThroughPatterns = [&](const char* pattern_str, int32_t pos) -> void
+        {
+            auto patternl = hook::range_pattern(range_start, range_end, pattern_str);
+            for (size_t j = 0; j < patternl.size(); j++)
             {
-                auto patternl = hook::range_pattern(range_start, range_end, pattern_str);
-                for (size_t j = 0; j < patternl.size(); j++)
+                if (*patternl.get(j).get<uintptr_t>(pos) == i)
                 {
-                    if (*patternl.get(j).get<uintptr_t>(pos) == i)
-                    {
-                        AdjustPointer(patternl.get(j).get<uint32_t>(pos), &aCoronas[0], dword_temp, dword_temp + 0x3C);
-                        counter1++;
-                    }
+                    AdjustPointer(patternl.get(j).get<uint32_t>(pos), &aCoronas[0], dword_temp, dword_temp + 0x3C);
+                    counter1++;
                 }
-            };
+            }
+        };
 
         GoThroughPatterns("83 8A", 2);
         GoThroughPatterns("88 82", 2);
@@ -64,17 +63,17 @@ void IncreaseCoronaLimit()
     for (size_t i = dword_temp; i <= (dword_temp + 0x1B); i++)
     {
         auto GoThroughPatterns = [&](const char* pattern_str, int32_t pos) -> void
+        {
+            auto patternl = hook::range_pattern(range_start, range_end, pattern_str);
+            for (size_t j = 0; j < patternl.size(); j++)
             {
-                auto patternl = hook::range_pattern(range_start, range_end, pattern_str);
-                for (size_t j = 0; j < patternl.size(); j++)
+                if (*patternl.get(j).get<uintptr_t>(pos) == i)
                 {
-                    if (*patternl.get(j).get<uintptr_t>(pos) == i)
-                    {
-                        AdjustPointer(patternl.get(j).get<uint32_t>(pos), &aCoronas2[0], dword_temp, dword_temp + 0x1B);
-                        counter2++;
-                    }
+                    AdjustPointer(patternl.get(j).get<uint32_t>(pos), &aCoronas2[0], dword_temp, dword_temp + 0x1B);
+                    counter2++;
                 }
-            };
+            }
+        };
 
         GoThroughPatterns("0F 28 81", 3);
         GoThroughPatterns("0F B6 81", 3);
@@ -219,20 +218,20 @@ class Coronas
 public:
     Coronas()
     {
-        FusionFix::onGameInitEvent() += []()
+        FusionFix::onInitEvent() += []()
         {
             auto pattern = hook::pattern("81 FE ? ? ? ? 0F 8D ? ? ? ? 8B 44 24 08 8B 4C 24 1C F3 0F 10 44 24 ? C1 E2 06");
             if (!pattern.empty())
             {
                 auto i = injector::ReadMemory<uint32_t>(pattern.get(0).get<uintptr_t>(2), true);
-                if (i == OldLimitExponent)
+                if (i == 768)
                     IncreaseCoronaLimit();
             }
             else
             {
                 pattern = hook::pattern("81 FE ? ? ? ? 0F 8D ? ? ? ? 8B 4C 24 08 8A 54 24 0C");
                 auto i = injector::ReadMemory<uint32_t>(pattern.get(0).get<uintptr_t>(2), true);
-                if (i == OldLimitExponent)
+                if (i == 768)
                     IncreaseCoronaLimitEFLC();
             }
         };
