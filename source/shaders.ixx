@@ -52,7 +52,7 @@ public:
             }
             else
             {
-                pattern = hook::pattern("8B 14 85 ? ? ? ? A3");
+                pattern = hook::pattern("8B 14 85 ? ? ? ? A3 ? ? ? ? 8B 44 24 04");
                 static auto off_1045520 = *pattern.get_first<const char**>(3);
                 struct ShaderPathHook
                 {

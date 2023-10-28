@@ -22,8 +22,10 @@ public:
 
             static void* patchOffset = pattern.get_first();
 
-            static void* originalHookster = (void*)(*(ptrdiff_t*)((intptr_t)patchOffset + 1) + 5 + (intptr_t)patchOffset);
-            static void* originalHooksterBytePatch = (void*)((intptr_t)originalHookster + 74);
+            static void* originalHookster = injector::GetBranchDestination(patchOffset).get<void*>();
+
+            pattern = find_pattern("C6 44 24 ? ? A1 ? ? ? ? 83 FF 03", "C6 44 24 ? ? 83 F9 03");
+            static void* originalHooksterBytePatch = pattern.get_first(4);
             static double incrementalTimeStep = 0.0;
 
             pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? 8B 43 20 53", "F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? 83 C4 04 83 7C 24");
