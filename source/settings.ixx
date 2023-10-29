@@ -113,6 +113,7 @@ public:
             { 0, "PREF_MOTIONBLUR",       "MAIN",       "MotionBlur",                   ""                          , 0, nullptr, 0, 1 },
             { 0, "PREF_LEDILLUMINATION",  "MISC",       "LightSyncRGB",                 ""                          , 0, nullptr, 0, 1 },
             { 0, "PREF_DEFINITION",       "MAIN",       "Definition",                   "MENU_DISPLAY_DEFINITION"   , 1, nullptr, DefinitionText.eClassic, std::distance(std::begin(DefinitionText.data), std::end(DefinitionText.data)) - 1 },
+            { 0, "PREF_BLOOM",            "MAIN",       "Bloom",                        ""                          , 0, nullptr, 0, 1 },
         };
 
         auto i = firstCustomID;

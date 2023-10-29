@@ -72,16 +72,6 @@ public:
             static auto dw11A2948 = *find_pattern("C7 05 ? ? ? ? ? ? ? ? 0F 85 ? ? ? ? 6A 00", "D8 05 ? ? ? ? D9 1D ? ? ? ? 83 05").get_first<float*>(2);
             static auto dw103E49C = *hook::get_pattern<void**>("A3 ? ? ? ? C7 80", 1);
 
-            FusionFix::D3D9::onBeforeCreateDevice() += [](LPDIRECT3D9& pDirect3D9, UINT& Adapter, D3DDEVTYPE& DeviceType, HWND& hFocusWindow, DWORD& BehaviorFlags, D3DPRESENT_PARAMETERS*& pPresentationParameters, IDirect3DDevice9**& ppReturnedDeviceInterface)
-            {
-                pHDRTexQuarter = nullptr;
-            };
-
-            FusionFix::D3D9::onBeforeReset() += [](LPDIRECT3DDEVICE9& pDevice, D3DPRESENT_PARAMETERS*& pPresentationParameters)
-            {
-                pHDRTexQuarter = nullptr;
-            };
-
             FusionFix::D3D9::onBeginScene() += [](LPDIRECT3DDEVICE9 pDevice)
             {
                 if (*dw103E49C)
@@ -207,6 +197,47 @@ public:
                     pTexture = pHDRTexQuarter;
                 }
             };
+
+            FusionFix::D3D9::onBeforeCreateDevice() += [](LPDIRECT3D9& pDirect3D9, UINT& Adapter, D3DDEVTYPE& DeviceType, HWND& hFocusWindow, DWORD& BehaviorFlags, D3DPRESENT_PARAMETERS*& pPresentationParameters, IDirect3DDevice9**& ppReturnedDeviceInterface)
+            {
+                pHDRTexQuarter = nullptr;
+            };
+
+            FusionFix::D3D9::onBeforeReset() += [](LPDIRECT3DDEVICE9& pDevice, D3DPRESENT_PARAMETERS*& pPresentationParameters)
+            {
+                pHDRTexQuarter = nullptr;
+            };
+
+            if (bFixRainDrops)
+            {
+                pattern = hook::pattern("A1 ? ? ? ? 50 8B 08 FF 51 40");
+                if (!pattern.empty())
+                {
+                    static auto Direct3DDevice = *pattern.get_first<uint32_t*>(1);
+                    struct AuxBeforeResetHook
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            regs.eax = *Direct3DDevice;
+                            pHDRTexQuarter = nullptr;
+                        }
+                    }; injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
+                }
+                else
+                {
+                    pattern = hook::pattern("8B 08 8B 51 40 68 ? ? ? ? 50 FF D2 8B");
+                    struct AuxBeforeResetHook
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            regs.ecx = *(uint32_t*)regs.eax;
+                            regs.edx = *(uint32_t*)(regs.ecx + 0x40);
+
+                            pHDRTexQuarter = nullptr;
+                        }
+                    }; injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
+                }
+            }
         };
     };
 } Shaders;

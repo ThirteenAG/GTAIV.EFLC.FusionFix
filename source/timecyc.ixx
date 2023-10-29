@@ -47,6 +47,9 @@ int timecyc_scanf(const char* i, const char* fmt, int* mAmbient0ColorR, int* mAm
         unusedParam10, mSunSize, mUnknown46, mDOFStart, unusedParam11, unusedParam12, mNearDOFBlur, mFarDOFBlur, mWaterReflectionMultiplier, mParticleBrightness,
         mCoronaSize, mSkyBrightness, mAOStrength, mRimLightingMultiplier, mDistantCoronaBrightness, mDistantCoronaSize, mPedAOStrength);
 
+    if (!FusionFixSettings("PREF_BLOOM"))
+        *mBloomIntensity = 0.0f;
+
     switch (FusionFixSettings("PREF_TCYC_DOF"))
     {
     case FusionFixSettings.DofText.eOff:
@@ -317,6 +320,16 @@ public:
             injector::MakeCALL(pattern.get_first(0), timecyc_scanf, true);
 
             FusionFixSettings.SetCallback("PREF_TCYC_DOF", [](int32_t value) {
+                injector::fastcall<void()>::call(CTimeCycleInitialise);
+                bTimecycUpdated = 200;
+            });
+
+            FusionFixSettings.SetCallback("PREF_BLOOM", [](int32_t value) {
+                injector::fastcall<void()>::call(CTimeCycleInitialise);
+                bTimecycUpdated = 200;
+            });
+
+            FusionFixSettings.SetCallback("PREF_SHADOW_QUALITY", [](int32_t value) {
                 injector::fastcall<void()>::call(CTimeCycleInitialise);
                 bTimecycUpdated = 200;
             });
