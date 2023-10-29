@@ -93,8 +93,14 @@ public:
 
             if (bPedDeathAnimFixFromTBOGT)
             {
-                auto pattern = find_pattern("8B D9 75 2E", "BB ? ? ? ? 75 29 80 7F 28 00");
-                injector::MakeNOP(pattern.get_first(2), 2, true);
+                auto pattern = hook::pattern("8B D9 75 2E");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(2), 2, true);
+                else
+                {
+                    pattern = hook::pattern("BB ? ? ? ? 75 29 80 7F 28 00");
+                    injector::MakeNOP(pattern.get_first(5), 2, true);
+                }
             }
 
             if (bDisableCameraCenteringInCover)
