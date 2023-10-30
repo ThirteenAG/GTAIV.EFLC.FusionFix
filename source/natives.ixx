@@ -157,29 +157,33 @@ export class NativeInvoke
     {
         if (getNativeAddress)
             return getNativeAddress(Hash);
+        
+        auto ms_pNatives = *rage__scrEngine__ms_pNatives;
+        auto ms_dwNativeTableSize = *rage__scrEngine__ms_dwNativeTableSize;
 
-        if (!*rage__scrEngine__ms_dwNativeTableSize || Hash == 0)
+        if (ms_dwNativeTableSize == 0 || Hash == 0)
             return nullptr;
 
-        auto ms_pNatives = *rage__scrEngine__ms_pNatives;
+        auto nativeIndex = Hash % ms_dwNativeTableSize;
+        auto tmpHash = Hash;
+        auto Handler = ms_pNatives[2 * (Hash % ms_dwNativeTableSize)];
 
-        auto v2 = Hash % *rage__scrEngine__ms_dwNativeTableSize;
-        auto Handler = ms_pNatives[2 * (Hash % *rage__scrEngine__ms_dwNativeTableSize)];
         if (Handler != Hash)
         {
             while (Handler)
             {
-                Hash = (Hash >> 1) + 1;
-                v2 = (Hash + v2) % *rage__scrEngine__ms_dwNativeTableSize;
-                Handler = ms_pNatives[2 * v2];
+                tmpHash = (tmpHash >> 1) + 1;
+                nativeIndex = (tmpHash + nativeIndex) % ms_dwNativeTableSize;
+                Handler = ms_pNatives[2 * nativeIndex];
                 if (Handler == Hash)
-                    return (void*)ms_pNatives[2 * v2 + 1];
+                    break;
             }
-            return nullptr;
         }
+
         if (!Handler)
             return nullptr;
-        return (void*)ms_pNatives[2 * v2 + 1];
+
+        return reinterpret_cast<void*>(ms_pNatives[2 * nativeIndex + 1]);
     }
 public:
     template<uint32_t Hash, typename R, typename... Args>
