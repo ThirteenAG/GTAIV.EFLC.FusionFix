@@ -12,6 +12,7 @@ export uint8_t* CTimer__m_CodePause = nullptr;
 export int32_t* rage__scrEngine__ms_dwNativeTableSize;
 export uint32_t** rage__scrEngine__ms_pNatives;
 export void* (__stdcall* getNativeAddress)(uint32_t);
+export float* fTimeStep;
 export HWND gWnd;
 export RECT gRect;
 export bool bDynamicShadowForTrees;
@@ -36,6 +37,9 @@ public:
             pattern = hook::pattern("56 8B 35 ? ? ? ? 85 F6 75 06");
             if (!pattern.empty())
                 getNativeAddress = pattern.count(2).get(1).get<void* (__stdcall)(uint32_t)>(0);
+
+            pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? 8B 43 20 53", "F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? 83 C4 04 83 7C 24");
+            fTimeStep = *pattern.get_first<float*>(4);
         };
     }
 } Common;

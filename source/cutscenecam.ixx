@@ -5,6 +5,7 @@ module;
 export module cutscenecam;
 
 import common;
+import comvars;
 
 class CutsceneCam
 {
@@ -28,9 +29,6 @@ public:
             static void* originalHooksterBytePatch = pattern.get_first(4);
             static double incrementalTimeStep = 0.0;
 
-            pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? 8B 43 20 53", "F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? 83 C4 04 83 7C 24");
-            static float& fTimeStep = **pattern.get_first<float*>(4);
-
             struct CutsceneCamJitterWorkaround
             {
                 float data[320];
@@ -43,7 +41,7 @@ public:
                 bool Hookster(float a2)
                 {
 #if 1
-                    incrementalTimeStep += fTimeStep;
+                    incrementalTimeStep += *fTimeStep;
 
                     CutsceneCamJitterWorkaround temp = *this;
 

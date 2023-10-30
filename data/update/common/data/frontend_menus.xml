@@ -403,6 +403,7 @@
         <menu HeaderText="MH_CON" enum="SCR_KEYBOARD_OPTIONS">
             <optionspc action="MENUOPT_ADJUST" label="MO_INVMS" value="PREF_INVERT_MOUSE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="MO_SPRINT" value="PREF_SPRINT" scaler="2" displayValue="MENU_DISPLAY_SNIPER_ZOOM_TYPE" />
+            <optionspc action="MENUOPT_ADJUST" label="Always Run" value="PREF_ALWAYSRUN" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="MO_CROUCH" value="PREF_CROUCH" scaler="2" displayValue="MENU_DISPLAY_SNIPER_ZOOM_TYPE" />
             <!--optionspc  action="MENUOPT_ADJUST"             label="MO_STRAFE"  value="PREF_STRAFE"                  scaler="2" displayValue="MENU_DISPLAY_ON_OFF"/-->
             <optionspc action="MENUOPT_ADJUST" label="MO_ZOOMAIM" value="PREF_ZOOM_AIM" scaler="2" displayValue="MENU_DISPLAY_SNIPER_ZOOM_TYPE" />

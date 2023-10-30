@@ -15,4 +15,5 @@
 #include <set>
 #include <map>
 #include <iomanip>
+#include <array>
 #include <d3d9.h>
