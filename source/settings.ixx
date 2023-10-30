@@ -114,6 +114,7 @@ public:
             { 0, "PREF_LEDILLUMINATION",  "MISC",       "LightSyncRGB",                 ""                          , 0, nullptr, 0, 1 },
             { 0, "PREF_DEFINITION",       "MAIN",       "Definition",                   "MENU_DISPLAY_DEFINITION"   , 1, nullptr, DefinitionText.eClassic, std::distance(std::begin(DefinitionText.data), std::end(DefinitionText.data)) - 1 },
             { 0, "PREF_BLOOM",            "MAIN",       "Bloom",                        ""                          , 0, nullptr, 0, 1 },
+            { 0, "PREF_FPSCOUNTER",       "MAIN",       "DisplayFPSCounter",            ""                          , 0, nullptr, 0, 1 },
         };
 
         auto i = firstCustomID;
@@ -443,7 +444,8 @@ public:
 
             FusionFix::D3D9::onEndScene() += [](LPDIRECT3DDEVICE9 pDevice)
             {
-                if (menuTab == 8 || menuTab == 49)
+                static auto fpsc = FusionFixSettings.GetRef("PREF_FPSCOUNTER");
+                if (menuTab == 8 || menuTab == 49 || fpsc->get())
                 {
                     static std::list<int> m_times;
 
