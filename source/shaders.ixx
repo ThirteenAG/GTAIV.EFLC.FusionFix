@@ -208,36 +208,10 @@ public:
                 pHDRTexQuarter = nullptr;
             };
 
-            if (bFixRainDrops)
+            FusionFix::onBeforeReset() += []()
             {
-                pattern = hook::pattern("A1 ? ? ? ? 50 8B 08 FF 51 40");
-                if (!pattern.empty())
-                {
-                    static auto Direct3DDevice = *pattern.get_first<uint32_t*>(1);
-                    struct AuxBeforeResetHook
-                    {
-                        void operator()(injector::reg_pack& regs)
-                        {
-                            regs.eax = *Direct3DDevice;
-                            pHDRTexQuarter = nullptr;
-                        }
-                    }; injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
-                }
-                else
-                {
-                    pattern = hook::pattern("8B 08 8B 51 40 68 ? ? ? ? 50 FF D2 8B");
-                    struct AuxBeforeResetHook
-                    {
-                        void operator()(injector::reg_pack& regs)
-                        {
-                            regs.ecx = *(uint32_t*)regs.eax;
-                            regs.edx = *(uint32_t*)(regs.ecx + 0x40);
-
-                            pHDRTexQuarter = nullptr;
-                        }
-                    }; injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
-                }
-            }
+                pHDRTexQuarter = nullptr;
+            };
         };
     };
 } Shaders;

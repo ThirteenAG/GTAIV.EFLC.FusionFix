@@ -48,6 +48,57 @@ void Init()
     auto pattern = hook::pattern("E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? B9");
     hbCGameProcess.fun = injector::MakeCALL(pattern.get_first(0), CGameProcessHook, true).get();
 
+    pattern = hook::pattern("A1 ? ? ? ? 50 8B 08 FF 51 40");
+    if (!pattern.empty())
+    {
+        static auto Direct3DDevice = *pattern.get_first<uint32_t*>(1);
+        struct AuxBeforeResetHook
+        {
+            void operator()(injector::reg_pack& regs)
+            {
+                regs.eax = *Direct3DDevice;
+                FusionFix::onBeforeReset().executeAll();
+            }
+        };
+
+        injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
+        pattern = hook::pattern("A1 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? 8B 08 68");
+        injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
+        pattern = hook::pattern("A1 ? ? ? ? 68 ? ? ? ? 8B 08 50 FF 51 40 A1");
+        injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
+
+        pattern = hook::pattern("8B 0D ? ? ? ? 85 C9 74 11 8B 01");
+        struct AuxBeforeResetHook2
+        {
+            void operator()(injector::reg_pack& regs)
+            {
+                regs.ecx = *Direct3DDevice;
+                FusionFix::onBeforeReset().executeAll();
+            }
+        }; injector::MakeInline<AuxBeforeResetHook2>(pattern.get_first(0), pattern.get_first(6));
+    }
+    else
+    {
+        pattern = hook::pattern("8B 08 8B 51 40 68 ? ? ? ? 50 FF D2 8B");
+        struct AuxBeforeResetHook
+        {
+            void operator()(injector::reg_pack& regs)
+            {
+                regs.ecx = *(uint32_t*)regs.eax;
+                regs.edx = *(uint32_t*)(regs.ecx + 0x40);
+                FusionFix::onBeforeReset().executeAll();
+            }
+        };
+
+        injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
+        pattern = hook::pattern("8B 08 8B 51 40 68 ? ? ? ? 50 FF D2 85 C0");
+        injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
+        pattern = hook::pattern("8B 08 8B 51 40 68 ? ? ? ? 50 FF D2 A1 ? ? ? ? 8B 0D");
+        injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
+        pattern = hook::pattern("8B 08 8B 51 40 68 ? ? ? ? 50 FF D2 A1 ? ? ? ? 85 C0");
+        injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
+    }
+
     FusionFix::onInitEvent().executeAll();
 }
 

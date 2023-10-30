@@ -430,16 +430,11 @@ public:
                 pFPSFont = nullptr;
             };
 
-            FusionFix::D3D9::onBeforeReset() += [](LPDIRECT3DDEVICE9 pDevice, D3DPRESENT_PARAMETERS* pPresentationParameters)
+            FusionFix::onBeforeReset() += []()
             {
                 if (pFPSFont)
-                    pFPSFont->OnLostDevice();
-            };
-
-            FusionFix::D3D9::onAfterReset() += [](LPDIRECT3DDEVICE9 pDevice, D3DPRESENT_PARAMETERS* pPresentationParameters)
-            {
-                if (pFPSFont)
-                    pFPSFont->OnResetDevice();
+                    pFPSFont->Release();
+                pFPSFont = nullptr;
             };
 
             FusionFix::D3D9::onEndScene() += [](LPDIRECT3DDEVICE9 pDevice)

@@ -63,6 +63,10 @@ public:
         static Event<> MenuExitEvent;
         return MenuExitEvent;
     }
+    static Event<>& onBeforeReset() {
+        static Event<> BeforeReset;
+        return BeforeReset;
+    }
 
     struct D3D9 {
         static Event<LPDIRECT3D9&, UINT&, D3DDEVTYPE&, HWND&, DWORD&, D3DPRESENT_PARAMETERS*&, IDirect3DDevice9**&>& onBeforeCreateDevice() {
