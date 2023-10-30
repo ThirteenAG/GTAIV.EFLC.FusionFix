@@ -330,7 +330,6 @@ public:
             });
 
             FusionFixSettings.SetCallback("PREF_SHADOW_QUALITY", [](int32_t value) {
-                injector::fastcall<void()>::call(CTimeCycleInitialise);
                 bTimecycUpdated = 200;
             });
 
