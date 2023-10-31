@@ -36,9 +36,25 @@ public:
                         *(uintptr_t*)(regs.esp - 4) = loc_A2A60F;
                     }
 
-                    static auto alwayssprint = FusionFixSettings.GetRef("PREF_ALWAYSRUN");
+                    static auto alwaysrun = FusionFixSettings.GetRef("PREF_ALWAYSRUN");
+                    static auto alwayssprint = FusionFixSettings.GetRef("PREF_SPRINT");
 
-                    if (alwayssprint->get() && !GetAsyncKeyState(nWalkKey))
+                    if (!alwayssprint->get()) // toggle
+                    {
+                        if (alwaysrun->get())
+                        {
+                            static auto bRunState = true;
+                            static auto oldWalkKeyState = GetAsyncKeyState(nWalkKey);
+                            auto curWalkKeyState = GetAsyncKeyState(nWalkKey);
+                            if (curWalkKeyState != oldWalkKeyState)
+                                bRunState = !bRunState;
+                            oldWalkKeyState = curWalkKeyState;
+
+                            if (bRunState)
+                                *(float*)(regs.esp + (flag ? 0x18 : 0x1C)) = 1.0f;
+                        }
+                    }
+                    else if (alwaysrun->get() && !GetAsyncKeyState(nWalkKey)) // hold
                         *(float*)(regs.esp + (flag ? 0x18 : 0x1C)) = 1.0f;
                 }
             }; injector::MakeInline<SprintHook>(pattern.get_first(0));
