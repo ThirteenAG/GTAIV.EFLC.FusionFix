@@ -192,15 +192,21 @@ public:
     {
         if (prefID >= firstCustomID)
             return mFusionPrefs[prefID].GetValue();
-        else
+        else {
+            DWORD tmp;
+            injector::UnprotectMemory(&mPrefs[prefID], sizeof(int32_t), tmp);
             return mPrefs[prefID];
+        }
     }
     auto Set(int32_t prefID, int32_t value) {
         if (prefID >= firstCustomID) {
             mFusionPrefs[prefID].SetValue(value);
         }
-        else
+        else {
+            DWORD tmp;
+            injector::UnprotectMemory(&mPrefs[prefID], sizeof(int32_t), tmp);
             mPrefs[prefID] = value;
+        }
     }
     int32_t Get(std::string_view name)
     {
@@ -224,8 +230,11 @@ public:
         if (prefID) {
             if (prefID >= firstCustomID)
                 return std::ref(mFusionPrefs[*prefID].value);
-            else
+            else {
+                DWORD tmp;
+                injector::UnprotectMemory(&mPrefs[*prefID], sizeof(int32_t), tmp);
                 return std::ref(mPrefs[*prefID]);
+            }
         }
         return std::nullopt;
     }
