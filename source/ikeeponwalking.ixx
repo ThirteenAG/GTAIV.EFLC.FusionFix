@@ -28,17 +28,17 @@ public:
             {
                 void operator()(injector::reg_pack& regs)
                 {
-                    if ((*(int8_t*)(regs.eax + 4) ^ *(int8_t*)(regs.eax + 6)) <= 127)
+                    if ((*(uint8_t*)(regs.eax + 4) ^ *(uint8_t*)(regs.eax + 6)) <= 127)
                     {
                         if (*(float*)(regs.esp + (flag ? 0x14 : 0x1C)) > 1.0f)
                             *(float*)(regs.esp + (flag ? 0x18 : 0x1C)) = 1.0f;
-   
+
                         *(uintptr_t*)(regs.esp - 4) = loc_A2A60F;
                     }
 
                     static auto alwaysrun = FusionFixSettings.GetRef("PREF_ALWAYSRUN");
                     static auto alwayssprint = FusionFixSettings.GetRef("PREF_SPRINT");
-
+                    
                     if (!alwayssprint->get()) // toggle
                     {
                         if (alwaysrun->get())
@@ -49,7 +49,7 @@ public:
                             if (curWalkKeyState != oldWalkKeyState)
                                 bRunState = !bRunState;
                             oldWalkKeyState = curWalkKeyState;
-
+                    
                             if (bRunState)
                                 *(float*)(regs.esp + (flag ? 0x18 : 0x1C)) = 1.0f;
                         }
