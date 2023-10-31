@@ -11,4 +11,4 @@ call buildshaders.bat
 -xr!update\GTAIV.EFLC.FusionFix\FusionTrees ^
 -xr!update\GTAIV.EFLC.FusionFix\FusionLights ^
 -x!update\GTAIV.EFLC.FusionFix\cdimagemake.ims ^
--x!*.gitkeep
+-x!update\common\shaders\.gitkeep

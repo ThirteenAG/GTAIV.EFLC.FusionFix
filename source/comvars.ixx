@@ -17,6 +17,7 @@ export HWND gWnd;
 export RECT gRect;
 export bool bDynamicShadowForTrees;
 export bool bMoreShadows = false;
+export bool bMainEndScene = false;
 
 class Common
 {

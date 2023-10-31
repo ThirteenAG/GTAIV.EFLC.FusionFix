@@ -440,6 +440,11 @@ public:
 
             FusionFix::D3D9::onEndScene() += [](LPDIRECT3DDEVICE9 pDevice)
             {
+                if (!bMainEndScene)
+                    return;
+                else
+                    bMainEndScene = false;
+
                 static auto fpsc = FusionFixSettings.GetRef("PREF_FPSCOUNTER");
                 if (menuTab == 8 || menuTab == 49 || fpsc->get())
                 {

@@ -51,12 +51,12 @@ void Init()
     pattern = hook::pattern("A1 ? ? ? ? 50 8B 08 FF 51 40");
     if (!pattern.empty())
     {
-        static auto Direct3DDevice = *pattern.get_first<uint32_t*>(1);
+        static auto Direct3DDevice = *pattern.get_first<LPDIRECT3DDEVICE9*>(1);
         struct AuxBeforeResetHook
         {
             void operator()(injector::reg_pack& regs)
             {
-                regs.eax = *Direct3DDevice;
+                *(LPDIRECT3DDEVICE9*)&regs.eax = *Direct3DDevice;
                 FusionFix::onBeforeReset().executeAll();
             }
         };
@@ -67,15 +67,15 @@ void Init()
         pattern = hook::pattern("A1 ? ? ? ? 68 ? ? ? ? 8B 08 50 FF 51 40 A1");
         injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
 
-        pattern = hook::pattern("8B 0D ? ? ? ? 85 C9 74 11 8B 01");
-        struct AuxBeforeResetHook2
+        pattern = hook::pattern("A1 ? ? ? ? 50 8B 08 FF 91 ? ? ? ? 8B 3D");
+        struct AuxEndSceneHook
         {
             void operator()(injector::reg_pack& regs)
             {
-                regs.ecx = *Direct3DDevice;
-                FusionFix::onBeforeReset().executeAll();
+                *(LPDIRECT3DDEVICE9*)&regs.eax = *Direct3DDevice;
+                bMainEndScene = true;
             }
-        }; injector::MakeInline<AuxBeforeResetHook2>(pattern.get_first(0), pattern.get_first(6));
+        }; injector::MakeInline<AuxEndSceneHook>(pattern.get_first(0));
     }
     else
     {
@@ -97,6 +97,17 @@ void Init()
         injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
         pattern = hook::pattern("8B 08 8B 51 40 68 ? ? ? ? 50 FF D2 A1 ? ? ? ? 85 C0");
         injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
+        
+        pattern = hook::pattern("A1 ? ? ? ? 8B 10 50");
+        static auto Direct3DDevice = *pattern.get_first<LPDIRECT3DDEVICE9*>(1);
+        struct AuxEndSceneHook
+        {
+            void operator()(injector::reg_pack& regs)
+            {
+                *(LPDIRECT3DDEVICE9*)&regs.eax = *Direct3DDevice;
+                bMainEndScene = true;
+            }
+        }; injector::MakeInline<AuxEndSceneHook>(pattern.get_first(0));
     }
 
     FusionFix::onInitEvent().executeAll();
