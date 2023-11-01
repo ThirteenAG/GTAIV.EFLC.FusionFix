@@ -80,7 +80,7 @@ public:
             if (bRecoilFix)
             {
                 static float fRecMult = 0.65f;
-                auto pattern = find_pattern("F3 0F 10 44 24 ? F3 0F 59 05 ? ? ? ? EB 1E", "F3 0F 10 44 24 ? F3 0F 59 05 ? ? ? ? EB ? E8");
+                auto pattern = find_pattern("F3 0F 10 44 24 ? F3 0F 59 05 ? ? ? ? EB 1E E8 ? ? ? ? 84 C0", "F3 0F 10 44 24 ? F3 0F 59 05 ? ? ? ? EB ? E8");
                 injector::WriteMemory(pattern.get_first(10), &fRecMult, true);
             }
 
