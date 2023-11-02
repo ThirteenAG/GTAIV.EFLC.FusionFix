@@ -33,6 +33,7 @@ public:
                     void operator()(injector::reg_pack& regs)
                     {
                         float f = std::clamp(*(float*)(regs.ebp + 0x08), 1.0f / 150.0f, FLT_MAX);
+                        *(float*)(regs.ebp + 0x08) = f;
                         _asm { movss xmm0, dword ptr[f] }
                     }
                 }; injector::MakeInline<FramerateVigilanteHook1>(pattern.get_first(0));
