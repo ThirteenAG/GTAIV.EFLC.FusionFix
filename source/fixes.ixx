@@ -80,7 +80,7 @@ public:
             if (bRecoilFix)
             {
                 static float fRecMult = 0.65f;
-                auto pattern = find_pattern("F3 0F 10 44 24 ? F3 0F 59 05 ? ? ? ? EB 1E", "F3 0F 10 44 24 ? F3 0F 59 05 ? ? ? ? EB ? E8");
+                auto pattern = find_pattern("F3 0F 10 44 24 ? F3 0F 59 05 ? ? ? ? EB 1E E8 ? ? ? ? 84 C0", "F3 0F 10 44 24 ? F3 0F 59 05 ? ? ? ? EB ? E8");
                 injector::WriteMemory(pattern.get_first(10), &fRecMult, true);
             }
 
@@ -93,8 +93,14 @@ public:
 
             if (bPedDeathAnimFixFromTBOGT)
             {
-                auto pattern = find_pattern("8B D9 75 2E", "BB ? ? ? ? 75 29 80 7F 28 00");
-                injector::MakeNOP(pattern.get_first(2), 2, true);
+                auto pattern = hook::pattern("8B D9 75 2E");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(2), 2, true);
+                else
+                {
+                    pattern = hook::pattern("BB ? ? ? ? 75 29 80 7F 28 00");
+                    injector::MakeNOP(pattern.get_first(5), 2, true);
+                }
             }
 
             if (bDisableCameraCenteringInCover)

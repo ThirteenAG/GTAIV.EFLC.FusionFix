@@ -52,7 +52,7 @@ public:
             }
             else
             {
-                pattern = hook::pattern("8B 14 85 ? ? ? ? A3");
+                pattern = hook::pattern("8B 14 85 ? ? ? ? A3 ? ? ? ? 8B 44 24 04");
                 static auto off_1045520 = *pattern.get_first<const char**>(3);
                 struct ShaderPathHook
                 {
@@ -71,16 +71,6 @@ public:
             // Setup variables for shaders
             static auto dw11A2948 = *find_pattern("C7 05 ? ? ? ? ? ? ? ? 0F 85 ? ? ? ? 6A 00", "D8 05 ? ? ? ? D9 1D ? ? ? ? 83 05").get_first<float*>(2);
             static auto dw103E49C = *hook::get_pattern<void**>("A3 ? ? ? ? C7 80", 1);
-
-            FusionFix::D3D9::onBeforeCreateDevice() += [](LPDIRECT3D9& pDirect3D9, UINT& Adapter, D3DDEVTYPE& DeviceType, HWND& hFocusWindow, DWORD& BehaviorFlags, D3DPRESENT_PARAMETERS*& pPresentationParameters, IDirect3DDevice9**& ppReturnedDeviceInterface)
-            {
-                pHDRTexQuarter = nullptr;
-            };
-
-            FusionFix::D3D9::onBeforeReset() += [](LPDIRECT3DDEVICE9& pDevice, D3DPRESENT_PARAMETERS*& pPresentationParameters)
-            {
-                pHDRTexQuarter = nullptr;
-            };
 
             FusionFix::D3D9::onBeginScene() += [](LPDIRECT3DDEVICE9 pDevice)
             {
@@ -206,6 +196,21 @@ public:
                 if (bFixRainDrops && Stage == 1 && pTexture == nullptr && pHDRTexQuarter) {
                     pTexture = pHDRTexQuarter;
                 }
+            };
+
+            FusionFix::D3D9::onBeforeCreateDevice() += [](LPDIRECT3D9& pDirect3D9, UINT& Adapter, D3DDEVTYPE& DeviceType, HWND& hFocusWindow, DWORD& BehaviorFlags, D3DPRESENT_PARAMETERS*& pPresentationParameters, IDirect3DDevice9**& ppReturnedDeviceInterface)
+            {
+                pHDRTexQuarter = nullptr;
+            };
+
+            FusionFix::D3D9::onBeforeReset() += [](LPDIRECT3DDEVICE9& pDevice, D3DPRESENT_PARAMETERS*& pPresentationParameters)
+            {
+                pHDRTexQuarter = nullptr;
+            };
+
+            FusionFix::onBeforeReset() += []()
+            {
+                pHDRTexQuarter = nullptr;
             };
         };
     };

@@ -63,6 +63,10 @@ public:
         static Event<> MenuExitEvent;
         return MenuExitEvent;
     }
+    static Event<>& onBeforeReset() {
+        static Event<> BeforeReset;
+        return BeforeReset;
+    }
 
     struct D3D9 {
         static Event<LPDIRECT3D9&, UINT&, D3DDEVTYPE&, HWND&, DWORD&, D3DPRESENT_PARAMETERS*&, IDirect3DDevice9**&>& onBeforeCreateDevice() {
@@ -658,4 +662,36 @@ public:
             }
         }
     }
+};
+
+export class raw_mem
+{
+public:
+    raw_mem(injector::memory_pointer_tr addr, std::initializer_list<uint8_t> bytes, bool offset_back = false)
+    {
+        ptr = addr.as_int() - (offset_back ? bytes.size() : 0);
+        new_code.assign(std::move(bytes));
+        old_code.resize(new_code.size());
+        ReadMemoryRaw(ptr, old_code.data(), old_code.size(), true);
+    }
+
+    void Write()
+    {
+        WriteMemoryRaw(ptr, new_code.data(), new_code.size(), true);
+    }
+
+    void Restore()
+    {
+        WriteMemoryRaw(ptr, old_code.data(), old_code.size(), true);
+    }
+
+    size_t Size()
+    {
+        return old_code.size();
+    }
+
+private:
+    injector::memory_pointer ptr;
+    std::vector<uint8_t> old_code;
+    std::vector<uint8_t> new_code;
 };

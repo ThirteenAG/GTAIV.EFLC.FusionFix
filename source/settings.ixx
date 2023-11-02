@@ -113,6 +113,9 @@ public:
             { 0, "PREF_MOTIONBLUR",       "MAIN",       "MotionBlur",                   ""                          , 0, nullptr, 0, 1 },
             { 0, "PREF_LEDILLUMINATION",  "MISC",       "LightSyncRGB",                 ""                          , 0, nullptr, 0, 1 },
             { 0, "PREF_DEFINITION",       "MAIN",       "Definition",                   "MENU_DISPLAY_DEFINITION"   , 1, nullptr, DefinitionText.eClassic, std::distance(std::begin(DefinitionText.data), std::end(DefinitionText.data)) - 1 },
+            { 0, "PREF_BLOOM",            "MAIN",       "Bloom",                        ""                          , 0, nullptr, 0, 1 },
+            { 0, "PREF_FPSCOUNTER",       "FRAMELIMIT", "DisplayFpsCounter",            ""                          , 0, nullptr, 0, 1 },
+            { 0, "PREF_ALWAYSRUN",        "MISC",       "AlwaysRun",                    ""                          , 0, nullptr, 0, 1 },
         };
 
         auto i = firstCustomID;
@@ -189,15 +192,21 @@ public:
     {
         if (prefID >= firstCustomID)
             return mFusionPrefs[prefID].GetValue();
-        else
+        else {
+            DWORD tmp;
+            injector::UnprotectMemory(&mPrefs[prefID], sizeof(int32_t), tmp);
             return mPrefs[prefID];
+        }
     }
     auto Set(int32_t prefID, int32_t value) {
         if (prefID >= firstCustomID) {
             mFusionPrefs[prefID].SetValue(value);
         }
-        else
+        else {
+            DWORD tmp;
+            injector::UnprotectMemory(&mPrefs[prefID], sizeof(int32_t), tmp);
             mPrefs[prefID] = value;
+        }
     }
     int32_t Get(std::string_view name)
     {
@@ -221,8 +230,11 @@ public:
         if (prefID) {
             if (prefID >= firstCustomID)
                 return std::ref(mFusionPrefs[*prefID].value);
-            else
+            else {
+                DWORD tmp;
+                injector::UnprotectMemory(&mPrefs[*prefID], sizeof(int32_t), tmp);
                 return std::ref(mPrefs[*prefID]);
+            }
         }
         return std::nullopt;
     }
@@ -428,21 +440,22 @@ public:
                 pFPSFont = nullptr;
             };
 
-            FusionFix::D3D9::onBeforeReset() += [](LPDIRECT3DDEVICE9 pDevice, D3DPRESENT_PARAMETERS* pPresentationParameters)
+            FusionFix::onBeforeReset() += []()
             {
                 if (pFPSFont)
-                    pFPSFont->OnLostDevice();
-            };
-
-            FusionFix::D3D9::onAfterReset() += [](LPDIRECT3DDEVICE9 pDevice, D3DPRESENT_PARAMETERS* pPresentationParameters)
-            {
-                if (pFPSFont)
-                    pFPSFont->OnResetDevice();
+                    pFPSFont->Release();
+                pFPSFont = nullptr;
             };
 
             FusionFix::D3D9::onEndScene() += [](LPDIRECT3DDEVICE9 pDevice)
             {
-                if (menuTab == 8 || menuTab == 49)
+                if (!bMainEndScene)
+                    return;
+                else
+                    bMainEndScene = false;
+
+                static auto fpsc = FusionFixSettings.GetRef("PREF_FPSCOUNTER");
+                if (menuTab == 8 || menuTab == 49 || fpsc->get())
                 {
                     static std::list<int> m_times;
 

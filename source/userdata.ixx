@@ -53,6 +53,9 @@ public:
             CIniReader iniReader("");
             customUserProfilePath = std::filesystem::path(iniReader.ReadString("USERPROFILE", "CustomUserProfilePath", ""));
 
+            if (customUserProfilePath.empty())
+                return;
+
             if (!customUserProfilePath.is_absolute())
             {
                 auto exe_path = std::filesystem::path(GetExeModulePath<std::string>());
