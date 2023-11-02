@@ -64,18 +64,10 @@ public:
                                     if (std::any_of(std::begin(episodicPaths), std::end(episodicPaths), [&](auto& it) { return is_subpath(relativePath, it); }))
                                     {
                                         if (*_dwCurrentEpisode < episodicPaths.size() && is_subpath(relativePath, episodicPaths[*_dwCurrentEpisode]))
-                                        {
-                                            sub_A95980(255);
                                             CImgManager__addImgFile(std::filesystem::path(imgPath).string().c_str(), 1, -1);
-                                            sub_A95980(0);
-                                        }
                                     }
                                     else
-                                    {
-                                        sub_A95980(255);
                                         CImgManager__addImgFile(std::filesystem::path(imgPath).string().c_str(), 1, -1);
-                                        sub_A95980(0);
-                                    }
                                 }
                             }
                         }
