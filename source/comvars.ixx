@@ -9,6 +9,9 @@ import common;
 export int32_t* _dwCurrentEpisode;
 export uint8_t* CTimer__m_UserPause = nullptr;
 export uint8_t* CTimer__m_CodePause = nullptr;
+export int32_t* CTimer__m_snTimeInMilliseconds = nullptr;
+export int32_t* rage__screenWidth = nullptr;
+export int32_t* rage__screenHeight = nullptr;
 export uint32_t* rage__scrEngine__ms_dwNativeTableSize;
 export uint32_t** rage__scrEngine__ms_pNatives;
 export void* (__stdcall* getNativeAddress)(uint32_t);
@@ -31,6 +34,18 @@ public:
             auto pattern = find_pattern("0A 05 ? ? ? ? 0A 05 ? ? ? ? 75 38", "0A 05 ? ? ? ? 0A 05");
             CTimer__m_UserPause = *pattern.get_first<uint8_t*>(2);
             CTimer__m_CodePause = *pattern.get_first<uint8_t*>(8);
+
+            auto pattern2 = hook::pattern("8B 0D ? ? ? ? 89 0D ? ? ? ? F3 0F 10 05");
+            if (!pattern2.empty())
+                CTimer__m_snTimeInMilliseconds = *pattern2.get_first<int32_t*>(2);
+
+            pattern2 = hook::pattern("8B 0D ? ? ? ? 0F 44 0D ? ? ? ? 83 3D");
+            if (!pattern2.empty())
+                rage__screenWidth = *pattern2.get_first<int32_t*>(2);
+
+            pattern2 = hook::pattern("8B 35 ? ? ? ? 0F 44 35 ? ? ? ? FF D7 39 05 ? ? ? ? 8B 0D ? ? ? ? 0F 44 0D ? ? ? ? 83 3D");
+            if (!pattern2.empty())
+                rage__screenHeight = *pattern2.get_first<int32_t*>(2);
 
             rage__scrEngine__ms_dwNativeTableSize = *find_pattern("8B 35 ? ? ? ? 85 F6 75 06 33 C0 5E C2 04 00 53 57 8B 7C 24 10", "8B 3D ? ? ? ? 85 FF 75 04 33 C0 5F C3").count(2).get(0).get<uint32_t*>(2);
             rage__scrEngine__ms_pNatives = *find_pattern("8B 1D ? ? ? ? 8B CF 8B 04 D3 3B C7 74 19 8D 64 24 00 85 C0", "8B 1D ? ? ? ? 8B CE 8B 04 D3 3B C6 74 17 85 C0").count(2).get(0).get<uint32_t**>(2);
