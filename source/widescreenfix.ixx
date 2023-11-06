@@ -10,8 +10,8 @@ import settings;
 import natives;
 import renderthread;
 
-#define SCREEN_WIDTH ((float)*rage__screenWidth)
-#define SCREEN_HEIGHT ((float)*rage__screenHeight)
+#define SCREEN_WIDTH ((float)*rage__grcDevice__ms_nActiveWidth)
+#define SCREEN_HEIGHT ((float)*rage__grcDevice__ms_nActiveHeight)
 #define DEFAULT_SCREEN_WIDTH 1280.0f
 #define DEFAULT_SCREEN_HEIGHT 720.0f
 #define DEFAULT_ASPECT_RATIO (16.0f / 9.0f)
@@ -136,64 +136,49 @@ public:
     WidescreenFix()
     {
         // CSprite2d
-        auto pattern = find_pattern("6A 00 E8 ? ? ? ? 8B 44 24 08 83 C4 04");
-        if (!pattern.empty())
-            CSprite2d__DrawRectAddr = pattern.get_first(0);
+        auto pattern = find_pattern("6A 00 E8 ? ? ? ? 8B 44 24 08 83 C4 04 F3 0F 10 40", "6A 00 E8 ? ? ? ? D9 EE 8B 44 24 0C");
+        CSprite2d__DrawRectAddr = pattern.get_first(0);
 
-        pattern = find_pattern("8B 44 24 04 6A 00 FF 74 24 0C");
-        if (!pattern.empty())
-            CSprite2d__DrawAddr = pattern.get_first(0);
+        pattern = find_pattern("8B 44 24 04 6A 00 FF 74 24 0C", "8B 44 24 08 D9 E8 6A 00");
+        CSprite2d__DrawAddr = pattern.get_first(0);
 
         // Fix "auto" aspect ratio
-        pattern = find_pattern("75 67 E8 75 CB FC FF");
-        if (!pattern.empty())
-            injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
+        pattern = find_pattern("75 67 E8 75 CB FC FF", "75 5B E8 ? ? ? ? 85 C0 7E 52 E8");
+        injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
 
-        pattern = find_pattern("6A 01 F3 0F 5E C8 B9");
-        if (!pattern.empty())
-            injector::WriteMemory<uint8_t>(pattern.get_first(1), 0, true);
+        pattern = find_pattern("6A 01 F3 0F 5E C8 B9", "6A 01 B9 ? ? ? ? E8 ? ? ? ? D9 54 24 1C");
+        injector::WriteMemory<uint8_t>(pattern.get_first(1), 0, true);
 
         // Fix cellphone
-        pattern = find_pattern("F3 0F 59 0D ? ? ? ? 0F 28 C1 F3 0F 59 44 24 ? F3 0F 11 44 24 ? 0F 28 C1 F3 0F 59 44 24 ? F3 0F 59 4C 24 ? F3 0F 11 44 24 ? F3 0F 10 44 24");
-        if (!pattern.empty())
-            injector::WriteMemory<void*>(pattern.get_first(4), &f075, true);
+        pattern = find_pattern("F3 0F 59 0D ? ? ? ? 0F 28 C1 F3 0F 59 44 24 ? F3 0F 11 44 24 ? 0F 28 C1 F3 0F 59 44 24 ? F3 0F 59 4C 24 ? F3 0F 11 44 24 ? F3 0F 10 44 24", "F3 0F 59 0D ? ? ? ? 0F 28 D1 F3 0F 59 54 24");
+        injector::WriteMemory<void*>(pattern.get_first(4), &f075, true);
 
         // Fix episode menu select
-        pattern = find_pattern("E8 ? ? ? ? 8B 4E 08 6A 00 8B 01 6A 10 8B 40 08 68 ? ? ? ? FF D0 85 C0 74 13 68 ? ? ? ? 68 ? ? ? ? 8B C8 E8 ? ? ? ? EB 02 33 C0 8D 4C 24 14 51 8B C8 A3 ? ? ? ? C7 44 24 ? ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E9");
-        if (!pattern.empty()) {
-            hbInitEpisodeSelect.fun = injector::GetBranchDestination(pattern.get_first(0)).get();
-            injector::MakeCALL(pattern.get_first(0), InitEpisodeSelect);
-        }
+        pattern = find_pattern("E8 ? ? ? ? 8B 4E 08 6A 00 8B 01 6A 10 8B 40 08 68 ? ? ? ? FF D0 85 C0 74 13 68 ? ? ? ? 68 ? ? ? ? 8B C8 E8 ? ? ? ? EB 02 33 C0 8D 4C 24 14 51 8B C8 A3 ? ? ? ? C7 44 24 ? ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E9", "E8 ? ? ? ? 64 8B 0D ? ? ? ? 8B 11 8B 4A 08 8B 01 8B 50 08 53 6A 10 68 ? ? ? ? FF D2 3B C3 74 1A");
+        hbInitEpisodeSelect.fun = injector::GetBranchDestination(pattern.get_first(0)).get();
+        injector::MakeCALL(pattern.get_first(0), InitEpisodeSelect);
         
         // Add new tex offline_21by9
-        pattern = find_pattern("E8 ? ? ? ? 64 A1 ? ? ? ? 6A 00 8B 38 6A 10 8B 4F 08 68 ? ? ? ? 8B 01 8B 40 08 FF D0 85 C0 74 15");
-        if (!pattern.empty()) 
-        {
-            hbUITexture__Load.fun = injector::GetBranchDestination(pattern.get_first(0)).get();
-            injector::MakeCALL(pattern.get_first(0), UITexture__Load);
-        }
+        pattern = find_pattern("E8 ? ? ? ? 64 A1 ? ? ? ? 6A 00 8B 38 6A 10 8B 4F 08 68 ? ? ? ? 8B 01 8B 40 08 FF D0 85 C0 74 15", "E8 ? ? ? ? 55 68 ? ? ? ? 68");
+        hbUITexture__Load.fun = injector::GetBranchDestination(pattern.get_first(0)).get();
+        injector::MakeCALL(pattern.get_first(0), UITexture__Load);
 
-        pattern = find_pattern("F3 0F 59 0D ? ? ? ? F3 0F 59 D3 F3 0F 5C C1");
-        if (!pattern.empty())
-            injector::WriteMemory<void*>(pattern.get_first(4), &f01152, true);
+        pattern = find_pattern("F3 0F 59 0D ? ? ? ? F3 0F 59 D3 F3 0F 5C C1", "F3 0F 59 05 ? ? ? ? F3 0F 59 CA F3 0F 59 CC");
+        injector::WriteMemory<void*>(pattern.get_first(4), &f01152, true);
 
         // Cutscene borders
-        pattern = find_pattern("83 EC 14 B9 ? ? ? ? E8 ? ? ? ? 84 C0");
-        if (!pattern.empty())
-            injector::MakeJMP(pattern.get_first(0), DrawCutsceneBorders, true);
+        pattern = hook::pattern("83 EC 14 B9 ? ? ? ? E8 ? ? ? ? 84 C0");
+        injector::MakeJMP(pattern.get_first(0), DrawCutsceneBorders, true);
 
         // Loadingscreens
-        pattern = find_pattern("E8 ? ? ? ? 83 C4 2C E8 ? ? ? ? E9");
-        if (!pattern.empty())
-            injector::MakeCALL(pattern.get_first(0), DrawLoadingScreen, true);
+        pattern = find_pattern("E8 ? ? ? ? 83 C4 2C E8 ? ? ? ? E9", "E8 ? ? ? ? 83 C4 2C E8 ? ? ? ? EB 73");
+        injector::MakeCALL(pattern.get_first(0), DrawLoadingScreen, true);
 
-        pattern = find_pattern("E8 ? ? ? ? 83 C4 2C E8 ? ? ? ? 8A 54 24 0F");
-        if (!pattern.empty())
-            injector::MakeCALL(pattern.get_first(0), DrawLoadingScreen, true);
+        pattern = find_pattern("E8 ? ? ? ? 83 C4 2C E8 ? ? ? ? 8A 54 24 0F", "E8 ? ? ? ? 83 C4 2C E8 ? ? ? ? 8B 35");
+        injector::MakeCALL(pattern.get_first(0), DrawLoadingScreen, true);
 
-        pattern = find_pattern("E8 ? ? ? ? 83 C4 2C 5F 5E 5B 83 C4 28");
-        if (!pattern.empty())
-            injector::MakeCALL(pattern.get_first(0), DrawLoadingScreen, true);
+        pattern = find_pattern("E8 ? ? ? ? 83 C4 2C 5F 5E 5B 83 C4 28", "E8 ? ? ? ? 83 C4 2C 5F 5E 5D 5B 83 C4 20");
+        injector::MakeCALL(pattern.get_first(0), DrawLoadingScreen, true);
 
         FusionFix::onGameProcessEvent() += []()
         {

@@ -57,12 +57,10 @@ class RenderThread
 public:
     RenderThread()
     {
-        auto pattern = find_pattern("56 57 8B F9 8B 07 FF 50 08 25");
-        if (!pattern.empty())
-            CBaseDC::AppendAddr = pattern.get_first(0);
+        auto pattern = find_pattern("56 57 8B F9 8B 07 FF 50 08 25", "56 8B F1 8B 06 8B 50 08 57 FF D2 25");
+        CBaseDC::AppendAddr = pattern.get_first(0);
 
-        pattern = find_pattern("53 56 57 8B 7C 24 10 FF 74 24 14");
-        if (!pattern.empty())
-            CBaseDC::operator_newAddr = pattern.get_first(0);
+        pattern = find_pattern("53 56 57 8B 7C 24 10 FF 74 24 14", "8B 44 24 08 56 57 8B 7C 24 0C 8B F7");
+        CBaseDC::operator_newAddr = pattern.get_first(0);
     }
 } RenderThread;
