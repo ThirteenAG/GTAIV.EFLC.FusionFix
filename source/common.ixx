@@ -39,6 +39,10 @@ public:
         static Event<> InitEvent;
         return InitEvent;
     }
+    static Event<>& onAfterUALRestoredIATEvent() {
+        static Event<> AfterUALRestoredIATEvent;
+        return AfterUALRestoredIATEvent;
+    }
     static Event<>& onShutdownEvent() {
         static Event<> ShutdownEvent;
         return ShutdownEvent;

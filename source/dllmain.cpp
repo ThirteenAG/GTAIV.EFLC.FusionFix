@@ -7,6 +7,17 @@
 import common;
 import comvars;
 
+injector::hook_back<void(*)()> hbsub_8C4480;
+void __cdecl sub_8C4480Hook()
+{
+    static std::once_flag of;
+    std::call_once(of, []()
+    {
+        FusionFix::onAfterUALRestoredIATEvent().executeAll();
+    });
+    return hbsub_8C4480.fun();
+}
+
 injector::hook_back<void(__cdecl*)(int)> hbCGameProcess;
 void __cdecl CGameProcessHook(int a1)
 {
@@ -109,6 +120,9 @@ void Init()
             }
         }; injector::MakeInline<AuxEndSceneHook>(pattern.get_first(0));
     }
+
+    pattern = find_pattern("E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? 8D 54 24 08", "E8 ? ? ? ? E8 ? ? ? ? 68 ? ? ? ? 6A 00 6A 00");
+    hbsub_8C4480.fun = injector::MakeCALL(pattern.get_first(0), sub_8C4480Hook, true).get();
 
     FusionFix::onInitEvent().executeAll();
 }

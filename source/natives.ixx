@@ -53,6 +53,13 @@ export struct Vector4
     float fW;
 };
 
+export struct Color32 {
+    uint8_t b;
+    uint8_t g;
+    uint8_t r;
+    uint8_t a;
+};
+
 export class scrNativeCallContext
 {
 protected:
