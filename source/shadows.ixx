@@ -45,7 +45,7 @@ void* __cdecl CModelInfoStore__allocateInstanceModelHook(char* modelName)
     return injector::cstd<void* (char*)>::call(CModelInfoStore__allocateInstanceModel, modelName);
 }
 
-std::vector<std::string> modelNames = { "track", "fence", "rail", "pillar", "post", "road", "trn" };
+std::vector<std::string> modelNames = { "track", "fence", "rail", "pillar", "post", "road", "trn", "trk" };
 injector::memory_pointer_raw CBaseModelInfo__setFlags = nullptr;
 void __cdecl CBaseModelInfo__setFlagsHook(void* pModel, int dwFlags, int a3)
 {
