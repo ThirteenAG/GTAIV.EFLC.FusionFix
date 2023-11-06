@@ -30,7 +30,7 @@ public:
                 std::forward_as_tuple("Sleep", FusionSleep)
             );
 
-            auto pattern = find_pattern("8B 46 08 33 C9 88 4C 24 04", "8B 4E 08 33 C0 83 E9 01");
+            auto pattern = find_pattern("FF 35 ? ? ? ? EB 06 FF 35 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? C6 44 24", "8B 0D ? ? ? ? 51 EB 07 8B 15 ? ? ? ? 52 B9 ? ? ? ? E8 ? ? ? ? C6 44 24");
             injector::MakeJMP(pattern.get_first(), hook::get_pattern("6A FF 6A 01 6A 00 6A 01 6A 01 6A 00 6A 01 6A 01 6A 00 6A 00 6A 00 6A 00 6A 00 6A 00 B9 ? ? ? ? C6 46 04 00"));
         };
     }
