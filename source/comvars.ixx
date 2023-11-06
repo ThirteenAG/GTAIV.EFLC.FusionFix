@@ -13,6 +13,7 @@ export int32_t* CTimer__m_snTimeInMilliseconds = nullptr;
 export int32_t* rage__grcDevice__ms_nActiveWidth = nullptr;
 export int32_t* rage__grcDevice__ms_nActiveHeight = nullptr;
 export bool* CMenuManager__m_MenuActive = nullptr;
+export uint8_t* bLoadscreenShown = nullptr;
 export uint32_t* rage__scrEngine__ms_dwNativeTableSize;
 export uint32_t** rage__scrEngine__ms_pNatives;
 export void* (__stdcall* getNativeAddress)(uint32_t);
@@ -22,6 +23,7 @@ export RECT gRect;
 export bool bDynamicShadowForTrees;
 export bool bMoreShadows = false;
 export bool bMainEndScene = false;
+export bool bLoadingShown = false;
 
 class Common
 {

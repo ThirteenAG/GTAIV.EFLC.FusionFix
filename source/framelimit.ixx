@@ -7,6 +7,7 @@ module;
 export module framelimit;
 
 import common;
+import comvars;
 import settings;
 
 int32_t nFrameLimitType;
@@ -106,12 +107,11 @@ private:
     }
 };
 
-export bool bLoadingShown = false;
 bool __cdecl sub_411F50(uint32_t* a1, uint32_t* a2)
 {
     bLoadingShown = false;
     if (!a1[2] && !a2[2]) {
-        bLoadingShown = *a1 == *a2;
+        bLoadingShown = (*a1 == *a2) && *a1;
         return *a1 == *a2;
     }
     if (a1[2] != a2[2])
@@ -129,7 +129,6 @@ FrameLimiter CutsceneFpsLimiter;
 FrameLimiter ScriptCutsceneFpsLimiter;
 bool(*CCutscenes__hasCutsceneFinished)();
 bool(*CCamera__isWidescreenBordersActive)();
-export uint8_t* bLoadscreenShown = nullptr;
 void __cdecl sub_855640()
 {
     static auto preset = FusionFixSettings.GetRef("PREF_FPS_LIMIT_PRESET");
