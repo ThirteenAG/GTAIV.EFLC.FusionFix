@@ -87,7 +87,7 @@ public:
             if (bDefaultCameraAngleInTLAD)
             {
                 static uint32_t episode_id = 0;
-                auto pattern = find_pattern("83 3D ? ? ? ? ? 8B 01 0F 44 C2 89 01 B0 01 C2 08 00", "83 3D ? ? ? ? ? 75 06 C7 00 ? ? ? ? B0 01 C2 08 00");
+                auto pattern = find_pattern<2>("83 3D ? ? ? ? ? 8B 01 0F 44 C2 89 01 B0 01 C2 08 00", "83 3D ? ? ? ? ? 75 06 C7 00 ? ? ? ? B0 01 C2 08 00");
                 injector::WriteMemory(pattern.count(2).get(0).get<void>(2), &episode_id, true);
             }
 

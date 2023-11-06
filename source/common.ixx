@@ -502,11 +502,11 @@ public:
     static inline std::vector<std::function<void(HMODULE)>> onAnyModuleUnload;
 };
 
-export template <typename... Args>
+export template <size_t count = 1, typename... Args>
 hook::pattern find_pattern(Args... args)
 {
     hook::pattern pattern;
-    ((pattern = hook::pattern(args), !pattern.empty()) || ...);
+    ((pattern = hook::pattern(args), !pattern.count(count).empty()) || ...);
     return pattern;
 }
 

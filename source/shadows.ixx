@@ -113,7 +113,7 @@ public:
 
             if (bFlickeringShadowsFix)
             {
-                auto pattern = find_pattern("C3 68 ? ? ? ? 6A 02 6A 00 E8 ? ? ? ? 83 C4 40 8B E5 5D C3", "50 68 ? ? ? ? 6A 02 6A 00 E8 ? ? ? ? 83 C4 40 5B 8B E5 5D C3");
+                auto pattern = find_pattern<2>("C3 68 ? ? ? ? 6A 02 6A 00 E8 ? ? ? ? 83 C4 40 8B E5 5D C3", "50 68 ? ? ? ? 6A 02 6A 00 E8 ? ? ? ? 83 C4 40 5B 8B E5 5D C3");
                 injector::WriteMemory(pattern.count(2).get(1).get<void*>(2), 0x100, true);
             }
         };
