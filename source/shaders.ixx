@@ -19,7 +19,7 @@ public:
         static UINT oldCascadesHeight = 0;
         static IDirect3DTexture9* pHDRTexQuarter = nullptr;
 
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
             CIniReader iniReader("");
             static auto bFixCascadedShadowMapResolution = iniReader.ReadInteger("SHADOWS", "FixCascadedShadowMapResolution", 0) != 0;

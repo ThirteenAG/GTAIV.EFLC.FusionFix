@@ -16,4 +16,5 @@
 #include <map>
 #include <iomanip>
 #include <array>
+#include <future>
 #include <d3d9.h>

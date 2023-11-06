@@ -51,7 +51,7 @@ class OverloadFromFolderDLL
 public:
     OverloadFromFolderDLL()
     {
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
             GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCSTR)&OverrideCreateFileInDLLs, &hm);
 

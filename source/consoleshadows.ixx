@@ -43,7 +43,7 @@ class ConsoleShadows
 public:
     ConsoleShadows()
     {
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
             CIniReader iniReader("");
             bMoreShadows = iniReader.ReadInteger("SHADOWS", "MoreShadows", 0) != 0;

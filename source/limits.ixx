@@ -118,7 +118,7 @@ class Limits
 public:
     Limits()
     {
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
             CIniReader iniReader("");
 

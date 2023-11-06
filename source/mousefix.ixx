@@ -47,7 +47,7 @@ class MouseFix
 public:
     MouseFix()
     {
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
             CIniReader iniReader("");
 

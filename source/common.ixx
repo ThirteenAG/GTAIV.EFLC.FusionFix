@@ -32,12 +32,29 @@ public:
                 }
             }
         }
+
+        std::reference_wrapper<std::vector<std::future<void>>> executeAllAsync(Args... args) const
+        {
+            static std::vector<std::future<void>> pendingFutures;
+            if (!handlers.empty())
+            {
+                for (auto& handler : handlers)
+                {
+                    pendingFutures.push_back(std::async(std::launch::async, handler, args...));
+                }
+            }
+            return std::ref(pendingFutures);
+        }
     };
 
 public:
     static Event<>& onInitEvent() {
         static Event<> InitEvent;
         return InitEvent;
+    }
+    static Event<>& onInitEventAsync() {
+        static Event<> InitEventAsync;
+        return InitEventAsync;
     }
     static Event<>& onAfterUALRestoredIATEvent() {
         static Event<> AfterUALRestoredIATEvent;
@@ -506,7 +523,7 @@ export template <size_t count = 1, typename... Args>
 hook::pattern find_pattern(Args... args)
 {
     hook::pattern pattern;
-    ((pattern = hook::pattern(args), !pattern.count(count).empty()) || ...);
+    ((pattern = hook::pattern(args), !pattern.count_hint(count).empty()) || ...);
     return pattern;
 }
 

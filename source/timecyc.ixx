@@ -267,7 +267,7 @@ class Timecyc
 public:
     Timecyc()
     {
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
             auto pattern = find_pattern("55 8B EC 83 E4 F0 81 EC ? ? ? ? 8B 0D ? ? ? ? 53 0F B7 41 04", "55 8B EC 83 E4 F0 81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 8B 0D ? ? ? ? 0F B7 41 04");
             static auto CTimeCycleInitialise = pattern.get_first(0);

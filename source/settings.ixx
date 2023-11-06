@@ -303,7 +303,7 @@ class Settings
 public:
     Settings()
     {
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
             // runtime settings
             auto pattern = hook::pattern("89 1C ? ? ? ? ? E8 ? ? ? ? A1");
@@ -525,12 +525,12 @@ public:
 
                             pFont->DrawTextA(NULL, cBuffer, -1, &Rect[4], DT_NOCLIP, dColor);
                         };
-
+                        auto curEp = _dwCurrentEpisode ? *_dwCurrentEpisode : 0;
                         static char str_format_fps[] = "%02d";
                         static const D3DXCOLOR TBOGT(D3DCOLOR_XRGB(0xD7, 0x11, 0x6E));
                         static const D3DXCOLOR TLAD(D3DCOLOR_XRGB(0x6F, 0x0D, 0x0F));
                         static const D3DXCOLOR IV(D3DCOLOR_XRGB(0xF0, 0xA0, 0x00));
-                        DrawTextOutline(pFPSFont, 10, 10, (*_dwCurrentEpisode == 2) ? TBOGT : ((*_dwCurrentEpisode == 1) ? TLAD : IV), str_format_fps, fps);
+                        DrawTextOutline(pFPSFont, 10, 10, (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), str_format_fps, fps);
                     }
                 }
             };

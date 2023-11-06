@@ -32,7 +32,7 @@ class SkipIntro
 public:
     SkipIntro()
     {
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
             bool bSkipIntro = FusionFixSettings("PREF_SKIP_INTRO") != 0;
             bool bSkipMenu = FusionFixSettings("PREF_SKIP_MENU") != 0;
