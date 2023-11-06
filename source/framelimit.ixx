@@ -136,7 +136,7 @@ void __cdecl sub_855640()
     if (bLoadscreenShown && !*bLoadscreenShown && !bLoadingShown)
     {
         if (preset && *preset >= FusionFixSettings.FpsCaps.eCustom) {
-            if (fFpsLimit > 0.0f || (*preset > FusionFixSettings.FpsCaps.eCustom && *preset < FusionFixSettings.FpsCaps.data.size()))
+            if (fFpsLimit > 0.0f || (*preset > FusionFixSettings.FpsCaps.eCustom && *preset < int32_t(FusionFixSettings.FpsCaps.data.size())))
                 FpsLimiter.Sync();
         }
     }
@@ -174,7 +174,7 @@ public:
                     timeBeginPeriod(1);
 
                 auto preset = FusionFixSettings("PREF_FPS_LIMIT_PRESET");
-                if (preset > FusionFixSettings.FpsCaps.eCustom && preset < FusionFixSettings.FpsCaps.data.size())
+                if (preset > FusionFixSettings.FpsCaps.eCustom && preset < int32_t(FusionFixSettings.FpsCaps.data.size()))
                     FpsLimiter.Init(mode, (float)FusionFixSettings.FpsCaps.data[preset]);
                 else
                     FpsLimiter.Init(mode, fFpsLimit);
@@ -192,7 +192,7 @@ public:
 
                 FusionFixSettings.SetCallback("PREF_FPS_LIMIT_PRESET", [](int32_t value) {
                     auto mode = (nFrameLimitType == 2) ? FrameLimiter::FPSLimitMode::FPS_ACCURATE : FrameLimiter::FPSLimitMode::FPS_REALTIME;
-                    if (value > FusionFixSettings.FpsCaps.eCustom && value < FusionFixSettings.FpsCaps.data.size())
+                    if (value > FusionFixSettings.FpsCaps.eCustom && value < int32_t(FusionFixSettings.FpsCaps.data.size()))
                         FpsLimiter.Init(mode, (float)FusionFixSettings.FpsCaps.data[value]);
                     else
                         FpsLimiter.Init(mode, fFpsLimit);

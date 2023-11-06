@@ -63,7 +63,7 @@ public:
                                     imgPath.replace(pos, 1, std::filesystem::path(":/").native());
                                     if (std::any_of(std::begin(episodicPaths), std::end(episodicPaths), [&](auto& it) { return is_subpath(relativePath, it); }))
                                     {
-                                        if (*_dwCurrentEpisode < episodicPaths.size() && is_subpath(relativePath, episodicPaths[*_dwCurrentEpisode]))
+                                        if (*_dwCurrentEpisode < int32_t(episodicPaths.size()) && is_subpath(relativePath, episodicPaths[*_dwCurrentEpisode]))
                                             CImgManager__addImgFile(std::filesystem::path(imgPath).string().c_str(), 1, -1);
                                     }
                                     else

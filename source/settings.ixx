@@ -171,8 +171,8 @@ public:
         pattern = find_pattern("FF 34 F5 ? ? ? ? 57 E8 ? ? ? ? 83 C4 08 85 C0 74 0B 46 83 FE 3C", "8B 0C F5 ? ? ? ? 51 57 E8 ? ? ? ? 83 C4 08 85 C0 74 15");
         injector::WriteMemory(pattern.get_first(3), &aMenuEnums[0].name, true);
 
-        injector::WriteMemory<uint8_t>(pOriginalEnumsNum, aMenuEnums.size(), true);
-        injector::WriteMemory<uint8_t>(pOriginalEnumsNum2, aMenuEnums.size(), true);
+        injector::WriteMemory<uint8_t>(pOriginalEnumsNum, uint8_t(aMenuEnums.size()), true);
+        injector::WriteMemory<uint8_t>(pOriginalEnumsNum2, uint8_t(aMenuEnums.size()), true);
 
         {
             static std::vector<MenuPrefs> aMenuPrefs2(aMenuPrefs.size());
@@ -324,7 +324,7 @@ public:
 
                     FusionFixSettings.ForEachPref([&](int32_t prefID, int32_t idStart, int32_t idEnd) {
                         if (prefID == id) {
-                            if (value <= idStart) {
+                            if (int32_t(value) <= idStart) {
                                 if (old > idStart)
                                     value = idStart;
                                 else
@@ -510,11 +510,11 @@ public:
 
                             RECT Rect[5] =
                             {
-                                { X - 1, Y, X + 500.0f, Y + 50.0f },
-                                { X, Y - 1, X + 500.0f, Y + 50.0f },
-                                { X + 1, Y, X + 500.0f, Y + 50.0f },
-                                { X, Y + 1, X + 500.0f, Y + 50.0f },
-                                { X, Y, X + 500.0f, Y + 50.0f },
+                                { LONG(X - 1), LONG(Y), LONG(X + 500.0f), LONG(Y + 50.0f) },
+                                { LONG(X), LONG(Y - 1), LONG(X + 500.0f), LONG(Y + 50.0f) },
+                                { LONG(X + 1), LONG(Y), LONG(X + 500.0f), LONG(Y + 50.0f) },
+                                { LONG(X), LONG(Y + 1), LONG(X + 500.0f), LONG(Y + 50.0f) },
+                                { LONG(X), LONG(Y), LONG(X + 500.0f), LONG(Y + 50.0f)},
                             };
 
                             if (dColor != BLACK)
