@@ -19,23 +19,8 @@ public:
         static UINT oldCascadesHeight = 0;
         static IDirect3DTexture9* pHDRTexQuarter = nullptr;
 
-        FusionFix::onInitEventAsync() += []()
+        FusionFix::onInitEvent() += []()
         {
-            CIniReader iniReader("");
-            static auto bFixCascadedShadowMapResolution = iniReader.ReadInteger("SHADOWS", "FixCascadedShadowMapResolution", 0) != 0;
-
-            static auto bFixRainDrops = iniReader.ReadInteger("MISC", "FixRainDrops", 1) != 0;
-            static auto nRainDropsBlur = iniReader.ReadInteger("MISC", "RainDropsBlur", 2);
-            if (nRainDropsBlur < 1) {
-                nRainDropsBlur = 1;
-            }
-            if (nRainDropsBlur > 4) {
-                nRainDropsBlur = 4;
-            }
-            if (nRainDropsBlur != 1 && nRainDropsBlur != 2 && nRainDropsBlur != 4) {
-                nRainDropsBlur = 2;
-            }
-
             // Redirect path to one unified folder
             auto pattern = hook::pattern("8B 04 8D ? ? ? ? A3 ? ? ? ? 8B 44 24 04");
             if (!pattern.empty())
@@ -63,9 +48,27 @@ public:
                     }
                 }; injector::MakeInline<ShaderPathHook>(pattern.get_first(0), pattern.get_first(7));
             }
+        };
+
+        FusionFix::onInitEventAsync() += []()
+        {
+            CIniReader iniReader("");
+            static auto bFixCascadedShadowMapResolution = iniReader.ReadInteger("SHADOWS", "FixCascadedShadowMapResolution", 0) != 0;
+
+            static auto bFixRainDrops = iniReader.ReadInteger("MISC", "FixRainDrops", 1) != 0;
+            static auto nRainDropsBlur = iniReader.ReadInteger("MISC", "RainDropsBlur", 2);
+            if (nRainDropsBlur < 1) {
+                nRainDropsBlur = 1;
+            }
+            if (nRainDropsBlur > 4) {
+                nRainDropsBlur = 4;
+            }
+            if (nRainDropsBlur != 1 && nRainDropsBlur != 2 && nRainDropsBlur != 4) {
+                nRainDropsBlur = 2;
+            }
 
             //SetRenderState D3DRS_ADAPTIVETESS_X
-            pattern = hook::pattern("74 ? 68 4E 56 44 42 68");
+            auto pattern = hook::pattern("74 ? 68 4E 56 44 42 68");
             injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
 
             // Setup variables for shaders

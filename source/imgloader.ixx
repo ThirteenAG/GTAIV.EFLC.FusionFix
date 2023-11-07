@@ -13,7 +13,7 @@ class IMGLoader
 public:
     IMGLoader()
     {
-        FusionFix::onInitEventAsync() += []()
+        FusionFix::onInitEvent() += []()
         {
             //IMG Loader
             auto pattern = find_pattern("E8 ? ? ? ? 6A 00 E8 ? ? ? ? 83 C4 14 6A 00 B9 ? ? ? ? E8 ? ? ? ? 83 3D", "E8 ? ? ? ? 6A 00 E8 ? ? ? ? 83 C4 14 6A 00 B9");
