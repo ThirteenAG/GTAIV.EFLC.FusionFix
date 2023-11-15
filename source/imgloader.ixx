@@ -61,6 +61,10 @@ public:
                                 if (pos != imgPath.npos)
                                 {
                                     imgPath.replace(pos, 1, std::filesystem::path(":/").native());
+
+                                    if (iequals(imgPath, L"update:/update.img"))
+                                        continue;
+
                                     if (std::any_of(std::begin(episodicPaths), std::end(episodicPaths), [&](auto& it) { return is_subpath(relativePath, it); }))
                                     {
                                         if (*_dwCurrentEpisode < int32_t(episodicPaths.size()) && is_subpath(relativePath, episodicPaths[*_dwCurrentEpisode]))

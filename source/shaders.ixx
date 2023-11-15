@@ -101,7 +101,7 @@ public:
                 // DynamicShadowForTrees Wind Sway, More Shadows
                 {
                     static float arr2[4];
-                    arr2[0] = *dw11A2948;
+                    arr2[0] = Natives::IsInteriorScene() ? 0.0f : *dw11A2948;
                     arr2[1] = static_cast<float>(bMoreShadows);
                     arr2[2] = 0.0f;
                     arr2[3] = 0.0f;
