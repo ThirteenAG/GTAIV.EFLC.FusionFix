@@ -122,6 +122,9 @@ public:
         {
             CIniReader iniReader("");
 
+            // Increasing all pools is not safe, leads to crashing
+            static std::vector<std::string> poolNames = { "Task" };
+
             //[BudgetedIV]
             uint32_t nVehicleBudget = iniReader.ReadInteger("BudgetedIV", "VehicleBudget", 0);
             uint32_t nPedBudget = iniReader.ReadInteger("BudgetedIV", "PedBudget", 0);
@@ -132,14 +135,42 @@ public:
                 injector::WriteMemory(*pattern.get_first<void*>(2), nVehicleBudget, true);
 
                 // Increase VehicleStruct pool size, to avoid certain crash with high budget
-                pattern = hook::pattern("6A 32 8B C8 E8 ? ? ? ? A3");
-                injector::WriteMemory<uint8_t>(pattern.get_first(1), 50 * 2, true);
+                poolNames.push_back("VehicleStruct");
             }
 
             if (nPedBudget)
             {
                 auto pattern = find_pattern("F7 2D ? ? ? ? 8B C2 C1 E8 1F 03 C2 89 0D ? ? ? ? A3 ? ? ? ? 83 C4 10 C3", "8B 0D ? ? ? ? 8B C2 C1 E8 1F");
                 injector::WriteMemory(*pattern.get_first<void*>(2), nPedBudget, true);
+            }
+
+            auto pattern = hook::pattern("8B C7 0F AF C2 8B F1");
+            if (!pattern.empty())
+            {
+                struct atPool
+                {
+                    void operator()(injector::reg_pack& regs)
+                    {
+                        auto name = std::string_view(*(const char**)(regs.esp + 16));
+                        if (std::any_of(poolNames.begin(), poolNames.end(), [&name](auto& i) {return i == name; }))
+                            regs.edi *= 2;
+                        regs.eax = regs.edi * regs.edx;
+                    }
+                }; injector::MakeInline<atPool>(pattern.get_first(0));
+            }
+            else
+            {
+                auto pattern = hook::pattern("8B CF 0F AF C8 51");
+                struct atPool
+                {
+                    void operator()(injector::reg_pack& regs)
+                    {
+                        auto name = std::string_view(*(const char**)(regs.esp + 16));
+                        if (std::any_of(poolNames.begin(), poolNames.end(), [&name](auto& i) {return i == name; }))
+                            regs.edi *= 2;
+                        regs.ecx = regs.edi * regs.eax;
+                    }
+                }; injector::MakeInline<atPool>(pattern.get_first(0));
             }
         };
     }
