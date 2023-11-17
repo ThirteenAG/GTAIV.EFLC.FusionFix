@@ -7,10 +7,29 @@ export module fixes;
 import common;
 import comvars;
 import settings;
+import natives;
 
 class Fixes
 {
 public:
+    static inline Vector3 prevDir = {};
+    static inline injector::hook_back<float(__cdecl*)(Vector3*)> hbsub_8D64F0;
+    static float sub_8D64F0(Vector3* dir) 
+    {
+        bool pad = Natives::IsUsingController();
+        int32_t x, y = 0;
+        Natives::GetMouseInput(&x, &y);
+        if (x || y || pad || !Natives::IsPlayerControlOn(0) || Natives::IsScreenFading()) 
+        {
+            prevDir = *dir;
+            return hbsub_8D64F0.fun(dir);
+        }
+        else 
+        {
+            return hbsub_8D64F0.fun(&prevDir);
+        }
+    }
+
     Fixes()
     {
         FusionFix::onInitEventAsync() += []()
@@ -24,6 +43,7 @@ public:
             bool bDefaultCameraAngleInTLAD = iniReader.ReadInteger("MISC", "DefaultCameraAngleInTLAD", 0) != 0;
             bool bPedDeathAnimFixFromTBOGT = iniReader.ReadInteger("MISC", "PedDeathAnimFixFromTBOGT", 1) != 0;
             bool bDisableCameraCenteringInCover = iniReader.ReadInteger("MISC", "DisableCameraCenteringInCover", 1) != 0;
+            bool bDisableCameraCenteringOnFoot = iniReader.ReadInteger("MISC", "DisableCameraCenteringOnFoot", 1) != 0;
 
             //fix for zoom flag in tbogt
             if (nAimingZoomFix)
@@ -151,6 +171,15 @@ public:
                     injector::WriteMemory<uint8_t>(pattern.get_first(7), 0xEB, true); // jnz -> jmp
                 }
             }
-        };
+
+            if (bDisableCameraCenteringOnFoot) 
+            {
+                auto pattern = hook::pattern("E8 ? ? ? ? F3 0F 10 8C 24 ? ? ? ? D9 5C 24 4C");
+                if (!pattern.empty()) 
+                {
+                    hbsub_8D64F0.fun = injector::MakeCALL(pattern.get_first(0), sub_8D64F0, true).get();
+                }
+            }
+    };
     }
 } Fixes;
