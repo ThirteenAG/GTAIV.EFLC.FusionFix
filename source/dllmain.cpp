@@ -153,7 +153,7 @@ HRESULT CALLBACK TaskDialogCallbackProc(HWND hwnd, UINT uNotification, WPARAM wP
 
 void XliveCompat()
 {
-    if (GetProcAddress(GetModuleHandleW(L"xlive"), "IsUltimateASILoader") != NULL)
+    if (IsModuleUAL(GetModuleHandleW(L"xlive")))
         return;
 
     TASKDIALOGCONFIG tdc = { sizeof(TASKDIALOGCONFIG) };
@@ -185,14 +185,8 @@ void XliveCompat()
 
 void UALCompat()
 {
-    ModuleList dlls;
-    dlls.Enumerate(ModuleList::SearchLocation::LocalOnly);
-    for (auto& e : dlls.m_moduleList)
-    {
-        auto m = std::get<HMODULE>(e);
-        if (GetProcAddress(m, "IsUltimateASILoader") != NULL)
-            return;
-    }
+    if (IsUALPresent())
+        return;
 
     TASKDIALOGCONFIG tdc = { sizeof(TASKDIALOGCONFIG) };
     int nClickedBtn;

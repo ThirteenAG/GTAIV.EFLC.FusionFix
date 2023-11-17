@@ -27,9 +27,9 @@ private:
         auto GetValue() { return value; }
         auto SetValue(auto v) { value = v; WriteToIni(); if (callback) callback(value); }
         auto ReadFromIni(auto& iniReader) { return iniReader.ReadInteger(iniSec, iniName, iniDefValInt); }
-        auto ReadFromIni() { CIniReader iniReader(""); return ReadFromIni(iniReader); }
+        auto ReadFromIni() { CIniReader iniReader("GTAIV.EFLC.FusionFix.dat"); return ReadFromIni(iniReader); }
         void WriteToIni(auto& iniWriter) { iniWriter.WriteInteger(iniSec, iniName, value); }
-        void WriteToIni() { CIniReader iniWriter(""); iniWriter.WriteInteger(iniSec, iniName, value); }
+        void WriteToIni() { CIniReader iniWriter("GTAIV.EFLC.FusionFix.dat"); iniWriter.WriteInteger(iniSec, iniName, value); }
     };
 
     struct MenuPrefs
@@ -95,7 +95,7 @@ public:
         pattern = hook::pattern("89 1C ? ? ? ? ? E8");
         mPrefs = *pattern.get_first<int32_t*>(3);
 
-        CIniReader iniReader("");
+        CIniReader iniReader("GTAIV.EFLC.FusionFix.dat");
 
         static CSetting arr[] = {
             { 0, "PREF_SKIP_INTRO",       "MAIN",       "SkipIntro",                    "",                           1, nullptr, 0, 1 },

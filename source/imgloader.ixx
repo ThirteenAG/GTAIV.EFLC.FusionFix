@@ -13,7 +13,7 @@ class IMGLoader
 public:
     IMGLoader()
     {
-        FusionFix::onInitEventAsync() += []()
+        FusionFix::onInitEvent() += []()
         {
             //IMG Loader
             auto pattern = find_pattern("E8 ? ? ? ? 6A 00 E8 ? ? ? ? 83 C4 14 6A 00 B9 ? ? ? ? E8 ? ? ? ? 83 3D", "E8 ? ? ? ? 6A 00 E8 ? ? ? ? 83 C4 14 6A 00 B9");
@@ -61,6 +61,10 @@ public:
                                 if (pos != imgPath.npos)
                                 {
                                     imgPath.replace(pos, 1, std::filesystem::path(":/").native());
+
+                                    if (iequals(imgPath, L"update:/update.img"))
+                                        continue;
+
                                     if (std::any_of(std::begin(episodicPaths), std::end(episodicPaths), [&](auto& it) { return is_subpath(relativePath, it); }))
                                     {
                                         if (*_dwCurrentEpisode < int32_t(episodicPaths.size()) && is_subpath(relativePath, episodicPaths[*_dwCurrentEpisode]))
