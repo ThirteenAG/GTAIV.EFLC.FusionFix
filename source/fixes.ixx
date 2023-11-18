@@ -12,23 +12,9 @@ import natives;
 class Fixes
 {
 public:
-    static inline Vector3 prevDir = {};
-    static inline injector::hook_back<float(__cdecl*)(Vector3*)> hbsub_8D64F0;
-    static float sub_8D64F0(Vector3* dir) 
-    {
-        bool pad = Natives::IsUsingController();
-        int32_t x, y = 0;
-        Natives::GetMouseInput(&x, &y);
-        if (x || y || pad || !Natives::IsPlayerControlOn(0) || Natives::IsScreenFading()) 
-        {
-            prevDir = *dir;
-            return hbsub_8D64F0.fun(dir);
-        }
-        else 
-        {
-            return hbsub_8D64F0.fun(&prevDir);
-        }
-    }
+    static inline uint32_t nTimeToPassBeforeCenteringCameraOnFoot = 0;
+    static inline uint32_t nTimeToWaitBeforeCenteringCameraOnFoot = 2500;
+    static inline bool bWaitBeforeCenteringCameraOnFootUsingPad = false;
 
     Fixes()
     {
@@ -43,7 +29,8 @@ public:
             bool bDefaultCameraAngleInTLAD = iniReader.ReadInteger("MISC", "DefaultCameraAngleInTLAD", 0) != 0;
             bool bPedDeathAnimFixFromTBOGT = iniReader.ReadInteger("MISC", "PedDeathAnimFixFromTBOGT", 1) != 0;
             bool bDisableCameraCenteringInCover = iniReader.ReadInteger("MISC", "DisableCameraCenteringInCover", 1) != 0;
-            bool bDisableCameraCenteringOnFoot = iniReader.ReadInteger("MISC", "DisableCameraCenteringOnFoot", 1) != 0;
+            nTimeToWaitBeforeCenteringCameraOnFoot = iniReader.ReadInteger("MISC", "TimeToWaitBeforeCenteringCameraOnFoot", 2500);
+            bWaitBeforeCenteringCameraOnFootUsingPad = iniReader.ReadInteger("MISC", "WaitBeforeCenteringCameraOnFootUsingPad", 0) != 0;
 
             //fix for zoom flag in tbogt
             if (nAimingZoomFix)
@@ -172,14 +159,41 @@ public:
                 }
             }
 
-            if (bDisableCameraCenteringOnFoot) 
             {
-                auto pattern = hook::pattern("E8 ? ? ? ? F3 0F 10 8C 24 ? ? ? ? D9 5C 24 4C");
-                if (!pattern.empty()) 
+                auto pattern = hook::pattern("F3 0F 11 4C 24 ? 85 DB 74 1B");
+                struct OnFootCamCenteringHook 
                 {
-                    hbsub_8D64F0.fun = injector::MakeCALL(pattern.get_first(0), sub_8D64F0, true).get();
-                }
+                    void operator()(injector::reg_pack& regs) 
+                    {
+                        float f = 0.0f;
+                        _asm { movss dword ptr[f], xmm1 }
+
+                        float& posX = *(float*)(regs.esp + 0x100 - 0xA0);
+                        bool pad = Natives::IsUsingController();
+                        int32_t x = 0;
+                        int32_t y = 0;
+
+                        if (pad) 
+                        {
+                            Natives::GetPadState(0, 2, &x);
+                            Natives::GetPadState(0, 3, &y);
+                        }
+                        else
+                            Natives::GetMouseInput(&x, &y);
+
+                        if (x || y) 
+                            nTimeToPassBeforeCenteringCameraOnFoot = *CTimer__m_snTimeInMilliseconds + nTimeToWaitBeforeCenteringCameraOnFoot;
+
+                        if (pad && !bWaitBeforeCenteringCameraOnFootUsingPad)
+                            nTimeToPassBeforeCenteringCameraOnFoot = 0;
+
+                        if (nTimeToPassBeforeCenteringCameraOnFoot < *CTimer__m_snTimeInMilliseconds)
+                            posX = f;
+                    }
+                };
+                if (!pattern.empty())
+                    injector::MakeInline<OnFootCamCenteringHook>(pattern.get_first(0), pattern.get_first(6));
             }
-    };
+        };
     }
 } Fixes;
