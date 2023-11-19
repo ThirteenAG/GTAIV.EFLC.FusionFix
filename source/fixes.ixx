@@ -16,6 +16,15 @@ public:
     static inline uint32_t nTimeToWaitBeforeCenteringCameraOnFoot = 2500;
     static inline bool bWaitBeforeCenteringCameraOnFootUsingPad = false;
 
+    static inline bool* bIsPhoneShowing = nullptr;
+    static inline injector::hook_back<bool(__cdecl*)()> hbsub_B2CE30;
+    static bool sub_B2CE30() {
+        if ((bIsPhoneShowing && *bIsPhoneShowing))
+            return true;
+
+        return hbsub_B2CE30.fun();
+    }
+
     Fixes()
     {
         FusionFix::onInitEventAsync() += []()
@@ -193,6 +202,15 @@ public:
                 };
                 if (!pattern.empty())
                     injector::MakeInline<OnFootCamCenteringHook>(pattern.get_first(0), pattern.get_first(6));
+            }
+
+            // Disable drive-by while using cellphone
+            {
+                auto pattern = hook::pattern("E8 ? ? ? ? 85 C0 0F 85 ? ? ? ? 84 DB");
+                bIsPhoneShowing = *hook::pattern("C6 05 ? ? ? ? ? E8 ? ? ? ? 6A 00 E8 ? ? ? ? 8B 80").get_first<bool*>(2);
+
+                if (!pattern.empty())
+                    hbsub_B2CE30.fun = injector::MakeCALL(pattern.get_first(0), sub_B2CE30, true).get();
             }
         };
     }
