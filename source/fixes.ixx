@@ -176,7 +176,7 @@ public:
                     void operator()(injector::reg_pack& regs) 
                     {
                         float f = 0.0f;
-                        _asm { movss dword ptr[f], xmm1 }
+                        _asm { movss f, xmm1 }
 
                         float& posX = *(float*)(regs.esp + 0x100 - 0xA0);
                         bool pad = Natives::IsUsingController();
