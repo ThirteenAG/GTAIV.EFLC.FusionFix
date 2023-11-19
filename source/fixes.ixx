@@ -17,10 +17,11 @@ public:
     static inline bool bWaitBeforeCenteringCameraOnFootUsingPad = false;
 
     static inline bool* bIsPhoneShowing = nullptr;
-    static inline injector::hook_back<bool(__cdecl*)()> hbsub_B2CE30;
-    static bool sub_B2CE30() {
+    static inline injector::hook_back<int32_t(__cdecl*)()> hbsub_B2CE30;
+    static int32_t sub_B2CE30() 
+    {
         if ((bIsPhoneShowing && *bIsPhoneShowing))
-            return true;
+            return 1;
 
         return hbsub_B2CE30.fun();
     }
