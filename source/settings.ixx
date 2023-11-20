@@ -116,6 +116,7 @@ public:
             { 0, "PREF_BLOOM",            "MAIN",       "Bloom",                        ""                          , 0, nullptr, 0, 1 },
             { 0, "PREF_FPSCOUNTER",       "FRAMELIMIT", "DisplayFpsCounter",            ""                          , 0, nullptr, 0, 1 },
             { 0, "PREF_ALWAYSRUN",        "MISC",       "AlwaysRun",                    ""                          , 0, nullptr, 0, 1 },
+            { 0, "PREF_ALTDIALOGUE",      "MISC",       "AltDialogue",                  ""                          , 0, nullptr, 0, 1 },
         };
 
         auto i = firstCustomID;

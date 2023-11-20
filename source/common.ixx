@@ -607,6 +607,14 @@ std::string pattern_str(T t, Rest... rest)
     return std::string((std::is_same<T, char>::value ? format("%c ", t) : format("%02X ", t)) + pattern_str(rest...));
 }
 
+export std::string pattern_str(std::string_view str) {
+    std::stringstream str_stream;
+    for (const auto& item : str) {
+        str_stream << std::uppercase << std::hex << std::setw(2) << std::setfill('0') << +uint8_t(item) << " ";
+    }
+    return str_stream.str();
+}
+
 export class IATHook
 {
 public:

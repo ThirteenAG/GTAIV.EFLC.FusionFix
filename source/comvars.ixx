@@ -16,6 +16,8 @@ export bool* CMenuManager__m_MenuActive = nullptr;
 export uint8_t* bLoadscreenShown = nullptr;
 export uint32_t* rage__scrEngine__ms_dwNativeTableSize;
 export uint32_t** rage__scrEngine__ms_pNatives;
+export uintptr_t** rage__scrProgram__ms_pGlobals;
+export uint32_t* rage__scrProgram__ms_pGlobalsSize;
 export void* (__stdcall* getNativeAddress)(uint32_t);
 export float* fTimeStep;
 export HWND gWnd;
@@ -52,6 +54,10 @@ public:
 
             rage__scrEngine__ms_dwNativeTableSize = *find_pattern<2>("8B 35 ? ? ? ? 85 F6 75 06 33 C0 5E C2 04 00 53 57 8B 7C 24 10", "8B 3D ? ? ? ? 85 FF 75 04 33 C0 5F C3").count(2).get(0).get<uint32_t*>(2);
             rage__scrEngine__ms_pNatives = *find_pattern<2>("8B 1D ? ? ? ? 8B CF 8B 04 D3 3B C7 74 19 8D 64 24 00 85 C0", "8B 1D ? ? ? ? 8B CE 8B 04 D3 3B C6 74 17 85 C0").count(2).get(0).get<uint32_t**>(2);
+
+            pattern = find_pattern("A3 ? ? ? ? A1 ? ? ? ? 33 DB F7 E7 0F 90 C3 6A 00", "A3 ? ? ? ? A1 ? ? ? ? 33 C9 BA ? ? ? ? F7 E2 0F 90 C1 6A 00 6A 10");
+            rage__scrProgram__ms_pGlobals = *pattern.get_first<uintptr_t**>(1);
+            rage__scrProgram__ms_pGlobalsSize = *pattern.get_first<uint32_t*>(6);
 
             pattern = hook::pattern("56 8B 35 ? ? ? ? 85 F6 75 06");
             if (!pattern.empty())
