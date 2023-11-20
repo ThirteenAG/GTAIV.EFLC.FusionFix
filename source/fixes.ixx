@@ -127,13 +127,13 @@ public:
 
                 auto pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 47 ? F3 0F 11 47 ? 8B D1 89 54 24 10", "F3 0F 10 05 ? ? ? ? F3 0F 58 46 ? 89 8C 24");
                 static raw_mem CoverCB(pattern.get_first(4), { bytes[3], bytes[2], bytes[1], bytes[0] });
-                FusionFixSettings.SetCallback("PREF_CAMCENTERING", [](int32_t value) {
+                FusionFixSettings.SetCallback("PREF_COVERCENTERING", [](int32_t value) {
                     if (value)
                         CoverCB.Restore();
                     else
                         CoverCB.Write();
                 });
-                if (!FusionFixSettings("PREF_CAMCENTERING"))
+                if (!FusionFixSettings("PREF_COVERCENTERING"))
                     CoverCB.Write();
             }
 
