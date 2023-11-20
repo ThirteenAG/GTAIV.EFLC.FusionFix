@@ -9,6 +9,12 @@ export module settings;
 import common;
 import comvars;
 
+export constexpr auto PREF_CUSTOMFOV = "PREF_EPISODIC_RACECLASS_RACE_3";
+export constexpr auto PREF_KBCAMCENTERDELAY = "PREF_EPISODIC_RACECLASS_RACE_4";
+export constexpr auto PREF_PADCAMCENTERDELAY = "PREF_EPISODIC_RACECLASS_RACE_5";
+
+auto extrasList = { PREF_CUSTOMFOV, PREF_KBCAMCENTERDELAY, PREF_PADCAMCENTERDELAY };
+
 export class CSettings
 {
 private:
@@ -95,28 +101,31 @@ public:
         pattern = hook::pattern("89 1C ? ? ? ? ? E8");
         mPrefs = *pattern.get_first<int32_t*>(3);
 
-        CIniReader iniReader("GTAIV.EFLC.FusionFix.dat");
+        CIniReader iniReader("GTAIV.EFLC.FusionFix.cfg");
 
         static CSetting arr[] = {
-            { 0, "PREF_SKIP_INTRO",       "MAIN",       "SkipIntro",                    "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_SKIP_MENU",        "MAIN",       "SkipMenu",                     "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_BORDERLESS",       "MAIN",       "BorderlessWindowed",           "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_FPS_LIMIT_PRESET", "FRAMELIMIT", "FpsLimitPreset",               "MENU_DISPLAY_FRAMELIMIT",    0, nullptr, FpsCaps.eOFF, std::distance(std::begin(FpsCaps.data), std::end(FpsCaps.data)) - 1 },
-            { 0, "PREF_FXAA",             "MISC",       "FXAA",                         "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_CONSOLE_GAMMA",    "MISC",       "ConsoleGamma",                 "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_TIMECYC",          "MISC",       "ScreenFilter",                 "MENU_DISPLAY_TIMECYC",       5, nullptr, TimecycText.eMO_DEF, std::distance(std::begin(TimecycText.data), std::end(TimecycText.data)) - 1 },
-            { 0, "PREF_CUTSCENE_DOF",     "MISC",       "DepthOfField",                 "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_CONSOLE_SHADOWS",  "SHADOWS",    "ConsoleShadows",               "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_SHADOW_FILTER",    "SHADOWS",    "ShadowFilter",                 "MENU_DISPLAY_SHADOWFILTER",  0, nullptr, ShadowFilterText.eSharp, std::distance(std::begin(ShadowFilterText.data), std::end(ShadowFilterText.data)) - 1 },
-            { 0, "PREF_TREE_LIGHTING",    "MISC",       "TreeLighting",                 "MENU_DISPLAY_TREE_LIGHTING", 5, nullptr, TreeFxText.ePC, std::distance(std::begin(TreeFxText.data), std::end(TreeFxText.data)) - 1 },
-            { 0, "PREF_TCYC_DOF",         "MISC",       "DistantBlur",                  "MENU_DISPLAY_DOF",           5, nullptr, DofText.eOff, std::distance(std::begin(DofText.data), std::end(DofText.data)) - 1 },
-            { 0, "PREF_MOTIONBLUR",       "MAIN",       "MotionBlur",                   ""                          , 0, nullptr, 0, 1 },
-            { 0, "PREF_LEDILLUMINATION",  "MISC",       "LightSyncRGB",                 ""                          , 0, nullptr, 0, 1 },
-            { 0, "PREF_DEFINITION",       "MAIN",       "Definition",                   "MENU_DISPLAY_DEFINITION"   , 1, nullptr, DefinitionText.eClassic, std::distance(std::begin(DefinitionText.data), std::end(DefinitionText.data)) - 1 },
-            { 0, "PREF_BLOOM",            "MAIN",       "Bloom",                        ""                          , 0, nullptr, 0, 1 },
-            { 0, "PREF_FPSCOUNTER",       "FRAMELIMIT", "DisplayFpsCounter",            ""                          , 0, nullptr, 0, 1 },
-            { 0, "PREF_ALWAYSRUN",        "MISC",       "AlwaysRun",                    ""                          , 0, nullptr, 0, 1 },
-            { 0, "PREF_ALTDIALOGUE",      "MISC",       "AltDialogue",                  ""                          , 0, nullptr, 0, 1 },
+            { 0, "PREF_SKIP_INTRO",        "MAIN",       "SkipIntro",                       "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_SKIP_MENU",         "MAIN",       "SkipMenu",                        "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_BORDERLESS",        "MAIN",       "BorderlessWindowed",              "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_FPS_LIMIT_PRESET",  "FRAMELIMIT", "FpsLimitPreset",                  "MENU_DISPLAY_FRAMELIMIT",    0, nullptr, FpsCaps.eOFF, std::distance(std::begin(FpsCaps.data), std::end(FpsCaps.data)) - 1 },
+            { 0, "PREF_FXAA",              "MISC",       "FXAA",                            "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_CONSOLE_GAMMA",     "MISC",       "ConsoleGamma",                    "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_TIMECYC",           "MISC",       "ScreenFilter",                    "MENU_DISPLAY_TIMECYC",       5, nullptr, TimecycText.eMO_DEF, std::distance(std::begin(TimecycText.data), std::end(TimecycText.data)) - 1 },
+            { 0, "PREF_CUTSCENE_DOF",      "MISC",       "DepthOfField",                    "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_CONSOLE_SHADOWS",   "SHADOWS",    "ConsoleShadows",                  "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_SHADOW_FILTER",     "SHADOWS",    "ShadowFilter",                    "MENU_DISPLAY_SHADOWFILTER",  0, nullptr, ShadowFilterText.eSharp, std::distance(std::begin(ShadowFilterText.data), std::end(ShadowFilterText.data)) - 1 },
+            { 0, "PREF_TREE_LIGHTING",     "MISC",       "TreeLighting",                    "MENU_DISPLAY_TREE_LIGHTING", 5, nullptr, TreeFxText.ePC, std::distance(std::begin(TreeFxText.data), std::end(TreeFxText.data)) - 1 },
+            { 0, "PREF_TCYC_DOF",          "MISC",       "DistantBlur",                     "MENU_DISPLAY_DOF",           5, nullptr, DofText.eOff, std::distance(std::begin(DofText.data), std::end(DofText.data)) - 1 },
+            { 0, "PREF_MOTIONBLUR",        "MAIN",       "MotionBlur",                      "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_LEDILLUMINATION",   "MISC",       "LightSyncRGB",                    "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_DEFINITION",        "MAIN",       "Definition",                      "MENU_DISPLAY_DEFINITION",    1, nullptr, DefinitionText.eClassic, std::distance(std::begin(DefinitionText.data), std::end(DefinitionText.data)) - 1 },
+            { 0, "PREF_BLOOM",             "MAIN",       "Bloom",                           "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_FPSCOUNTER",        "FRAMELIMIT", "DisplayFpsCounter",               "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_ALWAYSRUN",         "MISC",       "AlwaysRun",                       "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_ALTDIALOGUE",       "MISC",       "AltDialogue",                     "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_COVERCENTERING",    "MISC",       "CameraCenteringInCover",          "",                           0, nullptr, 0, 1 },
+            { 0, PREF_KBCAMCENTERDELAY,    "MISC",       "DelayBeforeCenteringCameraKB",    "",                           0, nullptr, 0, 9 },
+            { 0, PREF_PADCAMCENTERDELAY,   "MISC",       "DelayBeforeCenteringCameraPad",   "",                           0, nullptr, 0, 9 },
         };
 
         auto i = firstCustomID;
@@ -338,6 +347,37 @@ public:
                 }
             }; injector::MakeInline<IniWriter>(pattern.get_first(0), pattern.get_first(7));
 
+            pattern = find_pattern("89 04 9D ? ? ? ? 0F BF 44 16", "89 14 BD ? ? ? ? 0F BF 49 12");
+            static auto reg4 = *pattern.get_first<uint8_t>(2);
+            struct IniWriterMouse
+            {
+                void operator()(injector::reg_pack& regs)
+                {
+                    auto id = regs.ebx;
+                    auto value = regs.eax;
+
+                    if (reg4 == 0xBD) {
+                        id = regs.edi;
+                        value = regs.edx;
+                    }
+
+                    auto old = FusionFixSettings(id);
+
+                    FusionFixSettings.ForEachPref([&](int32_t prefID, int32_t idStart, int32_t idEnd) {
+                        if (prefID == id) {
+                            if (int32_t(value) <= idStart) {
+                                if (old > idStart)
+                                    value = idStart;
+                                else
+                                    value = idEnd;
+                            }
+                        }
+                    });
+
+                    FusionFixSettings.Set(id, value);
+                }
+            }; injector::MakeInline<IniWriterMouse>(pattern.get_first(0), pattern.get_first(7));
+
             pattern = find_pattern("8B 1C 95 ? ? ? ? 89 54 24 14", "8B 1C 8D ? ? ? ? 89 4C 24 18");
             static auto reg2 = *pattern.get_first<uint8_t>(2);
             struct MenuTogglesHook1
@@ -425,6 +465,12 @@ public:
             }
             pattern = find_pattern("8D 46 F0 66 0F 6E C0", "83 C7 F0 89 7C");
             injector::WriteMemory<uint8_t>(pattern.get_first(2), 0xE0, true);
+
+            // existing prefs reuse
+            pattern = find_pattern("3D ? ? ? ? 7C DF 83 EC 10", "3D ? ? ? ? 7C E1 B8");
+            injector::WriteMemory(pattern.get_first(1), 136 - extrasList.size(), true);
+            pattern = find_pattern("3D ? ? ? ? 7E E6 80 3D", "3D ? ? ? ? 7E E8 83 CF FF");
+            injector::WriteMemory(pattern.get_first(1), 136 - extrasList.size(), true);
         };
 
         // FPS Counter

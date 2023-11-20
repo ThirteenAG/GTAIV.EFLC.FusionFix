@@ -13,7 +13,6 @@ class Fixes
 {
 public:
     static inline uint32_t nTimeToPassBeforeCenteringCameraOnFoot = 0;
-    static inline uint32_t nTimeToWaitBeforeCenteringCameraOnFoot = 2500;
     static inline bool bWaitBeforeCenteringCameraOnFootUsingPad = false;
 
     static inline bool* bIsPhoneShowing = nullptr;
@@ -38,9 +37,6 @@ public:
             //[MISC]
             bool bDefaultCameraAngleInTLAD = iniReader.ReadInteger("MISC", "DefaultCameraAngleInTLAD", 0) != 0;
             bool bPedDeathAnimFixFromTBOGT = iniReader.ReadInteger("MISC", "PedDeathAnimFixFromTBOGT", 1) != 0;
-            bool bDisableCameraCenteringInCover = iniReader.ReadInteger("MISC", "DisableCameraCenteringInCover", 1) != 0;
-            nTimeToWaitBeforeCenteringCameraOnFoot = iniReader.ReadInteger("MISC", "TimeToWaitBeforeCenteringCameraOnFoot", 2500);
-            bWaitBeforeCenteringCameraOnFootUsingPad = iniReader.ReadInteger("MISC", "WaitBeforeCenteringCameraOnFootUsingPad", 0) != 0;
 
             //fix for zoom flag in tbogt
             if (nAimingZoomFix)
@@ -120,11 +116,25 @@ public:
                 }
             }
 
-            if (bDisableCameraCenteringInCover)
             {
                 static constexpr float xmm_0 = FLT_MAX / 2.0f;
+                unsigned char bytes[4];
+                auto n = (uint32_t)&xmm_0;
+                bytes[0] = (n >> 24) & 0xFF;
+                bytes[1] = (n >> 16) & 0xFF;
+                bytes[2] = (n >> 8) & 0xFF;
+                bytes[3] = (n >> 0) & 0xFF;
+
                 auto pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 47 ? F3 0F 11 47 ? 8B D1 89 54 24 10", "F3 0F 10 05 ? ? ? ? F3 0F 58 46 ? 89 8C 24");
-                injector::WriteMemory(pattern.get_first(4), &xmm_0, true);
+                static raw_mem CoverCB(pattern.get_first(4), { bytes[3], bytes[2], bytes[1], bytes[0] });
+                FusionFixSettings.SetCallback("PREF_CAMCENTERING", [](int32_t value) {
+                    if (value)
+                        CoverCB.Restore();
+                    else
+                        CoverCB.Write();
+                });
+                if (!FusionFixSettings("PREF_CAMCENTERING"))
+                    CoverCB.Write();
             }
 
             // reverse lights fix
@@ -170,7 +180,10 @@ public:
             }
 
             {
-                auto pattern = hook::pattern("F3 0F 11 4C 24 ? 85 DB 74 1B");
+                auto pattern = find_pattern("F3 0F 11 4C 24 ? 85 DB 74 1B", "F3 0F 11 44 24 ? 74 1B F6 86");
+                static auto reg = *pattern.get_first<uint8_t>(5);
+                static auto nTimeToWaitBeforeCenteringCameraOnFootKB = FusionFixSettings.GetRef(PREF_KBCAMCENTERDELAY);
+                static auto nTimeToWaitBeforeCenteringCameraOnFootPad = FusionFixSettings.GetRef(PREF_PADCAMCENTERDELAY);
                 struct OnFootCamCenteringHook 
                 {
                     void operator()(injector::reg_pack& regs) 
@@ -178,7 +191,10 @@ public:
                         float f = 0.0f;
                         _asm { movss f, xmm1 }
 
-                        float& posX = *(float*)(regs.esp + 0x100 - 0xA0);
+                        if (reg == 0x48)
+                            _asm { movss f, xmm0 }
+
+                        float& posX = *(float*)(regs.esp + reg);
                         bool pad = Natives::IsUsingController();
                         int32_t x = 0;
                         int32_t y = 0;
@@ -191,27 +207,33 @@ public:
                         else
                             Natives::GetMouseInput(&x, &y);
 
-                        if (x || y) 
-                            nTimeToPassBeforeCenteringCameraOnFoot = *CTimer__m_snTimeInMilliseconds + nTimeToWaitBeforeCenteringCameraOnFoot;
+                        if (x || y)
+                            nTimeToPassBeforeCenteringCameraOnFoot = *CTimer__m_snTimeInMilliseconds + ((pad ? nTimeToWaitBeforeCenteringCameraOnFootPad->get() : nTimeToWaitBeforeCenteringCameraOnFootKB->get()) * 1000);
 
-                        if (pad && !bWaitBeforeCenteringCameraOnFootUsingPad)
+                        if (pad && !nTimeToWaitBeforeCenteringCameraOnFootPad->get())
                             nTimeToPassBeforeCenteringCameraOnFoot = 0;
 
                         if (nTimeToPassBeforeCenteringCameraOnFoot < *CTimer__m_snTimeInMilliseconds)
                             posX = f;
+                        else
+                            posX = 0.0f;
                     }
-                };
-                if (!pattern.empty())
+                }; 
+                
+                if (reg != 0x48)
                     injector::MakeInline<OnFootCamCenteringHook>(pattern.get_first(0), pattern.get_first(6));
+                else
+                {
+                    injector::MakeInline<OnFootCamCenteringHook>(pattern.get_first(-2), pattern.get_first(6));
+                    injector::WriteMemory<uint16_t>(pattern.get_first(3), 0xDB85, true);
+                }
             }
 
             // Disable drive-by while using cellphone
             {
-                auto pattern = hook::pattern("E8 ? ? ? ? 85 C0 0F 85 ? ? ? ? 84 DB");
-                bIsPhoneShowing = *hook::pattern("C6 05 ? ? ? ? ? E8 ? ? ? ? 6A 00 E8 ? ? ? ? 8B 80").get_first<bool*>(2);
-
-                if (!pattern.empty())
-                    hbsub_B2CE30.fun = injector::MakeCALL(pattern.get_first(0), sub_B2CE30, true).get();
+                auto pattern = find_pattern("E8 ? ? ? ? 85 C0 0F 85 ? ? ? ? 84 DB 74 5A 85 F6 0F 84", "E8 ? ? ? ? 85 C0 0F 85 ? ? ? ? 84 DB 74 61");
+                bIsPhoneShowing = *find_pattern("C6 05 ? ? ? ? ? E8 ? ? ? ? 6A 00 E8 ? ? ? ? 8B 80", "88 1D ? ? ? ? 88 1D ? ? ? ? E8 ? ? ? ? 6A 00").get_first<bool*>(2);
+                hbsub_B2CE30.fun = injector::MakeCALL(pattern.get_first(0), sub_B2CE30, true).get();
             }
         };
     }
