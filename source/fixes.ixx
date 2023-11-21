@@ -25,6 +25,15 @@ public:
         return hbsub_B2CE30.fun();
     }
 
+    static inline injector::hook_back<void(__fastcall*)(int32_t, int32_t)> hbsub_B07600;
+    static void __fastcall sub_B07600(int32_t _this, int32_t) 
+    {
+        hbsub_B07600.fun(_this, 0);
+
+        static auto nCustomFOV = FusionFixSettings.GetRef(PREF_CUSTOMFOV);
+        *(float*)(_this + 0x60) += nCustomFOV->get() * 5.0f;
+    }
+
     Fixes()
     {
         FusionFix::onInitEventAsync() += []()
@@ -234,6 +243,13 @@ public:
                 auto pattern = find_pattern("E8 ? ? ? ? 85 C0 0F 85 ? ? ? ? 84 DB 74 5A 85 F6 0F 84", "E8 ? ? ? ? 85 C0 0F 85 ? ? ? ? 84 DB 74 61");
                 bIsPhoneShowing = *find_pattern("C6 05 ? ? ? ? ? E8 ? ? ? ? 6A 00 E8 ? ? ? ? 8B 80", "88 1D ? ? ? ? 88 1D ? ? ? ? E8 ? ? ? ? 6A 00").get_first<bool*>(2);
                 hbsub_B2CE30.fun = injector::MakeCALL(pattern.get_first(0), sub_B2CE30, true).get();
+            }
+
+            // Custom FOV
+            {
+                auto pattern = hook::pattern("E8 ? ? ? ? F6 87 ? ? ? ? ? 5B");
+                if (!pattern.empty())
+                    hbsub_B07600.fun = injector::MakeCALL(pattern.get_first(0), sub_B07600, true).get();
             }
         };
     }
