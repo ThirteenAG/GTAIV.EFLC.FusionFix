@@ -9,12 +9,6 @@ export module settings;
 import common;
 import comvars;
 
-export constexpr auto PREF_CUSTOMFOV = "PREF_EPISODIC_RACECLASS_RACE_3";
-export constexpr auto PREF_KBCAMCENTERDELAY = "PREF_EPISODIC_RACECLASS_RACE_4";
-export constexpr auto PREF_PADCAMCENTERDELAY = "PREF_EPISODIC_RACECLASS_RACE_5";
-
-auto extrasList = { PREF_CUSTOMFOV, PREF_KBCAMCENTERDELAY, PREF_PADCAMCENTERDELAY };
-
 export class CSettings
 {
 private:
@@ -33,9 +27,9 @@ private:
         auto GetValue() { return value; }
         auto SetValue(auto v) { value = v; WriteToIni(); if (callback) callback(value); }
         auto ReadFromIni(auto& iniReader) { return iniReader.ReadInteger(iniSec, iniName, iniDefValInt); }
-        auto ReadFromIni() { CIniReader iniReader("GTAIV.EFLC.FusionFix.dat"); return ReadFromIni(iniReader); }
+        auto ReadFromIni() { CIniReader iniReader("GTAIV.EFLC.FusionFix.cfg"); return ReadFromIni(iniReader); }
         void WriteToIni(auto& iniWriter) { iniWriter.WriteInteger(iniSec, iniName, value); }
-        void WriteToIni() { CIniReader iniWriter("GTAIV.EFLC.FusionFix.dat"); iniWriter.WriteInteger(iniSec, iniName, value); }
+        void WriteToIni() { CIniReader iniWriter("GTAIV.EFLC.FusionFix.cfg"); iniWriter.WriteInteger(iniSec, iniName, value); }
     };
 
     struct MenuPrefs
@@ -46,6 +40,7 @@ private:
 
     static inline std::vector<MenuPrefs> aMenuPrefs;
     static inline auto firstCustomID = 0;
+    static inline std::map<int32_t, std::pair<const char*, const char*>> slidersList;
 private:
     static inline int32_t* mPrefs;
     static inline std::map<uint32_t, CSetting> mFusionPrefs;
@@ -124,9 +119,9 @@ public:
             { 0, "PREF_ALWAYSRUN",         "MISC",       "AlwaysRun",                       "",                           0, nullptr, 0, 1 },
             { 0, "PREF_ALTDIALOGUE",       "MISC",       "AltDialogue",                     "",                           0, nullptr, 0, 1 },
             { 0, "PREF_COVERCENTERING",    "MISC",       "CameraCenteringInCover",          "",                           0, nullptr, 0, 1 },
-            { 0, PREF_KBCAMCENTERDELAY,    "MISC",       "DelayBeforeCenteringCameraKB",    "",                           0, nullptr, 0, 9 },
-            { 0, PREF_PADCAMCENTERDELAY,   "MISC",       "DelayBeforeCenteringCameraPad",   "",                           0, nullptr, 0, 9 },
-            { 0, PREF_CUSTOMFOV,           "MISC",       "FieldOfView",                     "",                           0, nullptr, 0, 9 },
+            { 0, "PREF_KBCAMCENTERDELAY",  "MISC",       "DelayBeforeCenteringCameraKB",    "",                           0, nullptr, 0, 9 },
+            { 0, "PREF_PADCAMCENTERDELAY", "MISC",       "DelayBeforeCenteringCameraPad",   "",                           0, nullptr, 0, 9 },
+            { 0, "PREF_CUSTOMFOV",         "MISC",       "FieldOfView",                     "",                           0, nullptr, 0, 9 },
         };
 
         auto i = firstCustomID;
@@ -185,6 +180,16 @@ public:
         injector::WriteMemory<uint8_t>(pOriginalEnumsNum, uint8_t(aMenuEnums.size()), true);
         injector::WriteMemory<uint8_t>(pOriginalEnumsNum2, uint8_t(aMenuEnums.size()), true);
 
+        // Sliders
+        slidersList.emplace(*GetPrefIDByName("PREF_EPISODIC_RACECLASS_RACE_3"), std::make_pair("PREF_EPISODIC_RACECLASS_RACE_3", "PREF_CUSTOMFOV"));
+        slidersList.emplace(*GetPrefIDByName("PREF_EPISODIC_RACECLASS_RACE_4"), std::make_pair("PREF_EPISODIC_RACECLASS_RACE_4", "PREF_KBCAMCENTERDELAY"));
+        slidersList.emplace(*GetPrefIDByName("PREF_EPISODIC_RACECLASS_RACE_5"), std::make_pair("PREF_EPISODIC_RACECLASS_RACE_5", "PREF_PADCAMCENTERDELAY"));
+
+        pattern = find_pattern("3D ? ? ? ? 7C DF 83 EC 10", "3D ? ? ? ? 7C E1 B8");
+        injector::WriteMemory(pattern.get_first(1), 136 - slidersList.size(), true);
+        pattern = find_pattern("3D ? ? ? ? 7E E6 80 3D", "3D ? ? ? ? 7E E8 83 CF FF");
+        injector::WriteMemory(pattern.get_first(1), 136 - slidersList.size(), true);
+
         {
             static std::vector<MenuPrefs> aMenuPrefs2(aMenuPrefs.size());
 
@@ -203,7 +208,8 @@ public:
     {
         if (prefID >= firstCustomID)
             return mFusionPrefs[prefID].GetValue();
-        else {
+        else
+        {
             DWORD tmp;
             injector::UnprotectMemory(&mPrefs[prefID], sizeof(int32_t), tmp);
             return mPrefs[prefID];
@@ -213,10 +219,16 @@ public:
         if (prefID >= firstCustomID) {
             mFusionPrefs[prefID].SetValue(value);
         }
-        else {
+        else
+        {
             DWORD tmp;
             injector::UnprotectMemory(&mPrefs[prefID], sizeof(int32_t), tmp);
             mPrefs[prefID] = value;
+
+            if (slidersList.contains(prefID)) {
+                auto id = GetPrefIDByName(slidersList[prefID].second);
+                if (id) mFusionPrefs[*id].SetValue(value);
+            }
         }
     }
     int32_t Get(std::string_view name)
@@ -466,12 +478,6 @@ public:
             }
             pattern = find_pattern("8D 46 F0 66 0F 6E C0", "83 C7 F0 89 7C");
             injector::WriteMemory<uint8_t>(pattern.get_first(2), 0xE0, true);
-
-            // existing prefs reuse
-            pattern = find_pattern("3D ? ? ? ? 7C DF 83 EC 10", "3D ? ? ? ? 7C E1 B8");
-            injector::WriteMemory(pattern.get_first(1), 136 - extrasList.size(), true);
-            pattern = find_pattern("3D ? ? ? ? 7E E6 80 3D", "3D ? ? ? ? 7E E8 83 CF FF");
-            injector::WriteMemory(pattern.get_first(1), 136 - extrasList.size(), true);
         };
 
         // FPS Counter

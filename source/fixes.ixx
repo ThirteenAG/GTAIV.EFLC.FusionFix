@@ -30,8 +30,16 @@ public:
     {
         hbsub_B07600.fun(_this, 0);
 
-        static auto nCustomFOV = FusionFixSettings.GetRef(PREF_CUSTOMFOV);
+        static auto nCustomFOV = FusionFixSettings.GetRef("PREF_CUSTOMFOV");
         *(float*)(_this + 0x60) += nCustomFOV->get() * 5.0f;
+    }
+
+    static char sub_8D0A90()
+    {
+        if (bMenuNeedsUpdate > 0) {
+            return 0;
+        }
+        return *CTimer__m_UserPause;
     }
 
     Fixes()
@@ -191,8 +199,8 @@ public:
             {
                 auto pattern = find_pattern("F3 0F 11 4C 24 ? 85 DB 74 1B", "F3 0F 11 44 24 ? 74 1B F6 86");
                 static auto reg = *pattern.get_first<uint8_t>(5);
-                static auto nTimeToWaitBeforeCenteringCameraOnFootKB = FusionFixSettings.GetRef(PREF_KBCAMCENTERDELAY);
-                static auto nTimeToWaitBeforeCenteringCameraOnFootPad = FusionFixSettings.GetRef(PREF_PADCAMCENTERDELAY);
+                static auto nTimeToWaitBeforeCenteringCameraOnFootKB = FusionFixSettings.GetRef("PREF_KBCAMCENTERDELAY");
+                static auto nTimeToWaitBeforeCenteringCameraOnFootPad = FusionFixSettings.GetRef("PREF_PADCAMCENTERDELAY");
                 struct OnFootCamCenteringHook 
                 {
                     void operator()(injector::reg_pack& regs) 
@@ -247,9 +255,15 @@ public:
 
             // Custom FOV
             {
-                auto pattern = hook::pattern("E8 ? ? ? ? F6 87 ? ? ? ? ? 5B");
-                if (!pattern.empty())
-                    hbsub_B07600.fun = injector::MakeCALL(pattern.get_first(0), sub_B07600, true).get();
+                auto pattern = find_pattern("E8 ? ? ? ? F6 87 ? ? ? ? ? 5B", "E8 ? ? ? ? 8B CE E8 ? ? ? ? F6 86 ? ? ? ? ? 5F");
+                hbsub_B07600.fun = injector::MakeCALL(pattern.get_first(0), sub_B07600, true).get();
+
+                pattern = find_pattern("E8 ? ? ? ? 84 C0 74 12 80 3D ? ? ? ? ? 0F B6 DB", "E8 ? ? ? ? 84 C0 74 0A 38 1D");
+                injector::MakeCALL(pattern.get_first(0), sub_8D0A90, true);
+
+                FusionFixSettings.SetCallback("PREF_CUSTOMFOV", [](int32_t value) {
+                    bMenuNeedsUpdate = 2;
+                });
             }
         };
     }

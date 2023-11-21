@@ -26,6 +26,7 @@ export bool bDynamicShadowForTrees;
 export bool bMoreShadows = false;
 export bool bMainEndScene = false;
 export bool bLoadingShown = false;
+export int bMenuNeedsUpdate = 0;
 
 class Common
 {

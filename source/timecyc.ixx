@@ -272,10 +272,9 @@ public:
             auto pattern = find_pattern("55 8B EC 83 E4 F0 81 EC ? ? ? ? 8B 0D ? ? ? ? 53 0F B7 41 04", "55 8B EC 83 E4 F0 81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 8B 0D ? ? ? ? 0F B7 41 04");
             static auto CTimeCycleInitialise = pattern.get_first(0);
 
-            static int bTimecycUpdated = 0;
             FusionFixSettings.SetCallback("PREF_TIMECYC", [](int32_t value) {
                 injector::fastcall<void()>::call(CTimeCycleInitialise);
-                bTimecycUpdated = 200;
+                bMenuNeedsUpdate = 200;
             });
 
             // make timecyc changes visible in menu
@@ -288,13 +287,15 @@ public:
                     void operator()(injector::reg_pack& regs)
                     {
                         *(uint8_t*)&regs.eax |= *byte_1173590;
-                        if (bTimecycUpdated > 0) {
+                        if (bMenuNeedsUpdate > 0) {
                             *(uint8_t*)&regs.eax = 0;
-                            bTimecycUpdated--;
+                            bMenuNeedsUpdate--;
                         }
                     }
                 }; injector::MakeInline<MenuTimecycHook>(pattern.get_first(0), pattern.get_first(6));
                 pattern = hook::pattern("0A 05 ? ? ? ? 0A 05 ? ? ? ? 74 20");
+                injector::MakeInline<MenuTimecycHook>(pattern.get_first(0), pattern.get_first(6));
+                pattern = hook::pattern("0A 05 ? ? ? ? 0A 05 ? ? ? ? 74 12");
                 injector::MakeInline<MenuTimecycHook>(pattern.get_first(0), pattern.get_first(6));
             }
             else
@@ -304,8 +305,8 @@ public:
                 hbsub_4B18F0.fun = injector::GetBranchDestination(pattern.get_first()).get();
                 static auto MenuTimecycHook = []() -> int
                 {
-                    if (bTimecycUpdated > 0) {
-                        bTimecycUpdated--;
+                    if (bMenuNeedsUpdate > 0) {
+                        bMenuNeedsUpdate--;
                         return 0;
                     }
                     return hbsub_4B18F0.fun();
@@ -321,16 +322,16 @@ public:
 
             FusionFixSettings.SetCallback("PREF_TCYC_DOF", [](int32_t value) {
                 injector::fastcall<void()>::call(CTimeCycleInitialise);
-                bTimecycUpdated = 200;
+                bMenuNeedsUpdate = 200;
             });
 
             FusionFixSettings.SetCallback("PREF_BLOOM", [](int32_t value) {
                 injector::fastcall<void()>::call(CTimeCycleInitialise);
-                bTimecycUpdated = 200;
+                bMenuNeedsUpdate = 200;
             });
 
             FusionFixSettings.SetCallback("PREF_SHADOW_QUALITY", [](int32_t value) {
-                bTimecycUpdated = 200;
+                bMenuNeedsUpdate = 200;
             });
 
             // z-fighting fix helpers
