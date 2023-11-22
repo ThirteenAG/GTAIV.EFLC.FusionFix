@@ -196,41 +196,41 @@ public:
             }
 
             // Sensitivity
-            struct MouseSensitivityHook
-            {
-                void operator()(injector::reg_pack& regs)
-                {
-                    static auto ri = FusionFixSettings.GetRef("PREF_RAWINPUT");
-                    
-                    if (ri->get())
-                    {
-                        float f = GetMouseSensitivityForRI();
-                        _asm movss xmm0, f
-                    }
-                    else
-                    {
-                        float f = GetMouseSensitivity();
-                        _asm movss xmm0, f
-                    }
-                }
-            };
-
-            pattern = hook::pattern("66 0F 6E 05 ? ? ? ? 0F 5B C0 F3 0F 11 44 24 ? E8");
-            if (!pattern.empty())
-            {
-                auto dword_1160E70 = *pattern.get_first<void*>(4);
-                pattern = hook::pattern(pattern_str(0x66, 0x0F, 0x6E, 0x05, to_bytes(dword_1160E70))); // movd cvtdq2ps
-                for (size_t i = 0; i < pattern.size(); ++i)
-                    injector::MakeInline<MouseSensitivityHook>(pattern.get(i).get<void*>(0), pattern.get(i).get<void*>(8 + 3));
-            }
-            else
-            {
-                pattern = hook::pattern("F3 0F 2A 05 ? ? ? ? 68 ? ? ? ? F3 0F 11 44 24 ? E8 ? ? ? ? F3 0F 10 44 24 ? 8B 4D 0C");
-                auto dword_1160E70 = *pattern.get_first<void*>(4);
-                pattern = hook::pattern(pattern_str(0xF3, 0x0F, 0x2A, 0x05, to_bytes(dword_1160E70))); // cvtsi2ss
-                for (size_t i = 0; i < pattern.size(); ++i)
-                    injector::MakeInline<MouseSensitivityHook>(pattern.get(i).get<void*>(0), pattern.get(i).get<void*>(8));
-            }
+            //struct MouseSensitivityHook
+            //{
+            //    void operator()(injector::reg_pack& regs)
+            //    {
+            //        static auto ri = FusionFixSettings.GetRef("PREF_RAWINPUT");
+            //        
+            //        if (ri->get())
+            //        {
+            //            float f = GetMouseSensitivityForRI();
+            //            _asm movss xmm0, f
+            //        }
+            //        else
+            //        {
+            //            float f = GetMouseSensitivity();
+            //            _asm movss xmm0, f
+            //        }
+            //    }
+            //};
+            //
+            //pattern = hook::pattern("66 0F 6E 05 ? ? ? ? 0F 5B C0 F3 0F 11 44 24 ? E8");
+            //if (!pattern.empty())
+            //{
+            //    auto dword_1160E70 = *pattern.get_first<void*>(4);
+            //    pattern = hook::pattern(pattern_str(0x66, 0x0F, 0x6E, 0x05, to_bytes(dword_1160E70))); // movd cvtdq2ps
+            //    for (size_t i = 0; i < pattern.size(); ++i)
+            //        injector::MakeInline<MouseSensitivityHook>(pattern.get(i).get<void*>(0), pattern.get(i).get<void*>(8 + 3));
+            //}
+            //else
+            //{
+            //    pattern = hook::pattern("F3 0F 2A 05 ? ? ? ? 68 ? ? ? ? F3 0F 11 44 24 ? E8 ? ? ? ? F3 0F 10 44 24 ? 8B 4D 0C");
+            //    auto dword_1160E70 = *pattern.get_first<void*>(4);
+            //    pattern = hook::pattern(pattern_str(0xF3, 0x0F, 0x2A, 0x05, to_bytes(dword_1160E70))); // cvtsi2ss
+            //    for (size_t i = 0; i < pattern.size(); ++i)
+            //        injector::MakeInline<MouseSensitivityHook>(pattern.get(i).get<void*>(0), pattern.get(i).get<void*>(8));
+            //}
 
             // Sniper Camera
             pattern = find_pattern("F3 0F 10 87 ? ? ? ? F3 0F 10 48 ? 83 C4 04", "F3 0F 10 86 ? ? ? ? F3 0F 10 4B ? 83 C4 04");
