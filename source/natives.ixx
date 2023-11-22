@@ -226,7 +226,7 @@ public:
 
 export class Natives
 {
-private:
+public:
     enum class NativeHashes : uint32_t {
         ABORT_ALL_GARAGE_ACTIVITY = 0x5DB95843,
         ABORT_SCRIPTED_CONVERSATION = 0x57DB70CE,

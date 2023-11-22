@@ -122,6 +122,7 @@ public:
             { 0, "PREF_KBCAMCENTERDELAY",  "MISC",       "DelayBeforeCenteringCameraKB",    "",                           0, nullptr, 0, 9 },
             { 0, "PREF_PADCAMCENTERDELAY", "MISC",       "DelayBeforeCenteringCameraPad",   "",                           0, nullptr, 0, 9 },
             { 0, "PREF_CUSTOMFOV",         "MISC",       "FieldOfView",                     "",                           0, nullptr, 0, 9 },
+            { 0, "PREF_RAWINPUT",          "MISC",       "RawInput",                        "",                           1, nullptr, 0, 1 },
         };
 
         auto i = firstCustomID;

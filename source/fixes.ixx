@@ -205,7 +205,7 @@ public:
                 {
                     void operator()(injector::reg_pack& regs) 
                     {
-                        float f = 0.0f;
+                        static float f = 0.0f;
                         _asm { movss f, xmm1 }
 
                         if (reg == 0x48)
