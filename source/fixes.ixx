@@ -265,6 +265,31 @@ public:
                     bMenuNeedsUpdate = 2;
                 });
             }
+
+            // Fix mouse cursor scale
+            {
+                auto pattern = hook::pattern("F3 0F 11 44 24 ? E8 ? ? ? ? D9 5C 24 20 80 3D");
+                struct MouseHeightHook 
+                {
+                    void operator()(injector::reg_pack& regs) 
+                    {
+                        *(float*)(regs.esp + 0x40 - 0x24) = 30.0f * (1.0f / 768.0f);
+                    }
+                };
+                if (!pattern.empty())
+                    injector::MakeInline<MouseHeightHook>(pattern.get_first(0), pattern.get_first(6));
+
+                pattern = hook::pattern("F3 0F 11 44 24 ? FF 50 24 66 0F 6E C0 0F 5B C0 6A 01");
+                struct MouseWidthHook 
+                {
+                    void operator()(injector::reg_pack& regs) 
+                    {
+                        *(float*)(regs.esp + 0x10) = 30.0f * (1.0f / 1024.0f);
+                    }
+                };
+                if (!pattern.empty())
+                    injector::MakeInline<MouseWidthHook>(pattern.get_first(0), pattern.get_first(6));
+            }
         };
     }
 } Fixes;
