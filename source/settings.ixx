@@ -327,7 +327,7 @@ class Settings
 public:
     Settings()
     {
-        FusionFix::onInitEventAsync() += []()
+        FusionFix::onInitEvent() += []()
         {
             // runtime settings
             auto pattern = hook::pattern("89 1C ? ? ? ? ? E8 ? ? ? ? A1");

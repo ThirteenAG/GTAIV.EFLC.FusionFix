@@ -24,7 +24,7 @@ class LoadingDelays
 public:
     LoadingDelays()
     {
-        FusionFix::onInitEventAsync() += []()
+        FusionFix::onInitEvent() += []()
         {
             auto pattern = find_pattern("68 ? ? ? ? FF 15 ? ? ? ? 83 3D ? ? ? ? ? 75 05", "68 ? ? ? ? FF 15 ? ? ? ? 39 1D");
             injector::WriteMemory(pattern.get_first(1), 0, true);

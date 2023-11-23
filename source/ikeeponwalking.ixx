@@ -12,7 +12,7 @@ class IKeepOnWalking
 public:
     IKeepOnWalking()
     {
-        FusionFix::onInitEventAsync() += []()
+        FusionFix::onInitEvent() += []()
         {
             CIniReader iniReader("");
             static int32_t nWalkKey = iniReader.ReadInteger("MISC", "WalkKey", VK_MENU);

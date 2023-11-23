@@ -156,7 +156,7 @@ class Framelimit
 public:
     Framelimit()
     {
-        FusionFix::onInitEventAsync() += []()
+        FusionFix::onInitEvent() += []()
         {
             CIniReader iniReader("");
 

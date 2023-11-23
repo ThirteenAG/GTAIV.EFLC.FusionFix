@@ -56,76 +56,73 @@ void __cdecl CGameProcessHook(int a1)
 
 void Init()
 {
-    FusionFix::onInitEventAsync() += []()
+    auto pattern = hook::pattern("E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? B9");
+    hbCGameProcess.fun = injector::MakeCALL(pattern.get_first(0), CGameProcessHook, true).get();
+
+    pattern = hook::pattern("A1 ? ? ? ? 50 8B 08 FF 51 40");
+    if (!pattern.empty())
     {
-        auto pattern = hook::pattern("E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? B9");
-        hbCGameProcess.fun = injector::MakeCALL(pattern.get_first(0), CGameProcessHook, true).get();
-
-        pattern = hook::pattern("A1 ? ? ? ? 50 8B 08 FF 51 40");
-        if (!pattern.empty())
+        static auto Direct3DDevice = *pattern.get_first<LPDIRECT3DDEVICE9*>(1);
+        struct AuxBeforeResetHook
         {
-            static auto Direct3DDevice = *pattern.get_first<LPDIRECT3DDEVICE9*>(1);
-            struct AuxBeforeResetHook
+            void operator()(injector::reg_pack& regs)
             {
-                void operator()(injector::reg_pack& regs)
-                {
-                    *(LPDIRECT3DDEVICE9*)&regs.eax = *Direct3DDevice;
-                    FusionFix::onBeforeReset().executeAll();
-                }
-            };
+                *(LPDIRECT3DDEVICE9*)&regs.eax = *Direct3DDevice;
+                FusionFix::onBeforeReset().executeAll();
+            }
+        };
 
-            injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
-            pattern = hook::pattern("A1 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? 8B 08 68");
-            injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
-            pattern = hook::pattern("A1 ? ? ? ? 68 ? ? ? ? 8B 08 50 FF 51 40 A1");
-            injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
+        injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
+        pattern = hook::pattern("A1 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? 8B 08 68");
+        injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
+        pattern = hook::pattern("A1 ? ? ? ? 68 ? ? ? ? 8B 08 50 FF 51 40 A1");
+        injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
 
-            pattern = hook::pattern("A1 ? ? ? ? 50 8B 08 FF 91 ? ? ? ? 8B 3D");
-            struct AuxEndSceneHook
-            {
-                void operator()(injector::reg_pack& regs)
-                {
-                    *(LPDIRECT3DDEVICE9*)&regs.eax = *Direct3DDevice;
-                    bMainEndScene = true;
-                }
-            }; injector::MakeInline<AuxEndSceneHook>(pattern.get_first(0));
-        }
-        else
+        pattern = hook::pattern("A1 ? ? ? ? 50 8B 08 FF 91 ? ? ? ? 8B 3D");
+        struct AuxEndSceneHook
         {
-            pattern = hook::pattern("8B 08 8B 51 40 68 ? ? ? ? 50 FF D2 8B");
-            struct AuxBeforeResetHook
+            void operator()(injector::reg_pack& regs)
             {
-                void operator()(injector::reg_pack& regs)
-                {
-                    regs.ecx = *(uint32_t*)regs.eax;
-                    regs.edx = *(uint32_t*)(regs.ecx + 0x40);
-                    FusionFix::onBeforeReset().executeAll();
-                }
-            };
-
-            injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
-            pattern = hook::pattern("8B 08 8B 51 40 68 ? ? ? ? 50 FF D2 85 C0");
-            injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
-            pattern = hook::pattern("8B 08 8B 51 40 68 ? ? ? ? 50 FF D2 A1 ? ? ? ? 8B 0D");
-            injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
-            pattern = hook::pattern("8B 08 8B 51 40 68 ? ? ? ? 50 FF D2 A1 ? ? ? ? 85 C0");
-            injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
-
-            pattern = hook::pattern("A1 ? ? ? ? 8B 10 50");
-            static auto Direct3DDevice = *pattern.get_first<LPDIRECT3DDEVICE9*>(1);
-            struct AuxEndSceneHook
+                *(LPDIRECT3DDEVICE9*)&regs.eax = *Direct3DDevice;
+                bMainEndScene = true;
+            }
+        }; injector::MakeInline<AuxEndSceneHook>(pattern.get_first(0));
+    }
+    else
+    {
+        pattern = hook::pattern("8B 08 8B 51 40 68 ? ? ? ? 50 FF D2 8B");
+        struct AuxBeforeResetHook
+        {
+            void operator()(injector::reg_pack& regs)
             {
-                void operator()(injector::reg_pack& regs)
-                {
-                    *(LPDIRECT3DDEVICE9*)&regs.eax = *Direct3DDevice;
-                    bMainEndScene = true;
-                }
-            }; injector::MakeInline<AuxEndSceneHook>(pattern.get_first(0));
-        }
+                regs.ecx = *(uint32_t*)regs.eax;
+                regs.edx = *(uint32_t*)(regs.ecx + 0x40);
+                FusionFix::onBeforeReset().executeAll();
+            }
+        };
 
-        pattern = find_pattern("E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? 8D 54 24 08", "E8 ? ? ? ? E8 ? ? ? ? 68 ? ? ? ? 6A 00 6A 00");
-        hbsub_8C4480.fun = injector::MakeCALL(pattern.get_first(0), sub_8C4480Hook, true).get();
-    };
+        injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
+        pattern = hook::pattern("8B 08 8B 51 40 68 ? ? ? ? 50 FF D2 85 C0");
+        injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
+        pattern = hook::pattern("8B 08 8B 51 40 68 ? ? ? ? 50 FF D2 A1 ? ? ? ? 8B 0D");
+        injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
+        pattern = hook::pattern("8B 08 8B 51 40 68 ? ? ? ? 50 FF D2 A1 ? ? ? ? 85 C0");
+        injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
+
+        pattern = hook::pattern("A1 ? ? ? ? 8B 10 50");
+        static auto Direct3DDevice = *pattern.get_first<LPDIRECT3DDEVICE9*>(1);
+        struct AuxEndSceneHook
+        {
+            void operator()(injector::reg_pack& regs)
+            {
+                *(LPDIRECT3DDEVICE9*)&regs.eax = *Direct3DDevice;
+                bMainEndScene = true;
+            }
+        }; injector::MakeInline<AuxEndSceneHook>(pattern.get_first(0));
+    }
+
+    pattern = find_pattern("E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? 8D 54 24 08", "E8 ? ? ? ? E8 ? ? ? ? 68 ? ? ? ? 6A 00 6A 00");
+    hbsub_8C4480.fun = injector::MakeCALL(pattern.get_first(0), sub_8C4480Hook, true).get();
 
     static auto futures = FusionFix::onInitEventAsync().executeAllAsync();
 

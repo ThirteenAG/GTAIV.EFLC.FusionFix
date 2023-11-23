@@ -270,7 +270,7 @@ private:
 public:
     FusionDxHook()
     {
-        FusionFix::onInitEventAsync() += []()
+        FusionFix::onInitEvent() += []()
         {
             auto hD3D9 = GetModuleHandleW(L"d3d9.dll");
             if (!hD3D9) return;

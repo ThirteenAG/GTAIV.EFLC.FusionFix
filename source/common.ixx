@@ -42,7 +42,7 @@ public:
             {
                 for (auto& handler : handlers)
                 {
-                    pendingFutures.push_back(std::async(std::launch::async, handler, args...));
+                    pendingFutures.emplace_back(std::async(std::launch::async, std::cref(handler), args...));
                 }
             }
             return std::ref(pendingFutures);

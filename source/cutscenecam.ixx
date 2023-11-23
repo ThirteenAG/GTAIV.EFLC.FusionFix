@@ -12,7 +12,7 @@ class CutsceneCam
 public:
     CutsceneCam()
     {
-        FusionFix::onInitEventAsync() += []()
+        FusionFix::onInitEvent() += []()
         {
             // By Sergeanur
 
