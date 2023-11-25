@@ -48,6 +48,12 @@ This fix was tested only with latest official update and latest [ASI Loader](htt
 
   [**Watch full clip on YouTube**](https://www.youtube.com/watch?v=oLxn3q-NnZ0&hd=1)
 
+- **Cover Centering**, added an option to disable camera centering in cover
+- **Raw Input**, raw input for menu and adjustments for in-game camera mouse look
+- **Alternative Dialogues**, when enabled, forces the game to use alternative dialogues in some missions
+- **Centering Delay**, sets the time before camera starts autocentering on foot
+- **FOV**, adjusts in-game field of view
+
 ### Main
 
 - [Fixed recoil behavior that was different when playing with keyboard/mouse and gamepad](https://github.com/GTAmodding/GTAIV-Issues-List/issues/6)
@@ -59,6 +65,7 @@ This fix was tested only with latest official update and latest [ASI Loader](htt
 - [Added a file overload solution that allows to replace game files without actually replacing them](https://github.com/ThirteenAG/Ultimate-ASI-Loader?tab=readme-ov-file#update-folder-overload-from-folder)
 - Added IMG Loader (from update folder)
 - Increased corona limit to avoid heavy flickering of game's lights
+- Improved ultrawidescreen support
 
 ### Scripts
 
@@ -87,8 +94,6 @@ This fix was tested only with latest official update and latest [ASI Loader](htt
 
 ### Misc
 
-- Added an option to disable camera centering in cover
-- Added an option to fix mouse deadzone
 - Added an option to fix rain droplets rendering
 - Added an option to customize rain droplets blur intensity
 - Various other fixes, like LOD lights appear at the appropriate time like on the console version
@@ -110,8 +115,6 @@ This fix was tested only with latest official update and latest [ASI Loader](htt
 - **PedDeathAnimFixFromTBOGT** - when you perform a counter attack after a dodge in IV & TLAD, the ped after falling and dying performs an additional death animation, which doesn't happen in TBOGT. [Enabled](https://imgur.com/EYsiGPe) / [Disabled](https://imgur.com/CR3LEdR)
 
 - **DisableCameraCenteringInCover** - [see issue 20](https://github.com/GTAmodding/GTAIV-Issues-List/issues/20).
-
-- **MouseFix** - fixes small mouse movements not being recognized.
 
 - **VehicleBudget** - allows to increase the budget of vehicles.
 

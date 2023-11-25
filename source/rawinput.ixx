@@ -280,7 +280,7 @@ public:
                 pattern = hook::pattern(pattern_str(0x68, to_bytes(hash_GET_MOUSE_INPUT))); // push 0x...
                 auto addr = *pattern.get_first<uintptr_t>(-4);
                 auto range = hook::range_pattern(addr, addr + 30, "E8 ? ? ? ? 83 C4 08 C3");
-                hbNATIVE_GET_MOUSE_INPUT.fun = injector::MakeCALL(range.get_first(0), NATIVE_GET_MOUSE_INPUT).get();
+                hbNATIVE_GET_MOUSE_INPUT.fun = injector::MakeCALL(range.get_first(0), NATIVE_GET_MOUSE_INPUT, true).get();
             }
         };
     }
