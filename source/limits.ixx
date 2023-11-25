@@ -40,7 +40,7 @@ public:
         if (!m_patchedXrefs)
         {
             auto list = std::initializer_list<ptrdiff_t>{ offsets... };
-            auto max_array_offset = m_elementSize * m_elementsCount;
+            ptrdiff_t max_array_offset = m_elementSize * m_elementsCount;
             auto max_needed_offset = *std::max_element(list.begin(), list.end());
             auto i = 0;
 
@@ -81,15 +81,15 @@ public:
             auto TryPatchAddr = [&]<typename T>(intptr_t ptr) {
                 auto val = injector::ReadMemory<T>(ptr, true);
                 if (val == m_elementsCount) {
-                    injector::WriteMemory<T>(ptr, m_elementsCount * m_increaseby, true);
+                    injector::WriteMemory<T>(ptr, T(m_elementsCount * m_increaseby), true);
                     return true;
                 }
                 if (val == m_elementsCount + 1) {
-                    injector::WriteMemory<T>(ptr, m_elementsCount * m_increaseby + 1, true);
+                    injector::WriteMemory<T>(ptr, T(m_elementsCount * m_increaseby + 1), true);
                     return true;
                 }
                 if (val == m_elementsCount - 1) {
-                    injector::WriteMemory<T>(ptr, m_elementsCount * m_increaseby - 1, true);
+                    injector::WriteMemory<T>(ptr, T(m_elementsCount * m_increaseby - 1), true);
                     return true;
                 }
                 return false;

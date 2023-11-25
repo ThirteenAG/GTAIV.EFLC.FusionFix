@@ -12,7 +12,7 @@ import natives;
 class Fixes
 {
 public:
-    static inline uint32_t nTimeToPassBeforeCenteringCameraOnFoot = 0;
+    static inline int32_t nTimeToPassBeforeCenteringCameraOnFoot = 0;
     static inline bool bWaitBeforeCenteringCameraOnFootUsingPad = false;
 
     static inline bool* bIsPhoneShowing = nullptr;
