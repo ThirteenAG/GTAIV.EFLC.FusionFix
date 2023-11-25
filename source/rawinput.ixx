@@ -110,14 +110,16 @@ public:
                     void operator()(injector::reg_pack& regs)
                     {
                         static auto ri = FusionFixSettings.GetRef("PREF_RAWINPUT");
-                        POINT pt;
-                        RECT rec;
-                        GetClientRect(gWnd, &rec);
-                        ClipCursor(&rec);
-                        GetCursorPos(&pt);
 
                         if (ri->get())
                         {
+                            POINT pt;
+                            RECT rec;
+                            GetClientRect(gWnd, &rec);
+                            if (gWnd == GetFocus())
+                                ClipCursor(&rec);
+                            GetCursorPos(&pt);
+
                             *dword_18B7A80 = pt.x;
                             *dword_18B7A8C = pt.y;
                         }
@@ -138,15 +140,16 @@ public:
                     void operator()(injector::reg_pack& regs)
                     {
                         static auto ri = FusionFixSettings.GetRef("PREF_RAWINPUT");
-                        POINT pt;
-                        RECT rec;
-                        GetWindowRect(gWnd, &rec);
-                        if (gWnd == GetFocus())
-                            ClipCursor(&rec);
-                        GetCursorPos(&pt);
 
                         if (ri->get())
                         {
+                            POINT pt;
+                            RECT rec;
+                            GetWindowRect(gWnd, &rec);
+                            if (gWnd == GetFocus())
+                                ClipCursor(&rec);
+                            GetCursorPos(&pt);
+
                             *dword_18B7A80 = pt.x;
                             *dword_18B7A8C = pt.y;
                         }
