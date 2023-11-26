@@ -248,8 +248,12 @@ public:
                     if (reg == 0x86) ptr = regs.esi;
                     if (ri->get())
                     {
-                        *(float*)(ptr + 0x148) += -(float)GetRIMouseAxisData(0) * TryMatchPedCamSensitivity();
-                        *(float*)(ptr + 0x144) += -(float)GetRIMouseAxisData(1) * (inv->get() ? -TryMatchPedCamSensitivity() : TryMatchPedCamSensitivity());
+                        auto fFOVZoomed = *(float*)(ptr + 0x60);
+                        auto fFOVDefault = *(float*)(ptr + 0xE0);
+                        auto fDiff = fFOVDefault / fFOVZoomed;
+
+                        *(float*)(ptr + 0x148) += (-(float)GetRIMouseAxisData(0) * TryMatchPedCamSensitivity()) / fDiff;
+                        *(float*)(ptr + 0x144) += (-(float)GetRIMouseAxisData(1) * (inv->get() ? -TryMatchPedCamSensitivity() : TryMatchPedCamSensitivity())) / fDiff;
                     }
                     float f = *(float*)(ptr + 0x144);
                     _asm movss xmm0, dword ptr[f]

@@ -58,7 +58,7 @@ public:
 
             if (!customUserProfilePath.is_absolute())
             {
-                auto exe_path = std::filesystem::path(GetExeModulePath<std::string>());
+                auto exe_path = GetExeModulePath();
                 customUserProfilePath = exe_path / customUserProfilePath;
             }
 

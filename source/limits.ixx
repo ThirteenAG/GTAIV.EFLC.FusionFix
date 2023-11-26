@@ -52,7 +52,6 @@ public:
             for (auto v : list)
             {
                 auto ptr = m_startAddress + v;
-                auto x = pattern_str(to_bytes(ptr));
                 auto pattern = hook::pattern(pattern_str(to_bytes(ptr)));
                 pattern.for_each_result([&](hook::pattern_match match)
                 {

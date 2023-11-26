@@ -3,6 +3,8 @@ module;
 #include <common.hxx>
 #include "d3dx9.h"
 #pragma comment(lib, "d3dx9.lib")
+#include <shlobj.h>
+#include <filesystem>
 
 export module settings;
 
@@ -27,9 +29,9 @@ private:
         auto GetValue() { return value; }
         auto SetValue(auto v) { value = v; WriteToIni(); if (callback) callback(value); }
         auto ReadFromIni(auto& iniReader) { return iniReader.ReadInteger(iniSec, iniName, iniDefValInt); }
-        auto ReadFromIni() { CIniReader iniReader("GTAIV.EFLC.FusionFix.cfg"); return ReadFromIni(iniReader); }
+        auto ReadFromIni() { CIniReader iniReader(cfgPath.wstring()); return ReadFromIni(iniReader); }
         void WriteToIni(auto& iniWriter) { iniWriter.WriteInteger(iniSec, iniName, value); }
-        void WriteToIni() { CIniReader iniWriter("GTAIV.EFLC.FusionFix.cfg"); iniWriter.WriteInteger(iniSec, iniName, value); }
+        void WriteToIni() { CIniReader iniWriter(cfgPath.wstring()); iniWriter.WriteInteger(iniSec, iniName, value); }
     };
 
     struct MenuPrefs
@@ -38,6 +40,7 @@ private:
         char* name;
     };
 
+    static inline std::filesystem::path cfgPath;
     static inline std::vector<MenuPrefs> aMenuPrefs;
     static inline auto firstCustomID = 0;
     static inline std::map<int32_t, std::pair<const char*, const char*>> slidersList;
@@ -64,6 +67,41 @@ private:
 public:
     CSettings()
     {
+        TCHAR szPath[MAX_PATH];
+        std::vector<std::filesystem::path> cfgPaths;
+        auto cfgName = GetThisModuleName().replace_extension(L".cfg");
+        cfgPaths.emplace_back(GetThisModulePath() / cfgName);
+        cfgPaths.emplace_back(GetExeModulePath() / cfgName);
+        if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, szPath)))
+            cfgPaths.emplace_back(std::filesystem::path(szPath) / L"Rockstar Games\\GTA IV\\" / cfgName);
+        if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, szPath)))
+            cfgPaths.emplace_back(std::filesystem::path(szPath) / GetThisModuleName().stem() / cfgName);
+        if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_MYDOCUMENTS, NULL, 0, szPath)))
+            cfgPaths.emplace_back(std::filesystem::path(szPath) / GetThisModuleName().stem() / cfgName);
+
+        cfgPath = cfgPaths.front();
+        for (auto& it : cfgPaths)
+        {
+            auto status = std::filesystem::status(it).permissions();
+            if (status == std::filesystem::perms::unknown)
+            {
+                std::ofstream ofile;
+                ofile.open(it, std::ios::binary);
+                if (ofile.is_open())
+                {
+                    cfgPath = it;
+                    ofile.close();
+                    break;
+                }
+            }
+            else if ((std::filesystem::perms::owner_read & status) == std::filesystem::perms::owner_read &&
+            (std::filesystem::perms::owner_write & status) == std::filesystem::perms::owner_write)
+            {
+                cfgPath = it;
+                break;
+            }
+        }
+
         MenuPrefs* originalPrefs = nullptr;
         MenuPrefs** ppOriginalPrefs = nullptr;
 
@@ -96,7 +134,7 @@ public:
         pattern = hook::pattern("89 1C ? ? ? ? ? E8");
         mPrefs = *pattern.get_first<int32_t*>(3);
 
-        CIniReader iniReader("GTAIV.EFLC.FusionFix.cfg");
+        CIniReader iniReader(cfgPath.wstring());
 
         static CSetting arr[] = {
             { 0, "PREF_SKIP_INTRO",        "MAIN",       "SkipIntro",                       "",                           1, nullptr, 0, 1 },

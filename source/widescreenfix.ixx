@@ -145,7 +145,7 @@ public:
             CSprite2d__DrawAddr = pattern.get_first(0);
 
             // Fix "auto" aspect ratio
-            pattern = find_pattern("75 67 E8 75 CB FC FF", "75 5B E8 ? ? ? ? 85 C0 7E 52 E8");
+            pattern = find_pattern("75 67 E8 75 CB FC FF", "75 67 E8 ? ? ? ? 85 C0 7E 5E E8 ? ? ? ? 48", "75 5B E8 ? ? ? ? 85 C0 7E 52 E8");
             injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
 
             pattern = find_pattern("6A 01 F3 0F 5E C8 B9", "6A 01 B9 ? ? ? ? E8 ? ? ? ? D9 54 24 1C");
