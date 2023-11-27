@@ -293,11 +293,10 @@ public:
                     auto ref2 = (intptr_t)hook::get_pattern("81 FA ? ? ? ? 0F 8D ? ? ? ? 42", 2);
                     auto adwCarColors = LimitAdjuster(*pattern.get_first<uintptr_t>(2), 4, 196, 23).ReplaceXrefs(0).ReplaceNumericRefs(ref1, ref2);
                     pattern = hook::pattern("8B 04 8D ? ? ? ? 89 06");
-                    auto adwPoliceScannerCarColorPrefixes = LimitAdjuster(*pattern.get_first<uintptr_t>(2), 4, 197, 3).ReplaceXrefs(0);
+                    auto adwPoliceScannerCarColorPrefixes = LimitAdjuster(*pattern.get_first<uintptr_t>(3), 4, 197, 3).ReplaceXrefs(0);
                     pattern = hook::pattern("8B 04 8D ? ? ? ? 89 46 04");
-                    auto adwPoliceScannerCarColors = LimitAdjuster(*pattern.get_first<uintptr_t>(2), 4, 196, 3).ReplaceXrefs(0);
+                    auto adwPoliceScannerCarColors = LimitAdjuster(*pattern.get_first<uintptr_t>(3), 4, 196, 3).ReplaceXrefs(0);
                 }
-                
 
                 {
                     auto pattern = hook::pattern("81 C3 ? ? ? ? 89 03");
