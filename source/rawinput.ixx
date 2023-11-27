@@ -249,7 +249,8 @@ public:
                     if (ri->get())
                     {
                         auto fFOVZoomed = *(float*)(ptr + 0x60);
-                        auto fFOVDefault = *(float*)(ptr + 0xE0);
+                        static auto fFOVDefault = fFOVZoomed;
+                        fFOVDefault = max(fFOVDefault, fFOVZoomed);
                         auto fDiff = fFOVDefault / fFOVZoomed;
 
                         *(float*)(ptr + 0x148) += (-(float)GetRIMouseAxisData(0) * TryMatchPedCamSensitivity()) / fDiff;
