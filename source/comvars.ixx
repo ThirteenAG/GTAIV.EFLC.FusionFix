@@ -27,6 +27,7 @@ export bool bMoreShadows = false;
 export bool bMainEndScene = false;
 export bool bLoadingShown = false;
 export int bMenuNeedsUpdate = 0;
+export int bMenuNeedsUpdate2 = 0;
 
 class Common
 {

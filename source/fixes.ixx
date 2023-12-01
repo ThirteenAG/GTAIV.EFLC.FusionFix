@@ -36,7 +36,8 @@ public:
 
     static char sub_8D0A90()
     {
-        if (bMenuNeedsUpdate > 0) {
+        if (bMenuNeedsUpdate2 > 0) {
+            bMenuNeedsUpdate2--;
             return 0;
         }
         return *CTimer__m_UserPause;
@@ -263,6 +264,7 @@ public:
 
                 FusionFixSettings.SetCallback("PREF_CUSTOMFOV", [](int32_t value) {
                     bMenuNeedsUpdate = 2;
+                    bMenuNeedsUpdate2 = 2;
                 });
             }
 
