@@ -51,7 +51,7 @@ std::vector<std::vector<std::tuple<std::string_view, uint32_t>>> gAltDialogueVar
         { "eddie1", 64740 },
         { "eddie1", 64746 },
         { "eddie2", 64747 },
-        { "elizabeta2", 64645 },
+        //{ "elizabeta2", 64645 },
         { "faustin7", 64732 },
         { "faustin7", 64731 },
         { "finale1a", 64733 },
@@ -120,7 +120,7 @@ std::vector<std::vector<std::tuple<std::string_view, uint32_t>>> gAltDialogueVar
         { "ray2", 64955 },
         { "ray2", 64956 },
         { "ray2", 64957 },
-        { "roman10m", 64575 },
+        //{ "roman10m", 64575 },
         { "roman11", 64687 },
         { "roman11", 64689 },
         { "roman12", 64964 },
@@ -147,7 +147,7 @@ std::vector<std::vector<std::tuple<std::string_view, uint32_t>>> gAltDialogueVar
         { "ashley1", 38744 },
         { "ashley2", 39237 },
         { "ashley2", 39238 },
-        { "ashley2", 39236 },
+        //{ "ashley2", 39236 },
         { "billy1", 39209 },
         { "billy1", 39211 },
         { "billy1", 39214 },
@@ -230,7 +230,7 @@ std::vector<std::vector<std::tuple<std::string_view, uint32_t>>> gAltDialogueVar
         { "tonym8", 43691 },
         { "yusuf2", 42910 },
         { "yusuf3", 43668 },
-        { "yusuf4", 42911 },
+        //{ "yusuf4", 42911 },
     }
 };
 
