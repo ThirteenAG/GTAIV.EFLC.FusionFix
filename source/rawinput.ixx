@@ -9,10 +9,17 @@ import settings;
 import comvars;
 import natives;
 
+uint32_t dword_F43AD8;
 int32_t* diMouseAxisX;
 int32_t* diMouseAxisY;
 double __cdecl GetMouseAxisData(int pInput, int32_t requestedAxis)
 {
+    auto address = *(int32_t*)(dword_F43AD8 + 0xC);
+    if (*(BYTE*)(address + 0x1C4) & 8) {
+        *diMouseAxisX = 0;
+        *diMouseAxisY = 0;
+    }
+
     static auto ri = FusionFixSettings.GetRef("PREF_RAWINPUT");
     if (ri->get())
     {
@@ -165,6 +172,7 @@ public:
             pattern = hook::pattern("B9 ? ? ? ? E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? F3 0F 10 9C 24 ? ? ? ? F3 0F 10 A4 24 ? ? ? ? F3 0F 10 AC 24");
             if (!pattern.empty())
             {
+                dword_F43AD8 = *pattern.get_first<uint32_t>(1);
                 pattern = hook::pattern("74 3D C7 05");
                 diMouseAxisX = *pattern.get_first<int32_t*>(4);
                 diMouseAxisY = *pattern.get_first<int32_t*>(14);
@@ -173,6 +181,8 @@ public:
             }
             else
             {
+                pattern = hook::pattern("B9 ? ? ? ? E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 80 7D 08 00");
+                dword_F43AD8 = *pattern.get_first<uint32_t>(1);
                 pattern = hook::pattern("53 33 DB 38 5C 24 08 74 26");
                 diMouseAxisX = *pattern.get_first<int32_t*>(11);
                 diMouseAxisY = *pattern.get_first<int32_t*>(11 + 6);
