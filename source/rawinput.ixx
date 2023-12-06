@@ -9,6 +9,7 @@ import settings;
 import comvars;
 import natives;
 
+uint32_t pCamPointers;
 int32_t* diMouseAxisX;
 int32_t* diMouseAxisY;
 double __cdecl GetMouseAxisData(int pInput, int32_t requestedAxis)
@@ -30,7 +31,7 @@ double __cdecl GetMouseAxisData(int pInput, int32_t requestedAxis)
         if (pInput)
         {
             auto mouseDelta = std::clamp(((float)(uint8_t)(*(uint8_t*)(pInput + 4) ^ *(uint8_t*)(pInput + 6)) - 127.5f) * (1.0f / 127.5f), -1.0f, 1.0f);
-            if ((mouseDelta >= 0.0f ? mouseDelta : -mouseDelta) > (1.0 / 255.0))
+            if (fabs(mouseDelta) > (1.0f / 255.0f))
                 return requestedAxis == 0 ? (float)*diMouseAxisX * (1.0 / 128.0) : (float)*diMouseAxisY * (1.0 / 128.0);
         }
     }
@@ -42,11 +43,26 @@ double __cdecl GetRIMouseAxisData(int32_t requestedAxis)
     return GetMouseAxisData(0, requestedAxis);
 }
 
+int __cdecl sub_8EFE40_PlayerCam(int a1, int a2)
+{
+    static auto ri = FusionFixSettings.GetRef("PREF_RAWINPUT");
+    if (ri->get())
+    {
+        auto pGameCam = *(int32_t*)(pCamPointers + 0xC);
+        if (*(uint8_t*)(pGameCam + 0x1C4) & 8)
+            return 0;
+        return (int)(GetMouseAxisData(a1, a2) * 255.0f);
+    }
+    return (int)(GetMouseAxisData(a1, a2) * 127.5f);
+}
+
 int __cdecl sub_8EFE40(int a1, int a2)
 {
     static auto ri = FusionFixSettings.GetRef("PREF_RAWINPUT");
     if (ri->get())
+    {
         return (int)(GetMouseAxisData(a1, a2) * 255.0f);
+    }
     return (int)(GetMouseAxisData(a1, a2) * 127.5f);
 }
 
@@ -165,6 +181,7 @@ public:
             pattern = hook::pattern("B9 ? ? ? ? E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? F3 0F 10 9C 24 ? ? ? ? F3 0F 10 A4 24 ? ? ? ? F3 0F 10 AC 24");
             if (!pattern.empty())
             {
+                pCamPointers = *pattern.get_first<uint32_t>(1);
                 pattern = hook::pattern("74 3D C7 05");
                 diMouseAxisX = *pattern.get_first<int32_t*>(4);
                 diMouseAxisY = *pattern.get_first<int32_t*>(14);
@@ -173,6 +190,8 @@ public:
             }
             else
             {
+                auto pattern = hook::pattern("B9 ? ? ? ? E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 80 7D 08 00");
+                pCamPointers = *pattern.get_first<uint32_t>(1);
                 pattern = hook::pattern("53 33 DB 38 5C 24 08 74 26");
                 diMouseAxisX = *pattern.get_first<int32_t*>(11);
                 diMouseAxisY = *pattern.get_first<int32_t*>(11 + 6);
@@ -183,19 +202,27 @@ public:
             // Ped cam behaves the same way as aiming cam
             pattern = hook::pattern("51 FF 74 24 0C FF 74 24 0C E8 ? ? ? ? D9 5C 24 08");
             if (!pattern.empty()) {
-                injector::MakeJMP(pattern.get_first(0), sub_8EFE40, true);
+                injector::MakeJMP(pattern.get_first(0), sub_8EFE40_PlayerCam, true);
                 pattern = hook::pattern("E8 ? ? ? ? D9 5C 24 20 F3 0F 10 44 24 ? 0F 57 05 ? ? ? ? 83 C4 08 8B CF");
                 injector::MakeCALL(pattern.get_first(0), GetMouseAxisData2, true);
                 pattern = hook::pattern("E8 ? ? ? ? D9 5C 24 20 F3 0F 10 44 24 ? 0F 57 05 ? ? ? ? 83 C4 08 F3 0F 11 44 24");
                 injector::MakeCALL(pattern.get_first(0), GetMouseAxisData2, true);
+                pattern = hook::pattern("E8 ? ? ? ? 83 C4 08 89 07 83 3D");
+                injector::MakeCALL(pattern.get_first(0), sub_8EFE40, true);
+                pattern = hook::pattern("E8 ? ? ? ? 83 C4 08 89 06 5F");
+                injector::MakeCALL(pattern.get_first(0), sub_8EFE40, true);
             }
             else {
                 pattern = hook::pattern("8B 44 24 08 8B 4C 24 04 50 51 E8 ? ? ? ? D8 0D");
-                injector::MakeJMP(pattern.get_first(0), sub_8EFE40, true);
+                injector::MakeJMP(pattern.get_first(0), sub_8EFE40_PlayerCam, true);
                 pattern = hook::pattern("E8 ? ? ? ? D9 E0 83 C4 08 D9 5C 24 14");
                 injector::MakeCALL(pattern.get_first(0), GetMouseAxisData2, true);
                 pattern = hook::pattern("E8 ? ? ? ? D9 E0 D9 5C 24 18");
                 injector::MakeCALL(pattern.get_first(0), GetMouseAxisData2, true);
+                pattern = hook::pattern("E8 ? ? ? ? 83 C4 08 89 06 83 3D");
+                injector::MakeCALL(pattern.get_first(0), sub_8EFE40, true);
+                pattern = hook::pattern("E8 ? ? ? ? 83 C4 08 89 07");
+                injector::MakeCALL(pattern.get_first(0), sub_8EFE40, true);
             }
 
             // Sensitivity
