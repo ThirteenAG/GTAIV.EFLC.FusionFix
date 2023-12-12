@@ -48,12 +48,15 @@ public:
 
     static void DrawBorders(bool letter, bool pillar, bool force) 
     {
+        static auto lb = FusionFixSettings.GetRef("PREF_LETTERBOX");
+        static auto pb = FusionFixSettings.GetRef("PREF_PILLARBOX");
+
         float aspectRatio = SCREEN_ASPECT_RATIO;
         if (force)
             bordersMult = 1.0f;
 
         // Letterbox
-        if (letter && aspectRatio < DEFAULT_ASPECT_RATIO) 
+        if (lb->get() && letter && aspectRatio < DEFAULT_ASPECT_RATIO)
         {
             float letterboxHeight = SCREEN_WIDTH / DEFAULT_ASPECT_RATIO;
             float letterboxY = (SCREEN_HEIGHT - letterboxHeight) / 2.0f;
@@ -67,7 +70,7 @@ public:
         }
 
         // Pillarbox
-        if (pillar && aspectRatio > DEFAULT_ASPECT_RATIO)
+        if (pb->get() && pillar && aspectRatio > DEFAULT_ASPECT_RATIO)
         {
             float pillarWidth = SCREEN_WIDTH - (SCREEN_HEIGHT * DEFAULT_ASPECT_RATIO);
             float halfPillarWidth = pillarWidth / 2.0f;

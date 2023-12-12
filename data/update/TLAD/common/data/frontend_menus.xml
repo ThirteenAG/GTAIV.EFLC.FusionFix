@@ -485,6 +485,15 @@
       <options text="Improved" action="ACTION_NONE" value="2" />
       <options text="Extra" action="ACTION_NONE" value="3" />
     </menupc>
+    <menupc enum="MENU_DISPLAY_BUTTONS">
+      <options text="Xbox 360" action="ACTION_NONE" value="1" />
+      <options text="Xbox One" action="ACTION_NONE" value="2" />
+      <options text="Playstation 3" action="ACTION_NONE" value="3" />
+      <options text="Playstation 4" action="ACTION_NONE" value="4" />
+      <options text="Playstation 5" action="ACTION_NONE" value="5" />
+      <options text="Nintendo Switch" action="ACTION_NONE" value="6" />
+      <options text="Steam Deck" action="ACTION_NONE" value="7" />
+    </menupc>
   </sMenuDisplayValue>
   <sMenuScreen>
     <menu HeaderText="MH_GAM" enum="SCR_GAME">
@@ -500,6 +509,8 @@
       <optionspc action="MENUOPT_ADJUST" label="Borderless" value="PREF_BORDERLESS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="MENUOPT_ADJUST" label="LightSyncRGB" value="PREF_LEDILLUMINATION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="MENUOPT_ADJUST" label="FPS Counter" value="PREF_FPSCOUNTER" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="Letterbox" value="PREF_LETTERBOX" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="Pillarbox" value="PREF_PILLARBOX" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
       <optionspc action="MENUOPT_ADJUST" label="Alt. Dialogues" value="PREF_ALTDIALOGUE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
@@ -566,6 +577,7 @@
       <options action="MENUOPT_ADJUST" label="MO_SNI" value="PREF_SNIPER_CONTROL" scaler="2" displayValue="MENU_DISPLAY_SNIPER_TYPE" />
       <options action="MENUOPT_ADJUST" label="MO_SENS" value="PREF_CONTROLLER_SENSITIVITY" scaler="3" displayValue="MENU_DISPLAY_CONTROLLER_SENSITIVITY" />
       <optionspc action="MENUOPT_ADJUST" label="Centering Delay" value="PREF_EPISODIC_RACECLASS_RACE_5" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
+      <optionspc action="MENUOPT_ADJUST" label="Gamepad Icons" value="PREF_BUTTONS" scaler="12" displayValue="MENU_DISPLAY_BUTTONS" />
       <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
       <optionspc action="MENUOPT_ADJUST" label="MO_DINPUT" value="PREF_DINPUT" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />

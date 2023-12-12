@@ -171,6 +171,13 @@ public:
                     }
                 }; injector::MakeInline<atPool>(pattern.get_first(0));
             }
+
+            // Drawable reference list limit, fixes In the Crosshairs mission crash with maxed out draw distance
+            {
+                auto pattern = hook::pattern("68 C8 32 00 00 E8 66 FF FF FF C3");
+                if (!pattern.empty())
+                    injector::WriteMemory(pattern.get_first(1), 20000, true);
+            }
         };
     }
 } Limits;

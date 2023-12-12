@@ -161,6 +161,9 @@ public:
             { 0, "PREF_PADCAMCENTERDELAY", "MISC",       "DelayBeforeCenteringCameraPad",   "",                           0, nullptr, 0, 9 },
             { 0, "PREF_CUSTOMFOV",         "MISC",       "FieldOfView",                     "",                           0, nullptr, 0, 9 },
             { 0, "PREF_RAWINPUT",          "MISC",       "RawInput",                        "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_BUTTONS",           "MISC",       "Buttons",                         "MENU_DISPLAY_BUTTONS",       6, nullptr, ButtonsText.eXbox360, std::distance(std::begin(ButtonsText.data), std::end(ButtonsText.data)) - 1 },
+            { 0, "PREF_LETTERBOX",         "MISC",       "Letterbox",                       "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_PILLARBOX",         "MISC",       "Pillarbox",                       "",                           1, nullptr, 0, 1 },
         };
 
         auto i = firstCustomID;
@@ -357,6 +360,12 @@ public:
         enum eDefinitionText { eLow, eMedium, eHigh, eVeryHigh, eClassic, eImproved, eExtra };
         std::vector<const char*> data = { "Low", "Medium", "High", "Very High", "Classic", "Improved", "Extra" };
     } DefinitionText;
+
+    struct
+    {
+        enum eButtonsText { eOff, eLow, eMedium, eHigh, eVeryHigh, eXbox360, eXboxOne, ePlaystation3, ePlaystation4, ePlaystation5, eNintendoSwitch, eSteamDeck };
+        std::vector<const char*> data = { "Off", "Low", "Medium", "High", "Very High", "Xbox 360", "Xbox One", "Playstation 3", "Playstation 4", "Playstation 5", "Nintendo Switch", "Steam Deck" };
+    } ButtonsText;
 
 } FusionFixSettings;
 
