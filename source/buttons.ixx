@@ -106,8 +106,12 @@ private:
     static inline injector::hook_back<decltype(&Natives::GetTexture)> hbNATIVE_GET_TEXTURE;
     static Texture __cdecl NATIVE_GET_TEXTURE(TextureDict dictionary, const char* textureName)
     {
+        static std::vector<std::string> scriptButtons = {
+            "A_BUTT", "B_BUTT", "X_BUTT", "LT_BUTT", "RT_BUTT"
+        };
+
         auto texName = std::string(textureName);
-        if (iequals(texName, "LT_BUTT") || iequals(texName, "RT_BUTT"))
+        if (std::any_of(std::begin(scriptButtons), std::end(scriptButtons), [&](auto& i) { return iequals(texName, i); }))
         {
             auto prefvalue = FusionFixSettings("PREF_BUTTONS");
             auto prefvalueindex = prefvalue - FusionFixSettings.ButtonsText.eXbox360;
