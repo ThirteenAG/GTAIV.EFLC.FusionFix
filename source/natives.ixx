@@ -163,7 +163,7 @@ export class NativeInvoke
 {
 private:
     typedef void (*ncall)(NativeContext*);
-    static inline auto m_IndexTable = std::vector<void (*)(NativeContext*)>(4000, nullptr);
+    static inline auto m_IndexTable = std::vector<ncall>(4000, nullptr);
 public:
     static ncall GetNativeHandler(uint32_t Hash)
     {
@@ -4407,8 +4407,8 @@ public:
     static inline auto GetTeamColour() { return NativeInvoke::Invoke<1053, std::to_underlying(NativeHashes::GET_TEAM_COLOUR), Any>(); }
     static inline auto GetTeamRgbColour(Any a1, Any a2, Any a3, Any a4) { return NativeInvoke::Invoke<1054, std::to_underlying(NativeHashes::GET_TEAM_RGB_COLOUR), void>(a1, a2, a3, a4); }
     static inline auto GetTextInputActive() { return NativeInvoke::Invoke<1055, std::to_underlying(NativeHashes::GET_TEXT_INPUT_ACTIVE), bool>(); }
-    static inline auto GetTexture(TextureDict dictionary, char* textureName) { return NativeInvoke::Invoke<1056, std::to_underlying(NativeHashes::GET_TEXTURE), Texture>(dictionary, textureName); }
-    static inline auto GetTextureFromStreamedTxd(char* txdName, char* textureName) { return NativeInvoke::Invoke<1057, std::to_underlying(NativeHashes::GET_TEXTURE_FROM_STREAMED_TXD), Texture>(txdName, textureName); }
+    static inline auto GetTexture(TextureDict dictionary, const char* textureName) { return NativeInvoke::Invoke<1056, std::to_underlying(NativeHashes::GET_TEXTURE), Texture>(dictionary, textureName); }
+    static inline auto GetTextureFromStreamedTxd(char* txdName, const char* textureName) { return NativeInvoke::Invoke<1057, std::to_underlying(NativeHashes::GET_TEXTURE_FROM_STREAMED_TXD), Texture>(txdName, textureName); }
     static inline auto GetTextureResolution(uint32_t texture, float* x, float* y) { return NativeInvoke::Invoke<1058, std::to_underlying(NativeHashes::GET_TEXTURE_RESOLUTION), void>(texture, x, y); }
     static inline auto GetTimeOfDay(uint32_t* hour, uint32_t* minute) { return NativeInvoke::Invoke<1059, std::to_underlying(NativeHashes::GET_TIME_OF_DAY), void>(hour, minute); }
     static inline auto GetTimeSinceLastArrest() { return NativeInvoke::Invoke<1060, std::to_underlying(NativeHashes::GET_TIME_SINCE_LAST_ARREST), uint32_t>(); }

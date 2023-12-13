@@ -7,6 +7,7 @@ export module buttons;
 
 import common;
 import settings;
+import natives;
 
 class Buttons
 {
@@ -38,7 +39,7 @@ private:
         auto prefvalue = FusionFixSettings("PREF_BUTTONS");
         auto prefvalueindex = prefvalue - FusionFixSettings.ButtonsText.eXbox360;
         auto bNeedsReset = false;
-        while (std::any_of(buttonTexPtrs[prefvalueindex].begin(), buttonTexPtrs[prefvalueindex].end(), [](auto i) {return i == nullptr; }))
+        while (std::any_of(buttonTexPtrs[prefvalueindex].begin(), buttonTexPtrs[prefvalueindex].end(), [](auto i) { return i == nullptr; }))
         {
             prefvalue++;
 
@@ -102,6 +103,22 @@ private:
         ButtonsCallback();
     }
 
+    static inline injector::hook_back<decltype(&Natives::GetTexture)> hbNATIVE_GET_TEXTURE;
+    static Texture __cdecl NATIVE_GET_TEXTURE(TextureDict dictionary, const char* textureName)
+    {
+        auto texName = std::string(textureName);
+        if (iequals(texName, "LT_BUTT") || iequals(texName, "RT_BUTT"))
+        {
+            auto prefvalue = FusionFixSettings("PREF_BUTTONS");
+            auto prefvalueindex = prefvalue - FusionFixSettings.ButtonsText.eXbox360;
+            texName = btnPrefix[prefvalueindex] + texName;
+            auto result = hbNATIVE_GET_TEXTURE.fun(dictionary, texName.c_str());
+            if (result)
+                return result;
+        }
+        return hbNATIVE_GET_TEXTURE.fun(dictionary, textureName);
+    }
+
 public:
     Buttons()
     {
@@ -127,6 +144,15 @@ public:
             {
                 ButtonsCallback();
             });
+
+            // Script
+            {
+                auto hash_GET_TEXTURE = std::to_underlying(Natives::NativeHashes::GET_TEXTURE);
+                pattern = hook::pattern(pattern_str(0x68, to_bytes(hash_GET_TEXTURE))); // push 0x...
+                auto addr = *pattern.get_first<uintptr_t>(-4);
+                auto range = hook::range_pattern(addr, addr + 30, "E8 ? ? ? ? 8B 0E 83");
+                hbNATIVE_GET_TEXTURE.fun = injector::MakeCALL(range.get_first(0), NATIVE_GET_TEXTURE, true).get();
+            }
         };
     }
 } Buttons;

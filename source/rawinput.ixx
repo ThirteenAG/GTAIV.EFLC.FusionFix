@@ -94,7 +94,7 @@ float TryMatchPedCamSensitivity()
     return ((GetMouseSensitivityForRI() / 20.0f) * 0.6f) + 0.2f;
 }
 
-injector::hook_back<void(__cdecl*)(int*, int*)> hbNATIVE_GET_MOUSE_INPUT;
+injector::hook_back<decltype(&Natives::GetMouseInput)> hbNATIVE_GET_MOUSE_INPUT;
 void __cdecl NATIVE_GET_MOUSE_INPUT(int* a1, int* a2)
 {
     static auto inv = FusionFixSettings.GetRef("PREF_INVERT_MOUSE");
