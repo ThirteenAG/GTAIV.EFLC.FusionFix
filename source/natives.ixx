@@ -204,23 +204,46 @@ public:
         NativeContext cxt;
         (cxt.Push(args), ...);
 
-        if (!m_IndexTable[Index])
+        if (CTimer__m_CodePause && !*CTimer__m_CodePause)
         {
-            auto fn = GetNativeHandler(Hash);
-            if (fn) {
-                m_IndexTable[Index] = fn;
-                fn(&cxt);
+            if (!m_IndexTable[Index])
+            {
+                auto fn = GetNativeHandler(Hash);
+                if (fn) {
+                    m_IndexTable[Index] = fn;
+                    fn(&cxt);
+                }
             }
-        }
-        else
-        {
-            m_IndexTable[Index](&cxt);
+            else
+            {
+                m_IndexTable[Index](&cxt);
+            }
         }
 
         if constexpr (!std::is_void_v<R>)
         {
             return cxt.GetResult<R>();
         }
+    }
+};
+
+export class NativeOverride
+{
+public:
+    static auto Register(auto hash, auto fn, std::string_view dest_pattern_str, size_t fn_size)
+    {
+        auto nativeHash = std::to_underlying(hash);
+        auto pattern = hook::pattern(pattern_str(0x68, to_bytes(nativeHash))); // push 0x...
+        auto addr = *pattern.get_first<uintptr_t>(-4);
+        auto range = hook::range_pattern(addr, addr + fn_size, dest_pattern_str);
+        if (!range.empty())
+        {
+            if (dest_pattern_str.starts_with("E8"))
+                return injector::MakeCALL(range.get_first(0), fn, true).get();
+            else if (dest_pattern_str.starts_with("E9"))
+                return injector::MakeJMP(range.get_first(0), fn, true).get();
+        }
+        return injector::auto_pointer(nullptr);
     }
 };
 
@@ -4082,7 +4105,7 @@ public:
     static inline auto GetConsoleCommand() { return NativeInvoke::Invoke<728, std::to_underlying(NativeHashes::GET_CONSOLE_COMMAND), Any>(); }
     static inline auto GetConsoleCommandToken() { return NativeInvoke::Invoke<729, std::to_underlying(NativeHashes::GET_CONSOLE_COMMAND_TOKEN), int32_t>(); }
     static inline auto GetContentsOfTextWidget(Any a1) { return NativeInvoke::Invoke<730, std::to_underlying(NativeHashes::GET_CONTENTS_OF_TEXT_WIDGET), Any>(a1); }
-    static inline auto GetControlValue(int a1, int32_t controlid) { return NativeInvoke::Invoke<731, std::to_underlying(NativeHashes::GET_CONTROL_VALUE), int32_t>(a1, controlid); }
+    static inline auto GetControlValue(int padIndex, int32_t controlID) { return NativeInvoke::Invoke<731, std::to_underlying(NativeHashes::GET_CONTROL_VALUE), int32_t>(padIndex, controlID); }
     static inline auto GetCoordinatesForNetworkRestartNode(Any a1, Any a2, Any a3) { return NativeInvoke::Invoke<732, std::to_underlying(NativeHashes::GET_COORDINATES_FOR_NETWORK_RESTART_NODE), void>(a1, a2, a3); }
     static inline auto GetCorrectedColour(uint32_t r, uint32_t g, uint32_t b, uint32_t* pR, uint32_t* pG, uint32_t* pB) { return NativeInvoke::Invoke<733, std::to_underlying(NativeHashes::GET_CORRECTED_COLOUR), void>(r, g, b, pR, pG, pB); }
     static inline auto GetCreateRandomCops() { return NativeInvoke::Invoke<734, std::to_underlying(NativeHashes::GET_CREATE_RANDOM_COPS), bool>(); }

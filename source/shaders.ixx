@@ -77,7 +77,7 @@ public:
 
             FusionFix::D3D9::onBeginScene() += [](LPDIRECT3DDEVICE9 pDevice)
             {
-                if (*dw103E49C && CTimer__m_CodePause && !*CTimer__m_CodePause)
+                if (*dw103E49C)
                 {
                     static Cam cam = 0;
                     Natives::GetRootCam(&cam);

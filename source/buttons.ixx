@@ -123,6 +123,21 @@ private:
         return hbNATIVE_GET_TEXTURE.fun(dictionary, textureName);
     }
 
+    static inline injector::hook_back<decltype(&Natives::GetControlValue)> hbNATIVE_GET_CONTROL_VALUE;
+    static int32_t __cdecl NATIVE_GET_CONTROL_VALUE(int padIndex, int32_t controlID)
+    {
+        if (padIndex == 99 && controlID == 99)
+        {
+            static auto prefvalue = FusionFixSettings.GetRef("PREF_BUTTONS");
+            return prefvalue->get() - FusionFixSettings.ButtonsText.eXbox360;
+        }
+        else if (padIndex == 99 && controlID == 98)
+        {
+            return 1;
+        }
+        return hbNATIVE_GET_CONTROL_VALUE.fun(padIndex, controlID);
+    }
+
 public:
     Buttons()
     {
@@ -151,11 +166,8 @@ public:
 
             // Script
             {
-                auto hash_GET_TEXTURE = std::to_underlying(Natives::NativeHashes::GET_TEXTURE);
-                pattern = hook::pattern(pattern_str(0x68, to_bytes(hash_GET_TEXTURE))); // push 0x...
-                auto addr = *pattern.get_first<uintptr_t>(-4);
-                auto range = hook::range_pattern(addr, addr + 30, "E8 ? ? ? ? 8B 0E 83");
-                hbNATIVE_GET_TEXTURE.fun = injector::MakeCALL(range.get_first(0), NATIVE_GET_TEXTURE, true).get();
+                hbNATIVE_GET_CONTROL_VALUE.fun = NativeOverride::Register(Natives::NativeHashes::GET_CONTROL_VALUE, NATIVE_GET_CONTROL_VALUE, "E8 ? ? ? ? 8B 0E 83", 30);
+                hbNATIVE_GET_TEXTURE.fun = NativeOverride::Register(Natives::NativeHashes::GET_TEXTURE, NATIVE_GET_TEXTURE, "E8 ? ? ? ? 8B 0E 83", 30);
             }
         };
     }
