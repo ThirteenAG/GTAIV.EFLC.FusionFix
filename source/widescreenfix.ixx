@@ -24,6 +24,7 @@ public:
     static inline float f01152 = 1152.0f;
     static inline float bordersMult = -5.0f;
     static inline int32_t bordersTimer = 0;
+    static inline bool dontRenderBordersThisFrame = false;
 
     static void Update() 
     {
@@ -56,7 +57,7 @@ public:
             bordersMult = 1.0f;
 
         // Letterbox
-        if (lb->get() && letter && aspectRatio < DEFAULT_ASPECT_RATIO)
+        if (!dontRenderBordersThisFrame && lb->get() && letter && aspectRatio < DEFAULT_ASPECT_RATIO)
         {
             float letterboxHeight = SCREEN_WIDTH / DEFAULT_ASPECT_RATIO;
             float letterboxY = (SCREEN_HEIGHT - letterboxHeight) / 2.0f;
@@ -70,7 +71,7 @@ public:
         }
 
         // Pillarbox
-        if (pb->get() && pillar && aspectRatio > DEFAULT_ASPECT_RATIO)
+        if (!dontRenderBordersThisFrame && pb->get() && pillar && aspectRatio > DEFAULT_ASPECT_RATIO)
         {
             float pillarWidth = SCREEN_WIDTH - (SCREEN_HEIGHT * DEFAULT_ASPECT_RATIO);
             float halfPillarWidth = pillarWidth / 2.0f;
@@ -86,6 +87,8 @@ public:
         bordersMult += 2.0f * (*fTimeStep);
         if (bordersMult >= 1.0f)
             bordersMult = 1.0f;
+
+        dontRenderBordersThisFrame = false;
     }
 
     static void DrawCutsceneBorders() 
@@ -134,6 +137,13 @@ public:
             name = "offline_21by9";
 
         hbUITexture__Load.fun(ui, 0, txdSlot, name, arg4, arg5);
+    }
+    
+    static inline injector::hook_back<void(*)()> hbDrawCameraOverlay;
+    static void DrawCameraOverlay()
+    {
+        dontRenderBordersThisFrame = true;
+        return hbDrawCameraOverlay.fun();
     }
 
     WidescreenFix()
@@ -184,6 +194,14 @@ public:
 
             pattern = find_pattern("E8 ? ? ? ? 83 C4 2C 5F 5E 5B 83 C4 28", "E8 ? ? ? ? 83 C4 2C 5F 5E 5D 5B 83 C4 20");
             injector::MakeCALL(pattern.get_first(0), DrawLoadingScreen, true);
+
+            // Camera overlay
+            pattern = hook::pattern("5E C3 5F 5E E9");
+            hbDrawCameraOverlay.fun = injector::MakeJMP(pattern.get_first(4), DrawCameraOverlay, true).get();
+
+            pattern = find_pattern("C7 47 ? ? ? ? ? EB 02 33 FF 8B 07 8B CF FF 50 08 25 ? ? ? ? 79 05 48 83 C8 F0 40 BE ? ? ? ? 2B F0 81 E6 ? ? ? ? 79 05 4E 83 CE F0 46 8B 07 8B CF FF 50 08 03 C6 99 83 E2 0F 03 C2 C1 F8 04 C1 E0 0E 33 47 04 25 ? ? ? ? 31 47 04 5F 5E C3 5F",
+            "C7 40 ? ? ? ? ? EB 02 33 F6 8B 16 8B 42 08 8B CE FF D0 25 ? ? ? ? 79 05 48 83 C8 F0 40 BF ? ? ? ? 2B F8 81 E7 ? ? ? ? 79 05 4F 83 CF F0 47 8B 16 8B 42 08 8B CE FF D0 03 C7 99 83 E2 0F 03 C2 C1 F8 04 C1 E0 0E 33 46 04 25 ? ? ? ? 31 46 04 5F 5E C3");
+            injector::WriteMemory(pattern.get_first(3), DrawCameraOverlay, true);
 
             FusionFix::onGameProcessEvent() += []()
             {
