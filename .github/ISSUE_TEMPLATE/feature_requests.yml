@@ -1,0 +1,33 @@
+name: Feature Request
+description: Suggest a feature for this project
+title: "[Feature Request] "
+labels: ["enhacement"]
+body:
+  - type: checkboxes
+    id: checkboxes
+    attributes:
+      label: Just making sure
+      description: Place a checkbox to make sure you have done these.
+      options:
+        - label: I have checked if such a request already exists.
+          required: false
+        - label: This isn't a request to fix a vanilla game bug (go to [this](https://github.com/GTAmodding/GTAIV-Issues-List/issues) repository instead).
+          required: false
+        - label: I understand that the team isn't obliged to listen to my ideas and that they can reject them without any explanations.
+          required: false
+  - type: textarea
+    id: request
+    attributes:
+      label: Describe the feature
+      description: Shortly describe the feature here.
+      placeholder: Almost any vanilla-faithful feature will do. Consider the scale and whether it's doable at all.
+    validations:
+      required: true
+  - type: textarea
+    id: possible-implementations
+    attributes:
+      label: Possible implementations
+      description: If you have any ideas for how the feature could be implemented, please suggest them too.
+      placeholder: "- When you do x, y happens\n- Being able to do y via the menu"
+    validations:
+      required: false

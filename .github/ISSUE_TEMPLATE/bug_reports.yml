@@ -1,0 +1,54 @@
+name: Bug Report
+description: Create a bug report
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: version
+    attributes:
+      label: Version
+      description: What game version are you using?
+      options:
+        - Complete Edition (latest)
+        - 1.0.8.0/1.0.7.0 (Compatibility Mode)
+    validations:
+      required: true
+  - type: checkboxes
+    id: checkboxes
+    attributes:
+      label: Just making sure
+      description: Place a checkbox to make sure you have done these.
+      options:
+        - label: I have checked if such an issue already exists.
+          required: false
+        - label: I have confirmed that this is an issue with FusionFix and not GTA IV itself.
+          required: false
+        - label: I own the game on Steam or Rockstar Games Launcher.
+          required: false
+        - label: I have confirmed that this is an issue with FusionFix and not any other of my mods.
+          required: false
+  - type: textarea
+    id: bug-report
+    attributes:
+      label: Describe the issue
+      description: Shortly describe the issue here.
+      placeholder: I started the Three Leaf Clover mission and the game crashed when a cutscene started.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: Describe the reproduction steps
+      description: Explain the reproduction steps you had to perform to get the bug to occur.
+      placeholder: "1. Start the Three Leaf Clover mission\n2. Reach the cutscene\n3. Game crashes"
+    validations:
+      required: true
+  - type: textarea
+    id: footage
+    attributes:
+      label: Footage
+      description: If you have any footage (videos/screenshots) for the issue, attach them here.
+      placeholder: Clip.mp4
+      value: None to attach.
+    validations:
+      required: false
