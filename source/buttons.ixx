@@ -99,7 +99,8 @@ private:
     static void __fastcall ControllerTextureCallback(void* dst, void* edx, const char* name)
     {
         CTxdStore__LoadTexture.fun(dst, edx, name);
-        controllerTexPtrs[0] = *(void**)dst;
+        if (!controllerTexPtrs[0])
+            controllerTexPtrs[0] = *(void**)dst;
         ButtonsCallback();
     }
 
