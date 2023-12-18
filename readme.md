@@ -12,14 +12,19 @@ This projects aims to fix some issues in Grand Theft Auto IV: Complete Edition.
 
 ## Installation:
 
-### Install Grand Theft Auto IV: Complete Edition (v1.2.0.30 and above required)
+> [!NOTE]
+> Install Grand Theft Auto IV: Complete Edition (v1.2.0.30 and above required)
+>
+> **Download**: [GTAIV.EFLC.FusionFix.zip](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFix.zip)
+>
+> Unpack content of the archive to your **GTAIV Complete Edition** root directory.
 
-### **Download**: [GTAIV.EFLC.FusionFix.zip](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFix.zip)
+> [!WARNING]
+> Non-Windows users (Proton/Wine) need to perform a [DLL override](https://cookieplmonster.github.io/setup-instructions/#proton-wine).
 
-##### Unpack content of the archive to your **GTAIV Complete Edition** root directory.
-##### Non-Windows users (Proton/Wine) need to perform a [DLL override](https://cookieplmonster.github.io/setup-instructions/#proton-wine).
+> [!IMPORTANT]
+> This fix was tested only with latest official update and latest [ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/latest/download/Ultimate-ASI-Loader.zip) (included in the archive).
 
-This fix was tested only with latest official update and latest [ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/latest/download/Ultimate-ASI-Loader.zip) (included in the archive).
 ---
 
 ### Core/Gameplay Changelog
@@ -53,6 +58,9 @@ This fix was tested only with latest official update and latest [ASI Loader](htt
 - **Alternative Dialogues**, when enabled, forces the game to use alternative dialogues in some missions
 - **Centering Delay**, sets the time before camera starts autocentering on foot
 - **FOV**, adjusts in-game field of view
+- **Letterbox**, draws cutscene borders on top and bottom of the screen
+- **Pillarbox**, draws cutscene borders on screen sides in ultrawide
+- **Gamepad Icons**, allows to select various controller icon styles (Xbox 360, Xbox One, PS3, PS4, PS5, Nintendo Switch, Steam Deck)
 
 ### Main
 
