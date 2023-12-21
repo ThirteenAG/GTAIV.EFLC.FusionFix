@@ -18,8 +18,8 @@ void __cdecl sub_8C4480Hook()
     return hbsub_8C4480.fun();
 }
 
-injector::hook_back<void(__cdecl*)(int)> hbCGameProcess;
-void __cdecl CGameProcessHook(int a1)
+injector::hook_back<void(*)()> hbCGameProcess;
+void CGameProcessHook()
 {
     static std::once_flag of;
     std::call_once(of, []()
@@ -51,7 +51,7 @@ void __cdecl CGameProcessHook(int a1)
         }
     }
 
-    return hbCGameProcess.fun(a1);
+    return hbCGameProcess.fun();
 }
 
 void Init()
