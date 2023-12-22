@@ -52,3 +52,21 @@ body:
       value: None to attach.
     validations:
       required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Crash dumps
+      description: If you have any crash dumps for the issue (especially if the issue is related to crashing), attach them here. To create a crash dump, create a `CrashDumps` folder in the root of the game or, if the game freezes, click `Create memory dump file` for the proccess in the task manager.
+      placeholder: 
+      value: None to attach.
+    validations:
+      required: false
+  - type: textarea
+    id: extra
+    attributes:
+      label: Extra notes
+      description: If you think this may be an issue with your hardware - list your hardware here. If you have any other mods installed, also make sure they're listed here.
+      placeholder: 
+      value: Nothing to note.
+    validations:
+      required: false
