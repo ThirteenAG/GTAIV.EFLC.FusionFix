@@ -39,7 +39,7 @@ public:
                             auto filePath = std::filesystem::path(file.path());
                             auto relativePath = std::filesystem::relative(filePath, gamePath);
 
-                            if (!std::filesystem::is_directory(file) && file.is_regular_file() && iequals(filePath.extension().wstring(), L".img"))
+                            if (!std::filesystem::is_directory(file) && iequals(filePath.extension().wstring(), L".img"))
                             {
                                 static std::vector<std::filesystem::path> episodicPaths = {
                                     std::filesystem::path("/IV/").make_preferred(),

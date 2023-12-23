@@ -26,7 +26,7 @@ public:
             pattern = hook::pattern("80 F9 7F 76 57");
             struct SprintHook
             {
-                void operator()(injector::reg_pack& regs)
+                void operator()(SafetyHookContext& regs)
                 {
                     if ((*(uint8_t*)(regs.eax + 4) ^ *(uint8_t*)(regs.eax + 6)) <= 127)
                     {
@@ -57,7 +57,7 @@ public:
                     else if (alwaysrun->get() && !GetAsyncKeyState(nWalkKey)) // hold
                         *(float*)(regs.esp + (flag ? 0x18 : 0x1C)) = 1.0f;
                 }
-            }; injector::MakeInline<SprintHook>(pattern.get_first(0));
+            }; injector::MakeInline2<SprintHook>(pattern.get_first(0));
 
             pattern = find_pattern("77 5F 8B 8E", "77 46 8B 8F");
             static raw_mem GamepadCB(pattern.get_first(0), { 0x90, 0x90 }); // NOP

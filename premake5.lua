@@ -45,14 +45,18 @@ workspace "GTAIV.EFLC.FusionFix"
    defines { "rsc_ProductVersion=\"" .. major .. "." .. minor .. "." .. build .. "\"" }
 
    defines { "_CRT_SECURE_NO_WARNINGS" }
+   defines { "ZYDIS_STATIC_BUILD" }
 
    includedirs { "source" }
    includedirs { "source/includes" }
    includedirs { "source/ledsdk" }
    includedirs { "source/dxsdk" }
+   includedirs { "source/includes/safetyhook" }
    libdirs { "source/ledsdk" }
    libdirs { "source/dxsdk" }
    files { "source/*.h", "source/*.hpp", "source/*.cpp", "source/*.hxx", "source/*.ixx" }
+   files { "source/includes/safetyhook/*.h", "source/includes/safetyhook/*.hpp" }
+   files { "source/includes/safetyhook/*.c", "source/includes/safetyhook/*.cpp" }
    files { "source/resources/Versioninfo.rc" }
    links { "LogitechLEDLib.lib" }
    

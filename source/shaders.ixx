@@ -50,7 +50,7 @@ public:
             }
         };
 
-        FusionFix::onInitEvent() += []()
+        FusionFix::onGameInitEvent() += []()
         {
             CIniReader iniReader("");
             static auto bFixCascadedShadowMapResolution = iniReader.ReadInteger("SHADOWS", "FixCascadedShadowMapResolution", 0) != 0;

@@ -225,49 +225,12 @@ public:
                 injector::MakeCALL(pattern.get_first(0), sub_8EFE40, true);
             }
 
-            // Sensitivity
-            //struct MouseSensitivityHook
-            //{
-            //    void operator()(injector::reg_pack& regs)
-            //    {
-            //        static auto ri = FusionFixSettings.GetRef("PREF_RAWINPUT");
-            //        
-            //        if (ri->get())
-            //        {
-            //            float f = GetMouseSensitivityForRI();
-            //            _asm movss xmm0, f
-            //        }
-            //        else
-            //        {
-            //            float f = GetMouseSensitivity();
-            //            _asm movss xmm0, f
-            //        }
-            //    }
-            //};
-            //
-            //pattern = hook::pattern("66 0F 6E 05 ? ? ? ? 0F 5B C0 F3 0F 11 44 24 ? E8");
-            //if (!pattern.empty())
-            //{
-            //    auto dword_1160E70 = *pattern.get_first<void*>(4);
-            //    pattern = hook::pattern(pattern_str(0x66, 0x0F, 0x6E, 0x05, to_bytes(dword_1160E70))); // movd cvtdq2ps
-            //    for (size_t i = 0; i < pattern.size(); ++i)
-            //        injector::MakeInline<MouseSensitivityHook>(pattern.get(i).get<void*>(0), pattern.get(i).get<void*>(8 + 3));
-            //}
-            //else
-            //{
-            //    pattern = hook::pattern("F3 0F 2A 05 ? ? ? ? 68 ? ? ? ? F3 0F 11 44 24 ? E8 ? ? ? ? F3 0F 10 44 24 ? 8B 4D 0C");
-            //    auto dword_1160E70 = *pattern.get_first<void*>(4);
-            //    pattern = hook::pattern(pattern_str(0xF3, 0x0F, 0x2A, 0x05, to_bytes(dword_1160E70))); // cvtsi2ss
-            //    for (size_t i = 0; i < pattern.size(); ++i)
-            //        injector::MakeInline<MouseSensitivityHook>(pattern.get(i).get<void*>(0), pattern.get(i).get<void*>(8));
-            //}
-
             // Sniper Camera
             pattern = find_pattern("F3 0F 10 87 ? ? ? ? F3 0F 10 48 ? 83 C4 04", "F3 0F 10 86 ? ? ? ? F3 0F 10 4B ? 83 C4 04");
             static auto reg = *pattern.get_first<uint8_t>(3);
             struct CCamFpsWeaponHook
             {
-                void operator()(injector::reg_pack& regs)
+                void operator()(SafetyHookContext& regs)
                 {
                     static auto inv = FusionFixSettings.GetRef("PREF_INVERT_MOUSE");
                     static auto ri = FusionFixSettings.GetRef("PREF_RAWINPUT");
@@ -279,21 +242,20 @@ public:
                         static auto fFOVDefault = fFOVZoomed;
                         fFOVDefault = max(fFOVDefault, fFOVZoomed);
                         auto fDiff = fFOVDefault / fFOVZoomed;
-
+            
                         *(float*)(ptr + 0x148) += (-(float)GetRIMouseAxisData(0) * TryMatchPedCamSensitivity()) / fDiff;
                         *(float*)(ptr + 0x144) += (-(float)GetRIMouseAxisData(1) * (inv->get() ? -TryMatchPedCamSensitivity() : TryMatchPedCamSensitivity())) / fDiff;
                     }
-                    float f = *(float*)(ptr + 0x144);
-                    _asm movss xmm0, dword ptr[f]
+                    regs.xmm0.f32[0] = *(float*)(ptr + 0x144);
                 }
-            }; injector::MakeInline<CCamFpsWeaponHook>(pattern.get_first(0), pattern.get_first(8));
+            }; injector::MakeInline2<CCamFpsWeaponHook>(pattern.get_first(0), pattern.get_first(8));
 
             // First Person Vehicle Camera
             pattern = find_pattern("F3 0F 10 86 ? ? ? ? F3 0F 10 0D ? ? ? ? 0F 2F C8 76 0F F3 0F 10 0D ? ? ? ? 0F 2F C1", "F3 0F 10 87 ? ? ? ? F3 0F 10 0D ? ? ? ? 0F 2F C8 76 0D F3 0F 10 0D ? ? ? ? 0F 2F C1 77 03 0F 28 C1 F3 0F 11 87");
             static auto reg2 = *pattern.get_first<uint8_t>(3);
             struct CCamFollowVehicleHook
             {
-                void operator()(injector::reg_pack& regs)
+                void operator()(SafetyHookContext& regs)
                 {
                     static auto inv = FusionFixSettings.GetRef("PREF_INVERT_MOUSE");
                     static auto ri = FusionFixSettings.GetRef("PREF_RAWINPUT");
@@ -304,10 +266,9 @@ public:
                         *(float*)(ptr + 0x1B4) += -(float)GetRIMouseAxisData(0) * TryMatchPedCamSensitivity();
                         *(float*)(ptr + 0x1B0) += -(float)GetRIMouseAxisData(1) * (inv->get() ? -TryMatchPedCamSensitivity() : TryMatchPedCamSensitivity());
                     }
-                    float f = *(float*)(ptr + 0x1B0);
-                    _asm movss xmm0, dword ptr[f]
+                    regs.xmm0.f32[0] = *(float*)(ptr + 0x1B0);
                 }
-            }; injector::MakeInline<CCamFollowVehicleHook>(pattern.get_first(0), pattern.get_first(8));
+            }; injector::MakeInline2<CCamFollowVehicleHook>(pattern.get_first(0), pattern.get_first(8));
 
             // Script
             {
