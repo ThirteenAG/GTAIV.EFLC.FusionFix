@@ -9,9 +9,9 @@ body:
       label: Game version this happens in
       options:
         - v1.2.0.59
-        - v1.2.0.30
-        - v1.2.0.32
         - v1.2.0.43
+        - v1.2.0.32
+        - v1.2.0.30
 
   - type: textarea
     id: reproduction
