@@ -47,7 +47,7 @@ body:
       label: CrashDumps and logs
       placeholder: '[drag files here...]'
       description: |
-        ASI loader is capable of generating crash minidumps and crash logs. To use this feature, create a folder named CrashDumps in the folder with asi loader's dll (game root).
+        ASI loader is capable of generating crash minidumps and crash logs. To use this feature, create a folder named CrashDumps in the folder with asi loader's dll (game root). Instructions how to locate game directory [here](https://cookieplmonster.github.io/setup-instructions/#locating-your-game-directory). (Note: On Steam version you have to create CrashDumps folder in GTAIV subdirectory.)
         In case of a hang/freeze, open task manager when the game is stuck, select process, and click "Create memory dump file". Upload it somewhere and post here. The file will be quite large.
   - type: input
     id: workingversion
