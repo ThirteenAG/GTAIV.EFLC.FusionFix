@@ -1,0 +1,69 @@
+name: Bug, crash or freeze/hang
+description: Choose this if something doesn't work and no other template applies.
+body:
+  - type: dropdown
+    id: game
+    validations:
+      required: true
+    attributes:
+      label: Game version this happens in
+      options:
+        - v1.2.0.30
+        - v1.2.0.32
+        - v1.2.0.43
+        - v1.2.0.59
+
+  - type: textarea
+    id: reproduction
+    validations:
+      required: true
+    attributes:
+      label: What area of the game
+      placeholder: |
+        When I finish the second mission, the game crashes.
+
+        Here's a screenshot of the place and its placement on the map:
+        [upload screenshots]
+
+        Here's my savedata before the crashing mission:
+        [upload zip of savedata]
+      description: >
+        Try to explain so someone else could do the same thing.  Upload savedata if possible to make it easier to reproduce.
+
+  - type: textarea
+    id: desired
+    validations:
+      required: true
+    attributes:
+      label: What should happen
+      placeholder: |
+        The mission should be passing without crashing.
+      description: >
+        If it's a crash, just say "It shouldn't crash."  For more complex bugs, it helps to explain what should happen as it's not always obvious.
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: CrashDumps and logs
+      placeholder: '[drag files here...]'
+      description: |
+        ASI loader is capable of generating crash minidumps and crash logs. To use this feature, create a folder named CrashDumps in the folder with asi loader's dll (game root).
+        In case of a hang/freeze, open task manager when the game is stuck, select process, and click "Create memory dump file". Upload it somewhere and post here. The file will be quite large.
+  - type: input
+    id: workingversion
+    attributes:
+      label: Last working version
+      placeholder: v2.0
+      description: >
+        If it worked before, it's usually easier to narrow down a fix.
+
+  - type: checkboxes
+    attributes:
+      label: Checklist
+      options:
+        - label: "Test in the [latest git build](https://ci.appveyor.com/api/projects/ThirteenAG/gtaiv-eflc-fusionfix/artifacts/GTAIV.EFLC.FusionFix.zip) in case it's already fixed."
+          required: true
+        - label: "[Search for other reports](https://github.com/hrydgard/ppsspp/search?q=my+issue&type=issues) of the same issue."
+          required: true
+        - label: "Include logs or screenshots of issue."
+          required: true
