@@ -1,0 +1,22 @@
+name: New feature or behavior change
+description: "Choose when something isn't broken, but you want it to be better."
+body:
+  - type: textarea
+    id: desired
+    validations:
+      required: true
+    attributes:
+      label: What should happen
+      placeholder: |
+        Fusion Fix should have a menu setting that downloads more ram and boosts fps.
+      description: >
+        Be specific and descriptive.
+
+  - type: checkboxes
+    attributes:
+      label: Checklist
+      options:
+        - label: "Check the [latest git build](https://ci.appveyor.com/api/projects/ThirteenAG/gtaiv-eflc-fusionfix/artifacts/GTAIV.EFLC.FusionFix.zip) in case it's already implemented."
+          required: true
+        - label: "[Search for other requests](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/search?q=my+issue&type=issues) of the same feature."
+          required: true

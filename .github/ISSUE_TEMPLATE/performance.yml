@@ -1,0 +1,97 @@
+name: Slowdown or performance problem
+description: Choose when things got slower from a previous version or a specific scene runs really poorly.
+body:
+  - type: dropdown
+    id: game
+    validations:
+      required: true
+    attributes:
+      label: Game version this happens in
+      options:
+        - v1.2.0.30
+        - v1.2.0.32
+        - v1.2.0.43
+        - v1.2.0.59
+
+  - type: textarea
+    id: reproduction
+    validations:
+      required: true
+    attributes:
+      label: What area of the game
+      placeholder: 'In middle park, there is FPS drop'
+      description: >
+        Describe where the performance drops.
+
+  - type: textarea
+    id: computerparts
+    validations:
+      required: true
+    attributes:
+      label: Your Hardware configuration
+      placeholder: |
+            CPU: amdtel i12 59805, 
+            32mb ram, 
+            GPU: amdea vetx 1150
+      description: >
+        Tell us your Hardware configuration.
+
+  - type: markdown
+    attributes:
+      value: |
+        Many performance issues are graphics related.
+
+        Please also include 1 or 2 screenshots during the performance problem.
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Game capture
+      placeholder: '[drag files here...]'
+      description: >
+        You can upload the frame capture as a zip file, and upload screenshots directly.
+
+  - type: input
+    id: workingversion
+    attributes:
+      label: Last working version
+      placeholder: v2.0
+      description: >
+        If it worked before, it's usually easier to narrow down a fix.
+
+  - type: input
+    id: vanillabetter
+    attributes:
+      label: Does IV run better without FF installed?
+      placeholder: 'Yes it does/I did not check'
+      description: >
+        Please check if FF really degrades performance. Additionally many new FF settings degrade performance, try setting shadow quality down by one level or disabling Depth of Field.
+
+  - type: dropdown
+    id: gpubackend
+    validations:
+      required: true
+    attributes:
+      label: Graphics backend (3D API)
+      options:
+        - Direct3D 9
+        - DXVK
+        - Other
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Any other notes or things you've tried
+
+  - type: checkboxes
+    attributes:
+      label: Checklist
+      options:
+        - label: "Test in the [latest git build](https://ci.appveyor.com/api/projects/ThirteenAG/gtaiv-eflc-fusionfix/artifacts/GTAIV.EFLC.FusionFix.zip) in case it's already fixed."
+          required: true
+        - label: "[Search for other reports](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/search?q=my+issue&type=issues) of the same issue."
+          required: true
+        - label: "Include logs or screenshots of issue."
+          required: true
+        - label: "Try resetting settings or older versions and include if the issue is related."
+        - label: "Try changing graphics settings to determine if one causes the slowdown."
