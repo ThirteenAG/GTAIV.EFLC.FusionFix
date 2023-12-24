@@ -52,31 +52,12 @@ public:
 
         FusionFix::onGameInitEvent() += []()
         {
-            CIniReader iniReader("");
-            static auto bFixCascadedShadowMapResolution = iniReader.ReadInteger("SHADOWS", "FixCascadedShadowMapResolution", 0) != 0;
-
-            static auto bFixRainDrops = iniReader.ReadInteger("MISC", "FixRainDrops", 1) != 0;
-            static auto nRainDropsBlur = iniReader.ReadInteger("MISC", "RainDropsBlur", 2);
-            if (nRainDropsBlur < 1) {
-                nRainDropsBlur = 1;
-            }
-            if (nRainDropsBlur > 4) {
-                nRainDropsBlur = 4;
-            }
-            if (nRainDropsBlur != 1 && nRainDropsBlur != 2 && nRainDropsBlur != 4) {
-                nRainDropsBlur = 2;
-            }
-
-            //SetRenderState D3DRS_ADAPTIVETESS_X
-            auto pattern = hook::pattern("74 ? 68 4E 56 44 42 68");
-            injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
-
-            // Setup variables for shaders
-            static auto dw11A2948 = *find_pattern("C7 05 ? ? ? ? ? ? ? ? 0F 85 ? ? ? ? 6A 00", "D8 05 ? ? ? ? D9 1D ? ? ? ? 83 05").get_first<float*>(2);
-            static auto dw103E49C = *hook::get_pattern<void**>("A3 ? ? ? ? C7 80", 1);
-
             FusionFix::D3D9::onBeginScene() += [](LPDIRECT3DDEVICE9 pDevice)
             {
+                // Setup variables for shaders
+                static auto dw11A2948 = *find_pattern("C7 05 ? ? ? ? ? ? ? ? 0F 85 ? ? ? ? 6A 00", "D8 05 ? ? ? ? D9 1D ? ? ? ? 83 05").get_first<float*>(2);
+                static auto dw103E49C = *hook::get_pattern<void**>("A3 ? ? ? ? C7 80", 1);
+
                 if (*dw103E49C)
                 {
                     static Cam cam = 0;
@@ -150,6 +131,28 @@ public:
                     }
                 }
             };
+        };
+
+        FusionFix::onInitEvent() += []()
+        {
+            CIniReader iniReader("");
+            static auto bFixCascadedShadowMapResolution = iniReader.ReadInteger("SHADOWS", "FixCascadedShadowMapResolution", 0) != 0;
+
+            static auto bFixRainDrops = iniReader.ReadInteger("MISC", "FixRainDrops", 1) != 0;
+            static auto nRainDropsBlur = iniReader.ReadInteger("MISC", "RainDropsBlur", 2);
+            if (nRainDropsBlur < 1) {
+                nRainDropsBlur = 1;
+            }
+            if (nRainDropsBlur > 4) {
+                nRainDropsBlur = 4;
+            }
+            if (nRainDropsBlur != 1 && nRainDropsBlur != 2 && nRainDropsBlur != 4) {
+                nRainDropsBlur = 2;
+            }
+
+            //SetRenderState D3DRS_ADAPTIVETESS_X
+            auto pattern = hook::pattern("74 ? 68 4E 56 44 42 68");
+            injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
 
             //FusionFix::D3D9::onSetVertexShaderConstantF() += [](LPDIRECT3DDEVICE9& pDevice, UINT& StartRegister, float*& pConstantData, UINT& Vector4fCount)
             //{

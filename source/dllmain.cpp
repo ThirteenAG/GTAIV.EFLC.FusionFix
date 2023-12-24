@@ -1,11 +1,8 @@
 #include <common.hxx>
-#include <shellapi.h>
-#include <Commctrl.h>
-#pragma comment(lib,"Comctl32.lib")
-#pragma comment(linker,"\"/manifestdependency:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
 import common;
 import comvars;
+import dllblacklist;
 
 injector::hook_back<void(*)()> hbsub_8C4480;
 void __cdecl sub_8C4480Hook()
@@ -136,90 +133,14 @@ void Init()
     FusionFix::onInitEvent().executeAll();
 }
 
-HRESULT CALLBACK TaskDialogCallbackProc(HWND hwnd, UINT uNotification, WPARAM wParam, LPARAM lParam, LONG_PTR dwRefData)
-{
-    switch (uNotification)
-    {
-    case TDN_HYPERLINK_CLICKED:
-        ShellExecuteW(hwnd, L"open", (LPCWSTR)lParam, NULL, NULL, SW_SHOW);
-        break;
-    }
-
-    return S_OK;
-}
-
-void XliveCompat()
-{
-    if (IsModuleUAL(GetModuleHandleW(L"xlive")))
-        return;
-
-    TASKDIALOGCONFIG tdc = { sizeof(TASKDIALOGCONFIG) };
-    int nClickedBtn;
-    BOOL bCheckboxChecked;
-    LPCWSTR 
-        szTitle = L"GTAIV.EFLC.FusionFix",
-        szHeader = L"You are running GTA IV The Complete Edition Fusion Fix in backwards compatibility mode.",
-        szContent = L"It requires the latest version of " \
-        L"<a href=\"https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/latest\">Ultimate ASI Loader</a>" \
-        L" as xlive.dll and " \
-        L"<a href=\"https://github.com/GTAmodding/XLivelessAddon/releases/tag/latest\">XLivelessAddon</a>.";
-    TASKDIALOG_BUTTON aCustomButtons[] = { { 1000, L"Close the program" } };
-    
-    tdc.hwndParent = gWnd;
-    tdc.dwFlags = TDF_USE_COMMAND_LINKS | TDF_ENABLE_HYPERLINKS | TDF_SIZE_TO_CONTENT | TDF_CAN_BE_MINIMIZED;
-    tdc.pButtons = aCustomButtons;
-    tdc.cButtons = _countof(aCustomButtons);
-    tdc.pszWindowTitle = szTitle;
-    tdc.pszMainIcon = TD_INFORMATION_ICON;
-    tdc.pszMainInstruction = szHeader;
-    tdc.pszContent = szContent;
-    tdc.pfCallback = TaskDialogCallbackProc;
-    tdc.lpCallbackData = 0;
-    
-    auto hr = TaskDialogIndirect(&tdc, &nClickedBtn, NULL, &bCheckboxChecked);
-    TerminateProcess(GetCurrentProcess(), 0);
-}
-
-void UALCompat()
-{
-    if (IsUALPresent())
-        return;
-
-    TASKDIALOGCONFIG tdc = { sizeof(TASKDIALOGCONFIG) };
-    int nClickedBtn;
-    BOOL bCheckboxChecked;
-    LPCWSTR
-        szTitle = L"GTAIV.EFLC.FusionFix",
-        szHeader = L"You are running GTA IV The Complete Edition Fusion Fix with an incompatible version of ASI Loader",
-        szContent = L"It requires the latest version of " \
-        L"<a href=\"https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/latest\">Ultimate ASI Loader</a>\n\n" \
-        L"<a href=\"https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/latest\">https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/latest</a>";
-    TASKDIALOG_BUTTON aCustomButtons[] = { { 1000, L"Close the program" } };
-    
-    tdc.hwndParent = gWnd;
-    tdc.dwFlags = TDF_USE_COMMAND_LINKS | TDF_ENABLE_HYPERLINKS | TDF_SIZE_TO_CONTENT | TDF_CAN_BE_MINIMIZED;
-    tdc.pButtons = aCustomButtons;
-    tdc.cButtons = _countof(aCustomButtons);
-    tdc.pszWindowTitle = szTitle;
-    tdc.pszMainIcon = TD_INFORMATION_ICON;
-    tdc.pszMainInstruction = szHeader;
-    tdc.pszContent = szContent;
-    tdc.pfCallback = TaskDialogCallbackProc;
-    tdc.lpCallbackData = 0;
-    
-    auto hr = TaskDialogIndirect(&tdc, &nClickedBtn, NULL, &bCheckboxChecked);
-    TerminateProcess(GetCurrentProcess(), 0);
-}
-
 extern "C"
 {
     void __declspec(dllexport) InitializeASI()
     {
         std::call_once(CallbackHandler::flag, []()
         {
+            CompatibilityWarnings();
             CallbackHandler::RegisterCallback(Init, hook::pattern("F3 0F 10 44 24 ? F3 0F 59 05 ? ? ? ? EB ? E8"));
-            CallbackHandler::RegisterCallback(L"xlive.dll", XliveCompat);
-            UALCompat();
         });
     }
 }
