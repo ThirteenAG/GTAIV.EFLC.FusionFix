@@ -12,7 +12,7 @@ export module dllblacklist;
 import common;
 import comvars;
 
-std::vector<std::filesystem::path> dlllist = {
+std::vector<std::wstring> dlllist = {
     // These A-Volute DLLs shipped with various audio driver packages improperly handle
     // D3D9 exclusive fullscreen in a way that causes CreateDeviceEx() to deadlock.
     // https://github.com/moonlight-stream/moonlight-qt/issues/102
@@ -31,10 +31,14 @@ static void WINAPI LdrLoadDllHook(IN PWCHAR PathToFile OPTIONAL, IN PULONG Flags
     if (ModuleFileName->Buffer)
     {
         std::wstring fileName(ModuleFileName->Buffer, ModuleFileName->Length / sizeof(WCHAR));
-        if (std::any_of(std::begin(dlllist), std::end(dlllist), [&fileName](auto& i) { return iequals(fileName, i.stem()); }))
+        if (std::any_of(std::begin(dlllist), std::end(dlllist), [&fileName](auto& i) {
+            std::wstring str1(fileName); std::wstring str2(i);
+            std::transform(str1.begin(), str1.end(), str1.begin(), ::tolower);
+            std::transform(str2.begin(), str2.end(), str2.begin(), ::tolower);
+            return str1.ends_with(str2);
+        }))
         {
-            SetLastError(ERROR_DLL_INIT_FAILED);
-            return;
+            return SetLastError(ERROR_DLL_INIT_FAILED);
         }
     }
 
