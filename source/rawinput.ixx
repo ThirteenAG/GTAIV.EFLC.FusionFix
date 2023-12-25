@@ -68,16 +68,14 @@ int __cdecl sub_8EFE40(int a1, int a2)
 
 float GetMouseSensitivity()
 {
-    static auto s = FusionFixSettings.GetRef("PREF_MOUSE_SENSITIVITY");
-    float f = (float)s->get();
+    auto f = (float)FusionFixSettings.Get("PREF_MOUSE_SENSITIVITY");
     if (f < 1.0f) f = 1.0f;
     return f;
 }
 
 float GetMouseSensitivityForRI()
 {
-    static auto s = FusionFixSettings.GetRef("PREF_MOUSE_SENSITIVITY");
-    float f = (float)s->get();
+    auto f = (float)FusionFixSettings.Get("PREF_MOUSE_SENSITIVITY");
     if (f < 1.0f) f = 1.0f;
     f /= 10.0f;
     return f;
@@ -85,8 +83,8 @@ float GetMouseSensitivityForRI()
 
 double __cdecl GetMouseAxisData2(int pInput, int32_t requestedAxis)
 {
-    static auto inv = FusionFixSettings.GetRef("PREF_INVERT_MOUSE");
-    return GetMouseAxisData(pInput, requestedAxis) * ((inv->get() && requestedAxis == 1) ? -2.0 : 2.0f);
+    auto inv = FusionFixSettings.Get("PREF_INVERT_MOUSE");
+    return GetMouseAxisData(pInput, requestedAxis) * ((inv && requestedAxis == 1) ? -2.0 : 2.0f);
 }
 
 float TryMatchPedCamSensitivity()
@@ -97,7 +95,7 @@ float TryMatchPedCamSensitivity()
 injector::hook_back<decltype(&Natives::GetMouseInput)> hbNATIVE_GET_MOUSE_INPUT;
 void __cdecl NATIVE_GET_MOUSE_INPUT(int* a1, int* a2)
 {
-    static auto inv = FusionFixSettings.GetRef("PREF_INVERT_MOUSE");
+    auto inv = FusionFixSettings.Get("PREF_INVERT_MOUSE");
     static auto ri = FusionFixSettings.GetRef("PREF_RAWINPUT");
     if (ri->get())
     {
@@ -232,7 +230,7 @@ public:
             {
                 void operator()(SafetyHookContext& regs)
                 {
-                    static auto inv = FusionFixSettings.GetRef("PREF_INVERT_MOUSE");
+                    auto inv = FusionFixSettings.Get("PREF_INVERT_MOUSE");
                     static auto ri = FusionFixSettings.GetRef("PREF_RAWINPUT");
                     auto ptr = regs.edi;
                     if (reg == 0x86) ptr = regs.esi;
@@ -244,7 +242,7 @@ public:
                         auto fDiff = fFOVDefault / fFOVZoomed;
             
                         *(float*)(ptr + 0x148) += (-(float)GetRIMouseAxisData(0) * TryMatchPedCamSensitivity()) / fDiff;
-                        *(float*)(ptr + 0x144) += (-(float)GetRIMouseAxisData(1) * (inv->get() ? -TryMatchPedCamSensitivity() : TryMatchPedCamSensitivity())) / fDiff;
+                        *(float*)(ptr + 0x144) += (-(float)GetRIMouseAxisData(1) * (inv ? -TryMatchPedCamSensitivity() : TryMatchPedCamSensitivity())) / fDiff;
                     }
                     regs.xmm0.f32[0] = *(float*)(ptr + 0x144);
                 }
@@ -257,14 +255,14 @@ public:
             {
                 void operator()(SafetyHookContext& regs)
                 {
-                    static auto inv = FusionFixSettings.GetRef("PREF_INVERT_MOUSE");
+                    auto inv = FusionFixSettings.Get("PREF_INVERT_MOUSE");
                     static auto ri = FusionFixSettings.GetRef("PREF_RAWINPUT");
                     auto ptr = regs.esi;
                     if (reg2 == 0x87) ptr = regs.edi;
                     if (ri->get())
                     {
                         *(float*)(ptr + 0x1B4) += -(float)GetRIMouseAxisData(0) * TryMatchPedCamSensitivity();
-                        *(float*)(ptr + 0x1B0) += -(float)GetRIMouseAxisData(1) * (inv->get() ? -TryMatchPedCamSensitivity() : TryMatchPedCamSensitivity());
+                        *(float*)(ptr + 0x1B0) += -(float)GetRIMouseAxisData(1) * (inv ? -TryMatchPedCamSensitivity() : TryMatchPedCamSensitivity());
                     }
                     regs.xmm0.f32[0] = *(float*)(ptr + 0x1B0);
                 }

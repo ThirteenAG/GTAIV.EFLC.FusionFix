@@ -90,11 +90,9 @@ public:
 
                     // Current Settings
                     {
-                        static auto waterq = FusionFixSettings.GetRef("PREF_WATER_QUALITY");
-                        static auto shadowq = FusionFixSettings.GetRef("PREF_SHADOW_QUALITY");
                         static float arr5[4];
-                        arr5[0] = static_cast<float>(waterq->get());
-                        arr5[1] = static_cast<float>(shadowq->get());
+                        arr5[0] = static_cast<float>(FusionFixSettings.Get("PREF_WATER_QUALITY"));
+                        arr5[1] = static_cast<float>(FusionFixSettings.Get("PREF_SHADOW_QUALITY"));
                         arr5[2] = Natives::Timestep();
                         arr5[3] = 0.0f;
                         pDevice->SetPixelShaderConstantF(221, &arr5[0], 1);

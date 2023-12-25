@@ -45,7 +45,7 @@ private:
     static inline auto firstCustomID = 0;
     static inline std::map<int32_t, std::pair<const char*, const char*>> slidersList;
 private:
-    static inline int32_t* mPrefs;
+    static inline int32_t* mPrefs = nullptr;
     static inline std::map<uint32_t, CSetting> mFusionPrefs;
 
     std::optional<std::string> GetPrefNameByID(auto prefID) {
@@ -131,7 +131,7 @@ public:
         injector::WriteMemory(ppOriginalPrefs, &aMenuPrefs[0].prefID, true);
         injector::WriteMemory(find_pattern("FF 34 FD ? ? ? ? 56 E8 ? ? ? ? 83 C4 08 85 C0 0F 84 ? ? ? ? 47 81 FF", "8B 04 F5 ? ? ? ? 50 57 E8 ? ? ? ? 83 C4 08 85 C0 74 7C").get_first(3), &aMenuPrefs[0].name, true);
 
-        pattern = hook::pattern("89 1C ? ? ? ? ? E8");
+        pattern = find_pattern("89 1C 95 ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 83 C4 04 8D 04 40", "89 1C 8D ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 8D 0C 40 8B 14 CD");
         mPrefs = *pattern.get_first<int32_t*>(3);
 
         CIniReader iniReader(cfgPath.wstring());
@@ -252,6 +252,8 @@ public:
             return mFusionPrefs[prefID].GetValue();
         else
         {
+            if (!mPrefs)
+                return 0;
             DWORD tmp;
             injector::UnprotectMemory(&mPrefs[prefID], sizeof(int32_t), tmp);
             return mPrefs[prefID];
@@ -263,6 +265,8 @@ public:
         }
         else
         {
+            if (!mPrefs)
+                return;
             DWORD tmp;
             injector::UnprotectMemory(&mPrefs[prefID], sizeof(int32_t), tmp);
             mPrefs[prefID] = value;
@@ -296,6 +300,10 @@ public:
             if (prefID >= firstCustomID)
                 return std::ref(mFusionPrefs[*prefID].value);
             else {
+                if (!mPrefs) {
+                    MessageBoxW(0, L"Can't GetRef of original PREF", 0, 0);
+                    return std::nullopt;
+                }
                 DWORD tmp;
                 injector::UnprotectMemory(&mPrefs[*prefID], sizeof(int32_t), tmp);
                 return std::ref(mPrefs[*prefID]);
