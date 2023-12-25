@@ -45,7 +45,6 @@ workspace "GTAIV.EFLC.FusionFix"
    defines { "rsc_ProductVersion=\"" .. major .. "." .. minor .. "." .. build .. "\"" }
 
    defines { "_CRT_SECURE_NO_WARNINGS" }
-   defines { "ZYDIS_STATIC_BUILD" }
 
    includedirs { "source" }
    includedirs { "source/includes" }
