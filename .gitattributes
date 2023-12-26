@@ -1,2 +1,5 @@
+*.ixx linguist-language=C++
+*.hxx linguist-language=C++
+
 # Auto detect text files and perform LF normalization
 * text=auto
