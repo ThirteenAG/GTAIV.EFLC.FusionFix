@@ -90,6 +90,10 @@ public:
         static Event<> BeforeReset;
         return BeforeReset;
     }
+    static Event<>& onAfterPostFX() {
+        static Event<> AfterPostFX;
+        return AfterPostFX;
+    }
 
     struct D3D9 {
         static Event<LPDIRECT3D9&, UINT&, D3DDEVTYPE&, HWND&, DWORD&, D3DPRESENT_PARAMETERS*&, IDirect3DDevice9**&>& onBeforeCreateDevice() {
@@ -116,6 +120,22 @@ public:
             static Event<LPDIRECT3DDEVICE9&, D3DPRESENT_PARAMETERS*&> AfterReset;
             return AfterReset;
         }
+        static Event<LPDIRECT3DDEVICE9&, IDirect3DPixelShader9*&>& onBeforeSetPixelShader() {
+            static Event<LPDIRECT3DDEVICE9&, IDirect3DPixelShader9*&> BeforeSetPixelShader;
+            return BeforeSetPixelShader;
+        }
+        static Event<LPDIRECT3DDEVICE9&, IDirect3DPixelShader9*&>& onAfterSetPixelShader() {
+            static Event<LPDIRECT3DDEVICE9&, IDirect3DPixelShader9*&> AfterSetPixelShader;
+            return AfterSetPixelShader;
+        }
+        static Event<LPDIRECT3DDEVICE9&, IDirect3DVertexShader9*&>& onBeforeSetVertexShader() {
+            static Event<LPDIRECT3DDEVICE9&, IDirect3DVertexShader9*&> BeforeSetVertexShader;
+            return BeforeSetVertexShader;
+        }
+        static Event<LPDIRECT3DDEVICE9&, IDirect3DVertexShader9*&>& onAfterSetVertexShader() {
+            static Event<LPDIRECT3DDEVICE9&, IDirect3DVertexShader9*&> AfterSetVertexShader;
+            return AfterSetVertexShader;
+        }
         static Event<LPDIRECT3DDEVICE9&, UINT&, float*&, UINT&>& onSetVertexShaderConstantF() {
             static Event<LPDIRECT3DDEVICE9&, UINT&, float*&, UINT&> SetVertexShaderConstantF;
             return SetVertexShaderConstantF;
@@ -123,6 +143,22 @@ public:
         static Event<LPDIRECT3DDEVICE9&, UINT&, float*&, UINT&>& onSetPixelShaderConstantF() {
             static Event<LPDIRECT3DDEVICE9&, UINT&, float*&, UINT&> SetPixelShaderConstantF;
             return SetPixelShaderConstantF;
+        }
+        static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DPixelShader9**&>& onBeforeCreatePixelShader() {
+            static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DPixelShader9**&> BeforeCreatePixelShader;
+            return BeforeCreatePixelShader;
+        }
+        static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DPixelShader9**&>& onAfterCreatePixelShader() {
+            static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DPixelShader9**&> AfterCreatePixelShader;
+            return AfterCreatePixelShader;
+        }
+        static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DVertexShader9**&>& onBeforeCreateVertexShader() {
+            static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DVertexShader9**&> BeforeCreateVertexShader;
+            return BeforeCreateVertexShader;
+        }
+        static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DVertexShader9**&>& onAfterCreateVertexShader() {
+            static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DVertexShader9**&> AfterCreateVertexShader;
+            return AfterCreateVertexShader;
         }
         static Event<LPDIRECT3DDEVICE9&, UINT&, UINT&, UINT&, DWORD&, D3DFORMAT&, D3DPOOL&, IDirect3DTexture9**&, HANDLE*&>& onBeforeCreateTexture() {
             static Event<LPDIRECT3DDEVICE9&, UINT&, UINT&, UINT&, DWORD&, D3DFORMAT&, D3DPOOL&, IDirect3DTexture9**&, HANDLE*&> BeforeCreateTexture;
@@ -135,6 +171,10 @@ public:
         static Event<LPDIRECT3DDEVICE9&, DWORD&, IDirect3DBaseTexture9*&>& onSetTexture() {
             static Event<LPDIRECT3DDEVICE9&, DWORD&, IDirect3DBaseTexture9*&> SetTexture;
             return SetTexture;
+        }
+        static Event<LPDIRECT3DDEVICE9&, D3DPRIMITIVETYPE&, UINT&, UINT&>& onDrawPrimitive() {
+            static Event<LPDIRECT3DDEVICE9&, D3DPRIMITIVETYPE&, UINT&, UINT&> DrawPrimitive;
+            return DrawPrimitive;
         }
     };
 };

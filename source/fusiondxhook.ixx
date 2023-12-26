@@ -216,6 +216,11 @@ export HRESULT(WINAPI* SetVertexShaderConstantFOriginalPtr)(LPDIRECT3DDEVICE9, U
 export HRESULT(WINAPI* SetPixelShaderConstantFOriginalPtr)(LPDIRECT3DDEVICE9, UINT, const float*, UINT) = nullptr;
 export HRESULT(WINAPI* CreateTextureOriginalPtr)(LPDIRECT3DDEVICE9, UINT, UINT, UINT, DWORD, D3DFORMAT, D3DPOOL, IDirect3DTexture9**, HANDLE*) = nullptr;
 export HRESULT(WINAPI* SetTextureOriginalPtr)(LPDIRECT3DDEVICE9, DWORD, IDirect3DBaseTexture9*) = nullptr;
+export HRESULT(WINAPI* DrawPrimitiveOriginalPtr)(LPDIRECT3DDEVICE9, D3DPRIMITIVETYPE, UINT, UINT) = nullptr;
+export HRESULT(WINAPI* SetPixelShaderOriginalPtr)(LPDIRECT3DDEVICE9, IDirect3DPixelShader9*) = nullptr;
+export HRESULT(WINAPI* SetVertexShaderOriginalPtr)(LPDIRECT3DDEVICE9, IDirect3DVertexShader9*) = nullptr;
+export HRESULT(WINAPI* CreatePixelShaderOriginalPtr)(LPDIRECT3DDEVICE9, DWORD*, IDirect3DPixelShader9**) = nullptr;
+export HRESULT(WINAPI* CreateVertexShaderOriginalPtr)(LPDIRECT3DDEVICE9, DWORD*, IDirect3DVertexShader9**) = nullptr;
 
 class FusionDxHook
 {
@@ -360,6 +365,45 @@ public:
                     return SetTextureOriginalPtr(pDevice, Stage, pTexture);
                 };
 
+                auto D3D9DrawPrimitive = [](LPDIRECT3DDEVICE9 pDevice, D3DPRIMITIVETYPE PrimitiveType, UINT StartVertex, UINT PrimitiveCount) -> HRESULT
+                {
+                    auto hr = DrawPrimitiveOriginalPtr(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
+                    FusionFix::D3D9::onDrawPrimitive().executeAll(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
+                    return hr;
+                };
+
+                auto D3D9SetPixelShader = [](LPDIRECT3DDEVICE9 pDevice, IDirect3DPixelShader9* pShader) -> HRESULT
+                {
+                    FusionFix::D3D9::onBeforeSetPixelShader().executeAll(pDevice, pShader);
+                    auto hr = SetPixelShaderOriginalPtr(pDevice, pShader);
+                    FusionFix::D3D9::onAfterSetPixelShader().executeAll(pDevice, pShader);
+                    return hr;
+                };
+
+                auto D3D9SetVertexShader = [](LPDIRECT3DDEVICE9 pDevice, IDirect3DVertexShader9* pShader) -> HRESULT
+                {
+                    FusionFix::D3D9::onBeforeSetVertexShader().executeAll(pDevice, pShader);
+                    auto hr = SetVertexShaderOriginalPtr(pDevice, pShader);
+                    FusionFix::D3D9::onAfterSetVertexShader().executeAll(pDevice, pShader);
+                    return hr;
+                };
+
+                auto D3D9CreatePixelShader = [](LPDIRECT3DDEVICE9 pDevice, DWORD* pFunction, IDirect3DPixelShader9** ppShader) -> HRESULT
+                {
+                    FusionFix::D3D9::onBeforeCreatePixelShader().executeAll(pDevice, pFunction, ppShader);
+                    auto hr = CreatePixelShaderOriginalPtr(pDevice, pFunction, ppShader);
+                    FusionFix::D3D9::onAfterCreatePixelShader().executeAll(pDevice, pFunction, ppShader);
+                    return hr;
+                };
+
+                auto D3D9CreateVertexShader = [](LPDIRECT3DDEVICE9 pDevice, DWORD* pFunction, IDirect3DVertexShader9** ppShader) -> HRESULT
+                {
+                    FusionFix::D3D9::onBeforeCreateVertexShader().executeAll(pDevice, pFunction, ppShader);
+                    auto hr = CreateVertexShaderOriginalPtr(pDevice, pFunction, ppShader);
+                    FusionFix::D3D9::onAfterCreateVertexShader().executeAll(pDevice, pFunction, ppShader);
+                    return hr;
+                };
+
                 static HRESULT(WINAPI* CreateDevice)(LPDIRECT3D9, UINT, D3DDEVTYPE, HWND, DWORD, D3DPRESENT_PARAMETERS*, IDirect3DDevice9**) = D3D9CreateDevice;
                 static HRESULT(WINAPI* BeginScene)(LPDIRECT3DDEVICE9) = D3D9BeginScene;
                 static HRESULT(WINAPI* EndScene)(LPDIRECT3DDEVICE9) = D3D9EndScene;
@@ -368,6 +412,11 @@ public:
                 static HRESULT(WINAPI* SetPixelShaderConstantF)(LPDIRECT3DDEVICE9, UINT, float*, UINT) = D3D9SetPixelShaderConstantF;
                 static HRESULT(WINAPI* CreateTexture)(LPDIRECT3DDEVICE9, UINT, UINT, UINT, DWORD, D3DFORMAT, D3DPOOL, IDirect3DTexture9**, HANDLE*) = D3D9CreateTexture;
                 static HRESULT(WINAPI* SetTexture)(LPDIRECT3DDEVICE9, DWORD, IDirect3DBaseTexture9*) = D3D9SetTexture;
+                static HRESULT(WINAPI* DrawPrimitive)(LPDIRECT3DDEVICE9, D3DPRIMITIVETYPE, UINT, UINT) = D3D9DrawPrimitive;
+                static HRESULT(WINAPI* SetPixelShader)(LPDIRECT3DDEVICE9, IDirect3DPixelShader9*) = D3D9SetPixelShader;
+                static HRESULT(WINAPI* SetVertexShader)(LPDIRECT3DDEVICE9, IDirect3DVertexShader9*) = D3D9SetVertexShader;
+                static HRESULT(WINAPI* CreatePixelShader)(LPDIRECT3DDEVICE9, DWORD*, IDirect3DPixelShader9**) = D3D9CreatePixelShader;
+                static HRESULT(WINAPI* CreateVertexShader)(LPDIRECT3DDEVICE9, DWORD*, IDirect3DVertexShader9**) = D3D9CreateVertexShader;
 
                 MH_Initialize();
 
@@ -379,6 +428,11 @@ public:
                 bind(hD3D9, typeid(IDirect3DDevice9VTBL), IDirect3DDevice9VTBL().GetIndex("SetPixelShaderConstantF"), SetPixelShaderConstantF, (void**)&SetPixelShaderConstantFOriginalPtr);
                 bind(hD3D9, typeid(IDirect3DDevice9VTBL), IDirect3DDevice9VTBL().GetIndex("CreateTexture"), CreateTexture, (void**)&CreateTextureOriginalPtr);
                 bind(hD3D9, typeid(IDirect3DDevice9VTBL), IDirect3DDevice9VTBL().GetIndex("SetTexture"), SetTexture, (void**)&SetTextureOriginalPtr);
+                bind(hD3D9, typeid(IDirect3DDevice9VTBL), IDirect3DDevice9VTBL().GetIndex("DrawPrimitive"), DrawPrimitive, (void**)&DrawPrimitiveOriginalPtr);
+                bind(hD3D9, typeid(IDirect3DDevice9VTBL), IDirect3DDevice9VTBL().GetIndex("SetPixelShader"), SetPixelShader, (void**)&SetPixelShaderOriginalPtr);
+                bind(hD3D9, typeid(IDirect3DDevice9VTBL), IDirect3DDevice9VTBL().GetIndex("SetVertexShader"), SetVertexShader, (void**)&SetVertexShaderOriginalPtr);
+                bind(hD3D9, typeid(IDirect3DDevice9VTBL), IDirect3DDevice9VTBL().GetIndex("CreatePixelShader"), CreatePixelShader, (void**)&CreatePixelShaderOriginalPtr);
+                bind(hD3D9, typeid(IDirect3DDevice9VTBL), IDirect3DDevice9VTBL().GetIndex("CreateVertexShader"), CreateVertexShader, (void**)&CreateVertexShaderOriginalPtr);
 
                 FusionFix::onShutdownEvent() += []() {
                     MH_DisableHook(MH_ALL_HOOKS);

@@ -4,6 +4,13 @@ import common;
 import comvars;
 import dllblacklist;
 
+injector::hook_back<void(__fastcall*)(void*, void*, int, int, int)> hbsub_92E7C0;
+void __fastcall sub_92E7C0Hook(void* _this, void* edx, int a2, int a3, int a4)
+{
+    hbsub_92E7C0.fun(_this, edx, a2, a3, a4);
+    FusionFix::onAfterPostFX().executeAll();
+}
+
 injector::hook_back<void(*)()> hbsub_8C4480;
 void __cdecl sub_8C4480Hook()
 {
@@ -120,6 +127,9 @@ void Init()
 
     pattern = find_pattern("E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? 8D 54 24 08", "E8 ? ? ? ? E8 ? ? ? ? 68 ? ? ? ? 6A 00 6A 00");
     hbsub_8C4480.fun = injector::MakeCALL(pattern.get_first(0), sub_8C4480Hook, true).get();
+
+    pattern = find_pattern("E8 ? ? ? ? 6A 0A FF B7", "E8 ? ? ? ? 8B 8E ? ? ? ? 8B 56 10");
+    hbsub_92E7C0.fun = injector::MakeCALL(pattern.get_first(0), sub_92E7C0Hook, true).get();
 
     static auto futures = FusionFix::onInitEventAsync().executeAllAsync();
 
