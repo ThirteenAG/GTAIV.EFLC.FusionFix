@@ -34,7 +34,6 @@ public:
     static inline IDirect3DTexture9* edgesTex = nullptr;
     static inline IDirect3DTexture9* blendTex = nullptr;
     static inline IDirect3DPixelShader9* FxaaPS = nullptr;
-    static inline IDirect3DVertexShader9* CoronaVertexShader = nullptr;
     static inline IDirect3DPixelShader9* SMAA_EdgeDetectionPS = nullptr;
     static inline IDirect3DPixelShader9* SMAA_BlendingWeightsCalculationPS = nullptr;
     static inline IDirect3DPixelShader9* SMAA_NeighborhoodBlendingPS = nullptr;
@@ -175,13 +174,6 @@ public:
                     SAFE_RELEASE(bf2);
                     SAFE_RELEASE(ppConstantTable);
                 }
-            };
-            
-            FusionFix::D3D9::onAfterCreateVertexShader() += [](LPDIRECT3DDEVICE9& pDevice, DWORD*& pFunction, IDirect3DVertexShader9**& ppShader)
-            {
-                static constexpr auto CoronaVertexShaderID = 15;
-                if (GetFusionShaderID(*ppShader) == CoronaVertexShaderID)
-                    ShadersAA::CoronaVertexShader = *ppShader;
             };
             
             FusionFix::D3D9::onAfterCreateTexture() += [](LPDIRECT3DDEVICE9& pDevice, UINT& Width, UINT& Height, UINT& Levels, DWORD& Usage, D3DFORMAT& Format, D3DPOOL& Pool, IDirect3DTexture9**& ppTexture, HANDLE*& pSharedHandle)
@@ -351,26 +343,11 @@ public:
 
                         SAFE_RELEASE(backBuffer);
                         SAFE_RELEASE(pHDRSurface2);
-                        if (bUseSSAA && doPostFxAA) {
+                        if (bUseSSAA) {
                             pDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, OldSampler);
                         }
                         doPostFxAA = false;
-                        return;
                     };
-                }
-            };
-
-            FusionFix::D3D9::onDrawPrimitive() += [](LPDIRECT3DDEVICE9& pDevice, D3DPRIMITIVETYPE& PrimitiveType, UINT& StartVertex, UINT& PrimitiveCount)
-            {
-                DWORD CoronaDepth = 0;
-                IDirect3DVertexShader9* vShader = 0;
-                pDevice->GetVertexShader(&vShader);
-                if (vShader && ShadersAA::CoronaVertexShader && vShader == ShadersAA::CoronaVertexShader)
-                {
-                    pDevice->GetRenderState(D3DRS_ZENABLE, &CoronaDepth);
-                    pDevice->SetRenderState(D3DRS_ZENABLE, 1);
-                    DrawPrimitiveOriginalPtr(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
-                    pDevice->SetRenderState(D3DRS_ZENABLE, CoronaDepth);
                 }
             };
 

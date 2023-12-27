@@ -141,7 +141,7 @@ public:
             { 0, "PREF_SKIP_MENU",         "MAIN",       "SkipMenu",                        "",                           1, nullptr, 0, 1 },
             { 0, "PREF_BORDERLESS",        "MAIN",       "BorderlessWindowed",              "",                           1, nullptr, 0, 1 },
             { 0, "PREF_FPS_LIMIT_PRESET",  "FRAMELIMIT", "FpsLimitPreset",                  "MENU_DISPLAY_FRAMELIMIT",    0, nullptr, FpsCaps.eOFF, std::distance(std::begin(FpsCaps.data), std::end(FpsCaps.data)) - 1 },
-            { 0, "PREF_SSAA",              "MISC",       "SSAA",                            "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_SSAA",              "MISC",       "SSAA",                            "",                           0, nullptr, 0, 1 },
             { 0, "PREF_CONSOLE_GAMMA",     "MISC",       "ConsoleGamma",                    "",                           0, nullptr, 0, 1 },
             { 0, "PREF_TIMECYC",           "MISC",       "ScreenFilter",                    "MENU_DISPLAY_TIMECYC",       5, nullptr, TimecycText.eMO_DEF, std::distance(std::begin(TimecycText.data), std::end(TimecycText.data)) - 1 },
             { 0, "PREF_CUTSCENE_DOF",      "MISC",       "DepthOfField",                    "",                           1, nullptr, 0, 1 },
