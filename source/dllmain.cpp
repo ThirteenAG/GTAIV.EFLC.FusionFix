@@ -7,6 +7,7 @@ import dllblacklist;
 injector::hook_back<void(__fastcall*)(void*, void*, int, int, int)> hbsub_92E7C0;
 void __fastcall sub_92E7C0Hook(void* _this, void* edx, int a2, int a3, int a4)
 {
+    FusionFix::onBeforePostFX().executeAll();
     hbsub_92E7C0.fun(_this, edx, a2, a3, a4);
     FusionFix::onAfterPostFX().executeAll();
 }

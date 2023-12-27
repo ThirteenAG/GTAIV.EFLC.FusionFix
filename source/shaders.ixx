@@ -1,6 +1,7 @@
 module;
 
 #include <common.hxx>
+#include <concepts>
 
 export module shaders;
 
@@ -9,6 +10,35 @@ import comvars;
 import settings;
 import natives;
 import shadows;
+
+template<typename T, typename ... U>
+concept IsAnyOf = (std::same_as<T, U> || ...);
+
+template<typename T>
+using remove_cvref_t = std::remove_cvref_t<std::remove_pointer_t<std::decay_t<T>>>;
+
+export template <typename T> requires IsAnyOf<remove_cvref_t<T>, IDirect3DPixelShader9, IDirect3DVertexShader9>
+int GetFusionShaderID(T pShader)
+{
+    if (pShader)
+    {
+        UINT len = 0;
+        pShader->GetFunction(nullptr, &len);
+        std::vector<uint8_t> pbFunc(len + len % 4);
+        pShader->GetFunction(pbFunc.data(), &len);
+        static auto sFusionShader = to_bytes("FusionShader");
+        auto s = pattern_str(sFusionShader);
+        while (s.back() == ' ' || s.back() == '0') s.pop_back();
+        auto pattern = hook::range_pattern((uintptr_t)pbFunc.data(), (uintptr_t)pbFunc.data() + pbFunc.size(), s);
+        if (!pattern.empty()) {
+            auto id = *pattern.get_first<int>(sFusionShader.size() - 1);
+            if constexpr (IsAnyOf<remove_cvref_t<T>, IDirect3DVertexShader9>)
+                id -= 2000;
+            return id;
+        }
+    }
+    return -1;
+}
 
 class Shaders
 {
@@ -100,12 +130,12 @@ public:
 
                     // FXAA, DOF, Gamma
                     {
-                        static auto fxaa = FusionFixSettings.GetRef("PREF_FXAA");
+                        //static auto fxaa = FusionFixSettings.GetRef("PREF_ANTIALIASING");
                         static auto cutscene_dof = FusionFixSettings.GetRef("PREF_CUTSCENE_DOF");
                         static auto gamma = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA");
                         static auto mblur = FusionFixSettings.GetRef("PREF_MOTIONBLUR");
                         static float arr3[4];
-                        arr3[0] = static_cast<float>(fxaa->get());
+                        arr3[0] = 0.0f; //static_cast<float>(fxaa->get());
                         arr3[1] = static_cast<float>(cutscene_dof->get());
                         arr3[2] = static_cast<float>(gamma->get());
                         arr3[3] = static_cast<float>(mblur->get());

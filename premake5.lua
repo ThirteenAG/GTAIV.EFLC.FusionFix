@@ -57,6 +57,7 @@ workspace "GTAIV.EFLC.FusionFix"
    files { "source/includes/safetyhook/*.h", "source/includes/safetyhook/*.hpp" }
    files { "source/includes/safetyhook/*.c", "source/includes/safetyhook/*.cpp" }
    files { "source/resources/Versioninfo.rc" }
+   files { "source/resources/Shaders.rc" }
    links { "LogitechLEDLib.lib" }
    
    includedirs { "external/hooking" }
