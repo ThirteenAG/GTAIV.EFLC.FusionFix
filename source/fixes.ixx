@@ -297,7 +297,6 @@ public:
             {
                 auto pattern = find_pattern("3B 05 ? ? ? ? 74 6C 3B 05 ? ? ? ? 74 64 3B 05 ? ? ? ?", "3B 05 ? ? ? ? 74 6E 3B 05 ? ? ? ? 74 66 3B 05");
                 injector::MakeNOP(pattern.get_first(0), 16, true);
-                injector::MakeNOP(pattern.get_first(24), 8, true);
             }
 
             // Off Route infinite loading
