@@ -89,7 +89,7 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: GTAIV.EFLC.FusionFix.zip
+        name: GTAIV.EFLC.FusionFix
         path: |
           data/*
           !data/update/GTAIV.EFLC.FusionFix/GTAIV.EFLC.FusionFix
