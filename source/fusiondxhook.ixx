@@ -367,8 +367,9 @@ public:
 
                 auto D3D9DrawPrimitive = [](LPDIRECT3DDEVICE9 pDevice, D3DPRIMITIVETYPE PrimitiveType, UINT StartVertex, UINT PrimitiveCount) -> HRESULT
                 {
+                    FusionFix::D3D9::onBeforeDrawPrimitive().executeAll(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
                     auto hr = DrawPrimitiveOriginalPtr(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
-                    FusionFix::D3D9::onDrawPrimitive().executeAll(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
+                    FusionFix::D3D9::onAfterDrawPrimitive().executeAll(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
                     return hr;
                 };
 

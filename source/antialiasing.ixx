@@ -196,7 +196,7 @@ public:
                 doPostFxAA = true;
             };
 
-            FusionFix::D3D9::onDrawPrimitive() += [](LPDIRECT3DDEVICE9& pDevice, D3DPRIMITIVETYPE& PrimitiveType, UINT& StartVertex, UINT& PrimitiveCount)
+            FusionFix::D3D9::onAfterDrawPrimitive() += [](LPDIRECT3DDEVICE9& pDevice, D3DPRIMITIVETYPE& PrimitiveType, UINT& StartVertex, UINT& PrimitiveCount)
             {
                 static float vec4[4] = { 0.0f };
                 IDirect3DPixelShader9* pShader = nullptr;

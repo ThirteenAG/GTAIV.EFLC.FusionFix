@@ -310,6 +310,8 @@ public:
 
             // Fix for light coronas being rendered through objects in water reflections.
             {
+                static auto bCoronaShader = false;
+                static DWORD CoronaDepth = 0;
                 static IDirect3DVertexShader9* CoronaVertexShader = nullptr;
                 FusionFix::D3D9::onAfterCreateVertexShader() += [](LPDIRECT3DDEVICE9& pDevice, DWORD*& pFunction, IDirect3DVertexShader9**& ppShader)
                 {
@@ -318,17 +320,24 @@ public:
                         CoronaVertexShader = *ppShader;
                 };
 
-                FusionFix::D3D9::onDrawPrimitive() += [](LPDIRECT3DDEVICE9& pDevice, D3DPRIMITIVETYPE& PrimitiveType, UINT& StartVertex, UINT& PrimitiveCount)
+                FusionFix::D3D9::onBeforeDrawPrimitive() += [](LPDIRECT3DDEVICE9& pDevice, D3DPRIMITIVETYPE& PrimitiveType, UINT& StartVertex, UINT& PrimitiveCount)
                 {
-                    DWORD CoronaDepth = 0;
                     IDirect3DVertexShader9* vShader = 0;
                     pDevice->GetVertexShader(&vShader);
                     if (vShader && CoronaVertexShader && vShader == CoronaVertexShader)
                     {
+                        bCoronaShader = true;
                         pDevice->GetRenderState(D3DRS_ZENABLE, &CoronaDepth);
                         pDevice->SetRenderState(D3DRS_ZENABLE, 1);
-                        DrawPrimitiveOriginalPtr(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
+                    }
+                };
+
+                FusionFix::D3D9::onAfterDrawPrimitive() += [](LPDIRECT3DDEVICE9& pDevice, D3DPRIMITIVETYPE& PrimitiveType, UINT& StartVertex, UINT& PrimitiveCount)
+                {
+                    if (bCoronaShader)
+                    {
                         pDevice->SetRenderState(D3DRS_ZENABLE, CoronaDepth);
+                        bCoronaShader = false;
                     }
                 };
             }
