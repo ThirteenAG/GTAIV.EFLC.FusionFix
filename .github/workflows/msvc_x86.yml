@@ -99,7 +99,7 @@ jobs:
           !data/update/GTAIV.EFLC.FusionFix/FusionTrees
           !data/update/GTAIV.EFLC.FusionFix/FusionLights
           !data/update/GTAIV.EFLC.FusionFix/cdimagemake.ims
-          !data/update/common/shaders/.gitkeep
+          !**/.gitkeep
 
     - name: Upload Release
       if: |

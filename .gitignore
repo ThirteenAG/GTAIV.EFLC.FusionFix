@@ -337,6 +337,6 @@ data/update/common/shaders/db/gta_trees_new.sps
 data/update/common/shaders/dcl/gta_trees_new.dcl
 data/update/common/shaders/db/gta_wire.sps
 data/update/common/shaders/preload.list
-data/update/pc/textures/stipple.wtd
+data/update/pc/textures/*.wtd
 data/plugins/GTAIV.EFLC.FusionFix.asi
 GTAIV.EFLC.FusionFix.zip
