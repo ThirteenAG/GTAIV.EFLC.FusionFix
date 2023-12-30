@@ -2,12 +2,12 @@
 [![AppVeyor](https://img.shields.io/appveyor/build/ThirteenAG/GTAIV-EFLC-FusionFix?label=AppVeyor%20Build&logo=Appveyor&logoColor=white)](https://ci.appveyor.com/project/ThirteenAG/gtaiv-eflc-fusionfix)
 
 <p align="center">
-  <img height="200" src="https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/assets/4904157/ad115a54-1283-4d7b-87e1-b6b901c0e6a8.png">
+  <img height="200" src="https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/assets/4904157/f45efc2e-f4f5-4d4d-847b-0f0d19897ef4.png">
 </p>
 
 # GTAIV.EFLC.FusionFix
 
-This projects aims to fix some issues in Grand Theft Auto IV: Complete Edition.
+This projects aims to fix some issues in Grand Theft Auto IV: Complete Edition. Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionFix#readme).
 
 ![](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/assets/4904157/ba388163-c26a-41ae-8378-bef4037c4fd7)
 
@@ -41,7 +41,8 @@ This projects aims to fix some issues in Grand Theft Auto IV: Complete Edition.
 - **Shadow Filter**, offering a variety of choices such as "Sharp", "Soft", "Softer", "Softest", and "PCSS"
 - **Console Shadows**, disables headlights shadows in exchange for vehicle shadows from non-sun light sources
 - **FPS Limit**, set a custom FPS limit, select from a list of predefined values, or turn it off
-- **FXAA**, toggle for antialiasing
+- **Antialiasing**, a toggle for FXAA or SMAA
+- **SSAA**, a toggle to enable supersampling, requires restart, affects performance
 - **Console Gamma**, emulates consoles' contrasted look
 - **Screen Filter**, an option to change color filters in main game and episodes
 - **Distant Blur**, controls how intense the distant blur is during gameplay
