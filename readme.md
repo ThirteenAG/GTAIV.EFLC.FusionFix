@@ -14,7 +14,7 @@ This projects aims to fix some issues in Grand Theft Auto IV: Complete Edition. 
 ## Installation:
 
 > [!NOTE]
-> Install Grand Theft Auto IV: Complete Edition (v1.2.0.30 and above required)
+> Install Grand Theft Auto IV: The Complete Edition (v1.2.0.30 and above required)
 >
 > **Download**: [GTAIV.EFLC.FusionFix.zip](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFix.zip)
 >
@@ -174,6 +174,7 @@ This projects aims to fix some issues in Grand Theft Auto IV: Complete Edition. 
 ### Reflections
 - Fixed excessive wetness/specularity of various surfaces
 - Fixed blocky vehicle reflections
+- Reduced corona reflection intensity
 - Fixed anisotropic filtering affecting reflection intensity
 - Removed influence of vehicle.ide on vehicle reflection intensity
 - Increased global reflection intensity to match consoles
