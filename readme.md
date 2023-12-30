@@ -41,7 +41,7 @@ This projects aims to fix some issues in Grand Theft Auto IV: Complete Edition. 
 - **Shadow Filter**, offering a variety of choices such as "Sharp", "Soft", "Softer", "Softest", and "PCSS"
 - **Console Shadows**, disables headlights shadows in exchange for vehicle shadows from non-sun light sources
 - **FPS Limit**, set a custom FPS limit, select from a list of predefined values, or turn it off
-- **Antialiasing**, a toggle for FXAA or SMAA
+- **Antialiasing**, a toggle for FXAA or SMAA ([comparison](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/assets/4904157/6104ec1f-9e5a-46c4-891a-6a5e37d85f86))
 - **SSAA**, a toggle to enable supersampling, requires restart, affects performance
 - **Console Gamma**, emulates consoles' contrasted look
 - **Screen Filter**, an option to change color filters in main game and episodes
