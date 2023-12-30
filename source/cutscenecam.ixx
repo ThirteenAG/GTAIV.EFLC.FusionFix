@@ -15,7 +15,6 @@ public:
         FusionFix::onInitEvent() += []()
         {
             // By Sergeanur
-
             auto pattern = find_pattern("74 20 83 FF 03 74 1B 83", "74 24 8B 44 24 2C");
             injector::WriteMemory<uint8_t>(pattern.get_first(), 0xEB, true);
 
@@ -41,7 +40,8 @@ public:
                 bool Hookster(float a2)
                 {
 #if 1
-                    incrementalTimeStep += *fTimeStep;
+                    //idk what's going on here, but seems better than with timestep check
+                    //incrementalTimeStep += *fTimeStep;
 
                     CutsceneCamJitterWorkaround temp = *this;
 
@@ -50,8 +50,8 @@ public:
 
                     CutsceneCamJitterWorkaround temp2 = *this;
 
-                    if (incrementalTimeStep < 0.3333)
-                        return result;
+                    ///if (incrementalTimeStep < 0.3333)
+                    //    return result;
 
                     *this = temp;
 
@@ -60,14 +60,14 @@ public:
 
                     temp = *this;
 
-                    if (fabs(temp.data[8] - temp2.data[8]) > 0.05f
-                        || fabs(temp.data[9] - temp2.data[9]) > 0.05f
-                        || fabs(temp.data[10] - temp2.data[10]) > 0.05f
-                        || fabs(temp.data[16] - temp2.data[16]) > 0.5f
-                        || fabs(temp.data[17] - temp2.data[17]) > 0.5f
-                        || fabs(temp.data[18] - temp2.data[18]) > 0.5f)
+                    if (fabs(temp.data[8] - temp2.data[8]) > 0.03333f
+                        || fabs(temp.data[9] - temp2.data[9]) > 0.03333f
+                        || fabs(temp.data[10] - temp2.data[10]) > 0.03333f
+                        || fabs(temp.data[16] - temp2.data[16]) > 0.3333f
+                        || fabs(temp.data[17] - temp2.data[17]) > 0.3333f
+                        || fabs(temp.data[18] - temp2.data[18]) > 0.3333f)
                     {
-                        incrementalTimeStep = 0.0;
+                        //incrementalTimeStep = 0.0;
                         *this = temp2;
                         return result;
                     }

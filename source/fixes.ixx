@@ -322,7 +322,7 @@ public:
 
                 FusionFix::D3D9::onBeforeDrawPrimitive() += [](LPDIRECT3DDEVICE9& pDevice, D3DPRIMITIVETYPE& PrimitiveType, UINT& StartVertex, UINT& PrimitiveCount)
                 {
-                    IDirect3DVertexShader9* vShader = 0;
+                    IDirect3DVertexShader9* vShader = nullptr;
                     pDevice->GetVertexShader(&vShader);
                     if (vShader && CoronaVertexShader && vShader == CoronaVertexShader)
                     {

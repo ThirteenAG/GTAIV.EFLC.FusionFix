@@ -372,8 +372,8 @@ public:
 
     struct
     {
-        enum eButtonsText { eOff, eLow, eMedium, eHigh, eVeryHigh, eXbox360, eXboxOne, ePlaystation3, ePlaystation4, ePlaystation5, eNintendoSwitch, eSteamDeck };
-        std::vector<const char*> data = { "Off", "Low", "Medium", "High", "Very High", "Xbox 360", "Xbox One", "Playstation 3", "Playstation 4", "Playstation 5", "Nintendo Switch", "Steam Deck" };
+        enum eButtonsText { eOff, eLow, eMedium, eHigh, eVeryHigh, eXbox360, eXboxOne, ePlaystation3, ePlaystation4, ePlaystation5, eNintendoSwitch, eSteamDeck, eSteamController };
+        std::vector<const char*> data = { "Off", "Low", "Medium", "High", "Very High", "Xbox 360", "Xbox One", "Playstation 3", "Playstation 4", "Playstation 5", "Nintendo Switch", "Steam Deck", "Steam Controller" };
     } ButtonsText;
 
     struct
