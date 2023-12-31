@@ -207,8 +207,9 @@ public:
                 IDirect3DSurface9* blendSurf = nullptr;
                 DWORD OldSRGB = 0;
                 DWORD OldSampler = 0;
-                DWORD Samplers[5] = { D3DTEXF_LINEAR };
-                pDevice->GetPixelShader(&pShader);
+                #define PostfxTextureCount 6
+                IDirect3DBaseTexture9* prePostFx[PostfxTextureCount] = { 0 };
+                DWORD Samplers[PostfxTextureCount] = { D3DTEXF_LINEAR };
               
                 if (doPostFxAA)
                 {
@@ -220,6 +221,12 @@ public:
                     pDevice->GetRenderTarget(0, &backBuffer);
                     if (backBuffer && ShadersAA::pHDRTex2)
                     {
+                        // save sampler state
+                        for(int i = 0; i < PostfxTextureCount; i++) {
+                            pDevice->GetTexture(i, &prePostFx[i]);
+                            pDevice->GetSamplerState(i, D3DSAMP_MAGFILTER, &Samplers[i]);
+                        }
+
                         ShadersAA::pHDRTex2->GetSurfaceLevel(0, &pHDRSurface2);
 
                         static auto prefAA = FusionFixSettings.GetRef("PREF_ANTIALIASING");
@@ -256,10 +263,6 @@ public:
                             {
                                 ShadersAA::edgesTex->GetSurfaceLevel(0, &edgesSurf);
                                 ShadersAA::blendTex->GetSurfaceLevel(0, &blendSurf);
-
-                                // save sampler state
-                                for(int i = 0; i < 5; i++)
-                                    pDevice->GetSamplerState(i, D3DSAMP_MAGFILTER, &Samplers[i]);
 
                                 // game postfx
                                 pDevice->SetRenderTarget(0, pHDRSurface2);
@@ -332,13 +335,16 @@ public:
                                 pDevice->SetPixelShader(pShader);
                                 pDevice->SetFVF(OldFVF);
 
-                                // restore sampler state
-                                for (auto i = 0; i < 5; i++)
-                                    pDevice->SetSamplerState(i, D3DSAMP_MAGFILTER, Samplers[i]);
-
                                 SAFE_RELEASE(edgesSurf);
                                 SAFE_RELEASE(blendSurf);
                             }
+                        }
+
+                        // restore sampler state
+                        for(int i = 0; i < PostfxTextureCount; i++) {
+                            pDevice->SetTexture(i, prePostFx[i]);
+                            pDevice->SetSamplerState(i, D3DSAMP_MAGFILTER, Samplers[i]);
+                            SAFE_RELEASE(prePostFx[i]);
                         }
 
                         SAFE_RELEASE(backBuffer);
