@@ -196,7 +196,7 @@ public:
                 doPostFxAA = true;
             };
 
-            FusionFix::D3D9::onAfterDrawPrimitive() += [](LPDIRECT3DDEVICE9& pDevice, D3DPRIMITIVETYPE& PrimitiveType, UINT& StartVertex, UINT& PrimitiveCount)
+            FusionFix::D3D9::onBeforeDrawPrimitive() += [](LPDIRECT3DDEVICE9& pDevice, D3DPRIMITIVETYPE& PrimitiveType, UINT& StartVertex, UINT& PrimitiveCount)
             {
                 static float vec4[4] = { 0.0f };
                 IDirect3DPixelShader9* pShader = nullptr;
@@ -234,6 +234,7 @@ public:
                         // FXAA: Works normally as the game's post-processing shader
                         if (ShadersAA::FxaaPS && prefAA->get() == FusionFixSettings.AntialiasingText.eFXAA)
                         {
+                            FusionFix::D3D9::setInsteadDrawPrimitive(true);
                             pDevice->SetRenderTarget(0, pHDRSurface2);
                             pDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 0, 0);
                             DrawPrimitiveOriginalPtr(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
@@ -252,8 +253,9 @@ public:
                         // SMAA
                         // need to use the drawprimitiveup function to correct texture coordinates, 
                         // which is different from the game's post-processing.
-                        if (ShadersAA::resourcesFinishedLoading() && pHDRSurface2 && prefAA->get() == FusionFixSettings.AntialiasingText.eSMAA)
+                        else if (ShadersAA::resourcesFinishedLoading() && pHDRSurface2 && prefAA->get() == FusionFixSettings.AntialiasingText.eSMAA)
                         {
+                            FusionFix::D3D9::setInsteadDrawPrimitive(true);
                             vec4[0] = 1.0f / float(getWindowWidth() * (bUseSSAA ? 2 : 1));
                             vec4[1] = 1.0f / float(getWindowHeight() * (bUseSSAA ? 2 : 1));
                             vec4[2] = float(getWindowWidth() * (bUseSSAA ? 2 : 1));

@@ -180,6 +180,13 @@ public:
             static Event<LPDIRECT3DDEVICE9&, D3DPRIMITIVETYPE&, UINT&, UINT&> BeforeDrawPrimitive;
             return BeforeDrawPrimitive;
         }
+        static bool& isInsteadDrawPrimitive() {
+            static bool InsteadDrawPrimitive = false;
+            return InsteadDrawPrimitive;
+        }
+        static void setInsteadDrawPrimitive(bool set) {
+            isInsteadDrawPrimitive() = set;
+        }
         static Event<LPDIRECT3DDEVICE9&, D3DPRIMITIVETYPE&, UINT&, UINT&>& onAfterDrawPrimitive() {
             static Event<LPDIRECT3DDEVICE9&, D3DPRIMITIVETYPE&, UINT&, UINT&> AfterDrawPrimitive;
             return AfterDrawPrimitive;
