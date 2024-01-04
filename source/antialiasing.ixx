@@ -180,6 +180,12 @@ public:
             {
                 if (Format == D3DFMT_A16B16G16R16F && ppTexture && (getWindowWidth() * (bUseSSAA ? 2 : 1)) && Height == (getWindowHeight() * (bUseSSAA ? 2 : 1)))
                 {
+                    SAFE_RELEASE(ShadersAA::pHDRTex2);
+                    SAFE_RELEASE(ShadersAA::areaTex);
+                    SAFE_RELEASE(ShadersAA::searchTex);
+                    SAFE_RELEASE(ShadersAA::edgesTex);
+                    SAFE_RELEASE(ShadersAA::blendTex);
+
                     // create new texture to postfx
                     if (SUCCEEDED(CreateTextureOriginalPtr(pDevice, Width, Height, Levels, Usage, Format, Pool, &ShadersAA::pHDRTex2, 0)) && ShadersAA::pHDRTex2)
                     {
@@ -207,7 +213,7 @@ public:
                 IDirect3DSurface9* blendSurf = nullptr;
                 DWORD OldSRGB = 0;
                 DWORD OldSampler = 0;
-                #define PostfxTextureCount 6
+                #define PostfxTextureCount 5
                 IDirect3DBaseTexture9* prePostFx[PostfxTextureCount] = { 0 };
                 DWORD Samplers[PostfxTextureCount] = { D3DTEXF_LINEAR };
               
@@ -344,9 +350,11 @@ public:
 
                         // restore sampler state
                         for(int i = 0; i < PostfxTextureCount; i++) {
-                            pDevice->SetTexture(i, prePostFx[i]);
-                            pDevice->SetSamplerState(i, D3DSAMP_MAGFILTER, Samplers[i]);
-                            SAFE_RELEASE(prePostFx[i]);
+                            if(prePostFx[i]) {
+                                pDevice->SetTexture(i, prePostFx[i]);
+                                pDevice->SetSamplerState(i, D3DSAMP_MAGFILTER, Samplers[i]);
+                                SAFE_RELEASE(prePostFx[i]);
+                            }
                         }
 
                         SAFE_RELEASE(backBuffer);
@@ -356,6 +364,7 @@ public:
                         }
                         doPostFxAA = false;
                     };
+                    SAFE_RELEASE(backBuffer);
                 }
             };
 
