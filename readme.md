@@ -136,6 +136,8 @@ This projects aims to fix some issues in Grand Theft Auto IV: Complete Edition. 
 
 **Special thanks to [Parallellines0451](https://github.com/Parallellines0451) [AssaultKifle47](https://github.com/akifle47), [RaphaelK12](https://github.com/RaphaelK12), [robi29](https://github.com/robi29) and [\_CP_](https://github.com/cpmodding) for directly contributing with fixes, to [Shvab](https://github.com/d3g0n-byte) for making RAGE Shader Editor.**
 
+**Fusion Fix uses dx hook to implement some features. It causes certain 3rd party software to crash/hang the game. To avoid this, Fusion Fix prevents [certain dlls from injecting into the game's process](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/blob/master/source/dllblacklist.ixx#L15).**
+
 ### General
 - Fixed z-fighting by implementing a logarithmic depth buffer
 - Fixed LOD pop-in
