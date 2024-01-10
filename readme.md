@@ -2,12 +2,12 @@
 [![AppVeyor](https://img.shields.io/appveyor/build/ThirteenAG/GTAIV-EFLC-FusionFix?label=AppVeyor%20Build&logo=Appveyor&logoColor=white)](https://ci.appveyor.com/project/ThirteenAG/gtaiv-eflc-fusionfix)
 
 <p align="center">
-  <img height="200" src="https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/assets/4904157/f45efc2e-f4f5-4d4d-847b-0f0d19897ef4.png">
+  <img width="400" src="https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/assets/4904157/f45efc2e-f4f5-4d4d-847b-0f0d19897ef4.png">
 </p>
 
 # GTAIV.EFLC.FusionFix
 
-This projects aims to fix some issues in Grand Theft Auto IV: Complete Edition. Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionFix#readme).
+This projects aims to fix some issues in Grand Theft Auto IV: The Complete Edition. Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionFix#readme).
 
 ![](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/assets/4904157/ba388163-c26a-41ae-8378-bef4037c4fd7)
 
@@ -18,7 +18,7 @@ This projects aims to fix some issues in Grand Theft Auto IV: Complete Edition. 
 >
 > **Download**: [GTAIV.EFLC.FusionFix.zip](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFix.zip)
 >
-> Unpack content of the archive to your **GTAIV Complete Edition** root directory.
+> Unpack content of the archive to your **GTAIV: The Complete Edition** root directory.
 
 > [!WARNING]
 > Non-Windows users (Proton/Wine) need to perform a [DLL override](https://cookieplmonster.github.io/setup-instructions/#proton-wine).
