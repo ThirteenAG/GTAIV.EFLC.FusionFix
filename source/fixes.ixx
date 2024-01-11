@@ -301,13 +301,6 @@ public:
                 injector::MakeNOP(pattern.get_first(0), 16, true);
             }
 
-            // Off Route infinite loading
-            {
-                auto pattern = hook::pattern("68 ? ? ? ? FF B6 ? ? ? ? E8 ? ? ? ? 83 C4 08 84 C0 74 E2");
-                if (!pattern.empty())
-                    injector::WriteMemory(pattern.get_first(1), 0xFFFFFFFF, true);
-            }
-
             // Fix for light coronas being rendered through objects in water reflections.
             {
                 static auto bCoronaShader = false;

@@ -15,6 +15,7 @@ float fFpsLimit;
 float fCutsceneFpsLimit;
 float fScriptCutsceneFpsLimit;
 float fScriptCutsceneFovLimit;
+float fLoadingFpsLimit;
 
 class FrameLimiter
 {
@@ -127,13 +128,15 @@ bool __cdecl sub_411F50(uint32_t* a1, uint32_t* a2)
 FrameLimiter FpsLimiter;
 FrameLimiter CutsceneFpsLimiter;
 FrameLimiter ScriptCutsceneFpsLimiter;
+FrameLimiter LoadingFpsLimiter;
 bool(*CCutscenes__hasCutsceneFinished)();
 bool(*CCamera__isWidescreenBordersActive)();
+bool bUnlockFramerateDuringLoadscreens = true;
 void __cdecl sub_855640()
 {
     static auto preset = FusionFixSettings.GetRef("PREF_FPS_LIMIT_PRESET");
 
-    if (bLoadscreenShown && !*bLoadscreenShown && !bLoadingShown)
+    if ((bLoadscreenShown && !*bLoadscreenShown && !bLoadingShown) || !bUnlockFramerateDuringLoadscreens)
     {
         if (preset && *preset >= FusionFixSettings.FpsCaps.eCustom) {
             if (fFpsLimit > 0.0f || (*preset > FusionFixSettings.FpsCaps.eCustom && *preset < int32_t(FusionFixSettings.FpsCaps.data.size())))
@@ -151,6 +154,16 @@ void __cdecl sub_855640()
     }
 }
 
+bool __cdecl sub_403CD0(HANDLE hHandle, DWORD dwMilliseconds)
+{
+    if (CMenuManager__m_MenuActive)
+    {
+        if (!*CMenuManager__m_MenuActive)
+            LoadingFpsLimiter.Sync();
+    }
+    return hHandle && WaitForSingleObject(hHandle, dwMilliseconds) == WAIT_OBJECT_0;
+}
+
 class Framelimit
 {
 public:
@@ -166,6 +179,8 @@ public:
             fCutsceneFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "CutsceneFpsLimit", 0));
             fScriptCutsceneFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "ScriptCutsceneFpsLimit", 0));
             fScriptCutsceneFovLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "ScriptCutsceneFovLimit", 0));
+            fLoadingFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "LoadingFpsLimit", 30));
+            bUnlockFramerateDuringLoadscreens = iniReader.ReadInteger("FRAMELIMIT", "UnlockFramerateDuringLoadscreens", 0) != 0;
 
             //if (fFpsLimit || fCutsceneFpsLimit || fScriptCutsceneFpsLimit)
             {
@@ -180,6 +195,7 @@ public:
                     FpsLimiter.Init(mode, fFpsLimit);
                 CutsceneFpsLimiter.Init(mode, fCutsceneFpsLimit);
                 ScriptCutsceneFpsLimiter.Init(mode, fScriptCutsceneFpsLimit);
+                LoadingFpsLimiter.Init(mode, std::clamp(fLoadingFpsLimit, 30.0f, FLT_MAX));
 
                 auto pattern = find_pattern("E8 ? ? ? ? 84 C0 75 89", "E8 ? ? ? ? 84 C0 75 15 38 05");
                 CCutscenes__hasCutsceneFinished = (bool(*)()) injector::GetBranchDestination(pattern.get_first(0)).get();
@@ -223,6 +239,17 @@ public:
                         *(float*)(regs.eax + 0x60) = f > fScriptCutsceneFovLimit ? f : fScriptCutsceneFovLimit;
                     }
                 }; injector::MakeInline<SetFOVHook>(pattern.get_first(0), pattern.get_first(6));
+            }
+
+            // Off Route infinite loading
+            {
+                auto pattern = hook::pattern("E8 ? ? ? ? 83 C4 08 84 C0 74 E2");
+                if (!pattern.empty())
+                    injector::MakeCALL(pattern.get_first(), sub_403CD0, true);
+
+                pattern = hook::pattern("E8 ? ? ? ? 83 C4 0C 84 C0 75 25");
+                if (!pattern.empty())
+                    injector::MakeCALL(pattern.get_first(), sub_403CD0, true);
             }
         };
 
