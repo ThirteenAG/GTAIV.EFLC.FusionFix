@@ -240,17 +240,18 @@ public:
                     }
                 }; injector::MakeInline<SetFOVHook>(pattern.get_first(0), pattern.get_first(6));
             }
+        };
 
+        FusionFix::onGameInitEvent() += []()
+        {
             // Off Route infinite loading
-            {
-                auto pattern = hook::pattern("E8 ? ? ? ? 83 C4 08 84 C0 74 E2");
-                if (!pattern.empty())
-                    injector::MakeCALL(pattern.get_first(), sub_403CD0, true);
+            auto pattern = hook::pattern("E8 ? ? ? ? 83 C4 08 84 C0 74 E2");
+            if (!pattern.empty())
+                injector::MakeCALL(pattern.get_first(), sub_403CD0, true);
 
-                pattern = hook::pattern("E8 ? ? ? ? 83 C4 0C 84 C0 75 25");
-                if (!pattern.empty())
-                    injector::MakeCALL(pattern.get_first(), sub_403CD0, true);
-            }
+            pattern = hook::pattern("E8 ? ? ? ? 83 C4 0C 84 C0 75 25");
+            if (!pattern.empty())
+                injector::MakeCALL(pattern.get_first(), sub_403CD0, true);
         };
 
         FusionFix::onShutdownEvent() += []()
