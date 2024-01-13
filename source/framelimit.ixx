@@ -154,14 +154,11 @@ void __cdecl sub_855640()
     }
 }
 
-bool __cdecl sub_403CD0(HANDLE hHandle, DWORD dwMilliseconds)
+SafetyHookInline CCutsceneObjectHook{};
+void __fastcall sub_C64380(void* _this, void* edx)
 {
-    if (CMenuManager__m_MenuActive)
-    {
-        if (!*CMenuManager__m_MenuActive)
-            LoadingFpsLimiter.Sync();
-    }
-    return hHandle && WaitForSingleObject(hHandle, dwMilliseconds) == WAIT_OBJECT_0;
+    LoadingFpsLimiter.Sync();
+    return CCutsceneObjectHook.unsafe_fastcall(_this, edx);
 }
 
 class Framelimit
@@ -242,16 +239,12 @@ public:
             }
         };
 
-        FusionFix::onGameInitEvent() += []()
+        FusionFix::onInitEvent() += []()
         {
-            // Off Route infinite loading
-            auto pattern = hook::pattern("E8 ? ? ? ? 83 C4 08 84 C0 74 E2");
+            // Off Route infinite loading (CCutsceneObject method causes CRenderer::removeAllTexturesFromDictionary to softlock for unidentified reason)
+            auto pattern = hook::pattern("56 8B F1 83 BE ? ? ? ? ? C7 06 ? ? ? ? 0F 85");
             if (!pattern.empty())
-                injector::MakeCALL(pattern.get_first(), sub_403CD0, true);
-
-            pattern = hook::pattern("E8 ? ? ? ? 83 C4 0C 84 C0 75 25");
-            if (!pattern.empty())
-                injector::MakeCALL(pattern.get_first(), sub_403CD0, true);
+                CCutsceneObjectHook = safetyhook::create_inline(pattern.get_first(0), sub_C64380);
         };
 
         FusionFix::onShutdownEvent() += []()
