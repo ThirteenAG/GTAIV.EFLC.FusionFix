@@ -154,10 +154,20 @@ void __cdecl sub_855640()
     }
 }
 
+bool bIsC64CB0XRef = false;
+injector::hook_back<void(__cdecl*)(void*)> hbsub_C64CB0;
+void __cdecl sub_C64CB0(void* a1)
+{
+    bIsC64CB0XRef = true;
+    hbsub_C64CB0.fun(a1);
+    bIsC64CB0XRef = false;
+}
+
 SafetyHookInline CCutsceneObjectHook{};
 void __fastcall sub_C64380(void* _this, void* edx)
 {
-    LoadingFpsLimiter.Sync();
+    if (bIsC64CB0XRef)
+        LoadingFpsLimiter.Sync();
     return CCutsceneObjectHook.unsafe_fastcall(_this, edx);
 }
 
@@ -245,6 +255,10 @@ public:
             auto pattern = hook::pattern("56 8B F1 83 BE ? ? ? ? ? C7 06 ? ? ? ? 0F 85");
             if (!pattern.empty())
                 CCutsceneObjectHook = safetyhook::create_inline(pattern.get_first(0), sub_C64380);
+
+            pattern = hook::pattern("E8 ? ? ? ? 83 C4 0C C7 04 B5 ? ? ? ? ? ? ? ? 4E");
+            if (!pattern.empty())
+                hbsub_C64CB0.fun = injector::MakeCALL(pattern.get_first(0), sub_C64CB0).get();
         };
 
         FusionFix::onShutdownEvent() += []()
