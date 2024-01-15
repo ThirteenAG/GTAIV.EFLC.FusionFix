@@ -22,7 +22,7 @@ HLP_help_text_size 0.19800 0.30000
 HLP_help_text_spacing 0.01875 0.03650
 HLP_help_but_size 0.46050 0.39750
 HLP_help_but_spacing 0.01350 0.00600
-BOT_position_of_bottom_line 0.80800 0.83200
+BOT_position_of_bottom_line 0.80800 0.80000
 BOT_clock_position 0.08900 0.83500
 BOT_clock_size 0.23625 0.32200
 BOT_clock_icon_pos -0.50000 0.00000
@@ -304,7 +304,7 @@ HLP_help_text_size 0.21400 0.29200
 HLP_help_text_spacing 0.01875 0.03650
 HLP_help_but_size 0.46050 0.42000
 HLP_help_but_spacing 0.01350 0.00600
-BOT_position_of_bottom_line 0.80800 0.846
+BOT_position_of_bottom_line 0.80800 0.80000
 BOT_clock_position 0.09700 0.83500
 BOT_clock_size 0.24750 0.33750
 BOT_clock_icon_pos -0.50000 0.00000
