@@ -417,6 +417,12 @@
       <options text="Playstation 5" action="ACTION_NONE" value="5" />
       <options text="Nintendo Switch" action="ACTION_NONE" value="6" />
       <options text="Steam Deck" action="ACTION_NONE" value="7" />
+      <options text="SteamController" action="ACTION_NONE" value="8" />
+    </menupc>
+    <menupc enum="MENU_DISPLAY_ANTIALIASING">
+      <options text="MO_OFF" action="ACTION_NONE" value="1" />
+      <options text="FXAA" action="ACTION_NONE" value="2" />
+      <options text="SMAA" action="ACTION_NONE" value="3" />
     </menupc>
   </sMenuDisplayValue>
   <sMenuScreen>
@@ -435,6 +441,7 @@
       <optionspc action="MENUOPT_ADJUST" label="FPS Counter" value="PREF_FPSCOUNTER" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="MENUOPT_ADJUST" label="Letterbox" value="PREF_LETTERBOX" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="MENUOPT_ADJUST" label="Pillarbox" value="PREF_PILLARBOX" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="SSAA 2x" value="PREF_SSAA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
       <optionspc action="MENUOPT_ADJUST" label="Alt. Dialogues" value="PREF_ALTDIALOGUE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
@@ -501,7 +508,7 @@
       <options action="MENUOPT_ADJUST" label="MO_SNI" value="PREF_SNIPER_CONTROL" scaler="2" displayValue="MENU_DISPLAY_SNIPER_TYPE" />
       <options action="MENUOPT_ADJUST" label="MO_SENS" value="PREF_CONTROLLER_SENSITIVITY" scaler="3" displayValue="MENU_DISPLAY_CONTROLLER_SENSITIVITY" />
       <optionspc action="MENUOPT_ADJUST" label="Centering Delay" value="PREF_EPISODIC_RACECLASS_RACE_5" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
-      <optionspc action="MENUOPT_ADJUST" label="Gamepad Icons" value="PREF_BUTTONS" scaler="12" displayValue="MENU_DISPLAY_BUTTONS" />
+      <optionspc action="MENUOPT_ADJUST" label="Gamepad Icons" value="PREF_BUTTONS" scaler="13" displayValue="MENU_DISPLAY_BUTTONS" />
       <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
       <optionspc action="MENUOPT_ADJUST" label="MO_DINPUT" value="PREF_DINPUT" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
@@ -1104,7 +1111,7 @@
       <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
       <optionspc action="MENUOPT_ADJUST" label="Shadow Filter" value="PREF_SHADOW_FILTER" scaler="8" displayValue="MENU_DISPLAY_SHADOWFILTER" />
       <optionspc action="MENUOPT_ADJUST" label="Console Shadows" value="PREF_CONSOLE_SHADOWS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-      <optionspc action="MENUOPT_ADJUST" label="FXAA" value="PREF_FXAA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="Antialiasing" value="PREF_ANTIALIASING" scaler="8" displayValue="MENU_DISPLAY_ANTIALIASING" />
       <optionspc action="MENUOPT_ADJUST" label="FPS Limiter" value="PREF_FPS_LIMIT_PRESET" scaler="15" displayValue="MENU_DISPLAY_FRAMELIMIT" />
       <optionspc action="MENUOPT_ADJUST" label="MO_FOV" value="PREF_EPISODIC_RACECLASS_RACE_3" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
       <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
@@ -1157,7 +1164,7 @@
       <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
       <optionspc action="MENUOPT_ADJUST" label="Shadow Filter" value="PREF_SHADOW_FILTER" scaler="8" displayValue="MENU_DISPLAY_SHADOWFILTER" />
       <optionspc action="MENUOPT_ADJUST" label="Console Shadows" value="PREF_CONSOLE_SHADOWS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-      <optionspc action="MENUOPT_ADJUST" label="FXAA" value="PREF_FXAA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="Antialiasing" value="PREF_ANTIALIASING" scaler="8" displayValue="MENU_DISPLAY_ANTIALIASING" />
       <optionspc action="MENUOPT_ADJUST" label="FPS Limiter" value="PREF_FPS_LIMIT_PRESET" scaler="15" displayValue="MENU_DISPLAY_FRAMELIMIT" />
       <optionspc action="MENUOPT_ADJUST" label="MO_FOV" value="PREF_EPISODIC_RACECLASS_RACE_3" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
       <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
@@ -1182,6 +1189,7 @@
       <optionspc action="MENUOPT_ADJUST" label="FPS Counter" value="PREF_FPSCOUNTER" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="MENUOPT_ADJUST" label="Letterbox" value="PREF_LETTERBOX" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="MENUOPT_ADJUST" label="Pillarbox" value="PREF_PILLARBOX" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="SSAA 2x" value="PREF_SSAA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="END_OF_MENU_OPTIONS" label="" value="0"
         scaler="0" displayValue="0" />
     </menupc>

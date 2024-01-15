@@ -8,14 +8,17 @@ import common;
 import framelimit;
 import comvars;
 
+bool bRestoreSleep = false;
 void WINAPI FusionSleep(DWORD dwMilliseconds)
 {
-    auto bMenuActive = CMenuManager__m_MenuActive && *CMenuManager__m_MenuActive;
-    auto bLoadscreenActive = (bLoadscreenShown && *bLoadscreenShown) || bLoadingShown;
+    if (!bRestoreSleep)
+    {
+        auto bMenuActive = CMenuManager__m_MenuActive && *CMenuManager__m_MenuActive;
+        auto bLoadscreenActive = (bLoadscreenShown && *bLoadscreenShown) || bLoadingShown;
 
-    if (!bMenuActive && bLoadscreenActive)
-        return Sleep(0);
-
+        if (!bMenuActive && bLoadscreenActive)
+            return Sleep(0);
+    }
     return Sleep(dwMilliseconds);
 }
 
@@ -33,11 +36,16 @@ public:
             injector::MakeJMP(pattern.get_first(), hook::get_pattern("6A FF 6A 01 6A 00 6A 01 6A 01 6A 00 6A 01 6A 01 6A 00 6A 00 6A 00 6A 00 6A 00 6A 00 B9 ? ? ? ? C6 46 04 00"));
         };
 
-        FusionFix::onAfterUALRestoredIATEvent() += []()
+        FusionFix::onInitEvent() += []()
         {
             IATHook::Replace(GetModuleHandleA(NULL), "kernel32.DLL",
                 std::forward_as_tuple("Sleep", FusionSleep)
             );
+        };
+
+        FusionFix::onGameInitEvent() += []()
+        {
+            bRestoreSleep = true;
         };
     }
 } LoadingDelays;

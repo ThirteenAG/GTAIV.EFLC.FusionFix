@@ -36,10 +36,8 @@ public:
                         *(uintptr_t*)(regs.esp - 4) = loc_A2A60F;
                     }
 
-                    static auto alwaysrun = FusionFixSettings.GetRef("PREF_ALWAYSRUN");
-                    static auto alwayssprint = FusionFixSettings.GetRef("PREF_SPRINT");
-                    
-                    if (!alwayssprint->get()) // toggle
+                    static auto alwaysrun = FusionFixSettings.GetRef("PREF_ALWAYSRUN");                    
+                    if (!FusionFixSettings.Get("PREF_SPRINT")) // toggle
                     {
                         if (alwaysrun->get())
                         {

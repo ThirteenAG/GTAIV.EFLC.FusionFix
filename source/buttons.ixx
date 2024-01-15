@@ -20,6 +20,7 @@ private:
         "PS5_",
         "SWITCH_",
         "SD_",
+        "SC_",
     };
 
     static inline std::vector<std::string> buttons = {
@@ -43,7 +44,7 @@ private:
         {
             prefvalue++;
 
-            if (prefvalue > FusionFixSettings.ButtonsText.eSteamDeck)
+            if (prefvalue > FusionFixSettings.ButtonsText.eSteamController)
                 prefvalue = FusionFixSettings.ButtonsText.eXbox360;
 
             prefvalueindex = prefvalue - FusionFixSettings.ButtonsText.eXbox360;

@@ -45,7 +45,7 @@ private:
     static inline auto firstCustomID = 0;
     static inline std::map<int32_t, std::pair<const char*, const char*>> slidersList;
 private:
-    static inline int32_t* mPrefs;
+    static inline int32_t* mPrefs = nullptr;
     static inline std::map<uint32_t, CSetting> mFusionPrefs;
 
     std::optional<std::string> GetPrefNameByID(auto prefID) {
@@ -131,7 +131,7 @@ public:
         injector::WriteMemory(ppOriginalPrefs, &aMenuPrefs[0].prefID, true);
         injector::WriteMemory(find_pattern("FF 34 FD ? ? ? ? 56 E8 ? ? ? ? 83 C4 08 85 C0 0F 84 ? ? ? ? 47 81 FF", "8B 04 F5 ? ? ? ? 50 57 E8 ? ? ? ? 83 C4 08 85 C0 74 7C").get_first(3), &aMenuPrefs[0].name, true);
 
-        pattern = hook::pattern("89 1C ? ? ? ? ? E8");
+        pattern = find_pattern("89 1C 95 ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 83 C4 04 8D 04 40", "89 1C 8D ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 8D 0C 40 8B 14 CD");
         mPrefs = *pattern.get_first<int32_t*>(3);
 
         CIniReader iniReader(cfgPath.wstring());
@@ -141,7 +141,7 @@ public:
             { 0, "PREF_SKIP_MENU",         "MAIN",       "SkipMenu",                        "",                           1, nullptr, 0, 1 },
             { 0, "PREF_BORDERLESS",        "MAIN",       "BorderlessWindowed",              "",                           1, nullptr, 0, 1 },
             { 0, "PREF_FPS_LIMIT_PRESET",  "FRAMELIMIT", "FpsLimitPreset",                  "MENU_DISPLAY_FRAMELIMIT",    0, nullptr, FpsCaps.eOFF, std::distance(std::begin(FpsCaps.data), std::end(FpsCaps.data)) - 1 },
-            { 0, "PREF_FXAA",              "MISC",       "FXAA",                            "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_SSAA",              "MISC",       "SSAA",                            "",                           0, nullptr, 0, 1 },
             { 0, "PREF_CONSOLE_GAMMA",     "MISC",       "ConsoleGamma",                    "",                           0, nullptr, 0, 1 },
             { 0, "PREF_TIMECYC",           "MISC",       "ScreenFilter",                    "MENU_DISPLAY_TIMECYC",       5, nullptr, TimecycText.eMO_DEF, std::distance(std::begin(TimecycText.data), std::end(TimecycText.data)) - 1 },
             { 0, "PREF_CUTSCENE_DOF",      "MISC",       "DepthOfField",                    "",                           1, nullptr, 0, 1 },
@@ -164,6 +164,7 @@ public:
             { 0, "PREF_BUTTONS",           "MISC",       "Buttons",                         "MENU_DISPLAY_BUTTONS",       6, nullptr, ButtonsText.eXbox360, std::distance(std::begin(ButtonsText.data), std::end(ButtonsText.data)) - 1 },
             { 0, "PREF_LETTERBOX",         "MISC",       "Letterbox",                       "",                           1, nullptr, 0, 1 },
             { 0, "PREF_PILLARBOX",         "MISC",       "Pillarbox",                       "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_ANTIALIASING",      "MISC",       "Antialiasing",                    "MENU_DISPLAY_ANTIALIASING",  5, nullptr, AntialiasingText.eMO_OFF, std::distance(std::begin(AntialiasingText.data), std::end(AntialiasingText.data)) - 1 },
         };
 
         auto i = firstCustomID;
@@ -252,6 +253,8 @@ public:
             return mFusionPrefs[prefID].GetValue();
         else
         {
+            if (!mPrefs)
+                return 0;
             DWORD tmp;
             injector::UnprotectMemory(&mPrefs[prefID], sizeof(int32_t), tmp);
             return mPrefs[prefID];
@@ -263,6 +266,8 @@ public:
         }
         else
         {
+            if (!mPrefs)
+                return;
             DWORD tmp;
             injector::UnprotectMemory(&mPrefs[prefID], sizeof(int32_t), tmp);
             mPrefs[prefID] = value;
@@ -296,6 +301,10 @@ public:
             if (prefID >= firstCustomID)
                 return std::ref(mFusionPrefs[*prefID].value);
             else {
+                if (!mPrefs) {
+                    MessageBoxW(0, L"Can't GetRef of original PREF", 0, 0);
+                    return std::nullopt;
+                }
                 DWORD tmp;
                 injector::UnprotectMemory(&mPrefs[*prefID], sizeof(int32_t), tmp);
                 return std::ref(mPrefs[*prefID]);
@@ -363,9 +372,15 @@ public:
 
     struct
     {
-        enum eButtonsText { eOff, eLow, eMedium, eHigh, eVeryHigh, eXbox360, eXboxOne, ePlaystation3, ePlaystation4, ePlaystation5, eNintendoSwitch, eSteamDeck };
-        std::vector<const char*> data = { "Off", "Low", "Medium", "High", "Very High", "Xbox 360", "Xbox One", "Playstation 3", "Playstation 4", "Playstation 5", "Nintendo Switch", "Steam Deck" };
+        enum eButtonsText { eOff, eLow, eMedium, eHigh, eVeryHigh, eXbox360, eXboxOne, ePlaystation3, ePlaystation4, ePlaystation5, eNintendoSwitch, eSteamDeck, eSteamController };
+        std::vector<const char*> data = { "Off", "Low", "Medium", "High", "Very High", "Xbox 360", "Xbox One", "Playstation 3", "Playstation 4", "Playstation 5", "Nintendo Switch", "Steam Deck", "Steam Controller" };
     } ButtonsText;
+
+    struct
+    {
+        enum eAntialiasingText { eLow, eMedium, eHigh, eVeryHigh, eHighest, eMO_OFF, eFXAA, eSMAA };
+        std::vector<const char*> data = { "Low", "Medium", "High", "Very High", "Highest", "MO_OFF", "FXAA", "SMAA" };
+    } AntialiasingText;
 
 } FusionFixSettings;
 

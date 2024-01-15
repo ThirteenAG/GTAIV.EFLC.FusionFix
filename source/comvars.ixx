@@ -29,6 +29,16 @@ export bool bLoadingShown = false;
 export int bMenuNeedsUpdate = 0;
 export int bMenuNeedsUpdate2 = 0;
 
+export inline LONG getWindowWidth()
+{
+    return gRect.right - gRect.left;
+}
+
+export inline LONG getWindowHeight()
+{
+    return gRect.bottom - gRect.top;
+}
+
 class Common
 {
 public:

@@ -364,5 +364,15 @@ public:
                 bLogiLedInitialized = false;
             }
         };
+
+        IATHook::Replace(GetModuleHandleA(NULL), "KERNEL32.DLL",
+            std::forward_as_tuple("ExitProcess", static_cast<void(__stdcall*)(UINT)>([](UINT uExitCode) {
+                if (bLogiLedInitialized) {
+                    LogiLedShutdown();
+                    bLogiLedInitialized = false;
+                }
+                ExitProcess(uExitCode);
+            }))
+        );
     }
 } LED;
