@@ -228,7 +228,7 @@ public:
                     if (backBuffer && ShadersAA::pHDRTex2)
                     {
                         // save sampler state
-                        for(int i = 0; i < PostfxTextureCount; i++) {
+                        for (int i = 0; i < PostfxTextureCount; i++) {
                             pDevice->GetTexture(i, &prePostFx[i]);
                             pDevice->GetSamplerState(i, D3DSAMP_MAGFILTER, &Samplers[i]);
                         }
@@ -278,12 +278,12 @@ public:
                                 DrawPrimitiveOriginalPtr(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
 
                                 // SMAA_EdgeDetection
-                                constexpr DWORD VertexFVF = D3DFVF_XYZ | D3DFVF_TEX1;
-                                DWORD OldFVF = D3DFVF_XYZ | D3DFVF_TEX1;
+                                //constexpr DWORD VertexFVF = D3DFVF_XYZ | D3DFVF_TEX1;
+                                //DWORD OldFVF = D3DFVF_XYZ | D3DFVF_TEX1;
                                 pDevice->GetRenderState(D3DRS_SRGBWRITEENABLE, &OldSRGB); // save srgb state
                                 pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, 0);
-                                pDevice->GetFVF(&OldFVF);
-                                pDevice->SetFVF(VertexFVF);
+                                //pDevice->GetFVF(&OldFVF);
+                                //pDevice->SetFVF(VertexFVF);
                                 pDevice->SetPixelShader(ShadersAA::SMAA_EdgeDetectionPS);
                                 pDevice->SetVertexShader(ShadersAA::SMAA_EdgeDetectionVS);
                                 pDevice->SetPixelShaderConstantF(24, vec4, 1);
@@ -298,7 +298,9 @@ public:
 
                                 pDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 0, 0);
                                 pDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, 1);
-                                pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, SmaaVertexArray, sizeof(VERTEX));
+                                //pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, SmaaVertexArray, sizeof(VERTEX));
+                                DrawPrimitiveOriginalPtr(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
+
                                 pDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, 0);
 
                                 pDevice->SetTexture(0, NULL);
@@ -313,7 +315,9 @@ public:
                                 pDevice->SetTexture(2, ShadersAA::areaTex);
                                 pDevice->SetTexture(3, ShadersAA::searchTex);
                                 pDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 0, 0);
-                                pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, SmaaVertexArray, sizeof(VERTEX));
+                                //pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, SmaaVertexArray, sizeof(VERTEX));
+                                DrawPrimitiveOriginalPtr(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
+
 
                                 pDevice->SetTexture(1, NULL);
                                 pDevice->SetTexture(2, NULL);
@@ -335,13 +339,15 @@ public:
 
                                 pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, 0);
 
-                                pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, SmaaVertexArray, sizeof(VERTEX));
+                                //pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, SmaaVertexArray, sizeof(VERTEX));
+                                DrawPrimitiveOriginalPtr(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
+
 
                                 pDevice->SetTexture(1, NULL);
                                 pDevice->SetTexture(4, NULL);
 
                                 pDevice->SetPixelShader(pShader);
-                                pDevice->SetFVF(OldFVF);
+                                //pDevice->SetFVF(OldFVF);
 
                                 SAFE_RELEASE(edgesSurf);
                                 SAFE_RELEASE(blendSurf);
@@ -349,12 +355,12 @@ public:
                         }
 
                         // restore sampler state
-                        for(int i = 0; i < PostfxTextureCount; i++) {
-                            if(prePostFx[i]) {
+                        for (int i = 0; i < PostfxTextureCount; i++) {
+                            if (prePostFx[i]) {
                                 pDevice->SetTexture(i, prePostFx[i]);
-                                pDevice->SetSamplerState(i, D3DSAMP_MAGFILTER, Samplers[i]);
                                 SAFE_RELEASE(prePostFx[i]);
                             }
+                            pDevice->SetSamplerState(i, D3DSAMP_MAGFILTER, Samplers[i]);
                         }
 
                         SAFE_RELEASE(backBuffer);

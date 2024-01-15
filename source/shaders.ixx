@@ -48,9 +48,13 @@ public:
         static UINT oldCascadesWidth = 0;
         static UINT oldCascadesHeight = 0;
         static IDirect3DTexture9* pHDRTexQuarter = nullptr;
+        static bool bFixAutoExposure = false;
 
         FusionFix::onInitEvent() += []()
         {
+            CIniReader iniReader("");
+            bFixAutoExposure = iniReader.ReadInteger("MISC", "FixAutoExposure", 1) != 0;
+
             // Redirect path to one unified folder
             auto pattern = hook::pattern("8B 04 8D ? ? ? ? A3 ? ? ? ? 8B 44 24 04");
             if (!pattern.empty())
@@ -87,8 +91,9 @@ public:
                 // Setup variables for shaders
                 static auto dw11A2948 = *find_pattern("C7 05 ? ? ? ? ? ? ? ? 0F 85 ? ? ? ? 6A 00", "D8 05 ? ? ? ? D9 1D ? ? ? ? 83 05").get_first<float*>(2);
                 static auto dw103E49C = *hook::get_pattern<void**>("A3 ? ? ? ? C7 80", 1);
+                auto bLoadscreenActive = (bLoadscreenShown && *bLoadscreenShown) || bLoadingShown;
 
-                if (*dw103E49C)
+                if (*dw103E49C && !bLoadscreenActive)
                 {
                     static Cam cam = 0;
                     Natives::GetRootCam(&cam);
@@ -130,12 +135,11 @@ public:
 
                     // FXAA, DOF, Gamma
                     {
-                        //static auto fxaa = FusionFixSettings.GetRef("PREF_ANTIALIASING");
                         static auto cutscene_dof = FusionFixSettings.GetRef("PREF_CUTSCENE_DOF");
                         static auto gamma = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA");
                         static auto mblur = FusionFixSettings.GetRef("PREF_MOTIONBLUR");
                         static float arr3[4];
-                        arr3[0] = 0.0f; //static_cast<float>(fxaa->get());
+                        arr3[0] = (bFixAutoExposure ? 1.0f : 0.0f);
                         arr3[1] = static_cast<float>(cutscene_dof->get());
                         arr3[2] = static_cast<float>(gamma->get());
                         arr3[3] = static_cast<float>(mblur->get());
