@@ -8,10 +8,10 @@ import common;
 import framelimit;
 import comvars;
 
-bool bRestoreSleep = false;
+//bool bRestoreSleep = false;
 void WINAPI FusionSleep(DWORD dwMilliseconds)
 {
-    if (!bRestoreSleep)
+    //if (!bRestoreSleep)
     {
         auto bMenuActive = CMenuManager__m_MenuActive && *CMenuManager__m_MenuActive;
         auto bLoadscreenActive = (bLoadscreenShown && *bLoadscreenShown) || bLoadingShown;
@@ -43,9 +43,9 @@ public:
             );
         };
 
-        FusionFix::onGameInitEvent() += []()
-        {
-            bRestoreSleep = true;
-        };
+        //FusionFix::onGameInitEvent() += []()
+        //{
+        //    bRestoreSleep = true;
+        //};
     }
 } LoadingDelays;

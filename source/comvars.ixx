@@ -6,6 +6,8 @@ export module comvars;
 
 import common;
 
+#define VALIDATE_SIZE(struc, size) static_assert(sizeof(struc) == size, "Invalid structure size of " #struc)
+
 export int32_t* _dwCurrentEpisode;
 export uint8_t* CTimer__m_UserPause = nullptr;
 export uint8_t* CTimer__m_CodePause = nullptr;
@@ -38,6 +40,26 @@ export inline LONG getWindowHeight()
 {
     return gRect.bottom - gRect.top;
 }
+
+#pragma pack(push, 1)
+struct CImgFile
+{
+    int m_nTimeLow;
+    int m_nTimeHigh;
+    int field_8;
+    int field_C;
+    char pszFilename[128];
+    int m_pDevice;
+    int field_94;
+    int m_hFile;
+    char field_9C;
+    char field_9D;
+    char m_bEpisode;
+    char m_bEpisodicContent;
+}; VALIDATE_SIZE(CImgFile, 160);
+#pragma pack(pop)
+
+export CImgFile(*pCGameConfigReader__ms_imgFiles)[255];
 
 class Common
 {
@@ -77,6 +99,9 @@ public:
 
             pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? 8B 43 20 53", "F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? 83 C4 04 83 7C 24");
             fTimeStep = *pattern.get_first<float*>(4);
+
+            pattern = hook::pattern("BE ? ? ? ? 8D 44 24 0C");
+            pCGameConfigReader__ms_imgFiles = *pattern.get_first<decltype(pCGameConfigReader__ms_imgFiles)>(1);
         };
     }
 } Common;

@@ -14,6 +14,9 @@ public:
     {
         FusionFix::onInitEvent() += []()
         {
+            CIniReader iniReader("");
+            auto bExtraCutsceneFix = iniReader.ReadInteger("MISC", "ExtraCutsceneFix", 1) != 0;
+
             // By Sergeanur
             auto pattern = find_pattern("74 20 83 FF 03 74 1B 83", "74 24 8B 44 24 2C");
             injector::WriteMemory<uint8_t>(pattern.get_first(), 0xEB, true);
@@ -83,6 +86,18 @@ public:
 
             pattern = find_pattern("E8 ? ? ? ? 8B CD 88 44 24 0F", "E8 ? ? ? ? 8B CF 88 44 24 0F");
             injector::MakeCALL(pattern.get_first(), *(void**)&dest, true);
+
+            if (bExtraCutsceneFix)
+            {
+                // ???
+                pattern = hook::pattern("F3 0F 11 86 ? ? ? ? 5E 5B 8B 4C 24 30 33 CC E8 ? ? ? ? 83 C4 34 C2 04 00");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(), 8, true);
+
+                pattern = hook::pattern("F3 0F 11 86 ? ? ? ? 5F 5E B8 ? ? ? ? 5B 8B 4C 24 30 33 CC E8 ? ? ? ? 83 C4 34 C2 04 00");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(), 8, true);
+            }
         };
     }
 } CutsceneCam;

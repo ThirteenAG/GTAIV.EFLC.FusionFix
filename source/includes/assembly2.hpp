@@ -39,6 +39,7 @@ namespace injector
     template<class FuncT>
     void MakeInline2(memory_pointer_tr at)
     {
+        MakeNOP(at, 5);
         typedef injector_asm2::wrapper<FuncT> functor;
         if(false) functor::call(nullptr);   // To instantiate the template, if not done _asm will fail
         injector_asm2::make_SafetyHookContext_and_call<functor>(at);
