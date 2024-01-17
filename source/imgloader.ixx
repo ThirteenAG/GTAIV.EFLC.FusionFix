@@ -54,7 +54,56 @@ public:
                                     return str1.contains(str2);
                                 };
 
-                                auto imgPath = std::filesystem::relative(filePath, exePath).native();
+                                static auto lexicallyRelativeCaseIns = [](const std::filesystem::path& path, const std::filesystem::path& base) -> std::filesystem::path
+                                {
+                                    class input_iterator_range
+                                    {
+                                    public:
+                                        input_iterator_range(const std::filesystem::path::const_iterator& first, const std::filesystem::path::const_iterator& last)
+                                            : _first(first)
+                                            , _last(last)
+                                        {}
+                                        std::filesystem::path::const_iterator begin() const { return _first; }
+                                        std::filesystem::path::const_iterator end() const { return _last; }
+                                    private:
+                                        std::filesystem::path::const_iterator _first;
+                                        std::filesystem::path::const_iterator _last;
+                                    };
+
+                                    if (!iequals(path.root_name().wstring(), base.root_name().wstring()) || path.is_absolute() != base.is_absolute() || (!path.has_root_directory() && base.has_root_directory())) {
+                                        return std::filesystem::path();
+                                    }
+                                    std::filesystem::path::const_iterator a = path.begin(), b = base.begin();
+                                    while (a != path.end() && b != base.end() && iequals(a->wstring(), b->wstring())) {
+                                        ++a;
+                                        ++b;
+                                    }
+                                    if (a == path.end() && b == base.end()) {
+                                        return std::filesystem::path(".");
+                                    }
+                                    int count = 0;
+                                    for (const auto& element : input_iterator_range(b, base.end())) {
+                                        if (element != "." && element != "" && element != "..") {
+                                            ++count;
+                                        }
+                                        else if (element == "..") {
+                                            --count;
+                                        }
+                                    }
+                                    if (count < 0) {
+                                        return std::filesystem::path();
+                                    }
+                                    std::filesystem::path result;
+                                    for (int i = 0; i < count; ++i) {
+                                        result /= "..";
+                                    }
+                                    for (const auto& element : input_iterator_range(a, path.end())) {
+                                        result /= element;
+                                    }
+                                    return result;
+                                };
+
+                                auto imgPath = lexicallyRelativeCaseIns(filePath, exePath).native();
                                 std::replace(std::begin(imgPath), std::end(imgPath), L'\\', L'/');
                                 auto pos = imgPath.find(std::filesystem::path("/").native());
 
