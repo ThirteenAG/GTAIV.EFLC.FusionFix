@@ -38,7 +38,8 @@ public:
 
                     if (std::filesystem::exists(updatePath))
                     {
-                        for (const auto& file : std::filesystem::recursive_directory_iterator(updatePath, std::filesystem::directory_options::skip_permission_denied))
+                        constexpr auto perms = std::filesystem::directory_options::skip_permission_denied | std::filesystem::directory_options::follow_directory_symlink;
+                        for (const auto& file : std::filesystem::recursive_directory_iterator(updatePath, perms))
                         {
                             auto filePath = std::filesystem::path(file.path());
 
