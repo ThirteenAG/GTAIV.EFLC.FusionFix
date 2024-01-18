@@ -28,30 +28,35 @@ public:
                     *(uint32_t*)(regs.esp + 0x44) = regs.eax;
                     regs.eax = *(uint32_t*)(regs.esp + 0x4C);
 
-                    auto exePath = std::filesystem::path(GetExeModulePath<std::wstring>());
-                    auto updatePath = exePath.remove_filename() / L"update";
+                    if (*_dwCurrentEpisode) {
+                        if (std::string_view((const char*)regs.eax).contains(":"))
+                            return;
+                    }
+
+                    auto gamePath = GetExeModulePath();
+                    auto updatePath = gamePath / L"update";
 
                     if (std::filesystem::exists(updatePath))
                     {
                         for (const auto& file : std::filesystem::recursive_directory_iterator(updatePath, std::filesystem::directory_options::skip_permission_denied))
                         {
-                            static auto gamePath = std::filesystem::path(GetExeModulePath<std::wstring>()).remove_filename();
                             auto filePath = std::filesystem::path(file.path());
-                            auto relativePath = std::filesystem::relative(filePath, gamePath);
 
-                            if (!std::filesystem::is_directory(file) && iequals(filePath.extension().wstring(), L".img"))
+                            if (!std::filesystem::is_directory(file) && iequals(filePath.extension().native(), L".img"))
                             {
                                 static std::vector<std::filesystem::path> episodicPaths = {
-                                    std::filesystem::path("/IV/").make_preferred(),
-                                    std::filesystem::path("/TLAD/").make_preferred(),
-                                    std::filesystem::path("/TBoGT/").make_preferred(),
+                                    std::filesystem::path("IV"),
+                                    std::filesystem::path("TLAD"),
+                                    std::filesystem::path("TBoGT"),
                                 };
 
-                                auto is_subpath = [](const std::filesystem::path& path, const std::filesystem::path& base) -> bool {
-                                    std::wstring str1(path.wstring()); std::wstring str2(base.wstring());
-                                    std::transform(str1.begin(), str1.end(), str1.begin(), ::tolower);
-                                    std::transform(str2.begin(), str2.end(), str2.begin(), ::tolower);
-                                    return str1.contains(str2);
+                                auto contains_subfolder = [](const std::filesystem::path& path, const std::filesystem::path& base) -> bool {
+                                    for (auto& p : path)
+                                    {
+                                        if (iequals(p.native(), base.native()))
+                                            return true;
+                                    }
+                                    return false;
                                 };
 
                                 static auto lexicallyRelativeCaseIns = [](const std::filesystem::path& path, const std::filesystem::path& base) -> std::filesystem::path
@@ -103,20 +108,21 @@ public:
                                     return result;
                                 };
 
-                                auto imgPath = lexicallyRelativeCaseIns(filePath, exePath).native();
+                                auto relativePath = lexicallyRelativeCaseIns(filePath, gamePath);
+                                auto imgPath = relativePath.native();
                                 std::replace(std::begin(imgPath), std::end(imgPath), L'\\', L'/');
-                                auto pos = imgPath.find(std::filesystem::path("/").native());
+                                auto pos = imgPath.find(L'/');
 
                                 if (pos != imgPath.npos)
                                 {
-                                    imgPath.replace(pos, 1, std::filesystem::path(":/").native());
+                                    imgPath.replace(pos, 1, L":/");
 
                                     if (iequals(imgPath, L"update:/update.img"))
                                         continue;
 
-                                    if (std::any_of(std::begin(episodicPaths), std::end(episodicPaths), [&](auto& it) { return is_subpath(relativePath, it); }))
+                                    if (std::any_of(std::begin(episodicPaths), std::end(episodicPaths), [&](auto& it) { return contains_subfolder(relativePath, it); }))
                                     {
-                                        if (*_dwCurrentEpisode < int32_t(episodicPaths.size()) && is_subpath(relativePath, episodicPaths[*_dwCurrentEpisode]))
+                                        if (*_dwCurrentEpisode < int32_t(episodicPaths.size()) && contains_subfolder(relativePath, episodicPaths[*_dwCurrentEpisode]))
                                             CImgManager__addImgFile(std::filesystem::path(imgPath).string().c_str(), 1, -1);
                                     }
                                     else
