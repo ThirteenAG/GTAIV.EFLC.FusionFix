@@ -500,6 +500,11 @@
       <options text="FXAA" action="ACTION_NONE" value="2" />
       <options text="SMAA" action="ACTION_NONE" value="3" />
     </menupc>
+	<menupc enum="MENU_DISPLAY_ALWAYSRUN">
+	  <options text="MO_OFF" action="ACTION_NONE" value="1" />
+	  <options text="On" action="ACTION_NONE" value="2" />
+	  <options text="Outside" action="ACTION_NONE" value="3" />
+	</menupc>
   </sMenuDisplayValue>
   <sMenuScreen>
     <menu HeaderText="MH_GAM" enum="SCR_GAME">
@@ -557,7 +562,7 @@
       <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
       <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
       <optionspc action="MENUOPT_ADJUST" label="Raw Input" value="PREF_RAWINPUT" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-      <optionspc action="MENUOPT_ADJUST" label="Always Run" value="PREF_ALWAYSRUN" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="Always Run" value="PREF_ALWAYSRUN" scaler="6" displayValue="MENU_DISPLAY_ALWAYSRUN" />
       <optionspc action="MENUOPT_ADJUST" label="Cover Centering" value="PREF_COVERCENTERING" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
     </menu>
