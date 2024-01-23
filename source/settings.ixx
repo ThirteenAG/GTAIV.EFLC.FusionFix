@@ -201,7 +201,6 @@ public:
         for (auto i = 0; originalEnums[i].prefID < *pOriginalEnumsNum; i++)
         {
             aMenuEnums.emplace_back(originalEnums[i].prefID, originalEnums[i].name);
-
         }
         aMenuEnums.reserve(aMenuEnums.size() * 2);
         auto firstEnumCustomID = aMenuEnums.back().prefID + 1;

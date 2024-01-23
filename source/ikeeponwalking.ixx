@@ -43,7 +43,7 @@ public:
                     if (!FusionFixSettings.Get("PREF_SPRINT")) // toggle
                     {
                         if (shouldRun)
-                        { 
+                        {
                             static auto bRunState = true;
                             static auto oldWalkKeyState = GetAsyncKeyState(nWalkKey);
                             auto curWalkKeyState = GetAsyncKeyState(nWalkKey);
