@@ -206,7 +206,7 @@ public:
                 static auto nTimeToWaitBeforeCenteringCameraOnFootPad = FusionFixSettings.GetRef("PREF_PADCAMCENTERDELAY");
                 struct OnFootCamCenteringHook 
                 {
-                    void operator()(SafetyHookContext& regs) 
+                    void operator()(injector::reg_pack& regs)
                     {
                         static float f = 0.0f;
                         f = regs.xmm1.f32[0];
@@ -241,10 +241,10 @@ public:
                 }; 
                 
                 if (reg != 0x48)
-                    injector::MakeInline2<OnFootCamCenteringHook>(pattern.get_first(0), pattern.get_first(6));
+                    injector::MakeInline<OnFootCamCenteringHook>(pattern.get_first(0), pattern.get_first(6));
                 else
                 {
-                    injector::MakeInline2<OnFootCamCenteringHook>(pattern.get_first(-2), pattern.get_first(6));
+                    injector::MakeInline<OnFootCamCenteringHook>(pattern.get_first(-2), pattern.get_first(6));
                     injector::WriteMemory<uint16_t>(pattern.get_first(3), 0xDB85, true);
                 }
             }

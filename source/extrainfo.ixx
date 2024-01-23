@@ -25,7 +25,7 @@ public:
                 {
                     struct MS_PAUSED_HOOK
                     {
-                        void operator()(SafetyHookContext& regs)
+                        void operator()(injector::reg_pack& regs)
                         {
                             static std::wstring extra = L"";
                             regs.eax += 0x78;
@@ -50,7 +50,7 @@ public:
                                 regs.eax = (uintptr_t)extra.c_str();
                             }
                         }
-                    }; injector::MakeInline2<MS_PAUSED_HOOK>(pattern.get_first(0));
+                    }; injector::MakeInline<MS_PAUSED_HOOK>(pattern.get_first(0));
                 }
             }
         };

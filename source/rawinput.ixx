@@ -228,7 +228,7 @@ public:
             static auto reg = *pattern.get_first<uint8_t>(3);
             struct CCamFpsWeaponHook
             {
-                void operator()(SafetyHookContext& regs)
+                void operator()(injector::reg_pack& regs)
                 {
                     auto inv = FusionFixSettings.Get("PREF_INVERT_MOUSE");
                     static auto ri = FusionFixSettings.GetRef("PREF_RAWINPUT");
@@ -246,14 +246,14 @@ public:
                     }
                     regs.xmm0.f32[0] = *(float*)(ptr + 0x144);
                 }
-            }; injector::MakeInline2<CCamFpsWeaponHook>(pattern.get_first(0), pattern.get_first(8));
+            }; injector::MakeInline<CCamFpsWeaponHook>(pattern.get_first(0), pattern.get_first(8));
 
             // First Person Vehicle Camera
             pattern = find_pattern("F3 0F 10 86 ? ? ? ? F3 0F 10 0D ? ? ? ? 0F 2F C8 76 0F F3 0F 10 0D ? ? ? ? 0F 2F C1", "F3 0F 10 87 ? ? ? ? F3 0F 10 0D ? ? ? ? 0F 2F C8 76 0D F3 0F 10 0D ? ? ? ? 0F 2F C1 77 03 0F 28 C1 F3 0F 11 87");
             static auto reg2 = *pattern.get_first<uint8_t>(3);
             struct CCamFollowVehicleHook
             {
-                void operator()(SafetyHookContext& regs)
+                void operator()(injector::reg_pack& regs)
                 {
                     auto inv = FusionFixSettings.Get("PREF_INVERT_MOUSE");
                     static auto ri = FusionFixSettings.GetRef("PREF_RAWINPUT");
@@ -266,7 +266,7 @@ public:
                     }
                     regs.xmm0.f32[0] = *(float*)(ptr + 0x1B0);
                 }
-            }; injector::MakeInline2<CCamFollowVehicleHook>(pattern.get_first(0), pattern.get_first(8));
+            }; injector::MakeInline<CCamFollowVehicleHook>(pattern.get_first(0), pattern.get_first(8));
 
             // Script
             {

@@ -30,13 +30,13 @@ public:
             {
                 struct FramerateVigilanteHook1
                 {
-                    void operator()(SafetyHookContext& regs)
+                    void operator()(injector::reg_pack& regs)
                     {
                         float f = std::clamp(*(float*)(regs.ebp + 0x08), 1.0f / 150.0f, FLT_MAX);
                         *(float*)(regs.ebp + 0x08) = f;
                         regs.xmm0.f32[0] = f;
                     }
-                }; injector::MakeInline2<FramerateVigilanteHook1>(pattern.get_first(0));
+                }; injector::MakeInline<FramerateVigilanteHook1>(pattern.get_first(0));
             }
             else
             {
@@ -57,11 +57,11 @@ public:
                 static auto f1032790 = *pattern.get_first<float*>(4);
                 struct LoadingTextSpeed
                 {
-                    void operator()(SafetyHookContext& regs)
+                    void operator()(injector::reg_pack& regs)
                     {
                         regs.xmm0.f32[0] = (*f1032790) / 10.0f;
                     }
-                }; injector::MakeInline2<LoadingTextSpeed>(pattern.get_first(0), pattern.get_first(8));
+                }; injector::MakeInline<LoadingTextSpeed>(pattern.get_first(0), pattern.get_first(8));
             }
 
             pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 05 ? ? ? ? F3 0F 11 05");
@@ -69,11 +69,11 @@ public:
             {
                 struct LoadingTextSpeed2
                 {
-                    void operator()(SafetyHookContext& regs)
+                    void operator()(injector::reg_pack& regs)
                     {
                         regs.xmm0.f32[0] *= (1000.0f) / 10.0f;
                     }
-                }; injector::MakeInline2<LoadingTextSpeed2>(pattern.get_first(0), pattern.get_first(8));
+                }; injector::MakeInline<LoadingTextSpeed2>(pattern.get_first(0), pattern.get_first(8));
             }
 
             pattern = hook::pattern("F3 0F 58 0D ? ? ? ? 0F 5B C0 F3 0F 11 0D");
@@ -81,11 +81,11 @@ public:
             {
                 struct LoadingTextSparks
                 {
-                    void operator()(SafetyHookContext& regs)
+                    void operator()(injector::reg_pack& regs)
                     {
                         regs.xmm1.f32[0] += (0.085f) / 10.0f;
                     }
-                }; injector::MakeInline2<LoadingTextSparks>(pattern.get_first(0), pattern.get_first(8));
+                }; injector::MakeInline<LoadingTextSparks>(pattern.get_first(0), pattern.get_first(8));
             }
         };
     }
