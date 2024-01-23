@@ -17,6 +17,7 @@ public:
         {
             CIniReader iniReader("");
             static int32_t nWalkKey = iniReader.ReadInteger("MISC", "WalkKey", VK_MENU);
+            static bool bDoNotRunInside = iniReader.ReadInteger("MISC", "DoNotRunInside", 0) != 0;
             auto pattern = hook::pattern("D9 44 24 18 5F 5B 5D");
             static auto flag = false;
             if (!pattern.empty())
@@ -37,8 +38,8 @@ public:
                         *(uintptr_t*)(regs.esp - 4) = loc_A2A60F;
                     }
                     auto alwaysrunPref = FusionFixSettings.GetRef("PREF_ALWAYSRUN"); 
-                    auto bShouldRun = (alwaysrunPref->get() == FusionFixSettings.AlwaysRunText.eMO_ON) || (alwaysrunPref->get() == FusionFixSettings.AlwaysRunText.eOutside);
-                    auto bDontRunNow = (alwaysrunPref->get() == FusionFixSettings.AlwaysRunText.eOutside) && Natives::IsInteriorScene();
+                    auto bShouldRun = alwaysrunPref->get();
+                    auto bDontRunNow = bShouldRun && bDoNotRunInside && Natives::IsInteriorScene();
 
                     if (!FusionFixSettings.Get("PREF_SPRINT")) // toggle
                     {
@@ -70,12 +71,12 @@ public:
             static raw_mem GamepadCB(pattern.get_first(0), { 0x90, 0x90 }); // NOP
             FusionFixSettings.SetCallback("PREF_ALWAYSRUN", [](int32_t value)
             {
-                if ((value == FusionFixSettings.AlwaysRunText.eMO_ON) || (value == FusionFixSettings.AlwaysRunText.eOutside))
+                if (value)
                     GamepadCB.Write();
                 else
                     GamepadCB.Restore();
             });
-            if ((FusionFixSettings("PREF_ALWAYSRUN") == FusionFixSettings.AlwaysRunText.eMO_ON) || (FusionFixSettings("PREF_ALWAYSRUN") == FusionFixSettings.AlwaysRunText.eOutside))
+            if (FusionFixSettings("PREF_ALWAYSRUN"))
                 GamepadCB.Write();
         };
     }
