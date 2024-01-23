@@ -6,6 +6,7 @@ export module ikeeponwalking;
 
 import common;
 import settings;
+import natives;
 
 class IKeepOnWalking
 {
@@ -35,11 +36,13 @@ public:
 
                         *(uintptr_t*)(regs.esp - 4) = loc_A2A60F;
                     }
+                    auto alwaysrunPref = FusionFixSettings.GetRef("PREF_ALWAYSRUN"); 
+                    bool shouldRun = (alwaysrunPref->get() == FusionFixSettings.AlwaysRunText.eMO_ON
+                        || (alwaysrunPref->get() == FusionFixSettings.AlwaysRunText.eOutside && !Natives::IsInteriorScene()));
 
-                    static auto alwaysrun = FusionFixSettings.GetRef("PREF_ALWAYSRUN");                    
                     if (!FusionFixSettings.Get("PREF_SPRINT")) // toggle
                     {
-                        if (alwaysrun->get())
+                        if (shouldRun)
                         {
                             static auto bRunState = true;
                             static auto oldWalkKeyState = GetAsyncKeyState(nWalkKey);
@@ -52,7 +55,7 @@ public:
                                 *(float*)(regs.esp + (flag ? 0x18 : 0x1C)) = 1.0f;
                         }
                     }
-                    else if (alwaysrun->get() && !GetAsyncKeyState(nWalkKey)) // hold
+                    else if (shouldRun && !GetAsyncKeyState(nWalkKey)) // hold
                         *(float*)(regs.esp + (flag ? 0x18 : 0x1C)) = 1.0f;
                 }
             }; injector::MakeInline2<SprintHook>(pattern.get_first(0));
