@@ -30,8 +30,8 @@ private:
         auto SetValue(auto v) { value = v; WriteToIni(); if (callback) callback(value); }
         auto ReadFromIni(auto& iniReader) { return iniReader.ReadInteger(iniSec, iniName, iniDefValInt); }
         auto ReadFromIni() { CIniReader iniReader(cfgPath.wstring()); return ReadFromIni(iniReader); }
-        void WriteToIni(auto& iniWriter) { iniWriter.WriteInteger(iniSec, iniName, value); }
-        void WriteToIni() { CIniReader iniWriter(cfgPath.wstring()); iniWriter.WriteInteger(iniSec, iniName, value); }
+        void WriteToIni(auto& iniWriter) { iniWriter.WriteInteger(iniSec, iniName, value, true); }
+        void WriteToIni() { CIniReader iniWriter(cfgPath.wstring()); iniWriter.WriteInteger(iniSec, iniName, value, true); }
     };
 
     struct MenuPrefs

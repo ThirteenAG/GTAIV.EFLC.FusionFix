@@ -100,7 +100,7 @@ public:
             pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? 8B 43 20 53", "F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? 83 C4 04 83 7C 24");
             fTimeStep = *pattern.get_first<float*>(4);
 
-            pattern = hook::pattern("BE ? ? ? ? 8D 44 24 0C");
+            pattern = hook::pattern("BE ? ? ? ? 8D 44 24 0C 50 8D 46 10 50");
             pCGameConfigReader__ms_imgFiles = *pattern.get_first<decltype(pCGameConfigReader__ms_imgFiles)>(1);
         };
     }
