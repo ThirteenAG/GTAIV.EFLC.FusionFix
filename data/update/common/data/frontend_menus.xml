@@ -360,12 +360,12 @@
           <options text="SMAA" action="ACTION_NONE" value="3" />
         </menupc>
 
-		<menupc enum="MENU_DISPLAY_ALWAYSRUN">
+        <menupc enum="MENU_DISPLAY_ALWAYSRUN">
           <options text="MO_OFF" action="ACTION_NONE" value="1" />
-          <options text="On" action="ACTION_NONE" value="2" />
+          <options text="MO_ON" action="ACTION_NONE" value="2" />
           <options text="Outside" action="ACTION_NONE" value="3" />
         </menupc>
-		
+        
     </sMenuDisplayValue>
 
     <sMenuScreen>

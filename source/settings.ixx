@@ -29,9 +29,9 @@ private:
         auto GetValue() { return value; }
         auto SetValue(auto v) { value = v; WriteToIni(); if (callback) callback(value); }
         auto ReadFromIni(auto& iniReader) { return iniReader.ReadInteger(iniSec, iniName, iniDefValInt); }
-        auto ReadFromIni() { CIniReader iniReader(cfgPath.wstring()); return ReadFromIni(iniReader); }
+        auto ReadFromIni() { CIniReader iniReader(cfgPath); return ReadFromIni(iniReader); }
         void WriteToIni(auto& iniWriter) { iniWriter.WriteInteger(iniSec, iniName, value); }
-        void WriteToIni() { CIniReader iniWriter(cfgPath.wstring()); iniWriter.WriteInteger(iniSec, iniName, value); }
+        void WriteToIni() { CIniReader iniWriter(cfgPath); iniWriter.WriteInteger(iniSec, iniName, value); }
     };
 
     struct MenuPrefs
@@ -134,7 +134,7 @@ public:
         pattern = find_pattern("89 1C 95 ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 83 C4 04 8D 04 40", "89 1C 8D ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 8D 0C 40 8B 14 CD");
         mPrefs = *pattern.get_first<int32_t*>(3);
 
-        CIniReader iniReader(cfgPath.wstring());
+        CIniReader iniReader(cfgPath);
 
         static CSetting arr[] = {
             { 0, "PREF_SKIP_INTRO",        "MAIN",       "SkipIntro",                       "",                           1, nullptr, 0, 1 },
@@ -164,7 +164,7 @@ public:
             { 0, "PREF_LETTERBOX",         "MISC",       "Letterbox",                       "",                           1, nullptr, 0, 1 },
             { 0, "PREF_PILLARBOX",         "MISC",       "Pillarbox",                       "",                           1, nullptr, 0, 1 },
             { 0, "PREF_ANTIALIASING",      "MISC",       "Antialiasing",                    "MENU_DISPLAY_ANTIALIASING",  1, nullptr, AntialiasingText.eMO_OFF, std::distance(std::begin(AntialiasingText.data), std::end(AntialiasingText.data)) - 1 },
-            { 0, "PREF_ALWAYSRUN",         "MISC",       "AlwaysRun",                       "MENU_DISPLAY_ALWAYSRUN",     1, nullptr, AlwaysRunText.eMO_OFF, std::distance(std::begin(AlwaysRunText.data), std::end(AlwaysRunText.data)) - 1  },
+            { 0, "PREF_ALWAYSRUN",         "MISC",       "AlwaysRun",                       "MENU_DISPLAY_ALWAYSRUN",     3, nullptr, AlwaysRunText.eMO_OFF, std::distance(std::begin(AlwaysRunText.data), std::end(AlwaysRunText.data)) - 1  },
         };
 
         auto i = firstCustomID;
@@ -385,8 +385,8 @@ public:
 
     struct
     {
-        enum eAlwaysRunText { eLow, eMedium, eHigh, eMO_OFF, eOn, eOutside };
-        std::vector<const char*> data = { "Low", "Medium", "High","MO_OFF", "On", "Outside" };
+        enum eAlwaysRunText { eLow, eMedium, eHigh, eMO_OFF, eMO_ON, eOutside };
+        std::vector<const char*> data = { "Low", "Medium", "High", "MO_OFF", "MO_ON", "Outside" };
     } AlwaysRunText;
 
 } FusionFixSettings;

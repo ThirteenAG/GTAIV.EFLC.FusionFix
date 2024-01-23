@@ -37,7 +37,7 @@ public:
                         *(uintptr_t*)(regs.esp - 4) = loc_A2A60F;
                     }
                     auto alwaysrunPref = FusionFixSettings.GetRef("PREF_ALWAYSRUN"); 
-                    bool shouldRun = (alwaysrunPref->get() == FusionFixSettings.AlwaysRunText.eOn
+                    bool shouldRun = (alwaysrunPref->get() == FusionFixSettings.AlwaysRunText.eMO_ON
                         || (alwaysrunPref->get() == FusionFixSettings.AlwaysRunText.eOutside && !Natives::IsInteriorScene()));
 
                     if (!FusionFixSettings.Get("PREF_SPRINT")) // toggle
