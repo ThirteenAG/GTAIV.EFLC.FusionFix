@@ -53,6 +53,7 @@ int timecyc_scanf(const char* i, const char* fmt, int* mAmbient0ColorR, int* mAm
     switch (FusionFixSettings("PREF_TCYC_DOF"))
     {
     case FusionFixSettings.DofText.eOff:
+    case FusionFixSettings.DofText.eCutscenesOnly:
         *mNearDOFBlur *= 0.0f;
         *mFarDOFBlur *= 0.0f;
         break;

@@ -135,12 +135,12 @@ public:
 
                     // FXAA, DOF, Gamma
                     {
-                        static auto cutscene_dof = FusionFixSettings.GetRef("PREF_CUTSCENE_DOF");
+                        static auto cutscene_dof = FusionFixSettings.GetRef("PREF_TCYC_DOF");
                         static auto gamma = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA");
                         static auto mblur = FusionFixSettings.GetRef("PREF_MOTIONBLUR");
                         static float arr3[4];
                         arr3[0] = (bFixAutoExposure ? 1.0f : 0.0f);
-                        arr3[1] = static_cast<float>(cutscene_dof->get());
+                        arr3[1] = static_cast<float>(cutscene_dof->get() >= FusionFixSettings.DofText.eCutscenesOnly);
                         arr3[2] = static_cast<float>(gamma->get());
                         arr3[3] = static_cast<float>(mblur->get());
                         pDevice->SetPixelShaderConstantF(222, &arr3[0], 1);
