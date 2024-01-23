@@ -37,12 +37,12 @@ public:
                         *(uintptr_t*)(regs.esp - 4) = loc_A2A60F;
                     }
                     auto alwaysrunPref = FusionFixSettings.GetRef("PREF_ALWAYSRUN"); 
-                    bool shouldRun = (alwaysrunPref->get() == FusionFixSettings.AlwaysRunText.eMO_ON
-                        || (alwaysrunPref->get() == FusionFixSettings.AlwaysRunText.eOutside && !Natives::IsInteriorScene()));
+                    auto bShouldRun = (alwaysrunPref->get() == FusionFixSettings.AlwaysRunText.eMO_ON) || (alwaysrunPref->get() == FusionFixSettings.AlwaysRunText.eOutside);
+                    auto bDontRunNow = (alwaysrunPref->get() == FusionFixSettings.AlwaysRunText.eOutside) && Natives::IsInteriorScene();
 
                     if (!FusionFixSettings.Get("PREF_SPRINT")) // toggle
                     {
-                        if (shouldRun)
+                        if (bShouldRun)
                         {
                             static auto bRunState = true;
                             static auto oldWalkKeyState = GetAsyncKeyState(nWalkKey);
@@ -52,23 +52,30 @@ public:
                             oldWalkKeyState = curWalkKeyState;
                     
                             if (bRunState)
-                                *(float*)(regs.esp + (flag ? 0x18 : 0x1C)) = 1.0f;
+                            {
+                                if (!bDontRunNow)
+                                    *(float*)(regs.esp + (flag ? 0x18 : 0x1C)) = 1.0f;
+                            }
                         }
                     }
-                    else if (shouldRun && !GetAsyncKeyState(nWalkKey)) // hold
-                        *(float*)(regs.esp + (flag ? 0x18 : 0x1C)) = 1.0f;
+                    else if (bShouldRun && !GetAsyncKeyState(nWalkKey)) // hold
+                    {
+                        if (!bDontRunNow)
+                            *(float*)(regs.esp + (flag ? 0x18 : 0x1C)) = 1.0f;
+                    }
                 }
             }; injector::MakeInline<SprintHook>(pattern.get_first(0));
 
             pattern = find_pattern("77 5F 8B 8E", "77 46 8B 8F");
             static raw_mem GamepadCB(pattern.get_first(0), { 0x90, 0x90 }); // NOP
-            FusionFixSettings.SetCallback("PREF_ALWAYSRUN", [](int32_t value) {
-                if (value)
+            FusionFixSettings.SetCallback("PREF_ALWAYSRUN", [](int32_t value)
+            {
+                if ((value == FusionFixSettings.AlwaysRunText.eMO_ON) || (value == FusionFixSettings.AlwaysRunText.eOutside))
                     GamepadCB.Write();
                 else
                     GamepadCB.Restore();
             });
-            if (FusionFixSettings("PREF_ALWAYSRUN"))
+            if ((FusionFixSettings("PREF_ALWAYSRUN") == FusionFixSettings.AlwaysRunText.eMO_ON) || (FusionFixSettings("PREF_ALWAYSRUN") == FusionFixSettings.AlwaysRunText.eOutside))
                 GamepadCB.Write();
         };
     }
