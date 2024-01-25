@@ -129,6 +129,7 @@ FrameLimiter FpsLimiter;
 FrameLimiter CutsceneFpsLimiter;
 FrameLimiter ScriptCutsceneFpsLimiter;
 FrameLimiter LoadingFpsLimiter;
+FrameLimiter LoadingFpsLimiter2;
 bool(*CCutscenes__hasCutsceneFinished)();
 bool(*CCamera__isWidescreenBordersActive)();
 bool bUnlockFramerateDuringLoadscreens = true;
@@ -147,10 +148,19 @@ void __cdecl sub_855640()
     if (CCamera__isWidescreenBordersActive())
     {
         if (CCutscenes__hasCutsceneFinished())
+        {
             if (fCutsceneFpsLimit)
                 CutsceneFpsLimiter.Sync();
             else if (fScriptCutsceneFpsLimit)
                 ScriptCutsceneFpsLimiter.Sync();
+
+            // To avoid more softlocks with high fps
+            if (!fCutsceneFpsLimit && CCutscenes__m_dwCutsceneState)
+            {
+                if (*CCutscenes__m_dwCutsceneState == 9 || *CCutscenes__m_dwCutsceneState == 10)
+                    LoadingFpsLimiter2.Sync();
+            }
+        }
     }
 }
 
@@ -193,6 +203,7 @@ public:
                 CutsceneFpsLimiter.Init(mode, fCutsceneFpsLimit);
                 ScriptCutsceneFpsLimiter.Init(mode, fScriptCutsceneFpsLimit);
                 LoadingFpsLimiter.Init(mode, std::clamp(fLoadingFpsLimit, 30.0f, FLT_MAX));
+                LoadingFpsLimiter2.Init(mode, 240.0f);
 
                 auto pattern = find_pattern("E8 ? ? ? ? 84 C0 75 89", "E8 ? ? ? ? 84 C0 75 15 38 05");
                 CCutscenes__hasCutsceneFinished = (bool(*)()) injector::GetBranchDestination(pattern.get_first(0)).get();
