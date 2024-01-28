@@ -102,7 +102,8 @@ public:
             fTimeStep = *pattern.get_first<float*>(4);
 
             pattern = hook::pattern("BE ? ? ? ? 8D 44 24 0C 50 8D 46 10 50");
-            pCGameConfigReader__ms_imgFiles = *pattern.get_first<decltype(pCGameConfigReader__ms_imgFiles)>(1);
+            if (!pattern.empty())
+                pCGameConfigReader__ms_imgFiles = *pattern.get_first<decltype(pCGameConfigReader__ms_imgFiles)>(1);
 
             pattern = hook::pattern("A1 ? ? ? ? 83 F8 08 74 05");
             CCutscenes__m_dwCutsceneState = *pattern.get_first<uint32_t*>(1);

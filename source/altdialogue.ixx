@@ -191,14 +191,14 @@ std::vector<std::vector<std::tuple<std::string_view, uint32_t>>> gAltDialogueVar
         { "bulgarin2", 42939 },
         { "bulgarin2", 42940 },
         { "bulgarin2", 42927 },
-        { "rocco1", 43704 },
-        { "rocco1", 43671 },
-        { "tony1", 43701 },
-        { "tony1", 43708 },
-        { "tony1", 43706 },
-        { "tony1", 43703 },
-        { "tony1", 43707 },
-        { "tony1", 43705 },
+        //{ "rocco1", 43704 }, // conflicts with drink.sco
+        //{ "rocco1", 43671 },
+        //{ "tony1", 43701 },
+        //{ "tony1", 43708 },
+        //{ "tony1", 43706 },
+        //{ "tony1", 43703 },
+        //{ "tony1", 43707 },
+        //{ "tony1", 43705 },
         { "tony10", 43694 },
         { "tony10", 43695 },
         { "tony11", 43672 },
@@ -230,7 +230,7 @@ std::vector<std::vector<std::tuple<std::string_view, uint32_t>>> gAltDialogueVar
         { "tonym8", 43691 },
         { "yusuf2", 42910 },
         { "yusuf3", 43668 },
-        //{ "yusuf4", 42911 },
+        { "yusuf4", 42911 },
     }
 };
 
