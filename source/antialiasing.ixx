@@ -120,7 +120,7 @@ public:
 
                 if (!ShadersAA::FxaaPS && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_FXAA), NULL, NULL, 0, &bf1, &bf2) == S_OK)
                 {
-                    if (CreatePixelShaderOriginalPtr(pDevice, (DWORD*)bf1->GetBufferPointer(), &ShadersAA::FxaaPS) != S_OK || !ShadersAA::FxaaPS)
+                    if (CreatePixelShaderOriginal.unsafe_stdcall<HRESULT>(pDevice, (DWORD*)bf1->GetBufferPointer(), &ShadersAA::FxaaPS) != S_OK || !ShadersAA::FxaaPS)
                         SAFE_RELEASE(ShadersAA::FxaaPS);
                     SAFE_RELEASE(bf1);
                     SAFE_RELEASE(bf2);
@@ -128,7 +128,7 @@ public:
 
                 if (!ShadersAA::SMAA_EdgeDetectionPS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "SMAAColorEdgeDetectionPS", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK)
                 {
-                    if (CreatePixelShaderOriginalPtr(pDevice, (DWORD*)bf1->GetBufferPointer(), &ShadersAA::SMAA_EdgeDetectionPS) != S_OK || !ShadersAA::SMAA_EdgeDetectionPS)
+                    if (CreatePixelShaderOriginal.unsafe_stdcall<HRESULT>(pDevice, (DWORD*)bf1->GetBufferPointer(), &ShadersAA::SMAA_EdgeDetectionPS) != S_OK || !ShadersAA::SMAA_EdgeDetectionPS)
                         SAFE_RELEASE(ShadersAA::SMAA_EdgeDetectionPS);
                     SAFE_RELEASE(bf1);
                     SAFE_RELEASE(bf2);
@@ -144,7 +144,7 @@ public:
                 }
                 
                 if (!ShadersAA::SMAA_BlendingWeightsCalculationPS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "SMAABlendingWeightCalculationPS", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {
-                    if (CreatePixelShaderOriginalPtr(pDevice, (DWORD*)bf1->GetBufferPointer(), &ShadersAA::SMAA_BlendingWeightsCalculationPS) != S_OK || !ShadersAA::SMAA_BlendingWeightsCalculationPS)
+                    if (CreatePixelShaderOriginal.unsafe_stdcall<HRESULT>(pDevice, (DWORD*)bf1->GetBufferPointer(), &ShadersAA::SMAA_BlendingWeightsCalculationPS) != S_OK || !ShadersAA::SMAA_BlendingWeightsCalculationPS)
                         SAFE_RELEASE(ShadersAA::SMAA_BlendingWeightsCalculationPS);
                     SAFE_RELEASE(bf1);
                     SAFE_RELEASE(bf2);
@@ -160,7 +160,7 @@ public:
                 }
 
                 if (!ShadersAA::SMAA_NeighborhoodBlendingPS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "SMAANeighborhoodBlendingPS", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {
-                    if (CreatePixelShaderOriginalPtr(pDevice, (DWORD*)bf1->GetBufferPointer(), &ShadersAA::SMAA_NeighborhoodBlendingPS) != S_OK || !ShadersAA::SMAA_NeighborhoodBlendingPS)
+                    if (CreatePixelShaderOriginal.unsafe_stdcall<HRESULT>(pDevice, (DWORD*)bf1->GetBufferPointer(), &ShadersAA::SMAA_NeighborhoodBlendingPS) != S_OK || !ShadersAA::SMAA_NeighborhoodBlendingPS)
                         SAFE_RELEASE(ShadersAA::SMAA_NeighborhoodBlendingPS);
                     SAFE_RELEASE(bf1);
                     SAFE_RELEASE(bf2);
@@ -187,12 +187,12 @@ public:
                     SAFE_RELEASE(ShadersAA::blendTex);
 
                     // create new texture to postfx
-                    if (SUCCEEDED(CreateTextureOriginalPtr(pDevice, Width, Height, Levels, Usage, Format, Pool, &ShadersAA::pHDRTex2, 0)) && ShadersAA::pHDRTex2)
+                    if (SUCCEEDED(CreateTextureOriginal.unsafe_stdcall<HRESULT>(pDevice, Width, Height, Levels, Usage, Format, Pool, &ShadersAA::pHDRTex2, 0)) && ShadersAA::pHDRTex2)
                     {
                         if (D3DXCreateTextureFromResourceExW(pDevice, hm, MAKEINTRESOURCEW(IDR_AreaTex), 0, 0, 0, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_LINEAR, D3DX_FILTER_LINEAR, D3DCOLOR_ARGB(150, 100, 100, 100), NULL, NULL, &ShadersAA::areaTex) == S_OK)
-                            CreateTextureOriginalPtr(pDevice, Width, Height, Levels, Usage, D3DFMT_X8R8G8B8, Pool, &ShadersAA::edgesTex, 0);
+                            CreateTextureOriginal.unsafe_stdcall<HRESULT>(pDevice, Width, Height, Levels, Usage, D3DFMT_X8R8G8B8, Pool, &ShadersAA::edgesTex, 0);
                         if (D3DXCreateTextureFromResourceExW(pDevice, hm, MAKEINTRESOURCEW(IDR_SearchTex), 0, 0, 0, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_LINEAR, D3DX_FILTER_LINEAR, D3DCOLOR_ARGB(150, 100, 100, 100), NULL, NULL, &ShadersAA::searchTex) == S_OK)
-                            CreateTextureOriginalPtr(pDevice, Width, Height, Levels, Usage, D3DFMT_A8R8G8B8, Pool, &ShadersAA::blendTex, 0);
+                            CreateTextureOriginal.unsafe_stdcall<HRESULT>(pDevice, Width, Height, Levels, Usage, D3DFMT_A8R8G8B8, Pool, &ShadersAA::blendTex, 0);
                     }
                 }
             };
@@ -243,14 +243,14 @@ public:
                             FusionFix::D3D9::setInsteadDrawPrimitive(true);
                             pDevice->SetRenderTarget(0, pHDRSurface2);
                             pDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 0, 0);
-                            DrawPrimitiveOriginalPtr(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
+                            DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
 
                             pDevice->SetPixelShader(ShadersAA::FxaaPS);
 
                             pDevice->SetRenderTarget(0, backBuffer);
                             pDevice->SetTexture(2, ShadersAA::pHDRTex2);
 
-                            DrawPrimitiveOriginalPtr(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
+                            DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
 
                             pDevice->SetTexture(2, 0);
                             pDevice->SetPixelShader(pShader);
@@ -275,7 +275,7 @@ public:
                                 // game postfx
                                 pDevice->SetRenderTarget(0, pHDRSurface2);
                                 pDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 0, 0);
-                                DrawPrimitiveOriginalPtr(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
+                                DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
 
                                 // SMAA_EdgeDetection
                                 //constexpr DWORD VertexFVF = D3DFVF_XYZ | D3DFVF_TEX1;
@@ -299,7 +299,7 @@ public:
                                 pDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 0, 0);
                                 pDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, 1);
                                 //pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, SmaaVertexArray, sizeof(VERTEX));
-                                DrawPrimitiveOriginalPtr(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
+                                DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
 
                                 pDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, 0);
 
@@ -316,7 +316,7 @@ public:
                                 pDevice->SetTexture(3, ShadersAA::searchTex);
                                 pDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 0, 0);
                                 //pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, SmaaVertexArray, sizeof(VERTEX));
-                                DrawPrimitiveOriginalPtr(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
+                                DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
 
 
                                 pDevice->SetTexture(1, NULL);
@@ -340,7 +340,7 @@ public:
                                 pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, 0);
 
                                 //pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, SmaaVertexArray, sizeof(VERTEX));
-                                DrawPrimitiveOriginalPtr(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
+                                DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
 
 
                                 pDevice->SetTexture(1, NULL);

@@ -1,7 +1,6 @@
 module;
 
 #include <common.hxx>
-#include "MinHook.h"
 #include <shellapi.h>
 #include <Commctrl.h>
 #pragma comment(lib,"Comctl32.lib")
@@ -26,7 +25,7 @@ std::vector<std::wstring> dlllist = {
 };
 
 typedef void(WINAPI* LdrLoadDllFunc) (IN PWCHAR PathToFile OPTIONAL, IN PULONG Flags OPTIONAL, IN PUNICODE_STRING ModuleFileName, OUT HMODULE* ModuleHandle);
-static LdrLoadDllFunc realLdrLoadDll = NULL;
+static SafetyHookInline realLdrLoadDll = {};
 static void WINAPI LdrLoadDllHook(IN PWCHAR PathToFile OPTIONAL, IN PULONG Flags OPTIONAL, IN PUNICODE_STRING ModuleFileName, OUT HMODULE* ModuleHandle)
 {
     if (ModuleFileName->Buffer)
@@ -43,8 +42,7 @@ static void WINAPI LdrLoadDllHook(IN PWCHAR PathToFile OPTIONAL, IN PULONG Flags
         }
     }
 
-    if (realLdrLoadDll)
-        realLdrLoadDll(PathToFile, Flags, ModuleFileName, ModuleHandle);
+    return realLdrLoadDll.stdcall(PathToFile, Flags, ModuleFileName, ModuleHandle);
 }
 
 HRESULT CALLBACK TaskDialogCallbackProc(HWND hwnd, UINT uNotification, WPARAM wParam, LPARAM lParam, LONG_PTR dwRefData)
@@ -132,8 +130,13 @@ public:
         if (baseLdrLoadDll == NULL)
             return;
 
-        MH_Initialize();
-        MH_CreateHook(baseLdrLoadDll, LdrLoadDllHook, (LPVOID*)&realLdrLoadDll);
-        MH_EnableHook(baseLdrLoadDll);
+        try
+        {
+            safetyhook::execute_while_frozen([&]
+            {
+                realLdrLoadDll = safetyhook::create_inline(baseLdrLoadDll, LdrLoadDllHook);
+            });
+        }
+        catch (...) {}
     }
 } DLLBlacklist;

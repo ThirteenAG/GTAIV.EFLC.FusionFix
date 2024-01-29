@@ -6,7 +6,7 @@
 #include "injector/injector.hpp"
 #include "injector/calling.hpp"
 #include "injector/hooking.hpp"
-#include "includes/assembly2.hpp"
+#include "injector/assembly.hpp"
 #include "injector/utility.hpp"
 #include "Hooking.Patterns.h"
 #include "ModuleList.hpp"

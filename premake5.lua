@@ -50,23 +50,21 @@ workspace "GTAIV.EFLC.FusionFix"
    includedirs { "source/includes" }
    includedirs { "source/ledsdk" }
    includedirs { "source/dxsdk" }
-   includedirs { "source/includes/safetyhook" }
    libdirs { "source/ledsdk" }
    libdirs { "source/dxsdk" }
    files { "source/*.h", "source/*.hpp", "source/*.cpp", "source/*.hxx", "source/*.ixx" }
-   files { "source/includes/safetyhook/*.h", "source/includes/safetyhook/*.hpp" }
-   files { "source/includes/safetyhook/*.c", "source/includes/safetyhook/*.cpp" }
    files { "source/resources/Versioninfo.rc" }
    files { "source/resources/Shaders.rc" }
    links { "LogitechLEDLib.lib" }
    
+   includedirs { "external/injector/safetyhook" }
    includedirs { "external/hooking" }
    includedirs { "external/injector/include" }
    includedirs { "external/inireader" }
-   includedirs { "external/minhook/include" }
-   files { "external/minhook/include/*.*", "external/minhook/src/*.*", "external/minhook/src/**/*.*" }
    files { "external/hooking/Hooking.Patterns.h", "external/hooking/Hooking.Patterns.cpp" }
-   
+   files { "external/injector/safetyhook/*.h", "external/injector/safetyhook/*.hpp" }
+   files { "external/injector/safetyhook/*.c", "external/injector/safetyhook/*.cpp" }
+
    characterset ("Unicode")
    
    pbcommands = { 
