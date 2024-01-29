@@ -70,7 +70,7 @@ jobs:
         msbuild -m build/GTAIV.EFLC.FusionFix.sln /property:Configuration=Release /property:Platform=Win32
 
     - name: Download Ultimate ASI Loader x86
-      uses: robinraju/release-downloader@v1.8
+      uses: robinraju/release-downloader@v1.9
       with:
         repository: "ThirteenAG/Ultimate-ASI-Loader"
         tag: "Win32-latest"
