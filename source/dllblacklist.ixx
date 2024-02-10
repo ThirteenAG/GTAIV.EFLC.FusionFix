@@ -42,7 +42,7 @@ static void WINAPI LdrLoadDllHook(IN PWCHAR PathToFile OPTIONAL, IN PULONG Flags
         }
     }
 
-    return realLdrLoadDll.stdcall(PathToFile, Flags, ModuleFileName, ModuleHandle);
+    return realLdrLoadDll.unsafe_stdcall(PathToFile, Flags, ModuleFileName, ModuleHandle);
 }
 
 HRESULT CALLBACK TaskDialogCallbackProc(HWND hwnd, UINT uNotification, WPARAM wParam, LPARAM lParam, LONG_PTR dwRefData)
