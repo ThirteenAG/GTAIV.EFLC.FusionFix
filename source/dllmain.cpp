@@ -64,7 +64,7 @@ void Init()
     auto pattern = hook::pattern("E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? B9");
     hbCGameProcess.fun = injector::MakeCALL(pattern.get_first(0), CGameProcessHook, true).get();
 
-    pattern = hook::pattern("A1 ? ? ? ? 50 8B 08 FF 51 40");
+    pattern = find_pattern("A1 ? ? ? ? 50 8B 08 FF 51 40", "A1 ? ? ? ? 68 ? ? ? ? 8B 08 50 FF 51 40 8B F8");
     if (!pattern.empty())
     {
         static auto Direct3DDevice = *pattern.get_first<LPDIRECT3DDEVICE9*>(1);
