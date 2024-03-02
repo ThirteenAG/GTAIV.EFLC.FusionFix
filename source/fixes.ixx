@@ -335,16 +335,55 @@ public:
                 };
             }
 
-            // Remove free cam boundary limits in the video editor, ported from openCamera.
+            // Remove free cam boundary limits in the video editor.
             {
-                auto pattern = find_pattern("0F 86 ? ? ? ? 0F 2E FA 9F F6 C4 44 7A 05", "0F 86 ? ? ? ? F3 0F 10 54 24 ? 0F 2E D4");
-                injector::MakeJMP(pattern.get_first(), find_pattern("8D 84 24 ? ? ? ? 50 8D 4F 10 E8 ? ? ? ? F3 0F 10 AC 24", "8D 44 24 60 8D 7E 10 50 8B CF E8").get_first());
+                auto pattern = hook::pattern("73 5C 56 6A 00 6A 01 E8 ? ? ? ? 83 C4 0C 84 C0 74 4B");
+                if (!pattern.empty())
+                    injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
 
-                pattern = find_pattern("72 48 0F 2F 44 24 ? 72 41 0F 28 C3 0F 54 C2", "72 5F 0F 2F C5 72 5A 0F 2F FA 76 0E F3 0F 10 05");
-                injector::MakeJMP(pattern.get_first(), find_pattern("F3 0F 10 4C 24 ? F3 0F 10 94 24 ? ? ? ? F3 0F 11 BF", "F3 0F 10 44 24 ? F3 0F 11 86 ? ? ? ? F3 0F 10 44 24 ? F3 0F 11 86 ? ? ? ? F3 0F 10 44 24 ? F3 0F 11 86 ? ? ? ? F3 0F 10 44 24 ? F3 0F 11 86 ? ? ? ? B3 01").get_first());
+                pattern = hook::pattern("0F 86 ? ? ? ? 0F 2E FA 9F F6 C4 44 7A 05");
+                if (!pattern.empty())
+                {
+                    injector::WriteMemory(pattern.get_first(0), 0x0002EBE9, true);
+                    injector::WriteMemory(pattern.get_first(4), 0x2E0F9000, true);
 
-                pattern = find_pattern("72 6D 83 3D ? ? ? ? ? 74 1A A1", "0F 82 ? ? ? ? 83 3D ? ? ? ? ? 74 1A");
-                injector::MakeJMP(pattern.get_first(), find_pattern("8B 87 ? ? ? ? F3 0F 10 87 ? ? ? ? F3 0F 10 8F ? ? ? ? 8D 4F 40", "D9 86 ? ? ? ? F3 0F 10 86 ? ? ? ? F3 0F 10 8E ? ? ? ? D9 5E 40").get_first());
+                    pattern = hook::pattern("0F 82 ? ? ? ? 80 8F ? ? ? ? ? F6 87");
+                    if (!pattern.empty())
+                    {
+                        injector::WriteMemory(pattern.get_first(0), 0x000097E9, true);
+                        injector::WriteMemory(pattern.get_first(4), 0x8F809000, true);
+                    }
+                    pattern = hook::pattern("72 48 0F 2F 44 24 ? 72 41 0F 28 C3");
+                    if (!pattern.empty())
+                        injector::WriteMemory(pattern.get_first(0), 0x12EB, true);
+                    pattern = hook::pattern("72 6D 83 3D ? ? ? ? ? 74 1A A1");
+                    if (!pattern.empty())
+                        injector::WriteMemory(pattern.get_first(0), 0x6DEB, true);
+                }
+                else
+                {
+                    pattern = hook::pattern("0F 86 ? ? ? ? F3 0F 10 54 24 ? 0F 2E D4");
+                    if (!pattern.empty())
+                    {
+                        injector::WriteMemory(pattern.get_first(0), 0x00032EE9, true);
+                        injector::WriteMemory(pattern.get_first(4), 0x0FF39000, true);
+                    }
+                    pattern = hook::pattern("0F 82 ? ? ? ? 80 8E ? ? ? ? ? F6 86");
+                    if (!pattern.empty())
+                    {
+                        injector::WriteMemory(pattern.get_first(0), 0x000090E9, true);
+                        injector::WriteMemory(pattern.get_first(4), 0x8E809000, true);
+                    }
+                    pattern = hook::pattern("72 5F 0F 2F C5 72 5A 0F 2F FA 76 0E");
+                    if (!pattern.empty())
+                        injector::WriteMemory(pattern.get_first(0), 0x20EB, true);
+                    pattern = hook::pattern("0F 82 ? ? ? ? 83 3D ? ? ? ? ? 74 1A A1");
+                    if (!pattern.empty())
+                    {
+                        injector::WriteMemory(pattern.get_first(0), 0x000091E9, true);
+                        injector::WriteMemory(pattern.get_first(4), 0x3D839000, true);
+                    }
+                }
             }
         };
     }
