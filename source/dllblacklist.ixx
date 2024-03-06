@@ -130,13 +130,6 @@ public:
         if (baseLdrLoadDll == NULL)
             return;
 
-        try
-        {
-            safetyhook::execute_while_frozen([&]
-            {
-                realLdrLoadDll = safetyhook::create_inline(baseLdrLoadDll, LdrLoadDllHook);
-            });
-        }
-        catch (...) {}
+        realLdrLoadDll = safetyhook::create_inline(baseLdrLoadDll, LdrLoadDllHook);
     }
 } DLLBlacklist;

@@ -445,14 +445,7 @@ public:
     static inline void bind(HMODULE module, std::type_index type_index, uint16_t func_index, void* function, SafetyHookInline& hook)
     {
         auto target = deviceMethods.at(module).at(type_index).at(func_index);
-        try
-        {
-            safetyhook::execute_while_frozen([&]
-            {
-                hook = safetyhook::create_inline(target, function);
-            });
-        }
-        catch (...) {}
+        hook = safetyhook::create_inline(target, function);
     }
     static inline void unbind(SafetyHookInline& hook)
     {
