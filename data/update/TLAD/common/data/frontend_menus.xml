@@ -461,6 +461,11 @@
       <options text="240" action="ACTION_NONE" value="11" />
       <options text="360" action="ACTION_NONE" value="12" />
     </menupc>
+    <menupc enum="MENU_DISPLAY_BLOOM">
+      <options text="Off" action="ACTION_NONE" value="1" />
+      <options text="Cross" action="ACTION_NONE" value="2" />
+      <options text="Circle" action="ACTION_NONE" value="3" />
+    </menupc>
     <menupc enum="MENU_DISPLAY_DOF">
       <options text="Off" action="ACTION_NONE" value="1" />
       <options text="Cutscenes Only" action="ACTION_NONE" value="2" />
