@@ -385,6 +385,20 @@ public:
                     }
                 }
             }
+
+            // Glass Shards Color Fix
+            {
+                static auto veh_glass_red = "veh_glass_red";
+                static auto veh_glass_amber = "veh_glass_amber";
+
+                auto pattern = hook::pattern("68 ? ? ? ? EB E2 6A 00 68");
+                if (!pattern.empty())
+                    injector::WriteMemory(pattern.get_first(1), &veh_glass_red[0], true);
+
+                pattern = hook::pattern("68 ? ? ? ? E8 ? ? ? ? 83 C4 08 89 44 24 0C 6A 00 6A 00");
+                if (!pattern.empty())
+                    injector::WriteMemory(pattern.get_first(1), &veh_glass_amber[0], true);
+            }
         };
     }
 } Fixes;
