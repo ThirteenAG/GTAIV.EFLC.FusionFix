@@ -441,13 +441,13 @@
     </menu>
     <menupc enum="MENU_DISPLAY_TIMECYC">
       <options text="MO_DEF" action="ACTION_NONE" value="1" />
-      <options text="OFF" action="ACTION_NONE" value="2" />
+      <options text="MO_OFF" action="ACTION_NONE" value="2" />
       <options text="IV" action="ACTION_NONE" value="3" />
       <options text="TLAD" action="ACTION_NONE" value="4" />
       <options text="TBOGT" action="ACTION_NONE" value="5" />
     </menupc>
     <menupc enum="MENU_DISPLAY_FRAMELIMIT">
-      <options text="OFF" action="ACTION_NONE" value="0" />
+      <options text="MO_OFF" action="ACTION_NONE" value="0" />
       <options text="Custom" action="ACTION_NONE" value="1" />
       <options text="30" action="ACTION_NONE" value="2" />
       <options text="40" action="ACTION_NONE" value="3" />
@@ -462,12 +462,12 @@
       <options text="360" action="ACTION_NONE" value="12" />
     </menupc>
     <menupc enum="MENU_DISPLAY_BLOOM">
-      <options text="Off" action="ACTION_NONE" value="1" />
+      <options text="MO_OFF" action="ACTION_NONE" value="1" />
       <options text="Cross" action="ACTION_NONE" value="2" />
       <options text="Circle" action="ACTION_NONE" value="3" />
     </menupc>
     <menupc enum="MENU_DISPLAY_DOF">
-      <options text="Off" action="ACTION_NONE" value="1" />
+      <options text="MO_OFF" action="ACTION_NONE" value="1" />
       <options text="Cutscenes Only" action="ACTION_NONE" value="2" />
       <options text="Low" action="ACTION_NONE" value="3" />
       <options text="Medium" action="ACTION_NONE" value="4" />

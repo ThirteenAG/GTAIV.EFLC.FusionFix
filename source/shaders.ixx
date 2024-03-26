@@ -114,13 +114,27 @@ public:
                         pDevice->SetVertexShaderConstantF(227, &arr[0], 1);
                     }
                 
-                    // DynamicShadowForTrees Wind Sway, More Shadows
+                    // DynamicShadowForTrees Wind Sway, More Shadows, Bloom and Noise
                     {
                         static float arr2[4];
                         arr2[0] = Natives::IsInteriorScene() ? 0.0f : *dw11A2948;
                         arr2[1] = static_cast<float>(bMoreShadows);
-                        arr2[2] = 0.0f;
-                        arr2[3] = 0.0f;
+
+                        switch (FusionFixSettings.Get("PREF_BLOOM"))
+                        {
+                        case FusionFixSettings.BloomText.eCross:
+                            arr2[2] = 1.0f;
+                            break;
+                        case FusionFixSettings.BloomText.eCircle:
+                            arr2[2] = 2.0f;
+                            break;
+                        case FusionFixSettings.BloomText.eOff:
+                        default:
+                            arr2[2] = 0.0f;
+                            break;
+                        }
+
+                        arr2[3] = static_cast<float>(FusionFixSettings.Get("PREF_EPISODIC_NOISE_FILTER"));
                         pDevice->SetVertexShaderConstantF(233, &arr2[0], 1);
                     }
 
