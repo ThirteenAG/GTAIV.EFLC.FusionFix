@@ -183,6 +183,8 @@ public:
                         static float arr3[4];
                         arr3[0] = (bFixAutoExposure ? 1.0f : 0.0f);
                         arr3[1] = static_cast<float>(cutscene_dof->get() >= FusionFixSettings.DofText.eCutscenesOnly);
+                        if (cutscene_dof->get() == FusionFixSettings.DofText.eCutscenesOnly && Natives::HasCutsceneFinished())
+                            arr3[1] = 0.0f;
                         arr3[2] = static_cast<float>(gamma->get());
                         arr3[3] = static_cast<float>(mblur->get());
                         pDevice->SetPixelShaderConstantF(222, &arr3[0], 1);
