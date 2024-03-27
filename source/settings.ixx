@@ -147,13 +147,13 @@ public:
             { 0, "PREF_TIMECYC",           "MISC",       "ScreenFilter",                    "MENU_DISPLAY_TIMECYC",       5, nullptr, TimecycText.eMO_DEF, std::distance(std::begin(TimecycText.data), std::end(TimecycText.data)) - 1 },
   /*UNUSED*/{ 0, "PREF_CUTSCENE_DOF",      "MISC",       "DistantBlurUnused",               "",                           1, nullptr, 0, 1 },
             { 0, "PREF_CONSOLE_SHADOWS",   "SHADOWS",    "ConsoleShadows",                  "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_SHADOW_FILTER",     "SHADOWS",    "ShadowFilter",                    "MENU_DISPLAY_SHADOWFILTER",  3, nullptr, ShadowFilterText.eSharp, std::distance(std::begin(ShadowFilterText.data), std::end(ShadowFilterText.data)) - 1 },
+            { 0, "PREF_BLOOM",             "MAIN",       "Bloom",                           "MENU_DISPLAY_BLOOM",         3, nullptr, BloomText.eOff, std::distance(std::begin(BloomText.data), std::end(BloomText.data)) - 1 },
             { 0, "PREF_TREE_LIGHTING",     "MISC",       "TreeLighting",                    "MENU_DISPLAY_TREE_LIGHTING", 8, nullptr, TreeFxText.ePC, std::distance(std::begin(TreeFxText.data), std::end(TreeFxText.data)) - 1 },
             { 0, "PREF_TCYC_DOF",          "MISC",       "DepthOfField",                    "MENU_DISPLAY_DOF",           7, nullptr, DofText.eOff, std::distance(std::begin(DofText.data), std::end(DofText.data)) - 1 },
             { 0, "PREF_MOTIONBLUR",        "MAIN",       "MotionBlur",                      "",                           0, nullptr, 0, 1 },
             { 0, "PREF_LEDILLUMINATION",   "MISC",       "LightSyncRGB",                    "",                           0, nullptr, 0, 1 },
             { 0, "PREF_DEFINITION",        "MAIN",       "Definition",                      "MENU_DISPLAY_DEFINITION",    6, nullptr, DefinitionText.eClassic, std::distance(std::begin(DefinitionText.data), std::end(DefinitionText.data)) - 1 },
-            { 0, "PREF_BLOOM",             "MAIN",       "Bloom",                           "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_PCSS",              "SHADOWS",    "PCSS",                            "",                           1, nullptr, 0, 1 },
             { 0, "PREF_FPSCOUNTER",        "FRAMELIMIT", "DisplayFpsCounter",               "",                           0, nullptr, 0, 1 },
             { 0, "PREF_ALWAYSRUN",         "MISC",       "AlwaysRun",                       "",                           0, nullptr, 0, 1 },
             { 0, "PREF_ALTDIALOGUE",       "MISC",       "AltDialogue",                     "",                           0, nullptr, 0, 1 },
@@ -166,6 +166,7 @@ public:
             { 0, "PREF_LETTERBOX",         "MISC",       "Letterbox",                       "",                           1, nullptr, 0, 1 },
             { 0, "PREF_PILLARBOX",         "MISC",       "Pillarbox",                       "",                           1, nullptr, 0, 1 },
             { 0, "PREF_ANTIALIASING",      "MISC",       "Antialiasing",                    "MENU_DISPLAY_ANTIALIASING",  1, nullptr, AntialiasingText.eMO_OFF, std::distance(std::begin(AntialiasingText.data), std::end(AntialiasingText.data)) - 1 },
+            // Enums are at capacity, to use more enums, replace multiplayer ones. On/Off toggles should still be possible to add.
         };
 
         auto i = firstCustomID;
@@ -343,11 +344,11 @@ public:
 
     struct
     {
-        enum eShadowFilterText {
-            eRadio, eSequential, eShuffle, eSharp, eSoft, eSofter, eSoftest, PCSS
+        enum eBloomText {
+            eRadio, eSequential, eShuffle, eOff, eCross, eCircle
         };
-        std::vector<const char*> data = { "Radio", "Sequential", "Shuffle", "Sharp", "Soft", "Softer", "Softest", "PCSS" };
-    } ShadowFilterText;
+        std::vector<const char*> data = { "Radio", "Sequential", "Shuffle", "Off", "Cross", "Circle" };
+    } BloomText;
 
     struct
     {
