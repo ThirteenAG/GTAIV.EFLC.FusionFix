@@ -20,6 +20,7 @@ public:
             bool bEpisodicWeapons = iniReader.ReadInteger("EPISODICCONTENT", "EpisodicWeapons", 0) != 0;
             bool bTBoGTHelicopterHeightLimit = iniReader.ReadInteger("EPISODICCONTENT", "TBoGTHelicopterHeightLimit", 0) != 0;
             bool bTBoGTWeaponRandomization = iniReader.ReadInteger("EPISODICCONTENT", "TBoGTWeaponRandomization", 0) != 0;
+            bool bRemoveSCOSignatureCheck = iniReader.ReadInteger("EPISODICCONTENT", "RemoveSCOSignatureCheck", 0) != 0;
 
             if (bEpisodicVehicles)
             {
@@ -130,6 +131,13 @@ public:
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 2, true);
 
+                pattern = hook::pattern("83 3D ? ? ? ? ? 7C 75");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? 8B 47 4C");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 6, true);
             }
 
             if (bTBoGTHelicopterHeightLimit)
@@ -144,7 +152,14 @@ public:
                 auto pattern = hook::pattern("83 3D ? ? ? ? ? 75 3D E8");
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 2, true);
-            }          
+            }
+
+            if (bRemoveSCOSignatureCheck)
+            {
+                auto pattern = hook::pattern("85 DB 74 1E A1 ? ? ? ? 85 C0 74 15 3B D8 74 11");
+                if (!pattern.empty())
+                    injector::WriteMemory<uint8_t>(pattern.get_first(2), 0xEB, true);
+            }
         };
     }
 } EpisodicContent;
