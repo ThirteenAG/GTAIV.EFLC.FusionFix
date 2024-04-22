@@ -95,6 +95,9 @@ public:
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 2, true);
 
+                pattern = hook::pattern("83 3D ? ? ? ? ? 7C 21 83 F8 23");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
             }
             
             if (bEpisodicWeapons)
@@ -103,7 +106,27 @@ public:
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 6, true);
 
-                pattern = hook::pattern("");
+                pattern = hook::pattern("83 3D ? ? ? ? ? BA ? ? ? ? 50");   //...
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(13), 2, true);
+
+                pattern = hook::pattern("83 F8 02 75 24 8B CE E8 ? ? ? ? 84 C0 74 14");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(3), 2, true);
+
+                pattern = hook::pattern("85 C0 74 0D 83 7E 18 1C");    //pipe bomb
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(2), 2, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 75 59 83 3D");    //scope hud
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 75 59 8B 07");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 7C 24");
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 2, true);
 
