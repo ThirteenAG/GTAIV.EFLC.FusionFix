@@ -99,6 +99,50 @@ public:
                 pattern = hook::pattern("83 3D ? ? ? ? ? 7C 21 83 F8 23");
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 2, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 7C 22");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? 8B 3D ? ? ? ? F3 0F 10 05");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 6, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 89 44 24 38");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(11), 6, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 7C 10 FF 76 18 E8 ? ? ? ? 83 C4 04 83 38 27 74 04");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 7C 1E");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+
+                pattern = hook::pattern("8B 1D ? ? ? ? 83 C4 04 83 FB 02");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(12), 2, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 75 0E 80 3D"); //altimeter
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? F3 0F 10 00 F3 0F 11 44 24"); //buzzard
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(39), 2, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 0F 8C ? ? ? ? 0F BF 47 2E"); //buzzard
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 6, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 7C 56"); //buzzard
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 7C 64"); //buzzard
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
             }
             
             if (bEpisodicWeapons)
@@ -123,6 +167,10 @@ public:
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 2, true);
 
+                pattern = hook::pattern("83 3D ? ? ? ? ? 5F 5E 5D");    //scope hud
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(11), 2, true);
+
                 pattern = hook::pattern("83 3D ? ? ? ? ? 75 59 8B 07");
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 2, true);
@@ -138,6 +186,23 @@ public:
                 pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? 8B 47 4C");
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 6, true);
+
+                //parachute
+                pattern = hook::pattern("83 3D ? ? ? ? ? 7C 0D");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? 56 8B 74 24 08");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 6, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? 56 8B 74 24 0C");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 6, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 75 18 0F B7 46 0A");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
             }
 
             if (bTBoGTHelicopterHeightLimit)
