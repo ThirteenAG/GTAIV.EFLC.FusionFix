@@ -196,7 +196,7 @@ public:
             injector::MakeCALL(pattern.get_first(0), DrawLoadingScreen, true);
 
             // Camera overlay
-            pattern = hook::pattern("5E C3 5F 5E E9");
+            pattern = find_pattern("31 47 04 5F 5E C3 5F 5E E9", "31 46 04 5F 5E C3 5F 5E E9");
             hbDrawCameraOverlay.fun = injector::MakeJMP(pattern.get_first(4), DrawCameraOverlay, true).get();
 
             pattern = find_pattern("C7 47 ? ? ? ? ? EB 02 33 FF 8B 07 8B CF FF 50 08 25 ? ? ? ? 79 05 48 83 C8 F0 40 BE ? ? ? ? 2B F0 81 E6 ? ? ? ? 79 05 4E 83 CE F0 46 8B 07 8B CF FF 50 08 03 C6 99 83 E2 0F 03 C2 C1 F8 04 C1 E0 0E 33 47 04 25 ? ? ? ? 31 47 04 5F 5E C3 5F",
