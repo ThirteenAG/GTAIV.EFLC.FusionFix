@@ -45,6 +45,17 @@ public:
         return *CTimer__m_UserPause;
     }
 
+    static inline injector::hook_back<int(__fastcall*)(int* _this, void* edx, int a2)> hbsub_B64D60;
+    static int __fastcall sub_B64D60(int* _this, void* edx, int a2)
+    {
+        auto r = hbsub_B64D60.fun(_this, edx, a2);
+
+        if (r == 4 && _this[21] == 32) // P90
+            r = hbsub_B64D60.fun(_this, edx, r);
+
+        return r;
+    }
+
     Fixes()
     {
         FusionFix::onInitEvent() += []()
@@ -412,6 +423,19 @@ public:
                 pattern = hook::pattern("68 ? ? ? ? E8 ? ? ? ? 83 C4 08 89 44 24 0C 6A 00 6A 00");
                 if (!pattern.empty())
                     injector::WriteMemory(pattern.get_first(1), &veh_glass_amber[0], true);
+            }
+
+            // Fix Cascaded Shadow Map Resolution
+            {
+                auto pattern = hook::pattern("03 F6 E8 ? ? ? ? 8B 0D");
+                injector::MakeNOP(pattern.get_first(0), 2, true);
+            }
+
+            // P90 Selector Fix (Prev Weapon key)
+            {
+                auto pattern = hook::pattern("E8 ? ? ? ? 8B F0 3B 37 75 88");
+                if (!pattern.empty())
+                    hbsub_B64D60.fun = injector::MakeCALL(pattern.get_first(0), sub_B64D60).get();
             }
         };
     }

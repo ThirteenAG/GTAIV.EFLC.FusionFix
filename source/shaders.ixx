@@ -49,7 +49,6 @@ public:
         static UINT oldCascadesHeight = 0;
         static IDirect3DTexture9* pHDRTexQuarter = nullptr;
         static bool bFixAutoExposure = false;
-        static auto bFixCascadedShadowMapResolution = false;
 
         FusionFix::onInitEvent() += []()
         {
@@ -114,7 +113,7 @@ public:
                         pDevice->SetVertexShaderConstantF(227, &arr[0], 1);
                     }
                 
-                    // DynamicShadowForTrees Wind Sway, More Shadows, Bloom and Noise
+                    // DynamicShadowForTrees Wind Sway, More Shadows
                     {
                         static float arr2[4];
                         arr2[0] = Natives::IsInteriorScene() ? 0.0f : *dw11A2948;
@@ -124,7 +123,7 @@ public:
                         pDevice->SetVertexShaderConstantF(233, &arr2[0], 1);
                     }
 
-                    // Bloom and Noise
+                    // Bloom
                     {
                         static float arr6[4];
 
@@ -142,7 +141,7 @@ public:
                             break;
                         }
 
-                        arr6[1] = static_cast<float>(FusionFixSettings.Get("PREF_EPISODIC_NOISE_FILTER"));
+                        arr6[1] = 0.0f;
                         arr6[2] = 0.0f;
                         arr6[3] = 0.0f;
                         pDevice->SetPixelShaderConstantF(220, &arr6[0], 1);
@@ -171,7 +170,7 @@ public:
                         
                         arr5[1] = static_cast<float>(FusionFixSettings.Get("PREF_SHADOW_QUALITY"));
                         arr5[2] = 1.0f / (30.0f * Natives::Timestep());
-                        arr5[3] = bFixCascadedShadowMapResolution ? 2.0f : 1.0f;
+                        arr5[3] = 0.0f;
                         pDevice->SetPixelShaderConstantF(221, &arr5[0], 1);
                     }
 
@@ -212,8 +211,6 @@ public:
         FusionFix::onInitEvent() += []()
         {
             CIniReader iniReader("");
-            bFixCascadedShadowMapResolution = iniReader.ReadInteger("SHADOWS", "FixCascadedShadowMapResolution", 0) != 0;
-
             static auto bFixRainDrops = iniReader.ReadInteger("MISC", "FixRainDrops", 1) != 0;
             static auto nRainDropsBlur = iniReader.ReadInteger("MISC", "RainDropsBlur", 2);
             if (nRainDropsBlur < 1) {
@@ -235,33 +232,17 @@ public:
             //
             //};
 
-            FusionFix::D3D9::onSetPixelShaderConstantF() += [](LPDIRECT3DDEVICE9& pDevice, UINT& StartRegister, float*& pConstantData, UINT& Vector4fCount)
-            {               
-                if (bFixCascadedShadowMapResolution) {
-                    if (StartRegister == 53 && Vector4fCount == 1 &&
-                        oldCascadesWidth != 0 && oldCascadesHeight != 0 &&
-                        pConstantData[0] == 1.0f / (float)oldCascadesWidth && pConstantData[1] == 1.0f / (float)oldCascadesHeight)
-                    {
-                        // set pixel size to pixel shader
-                        pConstantData[0] = 1.0f / float(oldCascadesWidth * 2);
-                        pConstantData[1] = 1.0f / float(oldCascadesHeight * 2);
-                        pConstantData[2] = 1.0f / float(oldCascadesHeight * 2);
-                    };
-                }
-            };
+            //FusionFix::D3D9::onSetPixelShaderConstantF() += [](LPDIRECT3DDEVICE9& pDevice, UINT& StartRegister, float*& pConstantData, UINT& Vector4fCount)
+            //{               
+            //
+            //};
 
             FusionFix::D3D9::onBeforeCreateTexture() += [](LPDIRECT3DDEVICE9& pDevice, UINT& Width, UINT& Height, UINT& Levels, DWORD& Usage, D3DFORMAT& Format, D3DPOOL& Pool, IDirect3DTexture9**& ppTexture, HANDLE*& pSharedHandle)
             {
-                if (bFixCascadedShadowMapResolution)
+                // Fix Cascaded Shadow Map Resolution
+                if (Format == D3DFORMAT(D3DFMT_R16F) && Height >= 256 && (Width == (Height * 4)) && Levels == 1)
                 {
-                    if (Format == D3DFORMAT(D3DFMT_R16F) && Height >= 256 && Width == Height * 4 && Levels == 1)
-                    {
-                        oldCascadesWidth = Width;
-                        oldCascadesHeight = Height;
-            
-                        Width *= 2;
-                        Height *= 2;
-                    }
+                    Format = D3DFMT_R32F;
                 }
             };
             
