@@ -23,6 +23,7 @@ public:
             bool bTBoGTWeaponRandomization = iniReader.ReadInteger("EPISODICCONTENT", "TBoGTWeaponRandomization", 0) != 0;
             bool bRemoveSCOSignatureCheck = iniReader.ReadInteger("EPISODICCONTENT", "RemoveSCOSignatureCheck", 0) != 0;
             bool bEpisodicCheats = iniReader.ReadInteger("EPISODICCONTENT", "EpisodicCheats", 0) != 0;
+            bool bOtherEpisodicChecks = iniReader.ReadInteger("EPISODICCONTENT", "OtherEpisodicChecks", 0) != 0;
 
             if (bEpisodicVehicles)
             {
@@ -157,13 +158,9 @@ public:
             
             if (bEpisodicWeapons)
             {
-                auto pattern = hook::pattern("83 3D ? ? ? ? ? 0F 8C ? ? ? ? FF 76 18");
+                auto pattern = hook::pattern("83 3D ? ? ? ? ? 0F 8C ? ? ? ? FF 76 18");    // Explosive Shotgun
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 6, true);
-
-                pattern = hook::pattern("83 3D ? ? ? ? ? BA ? ? ? ? 50");   //...
-                if (!pattern.empty())
-                    injector::MakeNOP(pattern.get_first(13), 2, true);
 
                 pattern = hook::pattern("83 F8 02 75 24 8B CE E8 ? ? ? ? 84 C0 74 14");
                 if (!pattern.empty())
@@ -197,6 +194,10 @@ public:
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 6, true);
 
+                pattern = hook::pattern("83 3D ? ? ? ? ? 0F 8C ? ? ? ? 83 7F 54 20"); //p90 scroll block
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 6, true);
+
                 //parachute
                 pattern = hook::pattern("83 3D ? ? ? ? ? 7C 0D");
                 if (!pattern.empty())
@@ -226,6 +227,21 @@ public:
                     injector::MakeNOP(pattern.get_first(7), 2, true);
                 }
 
+            if (bOtherEpisodicChecks)
+            {
+                auto pattern = hook::pattern("83 3D ? ? ? ? ? 8A 81");  //disco camera shake
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(18), 2, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 75 05 E8 ? ? ? ? 8B 4E 04");  //disco camera shake
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 0F 8C ? ? ? ? 8B CE");  //phone switch
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 6, true);
+            }
+
             if (bTBoGTHelicopterHeightLimit)
             {
                 auto pattern = hook::pattern("83 3D ? ? ? ? ? 7C 0A F3 0F 10 05");
@@ -235,7 +251,11 @@ public:
 
             if (bTBoGTWeaponRandomization)
             {
-                auto pattern = hook::pattern("83 3D ? ? ? ? ? 75 3D E8");
+                auto pattern = hook::pattern("83 3D ? ? ? ? ? 75 3D E8"); // P90s and assault shotguns for cops
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 7C 0A 83 7F 0C 1E"); //swat in police helis
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 2, true);
             }
