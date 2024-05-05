@@ -20,7 +20,7 @@ public:
             bool bEpisodicWeapons = iniReader.ReadInteger("EPISODICCONTENT", "EpisodicWeapons", 0) != 0;
             bool bExplosiveAnnihilator = iniReader.ReadInteger("EPISODICCONTENT", "ExplosiveAnnihilator", 0) != 0;
             bool bTBoGTHelicopterHeightLimit = iniReader.ReadInteger("EPISODICCONTENT", "TBoGTHelicopterHeightLimit", 0) != 0;
-            bool bTBoGTWeaponRandomization = iniReader.ReadInteger("EPISODICCONTENT", "TBoGTWeaponRandomization", 0) != 0;
+            bool bTBoGTPoliceWeapons = iniReader.ReadInteger("EPISODICCONTENT", "TBoGTPoliceWeapons", 0) != 0;
             bool bRemoveSCOSignatureCheck = iniReader.ReadInteger("EPISODICCONTENT", "RemoveSCOSignatureCheck", 0) != 0;
             bool bEpisodicCheats = iniReader.ReadInteger("EPISODICCONTENT", "EpisodicCheats", 0) != 0;
             bool bOtherEpisodicChecks = iniReader.ReadInteger("EPISODICCONTENT", "OtherEpisodicChecks", 0) != 0;
@@ -152,15 +152,15 @@ public:
                     injector::MakeNOP(pattern.get_first(7), 2, true);
             }
 
-            if (bTBoGTWeaponRandomization)
+            if (bTBoGTPoliceWeapons)
             {
                 auto pattern = hook::pattern("83 3D ? ? ? ? ? 75 3D E8"); // P90s and assault shotguns for cops
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 2, true);
 
-                pattern = hook::pattern("83 3D ? ? ? ? ? 7C 0A 83 7F 0C 1E"); // swat in police helis
+                pattern = hook::pattern("83 3D ? ? ? ? ? 6A 00 6A 00 6A 01"); // m249 for swat in annihilators and helicopters
                 if (!pattern.empty())
-                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                    injector::MakeNOP(pattern.get_first(24), 2, true);
             }
 
             if (bRemoveSCOSignatureCheck)
