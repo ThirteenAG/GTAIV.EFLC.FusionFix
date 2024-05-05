@@ -27,7 +27,7 @@ public:
 
             if (bEpisodicVehicles)
             {
-                auto pattern = hook::pattern("83 3D ? ? ? ? ? 0F 8C ? ? ? ? 0F BF 46 2E"); // apc cannon
+                auto pattern = hook::pattern("83 3D ? ? ? ? ? 0F 8C ? ? ? ? 0F BF 46 2E"); // apc cannon shooting
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 6, true);
 
@@ -39,7 +39,11 @@ public:
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 2, true);
 
-                pattern = hook::pattern("83 3D ? ? ? ? ? F3 0F 10 0D ? ? ? ? F3 0F 11 4C 24 ? 75 14"); // apc cannon sounds
+                pattern = hook::pattern("83 3D ? ? ? ? ? 7C 22"); // apc cannon sounds
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? F3 0F 10 0D ? ? ? ? F3 0F 11 4C 24 ? 75 14"); // apc cannon on impact sounds
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(21), 2, true);
 
@@ -62,14 +66,21 @@ public:
             
             if (bEpisodicWeapons)
             {
-                auto pattern = hook::pattern("83 3D ? ? ? ? ? 0F 8C ? ? ? ? FF 76 18");    // AA12 explosive shells
+                auto pattern = hook::pattern("83 3D ? ? ? ? ? 0F 8C ? ? ? ? FF 76 18");  // AA12 explosive shells
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 6, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 7C 24");  // AA12 self damage
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
 
                 pattern = hook::pattern("83 3D ? ? ? ? ? 7C 21 83 F8 23"); // DSR1 scope
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 2, true);
 
+                pattern = hook::pattern("83 3D ? ? ? ? ? 5F 5E 5D");    // DSR1 scope hud
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(11), 2, true);
 
                 pattern = hook::pattern("85 C0 74 0D 83 7E 18 1C");    //pipe bomb drop hud
                 if (!pattern.empty())
@@ -83,6 +94,14 @@ public:
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 2, true);
 
+                pattern = hook::pattern("83 3D ? ? ? ? ? 75 59 8B 07"); // sticky bomb planting animation freeze
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? 8B 47 4C"); // sticky bomb planting camera freeze
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 6, true);
+
                 pattern = hook::pattern("83 3D ? ? ? ? ? 0F 8C ? ? ? ? 83 7F 54 20"); // P90 scroll block
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 6, true);
@@ -90,6 +109,14 @@ public:
                 pattern = hook::pattern("83 3D ? ? ? ? ? 75 14 E8"); // parachute anims
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 2, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? 56 8B 74 24 0C"); // parachute extended camera
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 6, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 0F 57 C9"); // parachute wind sounds
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(10), 2, true);
             }
             
             if (bExplosiveAnnihilator)
