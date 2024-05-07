@@ -1,6 +1,7 @@
 module;
 
 #include <common.hxx>
+#include <D3D9Types.h>
 
 export module comvars;
 
@@ -41,6 +42,75 @@ export inline LONG getWindowHeight()
 {
     return gRect.bottom - gRect.top;
 }
+
+export struct TexFormat
+{
+    enum R_D3DFMT
+    {
+        R_D3DFMT_UNKNOWN,
+        R_D3DFMT_R5G6B5,
+        R_D3DFMT_A8R8G8B8,
+        R_D3DFMT_R16F,
+        R_D3DFMT_R32F,
+        R_D3DFMT_A2R10G10B10,
+        R_D3DFMT_A16B16G16R16F,
+        R_D3DFMT_G16R16,
+        R_D3DFMT_G16R16F,
+        //R_D3DFMT_A32B32G32R32F,
+        //R_D3DFMT_A16B16G16R16F,
+        //R_D3DFMT_A16B16G16R16,
+        //R_D3DFMT_L8,
+        //R_D3DFMT_L16,
+        //R_D3DFMT_A8L8,
+        //R_D3DFMT_A1R5G5B5,
+        //R_D3DFMT_D24S8,
+        //R_D3DFMT_A4R4G4B4,
+        //R_D3DFMT_G32R32F,
+    };
+
+    static inline std::vector<std::pair<R_D3DFMT, D3DFORMAT>> m_Formats
+    {
+        { R_D3DFMT_UNKNOWN,       D3DFMT_UNKNOWN },
+        { R_D3DFMT_R5G6B5,        D3DFMT_R5G6B5 },
+        { R_D3DFMT_A8R8G8B8,      D3DFMT_A8R8G8B8 },
+        { R_D3DFMT_R16F,          D3DFMT_R16F },
+        { R_D3DFMT_R32F,          D3DFMT_R32F },
+        { R_D3DFMT_A2R10G10B10,   D3DFMT_A2R10G10B10 },
+        { R_D3DFMT_A16B16G16R16F, D3DFMT_A16B16G16R16F },
+        { R_D3DFMT_G16R16,        D3DFMT_G16R16 },
+        { R_D3DFMT_G16R16F,       D3DFMT_G16R16F },
+        //{ R_D3DFMT_A32B32G32R32F, D3DFMT_A32B32G32R32F },
+        //{ R_D3DFMT_A16B16G16R16,  D3DFMT_A16B16G16R16 },
+        //{ R_D3DFMT_L8,            D3DFMT_L8 },
+        //{ R_D3DFMT_L16,           D3DFMT_L16 },
+        //{ R_D3DFMT_A8L8,          D3DFMT_A8L8 },
+        //{ R_D3DFMT_A8L8,          D3DFMT_A8L8 },
+        //{ R_D3DFMT_A1R5G5B5,      D3DFMT_A1R5G5B5 },
+        //{ R_D3DFMT_D24S8,         D3DFMT_D24S8 },
+        //{ R_D3DFMT_A4R4G4B4,      D3DFMT_A4R4G4B4 },
+        //{ R_D3DFMT_G32R32F,       D3DFMT_G32R32F },
+    };
+
+    static inline R_D3DFMT getEngineFormat(D3DFORMAT format)
+    {
+        for (auto& pair : m_Formats)
+        {
+            if (pair.second == format)
+                return pair.first;
+        }
+        return R_D3DFMT_UNKNOWN;
+    }
+
+    static inline D3DFORMAT getD3DFormat(R_D3DFMT format)
+    {
+        for (auto& pair : m_Formats)
+        {
+            if (pair.first == format)
+                return pair.second;
+        }
+        return D3DFMT_UNKNOWN;
+    }
+};
 
 #pragma pack(push, 1)
 struct CImgFile

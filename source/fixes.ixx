@@ -429,6 +429,15 @@ public:
             {
                 auto pattern = hook::pattern("03 F6 E8 ? ? ? ? 8B 0D");
                 injector::MakeNOP(pattern.get_first(0), 2, true);
+
+                // Switch texture formats
+                // CASCADE_ATLAS
+                pattern = find_pattern("C7 05 ? ? ? ? ? ? ? ? C7 05 ? ? ? ? ? ? ? ? 8B 08 50 FF 51 08 5E 59 C3 8B 44 24 04 6A 72", "C7 05 ? ? ? ? ? ? ? ? C7 05 ? ? ? ? ? ? ? ? 8B 08");
+                injector::WriteMemory(pattern.get_first(6), TexFormat::getEngineFormat(D3DFMT_R32F), true);
+
+                // _DEFERRED_GBUFFER_0_ / _DEFERRED_GBUFFER_1_ / _DEFERRED_GBUFFER_2_
+                pattern = find_pattern("BA ? ? ? ? 84 C0 0F 45 CA 8B 15", "40 05 00 00 00 8B 0D ? ? ? ? 8B 11 8B 52 38 8D 74 24 14 56 50 A1");
+                injector::WriteMemory(pattern.get_first(1), TexFormat::getEngineFormat(D3DFMT_A8R8G8B8), true);
             }
 
             // P90 Selector Fix (Prev Weapon key)
