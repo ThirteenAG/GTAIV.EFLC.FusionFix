@@ -22,7 +22,6 @@ public:
             bool bTBoGTHelicopterHeightLimit = iniReader.ReadInteger("EPISODICCONTENT", "TBoGTHelicopterHeightLimit", 0) != 0;
             bool bTBoGTPoliceWeapons = iniReader.ReadInteger("EPISODICCONTENT", "TBoGTPoliceWeapons", 0) != 0;
             bool bRemoveSCOSignatureCheck = iniReader.ReadInteger("EPISODICCONTENT", "RemoveSCOSignatureCheck", 0) != 0;
-            bool bEpisodicCheats = iniReader.ReadInteger("EPISODICCONTENT", "EpisodicCheats", 0) != 0;
             bool bOtherEpisodicChecks = iniReader.ReadInteger("EPISODICCONTENT", "OtherEpisodicChecks", 0) != 0;
 
             if (bEpisodicVehicles)
@@ -106,6 +105,10 @@ public:
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 6, true);
 
+                pattern = hook::pattern("83 3D ? ? ? ? ? 7C 05"); // P90 get in car block
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+
                 pattern = hook::pattern("83 3D ? ? ? ? ? 75 14 E8"); // parachute anims
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 2, true);
@@ -143,6 +146,14 @@ public:
                 pattern = hook::pattern("83 3D ? ? ? ? ? 75 0E 80 3D"); // altimeter for parachute and helis
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 2, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? DD D8");  // explosive sniper cheat
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(9), 6, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? 80 3D ? ? ? ? ? 0F 84 ? ? ? ? F3 0F 10 05");  // explosive fists cheat
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 6, true);
             }
 
             if (bTBoGTHelicopterHeightLimit)
@@ -168,21 +179,6 @@ public:
                 auto pattern = hook::pattern("85 DB 74 1E A1 ? ? ? ? 85 C0 74 15 3B D8 74 11");
                 if (!pattern.empty())
                     injector::WriteMemory<uint8_t>(pattern.get_first(2), 0xEB, true);
-            }
-
-            if (bEpisodicCheats)
-            {
-                auto pattern = hook::pattern("83 3D ? ? ? ? ? 75 23 80 3D");  // parachute
-                if (!pattern.empty())
-                    injector::MakeNOP(pattern.get_first(7), 2, true);
-
-                pattern = hook::pattern("83 3D ? ? ? ? ? DD D8");  // explosive sniper
-                if (!pattern.empty())
-                    injector::MakeNOP(pattern.get_first(9), 6, true);
-
-                pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? 80 3D ? ? ? ? ? 0F 84 ? ? ? ? F3 0F 10 05");  // explosive fists
-                if (!pattern.empty())
-                    injector::MakeNOP(pattern.get_first(7), 6, true);
             }
         };
     }
