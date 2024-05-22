@@ -471,6 +471,12 @@ public:
                 pattern = hook::pattern("6A 01 8B C8 E8 ? ? ? ? EB 02 33 C0 50 E8 ? ? ? ? 83 C4 04 8B 45 0C 8B 4C 24 18");
                 injector::WriteMemory<uint8_t>(pattern.get_first(1), 0, true);
             }
+
+            // Water Foam Height Weirdness
+            {
+                auto pattern = hook::pattern("F3 0F 58 0D ? ? ? ? 83 EC 08 F3 0F 59 05");
+                injector::MakeNOP(pattern.get_first(0), 8, true);
+            }
         };
     }
 } Fixes;
