@@ -45,8 +45,6 @@ class Shaders
 public:
     Shaders()
     {
-        static UINT oldCascadesWidth = 0;
-        static UINT oldCascadesHeight = 0;
         static IDirect3DTexture9* pHDRTexQuarter = nullptr;
         static bool bFixAutoExposure = false;
 
@@ -108,42 +106,60 @@ public:
                         static float arr[4];
                         arr[0] = nearclip;
                         arr[1] = farclip;
-                        arr[2] = nearclip;
-                        arr[3] = farclip;
+                        arr[2] = 0.0f;
+                        arr[3] = 0.0f;
                         pDevice->SetVertexShaderConstantF(227, &arr[0], 1);
                     }
                 
-                    // DynamicShadowForTrees Wind Sway, More Shadows
+                    // DynamicShadowForTrees Wind Sway
                     {
                         static float arr2[4];
                         arr2[0] = Natives::IsInteriorScene() ? 0.0f : *dw11A2948;
-                        arr2[1] = static_cast<float>(bMoreShadows);
+                        arr2[1] = 0.0f;
                         arr2[2] = 0.0f;
                         arr2[3] = 0.0f;
                         pDevice->SetVertexShaderConstantF(233, &arr2[0], 1);
                     }
 
-                    // Bloom
+                    // Shadow Quality
                     {
                         static float arr6[4];
 
-                        switch (FusionFixSettings.Get("PREF_BLOOM"))
+                        switch (FusionFixSettings.Get("PREF_SHADOW_QUALITY"))
                         {
-                        case FusionFixSettings.BloomText.eCross:
-                            arr6[0] = 1.0f;
-                            break;
-                        case FusionFixSettings.BloomText.eCircle:
-                            arr6[0] = 2.0f;
-                            break;
-                        case FusionFixSettings.BloomText.eOff:
-                        default:
+                        case 0:
                             arr6[0] = 0.0f;
+                            arr6[1] = 0.0f;
+                            arr6[2] = 0.0f;
+                            arr6[3] = 0.0f;
+                            break;
+                        case 1:
+                            arr6[0] = 0.0f;
+                            arr6[1] = 0.0f;
+                            arr6[2] = 0.0f;
+                            arr6[3] = 1.0f;
+                            break;
+                        case 2:
+                            arr6[0] = 0.0f;
+                            arr6[1] = 0.0f;
+                            arr6[2] = 1.0f;
+                            arr6[3] = 0.0f;
+                            break;
+                        case 3:
+                            arr6[0] = 0.0f;
+                            arr6[1] = 1.0f;
+                            arr6[2] = 0.0f;
+                            arr6[3] = 0.0f;
+                            break;
+                        case 4:
+                        default:
+                            arr6[0] = 1.0f;
+                            arr6[1] = 0.0f;
+                            arr6[2] = 0.0f;
+                            arr6[3] = 0.0f;
                             break;
                         }
 
-                        arr6[1] = 0.0f;
-                        arr6[2] = 0.0f;
-                        arr6[3] = 0.0f;
                         pDevice->SetPixelShaderConstantF(220, &arr6[0], 1);
                     }
 
@@ -167,8 +183,21 @@ public:
                             arr5[0] = 0.25f;
                             break;
                         }
+
+                        switch (FusionFixSettings.Get("PREF_BLOOM"))
+                        {
+                        case FusionFixSettings.BloomText.eCross:
+                            arr5[1] = 1.0f;
+                            break;
+                        case FusionFixSettings.BloomText.eCircle:
+                            arr5[1] = 2.0f;
+                            break;
+                        case FusionFixSettings.BloomText.eOff:
+                        default:
+                            arr5[1] = 0.0f;
+                            break;
+                        }
                         
-                        arr5[1] = static_cast<float>(FusionFixSettings.Get("PREF_SHADOW_QUALITY"));
                         arr5[2] = 1.0f / (30.0f * Natives::Timestep());
                         arr5[3] = 0.0f;
                         pDevice->SetPixelShaderConstantF(221, &arr5[0], 1);
@@ -191,18 +220,25 @@ public:
 
                     // Cascaded Shadow Map Res, Time of Day, Tree Translucency
                     {
-                        uint32_t hour = -1;
-                        uint32_t minute = -1;
-                        Natives::GetTimeOfDay(&hour, &minute);
-                        static auto tree_lighting = FusionFixSettings.GetRef("PREF_TREE_LIGHTING");
-                        static auto shadowFilter = FusionFixSettings.GetRef("PREF_SHADOW_FILTER");
-                        static auto definition = FusionFixSettings.GetRef("PREF_DEFINITION");
-                        static float arr4[4];
-                        arr4[0] = static_cast<float>(tree_lighting->get() - FusionFixSettings.TreeFxText.ePC);
-                        arr4[1] = static_cast<float>(FusionFixSettings.Get("PREF_PCSS"));
-                        arr4[2] = static_cast<float>(definition->get() - FusionFixSettings.DefinitionText.eClassic);
-                        arr4[3] = (((hour == 6 && minute >= 45) || (hour > 6)) && ((hour == 19 && minute < 15) || (hour < 19))) ? 0.0f : 1.0f;
-                        pDevice->SetPixelShaderConstantF(223, &arr4[0], 1);
+                        static Cam cam = 0;
+                        Natives::GetRootCam(&cam);
+                        if (cam)
+                        {
+                            float fov = 0.0f;
+                            uint32_t hour = -1;
+                            uint32_t minute = -1;
+                            Natives::GetTimeOfDay(&hour, &minute);
+                            Natives::GetCamFov(cam, &fov);
+                            static auto tree_lighting = FusionFixSettings.GetRef("PREF_TREE_LIGHTING");
+                            static auto shadowFilter = FusionFixSettings.GetRef("PREF_SHADOW_FILTER");
+                            static auto definition = FusionFixSettings.GetRef("PREF_DEFINITION");
+                            static float arr4[4];
+                            arr4[0] = static_cast<float>(tree_lighting->get() - FusionFixSettings.TreeFxText.ePC);
+                            arr4[1] = fov;
+                            arr4[2] = static_cast<float>(definition->get() - FusionFixSettings.DefinitionText.eClassic);
+                            arr4[3] = (((hour == 6 && minute >= 45) || (hour > 6)) && ((hour == 19 && minute < 15) || (hour < 19))) ? 0.0f : 1.0f;
+                            pDevice->SetPixelShaderConstantF(223, &arr4[0], 1);
+                        }
                     }
                 }
             };
