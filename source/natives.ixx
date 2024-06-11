@@ -53,7 +53,8 @@ export struct Vector4
     float fW;
 };
 
-export struct Color32 {
+export struct Color32
+{
     uint8_t b;
     uint8_t g;
     uint8_t r;
@@ -63,31 +64,31 @@ export struct Color32 {
 export class scrNativeCallContext
 {
 protected:
-    void* m_pReturn;
+    void *m_pReturn;
     uint32_t m_nArgCount;
-    void* m_pArgs;
+    void *m_pArgs;
     uint32_t m_nDataCount;
-    Vector3* m_pOriginalData[4];
-    Vector4  m_TemporaryData[4];
+    Vector3 *m_pOriginalData[4];
+    Vector4 m_TemporaryData[4];
 
 public:
-    template<typename T>
+    template <typename T>
     inline T GetArgument(int idx)
     {
-        auto arguments = (intptr_t*)m_pArgs;
-        return *reinterpret_cast<T*>(&arguments[idx]);
+        auto arguments = (intptr_t *)m_pArgs;
+        return *reinterpret_cast<T *>(&arguments[idx]);
     }
 
-    inline void* GetArgumentBuffer()
+    inline void *GetArgumentBuffer()
     {
         return m_pArgs;
     }
 
-    template<typename T>
+    template <typename T>
     inline void SetResult(int idx, T value)
     {
-        auto returnValues = (intptr_t*)m_pReturn;
-        *reinterpret_cast<T*>(&returnValues[idx]) = value;
+        auto returnValues = (intptr_t *)m_pReturn;
+        *reinterpret_cast<T *>(&returnValues[idx]) = value;
     }
 
     inline int GetArgumentCount()
@@ -95,20 +96,20 @@ public:
         return m_nArgCount;
     }
 
-    template<typename T>
+    template <typename T>
     inline T GetResult(int idx)
     {
         while (m_nDataCount > 0)
         {
             m_nDataCount--;
-            Vector3* pVec3 = m_pOriginalData[m_nDataCount];
-            Vector4* pVec4 = &m_TemporaryData[m_nDataCount];
+            Vector3 *pVec3 = m_pOriginalData[m_nDataCount];
+            Vector4 *pVec4 = &m_TemporaryData[m_nDataCount];
             pVec3->fX = pVec4->fX;
             pVec3->fY = pVec4->fY;
             pVec3->fZ = pVec4->fZ;
         }
-        auto returnValues = (intptr_t*)m_pReturn;
-        return *reinterpret_cast<T*>(&returnValues[idx]);
+        auto returnValues = (intptr_t *)m_pReturn;
+        return *reinterpret_cast<T *>(&returnValues[idx]);
     }
 };
 
@@ -129,7 +130,7 @@ public:
     inline NativeContext()
     {
         m_pArgs = &m_TempStack;
-        m_pReturn = &m_TempStack;		// It's okay to point both args and return at the same pointer. The game should handle this.
+        m_pReturn = &m_TempStack; // It's okay to point both args and return at the same pointer. The game should handle this.
         m_nArgCount = 0;
         m_nDataCount = 0;
     }
@@ -145,31 +146,32 @@ public:
         else if (sizeof(T) < ArgSize)
         {
             // Ensure we don't have any stray data
-            *reinterpret_cast<uintptr_t*>(m_TempStack + ArgSize * m_nArgCount) = 0;
+            *reinterpret_cast<uintptr_t *>(m_TempStack + ArgSize * m_nArgCount) = 0;
         }
 
-        *reinterpret_cast<T*>(m_TempStack + ArgSize * m_nArgCount) = value;
+        *reinterpret_cast<T *>(m_TempStack + ArgSize * m_nArgCount) = value;
         m_nArgCount++;
     }
 
     template <typename T>
     inline T GetResult()
     {
-        return *reinterpret_cast<T*>(m_TempStack);
+        return *reinterpret_cast<T *>(m_TempStack);
     }
 };
 
 export class NativeInvoke
 {
 private:
-    typedef void (*ncall)(NativeContext*);
+    typedef void (*ncall)(NativeContext *);
     static inline auto m_IndexTable = std::vector<ncall>(4000, nullptr);
+
 public:
     static ncall GetNativeHandler(uint32_t Hash)
     {
         if (getNativeAddress)
             return reinterpret_cast<ncall>(getNativeAddress(Hash));
-        
+
         auto ms_pNatives = *rage__scrEngine__ms_pNatives;
         auto ms_dwNativeTableSize = *rage__scrEngine__ms_dwNativeTableSize;
 
@@ -197,8 +199,9 @@ public:
 
         return reinterpret_cast<ncall>(ms_pNatives[2 * nativeIndex + 1]);
     }
+
 public:
-    template<uint32_t Index, uint32_t Hash, typename R, typename... Args>
+    template <uint32_t Index, uint32_t Hash, typename R, typename... Args>
     static inline R Invoke(Args... args)
     {
         NativeContext cxt;
@@ -209,7 +212,8 @@ public:
             if (!m_IndexTable[Index])
             {
                 auto fn = GetNativeHandler(Hash);
-                if (fn) {
+                if (fn)
+                {
                     m_IndexTable[Index] = fn;
                     fn(&cxt);
                 }
@@ -230,12 +234,12 @@ public:
 export class NativeOverride
 {
 public:
-    static auto Register(auto hash, auto fn, std::string_view dest_pattern_str, size_t fn_size)
+    static auto Register(auto hash, auto fn, SIMDString<64> dest_pattern_str, size_t fn_size)
     {
         auto nativeHash = std::to_underlying(hash);
-        auto pattern = hook::pattern(pattern_str(0x68, to_bytes(nativeHash))); // push 0x...
+        auto pattern = hook::pattern(std::string_view(pattern_str(0x68, to_bytes(nativeHash)))); // push 0x...
         auto addr = *pattern.get_first<uintptr_t>(-4);
-        auto range = hook::range_pattern(addr, addr + fn_size, dest_pattern_str);
+        auto range = hook::range_pattern(addr, addr + fn_size, std::string_view(dest_pattern_str));
         if (!range.empty())
         {
             if (dest_pattern_str.starts_with("E8"))
@@ -250,7 +254,8 @@ public:
 export class Natives
 {
 public:
-    enum class NativeHashes : uint32_t {
+    enum class NativeHashes : uint32_t
+    {
         ABORT_ALL_GARAGE_ACTIVITY = 0x5DB95843,
         ABORT_SCRIPTED_CONVERSATION = 0x57DB70CE,
         ABSF = 0x67640F3,
@@ -3396,15 +3401,15 @@ public:
     static inline auto AddAmmoToChar(Ped ped, uint32_t weapon, uint32_t amount) { return NativeInvoke::Invoke<19, std::to_underlying(NativeHashes::ADD_AMMO_TO_CHAR), void>(ped, weapon, amount); }
     static inline auto AddAreaToNetworkRestartNodeGroupMapping() { return NativeInvoke::Invoke<20, std::to_underlying(NativeHashes::ADD_AREA_TO_NETWORK_RESTART_NODE_GROUP_MAPPING), Any>(); }
     static inline auto AddArmourToChar(Ped ped, uint32_t amount) { return NativeInvoke::Invoke<21, std::to_underlying(NativeHashes::ADD_ARMOUR_TO_CHAR), void>(ped, amount); }
-    static inline auto AddBlipForCar(Vehicle vehicle, Blip* pBlip) { return NativeInvoke::Invoke<22, std::to_underlying(NativeHashes::ADD_BLIP_FOR_CAR), void>(vehicle, pBlip); }
-    static inline auto AddBlipForChar(Ped ped, Blip* pBlip) { return NativeInvoke::Invoke<23, std::to_underlying(NativeHashes::ADD_BLIP_FOR_CHAR), void>(ped, pBlip); }
-    static inline auto AddBlipForContact(float x, float y, float z, Blip* pBlip) { return NativeInvoke::Invoke<24, std::to_underlying(NativeHashes::ADD_BLIP_FOR_CONTACT), void>(x, y, z, pBlip); }
-    static inline auto AddBlipForCoord(float x, float y, float z, Blip* pBlip) { return NativeInvoke::Invoke<25, std::to_underlying(NativeHashes::ADD_BLIP_FOR_COORD), void>(x, y, z, pBlip); }
-    static inline auto AddBlipForGangTerritory(float x0, float y0, float x1, float y1, int32_t colour, int32_t* blip) { return NativeInvoke::Invoke<26, std::to_underlying(NativeHashes::ADD_BLIP_FOR_GANG_TERRITORY), void>(x0, y0, x1, y1, colour, blip); }
-    static inline auto AddBlipForObject(Object obj, Blip* pBlip) { return NativeInvoke::Invoke<27, std::to_underlying(NativeHashes::ADD_BLIP_FOR_OBJECT), void>(obj, pBlip); }
-    static inline auto AddBlipForPickup(Pickup pickup, Blip* pBlip) { return NativeInvoke::Invoke<28, std::to_underlying(NativeHashes::ADD_BLIP_FOR_PICKUP), void>(pickup, pBlip); }
-    static inline auto AddBlipForRadius(float x, float y, float z, int32_t type, int32_t* blip) { return NativeInvoke::Invoke<29, std::to_underlying(NativeHashes::ADD_BLIP_FOR_RADIUS), void>(x, y, z, type, blip); }
-    static inline auto AddBlipForWeapon(float x, float y, float z, int32_t* blip) { return NativeInvoke::Invoke<30, std::to_underlying(NativeHashes::ADD_BLIP_FOR_WEAPON), void>(x, y, z, blip); }
+    static inline auto AddBlipForCar(Vehicle vehicle, Blip *pBlip) { return NativeInvoke::Invoke<22, std::to_underlying(NativeHashes::ADD_BLIP_FOR_CAR), void>(vehicle, pBlip); }
+    static inline auto AddBlipForChar(Ped ped, Blip *pBlip) { return NativeInvoke::Invoke<23, std::to_underlying(NativeHashes::ADD_BLIP_FOR_CHAR), void>(ped, pBlip); }
+    static inline auto AddBlipForContact(float x, float y, float z, Blip *pBlip) { return NativeInvoke::Invoke<24, std::to_underlying(NativeHashes::ADD_BLIP_FOR_CONTACT), void>(x, y, z, pBlip); }
+    static inline auto AddBlipForCoord(float x, float y, float z, Blip *pBlip) { return NativeInvoke::Invoke<25, std::to_underlying(NativeHashes::ADD_BLIP_FOR_COORD), void>(x, y, z, pBlip); }
+    static inline auto AddBlipForGangTerritory(float x0, float y0, float x1, float y1, int32_t colour, int32_t *blip) { return NativeInvoke::Invoke<26, std::to_underlying(NativeHashes::ADD_BLIP_FOR_GANG_TERRITORY), void>(x0, y0, x1, y1, colour, blip); }
+    static inline auto AddBlipForObject(Object obj, Blip *pBlip) { return NativeInvoke::Invoke<27, std::to_underlying(NativeHashes::ADD_BLIP_FOR_OBJECT), void>(obj, pBlip); }
+    static inline auto AddBlipForPickup(Pickup pickup, Blip *pBlip) { return NativeInvoke::Invoke<28, std::to_underlying(NativeHashes::ADD_BLIP_FOR_PICKUP), void>(pickup, pBlip); }
+    static inline auto AddBlipForRadius(float x, float y, float z, int32_t type, int32_t *blip) { return NativeInvoke::Invoke<29, std::to_underlying(NativeHashes::ADD_BLIP_FOR_RADIUS), void>(x, y, z, type, blip); }
+    static inline auto AddBlipForWeapon(float x, float y, float z, int32_t *blip) { return NativeInvoke::Invoke<30, std::to_underlying(NativeHashes::ADD_BLIP_FOR_WEAPON), void>(x, y, z, blip); }
     static inline auto AddCamSplineNode(int32_t cam, int32_t camnode) { return NativeInvoke::Invoke<31, std::to_underlying(NativeHashes::ADD_CAM_SPLINE_NODE), void>(cam, camnode); }
     static inline auto AddCarToMissionDeletionList(Car car) { return NativeInvoke::Invoke<32, std::to_underlying(NativeHashes::ADD_CAR_TO_MISSION_DELETION_LIST), void>(car); }
     static inline auto AddCharDecisionMakerEventResponse(DecisionMaker dm, uint32_t eventid, uint32_t responseid, float param1, float param2, float param3, float param4, uint32_t unknown0_1, uint32_t unknown1_1) { return NativeInvoke::Invoke<33, std::to_underlying(NativeHashes::ADD_CHAR_DECISION_MAKER_EVENT_RESPONSE), void>(dm, eventid, responseid, param1, param2, param3, param4, unknown0_1, unknown1_1); }
@@ -3413,27 +3418,27 @@ public:
     static inline auto AddCoverPoint(Any a1, Any a2, Any a3, Any a4, Any a5, Any a6, Any a7, Any a8) { return NativeInvoke::Invoke<36, std::to_underlying(NativeHashes::ADD_COVER_POINT), void>(a1, a2, a3, a4, a5, a6, a7, a8); }
     static inline auto AddExplosion(float x, float y, float z, ExplosionType exptype, float radius, bool playsound, bool novisual, float camshake) { return NativeInvoke::Invoke<37, std::to_underlying(NativeHashes::ADD_EXPLOSION), void>(x, y, z, exptype, radius, playsound, novisual, camshake); }
     static inline auto AddExplosionWithDirection() { return NativeInvoke::Invoke<38, std::to_underlying(NativeHashes::ADD_EXPLOSION_WITH_DIRECTION), Any>(); }
-    static inline auto AddFirstNCharactersOfStringToHtmlScriptObject(int32_t htmlobj, char* str, int32_t n) { return NativeInvoke::Invoke<39, std::to_underlying(NativeHashes::ADD_FIRST_N_CHARACTERS_OF_STRING_TO_HTML_SCRIPT_OBJECT), void>(htmlobj, str, n); }
+    static inline auto AddFirstNCharactersOfStringToHtmlScriptObject(int32_t htmlobj, char *str, int32_t n) { return NativeInvoke::Invoke<39, std::to_underlying(NativeHashes::ADD_FIRST_N_CHARACTERS_OF_STRING_TO_HTML_SCRIPT_OBJECT), void>(htmlobj, str, n); }
     static inline auto AddFollowNavmeshToPhoneTask(Ped ped, Any a2, Any a3, Any a4) { return NativeInvoke::Invoke<40, std::to_underlying(NativeHashes::ADD_FOLLOW_NAVMESH_TO_PHONE_TASK), void>(ped, a2, a3, a4); }
     static inline auto AddGroupToNetworkRestartNodeGroupList(Any a1) { return NativeInvoke::Invoke<41, std::to_underlying(NativeHashes::ADD_GROUP_TO_NETWORK_RESTART_NODE_GROUP_LIST), void>(a1); }
     static inline auto AddHospitalRestart(float x, float y, float z, float radius, int32_t islandnum) { return NativeInvoke::Invoke<42, std::to_underlying(NativeHashes::ADD_HOSPITAL_RESTART), void>(x, y, z, radius, islandnum); }
     static inline auto AddLineToConversation(Any a1, Any a2, Any a3, Any a4, Any a5) { return NativeInvoke::Invoke<43, std::to_underlying(NativeHashes::ADD_LINE_TO_CONVERSATION), void>(a1, a2, a3, a4, a5); }
-    static inline auto AddLineToMobilePhoneCall(int32_t id, char* name, char* text) { return NativeInvoke::Invoke<44, std::to_underlying(NativeHashes::ADD_LINE_TO_MOBILE_PHONE_CALL), void>(id, name, text); }
+    static inline auto AddLineToMobilePhoneCall(int32_t id, char *name, char *text) { return NativeInvoke::Invoke<44, std::to_underlying(NativeHashes::ADD_LINE_TO_MOBILE_PHONE_CALL), void>(id, name, text); }
     static inline auto AddLineToScriptedConversation(uint32_t conversation, int a2, int a3) { return NativeInvoke::Invoke<45, std::to_underlying(NativeHashes::ADD_LINE_TO_SCRIPTED_CONVERSATION), void>(conversation, a2, a3); }
     static inline auto AddNavmeshRequiredRegion(float x, float y, float z) { return NativeInvoke::Invoke<46, std::to_underlying(NativeHashes::ADD_NAVMESH_REQUIRED_REGION), int32_t>(x, y, z); }
     static inline auto AddNeededAtPosn(float x, float y, float z) { return NativeInvoke::Invoke<47, std::to_underlying(NativeHashes::ADD_NEEDED_AT_POSN), void>(x, y, z); }
     static inline auto AddNetworkRestart() { return NativeInvoke::Invoke<48, std::to_underlying(NativeHashes::ADD_NETWORK_RESTART), Any>(); }
-    static inline auto AddNewConversationSpeaker(int32_t id, int a2, int32_t* a3) { return NativeInvoke::Invoke<49, std::to_underlying(NativeHashes::ADD_NEW_CONVERSATION_SPEAKER), void>(id, a2, a3); }
+    static inline auto AddNewConversationSpeaker(int32_t id, int a2, int32_t *a3) { return NativeInvoke::Invoke<49, std::to_underlying(NativeHashes::ADD_NEW_CONVERSATION_SPEAKER), void>(id, a2, a3); }
     static inline auto AddNewFrontendConversationSpeaker(int a1, int a2) { return NativeInvoke::Invoke<50, std::to_underlying(NativeHashes::ADD_NEW_FRONTEND_CONVERSATION_SPEAKER), void>(a1, a2); }
     static inline auto AddNextMessageToPreviousBriefs(bool add) { return NativeInvoke::Invoke<51, std::to_underlying(NativeHashes::ADD_NEXT_MESSAGE_TO_PREVIOUS_BRIEFS), void>(add); }
     static inline auto AddObjectToInteriorRoomByKey(Object obj, uint32_t roomKey) { return NativeInvoke::Invoke<52, std::to_underlying(NativeHashes::ADD_OBJECT_TO_INTERIOR_ROOM_BY_KEY), void>(obj, roomKey); }
-    static inline auto AddObjectToInteriorRoomByName(Object obj, char* room_name) { return NativeInvoke::Invoke<53, std::to_underlying(NativeHashes::ADD_OBJECT_TO_INTERIOR_ROOM_BY_NAME), void>(obj, room_name); }
+    static inline auto AddObjectToInteriorRoomByName(Object obj, char *room_name) { return NativeInvoke::Invoke<53, std::to_underlying(NativeHashes::ADD_OBJECT_TO_INTERIOR_ROOM_BY_NAME), void>(obj, room_name); }
     static inline auto AddPedQueue() { return NativeInvoke::Invoke<54, std::to_underlying(NativeHashes::ADD_PED_QUEUE), Any>(); }
     static inline auto AddPedToCinematographyAi(int a1, Ped ped) { return NativeInvoke::Invoke<55, std::to_underlying(NativeHashes::ADD_PED_TO_CINEMATOGRAPHY_AI), void>(a1, ped); }
     static inline auto AddPedToMissionDeletionList(Ped ped, bool a2) { return NativeInvoke::Invoke<56, std::to_underlying(NativeHashes::ADD_PED_TO_MISSION_DELETION_LIST), void>(ped, a2); }
     static inline auto AddPickupToInteriorRoomByKey(Object pickup, uint32_t room_hash) { return NativeInvoke::Invoke<57, std::to_underlying(NativeHashes::ADD_PICKUP_TO_INTERIOR_ROOM_BY_KEY), void>(pickup, room_hash); }
-    static inline auto AddPickupToInteriorRoomByName(Pickup pickup, char* roomName) { return NativeInvoke::Invoke<58, std::to_underlying(NativeHashes::ADD_PICKUP_TO_INTERIOR_ROOM_BY_NAME), void>(pickup, roomName); }
-    static inline auto AddPointToGpsRaceTrack(Vector3* point) { return NativeInvoke::Invoke<59, std::to_underlying(NativeHashes::ADD_POINT_TO_GPS_RACE_TRACK), void>(point); }
+    static inline auto AddPickupToInteriorRoomByName(Pickup pickup, char *roomName) { return NativeInvoke::Invoke<58, std::to_underlying(NativeHashes::ADD_PICKUP_TO_INTERIOR_ROOM_BY_NAME), void>(pickup, roomName); }
+    static inline auto AddPointToGpsRaceTrack(Vector3 *point) { return NativeInvoke::Invoke<59, std::to_underlying(NativeHashes::ADD_POINT_TO_GPS_RACE_TRACK), void>(point); }
     static inline auto AddPoliceRestart(float x, float y, float z, float radius, int32_t islandnum) { return NativeInvoke::Invoke<60, std::to_underlying(NativeHashes::ADD_POLICE_RESTART), void>(x, y, z, radius, islandnum); }
     static inline auto AddScenarioBlockingArea(float x0, float y0, float z0, float x1, float y1, float z1) { return NativeInvoke::Invoke<61, std::to_underlying(NativeHashes::ADD_SCENARIO_BLOCKING_AREA), void>(x0, y0, z0, x1, y1, z1); }
     static inline auto AddScore(Player playerIndex, int32_t score) { return NativeInvoke::Invoke<62, std::to_underlying(NativeHashes::ADD_SCORE), void>(playerIndex, score); }
@@ -3441,17 +3446,17 @@ public:
     static inline auto AddSpawnBlockingArea(Any a1, Any a2, Any a3, Any a4) { return NativeInvoke::Invoke<64, std::to_underlying(NativeHashes::ADD_SPAWN_BLOCKING_AREA), void>(a1, a2, a3, a4); }
     static inline auto AddSpawnBlockingDisc(Any a1, Any a2, Any a3, Any a4, Any a5) { return NativeInvoke::Invoke<65, std::to_underlying(NativeHashes::ADD_SPAWN_BLOCKING_DISC), void>(a1, a2, a3, a4, a5); }
     static inline auto AddSphere(float x, float y, float z, float radius, uint32_t a5) { return NativeInvoke::Invoke<66, std::to_underlying(NativeHashes::ADD_SPHERE), int32_t>(x, y, z, radius, a5); }
-    static inline auto AddStringToHtmlScriptObject(int32_t htmlobj, char* str) { return NativeInvoke::Invoke<67, std::to_underlying(NativeHashes::ADD_STRING_TO_HTML_SCRIPT_OBJECT), void>(htmlobj, str); }
-    static inline auto AddStringToNewsScrollbar(char* str) { return NativeInvoke::Invoke<68, std::to_underlying(NativeHashes::ADD_STRING_TO_NEWS_SCROLLBAR), void>(str); }
-    static inline auto AddStringWithThisTextLabelToPreviousBrief(char* gxtname) { return NativeInvoke::Invoke<69, std::to_underlying(NativeHashes::ADD_STRING_WITH_THIS_TEXT_LABEL_TO_PREVIOUS_BRIEF), void>(gxtname); }
+    static inline auto AddStringToHtmlScriptObject(int32_t htmlobj, char *str) { return NativeInvoke::Invoke<67, std::to_underlying(NativeHashes::ADD_STRING_TO_HTML_SCRIPT_OBJECT), void>(htmlobj, str); }
+    static inline auto AddStringToNewsScrollbar(char *str) { return NativeInvoke::Invoke<68, std::to_underlying(NativeHashes::ADD_STRING_TO_NEWS_SCROLLBAR), void>(str); }
+    static inline auto AddStringWithThisTextLabelToPreviousBrief(char *gxtname) { return NativeInvoke::Invoke<69, std::to_underlying(NativeHashes::ADD_STRING_WITH_THIS_TEXT_LABEL_TO_PREVIOUS_BRIEF), void>(gxtname); }
     static inline auto AddStuckCarCheck(Car car, float stuckdif, int32_t timeout) { return NativeInvoke::Invoke<70, std::to_underlying(NativeHashes::ADD_STUCK_CAR_CHECK), void>(car, stuckdif, timeout); }
     static inline auto AddStuckCarCheckWithWarp(Car car, float stuckdif, int32_t time, bool flag0, bool flag1, bool flag2, bool flag3) { return NativeInvoke::Invoke<71, std::to_underlying(NativeHashes::ADD_STUCK_CAR_CHECK_WITH_WARP), void>(car, stuckdif, time, flag0, flag1, flag2, flag3); }
     static inline auto AddStuntJump(float x, float y, float z, float x0, float y0, float z0, float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, int32_t reward) { return NativeInvoke::Invoke<72, std::to_underlying(NativeHashes::ADD_STUNT_JUMP), void>(x, y, z, x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3, reward); }
     static inline auto AddTextWidget(Any a1) { return NativeInvoke::Invoke<73, std::to_underlying(NativeHashes::ADD_TEXT_WIDGET), Any>(a1); }
     static inline auto AddTickerToPreviousBriefWithUnderscore(Any a1, Any a2, Any a3, Any a4, Any a5, Any a6, Any a7) { return NativeInvoke::Invoke<74, std::to_underlying(NativeHashes::ADD_TICKER_TO_PREVIOUS_BRIEF_WITH_UNDERSCORE), void>(a1, a2, a3, a4, a5, a6, a7); }
-    static inline auto AddToHtmlScriptObject(int32_t htmlobj, char* htmlcode) { return NativeInvoke::Invoke<75, std::to_underlying(NativeHashes::ADD_TO_HTML_SCRIPT_OBJECT), void>(htmlobj, htmlcode); }
-    static inline auto AddToPreviousBrief(char* gxtentry) { return NativeInvoke::Invoke<76, std::to_underlying(NativeHashes::ADD_TO_PREVIOUS_BRIEF), void>(gxtentry); }
-    static inline auto AddToPreviousBriefWithUnderscore(char* gxtentry) { return NativeInvoke::Invoke<77, std::to_underlying(NativeHashes::ADD_TO_PREVIOUS_BRIEF_WITH_UNDERSCORE), void>(gxtentry); }
+    static inline auto AddToHtmlScriptObject(int32_t htmlobj, char *htmlcode) { return NativeInvoke::Invoke<75, std::to_underlying(NativeHashes::ADD_TO_HTML_SCRIPT_OBJECT), void>(htmlobj, htmlcode); }
+    static inline auto AddToPreviousBrief(char *gxtentry) { return NativeInvoke::Invoke<76, std::to_underlying(NativeHashes::ADD_TO_PREVIOUS_BRIEF), void>(gxtentry); }
+    static inline auto AddToPreviousBriefWithUnderscore(char *gxtentry) { return NativeInvoke::Invoke<77, std::to_underlying(NativeHashes::ADD_TO_PREVIOUS_BRIEF_WITH_UNDERSCORE), void>(gxtentry); }
     static inline auto AddToWidgetCombo(Any a1) { return NativeInvoke::Invoke<78, std::to_underlying(NativeHashes::ADD_TO_WIDGET_COMBO), void>(a1); }
     static inline auto AddUpsidedownCarCheck(Vehicle vehicle) { return NativeInvoke::Invoke<79, std::to_underlying(NativeHashes::ADD_UPSIDEDOWN_CAR_CHECK), void>(vehicle); }
     static inline auto AddWidgetFloatReadOnly(Any a1, Any a2) { return NativeInvoke::Invoke<80, std::to_underlying(NativeHashes::ADD_WIDGET_FLOAT_READ_ONLY), Any>(a1, a2); }
@@ -3460,8 +3465,8 @@ public:
     static inline auto AddWidgetSlider(Any a1, Any a2, Any a3, Any a4, Any a5) { return NativeInvoke::Invoke<83, std::to_underlying(NativeHashes::ADD_WIDGET_SLIDER), Any>(a1, a2, a3, a4, a5); }
     static inline auto AddWidgetString(Any a1) { return NativeInvoke::Invoke<84, std::to_underlying(NativeHashes::ADD_WIDGET_STRING), Any>(a1); }
     static inline auto AddWidgetToggle(Any a1, Any a2) { return NativeInvoke::Invoke<85, std::to_underlying(NativeHashes::ADD_WIDGET_TOGGLE), Any>(a1, a2); }
-    static inline auto AllocateScriptToObject(char* ScriptName, uint32_t model, int32_t unk, float radius, int32_t UnkTime) { return NativeInvoke::Invoke<86, std::to_underlying(NativeHashes::ALLOCATE_SCRIPT_TO_OBJECT), void>(ScriptName, model, unk, radius, UnkTime); }
-    static inline auto AllocateScriptToRandomPed(char* ScriptName, uint32_t model, int32_t unk, bool flag) { return NativeInvoke::Invoke<87, std::to_underlying(NativeHashes::ALLOCATE_SCRIPT_TO_RANDOM_PED), void>(ScriptName, model, unk, flag); }
+    static inline auto AllocateScriptToObject(char *ScriptName, uint32_t model, int32_t unk, float radius, int32_t UnkTime) { return NativeInvoke::Invoke<86, std::to_underlying(NativeHashes::ALLOCATE_SCRIPT_TO_OBJECT), void>(ScriptName, model, unk, radius, UnkTime); }
+    static inline auto AllocateScriptToRandomPed(char *ScriptName, uint32_t model, int32_t unk, bool flag) { return NativeInvoke::Invoke<87, std::to_underlying(NativeHashes::ALLOCATE_SCRIPT_TO_RANDOM_PED), void>(ScriptName, model, unk, flag); }
     static inline auto AllowAutoConversationLookats(Ped ped, bool allow) { return NativeInvoke::Invoke<88, std::to_underlying(NativeHashes::ALLOW_AUTO_CONVERSATION_LOOKATS), void>(ped, allow); }
     static inline auto AllowEmergencyServices(bool allow) { return NativeInvoke::Invoke<89, std::to_underlying(NativeHashes::ALLOW_EMERGENCY_SERVICES), void>(allow); }
     static inline auto AllowGameToPauseForStreaming(bool allow) { return NativeInvoke::Invoke<90, std::to_underlying(NativeHashes::ALLOW_GAME_TO_PAUSE_FOR_STREAMING), void>(allow); }
@@ -3493,11 +3498,11 @@ public:
     static inline auto AreEnemyPedsInArea(Ped ped, float x, float y, float z, float radius) { return NativeInvoke::Invoke<116, std::to_underlying(NativeHashes::ARE_ENEMY_PEDS_IN_AREA), bool>(ped, x, y, z, radius); }
     static inline auto AreTaxiLightsOn(Vehicle vehicle) { return NativeInvoke::Invoke<117, std::to_underlying(NativeHashes::ARE_TAXI_LIGHTS_ON), bool>(vehicle); }
     static inline auto AreWidescreenBordersActive() { return NativeInvoke::Invoke<118, std::to_underlying(NativeHashes::ARE_WIDESCREEN_BORDERS_ACTIVE), bool>(); }
-    static inline auto AsciiIntToString(int32_t ascii) { return NativeInvoke::Invoke<119, std::to_underlying(NativeHashes::ASCII_INT_TO_STRING), char*>(ascii); }
+    static inline auto AsciiIntToString(int32_t ascii) { return NativeInvoke::Invoke<119, std::to_underlying(NativeHashes::ASCII_INT_TO_STRING), char *>(ascii); }
     static inline auto Asin(float value) { return NativeInvoke::Invoke<120, std::to_underlying(NativeHashes::ASIN), float>(value); }
     static inline auto Atan(float value) { return NativeInvoke::Invoke<121, std::to_underlying(NativeHashes::ATAN), float>(value); }
     static inline auto Atan2(float a1, float a2) { return NativeInvoke::Invoke<122, std::to_underlying(NativeHashes::ATAN2), float>(a1, a2); }
-    static inline auto AttachAnimsToModel(uint32_t model, char* anims) { return NativeInvoke::Invoke<123, std::to_underlying(NativeHashes::ATTACH_ANIMS_TO_MODEL), void>(model, anims); }
+    static inline auto AttachAnimsToModel(uint32_t model, char *anims) { return NativeInvoke::Invoke<123, std::to_underlying(NativeHashes::ATTACH_ANIMS_TO_MODEL), void>(model, anims); }
     static inline auto AttachCamToObject(int32_t cam, Object obj) { return NativeInvoke::Invoke<124, std::to_underlying(NativeHashes::ATTACH_CAM_TO_OBJECT), void>(cam, obj); }
     static inline auto AttachCamToPed(int32_t cam, Ped ped) { return NativeInvoke::Invoke<125, std::to_underlying(NativeHashes::ATTACH_CAM_TO_PED), void>(cam, ped); }
     static inline auto AttachCamToVehicle(int32_t cam, Vehicle veh) { return NativeInvoke::Invoke<126, std::to_underlying(NativeHashes::ATTACH_CAM_TO_VEHICLE), void>(cam, veh); }
@@ -3522,10 +3527,10 @@ public:
     static inline auto AttachPedToWorldPhysically() { return NativeInvoke::Invoke<145, std::to_underlying(NativeHashes::ATTACH_PED_TO_WORLD_PHYSICALLY), Any>(); }
     static inline auto AwardAchievement(uint32_t achievement) { return NativeInvoke::Invoke<146, std::to_underlying(NativeHashes::AWARD_ACHIEVEMENT), Any>(achievement); }
     static inline auto AwardPlayerMissionRespect(float respect) { return NativeInvoke::Invoke<147, std::to_underlying(NativeHashes::AWARD_PLAYER_MISSION_RESPECT), void>(respect); }
-    static inline auto BeginCamCommands(int32_t* a1) { return NativeInvoke::Invoke<148, std::to_underlying(NativeHashes::BEGIN_CAM_COMMANDS), void>(a1); }
+    static inline auto BeginCamCommands(int32_t *a1) { return NativeInvoke::Invoke<148, std::to_underlying(NativeHashes::BEGIN_CAM_COMMANDS), void>(a1); }
     static inline auto BeginCharSearchCriteria() { return NativeInvoke::Invoke<149, std::to_underlying(NativeHashes::BEGIN_CHAR_SEARCH_CRITERIA), void>(); }
     static inline auto BeginPedQueueMembershipList() { return NativeInvoke::Invoke<150, std::to_underlying(NativeHashes::BEGIN_PED_QUEUE_MEMBERSHIP_LIST), Any>(); }
-    static inline auto BlendFromNmWithAnim(Ped ped, char* AnimName0, char* AnimName1, int a4, float x, float y, float z) { return NativeInvoke::Invoke<151, std::to_underlying(NativeHashes::BLEND_FROM_NM_WITH_ANIM), void>(ped, AnimName0, AnimName1, a4, x, y, z); }
+    static inline auto BlendFromNmWithAnim(Ped ped, char *AnimName0, char *AnimName1, int a4, float x, float y, float z) { return NativeInvoke::Invoke<151, std::to_underlying(NativeHashes::BLEND_FROM_NM_WITH_ANIM), void>(ped, AnimName0, AnimName1, a4, x, y, z); }
     static inline auto BlendOutCharMoveAnims(Ped ped) { return NativeInvoke::Invoke<152, std::to_underlying(NativeHashes::BLEND_OUT_CHAR_MOVE_ANIMS), void>(ped); }
     static inline auto BlockCharAmbientAnims(Ped ped, bool block) { return NativeInvoke::Invoke<153, std::to_underlying(NativeHashes::BLOCK_CHAR_AMBIENT_ANIMS), void>(ped, block); }
     static inline auto BlockCharGestureAnims(Ped ped, bool value) { return NativeInvoke::Invoke<154, std::to_underlying(NativeHashes::BLOCK_CHAR_GESTURE_ANIMS), void>(ped, value); }
@@ -3550,7 +3555,7 @@ public:
     static inline auto CamRestore() { return NativeInvoke::Invoke<173, std::to_underlying(NativeHashes::CAM_RESTORE), void>(); }
     static inline auto CamRestoreJumpcut() { return NativeInvoke::Invoke<174, std::to_underlying(NativeHashes::CAM_RESTORE_JUMPCUT), void>(); }
     static inline auto CamSequenceClose() { return NativeInvoke::Invoke<175, std::to_underlying(NativeHashes::CAM_SEQUENCE_CLOSE), void>(); }
-    static inline auto CamSequenceGetProgress(int a1, int32_t* progress) { return NativeInvoke::Invoke<176, std::to_underlying(NativeHashes::CAM_SEQUENCE_GET_PROGRESS), void>(a1, progress); }
+    static inline auto CamSequenceGetProgress(int a1, int32_t *progress) { return NativeInvoke::Invoke<176, std::to_underlying(NativeHashes::CAM_SEQUENCE_GET_PROGRESS), void>(a1, progress); }
     static inline auto CamSequenceOpen(int a1) { return NativeInvoke::Invoke<177, std::to_underlying(NativeHashes::CAM_SEQUENCE_OPEN), void>(a1); }
     static inline auto CamSequenceRemove(int a1) { return NativeInvoke::Invoke<178, std::to_underlying(NativeHashes::CAM_SEQUENCE_REMOVE), void>(a1); }
     static inline auto CamSequenceStart(int a1) { return NativeInvoke::Invoke<179, std::to_underlying(NativeHashes::CAM_SEQUENCE_START), void>(a1); }
@@ -3587,8 +3592,8 @@ public:
     static inline auto ChangeBlipAlpha(Blip blip, int32_t alpha) { return NativeInvoke::Invoke<210, std::to_underlying(NativeHashes::CHANGE_BLIP_ALPHA), void>(blip, alpha); }
     static inline auto ChangeBlipColour(Blip blip, ColourIndex colour) { return NativeInvoke::Invoke<211, std::to_underlying(NativeHashes::CHANGE_BLIP_COLOUR), void>(blip, colour); }
     static inline auto ChangeBlipDisplay(Blip blip, uint32_t display) { return NativeInvoke::Invoke<212, std::to_underlying(NativeHashes::CHANGE_BLIP_DISPLAY), void>(blip, display); }
-    static inline auto ChangeBlipNameFromAscii(Blip blip, char* blipName) { return NativeInvoke::Invoke<213, std::to_underlying(NativeHashes::CHANGE_BLIP_NAME_FROM_ASCII), void>(blip, blipName); }
-    static inline auto ChangeBlipNameFromTextFile(Blip blip, char* gxtName) { return NativeInvoke::Invoke<214, std::to_underlying(NativeHashes::CHANGE_BLIP_NAME_FROM_TEXT_FILE), void>(blip, gxtName); }
+    static inline auto ChangeBlipNameFromAscii(Blip blip, char *blipName) { return NativeInvoke::Invoke<213, std::to_underlying(NativeHashes::CHANGE_BLIP_NAME_FROM_ASCII), void>(blip, blipName); }
+    static inline auto ChangeBlipNameFromTextFile(Blip blip, char *gxtName) { return NativeInvoke::Invoke<214, std::to_underlying(NativeHashes::CHANGE_BLIP_NAME_FROM_TEXT_FILE), void>(blip, gxtName); }
     static inline auto ChangeBlipNameToPlayerName(int32_t blip, int32_t playerid) { return NativeInvoke::Invoke<215, std::to_underlying(NativeHashes::CHANGE_BLIP_NAME_TO_PLAYER_NAME), void>(blip, playerid); }
     static inline auto ChangeBlipPriority(Blip blip, uint32_t priority) { return NativeInvoke::Invoke<216, std::to_underlying(NativeHashes::CHANGE_BLIP_PRIORITY), void>(blip, priority); }
     static inline auto ChangeBlipRotation(int32_t blip, int32_t rotation) { return NativeInvoke::Invoke<217, std::to_underlying(NativeHashes::CHANGE_BLIP_ROTATION), void>(blip, rotation); }
@@ -3621,7 +3626,7 @@ public:
     static inline auto ClearAreaOfChars(float x, float y, float z, float radius) { return NativeInvoke::Invoke<244, std::to_underlying(NativeHashes::CLEAR_AREA_OF_CHARS), void>(x, y, z, radius); }
     static inline auto ClearAreaOfCops(float x, float y, float z, float radius) { return NativeInvoke::Invoke<245, std::to_underlying(NativeHashes::CLEAR_AREA_OF_COPS), void>(x, y, z, radius); }
     static inline auto ClearAreaOfObjects(float x, float y, float z, float radius) { return NativeInvoke::Invoke<246, std::to_underlying(NativeHashes::CLEAR_AREA_OF_OBJECTS), void>(x, y, z, radius); }
-    static inline auto ClearBit(int32_t* val, int32_t bit) { return NativeInvoke::Invoke<247, std::to_underlying(NativeHashes::CLEAR_BIT), void>(val, bit); }
+    static inline auto ClearBit(int32_t *val, int32_t bit) { return NativeInvoke::Invoke<247, std::to_underlying(NativeHashes::CLEAR_BIT), void>(val, bit); }
     static inline auto ClearBrief() { return NativeInvoke::Invoke<248, std::to_underlying(NativeHashes::CLEAR_BRIEF), void>(); }
     static inline auto ClearCarLastDamageEntity(Vehicle vehicle) { return NativeInvoke::Invoke<249, std::to_underlying(NativeHashes::CLEAR_CAR_LAST_DAMAGE_ENTITY), void>(vehicle); }
     static inline auto ClearCarLastWeaponDamage(Vehicle vehicle) { return NativeInvoke::Invoke<250, std::to_underlying(NativeHashes::CLEAR_CAR_LAST_WEAPON_DAMAGE), void>(vehicle); }
@@ -3636,7 +3641,7 @@ public:
     static inline auto ClearCutscene() { return NativeInvoke::Invoke<259, std::to_underlying(NativeHashes::CLEAR_CUTSCENE), void>(); }
     static inline auto ClearEventPrecedence() { return NativeInvoke::Invoke<260, std::to_underlying(NativeHashes::CLEAR_EVENT_PRECEDENCE), Any>(); }
     static inline auto ClearHelp() { return NativeInvoke::Invoke<261, std::to_underlying(NativeHashes::CLEAR_HELP), void>(); }
-    static inline auto ClearNamedCutscene(char* name) { return NativeInvoke::Invoke<262, std::to_underlying(NativeHashes::CLEAR_NAMED_CUTSCENE), void>(name); }
+    static inline auto ClearNamedCutscene(char *name) { return NativeInvoke::Invoke<262, std::to_underlying(NativeHashes::CLEAR_NAMED_CUTSCENE), void>(name); }
     static inline auto ClearNetworkRestartNodeGroupList() { return NativeInvoke::Invoke<263, std::to_underlying(NativeHashes::CLEAR_NETWORK_RESTART_NODE_GROUP_LIST), void>(); }
     static inline auto ClearNewsScrollbar() { return NativeInvoke::Invoke<264, std::to_underlying(NativeHashes::CLEAR_NEWS_SCROLLBAR), void>(); }
     static inline auto ClearObjectLastDamageEntity(Object obj) { return NativeInvoke::Invoke<265, std::to_underlying(NativeHashes::CLEAR_OBJECT_LAST_DAMAGE_ENTITY), void>(obj); }
@@ -3659,76 +3664,76 @@ public:
     static inline auto ClearSequenceTask(TaskSequence taskSequence) { return NativeInvoke::Invoke<282, std::to_underlying(NativeHashes::CLEAR_SEQUENCE_TASK), void>(taskSequence); }
     static inline auto ClearShakePlayerpadWhenControllerDisabled() { return NativeInvoke::Invoke<283, std::to_underlying(NativeHashes::CLEAR_SHAKE_PLAYERPAD_WHEN_CONTROLLER_DISABLED), void>(); }
     static inline auto ClearSmallPrints() { return NativeInvoke::Invoke<284, std::to_underlying(NativeHashes::CLEAR_SMALL_PRINTS), void>(); }
-    static inline auto ClearTextLabel(char* label) { return NativeInvoke::Invoke<285, std::to_underlying(NativeHashes::CLEAR_TEXT_LABEL), void>(label); }
-    static inline auto ClearThisBigPrint(char* gxtentry) { return NativeInvoke::Invoke<286, std::to_underlying(NativeHashes::CLEAR_THIS_BIG_PRINT), void>(gxtentry); }
-    static inline auto ClearThisPrint(char* gxtentry) { return NativeInvoke::Invoke<287, std::to_underlying(NativeHashes::CLEAR_THIS_PRINT), void>(gxtentry); }
+    static inline auto ClearTextLabel(char *label) { return NativeInvoke::Invoke<285, std::to_underlying(NativeHashes::CLEAR_TEXT_LABEL), void>(label); }
+    static inline auto ClearThisBigPrint(char *gxtentry) { return NativeInvoke::Invoke<286, std::to_underlying(NativeHashes::CLEAR_THIS_BIG_PRINT), void>(gxtentry); }
+    static inline auto ClearThisPrint(char *gxtentry) { return NativeInvoke::Invoke<287, std::to_underlying(NativeHashes::CLEAR_THIS_PRINT), void>(gxtentry); }
     static inline auto ClearThisPrintBigNow(bool a1) { return NativeInvoke::Invoke<288, std::to_underlying(NativeHashes::CLEAR_THIS_PRINT_BIG_NOW), void>(a1); }
     static inline auto ClearTimecycleModifier() { return NativeInvoke::Invoke<289, std::to_underlying(NativeHashes::CLEAR_TIMECYCLE_MODIFIER), void>(); }
     static inline auto ClearUpTripSkip() { return NativeInvoke::Invoke<290, std::to_underlying(NativeHashes::CLEAR_UP_TRIP_SKIP), Any>(); }
     static inline auto ClearWantedLevel(Player playerIndex) { return NativeInvoke::Invoke<291, std::to_underlying(NativeHashes::CLEAR_WANTED_LEVEL), void>(playerIndex); }
-    static inline auto CloneCam(int32_t cam, int32_t* camcopy) { return NativeInvoke::Invoke<292, std::to_underlying(NativeHashes::CLONE_CAM), void>(cam, camcopy); }
+    static inline auto CloneCam(int32_t cam, int32_t *camcopy) { return NativeInvoke::Invoke<292, std::to_underlying(NativeHashes::CLONE_CAM), void>(cam, camcopy); }
     static inline auto CloseAllCarDoors(Vehicle vehicle) { return NativeInvoke::Invoke<293, std::to_underlying(NativeHashes::CLOSE_ALL_CAR_DOORS), void>(vehicle); }
     static inline auto CloseDebugFile() { return NativeInvoke::Invoke<294, std::to_underlying(NativeHashes::CLOSE_DEBUG_FILE), void>(); }
-    static inline auto CloseGarage(char* garageName) { return NativeInvoke::Invoke<295, std::to_underlying(NativeHashes::CLOSE_GARAGE), void>(garageName); }
+    static inline auto CloseGarage(char *garageName) { return NativeInvoke::Invoke<295, std::to_underlying(NativeHashes::CLOSE_GARAGE), void>(garageName); }
     static inline auto CloseMicPed(int32_t id, Ped ped) { return NativeInvoke::Invoke<296, std::to_underlying(NativeHashes::CLOSE_MIC_PED), void>(id, ped); }
     static inline auto CloseSequenceTask(TaskSequence taskSequence) { return NativeInvoke::Invoke<297, std::to_underlying(NativeHashes::CLOSE_SEQUENCE_TASK), void>(taskSequence); }
     static inline auto CodeWantsMobilePhoneRemoved() { return NativeInvoke::Invoke<298, std::to_underlying(NativeHashes::CODE_WANTS_MOBILE_PHONE_REMOVED), bool>(); }
     static inline auto CodeWantsMobilePhoneRemovedForWeaponSwitching() { return NativeInvoke::Invoke<299, std::to_underlying(NativeHashes::CODE_WANTS_MOBILE_PHONE_REMOVED_FOR_WEAPON_SWITCHING), bool>(); }
-    static inline auto CompareString(char* a1, char* a2) { return NativeInvoke::Invoke<300, std::to_underlying(NativeHashes::COMPARE_STRING), int32_t>(a1, a2); }
+    static inline auto CompareString(char *a1, char *a2) { return NativeInvoke::Invoke<300, std::to_underlying(NativeHashes::COMPARE_STRING), int32_t>(a1, a2); }
     static inline auto CompareTwoDates(int32_t date0_0, int32_t date0_1, int32_t date1_0, int32_t date1_1) { return NativeInvoke::Invoke<301, std::to_underlying(NativeHashes::COMPARE_TWO_DATES), int32_t>(date0_0, date0_1, date1_0, date1_1); }
     static inline auto ConnectLods(Object obj0, Object obj1) { return NativeInvoke::Invoke<302, std::to_underlying(NativeHashes::CONNECT_LODS), void>(obj0, obj1); }
     static inline auto ControlCarDoor(Vehicle vehicle, uint32_t door, uint32_t unknown_maybe_open, float angle) { return NativeInvoke::Invoke<303, std::to_underlying(NativeHashes::CONTROL_CAR_DOOR), void>(vehicle, door, unknown_maybe_open, angle); }
     static inline auto ConvertIntToPlayerindex(uint32_t playerId) { return NativeInvoke::Invoke<304, std::to_underlying(NativeHashes::CONVERT_INT_TO_PLAYERINDEX), Player>(playerId); }
     static inline auto ConvertMetresToFeet(float metres) { return NativeInvoke::Invoke<305, std::to_underlying(NativeHashes::CONVERT_METRES_TO_FEET), float>(metres); }
     static inline auto ConvertMetresToFeetInt(int32_t metres) { return NativeInvoke::Invoke<306, std::to_underlying(NativeHashes::CONVERT_METRES_TO_FEET_INT), int32_t>(metres); }
-    static inline auto ConvertThenAddStringToHtmlScriptObject(int32_t htmlobj, char* strgxtkey) { return NativeInvoke::Invoke<307, std::to_underlying(NativeHashes::CONVERT_THEN_ADD_STRING_TO_HTML_SCRIPT_OBJECT), void>(htmlobj, strgxtkey); }
+    static inline auto ConvertThenAddStringToHtmlScriptObject(int32_t htmlobj, char *strgxtkey) { return NativeInvoke::Invoke<307, std::to_underlying(NativeHashes::CONVERT_THEN_ADD_STRING_TO_HTML_SCRIPT_OBJECT), void>(htmlobj, strgxtkey); }
     static inline auto CopyAnimations(Ped ped, Ped pednext, float speed) { return NativeInvoke::Invoke<308, std::to_underlying(NativeHashes::COPY_ANIMATIONS), void>(ped, pednext, speed); }
-    static inline auto CopyCharDecisionMaker(uint32_t type, DecisionMaker* pDM) { return NativeInvoke::Invoke<309, std::to_underlying(NativeHashes::COPY_CHAR_DECISION_MAKER), void>(type, pDM); }
-    static inline auto CopyCombatDecisionMaker(uint32_t type, DecisionMaker* pDM) { return NativeInvoke::Invoke<310, std::to_underlying(NativeHashes::COPY_COMBAT_DECISION_MAKER), void>(type, pDM); }
-    static inline auto CopyGroupCharDecisionMaker(uint32_t type, DecisionMaker* pDM) { return NativeInvoke::Invoke<311, std::to_underlying(NativeHashes::COPY_GROUP_CHAR_DECISION_MAKER), void>(type, pDM); }
-    static inline auto CopyGroupCombatDecisionMaker(uint32_t type, DecisionMaker* pDM) { return NativeInvoke::Invoke<312, std::to_underlying(NativeHashes::COPY_GROUP_COMBAT_DECISION_MAKER), void>(type, pDM); }
-    static inline auto CopySharedCharDecisionMaker(uint32_t type, DecisionMaker* pDM) { return NativeInvoke::Invoke<313, std::to_underlying(NativeHashes::COPY_SHARED_CHAR_DECISION_MAKER), void>(type, pDM); }
-    static inline auto CopySharedCombatDecisionMaker(uint32_t type, DecisionMaker* pDM) { return NativeInvoke::Invoke<314, std::to_underlying(NativeHashes::COPY_SHARED_COMBAT_DECISION_MAKER), void>(type, pDM); }
+    static inline auto CopyCharDecisionMaker(uint32_t type, DecisionMaker *pDM) { return NativeInvoke::Invoke<309, std::to_underlying(NativeHashes::COPY_CHAR_DECISION_MAKER), void>(type, pDM); }
+    static inline auto CopyCombatDecisionMaker(uint32_t type, DecisionMaker *pDM) { return NativeInvoke::Invoke<310, std::to_underlying(NativeHashes::COPY_COMBAT_DECISION_MAKER), void>(type, pDM); }
+    static inline auto CopyGroupCharDecisionMaker(uint32_t type, DecisionMaker *pDM) { return NativeInvoke::Invoke<311, std::to_underlying(NativeHashes::COPY_GROUP_CHAR_DECISION_MAKER), void>(type, pDM); }
+    static inline auto CopyGroupCombatDecisionMaker(uint32_t type, DecisionMaker *pDM) { return NativeInvoke::Invoke<312, std::to_underlying(NativeHashes::COPY_GROUP_COMBAT_DECISION_MAKER), void>(type, pDM); }
+    static inline auto CopySharedCharDecisionMaker(uint32_t type, DecisionMaker *pDM) { return NativeInvoke::Invoke<313, std::to_underlying(NativeHashes::COPY_SHARED_CHAR_DECISION_MAKER), void>(type, pDM); }
+    static inline auto CopySharedCombatDecisionMaker(uint32_t type, DecisionMaker *pDM) { return NativeInvoke::Invoke<314, std::to_underlying(NativeHashes::COPY_SHARED_COMBAT_DECISION_MAKER), void>(type, pDM); }
     static inline auto Cos(float value) { return NativeInvoke::Invoke<315, std::to_underlying(NativeHashes::COS), float>(value); }
     static inline auto CountPickupsOfType(int32_t type) { return NativeInvoke::Invoke<316, std::to_underlying(NativeHashes::COUNT_PICKUPS_OF_TYPE), int32_t>(type); }
     static inline auto CountScriptCams() { return NativeInvoke::Invoke<317, std::to_underlying(NativeHashes::COUNT_SCRIPT_CAMS), int32_t>(); }
     static inline auto CountScriptCamsByTypeAndOrState(int32_t type, int a2, int a3) { return NativeInvoke::Invoke<318, std::to_underlying(NativeHashes::COUNT_SCRIPT_CAMS_BY_TYPE_AND_OR_STATE), int32_t>(type, a2, a3); }
-    static inline auto CreateCam(uint32_t camtype_usually14, Camera* camera) { return NativeInvoke::Invoke<319, std::to_underlying(NativeHashes::CREATE_CAM), void>(camtype_usually14, camera); }
-    static inline auto CreateCar(uint32_t nameHash, float x, float y, float z, Vehicle* pVehicle, bool unknownTrue) { return NativeInvoke::Invoke<320, std::to_underlying(NativeHashes::CREATE_CAR), void>(nameHash, x, y, z, pVehicle, unknownTrue); }
-    static inline auto CreateCarGenerator(float x, float y, float z, float angle, float a5, float a6, uint32_t model, int a8, int a9, int a10, int a11, int a12, bool alarm, bool doorlock, int32_t* handle) { return NativeInvoke::Invoke<321, std::to_underlying(NativeHashes::CREATE_CAR_GENERATOR), void>(x, y, z, angle, a5, a6, model, a8, a9, a10, a11, a12, alarm, doorlock, handle); }
+    static inline auto CreateCam(uint32_t camtype_usually14, Camera *camera) { return NativeInvoke::Invoke<319, std::to_underlying(NativeHashes::CREATE_CAM), void>(camtype_usually14, camera); }
+    static inline auto CreateCar(uint32_t nameHash, float x, float y, float z, Vehicle *pVehicle, bool unknownTrue) { return NativeInvoke::Invoke<320, std::to_underlying(NativeHashes::CREATE_CAR), void>(nameHash, x, y, z, pVehicle, unknownTrue); }
+    static inline auto CreateCarGenerator(float x, float y, float z, float angle, float a5, float a6, uint32_t model, int a8, int a9, int a10, int a11, int a12, bool alarm, bool doorlock, int32_t *handle) { return NativeInvoke::Invoke<321, std::to_underlying(NativeHashes::CREATE_CAR_GENERATOR), void>(x, y, z, angle, a5, a6, model, a8, a9, a10, a11, a12, alarm, doorlock, handle); }
     static inline auto CreateCarGeneratorWithPlate() { return NativeInvoke::Invoke<322, std::to_underlying(NativeHashes::CREATE_CAR_GENERATOR_WITH_PLATE), Any>(); }
     static inline auto CreateCarsOnGeneratorsInArea(float x0, float y0, float z0, float x1, float y1, float z1) { return NativeInvoke::Invoke<323, std::to_underlying(NativeHashes::CREATE_CARS_ON_GENERATORS_IN_AREA), void>(x0, y0, z0, x1, y1, z1); }
-    static inline auto CreateChar(RelationshipGroup type, uint32_t model, float x, float y, float z, Ped* pPed, bool unknownTrue) { return NativeInvoke::Invoke<324, std::to_underlying(NativeHashes::CREATE_CHAR), void>(type, model, x, y, z, pPed, unknownTrue); }
-    static inline auto CreateCharAsPassenger(Vehicle vehicle, uint32_t charType, uint32_t model, uint32_t passengerIndex, Ped* pPed) { return NativeInvoke::Invoke<325, std::to_underlying(NativeHashes::CREATE_CHAR_AS_PASSENGER), void>(vehicle, charType, model, passengerIndex, pPed); }
-    static inline auto CreateCharInsideCar(Vehicle vehicle, uint32_t charType, uint32_t model, Ped* pPed) { return NativeInvoke::Invoke<326, std::to_underlying(NativeHashes::CREATE_CHAR_INSIDE_CAR), void>(vehicle, charType, model, pPed); }
+    static inline auto CreateChar(RelationshipGroup type, uint32_t model, float x, float y, float z, Ped *pPed, bool unknownTrue) { return NativeInvoke::Invoke<324, std::to_underlying(NativeHashes::CREATE_CHAR), void>(type, model, x, y, z, pPed, unknownTrue); }
+    static inline auto CreateCharAsPassenger(Vehicle vehicle, uint32_t charType, uint32_t model, uint32_t passengerIndex, Ped *pPed) { return NativeInvoke::Invoke<325, std::to_underlying(NativeHashes::CREATE_CHAR_AS_PASSENGER), void>(vehicle, charType, model, passengerIndex, pPed); }
+    static inline auto CreateCharInsideCar(Vehicle vehicle, uint32_t charType, uint32_t model, Ped *pPed) { return NativeInvoke::Invoke<326, std::to_underlying(NativeHashes::CREATE_CHAR_INSIDE_CAR), void>(vehicle, charType, model, pPed); }
     static inline auto CreateCheckpoint(int32_t type, float x, float y, float z, float a5, float a6) { return NativeInvoke::Invoke<327, std::to_underlying(NativeHashes::CREATE_CHECKPOINT), uint32_t>(type, x, y, z, a5, a6); }
     static inline auto CreateDummyChar() { return NativeInvoke::Invoke<328, std::to_underlying(NativeHashes::CREATE_DUMMY_CHAR), Any>(); }
     static inline auto CreateEmergencyServicesCar(uint32_t model, float x, float y, float z) { return NativeInvoke::Invoke<329, std::to_underlying(NativeHashes::CREATE_EMERGENCY_SERVICES_CAR), bool>(model, x, y, z); }
-    static inline auto CreateEmergencyServicesCarReturnDriver(uint32_t model, float x, float y, float z, Car* car, Ped* cardriver, Ped* carpass) { return NativeInvoke::Invoke<330, std::to_underlying(NativeHashes::CREATE_EMERGENCY_SERVICES_CAR_RETURN_DRIVER), bool>(model, x, y, z, car, cardriver, carpass); }
+    static inline auto CreateEmergencyServicesCarReturnDriver(uint32_t model, float x, float y, float z, Car *car, Ped *cardriver, Ped *carpass) { return NativeInvoke::Invoke<330, std::to_underlying(NativeHashes::CREATE_EMERGENCY_SERVICES_CAR_RETURN_DRIVER), bool>(model, x, y, z, car, cardriver, carpass); }
     static inline auto CreateEmergencyServicesCarThenWalk(uint32_t model, float x, float y, float z) { return NativeInvoke::Invoke<331, std::to_underlying(NativeHashes::CREATE_EMERGENCY_SERVICES_CAR_THEN_WALK), bool>(model, x, y, z); }
-    static inline auto CreateGroup(bool unknownFalse, Group* pGroup, bool unknownTrue) { return NativeInvoke::Invoke<332, std::to_underlying(NativeHashes::CREATE_GROUP), void>(unknownFalse, pGroup, unknownTrue); }
-    static inline auto CreateHtmlScriptObject(char* objname) { return NativeInvoke::Invoke<333, std::to_underlying(NativeHashes::CREATE_HTML_SCRIPT_OBJECT), int32_t>(objname); }
-    static inline auto CreateHtmlViewport(int32_t* htmlviewport) { return NativeInvoke::Invoke<334, std::to_underlying(NativeHashes::CREATE_HTML_VIEWPORT), void>(htmlviewport); }
-    static inline auto CreateMenu(char* gxtentry, Any a2, Any a3, Any a4, Any a5, Any a6, Any a7, Any a8, int32_t* menuid) { return NativeInvoke::Invoke<335, std::to_underlying(NativeHashes::CREATE_MENU), void>(gxtentry, a2, a3, a4, a5, a6, a7, a8, menuid); }
-    static inline auto CreateMissionTrain(uint32_t unknown1, float x, float y, float z, bool unknown2, Train* pTrain) { return NativeInvoke::Invoke<336, std::to_underlying(NativeHashes::CREATE_MISSION_TRAIN), void>(unknown1, x, y, z, unknown2, pTrain); }
+    static inline auto CreateGroup(bool unknownFalse, Group *pGroup, bool unknownTrue) { return NativeInvoke::Invoke<332, std::to_underlying(NativeHashes::CREATE_GROUP), void>(unknownFalse, pGroup, unknownTrue); }
+    static inline auto CreateHtmlScriptObject(char *objname) { return NativeInvoke::Invoke<333, std::to_underlying(NativeHashes::CREATE_HTML_SCRIPT_OBJECT), int32_t>(objname); }
+    static inline auto CreateHtmlViewport(int32_t *htmlviewport) { return NativeInvoke::Invoke<334, std::to_underlying(NativeHashes::CREATE_HTML_VIEWPORT), void>(htmlviewport); }
+    static inline auto CreateMenu(char *gxtentry, Any a2, Any a3, Any a4, Any a5, Any a6, Any a7, Any a8, int32_t *menuid) { return NativeInvoke::Invoke<335, std::to_underlying(NativeHashes::CREATE_MENU), void>(gxtentry, a2, a3, a4, a5, a6, a7, a8, menuid); }
+    static inline auto CreateMissionTrain(uint32_t unknown1, float x, float y, float z, bool unknown2, Train *pTrain) { return NativeInvoke::Invoke<336, std::to_underlying(NativeHashes::CREATE_MISSION_TRAIN), void>(unknown1, x, y, z, unknown2, pTrain); }
     static inline auto CreateMobilePhone(int a1) { return NativeInvoke::Invoke<337, std::to_underlying(NativeHashes::CREATE_MOBILE_PHONE), void>(a1); }
-    static inline auto CreateMoneyPickup(float x, float y, float z, uint32_t amount, bool unknownTrue, Pickup* pPickup) { return NativeInvoke::Invoke<338, std::to_underlying(NativeHashes::CREATE_MONEY_PICKUP), void>(x, y, z, amount, unknownTrue, pPickup); }
+    static inline auto CreateMoneyPickup(float x, float y, float z, uint32_t amount, bool unknownTrue, Pickup *pPickup) { return NativeInvoke::Invoke<338, std::to_underlying(NativeHashes::CREATE_MONEY_PICKUP), void>(x, y, z, amount, unknownTrue, pPickup); }
     static inline auto CreateNmMessage(bool a1, int32_t id) { return NativeInvoke::Invoke<339, std::to_underlying(NativeHashes::CREATE_NM_MESSAGE), void>(a1, id); }
-    static inline auto CreateObject(uint32_t model, float x, float y, float z, Object* pObj, bool unknownTrue) { return NativeInvoke::Invoke<340, std::to_underlying(NativeHashes::CREATE_OBJECT), void>(model, x, y, z, pObj, unknownTrue); }
-    static inline auto CreateObjectNoOffset(uint32_t model, float x, float y, float z, Object* pObj, bool unknownTrue) { return NativeInvoke::Invoke<341, std::to_underlying(NativeHashes::CREATE_OBJECT_NO_OFFSET), void>(model, x, y, z, pObj, unknownTrue); }
-    static inline auto CreatePickup(uint32_t model, uint32_t pickupType, float x, float y, float z, Pickup* pPickup, bool unknownFalse) { return NativeInvoke::Invoke<342, std::to_underlying(NativeHashes::CREATE_PICKUP), void>(model, pickupType, x, y, z, pPickup, unknownFalse); }
-    static inline auto CreatePickupRotate(uint32_t model, uint32_t pickupType, uint32_t unknown, float x, float y, float z, float rX, float rY, float rZ, Pickup* pPickup) { return NativeInvoke::Invoke<343, std::to_underlying(NativeHashes::CREATE_PICKUP_ROTATE), void>(model, pickupType, unknown, x, y, z, rX, rY, rZ, pPickup); }
-    static inline auto CreatePickupWithAmmo(uint32_t model, uint32_t pickupType, uint32_t unknown, float x, float y, float z, Pickup* pPickup) { return NativeInvoke::Invoke<344, std::to_underlying(NativeHashes::CREATE_PICKUP_WITH_AMMO), void>(model, pickupType, unknown, x, y, z, pPickup); }
-    static inline auto CreatePlayer(uint32_t playerId, float x, float y, float z, Player* pPlayerIndex) { return NativeInvoke::Invoke<345, std::to_underlying(NativeHashes::CREATE_PLAYER), void>(playerId, x, y, z, pPlayerIndex); }
+    static inline auto CreateObject(uint32_t model, float x, float y, float z, Object *pObj, bool unknownTrue) { return NativeInvoke::Invoke<340, std::to_underlying(NativeHashes::CREATE_OBJECT), void>(model, x, y, z, pObj, unknownTrue); }
+    static inline auto CreateObjectNoOffset(uint32_t model, float x, float y, float z, Object *pObj, bool unknownTrue) { return NativeInvoke::Invoke<341, std::to_underlying(NativeHashes::CREATE_OBJECT_NO_OFFSET), void>(model, x, y, z, pObj, unknownTrue); }
+    static inline auto CreatePickup(uint32_t model, uint32_t pickupType, float x, float y, float z, Pickup *pPickup, bool unknownFalse) { return NativeInvoke::Invoke<342, std::to_underlying(NativeHashes::CREATE_PICKUP), void>(model, pickupType, x, y, z, pPickup, unknownFalse); }
+    static inline auto CreatePickupRotate(uint32_t model, uint32_t pickupType, uint32_t unknown, float x, float y, float z, float rX, float rY, float rZ, Pickup *pPickup) { return NativeInvoke::Invoke<343, std::to_underlying(NativeHashes::CREATE_PICKUP_ROTATE), void>(model, pickupType, unknown, x, y, z, rX, rY, rZ, pPickup); }
+    static inline auto CreatePickupWithAmmo(uint32_t model, uint32_t pickupType, uint32_t unknown, float x, float y, float z, Pickup *pPickup) { return NativeInvoke::Invoke<344, std::to_underlying(NativeHashes::CREATE_PICKUP_WITH_AMMO), void>(model, pickupType, unknown, x, y, z, pPickup); }
+    static inline auto CreatePlayer(uint32_t playerId, float x, float y, float z, Player *pPlayerIndex) { return NativeInvoke::Invoke<345, std::to_underlying(NativeHashes::CREATE_PLAYER), void>(playerId, x, y, z, pPlayerIndex); }
     static inline auto CreateRandomCarForCarPark(float x, float y, float z, float radius) { return NativeInvoke::Invoke<346, std::to_underlying(NativeHashes::CREATE_RANDOM_CAR_FOR_CAR_PARK), void>(x, y, z, radius); }
-    static inline auto CreateRandomChar(float x, float y, float z, Ped* pPed) { return NativeInvoke::Invoke<347, std::to_underlying(NativeHashes::CREATE_RANDOM_CHAR), void>(x, y, z, pPed); }
-    static inline auto CreateRandomCharAsDriver(Vehicle vehicle, Ped* pPed) { return NativeInvoke::Invoke<348, std::to_underlying(NativeHashes::CREATE_RANDOM_CHAR_AS_DRIVER), void>(vehicle, pPed); }
-    static inline auto CreateRandomCharAsPassenger(Vehicle vehicle, uint32_t seat, Ped* pPed) { return NativeInvoke::Invoke<349, std::to_underlying(NativeHashes::CREATE_RANDOM_CHAR_AS_PASSENGER), void>(vehicle, seat, pPed); }
-    static inline auto CreateRandomFemaleChar(float x, float y, float z, Ped* pPed) { return NativeInvoke::Invoke<350, std::to_underlying(NativeHashes::CREATE_RANDOM_FEMALE_CHAR), void>(x, y, z, pPed); }
-    static inline auto CreateRandomMaleChar(float x, float y, float z, Ped* pPed) { return NativeInvoke::Invoke<351, std::to_underlying(NativeHashes::CREATE_RANDOM_MALE_CHAR), void>(x, y, z, pPed); }
+    static inline auto CreateRandomChar(float x, float y, float z, Ped *pPed) { return NativeInvoke::Invoke<347, std::to_underlying(NativeHashes::CREATE_RANDOM_CHAR), void>(x, y, z, pPed); }
+    static inline auto CreateRandomCharAsDriver(Vehicle vehicle, Ped *pPed) { return NativeInvoke::Invoke<348, std::to_underlying(NativeHashes::CREATE_RANDOM_CHAR_AS_DRIVER), void>(vehicle, pPed); }
+    static inline auto CreateRandomCharAsPassenger(Vehicle vehicle, uint32_t seat, Ped *pPed) { return NativeInvoke::Invoke<349, std::to_underlying(NativeHashes::CREATE_RANDOM_CHAR_AS_PASSENGER), void>(vehicle, seat, pPed); }
+    static inline auto CreateRandomFemaleChar(float x, float y, float z, Ped *pPed) { return NativeInvoke::Invoke<350, std::to_underlying(NativeHashes::CREATE_RANDOM_FEMALE_CHAR), void>(x, y, z, pPed); }
+    static inline auto CreateRandomMaleChar(float x, float y, float z, Ped *pPed) { return NativeInvoke::Invoke<351, std::to_underlying(NativeHashes::CREATE_RANDOM_MALE_CHAR), void>(x, y, z, pPed); }
     static inline auto CreateTemporaryRadarBlipsForPickupsInArea(float x, float y, float z, float radius, int32_t bliptype) { return NativeInvoke::Invoke<352, std::to_underlying(NativeHashes::CREATE_TEMPORARY_RADAR_BLIPS_FOR_PICKUPS_IN_AREA), void>(x, y, z, radius, bliptype); }
     static inline auto CreateUser3dMarker(float x, float y, float z) { return NativeInvoke::Invoke<353, std::to_underlying(NativeHashes::CREATE_USER_3D_MARKER), uint32_t>(x, y, z); }
-    static inline auto CreateViewport(int32_t* viewport) { return NativeInvoke::Invoke<354, std::to_underlying(NativeHashes::CREATE_VIEWPORT), void>(viewport); }
+    static inline auto CreateViewport(int32_t *viewport) { return NativeInvoke::Invoke<354, std::to_underlying(NativeHashes::CREATE_VIEWPORT), void>(viewport); }
     static inline auto CreateWidgetGroup(Any a1) { return NativeInvoke::Invoke<355, std::to_underlying(NativeHashes::CREATE_WIDGET_GROUP), Any>(a1); }
     static inline auto DETACH_PED(Ped ped, bool unknown) { return NativeInvoke::Invoke<356, std::to_underlying(NativeHashes::DETACH_PED), void>(ped, unknown); }
     static inline auto DETACH_PED_FROM_WITHIN_CAR(Ped ped, bool unknown) { return NativeInvoke::Invoke<357, std::to_underlying(NativeHashes::DETACH_PED_FROM_WITHIN_CAR), void>(ped, unknown); }
@@ -3745,16 +3750,16 @@ public:
     static inline auto DefinePedGenerationConstraintArea(float x, float y, float z, float radius) { return NativeInvoke::Invoke<368, std::to_underlying(NativeHashes::DEFINE_PED_GENERATION_CONSTRAINT_AREA), void>(x, y, z, radius); }
     static inline auto DeleteAllHtmlScriptObjects() { return NativeInvoke::Invoke<369, std::to_underlying(NativeHashes::DELETE_ALL_HTML_SCRIPT_OBJECTS), void>(); }
     static inline auto DeleteAllTrains() { return NativeInvoke::Invoke<370, std::to_underlying(NativeHashes::DELETE_ALL_TRAINS), void>(); }
-    static inline auto DeleteCar(Vehicle* pVehicle) { return NativeInvoke::Invoke<371, std::to_underlying(NativeHashes::DELETE_CAR), void>(pVehicle); }
+    static inline auto DeleteCar(Vehicle *pVehicle) { return NativeInvoke::Invoke<371, std::to_underlying(NativeHashes::DELETE_CAR), void>(pVehicle); }
     static inline auto DeleteCarGenerator(int32_t handle) { return NativeInvoke::Invoke<372, std::to_underlying(NativeHashes::DELETE_CAR_GENERATOR), void>(handle); }
-    static inline auto DeleteChar(Ped* pPed) { return NativeInvoke::Invoke<373, std::to_underlying(NativeHashes::DELETE_CHAR), void>(pPed); }
+    static inline auto DeleteChar(Ped *pPed) { return NativeInvoke::Invoke<373, std::to_underlying(NativeHashes::DELETE_CHAR), void>(pPed); }
     static inline auto DeleteCheckpoint(uint32_t checkpoint) { return NativeInvoke::Invoke<374, std::to_underlying(NativeHashes::DELETE_CHECKPOINT), void>(checkpoint); }
     static inline auto DeleteDummyChar() { return NativeInvoke::Invoke<375, std::to_underlying(NativeHashes::DELETE_DUMMY_CHAR), Any>(); }
     static inline auto DeleteHtmlScriptObject(int32_t htmlobj) { return NativeInvoke::Invoke<376, std::to_underlying(NativeHashes::DELETE_HTML_SCRIPT_OBJECT), void>(htmlobj); }
     static inline auto DeleteMenu(int32_t menuid) { return NativeInvoke::Invoke<377, std::to_underlying(NativeHashes::DELETE_MENU), void>(menuid); }
-    static inline auto DeleteMissionTrain(Train* pTrain) { return NativeInvoke::Invoke<378, std::to_underlying(NativeHashes::DELETE_MISSION_TRAIN), void>(pTrain); }
+    static inline auto DeleteMissionTrain(Train *pTrain) { return NativeInvoke::Invoke<378, std::to_underlying(NativeHashes::DELETE_MISSION_TRAIN), void>(pTrain); }
     static inline auto DeleteMissionTrains() { return NativeInvoke::Invoke<379, std::to_underlying(NativeHashes::DELETE_MISSION_TRAINS), void>(); }
-    static inline auto DeleteObject(Object* pObj) { return NativeInvoke::Invoke<380, std::to_underlying(NativeHashes::DELETE_OBJECT), void>(pObj); }
+    static inline auto DeleteObject(Object *pObj) { return NativeInvoke::Invoke<380, std::to_underlying(NativeHashes::DELETE_OBJECT), void>(pObj); }
     static inline auto DeletePlayer() { return NativeInvoke::Invoke<381, std::to_underlying(NativeHashes::DELETE_PLAYER), void>(); }
     static inline auto DeleteWidget(Any a1) { return NativeInvoke::Invoke<382, std::to_underlying(NativeHashes::DELETE_WIDGET), void>(a1); }
     static inline auto DeleteWidgetGroup(Any a1) { return NativeInvoke::Invoke<383, std::to_underlying(NativeHashes::DELETE_WIDGET_GROUP), void>(a1); }
@@ -3794,31 +3799,31 @@ public:
     static inline auto DisplayCash(bool display) { return NativeInvoke::Invoke<417, std::to_underlying(NativeHashes::DISPLAY_CASH), void>(display); }
     static inline auto DisplayFrontendMapBlips(bool display) { return NativeInvoke::Invoke<418, std::to_underlying(NativeHashes::DISPLAY_FRONTEND_MAP_BLIPS), void>(display); }
     static inline auto DisplayGrimeThisFrame() { return NativeInvoke::Invoke<419, std::to_underlying(NativeHashes::DISPLAY_GRIME_THIS_FRAME), void>(); }
-    static inline auto DisplayHelpTextThisFrame(char* gxtkey, bool a2) { return NativeInvoke::Invoke<420, std::to_underlying(NativeHashes::DISPLAY_HELP_TEXT_THIS_FRAME), void>(gxtkey, a2); }
+    static inline auto DisplayHelpTextThisFrame(char *gxtkey, bool a2) { return NativeInvoke::Invoke<420, std::to_underlying(NativeHashes::DISPLAY_HELP_TEXT_THIS_FRAME), void>(gxtkey, a2); }
     static inline auto DisplayHud(bool display) { return NativeInvoke::Invoke<421, std::to_underlying(NativeHashes::DISPLAY_HUD), void>(display); }
     static inline auto DisplayLoadingThisFrameWithScriptSprites() { return NativeInvoke::Invoke<422, std::to_underlying(NativeHashes::DISPLAY_LOADING_THIS_FRAME_WITH_SCRIPT_SPRITES), void>(); }
     static inline auto DisplayNonMinigameHelpMessages(bool a1) { return NativeInvoke::Invoke<423, std::to_underlying(NativeHashes::DISPLAY_NON_MINIGAME_HELP_MESSAGES), void>(a1); }
-    static inline auto DisplayNthOnscreenCounterWithString(int a1, int a2, int a3, char* str) { return NativeInvoke::Invoke<424, std::to_underlying(NativeHashes::DISPLAY_NTH_ONSCREEN_COUNTER_WITH_STRING), void>(a1, a2, a3, str); }
-    static inline auto DisplayOnscreenTimerWithString(int32_t timerid, bool a2, char* str) { return NativeInvoke::Invoke<425, std::to_underlying(NativeHashes::DISPLAY_ONSCREEN_TIMER_WITH_STRING), void>(timerid, a2, str); }
+    static inline auto DisplayNthOnscreenCounterWithString(int a1, int a2, int a3, char *str) { return NativeInvoke::Invoke<424, std::to_underlying(NativeHashes::DISPLAY_NTH_ONSCREEN_COUNTER_WITH_STRING), void>(a1, a2, a3, str); }
+    static inline auto DisplayOnscreenTimerWithString(int32_t timerid, bool a2, char *str) { return NativeInvoke::Invoke<425, std::to_underlying(NativeHashes::DISPLAY_ONSCREEN_TIMER_WITH_STRING), void>(timerid, a2, str); }
     static inline auto DisplayPlayerIcons() { return NativeInvoke::Invoke<426, std::to_underlying(NativeHashes::DISPLAY_PLAYER_ICONS), Any>(); }
     static inline auto DisplayPlayerNames(Any a1) { return NativeInvoke::Invoke<427, std::to_underlying(NativeHashes::DISPLAY_PLAYER_NAMES), void>(a1); }
     static inline auto DisplayRadar(bool display) { return NativeInvoke::Invoke<428, std::to_underlying(NativeHashes::DISPLAY_RADAR), void>(display); }
     static inline auto DisplaySniperScopeThisFrame() { return NativeInvoke::Invoke<429, std::to_underlying(NativeHashes::DISPLAY_SNIPER_SCOPE_THIS_FRAME), void>(); }
-    static inline auto DisplayText(float x, float y, char* gxtName) { return NativeInvoke::Invoke<430, std::to_underlying(NativeHashes::DISPLAY_TEXT), void>(x, y, gxtName); }
+    static inline auto DisplayText(float x, float y, char *gxtName) { return NativeInvoke::Invoke<430, std::to_underlying(NativeHashes::DISPLAY_TEXT), void>(x, y, gxtName); }
     static inline auto DisplayTextSubstring(Any a1, Any a2, Any a3, Any a4, Any a5, Any a6, Any a7) { return NativeInvoke::Invoke<431, std::to_underlying(NativeHashes::DISPLAY_TEXT_SUBSTRING), void>(a1, a2, a3, a4, a5, a6, a7); }
-    static inline auto DisplayTextWith2Numbers(float x, float y, char* gxtName, int32_t number1, int32_t number2) { return NativeInvoke::Invoke<432, std::to_underlying(NativeHashes::DISPLAY_TEXT_WITH_2_NUMBERS), void>(x, y, gxtName, number1, number2); }
-    static inline auto DisplayTextWith3Numbers(float x, float y, char* gxtentry, int a4, int a5, int a6) { return NativeInvoke::Invoke<433, std::to_underlying(NativeHashes::DISPLAY_TEXT_WITH_3_NUMBERS), void>(x, y, gxtentry, a4, a5, a6); }
-    static inline auto DisplayTextWithBlipName(float x, float y, char* str, int32_t blip) { return NativeInvoke::Invoke<434, std::to_underlying(NativeHashes::DISPLAY_TEXT_WITH_BLIP_NAME), void>(x, y, str, blip); }
-    static inline auto DisplayTextWithFloat(float x, float y, char* gxtName, float value, uint32_t unknown) { return NativeInvoke::Invoke<435, std::to_underlying(NativeHashes::DISPLAY_TEXT_WITH_FLOAT), void>(x, y, gxtName, value, unknown); }
-    static inline auto DisplayTextWithLiteralString(float x, float y, char* gxtName, char* literalStr) { return NativeInvoke::Invoke<436, std::to_underlying(NativeHashes::DISPLAY_TEXT_WITH_LITERAL_STRING), void>(x, y, gxtName, literalStr); }
+    static inline auto DisplayTextWith2Numbers(float x, float y, char *gxtName, int32_t number1, int32_t number2) { return NativeInvoke::Invoke<432, std::to_underlying(NativeHashes::DISPLAY_TEXT_WITH_2_NUMBERS), void>(x, y, gxtName, number1, number2); }
+    static inline auto DisplayTextWith3Numbers(float x, float y, char *gxtentry, int a4, int a5, int a6) { return NativeInvoke::Invoke<433, std::to_underlying(NativeHashes::DISPLAY_TEXT_WITH_3_NUMBERS), void>(x, y, gxtentry, a4, a5, a6); }
+    static inline auto DisplayTextWithBlipName(float x, float y, char *str, int32_t blip) { return NativeInvoke::Invoke<434, std::to_underlying(NativeHashes::DISPLAY_TEXT_WITH_BLIP_NAME), void>(x, y, str, blip); }
+    static inline auto DisplayTextWithFloat(float x, float y, char *gxtName, float value, uint32_t unknown) { return NativeInvoke::Invoke<435, std::to_underlying(NativeHashes::DISPLAY_TEXT_WITH_FLOAT), void>(x, y, gxtName, value, unknown); }
+    static inline auto DisplayTextWithLiteralString(float x, float y, char *gxtName, char *literalStr) { return NativeInvoke::Invoke<436, std::to_underlying(NativeHashes::DISPLAY_TEXT_WITH_LITERAL_STRING), void>(x, y, gxtName, literalStr); }
     static inline auto DisplayTextWithLiteralSubstring(Any a1, Any a2, Any a3, Any a4, Any a5, Any a6) { return NativeInvoke::Invoke<437, std::to_underlying(NativeHashes::DISPLAY_TEXT_WITH_LITERAL_SUBSTRING), void>(a1, a2, a3, a4, a5, a6); }
-    static inline auto DisplayTextWithNumber(float x, float y, char* gxtName, int32_t value) { return NativeInvoke::Invoke<438, std::to_underlying(NativeHashes::DISPLAY_TEXT_WITH_NUMBER), void>(x, y, gxtName, value); }
-    static inline auto DisplayTextWithString(float x, float y, char* gxtName, char* gxtStringName) { return NativeInvoke::Invoke<439, std::to_underlying(NativeHashes::DISPLAY_TEXT_WITH_STRING), void>(x, y, gxtName, gxtStringName); }
-    static inline auto DisplayTextWithStringAndInt(float x, float y, char* gxtname, char* gxtnamenext, int32_t val) { return NativeInvoke::Invoke<440, std::to_underlying(NativeHashes::DISPLAY_TEXT_WITH_STRING_AND_INT), void>(x, y, gxtname, gxtnamenext, val); }
-    static inline auto DisplayTextWithSubstringGivenHashKey(float x, float y, char* gxtkey, uint32_t gxtkey0) { return NativeInvoke::Invoke<441, std::to_underlying(NativeHashes::DISPLAY_TEXT_WITH_SUBSTRING_GIVEN_HASH_KEY), void>(x, y, gxtkey, gxtkey0); }
-    static inline auto DisplayTextWithTwoLiteralStrings(float x, float y, char* gxtName, char* literalStr1, char* literalStr2) { return NativeInvoke::Invoke<442, std::to_underlying(NativeHashes::DISPLAY_TEXT_WITH_TWO_LITERAL_STRINGS), void>(x, y, gxtName, literalStr1, literalStr2); }
-    static inline auto DisplayTextWithTwoStrings(float x, float y, char* gxtName, char* gxtStringName1, char* gxtStringName2) { return NativeInvoke::Invoke<443, std::to_underlying(NativeHashes::DISPLAY_TEXT_WITH_TWO_STRINGS), void>(x, y, gxtName, gxtStringName1, gxtStringName2); }
-    static inline auto DisplayTextWithTwoSubstringsGivenHashKeys(float x, float y, char* gxtkey, uint32_t gxtkey0, uint32_t gxtkey1) { return NativeInvoke::Invoke<444, std::to_underlying(NativeHashes::DISPLAY_TEXT_WITH_TWO_SUBSTRINGS_GIVEN_HASH_KEYS), void>(x, y, gxtkey, gxtkey0, gxtkey1); }
+    static inline auto DisplayTextWithNumber(float x, float y, char *gxtName, int32_t value) { return NativeInvoke::Invoke<438, std::to_underlying(NativeHashes::DISPLAY_TEXT_WITH_NUMBER), void>(x, y, gxtName, value); }
+    static inline auto DisplayTextWithString(float x, float y, char *gxtName, char *gxtStringName) { return NativeInvoke::Invoke<439, std::to_underlying(NativeHashes::DISPLAY_TEXT_WITH_STRING), void>(x, y, gxtName, gxtStringName); }
+    static inline auto DisplayTextWithStringAndInt(float x, float y, char *gxtname, char *gxtnamenext, int32_t val) { return NativeInvoke::Invoke<440, std::to_underlying(NativeHashes::DISPLAY_TEXT_WITH_STRING_AND_INT), void>(x, y, gxtname, gxtnamenext, val); }
+    static inline auto DisplayTextWithSubstringGivenHashKey(float x, float y, char *gxtkey, uint32_t gxtkey0) { return NativeInvoke::Invoke<441, std::to_underlying(NativeHashes::DISPLAY_TEXT_WITH_SUBSTRING_GIVEN_HASH_KEY), void>(x, y, gxtkey, gxtkey0); }
+    static inline auto DisplayTextWithTwoLiteralStrings(float x, float y, char *gxtName, char *literalStr1, char *literalStr2) { return NativeInvoke::Invoke<442, std::to_underlying(NativeHashes::DISPLAY_TEXT_WITH_TWO_LITERAL_STRINGS), void>(x, y, gxtName, literalStr1, literalStr2); }
+    static inline auto DisplayTextWithTwoStrings(float x, float y, char *gxtName, char *gxtStringName1, char *gxtStringName2) { return NativeInvoke::Invoke<443, std::to_underlying(NativeHashes::DISPLAY_TEXT_WITH_TWO_STRINGS), void>(x, y, gxtName, gxtStringName1, gxtStringName2); }
+    static inline auto DisplayTextWithTwoSubstringsGivenHashKeys(float x, float y, char *gxtkey, uint32_t gxtkey0, uint32_t gxtkey1) { return NativeInvoke::Invoke<444, std::to_underlying(NativeHashes::DISPLAY_TEXT_WITH_TWO_SUBSTRINGS_GIVEN_HASH_KEYS), void>(x, y, gxtkey, gxtkey0, gxtkey1); }
     static inline auto DoAutoSave() { return NativeInvoke::Invoke<445, std::to_underlying(NativeHashes::DO_AUTO_SAVE), void>(); }
     static inline auto DoScreenFadeIn(uint32_t timeMS) { return NativeInvoke::Invoke<446, std::to_underlying(NativeHashes::DO_SCREEN_FADE_IN), void>(timeMS); }
     static inline auto DoScreenFadeInUnhacked(uint32_t timeMS) { return NativeInvoke::Invoke<447, std::to_underlying(NativeHashes::DO_SCREEN_FADE_IN_UNHACKED), void>(timeMS); }
@@ -3843,14 +3848,14 @@ public:
     static inline auto DoesPickupExist(Pickup pickup) { return NativeInvoke::Invoke<466, std::to_underlying(NativeHashes::DOES_PICKUP_EXIST), bool>(pickup); }
     static inline auto DoesPlayerHaveControlOfNetworkId(Any a1, Any a2) { return NativeInvoke::Invoke<467, std::to_underlying(NativeHashes::DOES_PLAYER_HAVE_CONTROL_OF_NETWORK_ID), Any>(a1, a2); }
     static inline auto DoesScenarioExistInArea(Any a1, Any a2, Any a3, Any a4, Any a5) { return NativeInvoke::Invoke<468, std::to_underlying(NativeHashes::DOES_SCENARIO_EXIST_IN_AREA), bool>(a1, a2, a3, a4, a5); }
-    static inline auto DoesScriptExist(char* name) { return NativeInvoke::Invoke<469, std::to_underlying(NativeHashes::DOES_SCRIPT_EXIST), bool>(name); }
+    static inline auto DoesScriptExist(char *name) { return NativeInvoke::Invoke<469, std::to_underlying(NativeHashes::DOES_SCRIPT_EXIST), bool>(name); }
     static inline auto DoesScriptFireExist(int32_t fire) { return NativeInvoke::Invoke<470, std::to_underlying(NativeHashes::DOES_SCRIPT_FIRE_EXIST), bool>(fire); }
-    static inline auto DoesTextLabelExist(char* gxtentry) { return NativeInvoke::Invoke<471, std::to_underlying(NativeHashes::DOES_TEXT_LABEL_EXIST), bool>(gxtentry); }
+    static inline auto DoesTextLabelExist(char *gxtentry) { return NativeInvoke::Invoke<471, std::to_underlying(NativeHashes::DOES_TEXT_LABEL_EXIST), bool>(gxtentry); }
     static inline auto DoesThisMinigameScriptAllowNonMinigameHelpMessages() { return NativeInvoke::Invoke<472, std::to_underlying(NativeHashes::DOES_THIS_MINIGAME_SCRIPT_ALLOW_NON_MINIGAME_HELP_MESSAGES), bool>(); }
     static inline auto DoesVehicleExist(Vehicle vehicle) { return NativeInvoke::Invoke<473, std::to_underlying(NativeHashes::DOES_VEHICLE_EXIST), bool>(vehicle); }
     static inline auto DoesVehicleExistWithNetworkId(Any a1) { return NativeInvoke::Invoke<474, std::to_underlying(NativeHashes::DOES_VEHICLE_EXIST_WITH_NETWORK_ID), Any>(a1); }
     static inline auto DoesViewportExist(int32_t viewportid) { return NativeInvoke::Invoke<475, std::to_underlying(NativeHashes::DOES_VIEWPORT_EXIST), bool>(viewportid); }
-    static inline auto DoesWebPageExist(char* webaddress) { return NativeInvoke::Invoke<476, std::to_underlying(NativeHashes::DOES_WEB_PAGE_EXIST), bool>(webaddress); }
+    static inline auto DoesWebPageExist(char *webaddress) { return NativeInvoke::Invoke<476, std::to_underlying(NativeHashes::DOES_WEB_PAGE_EXIST), bool>(webaddress); }
     static inline auto DoesWidgetGroupExist(Any a1) { return NativeInvoke::Invoke<477, std::to_underlying(NativeHashes::DOES_WIDGET_GROUP_EXIST), void>(a1); }
     static inline auto DontAbortCarConversations(bool flag0, bool flag1) { return NativeInvoke::Invoke<478, std::to_underlying(NativeHashes::DONT_ABORT_CAR_CONVERSATIONS), void>(flag0, flag1); }
     static inline auto DontDispatchCopsForPlayer(int32_t player, bool dont) { return NativeInvoke::Invoke<479, std::to_underlying(NativeHashes::DONT_DISPATCH_COPS_FOR_PLAYER), void>(player, dont); }
@@ -3867,9 +3872,9 @@ public:
     static inline auto DrawCorona(float x, float y, float z, float radius, Any a5, Any a6, Any a7, Any a8, Any a9) { return NativeInvoke::Invoke<490, std::to_underlying(NativeHashes::DRAW_CORONA), void>(x, y, z, radius, a5, a6, a7, a8, a9); }
     static inline auto DrawCurvedWindow(float a1, float a2, float a3, float a4, uint32_t alpha) { return NativeInvoke::Invoke<491, std::to_underlying(NativeHashes::DRAW_CURVED_WINDOW), void>(a1, a2, a3, a4, alpha); }
     static inline auto DrawCurvedWindowNotext(float a1, float a2, float a3, float a4, int a5) { return NativeInvoke::Invoke<492, std::to_underlying(NativeHashes::DRAW_CURVED_WINDOW_NOTEXT), void>(a1, a2, a3, a4, a5); }
-    static inline auto DrawCurvedWindowText(float a1, float a2, float a3, int a4, int a5, char* a6, char* a7, int a8) { return NativeInvoke::Invoke<493, std::to_underlying(NativeHashes::DRAW_CURVED_WINDOW_TEXT), void>(a1, a2, a3, a4, a5, a6, a7, a8); }
+    static inline auto DrawCurvedWindowText(float a1, float a2, float a3, int a4, int a5, char *a6, char *a7, int a8) { return NativeInvoke::Invoke<493, std::to_underlying(NativeHashes::DRAW_CURVED_WINDOW_TEXT), void>(a1, a2, a3, a4, a5, a6, a7, a8); }
     static inline auto DrawDebugSphere(float x, float y, float z, float radius) { return NativeInvoke::Invoke<494, std::to_underlying(NativeHashes::DRAW_DEBUG_SPHERE), void>(x, y, z, radius); }
-    static inline auto DrawFrontendHelperText(char* a1, char* a2, bool a3) { return NativeInvoke::Invoke<495, std::to_underlying(NativeHashes::DRAW_FRONTEND_HELPER_TEXT), void>(a1, a2, a3); }
+    static inline auto DrawFrontendHelperText(char *a1, char *a2, bool a3) { return NativeInvoke::Invoke<495, std::to_underlying(NativeHashes::DRAW_FRONTEND_HELPER_TEXT), void>(a1, a2, a3); }
     static inline auto DrawLightWithRange(float x, float y, float z, int32_t r, int32_t g, int32_t b, float a7, float a8) { return NativeInvoke::Invoke<496, std::to_underlying(NativeHashes::DRAW_LIGHT_WITH_RANGE), void>(x, y, z, r, g, b, a7, a8); }
     static inline auto DrawMovie(float a1, float a2, float a3, float a4, float a5, int32_t r, int32_t g, int32_t b, int32_t a) { return NativeInvoke::Invoke<497, std::to_underlying(NativeHashes::DRAW_MOVIE), void>(a1, a2, a3, a4, a5, r, g, b, a); }
     static inline auto DrawRect(float x1, float y1, float x2, float y2, uint32_t r, uint32_t g, uint32_t b, uint32_t a) { return NativeInvoke::Invoke<498, std::to_underlying(NativeHashes::DRAW_RECT), void>(x1, y1, x2, y2, r, g, b, a); }
@@ -3881,8 +3886,8 @@ public:
     static inline auto DrawSpriteWithUv(uint32_t texture, float a2, float a3, float a4, float a5, float angle, int32_t r, int32_t g, int32_t b, int32_t a) { return NativeInvoke::Invoke<504, std::to_underlying(NativeHashes::DRAW_SPRITE_WITH_UV), void>(texture, a2, a3, a4, a5, angle, r, g, b, a); }
     static inline auto DrawSpriteWithUvCoords(uint32_t texture, float a2, float a3, float a4, float a5, float a6, float a7, float a8, float a9, float angle, int32_t r, int32_t g, int32_t b, int32_t a) { return NativeInvoke::Invoke<505, std::to_underlying(NativeHashes::DRAW_SPRITE_WITH_UV_COORDS), void>(texture, a2, a3, a4, a5, a6, a7, a8, a9, angle, r, g, b, a); }
     static inline auto DrawToplevelSprite(uint32_t texture, float a2, float a3, float a4, float a5, float angle, int32_t r, int32_t g, int32_t b, int32_t a) { return NativeInvoke::Invoke<506, std::to_underlying(NativeHashes::DRAW_TOPLEVEL_SPRITE), void>(texture, a2, a3, a4, a5, angle, r, g, b, a); }
-    static inline auto DrawWindow(float a1, float a2, float a3, float a4, char* str, uint32_t alpha) { return NativeInvoke::Invoke<507, std::to_underlying(NativeHashes::DRAW_WINDOW), void>(a1, a2, a3, a4, str, alpha); }
-    static inline auto DrawWindowText(float a1, float a2, float a3, int a4, char* a5, int a6) { return NativeInvoke::Invoke<508, std::to_underlying(NativeHashes::DRAW_WINDOW_TEXT), void>(a1, a2, a3, a4, a5, a6); }
+    static inline auto DrawWindow(float a1, float a2, float a3, float a4, char *str, uint32_t alpha) { return NativeInvoke::Invoke<507, std::to_underlying(NativeHashes::DRAW_WINDOW), void>(a1, a2, a3, a4, str, alpha); }
+    static inline auto DrawWindowText(float a1, float a2, float a3, int a4, char *a5, int a6) { return NativeInvoke::Invoke<508, std::to_underlying(NativeHashes::DRAW_WINDOW_TEXT), void>(a1, a2, a3, a4, a5, a6); }
     static inline auto DropObject(Ped ped, bool unknownTrue) { return NativeInvoke::Invoke<509, std::to_underlying(NativeHashes::DROP_OBJECT), void>(ped, unknownTrue); }
     static inline auto EnableAllPedHelmets(bool enable) { return NativeInvoke::Invoke<510, std::to_underlying(NativeHashes::ENABLE_ALL_PED_HELMETS), void>(enable); }
     static inline auto EnableCamCollision(int32_t cam, bool enable) { return NativeInvoke::Invoke<511, std::to_underlying(NativeHashes::ENABLE_CAM_COLLISION), void>(cam, enable); }
@@ -3902,11 +3907,11 @@ public:
     static inline auto EnableSceneStreaming(bool enable) { return NativeInvoke::Invoke<525, std::to_underlying(NativeHashes::ENABLE_SCENE_STREAMING), void>(enable); }
     static inline auto EnableScriptControlledMicrophone() { return NativeInvoke::Invoke<526, std::to_underlying(NativeHashes::ENABLE_SCRIPT_CONTROLLED_MICROPHONE), bool>(); }
     static inline auto EnableShadows(bool enable) { return NativeInvoke::Invoke<527, std::to_underlying(NativeHashes::ENABLE_SHADOWS), void>(enable); }
-    static inline auto EndCamCommands(int32_t* a1) { return NativeInvoke::Invoke<528, std::to_underlying(NativeHashes::END_CAM_COMMANDS), void>(a1); }
+    static inline auto EndCamCommands(int32_t *a1) { return NativeInvoke::Invoke<528, std::to_underlying(NativeHashes::END_CAM_COMMANDS), void>(a1); }
     static inline auto EndCharSearchCriteria() { return NativeInvoke::Invoke<529, std::to_underlying(NativeHashes::END_CHAR_SEARCH_CRITERIA), void>(); }
     static inline auto EndPedQueueMembershipList() { return NativeInvoke::Invoke<530, std::to_underlying(NativeHashes::END_PED_QUEUE_MEMBERSHIP_LIST), Any>(); }
     static inline auto EndWidgetGroup() { return NativeInvoke::Invoke<531, std::to_underlying(NativeHashes::END_WIDGET_GROUP), void>(); }
-    static inline auto EvolvePtfx(uint32_t ptfx, char* evolvetype, float val) { return NativeInvoke::Invoke<532, std::to_underlying(NativeHashes::EVOLVE_PTFX), void>(ptfx, evolvetype, val); }
+    static inline auto EvolvePtfx(uint32_t ptfx, char *evolvetype, float val) { return NativeInvoke::Invoke<532, std::to_underlying(NativeHashes::EVOLVE_PTFX), void>(ptfx, evolvetype, val); }
     static inline auto Exp(float a1) { return NativeInvoke::Invoke<533, std::to_underlying(NativeHashes::EXP), float>(a1); }
     static inline auto ExplodeCar(Vehicle vehicle, bool unknownTrue, bool unknownFalse) { return NativeInvoke::Invoke<534, std::to_underlying(NativeHashes::EXPLODE_CAR), void>(vehicle, unknownTrue, unknownFalse); }
     static inline auto ExplodeCarInCutscene(Car car, bool explode) { return NativeInvoke::Invoke<535, std::to_underlying(NativeHashes::EXPLODE_CAR_IN_CUTSCENE), void>(car, explode); }
@@ -3925,9 +3930,9 @@ public:
     static inline auto FindNetworkKillerOfPlayer(Any a1) { return NativeInvoke::Invoke<548, std::to_underlying(NativeHashes::FIND_NETWORK_KILLER_OF_PLAYER), Any>(a1); }
     static inline auto FindNetworkRestartPoint(Any a1, Any a2, Any a3) { return NativeInvoke::Invoke<549, std::to_underlying(NativeHashes::FIND_NETWORK_RESTART_POINT), void>(a1, a2, a3); }
     static inline auto FindPositionInRecording(Car car) { return NativeInvoke::Invoke<550, std::to_underlying(NativeHashes::FIND_POSITION_IN_RECORDING), float>(car); }
-    static inline auto FindPrimaryPopulationZoneGroup(int32_t* groupparam0, int32_t* groupparam1) { return NativeInvoke::Invoke<551, std::to_underlying(NativeHashes::FIND_PRIMARY_POPULATION_ZONE_GROUP), void>(groupparam0, groupparam1); }
-    static inline auto FindStaticEmitterIndex(char* StaticEmitterName) { return NativeInvoke::Invoke<552, std::to_underlying(NativeHashes::FIND_STATIC_EMITTER_INDEX), int32_t>(StaticEmitterName); }
-    static inline auto FindStreetNameAtPosition(float pX, float pY, float pZ, uint32_t* strHash0, uint32_t* strHash1) { return NativeInvoke::Invoke<553, std::to_underlying(NativeHashes::FIND_STREET_NAME_AT_POSITION), void>(pX, pY, pZ, strHash0, strHash1); }
+    static inline auto FindPrimaryPopulationZoneGroup(int32_t *groupparam0, int32_t *groupparam1) { return NativeInvoke::Invoke<551, std::to_underlying(NativeHashes::FIND_PRIMARY_POPULATION_ZONE_GROUP), void>(groupparam0, groupparam1); }
+    static inline auto FindStaticEmitterIndex(char *StaticEmitterName) { return NativeInvoke::Invoke<552, std::to_underlying(NativeHashes::FIND_STATIC_EMITTER_INDEX), int32_t>(StaticEmitterName); }
+    static inline auto FindStreetNameAtPosition(float pX, float pY, float pZ, uint32_t *strHash0, uint32_t *strHash1) { return NativeInvoke::Invoke<553, std::to_underlying(NativeHashes::FIND_STREET_NAME_AT_POSITION), void>(pX, pY, pZ, strHash0, strHash1); }
     static inline auto FindTimePositionInRecording(Car car) { return NativeInvoke::Invoke<554, std::to_underlying(NativeHashes::FIND_TIME_POSITION_IN_RECORDING), float>(car); }
     static inline auto FindTrainDirection(Vehicle train) { return NativeInvoke::Invoke<555, std::to_underlying(NativeHashes::FIND_TRAIN_DIRECTION), int32_t>(train); }
     static inline auto FinishStreamingRequestList() { return NativeInvoke::Invoke<556, std::to_underlying(NativeHashes::FINISH_STREAMING_REQUEST_LIST), void>(); }
@@ -3958,7 +3963,7 @@ public:
     static inline auto ForceGameTelescopeCam(bool force) { return NativeInvoke::Invoke<581, std::to_underlying(NativeHashes::FORCE_GAME_TELESCOPE_CAM), void>(force); }
     static inline auto ForceGenerateParkedCarsTooCloseToOthers(bool set) { return NativeInvoke::Invoke<582, std::to_underlying(NativeHashes::FORCE_GENERATE_PARKED_CARS_TOO_CLOSE_TO_OTHERS), void>(set); }
     static inline auto ForceHighLod(bool force) { return NativeInvoke::Invoke<583, std::to_underlying(NativeHashes::FORCE_HIGH_LOD), void>(force); }
-    static inline auto ForceInitialPlayerStation(char* stationName) { return NativeInvoke::Invoke<584, std::to_underlying(NativeHashes::FORCE_INITIAL_PLAYER_STATION), void>(stationName); }
+    static inline auto ForceInitialPlayerStation(char *stationName) { return NativeInvoke::Invoke<584, std::to_underlying(NativeHashes::FORCE_INITIAL_PLAYER_STATION), void>(stationName); }
     static inline auto ForceInteriorLightingForPlayer(int32_t player, bool force) { return NativeInvoke::Invoke<585, std::to_underlying(NativeHashes::FORCE_INTERIOR_LIGHTING_FOR_PLAYER), void>(player, force); }
     static inline auto ForceLoadingScreen(bool force) { return NativeInvoke::Invoke<586, std::to_underlying(NativeHashes::FORCE_LOADING_SCREEN), void>(force); }
     static inline auto ForceNetPlayerInvisible() { return NativeInvoke::Invoke<587, std::to_underlying(NativeHashes::FORCE_NET_PLAYER_INVISIBLE), Any>(); }
@@ -3968,7 +3973,7 @@ public:
     static inline auto ForcePedToFleeWhilstDrivingVehicle(Ped ped, Vehicle vehicle) { return NativeInvoke::Invoke<591, std::to_underlying(NativeHashes::FORCE_PED_TO_FLEE_WHILST_DRIVING_VEHICLE), void>(ped, vehicle); }
     static inline auto ForcePedToLoadCover(Ped ped, bool force) { return NativeInvoke::Invoke<592, std::to_underlying(NativeHashes::FORCE_PED_TO_LOAD_COVER), void>(ped, force); }
     static inline auto ForcePopulationInit() { return NativeInvoke::Invoke<593, std::to_underlying(NativeHashes::FORCE_POPULATION_INIT), void>(); }
-    static inline auto ForceRadioTrack(char* radiostation, char* trackname, int a3, int a4) { return NativeInvoke::Invoke<594, std::to_underlying(NativeHashes::FORCE_RADIO_TRACK), void>(radiostation, trackname, a3, a4); }
+    static inline auto ForceRadioTrack(char *radiostation, char *trackname, int a3, int a4) { return NativeInvoke::Invoke<594, std::to_underlying(NativeHashes::FORCE_RADIO_TRACK), void>(radiostation, trackname, a3, a4); }
     static inline auto ForceRandomCarModel(uint32_t hash) { return NativeInvoke::Invoke<595, std::to_underlying(NativeHashes::FORCE_RANDOM_CAR_MODEL), void>(hash); }
     static inline auto ForceRandomPedType(uint32_t type) { return NativeInvoke::Invoke<596, std::to_underlying(NativeHashes::FORCE_RANDOM_PED_TYPE), void>(type); }
     static inline auto ForceSpawnScenarioPedsInArea(float x, float y, float z, float radius, int a5) { return NativeInvoke::Invoke<597, std::to_underlying(NativeHashes::FORCE_SPAWN_SCENARIO_PEDS_IN_AREA), void>(x, y, z, radius, a5); }
@@ -3985,29 +3990,29 @@ public:
     static inline auto FreezeObjectPositionAndDontLoadCollision(Object obj, bool freeze) { return NativeInvoke::Invoke<608, std::to_underlying(NativeHashes::FREEZE_OBJECT_POSITION_AND_DONT_LOAD_COLLISION), void>(obj, freeze); }
     static inline auto FreezeOnscreenTimer(bool freeze) { return NativeInvoke::Invoke<609, std::to_underlying(NativeHashes::FREEZE_ONSCREEN_TIMER), void>(freeze); }
     static inline auto FreezePositionOfClosestObjectOfType(float x, float y, float z, float radius, uint32_t model, bool frozen) { return NativeInvoke::Invoke<610, std::to_underlying(NativeHashes::FREEZE_POSITION_OF_CLOSEST_OBJECT_OF_TYPE), void>(x, y, z, radius, model, frozen); }
-    static inline auto FreezeRadioStation(char* stationName) { return NativeInvoke::Invoke<611, std::to_underlying(NativeHashes::FREEZE_RADIO_STATION), void>(stationName); }
-    static inline auto GetBlipName(Blip blip) { return NativeInvoke::Invoke<612, std::to_underlying(NativeHashes::GET_BLIP_NAME), char*>(blip); }
-    static inline auto GetCharCoordinates(Ped ped, float* pX, float* pY, float* pZ) { return NativeInvoke::Invoke<613, std::to_underlying(NativeHashes::GET_CHAR_COORDINATES), void>(ped, pX, pY, pZ); }
-    static inline auto GetDeadCharCoordinates(Ped ped, float* pX, float* pY, float* pZ) { return NativeInvoke::Invoke<614, std::to_underlying(NativeHashes::GET_DEAD_CHAR_COORDINATES), void>(ped, pX, pY, pZ); }
-    static inline auto GenerateDirections(float x, float y, float z, int32_t* direction, Vector3* a5) { return NativeInvoke::Invoke<615, std::to_underlying(NativeHashes::GENERATE_DIRECTIONS), void>(x, y, z, direction, a5); }
-    static inline auto GenerateRandomFloat(float* a1) { return NativeInvoke::Invoke<616, std::to_underlying(NativeHashes::GENERATE_RANDOM_FLOAT), void>(a1); }
-    static inline auto GenerateRandomFloatInRange(float min, float max, float* pValue) { return NativeInvoke::Invoke<617, std::to_underlying(NativeHashes::GENERATE_RANDOM_FLOAT_IN_RANGE), void>(min, max, pValue); }
-    static inline auto GenerateRandomInt(int32_t* a1) { return NativeInvoke::Invoke<618, std::to_underlying(NativeHashes::GENERATE_RANDOM_INT), void>(a1); }
-    static inline auto GenerateRandomIntInRange(uint32_t min, uint32_t max, uint32_t* pValue) { return NativeInvoke::Invoke<619, std::to_underlying(NativeHashes::GENERATE_RANDOM_INT_IN_RANGE), void>(min, max, pValue); }
+    static inline auto FreezeRadioStation(char *stationName) { return NativeInvoke::Invoke<611, std::to_underlying(NativeHashes::FREEZE_RADIO_STATION), void>(stationName); }
+    static inline auto GetBlipName(Blip blip) { return NativeInvoke::Invoke<612, std::to_underlying(NativeHashes::GET_BLIP_NAME), char *>(blip); }
+    static inline auto GetCharCoordinates(Ped ped, float *pX, float *pY, float *pZ) { return NativeInvoke::Invoke<613, std::to_underlying(NativeHashes::GET_CHAR_COORDINATES), void>(ped, pX, pY, pZ); }
+    static inline auto GetDeadCharCoordinates(Ped ped, float *pX, float *pY, float *pZ) { return NativeInvoke::Invoke<614, std::to_underlying(NativeHashes::GET_DEAD_CHAR_COORDINATES), void>(ped, pX, pY, pZ); }
+    static inline auto GenerateDirections(float x, float y, float z, int32_t *direction, Vector3 *a5) { return NativeInvoke::Invoke<615, std::to_underlying(NativeHashes::GENERATE_DIRECTIONS), void>(x, y, z, direction, a5); }
+    static inline auto GenerateRandomFloat(float *a1) { return NativeInvoke::Invoke<616, std::to_underlying(NativeHashes::GENERATE_RANDOM_FLOAT), void>(a1); }
+    static inline auto GenerateRandomFloatInRange(float min, float max, float *pValue) { return NativeInvoke::Invoke<617, std::to_underlying(NativeHashes::GENERATE_RANDOM_FLOAT_IN_RANGE), void>(min, max, pValue); }
+    static inline auto GenerateRandomInt(int32_t *a1) { return NativeInvoke::Invoke<618, std::to_underlying(NativeHashes::GENERATE_RANDOM_INT), void>(a1); }
+    static inline auto GenerateRandomIntInRange(uint32_t min, uint32_t max, uint32_t *pValue) { return NativeInvoke::Invoke<619, std::to_underlying(NativeHashes::GENERATE_RANDOM_INT_IN_RANGE), void>(min, max, pValue); }
     static inline auto GetAcceptButton() { return NativeInvoke::Invoke<620, std::to_underlying(NativeHashes::GET_ACCEPT_BUTTON), int32_t>(); }
-    static inline auto GetAmmoInCharWeapon(Ped ped, uint32_t weapon, uint32_t* pAmmo) { return NativeInvoke::Invoke<621, std::to_underlying(NativeHashes::GET_AMMO_IN_CHAR_WEAPON), void>(ped, weapon, pAmmo); }
-    static inline auto GetAmmoInClip(Ped ped, uint32_t weapon, uint32_t* pAmmo) { return NativeInvoke::Invoke<622, std::to_underlying(NativeHashes::GET_AMMO_IN_CLIP), bool>(ped, weapon, pAmmo); }
-    static inline auto GetAngleBetween2dVectors(float x1, float y1, float x2, float y2, float* pResult) { return NativeInvoke::Invoke<623, std::to_underlying(NativeHashes::GET_ANGLE_BETWEEN_2D_VECTORS), void>(x1, y1, x2, y2, pResult); }
-    static inline auto GetAnimGroupFromChar(Ped ped) { return NativeInvoke::Invoke<624, std::to_underlying(NativeHashes::GET_ANIM_GROUP_FROM_CHAR), char*>(ped); }
+    static inline auto GetAmmoInCharWeapon(Ped ped, uint32_t weapon, uint32_t *pAmmo) { return NativeInvoke::Invoke<621, std::to_underlying(NativeHashes::GET_AMMO_IN_CHAR_WEAPON), void>(ped, weapon, pAmmo); }
+    static inline auto GetAmmoInClip(Ped ped, uint32_t weapon, uint32_t *pAmmo) { return NativeInvoke::Invoke<622, std::to_underlying(NativeHashes::GET_AMMO_IN_CLIP), bool>(ped, weapon, pAmmo); }
+    static inline auto GetAngleBetween2dVectors(float x1, float y1, float x2, float y2, float *pResult) { return NativeInvoke::Invoke<623, std::to_underlying(NativeHashes::GET_ANGLE_BETWEEN_2D_VECTORS), void>(x1, y1, x2, y2, pResult); }
+    static inline auto GetAnimGroupFromChar(Ped ped) { return NativeInvoke::Invoke<624, std::to_underlying(NativeHashes::GET_ANIM_GROUP_FROM_CHAR), char *>(ped); }
     static inline auto GetAsciiJustPressed(int32_t key, int a2) { return NativeInvoke::Invoke<625, std::to_underlying(NativeHashes::GET_ASCII_JUST_PRESSED), int32_t>(key, a2); }
-    static inline auto GetAsciiPressed(int32_t key, int32_t* a2) { return NativeInvoke::Invoke<626, std::to_underlying(NativeHashes::GET_ASCII_PRESSED), bool>(key, a2); }
+    static inline auto GetAsciiPressed(int32_t key, int32_t *a2) { return NativeInvoke::Invoke<626, std::to_underlying(NativeHashes::GET_ASCII_PRESSED), bool>(key, a2); }
     static inline auto GetAspectRatio() { return NativeInvoke::Invoke<627, std::to_underlying(NativeHashes::GET_ASPECT_RATIO), float>(); }
     static inline auto GetAudibleMusicTrackTextId() { return NativeInvoke::Invoke<628, std::to_underlying(NativeHashes::GET_AUDIBLE_MUSIC_TRACK_TEXT_ID), int32_t>(); }
     static inline auto GetAudioRoomId() { return NativeInvoke::Invoke<629, std::to_underlying(NativeHashes::GET_AUDIO_ROOM_ID), int32_t>(); }
     static inline auto GetBitsInRange(int32_t val, int32_t rangebegin, int32_t rangeend) { return NativeInvoke::Invoke<630, std::to_underlying(NativeHashes::GET_BITS_IN_RANGE), int32_t>(val, rangebegin, rangeend); }
-    static inline auto GetBlipAlpha(int32_t blip, int32_t* alpha) { return NativeInvoke::Invoke<631, std::to_underlying(NativeHashes::GET_BLIP_ALPHA), void>(blip, alpha); }
-    static inline auto GetBlipColour(Blip blip, ColourIndex* pColour) { return NativeInvoke::Invoke<632, std::to_underlying(NativeHashes::GET_BLIP_COLOUR), void>(blip, pColour); }
-    static inline auto GetBlipCoords(Blip blip, Vector3* pVector) { return NativeInvoke::Invoke<633, std::to_underlying(NativeHashes::GET_BLIP_COORDS), void>(blip, pVector); }
+    static inline auto GetBlipAlpha(int32_t blip, int32_t *alpha) { return NativeInvoke::Invoke<631, std::to_underlying(NativeHashes::GET_BLIP_ALPHA), void>(blip, alpha); }
+    static inline auto GetBlipColour(Blip blip, ColourIndex *pColour) { return NativeInvoke::Invoke<632, std::to_underlying(NativeHashes::GET_BLIP_COLOUR), void>(blip, pColour); }
+    static inline auto GetBlipCoords(Blip blip, Vector3 *pVector) { return NativeInvoke::Invoke<633, std::to_underlying(NativeHashes::GET_BLIP_COORDS), void>(blip, pVector); }
     static inline auto GetBlipInfoIdCarIndex(Blip blip) { return NativeInvoke::Invoke<634, std::to_underlying(NativeHashes::GET_BLIP_INFO_ID_CAR_INDEX), Vehicle>(blip); }
     static inline auto GetBlipInfoIdDisplay(Blip blip) { return NativeInvoke::Invoke<635, std::to_underlying(NativeHashes::GET_BLIP_INFO_ID_DISPLAY), uint32_t>(blip); }
     static inline auto GetBlipInfoIdObjectIndex(Blip blip) { return NativeInvoke::Invoke<636, std::to_underlying(NativeHashes::GET_BLIP_INFO_ID_OBJECT_INDEX), Object>(blip); }
@@ -4017,177 +4022,177 @@ public:
     static inline auto GetBlipInfoIdRotation(int32_t blip) { return NativeInvoke::Invoke<640, std::to_underlying(NativeHashes::GET_BLIP_INFO_ID_ROTATION), int32_t>(blip); }
     static inline auto GetBlipInfoIdType(Blip blip) { return NativeInvoke::Invoke<641, std::to_underlying(NativeHashes::GET_BLIP_INFO_ID_TYPE), uint32_t>(blip); }
     static inline auto GetBlipSprite(Blip blip) { return NativeInvoke::Invoke<642, std::to_underlying(NativeHashes::GET_BLIP_SPRITE), uint32_t>(blip); }
-    static inline auto GetBufferedAscii(int32_t key, int32_t* a2) { return NativeInvoke::Invoke<643, std::to_underlying(NativeHashes::GET_BUFFERED_ASCII), bool>(key, a2); }
-    static inline auto GetCamFarClip(int32_t cam, float* clip) { return NativeInvoke::Invoke<644, std::to_underlying(NativeHashes::GET_CAM_FAR_CLIP), void>(cam, clip); }
-    static inline auto GetCamFarDof(int32_t cam, float* fardof) { return NativeInvoke::Invoke<645, std::to_underlying(NativeHashes::GET_CAM_FAR_DOF), void>(cam, fardof); }
-    static inline auto GetCamFov(Camera camera, float* fov) { return NativeInvoke::Invoke<646, std::to_underlying(NativeHashes::GET_CAM_FOV), void>(camera, fov); }
-    static inline auto GetCamMotionBlur(int32_t cam, int32_t* blur) { return NativeInvoke::Invoke<647, std::to_underlying(NativeHashes::GET_CAM_MOTION_BLUR), void>(cam, blur); }
-    static inline auto GetCamNearClip(int32_t cam, float* clip) { return NativeInvoke::Invoke<648, std::to_underlying(NativeHashes::GET_CAM_NEAR_CLIP), void>(cam, clip); }
-    static inline auto GetCamNearDof(int32_t cam, float* dof) { return NativeInvoke::Invoke<649, std::to_underlying(NativeHashes::GET_CAM_NEAR_DOF), void>(cam, dof); }
-    static inline auto GetCamPos(Camera camera, float* pX, float* pY, float* pZ) { return NativeInvoke::Invoke<650, std::to_underlying(NativeHashes::GET_CAM_POS), void>(camera, pX, pY, pZ); }
-    static inline auto GetCamRot(Camera camera, float* angleX, float* angleY, float* angleZ) { return NativeInvoke::Invoke<651, std::to_underlying(NativeHashes::GET_CAM_ROT), void>(camera, angleX, angleY, angleZ); }
+    static inline auto GetBufferedAscii(int32_t key, int32_t *a2) { return NativeInvoke::Invoke<643, std::to_underlying(NativeHashes::GET_BUFFERED_ASCII), bool>(key, a2); }
+    static inline auto GetCamFarClip(int32_t cam, float *clip) { return NativeInvoke::Invoke<644, std::to_underlying(NativeHashes::GET_CAM_FAR_CLIP), void>(cam, clip); }
+    static inline auto GetCamFarDof(int32_t cam, float *fardof) { return NativeInvoke::Invoke<645, std::to_underlying(NativeHashes::GET_CAM_FAR_DOF), void>(cam, fardof); }
+    static inline auto GetCamFov(Camera camera, float *fov) { return NativeInvoke::Invoke<646, std::to_underlying(NativeHashes::GET_CAM_FOV), void>(camera, fov); }
+    static inline auto GetCamMotionBlur(int32_t cam, int32_t *blur) { return NativeInvoke::Invoke<647, std::to_underlying(NativeHashes::GET_CAM_MOTION_BLUR), void>(cam, blur); }
+    static inline auto GetCamNearClip(int32_t cam, float *clip) { return NativeInvoke::Invoke<648, std::to_underlying(NativeHashes::GET_CAM_NEAR_CLIP), void>(cam, clip); }
+    static inline auto GetCamNearDof(int32_t cam, float *dof) { return NativeInvoke::Invoke<649, std::to_underlying(NativeHashes::GET_CAM_NEAR_DOF), void>(cam, dof); }
+    static inline auto GetCamPos(Camera camera, float *pX, float *pY, float *pZ) { return NativeInvoke::Invoke<650, std::to_underlying(NativeHashes::GET_CAM_POS), void>(camera, pX, pY, pZ); }
+    static inline auto GetCamRot(Camera camera, float *angleX, float *angleY, float *angleZ) { return NativeInvoke::Invoke<651, std::to_underlying(NativeHashes::GET_CAM_ROT), void>(camera, angleX, angleY, angleZ); }
     static inline auto GetCamState(int32_t cam) { return NativeInvoke::Invoke<652, std::to_underlying(NativeHashes::GET_CAM_STATE), int32_t>(cam); }
     static inline auto GetCameraFromNetworkId() { return NativeInvoke::Invoke<653, std::to_underlying(NativeHashes::GET_CAMERA_FROM_NETWORK_ID), Any>(); }
-    static inline auto GetCarAnimCurrentTime(Car car, char* animname0, char* animname1, float* time) { return NativeInvoke::Invoke<654, std::to_underlying(NativeHashes::GET_CAR_ANIM_CURRENT_TIME), void>(car, animname0, animname1, time); }
-    static inline auto GetCarAnimTotalTime(Car car, char* animname0, char* animname1, float* time) { return NativeInvoke::Invoke<655, std::to_underlying(NativeHashes::GET_CAR_ANIM_TOTAL_TIME), void>(car, animname0, animname1, time); }
-    static inline auto GetCarBlockingCar(Car car0, Car* car1) { return NativeInvoke::Invoke<656, std::to_underlying(NativeHashes::GET_CAR_BLOCKING_CAR), void>(car0, car1); }
-    static inline auto GetCarCharIsUsing(Ped ped, Vehicle* pVehicle) { return NativeInvoke::Invoke<657, std::to_underlying(NativeHashes::GET_CAR_CHAR_IS_USING), void>(ped, pVehicle); }
-    static inline auto GetCarColours(Vehicle vehicle, ColourIndex* pColour1, ColourIndex* pColour2) { return NativeInvoke::Invoke<658, std::to_underlying(NativeHashes::GET_CAR_COLOURS), void>(vehicle, pColour1, pColour2); }
-    static inline auto GetCarCoordinates(Vehicle vehicle, float* pX, float* pY, float* pZ) { return NativeInvoke::Invoke<659, std::to_underlying(NativeHashes::GET_CAR_COORDINATES), void>(vehicle, pX, pY, pZ); }
-    static inline auto GetCarDeformationAtPos(Vehicle vehicle, float x, float y, float z, Vector3* pDeformation) { return NativeInvoke::Invoke<660, std::to_underlying(NativeHashes::GET_CAR_DEFORMATION_AT_POS), void>(vehicle, x, y, z, pDeformation); }
-    static inline auto GetCarDoorLockStatus(Vehicle vehicle, uint32_t* pValue) { return NativeInvoke::Invoke<661, std::to_underlying(NativeHashes::GET_CAR_DOOR_LOCK_STATUS), void>(vehicle, pValue); }
-    static inline auto GetCarForwardVector(Car car, Vector3* vec) { return NativeInvoke::Invoke<662, std::to_underlying(NativeHashes::GET_CAR_FORWARD_VECTOR), void>(car, vec); }
-    static inline auto GetCarForwardX(Vehicle vehicle, float* pValue) { return NativeInvoke::Invoke<663, std::to_underlying(NativeHashes::GET_CAR_FORWARD_X), void>(vehicle, pValue); }
-    static inline auto GetCarForwardY(Vehicle vehicle, float* pValue) { return NativeInvoke::Invoke<664, std::to_underlying(NativeHashes::GET_CAR_FORWARD_Y), void>(vehicle, pValue); }
-    static inline auto GetCarHeading(Vehicle vehicle, float* pValue) { return NativeInvoke::Invoke<665, std::to_underlying(NativeHashes::GET_CAR_HEADING), void>(vehicle, pValue); }
-    static inline auto GetCarHealth(Vehicle vehicle, uint32_t* pValue) { return NativeInvoke::Invoke<666, std::to_underlying(NativeHashes::GET_CAR_HEALTH), void>(vehicle, pValue); }
-    static inline auto GetCarLivery(Car car, int32_t* livery) { return NativeInvoke::Invoke<667, std::to_underlying(NativeHashes::GET_CAR_LIVERY), void>(car, livery); }
-    static inline auto GetCarMass(Car car, float* mass) { return NativeInvoke::Invoke<668, std::to_underlying(NativeHashes::GET_CAR_MASS), void>(car, mass); }
-    static inline auto GetCarModel(Vehicle vehicle, uint32_t* pValue) { return NativeInvoke::Invoke<669, std::to_underlying(NativeHashes::GET_CAR_MODEL), void>(vehicle, pValue); }
-    static inline auto GetCarModelValue(Car car, int32_t* value) { return NativeInvoke::Invoke<670, std::to_underlying(NativeHashes::GET_CAR_MODEL_VALUE), void>(car, value); }
+    static inline auto GetCarAnimCurrentTime(Car car, char *animname0, char *animname1, float *time) { return NativeInvoke::Invoke<654, std::to_underlying(NativeHashes::GET_CAR_ANIM_CURRENT_TIME), void>(car, animname0, animname1, time); }
+    static inline auto GetCarAnimTotalTime(Car car, char *animname0, char *animname1, float *time) { return NativeInvoke::Invoke<655, std::to_underlying(NativeHashes::GET_CAR_ANIM_TOTAL_TIME), void>(car, animname0, animname1, time); }
+    static inline auto GetCarBlockingCar(Car car0, Car *car1) { return NativeInvoke::Invoke<656, std::to_underlying(NativeHashes::GET_CAR_BLOCKING_CAR), void>(car0, car1); }
+    static inline auto GetCarCharIsUsing(Ped ped, Vehicle *pVehicle) { return NativeInvoke::Invoke<657, std::to_underlying(NativeHashes::GET_CAR_CHAR_IS_USING), void>(ped, pVehicle); }
+    static inline auto GetCarColours(Vehicle vehicle, ColourIndex *pColour1, ColourIndex *pColour2) { return NativeInvoke::Invoke<658, std::to_underlying(NativeHashes::GET_CAR_COLOURS), void>(vehicle, pColour1, pColour2); }
+    static inline auto GetCarCoordinates(Vehicle vehicle, float *pX, float *pY, float *pZ) { return NativeInvoke::Invoke<659, std::to_underlying(NativeHashes::GET_CAR_COORDINATES), void>(vehicle, pX, pY, pZ); }
+    static inline auto GetCarDeformationAtPos(Vehicle vehicle, float x, float y, float z, Vector3 *pDeformation) { return NativeInvoke::Invoke<660, std::to_underlying(NativeHashes::GET_CAR_DEFORMATION_AT_POS), void>(vehicle, x, y, z, pDeformation); }
+    static inline auto GetCarDoorLockStatus(Vehicle vehicle, uint32_t *pValue) { return NativeInvoke::Invoke<661, std::to_underlying(NativeHashes::GET_CAR_DOOR_LOCK_STATUS), void>(vehicle, pValue); }
+    static inline auto GetCarForwardVector(Car car, Vector3 *vec) { return NativeInvoke::Invoke<662, std::to_underlying(NativeHashes::GET_CAR_FORWARD_VECTOR), void>(car, vec); }
+    static inline auto GetCarForwardX(Vehicle vehicle, float *pValue) { return NativeInvoke::Invoke<663, std::to_underlying(NativeHashes::GET_CAR_FORWARD_X), void>(vehicle, pValue); }
+    static inline auto GetCarForwardY(Vehicle vehicle, float *pValue) { return NativeInvoke::Invoke<664, std::to_underlying(NativeHashes::GET_CAR_FORWARD_Y), void>(vehicle, pValue); }
+    static inline auto GetCarHeading(Vehicle vehicle, float *pValue) { return NativeInvoke::Invoke<665, std::to_underlying(NativeHashes::GET_CAR_HEADING), void>(vehicle, pValue); }
+    static inline auto GetCarHealth(Vehicle vehicle, uint32_t *pValue) { return NativeInvoke::Invoke<666, std::to_underlying(NativeHashes::GET_CAR_HEALTH), void>(vehicle, pValue); }
+    static inline auto GetCarLivery(Car car, int32_t *livery) { return NativeInvoke::Invoke<667, std::to_underlying(NativeHashes::GET_CAR_LIVERY), void>(car, livery); }
+    static inline auto GetCarMass(Car car, float *mass) { return NativeInvoke::Invoke<668, std::to_underlying(NativeHashes::GET_CAR_MASS), void>(car, mass); }
+    static inline auto GetCarModel(Vehicle vehicle, uint32_t *pValue) { return NativeInvoke::Invoke<669, std::to_underlying(NativeHashes::GET_CAR_MODEL), void>(vehicle, pValue); }
+    static inline auto GetCarModelValue(Car car, int32_t *value) { return NativeInvoke::Invoke<670, std::to_underlying(NativeHashes::GET_CAR_MODEL_VALUE), void>(car, value); }
     static inline auto GetCarObjectIsAttachedTo(Object obj) { return NativeInvoke::Invoke<671, std::to_underlying(NativeHashes::GET_CAR_OBJECT_IS_ATTACHED_TO), Vehicle>(obj); }
-    static inline auto GetCarPitch(Vehicle vehicle, float* pValue) { return NativeInvoke::Invoke<672, std::to_underlying(NativeHashes::GET_CAR_PITCH), void>(vehicle, pValue); }
-    static inline auto GetCarRoll(Vehicle vehicle, float* pValue) { return NativeInvoke::Invoke<673, std::to_underlying(NativeHashes::GET_CAR_ROLL), void>(vehicle, pValue); }
+    static inline auto GetCarPitch(Vehicle vehicle, float *pValue) { return NativeInvoke::Invoke<672, std::to_underlying(NativeHashes::GET_CAR_PITCH), void>(vehicle, pValue); }
+    static inline auto GetCarRoll(Vehicle vehicle, float *pValue) { return NativeInvoke::Invoke<673, std::to_underlying(NativeHashes::GET_CAR_ROLL), void>(vehicle, pValue); }
     static inline auto GetCarSirenHealth(Car car) { return NativeInvoke::Invoke<674, std::to_underlying(NativeHashes::GET_CAR_SIREN_HEALTH), int32_t>(car); }
-    static inline auto GetCarSpeed(Vehicle vehicle, float* pValue) { return NativeInvoke::Invoke<675, std::to_underlying(NativeHashes::GET_CAR_SPEED), void>(vehicle, pValue); }
-    static inline auto GetCarSpeedVector(Vehicle vehicle, Vector3* pVector, bool unknownFalse) { return NativeInvoke::Invoke<676, std::to_underlying(NativeHashes::GET_CAR_SPEED_VECTOR), void>(vehicle, pVector, unknownFalse); }
-    static inline auto GetCarUprightValue(Vehicle vehicle, float* pValue) { return NativeInvoke::Invoke<677, std::to_underlying(NativeHashes::GET_CAR_UPRIGHT_VALUE), void>(vehicle, pValue); }
+    static inline auto GetCarSpeed(Vehicle vehicle, float *pValue) { return NativeInvoke::Invoke<675, std::to_underlying(NativeHashes::GET_CAR_SPEED), void>(vehicle, pValue); }
+    static inline auto GetCarSpeedVector(Vehicle vehicle, Vector3 *pVector, bool unknownFalse) { return NativeInvoke::Invoke<676, std::to_underlying(NativeHashes::GET_CAR_SPEED_VECTOR), void>(vehicle, pVector, unknownFalse); }
+    static inline auto GetCarUprightValue(Vehicle vehicle, float *pValue) { return NativeInvoke::Invoke<677, std::to_underlying(NativeHashes::GET_CAR_UPRIGHT_VALUE), void>(vehicle, pValue); }
     static inline auto GetCellphoneRanked() { return NativeInvoke::Invoke<678, std::to_underlying(NativeHashes::GET_CELLPHONE_RANKED), Any>(); }
     static inline auto GetCharAllowedToRunOnBoats(Ped ped) { return NativeInvoke::Invoke<679, std::to_underlying(NativeHashes::GET_CHAR_ALLOWED_TO_RUN_ON_BOATS), bool>(ped); }
-    static inline auto GetCharAnimBlendAmount(Ped ped, char* AnimName0, char* AnimName1, float* amount) { return NativeInvoke::Invoke<680, std::to_underlying(NativeHashes::GET_CHAR_ANIM_BLEND_AMOUNT), void>(ped, AnimName0, AnimName1, amount); }
-    static inline auto GetCharAnimCurrentTime(Ped ped, char* animGroup, char* animName, float* pValue) { return NativeInvoke::Invoke<681, std::to_underlying(NativeHashes::GET_CHAR_ANIM_CURRENT_TIME), void>(ped, animGroup, animName, pValue); }
+    static inline auto GetCharAnimBlendAmount(Ped ped, char *AnimName0, char *AnimName1, float *amount) { return NativeInvoke::Invoke<680, std::to_underlying(NativeHashes::GET_CHAR_ANIM_BLEND_AMOUNT), void>(ped, AnimName0, AnimName1, amount); }
+    static inline auto GetCharAnimCurrentTime(Ped ped, char *animGroup, char *animName, float *pValue) { return NativeInvoke::Invoke<681, std::to_underlying(NativeHashes::GET_CHAR_ANIM_CURRENT_TIME), void>(ped, animGroup, animName, pValue); }
     static inline auto GetCharAnimEventTime() { return NativeInvoke::Invoke<682, std::to_underlying(NativeHashes::GET_CHAR_ANIM_EVENT_TIME), Any>(); }
-    static inline auto GetCharAnimIsEvent(Ped ped, char* AnimName0, char* AnimName1, bool flag) { return NativeInvoke::Invoke<683, std::to_underlying(NativeHashes::GET_CHAR_ANIM_IS_EVENT), bool>(ped, AnimName0, AnimName1, flag); }
-    static inline auto GetCharAnimTotalTime(Ped ped, char* animGroup, char* animName, float* pValue) { return NativeInvoke::Invoke<684, std::to_underlying(NativeHashes::GET_CHAR_ANIM_TOTAL_TIME), void>(ped, animGroup, animName, pValue); }
+    static inline auto GetCharAnimIsEvent(Ped ped, char *AnimName0, char *AnimName1, bool flag) { return NativeInvoke::Invoke<683, std::to_underlying(NativeHashes::GET_CHAR_ANIM_IS_EVENT), bool>(ped, AnimName0, AnimName1, flag); }
+    static inline auto GetCharAnimTotalTime(Ped ped, char *animGroup, char *animName, float *pValue) { return NativeInvoke::Invoke<684, std::to_underlying(NativeHashes::GET_CHAR_ANIM_TOTAL_TIME), void>(ped, animGroup, animName, pValue); }
     static inline auto GetCharAreaVisible() { return NativeInvoke::Invoke<685, std::to_underlying(NativeHashes::GET_CHAR_AREA_VISIBLE), Any>(); }
-    static inline auto GetCharArmour(Ped ped, uint32_t* pArmour) { return NativeInvoke::Invoke<686, std::to_underlying(NativeHashes::GET_CHAR_ARMOUR), void>(ped, pArmour); }
+    static inline auto GetCharArmour(Ped ped, uint32_t *pArmour) { return NativeInvoke::Invoke<686, std::to_underlying(NativeHashes::GET_CHAR_ARMOUR), void>(ped, pArmour); }
     static inline auto GetCharDrawableVariation(Ped ped, uint32_t component) { return NativeInvoke::Invoke<687, std::to_underlying(NativeHashes::GET_CHAR_DRAWABLE_VARIATION), uint32_t>(ped, component); }
-    static inline auto GetCharExtractedDisplacement(Ped ped, bool unknown, float* pX, float* pY, float* pZ) { return NativeInvoke::Invoke<688, std::to_underlying(NativeHashes::GET_CHAR_EXTRACTED_DISPLACEMENT), void>(ped, unknown, pX, pY, pZ); }
-    static inline auto GetCharExtractedVelocity(Ped ped, bool a2, float* x, float* y, float* z) { return NativeInvoke::Invoke<689, std::to_underlying(NativeHashes::GET_CHAR_EXTRACTED_VELOCITY), void>(ped, a2, x, y, z); }
+    static inline auto GetCharExtractedDisplacement(Ped ped, bool unknown, float *pX, float *pY, float *pZ) { return NativeInvoke::Invoke<688, std::to_underlying(NativeHashes::GET_CHAR_EXTRACTED_DISPLACEMENT), void>(ped, unknown, pX, pY, pZ); }
+    static inline auto GetCharExtractedVelocity(Ped ped, bool a2, float *x, float *y, float *z) { return NativeInvoke::Invoke<689, std::to_underlying(NativeHashes::GET_CHAR_EXTRACTED_VELOCITY), void>(ped, a2, x, y, z); }
     static inline auto GetCharGravity(Ped ped) { return NativeInvoke::Invoke<690, std::to_underlying(NativeHashes::GET_CHAR_GRAVITY), int32_t>(ped); }
-    static inline auto GetCharHeading(Ped ped, float* pValue) { return NativeInvoke::Invoke<691, std::to_underlying(NativeHashes::GET_CHAR_HEADING), void>(ped, pValue); }
-    static inline auto GetCharHealth(Ped ped, uint32_t* pHealth) { return NativeInvoke::Invoke<692, std::to_underlying(NativeHashes::GET_CHAR_HEALTH), void>(ped, pHealth); }
-    static inline auto GetCharHeightAboveGround(Ped ped, float* pValue) { return NativeInvoke::Invoke<693, std::to_underlying(NativeHashes::GET_CHAR_HEIGHT_ABOVE_GROUND), void>(ped, pValue); }
-    static inline auto GetCharHighestPriorityEvent(Ped ped, int32_t* event) { return NativeInvoke::Invoke<694, std::to_underlying(NativeHashes::GET_CHAR_HIGHEST_PRIORITY_EVENT), void>(ped, event); }
-    static inline auto GetCharInCarPassengerSeat(Vehicle vehicle, uint32_t seatIndex, Ped* pPed) { return NativeInvoke::Invoke<695, std::to_underlying(NativeHashes::GET_CHAR_IN_CAR_PASSENGER_SEAT), void>(vehicle, seatIndex, pPed); }
-    static inline auto GetCharLastDamageBone(Ped ped, uint32_t* pBone) { return NativeInvoke::Invoke<696, std::to_underlying(NativeHashes::GET_CHAR_LAST_DAMAGE_BONE), Any>(ped, pBone); }
+    static inline auto GetCharHeading(Ped ped, float *pValue) { return NativeInvoke::Invoke<691, std::to_underlying(NativeHashes::GET_CHAR_HEADING), void>(ped, pValue); }
+    static inline auto GetCharHealth(Ped ped, uint32_t *pHealth) { return NativeInvoke::Invoke<692, std::to_underlying(NativeHashes::GET_CHAR_HEALTH), void>(ped, pHealth); }
+    static inline auto GetCharHeightAboveGround(Ped ped, float *pValue) { return NativeInvoke::Invoke<693, std::to_underlying(NativeHashes::GET_CHAR_HEIGHT_ABOVE_GROUND), void>(ped, pValue); }
+    static inline auto GetCharHighestPriorityEvent(Ped ped, int32_t *event) { return NativeInvoke::Invoke<694, std::to_underlying(NativeHashes::GET_CHAR_HIGHEST_PRIORITY_EVENT), void>(ped, event); }
+    static inline auto GetCharInCarPassengerSeat(Vehicle vehicle, uint32_t seatIndex, Ped *pPed) { return NativeInvoke::Invoke<695, std::to_underlying(NativeHashes::GET_CHAR_IN_CAR_PASSENGER_SEAT), void>(vehicle, seatIndex, pPed); }
+    static inline auto GetCharLastDamageBone(Ped ped, uint32_t *pBone) { return NativeInvoke::Invoke<696, std::to_underlying(NativeHashes::GET_CHAR_LAST_DAMAGE_BONE), Any>(ped, pBone); }
     static inline auto GetCharMaxMoveBlendRatio(Ped ped) { return NativeInvoke::Invoke<697, std::to_underlying(NativeHashes::GET_CHAR_MAX_MOVE_BLEND_RATIO), float>(ped); }
     static inline auto GetCharMeleeActionFlag0(Ped ped) { return NativeInvoke::Invoke<698, std::to_underlying(NativeHashes::GET_CHAR_MELEE_ACTION_FLAG0), bool>(ped); }
     static inline auto GetCharMeleeActionFlag1(Ped ped) { return NativeInvoke::Invoke<699, std::to_underlying(NativeHashes::GET_CHAR_MELEE_ACTION_FLAG1), bool>(ped); }
     static inline auto GetCharMeleeActionFlag2(Ped ped) { return NativeInvoke::Invoke<700, std::to_underlying(NativeHashes::GET_CHAR_MELEE_ACTION_FLAG2), bool>(ped); }
-    static inline auto GetCharModel(Ped ped, uint32_t* pModel) { return NativeInvoke::Invoke<701, std::to_underlying(NativeHashes::GET_CHAR_MODEL), void>(ped, pModel); }
+    static inline auto GetCharModel(Ped ped, uint32_t *pModel) { return NativeInvoke::Invoke<701, std::to_underlying(NativeHashes::GET_CHAR_MODEL), void>(ped, pModel); }
     static inline auto GetCharMoney(Ped ped) { return NativeInvoke::Invoke<702, std::to_underlying(NativeHashes::GET_CHAR_MONEY), uint32_t>(ped); }
-    static inline auto GetCharMoveAnimSpeedMultiplier(Ped ped, float* multiplier) { return NativeInvoke::Invoke<703, std::to_underlying(NativeHashes::GET_CHAR_MOVE_ANIM_SPEED_MULTIPLIER), void>(ped, multiplier); }
+    static inline auto GetCharMoveAnimSpeedMultiplier(Ped ped, float *multiplier) { return NativeInvoke::Invoke<703, std::to_underlying(NativeHashes::GET_CHAR_MOVE_ANIM_SPEED_MULTIPLIER), void>(ped, multiplier); }
     static inline auto GetCharMovementAnimsBlocked(Ped ped) { return NativeInvoke::Invoke<704, std::to_underlying(NativeHashes::GET_CHAR_MOVEMENT_ANIMS_BLOCKED), bool>(ped); }
-    static inline auto GetCharPropIndex(Ped ped, bool unknown, uint32_t* pIndex) { return NativeInvoke::Invoke<705, std::to_underlying(NativeHashes::GET_CHAR_PROP_INDEX), void>(ped, unknown, pIndex); }
+    static inline auto GetCharPropIndex(Ped ped, bool unknown, uint32_t *pIndex) { return NativeInvoke::Invoke<705, std::to_underlying(NativeHashes::GET_CHAR_PROP_INDEX), void>(ped, unknown, pIndex); }
     static inline auto GetCharReadyToBeExecuted(Ped ped) { return NativeInvoke::Invoke<706, std::to_underlying(NativeHashes::GET_CHAR_READY_TO_BE_EXECUTED), bool>(ped); }
     static inline auto GetCharReadyToBeStunned(Ped ped) { return NativeInvoke::Invoke<707, std::to_underlying(NativeHashes::GET_CHAR_READY_TO_BE_STUNNED), bool>(ped); }
-    static inline auto GetCharSpeed(Ped ped, float* pValue) { return NativeInvoke::Invoke<708, std::to_underlying(NativeHashes::GET_CHAR_SPEED), void>(ped, pValue); }
-    static inline auto GetCharSwimState(Ped ped, int32_t* state) { return NativeInvoke::Invoke<709, std::to_underlying(NativeHashes::GET_CHAR_SWIM_STATE), bool>(ped, state); }
+    static inline auto GetCharSpeed(Ped ped, float *pValue) { return NativeInvoke::Invoke<708, std::to_underlying(NativeHashes::GET_CHAR_SPEED), void>(ped, pValue); }
+    static inline auto GetCharSwimState(Ped ped, int32_t *state) { return NativeInvoke::Invoke<709, std::to_underlying(NativeHashes::GET_CHAR_SWIM_STATE), bool>(ped, state); }
     static inline auto GetCharTextureVariation(Ped ped, uint32_t component) { return NativeInvoke::Invoke<710, std::to_underlying(NativeHashes::GET_CHAR_TEXTURE_VARIATION), uint32_t>(ped, component); }
-    static inline auto GetCharVelocity(Ped ped, float* pX, float* pY, float* pZ) { return NativeInvoke::Invoke<711, std::to_underlying(NativeHashes::GET_CHAR_VELOCITY), void>(ped, pX, pY, pZ); }
+    static inline auto GetCharVelocity(Ped ped, float *pX, float *pY, float *pZ) { return NativeInvoke::Invoke<711, std::to_underlying(NativeHashes::GET_CHAR_VELOCITY), void>(ped, pX, pY, pZ); }
     static inline auto GetCharWalkAlongsideLeaderWhenAppropriate(Ped ped) { return NativeInvoke::Invoke<712, std::to_underlying(NativeHashes::GET_CHAR_WALK_ALONGSIDE_LEADER_WHEN_APPROPRIATE), bool>(ped); }
-    static inline auto GetCharWeaponInSlot(Ped ped, uint32_t slot, uint32_t* pWeapon, uint32_t* pAmmo0, uint32_t* pAmmo1) { return NativeInvoke::Invoke<713, std::to_underlying(NativeHashes::GET_CHAR_WEAPON_IN_SLOT), void>(ped, slot, pWeapon, pAmmo0, pAmmo1); }
+    static inline auto GetCharWeaponInSlot(Ped ped, uint32_t slot, uint32_t *pWeapon, uint32_t *pAmmo0, uint32_t *pAmmo1) { return NativeInvoke::Invoke<713, std::to_underlying(NativeHashes::GET_CHAR_WEAPON_IN_SLOT), void>(ped, slot, pWeapon, pAmmo0, pAmmo1); }
     static inline auto GetCharWillCowerInsteadOfFleeing(Ped ped) { return NativeInvoke::Invoke<714, std::to_underlying(NativeHashes::GET_CHAR_WILL_COWER_INSTEAD_OF_FLEEING), bool>(ped); }
     static inline auto GetCharWillTryToLeaveBoatAfterLeader(Ped ped) { return NativeInvoke::Invoke<715, std::to_underlying(NativeHashes::GET_CHAR_WILL_TRY_TO_LEAVE_BOAT_AFTER_LEADER), bool>(ped); }
     static inline auto GetCharWillTryToLeaveWater(Ped ped) { return NativeInvoke::Invoke<716, std::to_underlying(NativeHashes::GET_CHAR_WILL_TRY_TO_LEAVE_WATER), bool>(ped); }
-    static inline auto GetCinematicCam(int32_t* cam) { return NativeInvoke::Invoke<717, std::to_underlying(NativeHashes::GET_CINEMATIC_CAM), void>(cam); }
+    static inline auto GetCinematicCam(int32_t *cam) { return NativeInvoke::Invoke<717, std::to_underlying(NativeHashes::GET_CINEMATIC_CAM), void>(cam); }
     static inline auto GetClosestCar(float x, float y, float z, float radius, bool unknownFalse, uint32_t unknown70) { return NativeInvoke::Invoke<718, std::to_underlying(NativeHashes::GET_CLOSEST_CAR), Vehicle>(x, y, z, radius, unknownFalse, unknown70); }
-    static inline auto GetClosestCarNode(float x, float y, float z, float* pResX, float* pResY, float* pResZ) { return NativeInvoke::Invoke<719, std::to_underlying(NativeHashes::GET_CLOSEST_CAR_NODE), bool>(x, y, z, pResX, pResY, pResZ); }
-    static inline auto GetClosestCarNodeFavourDirection(int a1, float x, float y, float z, float* pX, float* pY, float* pZ, float* heading) { return NativeInvoke::Invoke<720, std::to_underlying(NativeHashes::GET_CLOSEST_CAR_NODE_FAVOUR_DIRECTION), bool>(a1, x, y, z, pX, pY, pZ, heading); }
-    static inline auto GetClosestCarNodeWithHeading(float x, float y, float z, float* pResX, float* pResY, float* pResZ, float* pHeading) { return NativeInvoke::Invoke<721, std::to_underlying(NativeHashes::GET_CLOSEST_CAR_NODE_WITH_HEADING), bool>(x, y, z, pResX, pResY, pResZ, pHeading); }
-    static inline auto GetClosestChar(float x, float y, float z, float radius, bool unknown1, bool unknown2, Ped* pPed) { return NativeInvoke::Invoke<722, std::to_underlying(NativeHashes::GET_CLOSEST_CHAR), bool>(x, y, z, radius, unknown1, unknown2, pPed); }
-    static inline auto GetClosestMajorCarNode(float x, float y, float z, float* pResX, float* pResY, float* pResZ) { return NativeInvoke::Invoke<723, std::to_underlying(NativeHashes::GET_CLOSEST_MAJOR_CAR_NODE), bool>(x, y, z, pResX, pResY, pResZ); }
+    static inline auto GetClosestCarNode(float x, float y, float z, float *pResX, float *pResY, float *pResZ) { return NativeInvoke::Invoke<719, std::to_underlying(NativeHashes::GET_CLOSEST_CAR_NODE), bool>(x, y, z, pResX, pResY, pResZ); }
+    static inline auto GetClosestCarNodeFavourDirection(int a1, float x, float y, float z, float *pX, float *pY, float *pZ, float *heading) { return NativeInvoke::Invoke<720, std::to_underlying(NativeHashes::GET_CLOSEST_CAR_NODE_FAVOUR_DIRECTION), bool>(a1, x, y, z, pX, pY, pZ, heading); }
+    static inline auto GetClosestCarNodeWithHeading(float x, float y, float z, float *pResX, float *pResY, float *pResZ, float *pHeading) { return NativeInvoke::Invoke<721, std::to_underlying(NativeHashes::GET_CLOSEST_CAR_NODE_WITH_HEADING), bool>(x, y, z, pResX, pResY, pResZ, pHeading); }
+    static inline auto GetClosestChar(float x, float y, float z, float radius, bool unknown1, bool unknown2, Ped *pPed) { return NativeInvoke::Invoke<722, std::to_underlying(NativeHashes::GET_CLOSEST_CHAR), bool>(x, y, z, radius, unknown1, unknown2, pPed); }
+    static inline auto GetClosestMajorCarNode(float x, float y, float z, float *pResX, float *pResY, float *pResZ) { return NativeInvoke::Invoke<723, std::to_underlying(NativeHashes::GET_CLOSEST_MAJOR_CAR_NODE), bool>(x, y, z, pResX, pResY, pResZ); }
     static inline auto GetClosestNetworkRestartNode(Any a1, Any a2, Any a3, Any a4, Any a5) { return NativeInvoke::Invoke<724, std::to_underlying(NativeHashes::GET_CLOSEST_NETWORK_RESTART_NODE), Any>(a1, a2, a3, a4, a5); }
-    static inline auto GetClosestRoad(float x, float y, float z, float a4, int a5, Vector3* a6, Vector3* a7, float* a8, float* a9, float* a10) { return NativeInvoke::Invoke<725, std::to_underlying(NativeHashes::GET_CLOSEST_ROAD), bool>(x, y, z, a4, a5, a6, a7, a8, a9, a10); }
-    static inline auto GetClosestStealableObject(float x, float y, float z, float radius, Object* obj) { return NativeInvoke::Invoke<726, std::to_underlying(NativeHashes::GET_CLOSEST_STEALABLE_OBJECT), void>(x, y, z, radius, obj); }
+    static inline auto GetClosestRoad(float x, float y, float z, float a4, int a5, Vector3 *a6, Vector3 *a7, float *a8, float *a9, float *a10) { return NativeInvoke::Invoke<725, std::to_underlying(NativeHashes::GET_CLOSEST_ROAD), bool>(x, y, z, a4, a5, a6, a7, a8, a9, a10); }
+    static inline auto GetClosestStealableObject(float x, float y, float z, float radius, Object *obj) { return NativeInvoke::Invoke<726, std::to_underlying(NativeHashes::GET_CLOSEST_STEALABLE_OBJECT), void>(x, y, z, radius, obj); }
     static inline auto GetClosestStraightRoad() { return NativeInvoke::Invoke<727, std::to_underlying(NativeHashes::GET_CLOSEST_STRAIGHT_ROAD), Any>(); }
     static inline auto GetConsoleCommand() { return NativeInvoke::Invoke<728, std::to_underlying(NativeHashes::GET_CONSOLE_COMMAND), Any>(); }
     static inline auto GetConsoleCommandToken() { return NativeInvoke::Invoke<729, std::to_underlying(NativeHashes::GET_CONSOLE_COMMAND_TOKEN), int32_t>(); }
     static inline auto GetContentsOfTextWidget(Any a1) { return NativeInvoke::Invoke<730, std::to_underlying(NativeHashes::GET_CONTENTS_OF_TEXT_WIDGET), Any>(a1); }
     static inline auto GetControlValue(int padIndex, int32_t controlID) { return NativeInvoke::Invoke<731, std::to_underlying(NativeHashes::GET_CONTROL_VALUE), int32_t>(padIndex, controlID); }
     static inline auto GetCoordinatesForNetworkRestartNode(Any a1, Any a2, Any a3) { return NativeInvoke::Invoke<732, std::to_underlying(NativeHashes::GET_COORDINATES_FOR_NETWORK_RESTART_NODE), void>(a1, a2, a3); }
-    static inline auto GetCorrectedColour(uint32_t r, uint32_t g, uint32_t b, uint32_t* pR, uint32_t* pG, uint32_t* pB) { return NativeInvoke::Invoke<733, std::to_underlying(NativeHashes::GET_CORRECTED_COLOUR), void>(r, g, b, pR, pG, pB); }
+    static inline auto GetCorrectedColour(uint32_t r, uint32_t g, uint32_t b, uint32_t *pR, uint32_t *pG, uint32_t *pB) { return NativeInvoke::Invoke<733, std::to_underlying(NativeHashes::GET_CORRECTED_COLOUR), void>(r, g, b, pR, pG, pB); }
     static inline auto GetCreateRandomCops() { return NativeInvoke::Invoke<734, std::to_underlying(NativeHashes::GET_CREATE_RANDOM_COPS), bool>(); }
-    static inline auto GetCurrentBasicCopModel(uint32_t* pModel) { return NativeInvoke::Invoke<735, std::to_underlying(NativeHashes::GET_CURRENT_BASIC_COP_MODEL), void>(pModel); }
-    static inline auto GetCurrentBasicPoliceCarModel(uint32_t* pModel) { return NativeInvoke::Invoke<736, std::to_underlying(NativeHashes::GET_CURRENT_BASIC_POLICE_CAR_MODEL), void>(pModel); }
-    static inline auto GetCurrentCharWeapon(Ped ped, uint32_t* pWeapon) { return NativeInvoke::Invoke<737, std::to_underlying(NativeHashes::GET_CURRENT_CHAR_WEAPON), bool>(ped, pWeapon); }
-    static inline auto GetCurrentCopModel(uint32_t* pModel) { return NativeInvoke::Invoke<738, std::to_underlying(NativeHashes::GET_CURRENT_COP_MODEL), void>(pModel); }
-    static inline auto GetCurrentDate(uint32_t* day, uint32_t* month) { return NativeInvoke::Invoke<739, std::to_underlying(NativeHashes::GET_CURRENT_DATE), void>(day, month); }
+    static inline auto GetCurrentBasicCopModel(uint32_t *pModel) { return NativeInvoke::Invoke<735, std::to_underlying(NativeHashes::GET_CURRENT_BASIC_COP_MODEL), void>(pModel); }
+    static inline auto GetCurrentBasicPoliceCarModel(uint32_t *pModel) { return NativeInvoke::Invoke<736, std::to_underlying(NativeHashes::GET_CURRENT_BASIC_POLICE_CAR_MODEL), void>(pModel); }
+    static inline auto GetCurrentCharWeapon(Ped ped, uint32_t *pWeapon) { return NativeInvoke::Invoke<737, std::to_underlying(NativeHashes::GET_CURRENT_CHAR_WEAPON), bool>(ped, pWeapon); }
+    static inline auto GetCurrentCopModel(uint32_t *pModel) { return NativeInvoke::Invoke<738, std::to_underlying(NativeHashes::GET_CURRENT_COP_MODEL), void>(pModel); }
+    static inline auto GetCurrentDate(uint32_t *day, uint32_t *month) { return NativeInvoke::Invoke<739, std::to_underlying(NativeHashes::GET_CURRENT_DATE), void>(day, month); }
     static inline auto GetCurrentDayOfWeek() { return NativeInvoke::Invoke<740, std::to_underlying(NativeHashes::GET_CURRENT_DAY_OF_WEEK), uint32_t>(); }
     static inline auto GetCurrentEpisode() { return NativeInvoke::Invoke<741, std::to_underlying(NativeHashes::GET_CURRENT_EPISODE), uint32_t>(); }
     static inline auto GetCurrentLanguage() { return NativeInvoke::Invoke<742, std::to_underlying(NativeHashes::GET_CURRENT_LANGUAGE), uint32_t>(); }
     static inline auto GetCurrentPlaybackNumberForCar(Car car) { return NativeInvoke::Invoke<743, std::to_underlying(NativeHashes::GET_CURRENT_PLAYBACK_NUMBER_FOR_CAR), int32_t>(car); }
-    static inline auto GetCurrentPoliceCarModel(uint32_t* pModel) { return NativeInvoke::Invoke<744, std::to_underlying(NativeHashes::GET_CURRENT_POLICE_CAR_MODEL), void>(pModel); }
+    static inline auto GetCurrentPoliceCarModel(uint32_t *pModel) { return NativeInvoke::Invoke<744, std::to_underlying(NativeHashes::GET_CURRENT_POLICE_CAR_MODEL), void>(pModel); }
     static inline auto GetCurrentPopulationZoneType() { return NativeInvoke::Invoke<745, std::to_underlying(NativeHashes::GET_CURRENT_POPULATION_ZONE_TYPE), int32_t>(); }
     static inline auto GetCurrentScriptedConversationLine() { return NativeInvoke::Invoke<746, std::to_underlying(NativeHashes::GET_CURRENT_SCRIPTED_CONVERSATION_LINE), int32_t>(); }
     static inline auto GetCurrentStackSize() { return NativeInvoke::Invoke<747, std::to_underlying(NativeHashes::GET_CURRENT_STACK_SIZE), int32_t>(); }
     static inline auto GetCurrentStationForTrain(Train train) { return NativeInvoke::Invoke<748, std::to_underlying(NativeHashes::GET_CURRENT_STATION_FOR_TRAIN), uint32_t>(train); }
-    static inline auto GetCurrentTaxiCarModel(uint32_t* pModel) { return NativeInvoke::Invoke<749, std::to_underlying(NativeHashes::GET_CURRENT_TAXI_CAR_MODEL), void>(pModel); }
-    static inline auto GetCurrentWeather(uint32_t* pWeather) { return NativeInvoke::Invoke<750, std::to_underlying(NativeHashes::GET_CURRENT_WEATHER), void>(pWeather); }
-    static inline auto GetCurrentWeatherFull(int32_t* weatherparam0, int32_t* weatherparam1, int32_t* weatherparam2) { return NativeInvoke::Invoke<751, std::to_underlying(NativeHashes::GET_CURRENT_WEATHER_FULL), void>(weatherparam0, weatherparam1, weatherparam2); }
+    static inline auto GetCurrentTaxiCarModel(uint32_t *pModel) { return NativeInvoke::Invoke<749, std::to_underlying(NativeHashes::GET_CURRENT_TAXI_CAR_MODEL), void>(pModel); }
+    static inline auto GetCurrentWeather(uint32_t *pWeather) { return NativeInvoke::Invoke<750, std::to_underlying(NativeHashes::GET_CURRENT_WEATHER), void>(pWeather); }
+    static inline auto GetCurrentWeatherFull(int32_t *weatherparam0, int32_t *weatherparam1, int32_t *weatherparam2) { return NativeInvoke::Invoke<751, std::to_underlying(NativeHashes::GET_CURRENT_WEATHER_FULL), void>(weatherparam0, weatherparam1, weatherparam2); }
     static inline auto GetCurrentZoneScumminess() { return NativeInvoke::Invoke<752, std::to_underlying(NativeHashes::GET_CURRENT_ZONE_SCUMMINESS), int32_t>(); }
     static inline auto GetCutsceneAudioTimeMs() { return NativeInvoke::Invoke<753, std::to_underlying(NativeHashes::GET_CUTSCENE_AUDIO_TIME_MS), int32_t>(); }
-    static inline auto GetCutscenePedPosition(int32_t unkped, Vector3* pos) { return NativeInvoke::Invoke<754, std::to_underlying(NativeHashes::GET_CUTSCENE_PED_POSITION), void>(unkped, pos); }
+    static inline auto GetCutscenePedPosition(int32_t unkped, Vector3 *pos) { return NativeInvoke::Invoke<754, std::to_underlying(NativeHashes::GET_CUTSCENE_PED_POSITION), void>(unkped, pos); }
     static inline auto GetCutsceneSectionPlaying() { return NativeInvoke::Invoke<755, std::to_underlying(NativeHashes::GET_CUTSCENE_SECTION_PLAYING), int32_t>(); }
     static inline auto GetCutsceneTime() { return NativeInvoke::Invoke<756, std::to_underlying(NativeHashes::GET_CUTSCENE_TIME), int32_t>(); }
     static inline auto GetDamageToPedBodyPart(Ped ped, uint32_t part) { return NativeInvoke::Invoke<757, std::to_underlying(NativeHashes::GET_DAMAGE_TO_PED_BODY_PART), uint32_t>(ped, part); }
-    static inline auto GetDeadCarCoordinates(Vehicle vehicle, float* pX, float* pY, float* pZ) { return NativeInvoke::Invoke<758, std::to_underlying(NativeHashes::GET_DEAD_CAR_COORDINATES), void>(vehicle, pX, pY, pZ); }
-    static inline auto GetDeadCharPickupCoords(Ped ped, float* pX, float* pY, float* pZ) { return NativeInvoke::Invoke<759, std::to_underlying(NativeHashes::GET_DEAD_CHAR_PICKUP_COORDS), void>(ped, pX, pY, pZ); }
-    static inline auto GetDebugCam(int32_t* cam) { return NativeInvoke::Invoke<760, std::to_underlying(NativeHashes::GET_DEBUG_CAM), void>(cam); }
+    static inline auto GetDeadCarCoordinates(Vehicle vehicle, float *pX, float *pY, float *pZ) { return NativeInvoke::Invoke<758, std::to_underlying(NativeHashes::GET_DEAD_CAR_COORDINATES), void>(vehicle, pX, pY, pZ); }
+    static inline auto GetDeadCharPickupCoords(Ped ped, float *pX, float *pY, float *pZ) { return NativeInvoke::Invoke<759, std::to_underlying(NativeHashes::GET_DEAD_CHAR_PICKUP_COORDS), void>(ped, pX, pY, pZ); }
+    static inline auto GetDebugCam(int32_t *cam) { return NativeInvoke::Invoke<760, std::to_underlying(NativeHashes::GET_DEBUG_CAM), void>(cam); }
     static inline auto GetDestroyerOfNetworkId(Any a1, Any a2) { return NativeInvoke::Invoke<761, std::to_underlying(NativeHashes::GET_DESTROYER_OF_NETWORK_ID), Any>(a1, a2); }
-    static inline auto GetDisplayNameFromVehicleModel(uint32_t model) { return NativeInvoke::Invoke<762, std::to_underlying(NativeHashes::GET_DISPLAY_NAME_FROM_VEHICLE_MODEL), char*>(model); }
-    static inline auto GetDistanceBetweenCoords2d(float x1, float y1, float x2, float y2, float* pDist) { return NativeInvoke::Invoke<763, std::to_underlying(NativeHashes::GET_DISTANCE_BETWEEN_COORDS_2D), void>(x1, y1, x2, y2, pDist); }
-    static inline auto GetDistanceBetweenCoords3d(float x1, float y1, float z1, float x2, float y2, float z2, float* pDist) { return NativeInvoke::Invoke<764, std::to_underlying(NativeHashes::GET_DISTANCE_BETWEEN_COORDS_3D), void>(x1, y1, z1, x2, y2, z2, pDist); }
-    static inline auto GetDoorAngleRatio(Vehicle vehicle, uint32_t door, float* pAngleRatio) { return NativeInvoke::Invoke<765, std::to_underlying(NativeHashes::GET_DOOR_ANGLE_RATIO), void>(vehicle, door, pAngleRatio); }
-    static inline auto GetDoorState(Object obj, uint32_t* a2, float* a3) { return NativeInvoke::Invoke<766, std::to_underlying(NativeHashes::GET_DOOR_STATE), void>(obj, a2, a3); }
-    static inline auto GetDriverOfCar(Vehicle vehicle, Ped* pPed) { return NativeInvoke::Invoke<767, std::to_underlying(NativeHashes::GET_DRIVER_OF_CAR), void>(vehicle, pPed); }
+    static inline auto GetDisplayNameFromVehicleModel(uint32_t model) { return NativeInvoke::Invoke<762, std::to_underlying(NativeHashes::GET_DISPLAY_NAME_FROM_VEHICLE_MODEL), char *>(model); }
+    static inline auto GetDistanceBetweenCoords2d(float x1, float y1, float x2, float y2, float *pDist) { return NativeInvoke::Invoke<763, std::to_underlying(NativeHashes::GET_DISTANCE_BETWEEN_COORDS_2D), void>(x1, y1, x2, y2, pDist); }
+    static inline auto GetDistanceBetweenCoords3d(float x1, float y1, float z1, float x2, float y2, float z2, float *pDist) { return NativeInvoke::Invoke<764, std::to_underlying(NativeHashes::GET_DISTANCE_BETWEEN_COORDS_3D), void>(x1, y1, z1, x2, y2, z2, pDist); }
+    static inline auto GetDoorAngleRatio(Vehicle vehicle, uint32_t door, float *pAngleRatio) { return NativeInvoke::Invoke<765, std::to_underlying(NativeHashes::GET_DOOR_ANGLE_RATIO), void>(vehicle, door, pAngleRatio); }
+    static inline auto GetDoorState(Object obj, uint32_t *a2, float *a3) { return NativeInvoke::Invoke<766, std::to_underlying(NativeHashes::GET_DOOR_STATE), void>(obj, a2, a3); }
+    static inline auto GetDriverOfCar(Vehicle vehicle, Ped *pPed) { return NativeInvoke::Invoke<767, std::to_underlying(NativeHashes::GET_DRIVER_OF_CAR), void>(vehicle, pPed); }
     static inline auto GetEngineHealth(Vehicle vehicle) { return NativeInvoke::Invoke<768, std::to_underlying(NativeHashes::GET_ENGINE_HEALTH), float>(vehicle); }
     static inline auto GetEpisodeIndexFromSummons() { return NativeInvoke::Invoke<769, std::to_underlying(NativeHashes::GET_EPISODE_INDEX_FROM_SUMMONS), uint32_t>(); }
-    static inline auto GetEpisodeName(uint32_t episodeIndex) { return NativeInvoke::Invoke<770, std::to_underlying(NativeHashes::GET_EPISODE_NAME), char*>(episodeIndex); }
-    static inline auto GetExtraCarColours(Vehicle vehicle, ColourIndex* pColour1, ColourIndex* pColour2) { return NativeInvoke::Invoke<771, std::to_underlying(NativeHashes::GET_EXTRA_CAR_COLOURS), void>(vehicle, pColour1, pColour2); }
+    static inline auto GetEpisodeName(uint32_t episodeIndex) { return NativeInvoke::Invoke<770, std::to_underlying(NativeHashes::GET_EPISODE_NAME), char *>(episodeIndex); }
+    static inline auto GetExtraCarColours(Vehicle vehicle, ColourIndex *pColour1, ColourIndex *pColour2) { return NativeInvoke::Invoke<771, std::to_underlying(NativeHashes::GET_EXTRA_CAR_COLOURS), void>(vehicle, pColour1, pColour2); }
     static inline auto GetFilterMenuOn() { return NativeInvoke::Invoke<772, std::to_underlying(NativeHashes::GET_FILTER_MENU_ON), Any>(); }
     static inline auto GetFilterSaveSetting(int32_t filterid) { return NativeInvoke::Invoke<773, std::to_underlying(NativeHashes::GET_FILTER_SAVE_SETTING), int32_t>(filterid); }
     static inline auto GetFirstBlipInfoId(uint32_t type) { return NativeInvoke::Invoke<774, std::to_underlying(NativeHashes::GET_FIRST_BLIP_INFO_ID), Blip>(type); }
-    static inline auto GetFirstNCharactersOfLiteralString(char* literalString, uint32_t chars) { return NativeInvoke::Invoke<775, std::to_underlying(NativeHashes::GET_FIRST_N_CHARACTERS_OF_LITERAL_STRING), char*>(literalString, chars); }
-    static inline auto GetFirstNCharactersOfString(char* gxtName, uint32_t chars) { return NativeInvoke::Invoke<776, std::to_underlying(NativeHashes::GET_FIRST_N_CHARACTERS_OF_STRING), char*>(gxtName, chars); }
+    static inline auto GetFirstNCharactersOfLiteralString(char *literalString, uint32_t chars) { return NativeInvoke::Invoke<775, std::to_underlying(NativeHashes::GET_FIRST_N_CHARACTERS_OF_LITERAL_STRING), char *>(literalString, chars); }
+    static inline auto GetFirstNCharactersOfString(char *gxtName, uint32_t chars) { return NativeInvoke::Invoke<776, std::to_underlying(NativeHashes::GET_FIRST_N_CHARACTERS_OF_STRING), char *>(gxtName, chars); }
     static inline auto GetFloatStat(uint32_t stat) { return NativeInvoke::Invoke<777, std::to_underlying(NativeHashes::GET_FLOAT_STAT), float>(stat); }
-    static inline auto GetFollowVehicleCamSubmode(int32_t* mode) { return NativeInvoke::Invoke<778, std::to_underlying(NativeHashes::GET_FOLLOW_VEHICLE_CAM_SUBMODE), void>(mode); }
+    static inline auto GetFollowVehicleCamSubmode(int32_t *mode) { return NativeInvoke::Invoke<778, std::to_underlying(NativeHashes::GET_FOLLOW_VEHICLE_CAM_SUBMODE), void>(mode); }
     static inline auto GetFragmentDamageHealthOfClosestObjectOfType(float x, float y, float z, float radius, uint32_t a5, bool flag) { return NativeInvoke::Invoke<779, std::to_underlying(NativeHashes::GET_FRAGMENT_DAMAGE_HEALTH_OF_CLOSEST_OBJECT_OF_TYPE), float>(x, y, z, radius, a5, flag); }
     static inline auto GetFrameCount() { return NativeInvoke::Invoke<780, std::to_underlying(NativeHashes::GET_FRAME_COUNT), int32_t>(); }
-    static inline auto GetFrameTime(float* time) { return NativeInvoke::Invoke<781, std::to_underlying(NativeHashes::GET_FRAME_TIME), void>(time); }
-    static inline auto GetFreeCam(int32_t* cam) { return NativeInvoke::Invoke<782, std::to_underlying(NativeHashes::GET_FREE_CAM), void>(cam); }
-    static inline auto GetFrontendDesignValue(int32_t frontendid, float* a2, float* a3) { return NativeInvoke::Invoke<783, std::to_underlying(NativeHashes::GET_FRONTEND_DESIGN_VALUE), void>(frontendid, a2, a3); }
+    static inline auto GetFrameTime(float *time) { return NativeInvoke::Invoke<781, std::to_underlying(NativeHashes::GET_FRAME_TIME), void>(time); }
+    static inline auto GetFreeCam(int32_t *cam) { return NativeInvoke::Invoke<782, std::to_underlying(NativeHashes::GET_FREE_CAM), void>(cam); }
+    static inline auto GetFrontendDesignValue(int32_t frontendid, float *a2, float *a3) { return NativeInvoke::Invoke<783, std::to_underlying(NativeHashes::GET_FRONTEND_DESIGN_VALUE), void>(frontendid, a2, a3); }
     static inline auto GetFurthestNetworkRestartNode() { return NativeInvoke::Invoke<784, std::to_underlying(NativeHashes::GET_FURTHEST_NETWORK_RESTART_NODE), Any>(); }
-    static inline auto GetGameCam(Camera* camera) { return NativeInvoke::Invoke<785, std::to_underlying(NativeHashes::GET_GAME_CAM), void>(camera); }
-    static inline auto GetGameCamChild(Camera* camera) { return NativeInvoke::Invoke<786, std::to_underlying(NativeHashes::GET_GAME_CAM_CHILD), void>(camera); }
-    static inline auto GetGameTimer(uint32_t* pTimer) { return NativeInvoke::Invoke<787, std::to_underlying(NativeHashes::GET_GAME_TIMER), void>(pTimer); }
-    static inline auto GetGameViewportId(int32_t* viewportid) { return NativeInvoke::Invoke<788, std::to_underlying(NativeHashes::GET_GAME_VIEWPORT_ID), void>(viewportid); }
+    static inline auto GetGameCam(Camera *camera) { return NativeInvoke::Invoke<785, std::to_underlying(NativeHashes::GET_GAME_CAM), void>(camera); }
+    static inline auto GetGameCamChild(Camera *camera) { return NativeInvoke::Invoke<786, std::to_underlying(NativeHashes::GET_GAME_CAM_CHILD), void>(camera); }
+    static inline auto GetGameTimer(uint32_t *pTimer) { return NativeInvoke::Invoke<787, std::to_underlying(NativeHashes::GET_GAME_TIMER), void>(pTimer); }
+    static inline auto GetGameViewportId(int32_t *viewportid) { return NativeInvoke::Invoke<788, std::to_underlying(NativeHashes::GET_GAME_VIEWPORT_ID), void>(viewportid); }
     static inline auto GetGamerNetworkScore(Any a1, Any a2, Any a3) { return NativeInvoke::Invoke<789, std::to_underlying(NativeHashes::GET_GAMER_NETWORK_SCORE), Any>(a1, a2, a3); }
     static inline auto GetGfwlHasSafeHouse() { return NativeInvoke::Invoke<790, std::to_underlying(NativeHashes::GET_GFWL_HAS_SAFE_HOUSE), Any>(); }
     static inline auto GetGfwlIsReturningToSinglePlayer() { return NativeInvoke::Invoke<791, std::to_underlying(NativeHashes::GET_GFWL_IS_RETURNING_TO_SINGLE_PLAYER), Any>(); }
-    static inline auto GetGroundZFor3dCoord(float x, float y, float z, float* pGroundZ) { return NativeInvoke::Invoke<792, std::to_underlying(NativeHashes::GET_GROUND_Z_FOR_3D_COORD), Any>(x, y, z, pGroundZ); }
+    static inline auto GetGroundZFor3dCoord(float x, float y, float z, float *pGroundZ) { return NativeInvoke::Invoke<792, std::to_underlying(NativeHashes::GET_GROUND_Z_FOR_3D_COORD), Any>(x, y, z, pGroundZ); }
     static inline auto GetGroupCharDucksWhenAimedAt(Ped ped) { return NativeInvoke::Invoke<793, std::to_underlying(NativeHashes::GET_GROUP_CHAR_DUCKS_WHEN_AIMED_AT), bool>(ped); }
-    static inline auto GetGroupFormation(int32_t group, int32_t* formation) { return NativeInvoke::Invoke<794, std::to_underlying(NativeHashes::GET_GROUP_FORMATION), void>(group, formation); }
-    static inline auto GetGroupFormationSpacing(int32_t group, float* spacing) { return NativeInvoke::Invoke<795, std::to_underlying(NativeHashes::GET_GROUP_FORMATION_SPACING), void>(group, spacing); }
-    static inline auto GetGroupLeader(Group group, Ped* pPed) { return NativeInvoke::Invoke<796, std::to_underlying(NativeHashes::GET_GROUP_LEADER), void>(group, pPed); }
-    static inline auto GetGroupMember(Group group, uint32_t index, Ped* pPed) { return NativeInvoke::Invoke<797, std::to_underlying(NativeHashes::GET_GROUP_MEMBER), void>(group, index, pPed); }
-    static inline auto GetGroupSize(Group group, uint32_t* pStartIndex, uint32_t* pCount) { return NativeInvoke::Invoke<798, std::to_underlying(NativeHashes::GET_GROUP_SIZE), void>(group, pStartIndex, pCount); }
-    static inline auto GetHashKey(char* value) { return NativeInvoke::Invoke<799, std::to_underlying(NativeHashes::GET_HASH_KEY), uint32_t>(value); }
-    static inline auto GetHeadingFromVector2d(float x, float y, float* pHeading) { return NativeInvoke::Invoke<800, std::to_underlying(NativeHashes::GET_HEADING_FROM_VECTOR_2D), void>(x, y, pHeading); }
+    static inline auto GetGroupFormation(int32_t group, int32_t *formation) { return NativeInvoke::Invoke<794, std::to_underlying(NativeHashes::GET_GROUP_FORMATION), void>(group, formation); }
+    static inline auto GetGroupFormationSpacing(int32_t group, float *spacing) { return NativeInvoke::Invoke<795, std::to_underlying(NativeHashes::GET_GROUP_FORMATION_SPACING), void>(group, spacing); }
+    static inline auto GetGroupLeader(Group group, Ped *pPed) { return NativeInvoke::Invoke<796, std::to_underlying(NativeHashes::GET_GROUP_LEADER), void>(group, pPed); }
+    static inline auto GetGroupMember(Group group, uint32_t index, Ped *pPed) { return NativeInvoke::Invoke<797, std::to_underlying(NativeHashes::GET_GROUP_MEMBER), void>(group, index, pPed); }
+    static inline auto GetGroupSize(Group group, uint32_t *pStartIndex, uint32_t *pCount) { return NativeInvoke::Invoke<798, std::to_underlying(NativeHashes::GET_GROUP_SIZE), void>(group, pStartIndex, pCount); }
+    static inline auto GetHashKey(char *value) { return NativeInvoke::Invoke<799, std::to_underlying(NativeHashes::GET_HASH_KEY), uint32_t>(value); }
+    static inline auto GetHeadingFromVector2d(float x, float y, float *pHeading) { return NativeInvoke::Invoke<800, std::to_underlying(NativeHashes::GET_HEADING_FROM_VECTOR_2D), void>(x, y, pHeading); }
     static inline auto GetHeightOfVehicle(Vehicle vehicle, float x, float y, float z, bool unknownTrue1, bool unknownTrue2) { return NativeInvoke::Invoke<801, std::to_underlying(NativeHashes::GET_HEIGHT_OF_VEHICLE), float>(vehicle, x, y, z, unknownTrue1, unknownTrue2); }
-    static inline auto GetHelpMessageBoxSize(float* x, float* y) { return NativeInvoke::Invoke<802, std::to_underlying(NativeHashes::GET_HELP_MESSAGE_BOX_SIZE), void>(x, y); }
+    static inline auto GetHelpMessageBoxSize(float *x, float *y) { return NativeInvoke::Invoke<802, std::to_underlying(NativeHashes::GET_HELP_MESSAGE_BOX_SIZE), void>(x, y); }
     static inline auto GetHostId() { return NativeInvoke::Invoke<803, std::to_underlying(NativeHashes::GET_HOST_ID), Any>(); }
     static inline auto GetHostMatchOn() { return NativeInvoke::Invoke<804, std::to_underlying(NativeHashes::GET_HOST_MATCH_ON), Any>(); }
     static inline auto GetHoursOfDay() { return NativeInvoke::Invoke<805, std::to_underlying(NativeHashes::GET_HOURS_OF_DAY), uint32_t>(); }
-    static inline auto GetHudColour(uint32_t type, uint32_t* pR, uint32_t* pG, uint32_t* pB, uint32_t* pA) { return NativeInvoke::Invoke<806, std::to_underlying(NativeHashes::GET_HUD_COLOUR), void>(type, pR, pG, pB, pA); }
+    static inline auto GetHudColour(uint32_t type, uint32_t *pR, uint32_t *pG, uint32_t *pB, uint32_t *pA) { return NativeInvoke::Invoke<806, std::to_underlying(NativeHashes::GET_HUD_COLOUR), void>(type, pR, pG, pB, pA); }
     static inline auto GetIdOfThisThread() { return NativeInvoke::Invoke<807, std::to_underlying(NativeHashes::GET_ID_OF_THIS_THREAD), uint32_t>(); }
     static inline auto GetIntStat(uint32_t stat) { return NativeInvoke::Invoke<808, std::to_underlying(NativeHashes::GET_INT_STAT), uint32_t>(stat); }
-    static inline auto GetInteriorAtCoords(float x, float y, float z, Interior* pInterior) { return NativeInvoke::Invoke<809, std::to_underlying(NativeHashes::GET_INTERIOR_AT_COORDS), void>(x, y, z, pInterior); }
-    static inline auto GetInteriorFromCar(Vehicle vehicle, Interior* pInterior) { return NativeInvoke::Invoke<810, std::to_underlying(NativeHashes::GET_INTERIOR_FROM_CAR), void>(vehicle, pInterior); }
-    static inline auto GetInteriorFromChar(Ped ped, Interior* pInterior) { return NativeInvoke::Invoke<811, std::to_underlying(NativeHashes::GET_INTERIOR_FROM_CHAR), void>(ped, pInterior); }
+    static inline auto GetInteriorAtCoords(float x, float y, float z, Interior *pInterior) { return NativeInvoke::Invoke<809, std::to_underlying(NativeHashes::GET_INTERIOR_AT_COORDS), void>(x, y, z, pInterior); }
+    static inline auto GetInteriorFromCar(Vehicle vehicle, Interior *pInterior) { return NativeInvoke::Invoke<810, std::to_underlying(NativeHashes::GET_INTERIOR_FROM_CAR), void>(vehicle, pInterior); }
+    static inline auto GetInteriorFromChar(Ped ped, Interior *pInterior) { return NativeInvoke::Invoke<811, std::to_underlying(NativeHashes::GET_INTERIOR_FROM_CHAR), void>(ped, pInterior); }
     static inline auto GetInteriorFromDummyChar() { return NativeInvoke::Invoke<812, std::to_underlying(NativeHashes::GET_INTERIOR_FROM_DUMMY_CHAR), Any>(); }
-    static inline auto GetInteriorHeading(Interior interior, float* pHeading) { return NativeInvoke::Invoke<813, std::to_underlying(NativeHashes::GET_INTERIOR_HEADING), void>(interior, pHeading); }
+    static inline auto GetInteriorHeading(Interior interior, float *pHeading) { return NativeInvoke::Invoke<813, std::to_underlying(NativeHashes::GET_INTERIOR_HEADING), void>(interior, pHeading); }
     static inline auto GetIsAutosaveOff() { return NativeInvoke::Invoke<814, std::to_underlying(NativeHashes::GET_IS_AUTOSAVE_OFF), bool>(); }
     static inline auto GetIsDepositAnimRunning() { return NativeInvoke::Invoke<815, std::to_underlying(NativeHashes::GET_IS_DEPOSIT_ANIM_RUNNING), bool>(); }
     static inline auto GetIsDisplayingsavemessage() { return NativeInvoke::Invoke<816, std::to_underlying(NativeHashes::GET_IS_DISPLAYINGSAVEMESSAGE), bool>(); }
@@ -4196,59 +4201,59 @@ public:
     static inline auto GetIsStickyBombStuckToObject(Object obj) { return NativeInvoke::Invoke<819, std::to_underlying(NativeHashes::GET_IS_STICKY_BOMB_STUCK_TO_OBJECT), bool>(obj); }
     static inline auto GetIsStickyBombStuckToVehicle(Vehicle veh) { return NativeInvoke::Invoke<820, std::to_underlying(NativeHashes::GET_IS_STICKY_BOMB_STUCK_TO_VEHICLE), bool>(veh); }
     static inline auto GetIsWidescreen() { return NativeInvoke::Invoke<821, std::to_underlying(NativeHashes::GET_IS_WIDESCREEN), bool>(); }
-    static inline auto GetKeyForCarInRoom(Vehicle vehicle, uint32_t* pKey) { return NativeInvoke::Invoke<822, std::to_underlying(NativeHashes::GET_KEY_FOR_CAR_IN_ROOM), void>(vehicle, pKey); }
-    static inline auto GetKeyForCharInRoom(Ped ped, uint32_t* pKey) { return NativeInvoke::Invoke<823, std::to_underlying(NativeHashes::GET_KEY_FOR_CHAR_IN_ROOM), void>(ped, pKey); }
-    static inline auto GetKeyForDummyCharInRoom(Ped ped, int32_t* room) { return NativeInvoke::Invoke<824, std::to_underlying(NativeHashes::GET_KEY_FOR_DUMMY_CHAR_IN_ROOM), void>(ped, room); }
-    static inline auto GetKeyForViewportInRoom(int32_t viewportid, int32_t* roomkey) { return NativeInvoke::Invoke<825, std::to_underlying(NativeHashes::GET_KEY_FOR_VIEWPORT_IN_ROOM), void>(viewportid, roomkey); }
-    static inline auto GetKeyboardMoveInput(int32_t* a1, int32_t* a2) { return NativeInvoke::Invoke<826, std::to_underlying(NativeHashes::GET_KEYBOARD_MOVE_INPUT), void>(a1, a2); }
+    static inline auto GetKeyForCarInRoom(Vehicle vehicle, uint32_t *pKey) { return NativeInvoke::Invoke<822, std::to_underlying(NativeHashes::GET_KEY_FOR_CAR_IN_ROOM), void>(vehicle, pKey); }
+    static inline auto GetKeyForCharInRoom(Ped ped, uint32_t *pKey) { return NativeInvoke::Invoke<823, std::to_underlying(NativeHashes::GET_KEY_FOR_CHAR_IN_ROOM), void>(ped, pKey); }
+    static inline auto GetKeyForDummyCharInRoom(Ped ped, int32_t *room) { return NativeInvoke::Invoke<824, std::to_underlying(NativeHashes::GET_KEY_FOR_DUMMY_CHAR_IN_ROOM), void>(ped, room); }
+    static inline auto GetKeyForViewportInRoom(int32_t viewportid, int32_t *roomkey) { return NativeInvoke::Invoke<825, std::to_underlying(NativeHashes::GET_KEY_FOR_VIEWPORT_IN_ROOM), void>(viewportid, roomkey); }
+    static inline auto GetKeyboardMoveInput(int32_t *a1, int32_t *a2) { return NativeInvoke::Invoke<826, std::to_underlying(NativeHashes::GET_KEYBOARD_MOVE_INPUT), void>(a1, a2); }
     static inline auto GetKillTrackingResults() { return NativeInvoke::Invoke<827, std::to_underlying(NativeHashes::GET_KILL_TRACKING_RESULTS), Any>(); }
     static inline auto GetLastTimeNetworkIdDamaged() { return NativeInvoke::Invoke<828, std::to_underlying(NativeHashes::GET_LAST_TIME_NETWORK_ID_DAMAGED), Any>(); }
     static inline auto GetLatestConsoleCommand() { return NativeInvoke::Invoke<829, std::to_underlying(NativeHashes::GET_LATEST_CONSOLE_COMMAND), int32_t>(); }
     static inline auto GetLcpdCopScore() { return NativeInvoke::Invoke<830, std::to_underlying(NativeHashes::GET_LCPD_COP_SCORE), Any>(); }
     static inline auto GetLcpdCriminalScore() { return NativeInvoke::Invoke<831, std::to_underlying(NativeHashes::GET_LCPD_CRIMINAL_SCORE), Any>(); }
     static inline auto GetLeftPlayerCashToReachLevel(uint32_t playerRank) { return NativeInvoke::Invoke<832, std::to_underlying(NativeHashes::GET_LEFT_PLAYER_CASH_TO_REACH_LEVEL), uint32_t>(playerRank); }
-    static inline auto GetLengthOfLiteralString(char* literalString) { return NativeInvoke::Invoke<833, std::to_underlying(NativeHashes::GET_LENGTH_OF_LITERAL_STRING), uint32_t>(literalString); }
+    static inline auto GetLengthOfLiteralString(char *literalString) { return NativeInvoke::Invoke<833, std::to_underlying(NativeHashes::GET_LENGTH_OF_LITERAL_STRING), uint32_t>(literalString); }
     static inline auto GetLengthOfStringWithThisHashKey(uint32_t gxtkey) { return NativeInvoke::Invoke<834, std::to_underlying(NativeHashes::GET_LENGTH_OF_STRING_WITH_THIS_HASH_KEY), int32_t>(gxtkey); }
-    static inline auto GetLengthOfStringWithThisTextLabel(char* gxtName) { return NativeInvoke::Invoke<835, std::to_underlying(NativeHashes::GET_LENGTH_OF_STRING_WITH_THIS_TEXT_LABEL), uint32_t>(gxtName); }
+    static inline auto GetLengthOfStringWithThisTextLabel(char *gxtName) { return NativeInvoke::Invoke<835, std::to_underlying(NativeHashes::GET_LENGTH_OF_STRING_WITH_THIS_TEXT_LABEL), uint32_t>(gxtName); }
     static inline auto GetLengthOfStringWithThisTextLabelInsNum(Any a1, Any a2, Any a3) { return NativeInvoke::Invoke<836, std::to_underlying(NativeHashes::GET_LENGTH_OF_STRING_WITH_THIS_TEXT_LABEL_INS_NUM), int32_t>(a1, a2, a3); }
-    static inline auto GetLevelDesignCoordsForObject(Object obj, int a2, float* x, float* y, float* z) { return NativeInvoke::Invoke<837, std::to_underlying(NativeHashes::GET_LEVEL_DESIGN_COORDS_FOR_OBJECT), float>(obj, a2, x, y, z); }
+    static inline auto GetLevelDesignCoordsForObject(Object obj, int a2, float *x, float *y, float *z) { return NativeInvoke::Invoke<837, std::to_underlying(NativeHashes::GET_LEVEL_DESIGN_COORDS_FOR_OBJECT), float>(obj, a2, x, y, z); }
     static inline auto GetLineHeight() { return NativeInvoke::Invoke<838, std::to_underlying(NativeHashes::GET_LINE_HEIGHT), float>(); }
     static inline auto GetLocalGamerlevelFromProfilesettings() { return NativeInvoke::Invoke<839, std::to_underlying(NativeHashes::GET_LOCAL_GAMERLEVEL_FROM_PROFILESETTINGS), Any>(); }
     static inline auto GetLocalPlayerMpCash() { return NativeInvoke::Invoke<840, std::to_underlying(NativeHashes::GET_LOCAL_PLAYER_MP_CASH), int32_t>(); }
     static inline auto GetLocalPlayerWeaponStat(int32_t wtype, int32_t wid) { return NativeInvoke::Invoke<841, std::to_underlying(NativeHashes::GET_LOCAL_PLAYER_WEAPON_STAT), float>(wtype, wid); }
     static inline auto GetMapAreaFromCoords(float x, float y, float z) { return NativeInvoke::Invoke<842, std::to_underlying(NativeHashes::GET_MAP_AREA_FROM_COORDS), uint32_t>(x, y, z); }
-    static inline auto GetMaxAmmo(Ped ped, uint32_t weapon, uint32_t* pMaxAmmo) { return NativeInvoke::Invoke<843, std::to_underlying(NativeHashes::GET_MAX_AMMO), bool>(ped, weapon, pMaxAmmo); }
-    static inline auto GetMaxAmmoInClip(Ped ped, uint32_t weapon, uint32_t* pMaxAmmo) { return NativeInvoke::Invoke<844, std::to_underlying(NativeHashes::GET_MAX_AMMO_IN_CLIP), void>(ped, weapon, pMaxAmmo); }
-    static inline auto GetMaxWantedLevel(uint32_t* pMaxWantedLevel) { return NativeInvoke::Invoke<845, std::to_underlying(NativeHashes::GET_MAX_WANTED_LEVEL), void>(pMaxWantedLevel); }
-    static inline auto GetMaximumNumberOfPassengers(Vehicle vehicle, uint32_t* pMax) { return NativeInvoke::Invoke<846, std::to_underlying(NativeHashes::GET_MAXIMUM_NUMBER_OF_PASSENGERS), void>(vehicle, pMax); }
+    static inline auto GetMaxAmmo(Ped ped, uint32_t weapon, uint32_t *pMaxAmmo) { return NativeInvoke::Invoke<843, std::to_underlying(NativeHashes::GET_MAX_AMMO), bool>(ped, weapon, pMaxAmmo); }
+    static inline auto GetMaxAmmoInClip(Ped ped, uint32_t weapon, uint32_t *pMaxAmmo) { return NativeInvoke::Invoke<844, std::to_underlying(NativeHashes::GET_MAX_AMMO_IN_CLIP), void>(ped, weapon, pMaxAmmo); }
+    static inline auto GetMaxWantedLevel(uint32_t *pMaxWantedLevel) { return NativeInvoke::Invoke<845, std::to_underlying(NativeHashes::GET_MAX_WANTED_LEVEL), void>(pMaxWantedLevel); }
+    static inline auto GetMaximumNumberOfPassengers(Vehicle vehicle, uint32_t *pMax) { return NativeInvoke::Invoke<846, std::to_underlying(NativeHashes::GET_MAXIMUM_NUMBER_OF_PASSENGERS), void>(vehicle, pMax); }
     static inline auto GetMenuItemAccepted(int32_t menuid) { return NativeInvoke::Invoke<847, std::to_underlying(NativeHashes::GET_MENU_ITEM_ACCEPTED), int32_t>(menuid); }
     static inline auto GetMenuItemSelected(int32_t menuid) { return NativeInvoke::Invoke<848, std::to_underlying(NativeHashes::GET_MENU_ITEM_SELECTED), int32_t>(menuid); }
-    static inline auto GetMenuPosition(int32_t menuid, float* x, float* y) { return NativeInvoke::Invoke<849, std::to_underlying(NativeHashes::GET_MENU_POSITION), void>(menuid, x, y); }
+    static inline auto GetMenuPosition(int32_t menuid, float *x, float *y) { return NativeInvoke::Invoke<849, std::to_underlying(NativeHashes::GET_MENU_POSITION), void>(menuid, x, y); }
     static inline auto GetMinutesOfDay() { return NativeInvoke::Invoke<850, std::to_underlying(NativeHashes::GET_MINUTES_OF_DAY), uint32_t>(); }
     static inline auto GetMinutesToTimeOfDay(uint32_t hour, uint32_t minute) { return NativeInvoke::Invoke<851, std::to_underlying(NativeHashes::GET_MINUTES_TO_TIME_OF_DAY), uint32_t>(hour, minute); }
     static inline auto GetMissionFlag() { return NativeInvoke::Invoke<852, std::to_underlying(NativeHashes::GET_MISSION_FLAG), bool>(); }
     static inline auto GetMobilePhonePosition() { return NativeInvoke::Invoke<853, std::to_underlying(NativeHashes::GET_MOBILE_PHONE_POSITION), Any>(); }
-    static inline auto GetMobilePhoneRenderId(uint32_t* pRenderId) { return NativeInvoke::Invoke<854, std::to_underlying(NativeHashes::GET_MOBILE_PHONE_RENDER_ID), void>(pRenderId); }
+    static inline auto GetMobilePhoneRenderId(uint32_t *pRenderId) { return NativeInvoke::Invoke<854, std::to_underlying(NativeHashes::GET_MOBILE_PHONE_RENDER_ID), void>(pRenderId); }
     static inline auto GetMobilePhoneRotation() { return NativeInvoke::Invoke<855, std::to_underlying(NativeHashes::GET_MOBILE_PHONE_ROTATION), Any>(); }
     static inline auto GetMobilePhoneScale() { return NativeInvoke::Invoke<856, std::to_underlying(NativeHashes::GET_MOBILE_PHONE_SCALE), float>(); }
-    static inline auto GetMobilePhoneTaskSubTask(Ped ped, int32_t* a2) { return NativeInvoke::Invoke<857, std::to_underlying(NativeHashes::GET_MOBILE_PHONE_TASK_SUB_TASK), bool>(ped, a2); }
-    static inline auto GetModelDimensions(uint32_t model, Vector3* pMinVector, Vector3* pMaxVector) { return NativeInvoke::Invoke<858, std::to_underlying(NativeHashes::GET_MODEL_DIMENSIONS), void>(model, pMinVector, pMaxVector); }
-    static inline auto GetModelNameForDebug(uint32_t model) { return NativeInvoke::Invoke<859, std::to_underlying(NativeHashes::GET_MODEL_NAME_FOR_DEBUG), char*>(model); }
+    static inline auto GetMobilePhoneTaskSubTask(Ped ped, int32_t *a2) { return NativeInvoke::Invoke<857, std::to_underlying(NativeHashes::GET_MOBILE_PHONE_TASK_SUB_TASK), bool>(ped, a2); }
+    static inline auto GetModelDimensions(uint32_t model, Vector3 *pMinVector, Vector3 *pMaxVector) { return NativeInvoke::Invoke<858, std::to_underlying(NativeHashes::GET_MODEL_DIMENSIONS), void>(model, pMinVector, pMaxVector); }
+    static inline auto GetModelNameForDebug(uint32_t model) { return NativeInvoke::Invoke<859, std::to_underlying(NativeHashes::GET_MODEL_NAME_FOR_DEBUG), char *>(model); }
     static inline auto GetModelNameOfCarForDebugOnly() { return NativeInvoke::Invoke<860, std::to_underlying(NativeHashes::GET_MODEL_NAME_OF_CAR_FOR_DEBUG_ONLY), Any>(); }
     static inline auto GetModelPedIsHolding(Ped ped) { return NativeInvoke::Invoke<861, std::to_underlying(NativeHashes::GET_MODEL_PED_IS_HOLDING), uint32_t>(ped); }
     static inline auto GetMotionControlsEnabled() { return NativeInvoke::Invoke<862, std::to_underlying(NativeHashes::GET_MOTION_CONTROLS_ENABLED), Any>(); }
     static inline auto GetMotionSensorValues() { return NativeInvoke::Invoke<863, std::to_underlying(NativeHashes::GET_MOTION_SENSOR_VALUES), Any>(); }
-    static inline auto GetMouseInput(int32_t* x, int32_t* y) { return NativeInvoke::Invoke<864, std::to_underlying(NativeHashes::GET_MOUSE_INPUT), void>(x, y); }
-    static inline auto GetMousePosition(int32_t* x, int32_t* y) { return NativeInvoke::Invoke<865, std::to_underlying(NativeHashes::GET_MOUSE_POSITION), void>(x, y); }
+    static inline auto GetMouseInput(int32_t *x, int32_t *y) { return NativeInvoke::Invoke<864, std::to_underlying(NativeHashes::GET_MOUSE_INPUT), void>(x, y); }
+    static inline auto GetMousePosition(int32_t *x, int32_t *y) { return NativeInvoke::Invoke<865, std::to_underlying(NativeHashes::GET_MOUSE_POSITION), void>(x, y); }
     static inline auto GetMouseSensitivity() { return NativeInvoke::Invoke<866, std::to_underlying(NativeHashes::GET_MOUSE_SENSITIVITY), float>(); }
-    static inline auto GetMouseWheel(int32_t* a1) { return NativeInvoke::Invoke<867, std::to_underlying(NativeHashes::GET_MOUSE_WHEEL), void>(a1); }
-    static inline auto GetNameOfInfoZone(float x, float y, float z) { return NativeInvoke::Invoke<868, std::to_underlying(NativeHashes::GET_NAME_OF_INFO_ZONE), char*>(x, y, z); }
+    static inline auto GetMouseWheel(int32_t *a1) { return NativeInvoke::Invoke<867, std::to_underlying(NativeHashes::GET_MOUSE_WHEEL), void>(a1); }
+    static inline auto GetNameOfInfoZone(float x, float y, float z) { return NativeInvoke::Invoke<868, std::to_underlying(NativeHashes::GET_NAME_OF_INFO_ZONE), char *>(x, y, z); }
     static inline auto GetNameOfScriptToAutomaticallyStart() { return NativeInvoke::Invoke<869, std::to_underlying(NativeHashes::GET_NAME_OF_SCRIPT_TO_AUTOMATICALLY_START), Any>(); }
-    static inline auto GetNameOfZone(float x, float y, float z) { return NativeInvoke::Invoke<870, std::to_underlying(NativeHashes::GET_NAME_OF_ZONE), char*>(x, y, z); }
+    static inline auto GetNameOfZone(float x, float y, float z) { return NativeInvoke::Invoke<870, std::to_underlying(NativeHashes::GET_NAME_OF_ZONE), char *>(x, y, z); }
     static inline auto GetNavmeshRouteResult(int32_t navmesh) { return NativeInvoke::Invoke<871, std::to_underlying(NativeHashes::GET_NAVMESH_ROUTE_RESULT), int32_t>(navmesh); }
-    static inline auto GetNearestCableCar(float x, float y, float z, float radius, Vehicle* pVehicle) { return NativeInvoke::Invoke<872, std::to_underlying(NativeHashes::GET_NEAREST_CABLE_CAR), void>(x, y, z, radius, pVehicle); }
+    static inline auto GetNearestCableCar(float x, float y, float z, float radius, Vehicle *pVehicle) { return NativeInvoke::Invoke<872, std::to_underlying(NativeHashes::GET_NEAREST_CABLE_CAR), void>(x, y, z, radius, pVehicle); }
     static inline auto GetNeededPlayerCashForLevel() { return NativeInvoke::Invoke<873, std::to_underlying(NativeHashes::GET_NEEDED_PLAYER_CASH_FOR_LEVEL), Any>(); }
-    static inline auto GetNetworkIdFromObject(Object obj, int32_t* id) { return NativeInvoke::Invoke<874, std::to_underlying(NativeHashes::GET_NETWORK_ID_FROM_OBJECT), void>(obj, id); }
+    static inline auto GetNetworkIdFromObject(Object obj, int32_t *id) { return NativeInvoke::Invoke<874, std::to_underlying(NativeHashes::GET_NETWORK_ID_FROM_OBJECT), void>(obj, id); }
     static inline auto GetNetworkIdFromPed(Any a1, Any a2) { return NativeInvoke::Invoke<875, std::to_underlying(NativeHashes::GET_NETWORK_ID_FROM_PED), void>(a1, a2); }
     static inline auto GetNetworkIdFromVehicle(Any a1, Any a2) { return NativeInvoke::Invoke<876, std::to_underlying(NativeHashes::GET_NETWORK_ID_FROM_VEHICLE), void>(a1, a2); }
     static inline auto GetNetworkJoinFail() { return NativeInvoke::Invoke<877, std::to_underlying(NativeHashes::GET_NETWORK_JOIN_FAIL), Any>(); }
@@ -4256,75 +4261,75 @@ public:
     static inline auto GetNetworkRestartNodeDebug() { return NativeInvoke::Invoke<879, std::to_underlying(NativeHashes::GET_NETWORK_RESTART_NODE_DEBUG), Any>(); }
     static inline auto GetNetworkTimer(Any a1) { return NativeInvoke::Invoke<880, std::to_underlying(NativeHashes::GET_NETWORK_TIMER), void>(a1); }
     static inline auto GetNextBlipInfoId(uint32_t type) { return NativeInvoke::Invoke<881, std::to_underlying(NativeHashes::GET_NEXT_BLIP_INFO_ID), Blip>(type); }
-    static inline auto GetNextClosestCarNode(float x, float y, float z, float* pX, float* pY, float* pZ) { return NativeInvoke::Invoke<882, std::to_underlying(NativeHashes::GET_NEXT_CLOSEST_CAR_NODE), bool>(x, y, z, pX, pY, pZ); }
-    static inline auto GetNextClosestCarNodeFavourDirection(float x, float y, float z, float* pX, float* pY, float* pZ, float* direction) { return NativeInvoke::Invoke<883, std::to_underlying(NativeHashes::GET_NEXT_CLOSEST_CAR_NODE_FAVOUR_DIRECTION), bool>(x, y, z, pX, pY, pZ, direction); }
-    static inline auto GetNextClosestCarNodeWithHeading(float x, float y, float z, float* pX, float* pY, float* pZ, float* heading) { return NativeInvoke::Invoke<884, std::to_underlying(NativeHashes::GET_NEXT_CLOSEST_CAR_NODE_WITH_HEADING), bool>(x, y, z, pX, pY, pZ, heading); }
-    static inline auto GetNextClosestCarNodeWithHeadingOnIsland(float x, float y, float z, float* pX, float* pY, float* pZ, float* heading) { return NativeInvoke::Invoke<885, std::to_underlying(NativeHashes::GET_NEXT_CLOSEST_CAR_NODE_WITH_HEADING_ON_ISLAND), bool>(x, y, z, pX, pY, pZ, heading); }
+    static inline auto GetNextClosestCarNode(float x, float y, float z, float *pX, float *pY, float *pZ) { return NativeInvoke::Invoke<882, std::to_underlying(NativeHashes::GET_NEXT_CLOSEST_CAR_NODE), bool>(x, y, z, pX, pY, pZ); }
+    static inline auto GetNextClosestCarNodeFavourDirection(float x, float y, float z, float *pX, float *pY, float *pZ, float *direction) { return NativeInvoke::Invoke<883, std::to_underlying(NativeHashes::GET_NEXT_CLOSEST_CAR_NODE_FAVOUR_DIRECTION), bool>(x, y, z, pX, pY, pZ, direction); }
+    static inline auto GetNextClosestCarNodeWithHeading(float x, float y, float z, float *pX, float *pY, float *pZ, float *heading) { return NativeInvoke::Invoke<884, std::to_underlying(NativeHashes::GET_NEXT_CLOSEST_CAR_NODE_WITH_HEADING), bool>(x, y, z, pX, pY, pZ, heading); }
+    static inline auto GetNextClosestCarNodeWithHeadingOnIsland(float x, float y, float z, float *pX, float *pY, float *pZ, float *heading) { return NativeInvoke::Invoke<885, std::to_underlying(NativeHashes::GET_NEXT_CLOSEST_CAR_NODE_WITH_HEADING_ON_ISLAND), bool>(x, y, z, pX, pY, pZ, heading); }
     static inline auto GetNextStationForTrain(Train train) { return NativeInvoke::Invoke<886, std::to_underlying(NativeHashes::GET_NEXT_STATION_FOR_TRAIN), uint32_t>(train); }
     static inline auto GetNoLawVehiclesDestroyedByLocalPlayer() { return NativeInvoke::Invoke<887, std::to_underlying(NativeHashes::GET_NO_LAW_VEHICLES_DESTROYED_BY_LOCAL_PLAYER), int32_t>(); }
     static inline auto GetNoOfPlayersInTeam(Any a1) { return NativeInvoke::Invoke<888, std::to_underlying(NativeHashes::GET_NO_OF_PLAYERS_IN_TEAM), Any>(a1); }
-    static inline auto GetNthClosestCarNode(float x, float y, float z, int32_t n, float* pX, float* pY, float* pZ) { return NativeInvoke::Invoke<889, std::to_underlying(NativeHashes::GET_NTH_CLOSEST_CAR_NODE), bool>(x, y, z, n, pX, pY, pZ); }
-    static inline auto GetNthClosestCarNodeFavourDirection(int a1, float x, float y, float z, int32_t n, float* pX, float* pY, float* pZ, float* direction) { return NativeInvoke::Invoke<890, std::to_underlying(NativeHashes::GET_NTH_CLOSEST_CAR_NODE_FAVOUR_DIRECTION), bool>(a1, x, y, z, n, pX, pY, pZ, direction); }
-    static inline auto GetNthClosestCarNodeWithHeading(float x, float y, float z, uint32_t nodeNum, float* pResX, float* pResY, float* pResZ, float* pHeading) { return NativeInvoke::Invoke<891, std::to_underlying(NativeHashes::GET_NTH_CLOSEST_CAR_NODE_WITH_HEADING), bool>(x, y, z, nodeNum, pResX, pResY, pResZ, pHeading); }
-    static inline auto GetNthClosestCarNodeWithHeadingOnIsland(float x, float y, float z, uint32_t nodeNum, uint32_t areaId, float* pResX, float* pResY, float* pResZ, float* pHeading, uint32_t* pUnknownMaybeAreaId) { return NativeInvoke::Invoke<892, std::to_underlying(NativeHashes::GET_NTH_CLOSEST_CAR_NODE_WITH_HEADING_ON_ISLAND), bool>(x, y, z, nodeNum, areaId, pResX, pResY, pResZ, pHeading, pUnknownMaybeAreaId); }
-    static inline auto GetNthClosestWaterNodeWithHeading(float x, float y, float z, bool flag0, bool flag1, Vector3* node, float* heading) { return NativeInvoke::Invoke<893, std::to_underlying(NativeHashes::GET_NTH_CLOSEST_WATER_NODE_WITH_HEADING), bool>(x, y, z, flag0, flag1, node, heading); }
-    static inline auto GetNthGroupMember(int32_t group, int32_t n, Ped* ped) { return NativeInvoke::Invoke<894, std::to_underlying(NativeHashes::GET_NTH_GROUP_MEMBER), void>(group, n, ped); }
-    static inline auto GetNthIntegerInString(char* gxtName, uint32_t index) { return NativeInvoke::Invoke<895, std::to_underlying(NativeHashes::GET_NTH_INTEGER_IN_STRING), char*>(gxtName, index); }
-    static inline auto GetNumCarColours(Vehicle vehicle, uint32_t* pNumColours) { return NativeInvoke::Invoke<896, std::to_underlying(NativeHashes::GET_NUM_CAR_COLOURS), void>(vehicle, pNumColours); }
-    static inline auto GetNumCarLiveries(Car car, int32_t* num) { return NativeInvoke::Invoke<897, std::to_underlying(NativeHashes::GET_NUM_CAR_LIVERIES), void>(car, num); }
+    static inline auto GetNthClosestCarNode(float x, float y, float z, int32_t n, float *pX, float *pY, float *pZ) { return NativeInvoke::Invoke<889, std::to_underlying(NativeHashes::GET_NTH_CLOSEST_CAR_NODE), bool>(x, y, z, n, pX, pY, pZ); }
+    static inline auto GetNthClosestCarNodeFavourDirection(int a1, float x, float y, float z, int32_t n, float *pX, float *pY, float *pZ, float *direction) { return NativeInvoke::Invoke<890, std::to_underlying(NativeHashes::GET_NTH_CLOSEST_CAR_NODE_FAVOUR_DIRECTION), bool>(a1, x, y, z, n, pX, pY, pZ, direction); }
+    static inline auto GetNthClosestCarNodeWithHeading(float x, float y, float z, uint32_t nodeNum, float *pResX, float *pResY, float *pResZ, float *pHeading) { return NativeInvoke::Invoke<891, std::to_underlying(NativeHashes::GET_NTH_CLOSEST_CAR_NODE_WITH_HEADING), bool>(x, y, z, nodeNum, pResX, pResY, pResZ, pHeading); }
+    static inline auto GetNthClosestCarNodeWithHeadingOnIsland(float x, float y, float z, uint32_t nodeNum, uint32_t areaId, float *pResX, float *pResY, float *pResZ, float *pHeading, uint32_t *pUnknownMaybeAreaId) { return NativeInvoke::Invoke<892, std::to_underlying(NativeHashes::GET_NTH_CLOSEST_CAR_NODE_WITH_HEADING_ON_ISLAND), bool>(x, y, z, nodeNum, areaId, pResX, pResY, pResZ, pHeading, pUnknownMaybeAreaId); }
+    static inline auto GetNthClosestWaterNodeWithHeading(float x, float y, float z, bool flag0, bool flag1, Vector3 *node, float *heading) { return NativeInvoke::Invoke<893, std::to_underlying(NativeHashes::GET_NTH_CLOSEST_WATER_NODE_WITH_HEADING), bool>(x, y, z, flag0, flag1, node, heading); }
+    static inline auto GetNthGroupMember(int32_t group, int32_t n, Ped *ped) { return NativeInvoke::Invoke<894, std::to_underlying(NativeHashes::GET_NTH_GROUP_MEMBER), void>(group, n, ped); }
+    static inline auto GetNthIntegerInString(char *gxtName, uint32_t index) { return NativeInvoke::Invoke<895, std::to_underlying(NativeHashes::GET_NTH_INTEGER_IN_STRING), char *>(gxtName, index); }
+    static inline auto GetNumCarColours(Vehicle vehicle, uint32_t *pNumColours) { return NativeInvoke::Invoke<896, std::to_underlying(NativeHashes::GET_NUM_CAR_COLOURS), void>(vehicle, pNumColours); }
+    static inline auto GetNumCarLiveries(Car car, int32_t *num) { return NativeInvoke::Invoke<897, std::to_underlying(NativeHashes::GET_NUM_CAR_LIVERIES), void>(car, num); }
     static inline auto GetNumConsoleCommandTokens() { return NativeInvoke::Invoke<898, std::to_underlying(NativeHashes::GET_NUM_CONSOLE_COMMAND_TOKENS), Any>(); }
     static inline auto GetNumKillsForRankPoints() { return NativeInvoke::Invoke<899, std::to_underlying(NativeHashes::GET_NUM_KILLS_FOR_RANK_POINTS), Any>(); }
-    static inline auto GetNumOfModelsKilledByPlayer(int32_t player, uint32_t model, int32_t* num) { return NativeInvoke::Invoke<900, std::to_underlying(NativeHashes::GET_NUM_OF_MODELS_KILLED_BY_PLAYER), void>(player, model, num); }
+    static inline auto GetNumOfModelsKilledByPlayer(int32_t player, uint32_t model, int32_t *num) { return NativeInvoke::Invoke<900, std::to_underlying(NativeHashes::GET_NUM_OF_MODELS_KILLED_BY_PLAYER), void>(player, model, num); }
     static inline auto GetNumStreamingRequests() { return NativeInvoke::Invoke<901, std::to_underlying(NativeHashes::GET_NUM_STREAMING_REQUESTS), uint32_t>(); }
-    static inline auto GetNumberLines(float a1, float a2, char* a3) { return NativeInvoke::Invoke<902, std::to_underlying(NativeHashes::GET_NUMBER_LINES), int32_t>(a1, a2, a3); }
-    static inline auto GetNumberLinesWithLiteralStrings(float a1, float a2, char* a3, char* a4, char* a5) { return NativeInvoke::Invoke<903, std::to_underlying(NativeHashes::GET_NUMBER_LINES_WITH_LITERAL_STRINGS), int32_t>(a1, a2, a3, a4, a5); }
-    static inline auto GetNumberLinesWithSubstrings(float a1, float a2, char* a3, char* a4, char* a5) { return NativeInvoke::Invoke<904, std::to_underlying(NativeHashes::GET_NUMBER_LINES_WITH_SUBSTRINGS), int32_t>(a1, a2, a3, a4, a5); }
+    static inline auto GetNumberLines(float a1, float a2, char *a3) { return NativeInvoke::Invoke<902, std::to_underlying(NativeHashes::GET_NUMBER_LINES), int32_t>(a1, a2, a3); }
+    static inline auto GetNumberLinesWithLiteralStrings(float a1, float a2, char *a3, char *a4, char *a5) { return NativeInvoke::Invoke<903, std::to_underlying(NativeHashes::GET_NUMBER_LINES_WITH_LITERAL_STRINGS), int32_t>(a1, a2, a3, a4, a5); }
+    static inline auto GetNumberLinesWithSubstrings(float a1, float a2, char *a3, char *a4, char *a5) { return NativeInvoke::Invoke<904, std::to_underlying(NativeHashes::GET_NUMBER_LINES_WITH_SUBSTRINGS), int32_t>(a1, a2, a3, a4, a5); }
     static inline auto GetNumberOfActiveStickyBombsOwnedByPed(Ped ped) { return NativeInvoke::Invoke<905, std::to_underlying(NativeHashes::GET_NUMBER_OF_ACTIVE_STICKY_BOMBS_OWNED_BY_PED), int32_t>(ped); }
     static inline auto GetNumberOfCharDrawableVariations(Ped ped, uint32_t component) { return NativeInvoke::Invoke<906, std::to_underlying(NativeHashes::GET_NUMBER_OF_CHAR_DRAWABLE_VARIATIONS), uint32_t>(ped, component); }
     static inline auto GetNumberOfCharTextureVariations(Ped ped, uint32_t component, uint32_t unknown1) { return NativeInvoke::Invoke<907, std::to_underlying(NativeHashes::GET_NUMBER_OF_CHAR_TEXTURE_VARIATIONS), uint32_t>(ped, component, unknown1); }
     static inline auto GetNumberOfFiresInArea(float x0, float y0, float z0, float x1, float y1, float z1) { return NativeInvoke::Invoke<908, std::to_underlying(NativeHashes::GET_NUMBER_OF_FIRES_IN_AREA), int32_t>(x0, y0, z0, x1, y1, z1); }
     static inline auto GetNumberOfFiresInRange(float x, float y, float z, float radius) { return NativeInvoke::Invoke<909, std::to_underlying(NativeHashes::GET_NUMBER_OF_FIRES_IN_RANGE), uint32_t>(x, y, z, radius); }
-    static inline auto GetNumberOfFollowers(Ped ped, int32_t* followers) { return NativeInvoke::Invoke<910, std::to_underlying(NativeHashes::GET_NUMBER_OF_FOLLOWERS), void>(ped, followers); }
+    static inline auto GetNumberOfFollowers(Ped ped, int32_t *followers) { return NativeInvoke::Invoke<910, std::to_underlying(NativeHashes::GET_NUMBER_OF_FOLLOWERS), void>(ped, followers); }
     static inline auto GetNumberOfInjuredPedsInRange(float x, float y, float z, float radius) { return NativeInvoke::Invoke<911, std::to_underlying(NativeHashes::GET_NUMBER_OF_INJURED_PEDS_IN_RANGE), int32_t>(x, y, z, radius); }
-    static inline auto GetNumberOfInstancesOfStreamedScript(char* scriptName) { return NativeInvoke::Invoke<912, std::to_underlying(NativeHashes::GET_NUMBER_OF_INSTANCES_OF_STREAMED_SCRIPT), uint32_t>(scriptName); }
-    static inline auto GetNumberOfPassengers(Vehicle vehicle, uint32_t* pNumPassengers) { return NativeInvoke::Invoke<913, std::to_underlying(NativeHashes::GET_NUMBER_OF_PASSENGERS), void>(vehicle, pNumPassengers); }
+    static inline auto GetNumberOfInstancesOfStreamedScript(char *scriptName) { return NativeInvoke::Invoke<912, std::to_underlying(NativeHashes::GET_NUMBER_OF_INSTANCES_OF_STREAMED_SCRIPT), uint32_t>(scriptName); }
+    static inline auto GetNumberOfPassengers(Vehicle vehicle, uint32_t *pNumPassengers) { return NativeInvoke::Invoke<913, std::to_underlying(NativeHashes::GET_NUMBER_OF_PASSENGERS), void>(vehicle, pNumPassengers); }
     static inline auto GetNumberOfPlayers() { return NativeInvoke::Invoke<914, std::to_underlying(NativeHashes::GET_NUMBER_OF_PLAYERS), uint32_t>(); }
     static inline auto GetNumberOfStickyBombsStuckToObject(Object obj) { return NativeInvoke::Invoke<915, std::to_underlying(NativeHashes::GET_NUMBER_OF_STICKY_BOMBS_STUCK_TO_OBJECT), int32_t>(obj); }
     static inline auto GetNumberOfStickyBombsStuckToVehicle(Vehicle veh) { return NativeInvoke::Invoke<916, std::to_underlying(NativeHashes::GET_NUMBER_OF_STICKY_BOMBS_STUCK_TO_VEHICLE), int32_t>(veh); }
     static inline auto GetNumberOfWebPageLinks(int32_t htmlviewport) { return NativeInvoke::Invoke<917, std::to_underlying(NativeHashes::GET_NUMBER_OF_WEB_PAGE_LINKS), int32_t>(htmlviewport); }
-    static inline auto GetObjectAnimCurrentTime(Object obj, char* animname0, char* animname1, float* time) { return NativeInvoke::Invoke<918, std::to_underlying(NativeHashes::GET_OBJECT_ANIM_CURRENT_TIME), void>(obj, animname0, animname1, time); }
-    static inline auto GetObjectAnimTotalTime(Object obj, char* animname0, char* animname1, float* time) { return NativeInvoke::Invoke<919, std::to_underlying(NativeHashes::GET_OBJECT_ANIM_TOTAL_TIME), void>(obj, animname0, animname1, time); }
-    static inline auto GetObjectCoordinates(Object obj, float* pX, float* pY, float* pZ) { return NativeInvoke::Invoke<920, std::to_underlying(NativeHashes::GET_OBJECT_COORDINATES), void>(obj, pX, pY, pZ); }
+    static inline auto GetObjectAnimCurrentTime(Object obj, char *animname0, char *animname1, float *time) { return NativeInvoke::Invoke<918, std::to_underlying(NativeHashes::GET_OBJECT_ANIM_CURRENT_TIME), void>(obj, animname0, animname1, time); }
+    static inline auto GetObjectAnimTotalTime(Object obj, char *animname0, char *animname1, float *time) { return NativeInvoke::Invoke<919, std::to_underlying(NativeHashes::GET_OBJECT_ANIM_TOTAL_TIME), void>(obj, animname0, animname1, time); }
+    static inline auto GetObjectCoordinates(Object obj, float *pX, float *pY, float *pZ) { return NativeInvoke::Invoke<920, std::to_underlying(NativeHashes::GET_OBJECT_COORDINATES), void>(obj, pX, pY, pZ); }
     static inline auto GetObjectFragmentDamageHealth(Object obj, bool unknown) { return NativeInvoke::Invoke<921, std::to_underlying(NativeHashes::GET_OBJECT_FRAGMENT_DAMAGE_HEALTH), float>(obj, unknown); }
     static inline auto GetObjectFromNetworkId(Any a1, Any a2) { return NativeInvoke::Invoke<922, std::to_underlying(NativeHashes::GET_OBJECT_FROM_NETWORK_ID), void>(a1, a2); }
-    static inline auto GetObjectHeading(Object obj, float* pHeading) { return NativeInvoke::Invoke<923, std::to_underlying(NativeHashes::GET_OBJECT_HEADING), void>(obj, pHeading); }
-    static inline auto GetObjectHealth(Object obj, float* pHealth) { return NativeInvoke::Invoke<924, std::to_underlying(NativeHashes::GET_OBJECT_HEALTH), void>(obj, pHealth); }
-    static inline auto GetObjectMass(Object obj, float* mass) { return NativeInvoke::Invoke<925, std::to_underlying(NativeHashes::GET_OBJECT_MASS), void>(obj, mass); }
-    static inline auto GetObjectModel(Object obj, uint32_t* pModel) { return NativeInvoke::Invoke<926, std::to_underlying(NativeHashes::GET_OBJECT_MODEL), void>(obj, pModel); }
+    static inline auto GetObjectHeading(Object obj, float *pHeading) { return NativeInvoke::Invoke<923, std::to_underlying(NativeHashes::GET_OBJECT_HEADING), void>(obj, pHeading); }
+    static inline auto GetObjectHealth(Object obj, float *pHealth) { return NativeInvoke::Invoke<924, std::to_underlying(NativeHashes::GET_OBJECT_HEALTH), void>(obj, pHealth); }
+    static inline auto GetObjectMass(Object obj, float *mass) { return NativeInvoke::Invoke<925, std::to_underlying(NativeHashes::GET_OBJECT_MASS), void>(obj, mass); }
+    static inline auto GetObjectModel(Object obj, uint32_t *pModel) { return NativeInvoke::Invoke<926, std::to_underlying(NativeHashes::GET_OBJECT_MODEL), void>(obj, pModel); }
     static inline auto GetObjectPedIsHolding(Ped ped) { return NativeInvoke::Invoke<927, std::to_underlying(NativeHashes::GET_OBJECT_PED_IS_HOLDING), Object>(ped); }
-    static inline auto GetObjectQuaternion(Object obj, float* a2, float* a3, float* a4, float* a5) { return NativeInvoke::Invoke<928, std::to_underlying(NativeHashes::GET_OBJECT_QUATERNION), void>(obj, a2, a3, a4, a5); }
-    static inline auto GetObjectRotationVelocity(Object obj, float* pX, float* pY, float* pZ) { return NativeInvoke::Invoke<929, std::to_underlying(NativeHashes::GET_OBJECT_ROTATION_VELOCITY), void>(obj, pX, pY, pZ); }
-    static inline auto GetObjectSpeed(Object obj, float* pSpeed) { return NativeInvoke::Invoke<930, std::to_underlying(NativeHashes::GET_OBJECT_SPEED), void>(obj, pSpeed); }
-    static inline auto GetObjectTurnMass(Object obj, float* turnmass) { return NativeInvoke::Invoke<931, std::to_underlying(NativeHashes::GET_OBJECT_TURN_MASS), void>(obj, turnmass); }
-    static inline auto GetObjectVelocity(Object obj, float* pX, float* pY, float* pZ) { return NativeInvoke::Invoke<932, std::to_underlying(NativeHashes::GET_OBJECT_VELOCITY), void>(obj, pX, pY, pZ); }
-    static inline auto GetOffsetFromCarGivenWorldCoords(Vehicle vehicle, float x, float y, float z, float* pOffX, float* pOffY, float* pOffZ) { return NativeInvoke::Invoke<933, std::to_underlying(NativeHashes::GET_OFFSET_FROM_CAR_GIVEN_WORLD_COORDS), void>(vehicle, x, y, z, pOffX, pOffY, pOffZ); }
-    static inline auto GetOffsetFromCarInWorldCoords(Vehicle vehicle, float x, float y, float z, float* pOffX, float* pOffY, float* pOffZ) { return NativeInvoke::Invoke<934, std::to_underlying(NativeHashes::GET_OFFSET_FROM_CAR_IN_WORLD_COORDS), void>(vehicle, x, y, z, pOffX, pOffY, pOffZ); }
-    static inline auto GetOffsetFromCharInWorldCoords(Ped ped, float x, float y, float z, float* pOffX, float* pOffY, float* pOffZ) { return NativeInvoke::Invoke<935, std::to_underlying(NativeHashes::GET_OFFSET_FROM_CHAR_IN_WORLD_COORDS), void>(ped, x, y, z, pOffX, pOffY, pOffZ); }
-    static inline auto GetOffsetFromInteriorInWorldCoords(Interior interior, float x, float y, float z, float* pOffset) { return NativeInvoke::Invoke<936, std::to_underlying(NativeHashes::GET_OFFSET_FROM_INTERIOR_IN_WORLD_COORDS), void>(interior, x, y, z, pOffset); }
-    static inline auto GetOffsetFromObjectInWorldCoords(Object obj, float x, float y, float z, float* pOffX, float* pOffY, float* pOffZ) { return NativeInvoke::Invoke<937, std::to_underlying(NativeHashes::GET_OFFSET_FROM_OBJECT_IN_WORLD_COORDS), void>(obj, x, y, z, pOffX, pOffY, pOffZ); }
-    static inline auto GetOffsetsForAttachCarToCar(Car car0, Car car1, Vector3* a3, Vector3* a4) { return NativeInvoke::Invoke<938, std::to_underlying(NativeHashes::GET_OFFSETS_FOR_ATTACH_CAR_TO_CAR), void>(car0, car1, a3, a4); }
+    static inline auto GetObjectQuaternion(Object obj, float *a2, float *a3, float *a4, float *a5) { return NativeInvoke::Invoke<928, std::to_underlying(NativeHashes::GET_OBJECT_QUATERNION), void>(obj, a2, a3, a4, a5); }
+    static inline auto GetObjectRotationVelocity(Object obj, float *pX, float *pY, float *pZ) { return NativeInvoke::Invoke<929, std::to_underlying(NativeHashes::GET_OBJECT_ROTATION_VELOCITY), void>(obj, pX, pY, pZ); }
+    static inline auto GetObjectSpeed(Object obj, float *pSpeed) { return NativeInvoke::Invoke<930, std::to_underlying(NativeHashes::GET_OBJECT_SPEED), void>(obj, pSpeed); }
+    static inline auto GetObjectTurnMass(Object obj, float *turnmass) { return NativeInvoke::Invoke<931, std::to_underlying(NativeHashes::GET_OBJECT_TURN_MASS), void>(obj, turnmass); }
+    static inline auto GetObjectVelocity(Object obj, float *pX, float *pY, float *pZ) { return NativeInvoke::Invoke<932, std::to_underlying(NativeHashes::GET_OBJECT_VELOCITY), void>(obj, pX, pY, pZ); }
+    static inline auto GetOffsetFromCarGivenWorldCoords(Vehicle vehicle, float x, float y, float z, float *pOffX, float *pOffY, float *pOffZ) { return NativeInvoke::Invoke<933, std::to_underlying(NativeHashes::GET_OFFSET_FROM_CAR_GIVEN_WORLD_COORDS), void>(vehicle, x, y, z, pOffX, pOffY, pOffZ); }
+    static inline auto GetOffsetFromCarInWorldCoords(Vehicle vehicle, float x, float y, float z, float *pOffX, float *pOffY, float *pOffZ) { return NativeInvoke::Invoke<934, std::to_underlying(NativeHashes::GET_OFFSET_FROM_CAR_IN_WORLD_COORDS), void>(vehicle, x, y, z, pOffX, pOffY, pOffZ); }
+    static inline auto GetOffsetFromCharInWorldCoords(Ped ped, float x, float y, float z, float *pOffX, float *pOffY, float *pOffZ) { return NativeInvoke::Invoke<935, std::to_underlying(NativeHashes::GET_OFFSET_FROM_CHAR_IN_WORLD_COORDS), void>(ped, x, y, z, pOffX, pOffY, pOffZ); }
+    static inline auto GetOffsetFromInteriorInWorldCoords(Interior interior, float x, float y, float z, float *pOffset) { return NativeInvoke::Invoke<936, std::to_underlying(NativeHashes::GET_OFFSET_FROM_INTERIOR_IN_WORLD_COORDS), void>(interior, x, y, z, pOffset); }
+    static inline auto GetOffsetFromObjectInWorldCoords(Object obj, float x, float y, float z, float *pOffX, float *pOffY, float *pOffZ) { return NativeInvoke::Invoke<937, std::to_underlying(NativeHashes::GET_OFFSET_FROM_OBJECT_IN_WORLD_COORDS), void>(obj, x, y, z, pOffX, pOffY, pOffZ); }
+    static inline auto GetOffsetsForAttachCarToCar(Car car0, Car car1, Vector3 *a3, Vector3 *a4) { return NativeInvoke::Invoke<938, std::to_underlying(NativeHashes::GET_OFFSETS_FOR_ATTACH_CAR_TO_CAR), void>(car0, car1, a3, a4); }
     static inline auto GetOnlineLan() { return NativeInvoke::Invoke<939, std::to_underlying(NativeHashes::GET_ONLINE_LAN), Any>(); }
     static inline auto GetOnlineScore(Any a1) { return NativeInvoke::Invoke<940, std::to_underlying(NativeHashes::GET_ONLINE_SCORE), Any>(a1); }
     static inline auto GetOverrideNoSprintingOnPhoneInMultiplayer() { return NativeInvoke::Invoke<941, std::to_underlying(NativeHashes::GET_OVERRIDE_NO_SPRINTING_ON_PHONE_IN_MULTIPLAYER), Any>(); }
     static inline auto GetPadOrientation() { return NativeInvoke::Invoke<942, std::to_underlying(NativeHashes::GET_PAD_ORIENTATION), Any>(); }
-    static inline auto GetPadPitchRoll(uint32_t padIndex, float* pPitch, float* pRoll) { return NativeInvoke::Invoke<943, std::to_underlying(NativeHashes::GET_PAD_PITCH_ROLL), bool>(padIndex, pPitch, pRoll); }
-    static inline auto GetPadState(int a1, int a2, int32_t* a3) { return NativeInvoke::Invoke<944, std::to_underlying(NativeHashes::GET_PAD_STATE), void>(a1, a2, a3); }
+    static inline auto GetPadPitchRoll(uint32_t padIndex, float *pPitch, float *pRoll) { return NativeInvoke::Invoke<943, std::to_underlying(NativeHashes::GET_PAD_PITCH_ROLL), bool>(padIndex, pPitch, pRoll); }
+    static inline auto GetPadState(int a1, int a2, int32_t *a3) { return NativeInvoke::Invoke<944, std::to_underlying(NativeHashes::GET_PAD_STATE), void>(a1, a2, a3); }
     static inline auto GetParkingNodeInArea() { return NativeInvoke::Invoke<945, std::to_underlying(NativeHashes::GET_PARKING_NODE_IN_AREA), Any>(); }
     static inline auto GetPedAtHeadOfQueue() { return NativeInvoke::Invoke<946, std::to_underlying(NativeHashes::GET_PED_AT_HEAD_OF_QUEUE), Any>(); }
-    static inline auto GetPedBonePosition(Ped ped, uint32_t bone, float x, float y, float z, Vector3* pPosition) { return NativeInvoke::Invoke<947, std::to_underlying(NativeHashes::GET_PED_BONE_POSITION), void>(ped, bone, x, y, z, pPosition); }
+    static inline auto GetPedBonePosition(Ped ped, uint32_t bone, float x, float y, float z, Vector3 *pPosition) { return NativeInvoke::Invoke<947, std::to_underlying(NativeHashes::GET_PED_BONE_POSITION), void>(ped, bone, x, y, z, pPosition); }
     static inline auto GetPedClimbState(Ped ped) { return NativeInvoke::Invoke<948, std::to_underlying(NativeHashes::GET_PED_CLIMB_STATE), uint32_t>(ped); }
-    static inline auto GetPedFromNetworkId(int32_t id, Ped* ped) { return NativeInvoke::Invoke<949, std::to_underlying(NativeHashes::GET_PED_FROM_NETWORK_ID), void>(id, ped); }
-    static inline auto GetPedGroupIndex(Ped ped, uint32_t* pIndex) { return NativeInvoke::Invoke<950, std::to_underlying(NativeHashes::GET_PED_GROUP_INDEX), void>(ped, pIndex); }
+    static inline auto GetPedFromNetworkId(int32_t id, Ped *ped) { return NativeInvoke::Invoke<949, std::to_underlying(NativeHashes::GET_PED_FROM_NETWORK_ID), void>(id, ped); }
+    static inline auto GetPedGroupIndex(Ped ped, uint32_t *pIndex) { return NativeInvoke::Invoke<950, std::to_underlying(NativeHashes::GET_PED_GROUP_INDEX), void>(ped, pIndex); }
     static inline auto GetPedModelFromIndex(int32_t index) { return NativeInvoke::Invoke<951, std::to_underlying(NativeHashes::GET_PED_MODEL_FROM_INDEX), uint32_t>(index); }
     static inline auto GetPedObjectIsAttachedTo(Object obj) { return NativeInvoke::Invoke<952, std::to_underlying(NativeHashes::GET_PED_OBJECT_IS_ATTACHED_TO), Ped>(obj); }
     static inline auto GetPedPathMayDropFromHeight(Ped ped) { return NativeInvoke::Invoke<953, std::to_underlying(NativeHashes::GET_PED_PATH_MAY_DROP_FROM_HEIGHT), bool>(ped); }
@@ -4333,73 +4338,73 @@ public:
     static inline auto GetPedPathWillAvoidDynamicObjects(Ped ped) { return NativeInvoke::Invoke<956, std::to_underlying(NativeHashes::GET_PED_PATH_WILL_AVOID_DYNAMIC_OBJECTS), bool>(ped); }
     static inline auto GetPedSteersAroundObjects(Ped ped) { return NativeInvoke::Invoke<957, std::to_underlying(NativeHashes::GET_PED_STEERS_AROUND_OBJECTS), bool>(ped); }
     static inline auto GetPedSteersAroundPeds(Ped ped) { return NativeInvoke::Invoke<958, std::to_underlying(NativeHashes::GET_PED_STEERS_AROUND_PEDS), bool>(ped); }
-    static inline auto GetPedType(Ped ped, uint32_t* pType) { return NativeInvoke::Invoke<959, std::to_underlying(NativeHashes::GET_PED_TYPE), void>(ped, pType); }
+    static inline auto GetPedType(Ped ped, uint32_t *pType) { return NativeInvoke::Invoke<959, std::to_underlying(NativeHashes::GET_PED_TYPE), void>(ped, pType); }
     static inline auto GetPetrolTankHealth(Vehicle vehicle) { return NativeInvoke::Invoke<960, std::to_underlying(NativeHashes::GET_PETROL_TANK_HEALTH), float>(vehicle); }
-    static inline auto GetPhysicalScreenResolution(float* x, float* y) { return NativeInvoke::Invoke<961, std::to_underlying(NativeHashes::GET_PHYSICAL_SCREEN_RESOLUTION), void>(x, y); }
-    static inline auto GetPickupCoordinates(Pickup pickup, float* pX, float* pY, float* pZ) { return NativeInvoke::Invoke<962, std::to_underlying(NativeHashes::GET_PICKUP_COORDINATES), void>(pickup, pX, pY, pZ); }
-    static inline auto GetPlaneUndercarriagePosition(Vehicle plane, float* pos) { return NativeInvoke::Invoke<963, std::to_underlying(NativeHashes::GET_PLANE_UNDERCARRIAGE_POSITION), void>(plane, pos); }
-    static inline auto GetPlayerChar(Player playerIndex, Ped* pPed) { return NativeInvoke::Invoke<964, std::to_underlying(NativeHashes::GET_PLAYER_CHAR), void>(playerIndex, pPed); }
+    static inline auto GetPhysicalScreenResolution(float *x, float *y) { return NativeInvoke::Invoke<961, std::to_underlying(NativeHashes::GET_PHYSICAL_SCREEN_RESOLUTION), void>(x, y); }
+    static inline auto GetPickupCoordinates(Pickup pickup, float *pX, float *pY, float *pZ) { return NativeInvoke::Invoke<962, std::to_underlying(NativeHashes::GET_PICKUP_COORDINATES), void>(pickup, pX, pY, pZ); }
+    static inline auto GetPlaneUndercarriagePosition(Vehicle plane, float *pos) { return NativeInvoke::Invoke<963, std::to_underlying(NativeHashes::GET_PLANE_UNDERCARRIAGE_POSITION), void>(plane, pos); }
+    static inline auto GetPlayerChar(Player playerIndex, Ped *pPed) { return NativeInvoke::Invoke<964, std::to_underlying(NativeHashes::GET_PLAYER_CHAR), void>(playerIndex, pPed); }
     static inline auto GetPlayerColour(int32_t Player) { return NativeInvoke::Invoke<965, std::to_underlying(NativeHashes::GET_PLAYER_COLOUR), uint32_t>(Player); }
-    static inline auto GetPlayerGroup(Player playerIndex, Group* pGroup) { return NativeInvoke::Invoke<966, std::to_underlying(NativeHashes::GET_PLAYER_GROUP), void>(playerIndex, pGroup); }
+    static inline auto GetPlayerGroup(Player playerIndex, Group *pGroup) { return NativeInvoke::Invoke<966, std::to_underlying(NativeHashes::GET_PLAYER_GROUP), void>(playerIndex, pGroup); }
     static inline auto GetPlayerHasTracks() { return NativeInvoke::Invoke<967, std::to_underlying(NativeHashes::GET_PLAYER_HAS_TRACKS), bool>(); }
     static inline auto GetPlayerId() { return NativeInvoke::Invoke<968, std::to_underlying(NativeHashes::GET_PLAYER_ID), uint32_t>(); }
     static inline auto GetPlayerIdForThisPed(Ped ped) { return NativeInvoke::Invoke<969, std::to_underlying(NativeHashes::GET_PLAYER_ID_FOR_THIS_PED), int32_t>(ped); }
     static inline auto GetPlayerLcpdScore() { return NativeInvoke::Invoke<970, std::to_underlying(NativeHashes::GET_PLAYER_LCPD_SCORE), Any>(); }
-    static inline auto GetPlayerMaxArmour(Player playerIndex, uint32_t* pMaxArmour) { return NativeInvoke::Invoke<971, std::to_underlying(NativeHashes::GET_PLAYER_MAX_ARMOUR), void>(playerIndex, pMaxArmour); }
-    static inline auto GetPlayerMaxHealth(int32_t player, int32_t* maxhealth) { return NativeInvoke::Invoke<972, std::to_underlying(NativeHashes::GET_PLAYER_MAX_HEALTH), void>(player, maxhealth); }
-    static inline auto GetPlayerName(Player playerIndex) { return NativeInvoke::Invoke<973, std::to_underlying(NativeHashes::GET_PLAYER_NAME), char*>(playerIndex); }
+    static inline auto GetPlayerMaxArmour(Player playerIndex, uint32_t *pMaxArmour) { return NativeInvoke::Invoke<971, std::to_underlying(NativeHashes::GET_PLAYER_MAX_ARMOUR), void>(playerIndex, pMaxArmour); }
+    static inline auto GetPlayerMaxHealth(int32_t player, int32_t *maxhealth) { return NativeInvoke::Invoke<972, std::to_underlying(NativeHashes::GET_PLAYER_MAX_HEALTH), void>(player, maxhealth); }
+    static inline auto GetPlayerName(Player playerIndex) { return NativeInvoke::Invoke<973, std::to_underlying(NativeHashes::GET_PLAYER_NAME), char *>(playerIndex); }
     static inline auto GetPlayerRadioMode() { return NativeInvoke::Invoke<974, std::to_underlying(NativeHashes::GET_PLAYER_RADIO_MODE), int32_t>(); }
     static inline auto GetPlayerRadioStationIndex() { return NativeInvoke::Invoke<975, std::to_underlying(NativeHashes::GET_PLAYER_RADIO_STATION_INDEX), uint32_t>(); }
-    static inline auto GetPlayerRadioStationName() { return NativeInvoke::Invoke<976, std::to_underlying(NativeHashes::GET_PLAYER_RADIO_STATION_NAME), char*>(); }
-    static inline auto GetPlayerRadioStationNameRoll() { return NativeInvoke::Invoke<977, std::to_underlying(NativeHashes::GET_PLAYER_RADIO_STATION_NAME_ROLL), char*>(); }
+    static inline auto GetPlayerRadioStationName() { return NativeInvoke::Invoke<976, std::to_underlying(NativeHashes::GET_PLAYER_RADIO_STATION_NAME), char *>(); }
+    static inline auto GetPlayerRadioStationNameRoll() { return NativeInvoke::Invoke<977, std::to_underlying(NativeHashes::GET_PLAYER_RADIO_STATION_NAME_ROLL), char *>(); }
     static inline auto GetPlayerRankLevelDuringMp(Any a1) { return NativeInvoke::Invoke<978, std::to_underlying(NativeHashes::GET_PLAYER_RANK_LEVEL_DURING_MP), Any>(a1); }
-    static inline auto GetPlayerRgbColour(int32_t Player, int32_t* r, int32_t* g, int32_t* b) { return NativeInvoke::Invoke<979, std::to_underlying(NativeHashes::GET_PLAYER_RGB_COLOUR), void>(Player, r, g, b); }
+    static inline auto GetPlayerRgbColour(int32_t Player, int32_t *r, int32_t *g, int32_t *b) { return NativeInvoke::Invoke<979, std::to_underlying(NativeHashes::GET_PLAYER_RGB_COLOUR), void>(Player, r, g, b); }
     static inline auto GetPlayerTeam(int32_t Player) { return NativeInvoke::Invoke<980, std::to_underlying(NativeHashes::GET_PLAYER_TEAM), int32_t>(Player); }
     static inline auto GetPlayerToPlaceBombInCar(Vehicle vehicle) { return NativeInvoke::Invoke<981, std::to_underlying(NativeHashes::GET_PLAYER_TO_PLACE_BOMB_IN_CAR), Any>(vehicle); }
-    static inline auto GetPlayerWantedLevelIncrement(int32_t player, int32_t* increment) { return NativeInvoke::Invoke<982, std::to_underlying(NativeHashes::GET_PLAYER_WANTED_LEVEL_INCREMENT), void>(player, increment); }
-    static inline auto GetPlayersLastCarNoSave(Vehicle* pVehicle) { return NativeInvoke::Invoke<983, std::to_underlying(NativeHashes::GET_PLAYERS_LAST_CAR_NO_SAVE), void>(pVehicle); }
+    static inline auto GetPlayerWantedLevelIncrement(int32_t player, int32_t *increment) { return NativeInvoke::Invoke<982, std::to_underlying(NativeHashes::GET_PLAYER_WANTED_LEVEL_INCREMENT), void>(player, increment); }
+    static inline auto GetPlayersLastCarNoSave(Vehicle *pVehicle) { return NativeInvoke::Invoke<983, std::to_underlying(NativeHashes::GET_PLAYERS_LAST_CAR_NO_SAVE), void>(pVehicle); }
     static inline auto GetPlayersettingsModelChoice() { return NativeInvoke::Invoke<984, std::to_underlying(NativeHashes::GET_PLAYERSETTINGS_MODEL_CHOICE), uint32_t>(); }
-    static inline auto GetPositionOfAnalogueSticks(uint32_t padIndex, uint32_t* pLeftX, uint32_t* pLeftY, uint32_t* pRightX, uint32_t* pRightY) { return NativeInvoke::Invoke<985, std::to_underlying(NativeHashes::GET_POSITION_OF_ANALOGUE_STICKS), void>(padIndex, pLeftX, pLeftY, pRightX, pRightY); }
-    static inline auto GetPositionOfCarRecordingAtTime(int32_t CarRec, float time, float* pos) { return NativeInvoke::Invoke<986, std::to_underlying(NativeHashes::GET_POSITION_OF_CAR_RECORDING_AT_TIME), void>(CarRec, time, pos); }
+    static inline auto GetPositionOfAnalogueSticks(uint32_t padIndex, uint32_t *pLeftX, uint32_t *pLeftY, uint32_t *pRightX, uint32_t *pRightY) { return NativeInvoke::Invoke<985, std::to_underlying(NativeHashes::GET_POSITION_OF_ANALOGUE_STICKS), void>(padIndex, pLeftX, pLeftY, pRightX, pRightY); }
+    static inline auto GetPositionOfCarRecordingAtTime(int32_t CarRec, float time, float *pos) { return NativeInvoke::Invoke<986, std::to_underlying(NativeHashes::GET_POSITION_OF_CAR_RECORDING_AT_TIME), void>(CarRec, time, pos); }
     static inline auto GetProfileSetting(int32_t settingid) { return NativeInvoke::Invoke<987, std::to_underlying(NativeHashes::GET_PROFILE_SETTING), int32_t>(settingid); }
     static inline auto GetProgressPercentage() { return NativeInvoke::Invoke<988, std::to_underlying(NativeHashes::GET_PROGRESS_PERCENTAGE), float>(); }
-    static inline auto GetRadarViewportId(int32_t* viewport) { return NativeInvoke::Invoke<989, std::to_underlying(NativeHashes::GET_RADAR_VIEWPORT_ID), void>(viewport); }
-    static inline auto GetRadioName(int32_t id) { return NativeInvoke::Invoke<990, std::to_underlying(NativeHashes::GET_RADIO_NAME), char*>(id); }
-    static inline auto GetRandomCarBackBumperInSphere(float x, float y, float z, float radius, int a5, int a6, Vehicle* veh) { return NativeInvoke::Invoke<991, std::to_underlying(NativeHashes::GET_RANDOM_CAR_BACK_BUMPER_IN_SPHERE), void>(x, y, z, radius, a5, a6, veh); }
-    static inline auto GetRandomCarFrontBumperInSphereNoSave(float x, float y, float z, float radius, bool flag0, bool flag1, int32_t* handle, bool flag2) { return NativeInvoke::Invoke<992, std::to_underlying(NativeHashes::GET_RANDOM_CAR_FRONT_BUMPER_IN_SPHERE_NO_SAVE), void>(x, y, z, radius, flag0, flag1, handle, flag2); }
-    static inline auto GetRandomCarInSphere(float x, float y, float z, float radius, uint32_t model, int32_t unk, Car* car) { return NativeInvoke::Invoke<993, std::to_underlying(NativeHashes::GET_RANDOM_CAR_IN_SPHERE), void>(x, y, z, radius, model, unk, car); }
-    static inline auto GetRandomCarInSphereNoSave(float x, float y, float z, float radius, uint32_t model, bool flag, Car* car) { return NativeInvoke::Invoke<994, std::to_underlying(NativeHashes::GET_RANDOM_CAR_IN_SPHERE_NO_SAVE), void>(x, y, z, radius, model, flag, car); }
-    static inline auto GetRandomCarModelInMemory(bool MustIncludeSpecialModels, uint32_t* pHash, int32_t* pErrorId) { return NativeInvoke::Invoke<995, std::to_underlying(NativeHashes::GET_RANDOM_CAR_MODEL_IN_MEMORY), void>(MustIncludeSpecialModels, pHash, pErrorId); }
-    static inline auto GetRandomCarNode(float x, float y, float z, float radius, bool flag0, bool flag1, bool flag2, float* pX, float* pY, float* pZ, float* heading) { return NativeInvoke::Invoke<996, std::to_underlying(NativeHashes::GET_RANDOM_CAR_NODE), bool>(x, y, z, radius, flag0, flag1, flag2, pX, pY, pZ, heading); }
-    static inline auto GetRandomCarNodeIncludeSwitchedOffNodes(float x, float y, float z, float radius, bool flag0, bool flag1, bool flag2, float* pX, float* pY, float* pZ, float* heading) { return NativeInvoke::Invoke<997, std::to_underlying(NativeHashes::GET_RANDOM_CAR_NODE_INCLUDE_SWITCHED_OFF_NODES), bool>(x, y, z, radius, flag0, flag1, flag2, pX, pY, pZ, heading); }
-    static inline auto GetRandomCarOfTypeInAngledAreaNoSave(float a1, float a2, float a3, float a4, float a5, uint32_t type, Car* car) { return NativeInvoke::Invoke<998, std::to_underlying(NativeHashes::GET_RANDOM_CAR_OF_TYPE_IN_ANGLED_AREA_NO_SAVE), void>(a1, a2, a3, a4, a5, type, car); }
-    static inline auto GetRandomCarOfTypeInAreaNoSave(float x0, float y0, float x1, float y1, uint32_t model, Car* car) { return NativeInvoke::Invoke<999, std::to_underlying(NativeHashes::GET_RANDOM_CAR_OF_TYPE_IN_AREA_NO_SAVE), void>(x0, y0, x1, y1, model, car); }
-    static inline auto GetRandomCharInAreaOffsetNoSave(float x, float y, float z, float sx, float sy, float sz, Ped* pPed) { return NativeInvoke::Invoke<1000, std::to_underlying(NativeHashes::GET_RANDOM_CHAR_IN_AREA_OFFSET_NO_SAVE), void>(x, y, z, sx, sy, sz, pPed); }
+    static inline auto GetRadarViewportId(int32_t *viewport) { return NativeInvoke::Invoke<989, std::to_underlying(NativeHashes::GET_RADAR_VIEWPORT_ID), void>(viewport); }
+    static inline auto GetRadioName(int32_t id) { return NativeInvoke::Invoke<990, std::to_underlying(NativeHashes::GET_RADIO_NAME), char *>(id); }
+    static inline auto GetRandomCarBackBumperInSphere(float x, float y, float z, float radius, int a5, int a6, Vehicle *veh) { return NativeInvoke::Invoke<991, std::to_underlying(NativeHashes::GET_RANDOM_CAR_BACK_BUMPER_IN_SPHERE), void>(x, y, z, radius, a5, a6, veh); }
+    static inline auto GetRandomCarFrontBumperInSphereNoSave(float x, float y, float z, float radius, bool flag0, bool flag1, int32_t *handle, bool flag2) { return NativeInvoke::Invoke<992, std::to_underlying(NativeHashes::GET_RANDOM_CAR_FRONT_BUMPER_IN_SPHERE_NO_SAVE), void>(x, y, z, radius, flag0, flag1, handle, flag2); }
+    static inline auto GetRandomCarInSphere(float x, float y, float z, float radius, uint32_t model, int32_t unk, Car *car) { return NativeInvoke::Invoke<993, std::to_underlying(NativeHashes::GET_RANDOM_CAR_IN_SPHERE), void>(x, y, z, radius, model, unk, car); }
+    static inline auto GetRandomCarInSphereNoSave(float x, float y, float z, float radius, uint32_t model, bool flag, Car *car) { return NativeInvoke::Invoke<994, std::to_underlying(NativeHashes::GET_RANDOM_CAR_IN_SPHERE_NO_SAVE), void>(x, y, z, radius, model, flag, car); }
+    static inline auto GetRandomCarModelInMemory(bool MustIncludeSpecialModels, uint32_t *pHash, int32_t *pErrorId) { return NativeInvoke::Invoke<995, std::to_underlying(NativeHashes::GET_RANDOM_CAR_MODEL_IN_MEMORY), void>(MustIncludeSpecialModels, pHash, pErrorId); }
+    static inline auto GetRandomCarNode(float x, float y, float z, float radius, bool flag0, bool flag1, bool flag2, float *pX, float *pY, float *pZ, float *heading) { return NativeInvoke::Invoke<996, std::to_underlying(NativeHashes::GET_RANDOM_CAR_NODE), bool>(x, y, z, radius, flag0, flag1, flag2, pX, pY, pZ, heading); }
+    static inline auto GetRandomCarNodeIncludeSwitchedOffNodes(float x, float y, float z, float radius, bool flag0, bool flag1, bool flag2, float *pX, float *pY, float *pZ, float *heading) { return NativeInvoke::Invoke<997, std::to_underlying(NativeHashes::GET_RANDOM_CAR_NODE_INCLUDE_SWITCHED_OFF_NODES), bool>(x, y, z, radius, flag0, flag1, flag2, pX, pY, pZ, heading); }
+    static inline auto GetRandomCarOfTypeInAngledAreaNoSave(float a1, float a2, float a3, float a4, float a5, uint32_t type, Car *car) { return NativeInvoke::Invoke<998, std::to_underlying(NativeHashes::GET_RANDOM_CAR_OF_TYPE_IN_ANGLED_AREA_NO_SAVE), void>(a1, a2, a3, a4, a5, type, car); }
+    static inline auto GetRandomCarOfTypeInAreaNoSave(float x0, float y0, float x1, float y1, uint32_t model, Car *car) { return NativeInvoke::Invoke<999, std::to_underlying(NativeHashes::GET_RANDOM_CAR_OF_TYPE_IN_AREA_NO_SAVE), void>(x0, y0, x1, y1, model, car); }
+    static inline auto GetRandomCharInAreaOffsetNoSave(float x, float y, float z, float sx, float sy, float sz, Ped *pPed) { return NativeInvoke::Invoke<1000, std::to_underlying(NativeHashes::GET_RANDOM_CHAR_IN_AREA_OFFSET_NO_SAVE), void>(x, y, z, sx, sy, sz, pPed); }
     static inline auto GetRandomNetworkRestartNode(Any a1, Any a2, Any a3, Any a4, Any a5, Any a6) { return NativeInvoke::Invoke<1001, std::to_underlying(NativeHashes::GET_RANDOM_NETWORK_RESTART_NODE), Any>(a1, a2, a3, a4, a5, a6); }
     static inline auto GetRandomNetworkRestartNodeExcludingGroup() { return NativeInvoke::Invoke<1002, std::to_underlying(NativeHashes::GET_RANDOM_NETWORK_RESTART_NODE_EXCLUDING_GROUP), Any>(); }
     static inline auto GetRandomNetworkRestartNodeOfGroup() { return NativeInvoke::Invoke<1003, std::to_underlying(NativeHashes::GET_RANDOM_NETWORK_RESTART_NODE_OF_GROUP), Any>(); }
     static inline auto GetRandomNetworkRestartNodeUsingGroupList(Any a1, Any a2, Any a3, Any a4, Any a5, Any a6) { return NativeInvoke::Invoke<1004, std::to_underlying(NativeHashes::GET_RANDOM_NETWORK_RESTART_NODE_USING_GROUP_LIST), Any>(a1, a2, a3, a4, a5, a6); }
-    static inline auto GetRandomWaterNode(float x, float y, float z, float radius, bool flag0, bool flag1, bool flag2, bool flag3, float* pX, float* pY, float* pZ, float* heading) { return NativeInvoke::Invoke<1005, std::to_underlying(NativeHashes::GET_RANDOM_WATER_NODE), bool>(x, y, z, radius, flag0, flag1, flag2, flag3, pX, pY, pZ, heading); }
+    static inline auto GetRandomWaterNode(float x, float y, float z, float radius, bool flag0, bool flag1, bool flag2, bool flag3, float *pX, float *pY, float *pZ, float *heading) { return NativeInvoke::Invoke<1005, std::to_underlying(NativeHashes::GET_RANDOM_WATER_NODE), bool>(x, y, z, radius, flag0, flag1, flag2, flag3, pX, pY, pZ, heading); }
     static inline auto GetRemoteControlledCar() { return NativeInvoke::Invoke<1006, std::to_underlying(NativeHashes::GET_REMOTE_CONTROLLED_CAR), Any>(); }
     static inline auto GetReturnToFilterMenu() { return NativeInvoke::Invoke<1007, std::to_underlying(NativeHashes::GET_RETURN_TO_FILTER_MENU), Any>(); }
-    static inline auto GetRoomKeyFromObject(Object obj, uint32_t* pRoomKey) { return NativeInvoke::Invoke<1008, std::to_underlying(NativeHashes::GET_ROOM_KEY_FROM_OBJECT), void>(obj, pRoomKey); }
-    static inline auto GetRoomKeyFromPickup(int32_t pickup, uint32_t* hash) { return NativeInvoke::Invoke<1009, std::to_underlying(NativeHashes::GET_ROOM_KEY_FROM_PICKUP), void>(pickup, hash); }
+    static inline auto GetRoomKeyFromObject(Object obj, uint32_t *pRoomKey) { return NativeInvoke::Invoke<1008, std::to_underlying(NativeHashes::GET_ROOM_KEY_FROM_OBJECT), void>(obj, pRoomKey); }
+    static inline auto GetRoomKeyFromPickup(int32_t pickup, uint32_t *hash) { return NativeInvoke::Invoke<1009, std::to_underlying(NativeHashes::GET_ROOM_KEY_FROM_PICKUP), void>(pickup, hash); }
     static inline auto GetRoomNameFromCharDebug() { return NativeInvoke::Invoke<1010, std::to_underlying(NativeHashes::GET_ROOM_NAME_FROM_CHAR_DEBUG), Any>(); }
-    static inline auto GetRootCam(Cam* rootcam) { return NativeInvoke::Invoke<1011, std::to_underlying(NativeHashes::GET_ROOT_CAM), void>(rootcam); }
-    static inline auto GetRopeHeightForObject(Object obj, float* height) { return NativeInvoke::Invoke<1012, std::to_underlying(NativeHashes::GET_ROPE_HEIGHT_FOR_OBJECT), void>(obj, height); }
+    static inline auto GetRootCam(Cam *rootcam) { return NativeInvoke::Invoke<1011, std::to_underlying(NativeHashes::GET_ROOT_CAM), void>(rootcam); }
+    static inline auto GetRopeHeightForObject(Object obj, float *height) { return NativeInvoke::Invoke<1012, std::to_underlying(NativeHashes::GET_ROPE_HEIGHT_FOR_OBJECT), void>(obj, height); }
     static inline auto GetRouteSize() { return NativeInvoke::Invoke<1013, std::to_underlying(NativeHashes::GET_ROUTE_SIZE), int32_t>(); }
     static inline auto GetSafeLocalRestartCoords() { return NativeInvoke::Invoke<1014, std::to_underlying(NativeHashes::GET_SAFE_LOCAL_RESTART_COORDS), Any>(); }
-    static inline auto GetSafePickupCoords(float x, float y, float z, float* pSafeX, float* pSafeY, float* pSafeZ) { return NativeInvoke::Invoke<1015, std::to_underlying(NativeHashes::GET_SAFE_PICKUP_COORDS), void>(x, y, z, pSafeX, pSafeY, pSafeZ); }
-    static inline auto GetSafePositionForChar(float x, float y, float z, bool unknownTrue, float* pSafeX, float* pSafeY, float* pSafeZ) { return NativeInvoke::Invoke<1016, std::to_underlying(NativeHashes::GET_SAFE_POSITION_FOR_CHAR), bool>(x, y, z, unknownTrue, pSafeX, pSafeY, pSafeZ); }
+    static inline auto GetSafePickupCoords(float x, float y, float z, float *pSafeX, float *pSafeY, float *pSafeZ) { return NativeInvoke::Invoke<1015, std::to_underlying(NativeHashes::GET_SAFE_PICKUP_COORDS), void>(x, y, z, pSafeX, pSafeY, pSafeZ); }
+    static inline auto GetSafePositionForChar(float x, float y, float z, bool unknownTrue, float *pSafeX, float *pSafeY, float *pSafeZ) { return NativeInvoke::Invoke<1016, std::to_underlying(NativeHashes::GET_SAFE_POSITION_FOR_CHAR), bool>(x, y, z, unknownTrue, pSafeX, pSafeY, pSafeZ); }
     static inline auto GetScreenFadeAlpha() { return NativeInvoke::Invoke<1017, std::to_underlying(NativeHashes::GET_SCREEN_FADE_ALPHA), int32_t>(); }
-    static inline auto GetScreenResolution(float* x, float* y) { return NativeInvoke::Invoke<1018, std::to_underlying(NativeHashes::GET_SCREEN_RESOLUTION), void>(x, y); }
-    static inline auto GetScreenViewportId(int32_t* viewportid) { return NativeInvoke::Invoke<1019, std::to_underlying(NativeHashes::GET_SCREEN_VIEWPORT_ID), void>(viewportid); }
-    static inline auto GetScriptCam(int32_t* cam) { return NativeInvoke::Invoke<1020, std::to_underlying(NativeHashes::GET_SCRIPT_CAM), void>(cam); }
-    static inline auto GetScriptDrawCam(int32_t* cam) { return NativeInvoke::Invoke<1021, std::to_underlying(NativeHashes::GET_SCRIPT_DRAW_CAM), void>(cam); }
-    static inline auto GetScriptFireCoords(int32_t fire, float* x, float* y, float* z) { return NativeInvoke::Invoke<1022, std::to_underlying(NativeHashes::GET_SCRIPT_FIRE_COORDS), void>(fire, x, y, z); }
-    static inline auto GetScriptRendertargetRenderId(uint32_t* pRenderId) { return NativeInvoke::Invoke<1023, std::to_underlying(NativeHashes::GET_SCRIPT_RENDERTARGET_RENDER_ID), void>(pRenderId); }
-    static inline auto GetScriptTaskStatus(Ped ped, int32_t task, int32_t* status) { return NativeInvoke::Invoke<1024, std::to_underlying(NativeHashes::GET_SCRIPT_TASK_STATUS), void>(ped, task, status); }
-    static inline auto GetSequenceProgress(int32_t seq, int32_t* progress) { return NativeInvoke::Invoke<1025, std::to_underlying(NativeHashes::GET_SEQUENCE_PROGRESS), void>(seq, progress); }
+    static inline auto GetScreenResolution(float *x, float *y) { return NativeInvoke::Invoke<1018, std::to_underlying(NativeHashes::GET_SCREEN_RESOLUTION), void>(x, y); }
+    static inline auto GetScreenViewportId(int32_t *viewportid) { return NativeInvoke::Invoke<1019, std::to_underlying(NativeHashes::GET_SCREEN_VIEWPORT_ID), void>(viewportid); }
+    static inline auto GetScriptCam(int32_t *cam) { return NativeInvoke::Invoke<1020, std::to_underlying(NativeHashes::GET_SCRIPT_CAM), void>(cam); }
+    static inline auto GetScriptDrawCam(int32_t *cam) { return NativeInvoke::Invoke<1021, std::to_underlying(NativeHashes::GET_SCRIPT_DRAW_CAM), void>(cam); }
+    static inline auto GetScriptFireCoords(int32_t fire, float *x, float *y, float *z) { return NativeInvoke::Invoke<1022, std::to_underlying(NativeHashes::GET_SCRIPT_FIRE_COORDS), void>(fire, x, y, z); }
+    static inline auto GetScriptRendertargetRenderId(uint32_t *pRenderId) { return NativeInvoke::Invoke<1023, std::to_underlying(NativeHashes::GET_SCRIPT_RENDERTARGET_RENDER_ID), void>(pRenderId); }
+    static inline auto GetScriptTaskStatus(Ped ped, int32_t task, int32_t *status) { return NativeInvoke::Invoke<1024, std::to_underlying(NativeHashes::GET_SCRIPT_TASK_STATUS), void>(ped, task, status); }
+    static inline auto GetSequenceProgress(int32_t seq, int32_t *progress) { return NativeInvoke::Invoke<1025, std::to_underlying(NativeHashes::GET_SEQUENCE_PROGRESS), void>(seq, progress); }
     static inline auto GetSequenceProgressRecursive() { return NativeInvoke::Invoke<1026, std::to_underlying(NativeHashes::GET_SEQUENCE_PROGRESS_RECURSIVE), Any>(); }
     static inline auto GetServerId() { return NativeInvoke::Invoke<1027, std::to_underlying(NativeHashes::GET_SERVER_ID), Any>(); }
     static inline auto GetSimpleBlipId() { return NativeInvoke::Invoke<1028, std::to_underlying(NativeHashes::GET_SIMPLE_BLIP_ID), int32_t>(); }
@@ -4408,32 +4413,32 @@ public:
     static inline auto GetSortedNetworkRestartNodeOfGroup() { return NativeInvoke::Invoke<1031, std::to_underlying(NativeHashes::GET_SORTED_NETWORK_RESTART_NODE_OF_GROUP), Any>(); }
     static inline auto GetSortedNetworkRestartNodeUsingGroupList(Any a1, Any a2, Any a3, Any a4, Any a5, Any a6, Any a7, Any a8, Any a9) { return NativeInvoke::Invoke<1032, std::to_underlying(NativeHashes::GET_SORTED_NETWORK_RESTART_NODE_USING_GROUP_LIST), Any>(a1, a2, a3, a4, a5, a6, a7, a8, a9); }
     static inline auto GetSoundId() { return NativeInvoke::Invoke<1033, std::to_underlying(NativeHashes::GET_SOUND_ID), uint32_t>(); }
-    static inline auto GetSoundLevelAtCoords(Ped ped, float x, float y, float z, int32_t* level) { return NativeInvoke::Invoke<1034, std::to_underlying(NativeHashes::GET_SOUND_LEVEL_AT_COORDS), void>(ped, x, y, z, level); }
+    static inline auto GetSoundLevelAtCoords(Ped ped, float x, float y, float z, int32_t *level) { return NativeInvoke::Invoke<1034, std::to_underlying(NativeHashes::GET_SOUND_LEVEL_AT_COORDS), void>(ped, x, y, z, level); }
     static inline auto GetSpawnCoordinatesForCarNode(Any a1, Any a2, Any a3, Any a4, Any a5, Any a6) { return NativeInvoke::Invoke<1035, std::to_underlying(NativeHashes::GET_SPAWN_COORDINATES_FOR_CAR_NODE), void>(a1, a2, a3, a4, a5, a6); }
-    static inline auto GetSpeechForEmergencyServiceCall() { return NativeInvoke::Invoke<1036, std::to_underlying(NativeHashes::GET_SPEECH_FOR_EMERGENCY_SERVICE_CALL), char*>(); }
+    static inline auto GetSpeechForEmergencyServiceCall() { return NativeInvoke::Invoke<1036, std::to_underlying(NativeHashes::GET_SPEECH_FOR_EMERGENCY_SERVICE_CALL), char *>(); }
     static inline auto GetStartFromFilterMenu() { return NativeInvoke::Invoke<1037, std::to_underlying(NativeHashes::GET_START_FROM_FILTER_MENU), Any>(); }
     static inline auto GetStatFrontendDisplayType(int32_t stat) { return NativeInvoke::Invoke<1038, std::to_underlying(NativeHashes::GET_STAT_FRONTEND_DISPLAY_TYPE), int32_t>(stat); }
     static inline auto GetStatFrontendVisibility(int32_t stat) { return NativeInvoke::Invoke<1039, std::to_underlying(NativeHashes::GET_STAT_FRONTEND_VISIBILITY), bool>(stat); }
-    static inline auto GetStateOfClosestDoorOfType(uint32_t model, float x, float y, float z, int32_t* state, float* a6) { return NativeInvoke::Invoke<1040, std::to_underlying(NativeHashes::GET_STATE_OF_CLOSEST_DOOR_OF_TYPE), void>(model, x, y, z, state, a6); }
+    static inline auto GetStateOfClosestDoorOfType(uint32_t model, float x, float y, float z, int32_t *state, float *a6) { return NativeInvoke::Invoke<1040, std::to_underlying(NativeHashes::GET_STATE_OF_CLOSEST_DOOR_OF_TYPE), void>(model, x, y, z, state, a6); }
     static inline auto GetStaticEmitterPlaytime(int32_t StaticEmitterIndex) { return NativeInvoke::Invoke<1041, std::to_underlying(NativeHashes::GET_STATIC_EMITTER_PLAYTIME), int32_t>(StaticEmitterIndex); }
-    static inline auto GetStationName(Train train, uint32_t station) { return NativeInvoke::Invoke<1042, std::to_underlying(NativeHashes::GET_STATION_NAME), char*>(train, station); }
-    static inline auto GetStreamBeatInfo(int32_t* a1, int32_t* a2, int32_t* a3) { return NativeInvoke::Invoke<1043, std::to_underlying(NativeHashes::GET_STREAM_BEAT_INFO), void>(a1, a2, a3); }
+    static inline auto GetStationName(Train train, uint32_t station) { return NativeInvoke::Invoke<1042, std::to_underlying(NativeHashes::GET_STATION_NAME), char *>(train, station); }
+    static inline auto GetStreamBeatInfo(int32_t *a1, int32_t *a2, int32_t *a3) { return NativeInvoke::Invoke<1043, std::to_underlying(NativeHashes::GET_STREAM_BEAT_INFO), void>(a1, a2, a3); }
     static inline auto GetStreamPlaytime() { return NativeInvoke::Invoke<1044, std::to_underlying(NativeHashes::GET_STREAM_PLAYTIME), int32_t>(); }
-    static inline auto GetStringFromHashKey(uint32_t hashKey) { return NativeInvoke::Invoke<1045, std::to_underlying(NativeHashes::GET_STRING_FROM_HASH_KEY), char*>(hashKey); }
-    static inline auto GetStringFromString(char* str, int32_t startsymb, int32_t endsymb) { return NativeInvoke::Invoke<1046, std::to_underlying(NativeHashes::GET_STRING_FROM_STRING), char*>(str, startsymb, endsymb); }
-    static inline auto GetStringFromTextFile(char* gxtentry) { return NativeInvoke::Invoke<1047, std::to_underlying(NativeHashes::GET_STRING_FROM_TEXT_FILE), char*>(gxtentry); }
-    static inline auto GetStringWidth(char* gxtName) { return NativeInvoke::Invoke<1048, std::to_underlying(NativeHashes::GET_STRING_WIDTH), int32_t>(gxtName); }
-    static inline auto GetStringWidthWithNumber(char* gxtName, int32_t number) { return NativeInvoke::Invoke<1049, std::to_underlying(NativeHashes::GET_STRING_WIDTH_WITH_NUMBER), int32_t>(gxtName, number); }
-    static inline auto GetStringWidthWithString(char* gxtName, char* literalString) { return NativeInvoke::Invoke<1050, std::to_underlying(NativeHashes::GET_STRING_WIDTH_WITH_STRING), int32_t>(gxtName, literalString); }
-    static inline auto GetStringWidthWithTextAndInt(char* gxtname, char* gxtnamenext, int32_t val) { return NativeInvoke::Invoke<1051, std::to_underlying(NativeHashes::GET_STRING_WIDTH_WITH_TEXT_AND_INT), int32_t>(gxtname, gxtnamenext, val); }
+    static inline auto GetStringFromHashKey(uint32_t hashKey) { return NativeInvoke::Invoke<1045, std::to_underlying(NativeHashes::GET_STRING_FROM_HASH_KEY), char *>(hashKey); }
+    static inline auto GetStringFromString(char *str, int32_t startsymb, int32_t endsymb) { return NativeInvoke::Invoke<1046, std::to_underlying(NativeHashes::GET_STRING_FROM_STRING), char *>(str, startsymb, endsymb); }
+    static inline auto GetStringFromTextFile(char *gxtentry) { return NativeInvoke::Invoke<1047, std::to_underlying(NativeHashes::GET_STRING_FROM_TEXT_FILE), char *>(gxtentry); }
+    static inline auto GetStringWidth(char *gxtName) { return NativeInvoke::Invoke<1048, std::to_underlying(NativeHashes::GET_STRING_WIDTH), int32_t>(gxtName); }
+    static inline auto GetStringWidthWithNumber(char *gxtName, int32_t number) { return NativeInvoke::Invoke<1049, std::to_underlying(NativeHashes::GET_STRING_WIDTH_WITH_NUMBER), int32_t>(gxtName, number); }
+    static inline auto GetStringWidthWithString(char *gxtName, char *literalString) { return NativeInvoke::Invoke<1050, std::to_underlying(NativeHashes::GET_STRING_WIDTH_WITH_STRING), int32_t>(gxtName, literalString); }
+    static inline auto GetStringWidthWithTextAndInt(char *gxtname, char *gxtnamenext, int32_t val) { return NativeInvoke::Invoke<1051, std::to_underlying(NativeHashes::GET_STRING_WIDTH_WITH_TEXT_AND_INT), int32_t>(gxtname, gxtnamenext, val); }
     static inline auto GetTaskPlaceCarBombUnsuccessful() { return NativeInvoke::Invoke<1052, std::to_underlying(NativeHashes::GET_TASK_PLACE_CAR_BOMB_UNSUCCESSFUL), bool>(); }
     static inline auto GetTeamColour() { return NativeInvoke::Invoke<1053, std::to_underlying(NativeHashes::GET_TEAM_COLOUR), Any>(); }
     static inline auto GetTeamRgbColour(Any a1, Any a2, Any a3, Any a4) { return NativeInvoke::Invoke<1054, std::to_underlying(NativeHashes::GET_TEAM_RGB_COLOUR), void>(a1, a2, a3, a4); }
     static inline auto GetTextInputActive() { return NativeInvoke::Invoke<1055, std::to_underlying(NativeHashes::GET_TEXT_INPUT_ACTIVE), bool>(); }
-    static inline auto GetTexture(TextureDict dictionary, const char* textureName) { return NativeInvoke::Invoke<1056, std::to_underlying(NativeHashes::GET_TEXTURE), Texture>(dictionary, textureName); }
-    static inline auto GetTextureFromStreamedTxd(char* txdName, const char* textureName) { return NativeInvoke::Invoke<1057, std::to_underlying(NativeHashes::GET_TEXTURE_FROM_STREAMED_TXD), Texture>(txdName, textureName); }
-    static inline auto GetTextureResolution(uint32_t texture, float* x, float* y) { return NativeInvoke::Invoke<1058, std::to_underlying(NativeHashes::GET_TEXTURE_RESOLUTION), void>(texture, x, y); }
-    static inline auto GetTimeOfDay(uint32_t* hour, uint32_t* minute) { return NativeInvoke::Invoke<1059, std::to_underlying(NativeHashes::GET_TIME_OF_DAY), void>(hour, minute); }
+    static inline auto GetTexture(TextureDict dictionary, const char *textureName) { return NativeInvoke::Invoke<1056, std::to_underlying(NativeHashes::GET_TEXTURE), Texture>(dictionary, textureName); }
+    static inline auto GetTextureFromStreamedTxd(char *txdName, const char *textureName) { return NativeInvoke::Invoke<1057, std::to_underlying(NativeHashes::GET_TEXTURE_FROM_STREAMED_TXD), Texture>(txdName, textureName); }
+    static inline auto GetTextureResolution(uint32_t texture, float *x, float *y) { return NativeInvoke::Invoke<1058, std::to_underlying(NativeHashes::GET_TEXTURE_RESOLUTION), void>(texture, x, y); }
+    static inline auto GetTimeOfDay(uint32_t *hour, uint32_t *minute) { return NativeInvoke::Invoke<1059, std::to_underlying(NativeHashes::GET_TIME_OF_DAY), void>(hour, minute); }
     static inline auto GetTimeSinceLastArrest() { return NativeInvoke::Invoke<1060, std::to_underlying(NativeHashes::GET_TIME_SINCE_LAST_ARREST), uint32_t>(); }
     static inline auto GetTimeSinceLastDeath() { return NativeInvoke::Invoke<1061, std::to_underlying(NativeHashes::GET_TIME_SINCE_LAST_DEATH), uint32_t>(); }
     static inline auto GetTimeSincePlayerDroveAgainstTraffic(Player playerIndex) { return NativeInvoke::Invoke<1062, std::to_underlying(NativeHashes::GET_TIME_SINCE_PLAYER_DROVE_AGAINST_TRAFFIC), uint32_t>(playerIndex); }
@@ -4446,35 +4451,35 @@ public:
     static inline auto GetTimeTilNextStation(Vehicle train) { return NativeInvoke::Invoke<1069, std::to_underlying(NativeHashes::GET_TIME_TIL_NEXT_STATION), float>(train); }
     static inline auto GetTotalDurationOfCarRecording(int32_t CarRec) { return NativeInvoke::Invoke<1070, std::to_underlying(NativeHashes::GET_TOTAL_DURATION_OF_CAR_RECORDING), float>(CarRec); }
     static inline auto GetTotalNumberOfStats() { return NativeInvoke::Invoke<1071, std::to_underlying(NativeHashes::GET_TOTAL_NUMBER_OF_STATS), int32_t>(); }
-    static inline auto GetTrainCaboose(Vehicle train, Vehicle* caboose) { return NativeInvoke::Invoke<1072, std::to_underlying(NativeHashes::GET_TRAIN_CABOOSE), void>(train, caboose); }
-    static inline auto GetTrainCarriage(Vehicle train, int32_t num, Vehicle* carriage) { return NativeInvoke::Invoke<1073, std::to_underlying(NativeHashes::GET_TRAIN_CARRIAGE), void>(train, num, carriage); }
-    static inline auto GetTrainPlayerWouldEnter(int32_t player, int32_t* train) { return NativeInvoke::Invoke<1074, std::to_underlying(NativeHashes::GET_TRAIN_PLAYER_WOULD_ENTER), void>(player, train); }
-    static inline auto GetTxd(char* txdName) { return NativeInvoke::Invoke<1075, std::to_underlying(NativeHashes::GET_TXD), TextureDict>(txdName); }
+    static inline auto GetTrainCaboose(Vehicle train, Vehicle *caboose) { return NativeInvoke::Invoke<1072, std::to_underlying(NativeHashes::GET_TRAIN_CABOOSE), void>(train, caboose); }
+    static inline auto GetTrainCarriage(Vehicle train, int32_t num, Vehicle *carriage) { return NativeInvoke::Invoke<1073, std::to_underlying(NativeHashes::GET_TRAIN_CARRIAGE), void>(train, num, carriage); }
+    static inline auto GetTrainPlayerWouldEnter(int32_t player, int32_t *train) { return NativeInvoke::Invoke<1074, std::to_underlying(NativeHashes::GET_TRAIN_PLAYER_WOULD_ENTER), void>(player, train); }
+    static inline auto GetTxd(char *txdName) { return NativeInvoke::Invoke<1075, std::to_underlying(NativeHashes::GET_TXD), TextureDict>(txdName); }
     static inline auto GetVehicleClass() { return NativeInvoke::Invoke<1076, std::to_underlying(NativeHashes::GET_VEHICLE_CLASS), Any>(); }
-    static inline auto GetVehicleComponentInfo(Vehicle veh, int32_t component_id, Vector3* a3, Vector3* a4, int32_t* a5, bool flag) { return NativeInvoke::Invoke<1077, std::to_underlying(NativeHashes::GET_VEHICLE_COMPONENT_INFO), bool>(veh, component_id, a3, a4, a5, flag); }
-    static inline auto GetVehicleDirtLevel(Vehicle vehicle, float* pIntensity) { return NativeInvoke::Invoke<1078, std::to_underlying(NativeHashes::GET_VEHICLE_DIRT_LEVEL), void>(vehicle, pIntensity); }
+    static inline auto GetVehicleComponentInfo(Vehicle veh, int32_t component_id, Vector3 *a3, Vector3 *a4, int32_t *a5, bool flag) { return NativeInvoke::Invoke<1077, std::to_underlying(NativeHashes::GET_VEHICLE_COMPONENT_INFO), bool>(veh, component_id, a3, a4, a5, flag); }
+    static inline auto GetVehicleDirtLevel(Vehicle vehicle, float *pIntensity) { return NativeInvoke::Invoke<1078, std::to_underlying(NativeHashes::GET_VEHICLE_DIRT_LEVEL), void>(vehicle, pIntensity); }
     static inline auto GetVehicleEngineRevs(Vehicle veh) { return NativeInvoke::Invoke<1079, std::to_underlying(NativeHashes::GET_VEHICLE_ENGINE_REVS), float>(veh); }
     static inline auto GetVehicleFromNetworkId(Any a1, Any a2) { return NativeInvoke::Invoke<1080, std::to_underlying(NativeHashes::GET_VEHICLE_FROM_NETWORK_ID), void>(a1, a2); }
     static inline auto GetVehicleGear(Vehicle veh) { return NativeInvoke::Invoke<1081, std::to_underlying(NativeHashes::GET_VEHICLE_GEAR), int32_t>(veh); }
     static inline auto GetVehicleModelFromIndex(int32_t index) { return NativeInvoke::Invoke<1082, std::to_underlying(NativeHashes::GET_VEHICLE_MODEL_FROM_INDEX), uint32_t>(index); }
-    static inline auto GetVehiclePlayerWouldEnter(int32_t player, Vehicle* veh) { return NativeInvoke::Invoke<1083, std::to_underlying(NativeHashes::GET_VEHICLE_PLAYER_WOULD_ENTER), void>(player, veh); }
-    static inline auto GetVehicleQuaternion(Vehicle veh, float* a2, float* a3, float* a4, float* a5) { return NativeInvoke::Invoke<1084, std::to_underlying(NativeHashes::GET_VEHICLE_QUATERNION), void>(veh, a2, a3, a4, a5); }
+    static inline auto GetVehiclePlayerWouldEnter(int32_t player, Vehicle *veh) { return NativeInvoke::Invoke<1083, std::to_underlying(NativeHashes::GET_VEHICLE_PLAYER_WOULD_ENTER), void>(player, veh); }
+    static inline auto GetVehicleQuaternion(Vehicle veh, float *a2, float *a3, float *a4, float *a5) { return NativeInvoke::Invoke<1084, std::to_underlying(NativeHashes::GET_VEHICLE_QUATERNION), void>(veh, a2, a3, a4, a5); }
     static inline auto GetVehicleTypeOfModel(uint32_t model) { return NativeInvoke::Invoke<1085, std::to_underlying(NativeHashes::GET_VEHICLE_TYPE_OF_MODEL), int32_t>(model); }
-    static inline auto GetViewportPosAndSize(int32_t viewportid, float* x, float* y, float* xsize, float* ysize) { return NativeInvoke::Invoke<1086, std::to_underlying(NativeHashes::GET_VIEWPORT_POS_AND_SIZE), void>(viewportid, x, y, xsize, ysize); }
-    static inline auto GetViewportPositionOfCoord(float x, float y, float z, float* vx, float* vy, float* vz) { return NativeInvoke::Invoke<1087, std::to_underlying(NativeHashes::GET_VIEWPORT_POSITION_OF_COORD), bool>(x, y, z, vx, vy, vz); }
-    static inline auto GetWaterHeight(float x, float y, float z, float* pheight) { return NativeInvoke::Invoke<1088, std::to_underlying(NativeHashes::GET_WATER_HEIGHT), bool>(x, y, z, pheight); }
-    static inline auto GetWaterHeightNoWaves(float x, float y, float z, float* height) { return NativeInvoke::Invoke<1089, std::to_underlying(NativeHashes::GET_WATER_HEIGHT_NO_WAVES), bool>(x, y, z, height); }
-    static inline auto GetWeapontypeModel(int32_t weapontype, uint32_t* model) { return NativeInvoke::Invoke<1090, std::to_underlying(NativeHashes::GET_WEAPONTYPE_MODEL), void>(weapontype, model); }
-    static inline auto GetWeapontypeSlot(int32_t weapon, int32_t* slot) { return NativeInvoke::Invoke<1091, std::to_underlying(NativeHashes::GET_WEAPONTYPE_SLOT), void>(weapon, slot); }
+    static inline auto GetViewportPosAndSize(int32_t viewportid, float *x, float *y, float *xsize, float *ysize) { return NativeInvoke::Invoke<1086, std::to_underlying(NativeHashes::GET_VIEWPORT_POS_AND_SIZE), void>(viewportid, x, y, xsize, ysize); }
+    static inline auto GetViewportPositionOfCoord(float x, float y, float z, float *vx, float *vy, float *vz) { return NativeInvoke::Invoke<1087, std::to_underlying(NativeHashes::GET_VIEWPORT_POSITION_OF_COORD), bool>(x, y, z, vx, vy, vz); }
+    static inline auto GetWaterHeight(float x, float y, float z, float *pheight) { return NativeInvoke::Invoke<1088, std::to_underlying(NativeHashes::GET_WATER_HEIGHT), bool>(x, y, z, pheight); }
+    static inline auto GetWaterHeightNoWaves(float x, float y, float z, float *height) { return NativeInvoke::Invoke<1089, std::to_underlying(NativeHashes::GET_WATER_HEIGHT_NO_WAVES), bool>(x, y, z, height); }
+    static inline auto GetWeapontypeModel(int32_t weapontype, uint32_t *model) { return NativeInvoke::Invoke<1090, std::to_underlying(NativeHashes::GET_WEAPONTYPE_MODEL), void>(weapontype, model); }
+    static inline auto GetWeapontypeSlot(int32_t weapon, int32_t *slot) { return NativeInvoke::Invoke<1091, std::to_underlying(NativeHashes::GET_WEAPONTYPE_SLOT), void>(weapon, slot); }
     static inline auto GetWebPageHeight(int32_t htmlviewport) { return NativeInvoke::Invoke<1092, std::to_underlying(NativeHashes::GET_WEB_PAGE_HEIGHT), float>(htmlviewport); }
     static inline auto GetWebPageLinkAtPosn(int32_t htmlviewport, float x, float y) { return NativeInvoke::Invoke<1093, std::to_underlying(NativeHashes::GET_WEB_PAGE_LINK_AT_POSN), int32_t>(htmlviewport, x, y); }
-    static inline auto GetWebPageLinkHref(int32_t htmlviewport, int32_t linkid) { return NativeInvoke::Invoke<1094, std::to_underlying(NativeHashes::GET_WEB_PAGE_LINK_HREF), char*>(htmlviewport, linkid); }
-    static inline auto GetWebPageLinkPosn(int32_t htmlviewport, int32_t linkid, float* x, float* y) { return NativeInvoke::Invoke<1095, std::to_underlying(NativeHashes::GET_WEB_PAGE_LINK_POSN), void>(htmlviewport, linkid, x, y); }
-    static inline auto GetWidthOfLiteralString(char* str) { return NativeInvoke::Invoke<1096, std::to_underlying(NativeHashes::GET_WIDTH_OF_LITERAL_STRING), int32_t>(str); }
-    static inline auto GetWidthOfSubstringGivenTextLabel(char* gxtname, bool a2, Any a3, Any a4, Any a5) { return NativeInvoke::Invoke<1097, std::to_underlying(NativeHashes::GET_WIDTH_OF_SUBSTRING_GIVEN_TEXT_LABEL), int32_t>(gxtname, a2, a3, a4, a5); }
+    static inline auto GetWebPageLinkHref(int32_t htmlviewport, int32_t linkid) { return NativeInvoke::Invoke<1094, std::to_underlying(NativeHashes::GET_WEB_PAGE_LINK_HREF), char *>(htmlviewport, linkid); }
+    static inline auto GetWebPageLinkPosn(int32_t htmlviewport, int32_t linkid, float *x, float *y) { return NativeInvoke::Invoke<1095, std::to_underlying(NativeHashes::GET_WEB_PAGE_LINK_POSN), void>(htmlviewport, linkid, x, y); }
+    static inline auto GetWidthOfLiteralString(char *str) { return NativeInvoke::Invoke<1096, std::to_underlying(NativeHashes::GET_WIDTH_OF_LITERAL_STRING), int32_t>(str); }
+    static inline auto GetWidthOfSubstringGivenTextLabel(char *gxtname, bool a2, Any a3, Any a4, Any a5) { return NativeInvoke::Invoke<1097, std::to_underlying(NativeHashes::GET_WIDTH_OF_SUBSTRING_GIVEN_TEXT_LABEL), int32_t>(gxtname, a2, a3, a4, a5); }
     static inline auto GiveDelayedWeaponToChar(Ped ped, int32_t weapon, int32_t delaytime, bool flag) { return NativeInvoke::Invoke<1098, std::to_underlying(NativeHashes::GIVE_DELAYED_WEAPON_TO_CHAR), void>(ped, weapon, delaytime, flag); }
     static inline auto GivePedAmbientObject(Ped ped, uint32_t model) { return NativeInvoke::Invoke<1099, std::to_underlying(NativeHashes::GIVE_PED_AMBIENT_OBJECT), void>(ped, model); }
-    static inline auto GivePedFakeNetworkName(Ped ped, char* name, int32_t r, int32_t g, int32_t b, int32_t a) { return NativeInvoke::Invoke<1100, std::to_underlying(NativeHashes::GIVE_PED_FAKE_NETWORK_NAME), void>(ped, name, r, g, b, a); }
+    static inline auto GivePedFakeNetworkName(Ped ped, char *name, int32_t r, int32_t g, int32_t b, int32_t a) { return NativeInvoke::Invoke<1100, std::to_underlying(NativeHashes::GIVE_PED_FAKE_NETWORK_NAME), void>(ped, name, r, g, b, a); }
     static inline auto GivePedHelmet(Ped ped) { return NativeInvoke::Invoke<1101, std::to_underlying(NativeHashes::GIVE_PED_HELMET), void>(ped); }
     static inline auto GivePedHelmetWithOpts(Ped ped, bool a2) { return NativeInvoke::Invoke<1102, std::to_underlying(NativeHashes::GIVE_PED_HELMET_WITH_OPTS), void>(ped, a2); }
     static inline auto GivePedPickupObject(Ped ped, Object obj, bool flag) { return NativeInvoke::Invoke<1103, std::to_underlying(NativeHashes::GIVE_PED_PICKUP_OBJECT), void>(ped, obj, flag); }
@@ -4482,10 +4487,10 @@ public:
     static inline auto GivePlayerRagdollControl(int32_t player, bool give) { return NativeInvoke::Invoke<1105, std::to_underlying(NativeHashes::GIVE_PLAYER_RAGDOLL_CONTROL), void>(player, give); }
     static inline auto GiveRemoteControlledModelToPlayer() { return NativeInvoke::Invoke<1106, std::to_underlying(NativeHashes::GIVE_REMOTE_CONTROLLED_MODEL_TO_PLAYER), Any>(); }
     static inline auto GiveWeaponToChar(Ped ped, uint32_t weapon, uint32_t ammo, bool unknown0) { return NativeInvoke::Invoke<1107, std::to_underlying(NativeHashes::GIVE_WEAPON_TO_CHAR), void>(ped, weapon, ammo, unknown0); }
-    static inline auto GrabEntityOnRopeForObject(Object obj, int32_t* a2, int32_t* a3, int32_t* a4) { return NativeInvoke::Invoke<1108, std::to_underlying(NativeHashes::GRAB_ENTITY_ON_ROPE_FOR_OBJECT), void>(obj, a2, a3, a4); }
-    static inline auto GrabNearbyObjectWithSpecialAttribute(int32_t attribute, Object* obj) { return NativeInvoke::Invoke<1109, std::to_underlying(NativeHashes::GRAB_NEARBY_OBJECT_WITH_SPECIAL_ATTRIBUTE), void>(attribute, obj); }
+    static inline auto GrabEntityOnRopeForObject(Object obj, int32_t *a2, int32_t *a3, int32_t *a4) { return NativeInvoke::Invoke<1108, std::to_underlying(NativeHashes::GRAB_ENTITY_ON_ROPE_FOR_OBJECT), void>(obj, a2, a3, a4); }
+    static inline auto GrabNearbyObjectWithSpecialAttribute(int32_t attribute, Object *obj) { return NativeInvoke::Invoke<1109, std::to_underlying(NativeHashes::GRAB_NEARBY_OBJECT_WITH_SPECIAL_ATTRIBUTE), void>(attribute, obj); }
     static inline auto HandVehicleControlBackToPlayer(Vehicle veh) { return NativeInvoke::Invoke<1110, std::to_underlying(NativeHashes::HAND_VEHICLE_CONTROL_BACK_TO_PLAYER), void>(veh); }
-    static inline auto HandleAudioAnimEvent(Ped ped, char* AudioAnimEventName) { return NativeInvoke::Invoke<1111, std::to_underlying(NativeHashes::HANDLE_AUDIO_ANIM_EVENT), void>(ped, AudioAnimEventName); }
+    static inline auto HandleAudioAnimEvent(Ped ped, char *AudioAnimEventName) { return NativeInvoke::Invoke<1111, std::to_underlying(NativeHashes::HANDLE_AUDIO_ANIM_EVENT), void>(ped, AudioAnimEventName); }
     static inline auto HasAchievementBeenPassed(uint32_t achievement) { return NativeInvoke::Invoke<1112, std::to_underlying(NativeHashes::HAS_ACHIEVEMENT_BEEN_PASSED), bool>(achievement); }
     static inline auto HasAdditionalTextLoaded(uint32_t textIndex) { return NativeInvoke::Invoke<1113, std::to_underlying(NativeHashes::HAS_ADDITIONAL_TEXT_LOADED), bool>(textIndex); }
     static inline auto HasCarBeenDamagedByCar(Vehicle vehicle, Vehicle otherCar) { return NativeInvoke::Invoke<1114, std::to_underlying(NativeHashes::HAS_CAR_BEEN_DAMAGED_BY_CAR), bool>(vehicle, otherCar); }
@@ -4495,7 +4500,7 @@ public:
     static inline auto HasCarBeenResprayed(Vehicle vehicle) { return NativeInvoke::Invoke<1118, std::to_underlying(NativeHashes::HAS_CAR_BEEN_RESPRAYED), bool>(vehicle); }
     static inline auto HasCarRecordingBeenLoaded(int32_t CarRec) { return NativeInvoke::Invoke<1119, std::to_underlying(NativeHashes::HAS_CAR_RECORDING_BEEN_LOADED), bool>(CarRec); }
     static inline auto HasCarStoppedBecauseOfLight(Car car) { return NativeInvoke::Invoke<1120, std::to_underlying(NativeHashes::HAS_CAR_STOPPED_BECAUSE_OF_LIGHT), bool>(car); }
-    static inline auto HasCharAnimFinished(Ped ped, char* AnimName0, char* AnimName1) { return NativeInvoke::Invoke<1121, std::to_underlying(NativeHashes::HAS_CHAR_ANIM_FINISHED), bool>(ped, AnimName0, AnimName1); }
+    static inline auto HasCharAnimFinished(Ped ped, char *AnimName0, char *AnimName1) { return NativeInvoke::Invoke<1121, std::to_underlying(NativeHashes::HAS_CHAR_ANIM_FINISHED), bool>(ped, AnimName0, AnimName1); }
     static inline auto HasCharBeenArrested(Ped ped) { return NativeInvoke::Invoke<1122, std::to_underlying(NativeHashes::HAS_CHAR_BEEN_ARRESTED), bool>(ped); }
     static inline auto HasCharBeenDamagedByCar(Ped ped, Vehicle vehicle) { return NativeInvoke::Invoke<1123, std::to_underlying(NativeHashes::HAS_CHAR_BEEN_DAMAGED_BY_CAR), bool>(ped, vehicle); }
     static inline auto HasCharBeenDamagedByChar(Ped ped, Ped otherChar, bool unknownFalse) { return NativeInvoke::Invoke<1124, std::to_underlying(NativeHashes::HAS_CHAR_BEEN_DAMAGED_BY_CHAR), bool>(ped, otherChar, unknownFalse); }
@@ -4534,11 +4539,11 @@ public:
     static inline auto HasPoolObjectCollidedWithObject(Object obj, Object otherObj) { return NativeInvoke::Invoke<1157, std::to_underlying(NativeHashes::HAS_POOL_OBJECT_COLLIDED_WITH_OBJECT), bool>(obj, otherObj); }
     static inline auto HasReloadedWithMotionControl(Any a1, Any a2) { return NativeInvoke::Invoke<1158, std::to_underlying(NativeHashes::HAS_RELOADED_WITH_MOTION_CONTROL), bool>(a1, a2); }
     static inline auto HasResprayHappened() { return NativeInvoke::Invoke<1159, std::to_underlying(NativeHashes::HAS_RESPRAY_HAPPENED), bool>(); }
-    static inline auto HasScriptLoaded(char* scriptName) { return NativeInvoke::Invoke<1160, std::to_underlying(NativeHashes::HAS_SCRIPT_LOADED), bool>(scriptName); }
+    static inline auto HasScriptLoaded(char *scriptName) { return NativeInvoke::Invoke<1160, std::to_underlying(NativeHashes::HAS_SCRIPT_LOADED), bool>(scriptName); }
     static inline auto HasSoundFinished(uint32_t sound) { return NativeInvoke::Invoke<1161, std::to_underlying(NativeHashes::HAS_SOUND_FINISHED), bool>(sound); }
-    static inline auto HasStreamedTxdLoaded(char* txdName) { return NativeInvoke::Invoke<1162, std::to_underlying(NativeHashes::HAS_STREAMED_TXD_LOADED), bool>(txdName); }
-    static inline auto HasThisAdditionalTextLoaded(char* textName, uint32_t textIndex) { return NativeInvoke::Invoke<1163, std::to_underlying(NativeHashes::HAS_THIS_ADDITIONAL_TEXT_LOADED), bool>(textName, textIndex); }
-    static inline auto HaveAnimsLoaded(char* animName) { return NativeInvoke::Invoke<1164, std::to_underlying(NativeHashes::HAVE_ANIMS_LOADED), bool>(animName); }
+    static inline auto HasStreamedTxdLoaded(char *txdName) { return NativeInvoke::Invoke<1162, std::to_underlying(NativeHashes::HAS_STREAMED_TXD_LOADED), bool>(txdName); }
+    static inline auto HasThisAdditionalTextLoaded(char *textName, uint32_t textIndex) { return NativeInvoke::Invoke<1163, std::to_underlying(NativeHashes::HAS_THIS_ADDITIONAL_TEXT_LOADED), bool>(textName, textIndex); }
+    static inline auto HaveAnimsLoaded(char *animName) { return NativeInvoke::Invoke<1164, std::to_underlying(NativeHashes::HAVE_ANIMS_LOADED), bool>(animName); }
     static inline auto HaveRequestedPathNodesBeenLoaded(uint32_t requestId) { return NativeInvoke::Invoke<1165, std::to_underlying(NativeHashes::HAVE_REQUESTED_PATH_NODES_BEEN_LOADED), bool>(requestId); }
     static inline auto HeliAudioShouldSkipStartup(Vehicle heli, bool skip) { return NativeInvoke::Invoke<1166, std::to_underlying(NativeHashes::HELI_AUDIO_SHOULD_SKIP_STARTUP), void>(heli, skip); }
     static inline auto HideCharWeaponForScriptedCutscene(Ped ped, bool hide) { return NativeInvoke::Invoke<1167, std::to_underlying(NativeHashes::HIDE_CHAR_WEAPON_FOR_SCRIPTED_CUTSCENE), void>(ped, hide); }
@@ -4557,7 +4562,7 @@ public:
     static inline auto IncrementFloatStatNoMessage(uint32_t stat, float value) { return NativeInvoke::Invoke<1180, std::to_underlying(NativeHashes::INCREMENT_FLOAT_STAT_NO_MESSAGE), void>(stat, value); }
     static inline auto IncrementIntStat(uint32_t stat, uint32_t value) { return NativeInvoke::Invoke<1181, std::to_underlying(NativeHashes::INCREMENT_INT_STAT), void>(stat, value); }
     static inline auto IncrementIntStatNoMessage(uint32_t stat, uint32_t value) { return NativeInvoke::Invoke<1182, std::to_underlying(NativeHashes::INCREMENT_INT_STAT_NO_MESSAGE), void>(stat, value); }
-    static inline auto InitCutscene(char* name) { return NativeInvoke::Invoke<1183, std::to_underlying(NativeHashes::INIT_CUTSCENE), void>(name); }
+    static inline auto InitCutscene(char *name) { return NativeInvoke::Invoke<1183, std::to_underlying(NativeHashes::INIT_CUTSCENE), void>(name); }
     static inline auto InitDebugWidgets() { return NativeInvoke::Invoke<1184, std::to_underlying(NativeHashes::INIT_DEBUG_WIDGETS), void>(); }
     static inline auto InitFrontendHelperText() { return NativeInvoke::Invoke<1185, std::to_underlying(NativeHashes::INIT_FRONTEND_HELPER_TEXT), void>(); }
     static inline auto Is2playerGameGoingOn() { return NativeInvoke::Invoke<1186, std::to_underlying(NativeHashes::IS_2PLAYER_GAME_GOING_ON), Any>(); }
@@ -4595,14 +4600,14 @@ public:
     static inline auto IsCarInAngledArea3d() { return NativeInvoke::Invoke<1218, std::to_underlying(NativeHashes::IS_CAR_IN_ANGLED_AREA_3D), Any>(); }
     static inline auto IsCarInArea2d(Vehicle vehicle, float x1, float y1, float x2, float y2, bool unknownFalse) { return NativeInvoke::Invoke<1219, std::to_underlying(NativeHashes::IS_CAR_IN_AREA_2D), bool>(vehicle, x1, y1, x2, y2, unknownFalse); }
     static inline auto IsCarInArea3d(Vehicle vehicle, float x1, float y1, float z1, float x2, float y2, float z2, uint32_t unknownFalse) { return NativeInvoke::Invoke<1220, std::to_underlying(NativeHashes::IS_CAR_IN_AREA_3D), bool>(vehicle, x1, y1, z1, x2, y2, z2, unknownFalse); }
-    static inline auto IsCarInGarageArea(char* garageName, Vehicle vehicle) { return NativeInvoke::Invoke<1221, std::to_underlying(NativeHashes::IS_CAR_IN_GARAGE_AREA), bool>(garageName, vehicle); }
+    static inline auto IsCarInGarageArea(char *garageName, Vehicle vehicle) { return NativeInvoke::Invoke<1221, std::to_underlying(NativeHashes::IS_CAR_IN_GARAGE_AREA), bool>(garageName, vehicle); }
     static inline auto IsCarInWater(Vehicle vehicle) { return NativeInvoke::Invoke<1222, std::to_underlying(NativeHashes::IS_CAR_IN_WATER), bool>(vehicle); }
     static inline auto IsCarLowRider(Car car) { return NativeInvoke::Invoke<1223, std::to_underlying(NativeHashes::IS_CAR_LOW_RIDER), bool>(car); }
     static inline auto IsCarModel(Vehicle vehicle, uint32_t model) { return NativeInvoke::Invoke<1224, std::to_underlying(NativeHashes::IS_CAR_MODEL), bool>(vehicle, model); }
     static inline auto IsCarOnFire(Vehicle vehicle) { return NativeInvoke::Invoke<1225, std::to_underlying(NativeHashes::IS_CAR_ON_FIRE), bool>(vehicle); }
     static inline auto IsCarOnScreen(Vehicle vehicle) { return NativeInvoke::Invoke<1226, std::to_underlying(NativeHashes::IS_CAR_ON_SCREEN), bool>(vehicle); }
     static inline auto IsCarPassengerSeatFree(Vehicle vehicle, uint32_t seatIndex) { return NativeInvoke::Invoke<1227, std::to_underlying(NativeHashes::IS_CAR_PASSENGER_SEAT_FREE), bool>(vehicle, seatIndex); }
-    static inline auto IsCarPlayingAnim(Car car, char* animname0, char* animname1) { return NativeInvoke::Invoke<1228, std::to_underlying(NativeHashes::IS_CAR_PLAYING_ANIM), bool>(car, animname0, animname1); }
+    static inline auto IsCarPlayingAnim(Car car, char *animname0, char *animname1) { return NativeInvoke::Invoke<1228, std::to_underlying(NativeHashes::IS_CAR_PLAYING_ANIM), bool>(car, animname0, animname1); }
     static inline auto IsCarSirenOn(Vehicle vehicle) { return NativeInvoke::Invoke<1229, std::to_underlying(NativeHashes::IS_CAR_SIREN_ON), bool>(vehicle); }
     static inline auto IsCarStopped(Vehicle vehicle) { return NativeInvoke::Invoke<1230, std::to_underlying(NativeHashes::IS_CAR_STOPPED), bool>(vehicle); }
     static inline auto IsCarStoppedAtTrafficLights(Vehicle vehicle) { return NativeInvoke::Invoke<1231, std::to_underlying(NativeHashes::IS_CAR_STOPPED_AT_TRAFFIC_LIGHTS), bool>(vehicle); }
@@ -4642,7 +4647,7 @@ public:
     static inline auto IsCharInModel(Ped ped, uint32_t model) { return NativeInvoke::Invoke<1265, std::to_underlying(NativeHashes::IS_CHAR_IN_MODEL), bool>(ped, model); }
     static inline auto IsCharInTaxi(Ped ped) { return NativeInvoke::Invoke<1266, std::to_underlying(NativeHashes::IS_CHAR_IN_TAXI), bool>(ped); }
     static inline auto IsCharInWater(Ped ped) { return NativeInvoke::Invoke<1267, std::to_underlying(NativeHashes::IS_CHAR_IN_WATER), bool>(ped); }
-    static inline auto IsCharInZone(Ped ped, char* zonename) { return NativeInvoke::Invoke<1268, std::to_underlying(NativeHashes::IS_CHAR_IN_ZONE), bool>(ped, zonename); }
+    static inline auto IsCharInZone(Ped ped, char *zonename) { return NativeInvoke::Invoke<1268, std::to_underlying(NativeHashes::IS_CHAR_IN_ZONE), bool>(ped, zonename); }
     static inline auto IsCharInjured(Ped ped) { return NativeInvoke::Invoke<1269, std::to_underlying(NativeHashes::IS_CHAR_INJURED), bool>(ped); }
     static inline auto IsCharMale(Ped ped) { return NativeInvoke::Invoke<1270, std::to_underlying(NativeHashes::IS_CHAR_MALE), bool>(ped); }
     static inline auto IsCharModel(Ped ped, uint32_t model) { return NativeInvoke::Invoke<1271, std::to_underlying(NativeHashes::IS_CHAR_MODEL), bool>(ped, model); }
@@ -4651,7 +4656,7 @@ public:
     static inline auto IsCharOnFoot(Ped ped) { return NativeInvoke::Invoke<1274, std::to_underlying(NativeHashes::IS_CHAR_ON_FOOT), bool>(ped); }
     static inline auto IsCharOnPlayerMachine() { return NativeInvoke::Invoke<1275, std::to_underlying(NativeHashes::IS_CHAR_ON_PLAYER_MACHINE), Any>(); }
     static inline auto IsCharOnScreen(Ped ped) { return NativeInvoke::Invoke<1276, std::to_underlying(NativeHashes::IS_CHAR_ON_SCREEN), bool>(ped); }
-    static inline auto IsCharPlayingAnim(Ped ped, char* animSet, char* animName) { return NativeInvoke::Invoke<1277, std::to_underlying(NativeHashes::IS_CHAR_PLAYING_ANIM), bool>(ped, animSet, animName); }
+    static inline auto IsCharPlayingAnim(Ped ped, char *animSet, char *animName) { return NativeInvoke::Invoke<1277, std::to_underlying(NativeHashes::IS_CHAR_PLAYING_ANIM), bool>(ped, animSet, animName); }
     static inline auto IsCharRespondingToAnyEvent(Ped ped) { return NativeInvoke::Invoke<1278, std::to_underlying(NativeHashes::IS_CHAR_RESPONDING_TO_ANY_EVENT), bool>(ped); }
     static inline auto IsCharRespondingToEvent(Ped ped, int32_t eventid) { return NativeInvoke::Invoke<1279, std::to_underlying(NativeHashes::IS_CHAR_RESPONDING_TO_EVENT), bool>(ped, eventid); }
     static inline auto IsCharShooting(Ped ped) { return NativeInvoke::Invoke<1280, std::to_underlying(NativeHashes::IS_CHAR_SHOOTING), bool>(ped); }
@@ -4669,7 +4674,7 @@ public:
     static inline auto IsCharTryingToEnterALockedCar(Ped ped) { return NativeInvoke::Invoke<1292, std::to_underlying(NativeHashes::IS_CHAR_TRYING_TO_ENTER_A_LOCKED_CAR), bool>(ped); }
     static inline auto IsCharUsingAnyScenario(Ped ped) { return NativeInvoke::Invoke<1293, std::to_underlying(NativeHashes::IS_CHAR_USING_ANY_SCENARIO), bool>(ped); }
     static inline auto IsCharUsingMapAttractor(Ped ped) { return NativeInvoke::Invoke<1294, std::to_underlying(NativeHashes::IS_CHAR_USING_MAP_ATTRACTOR), bool>(ped); }
-    static inline auto IsCharUsingScenario(Ped ped, char* scenarioName) { return NativeInvoke::Invoke<1295, std::to_underlying(NativeHashes::IS_CHAR_USING_SCENARIO), bool>(ped, scenarioName); }
+    static inline auto IsCharUsingScenario(Ped ped, char *scenarioName) { return NativeInvoke::Invoke<1295, std::to_underlying(NativeHashes::IS_CHAR_USING_SCENARIO), bool>(ped, scenarioName); }
     static inline auto IsCharVisible(Ped ped) { return NativeInvoke::Invoke<1296, std::to_underlying(NativeHashes::IS_CHAR_VISIBLE), bool>(ped); }
     static inline auto IsCharWaitingForWorldCollision(Ped ped) { return NativeInvoke::Invoke<1297, std::to_underlying(NativeHashes::IS_CHAR_WAITING_FOR_WORLD_COLLISION), bool>(ped); }
     static inline auto IsClosestObjectOfTypeSmashedOrDamaged(float x, float y, float z, float radius, uint32_t type_or_model, bool flag0, bool flag1) { return NativeInvoke::Invoke<1298, std::to_underlying(NativeHashes::IS_CLOSEST_OBJECT_OF_TYPE_SMASHED_OR_DAMAGED), bool>(x, y, z, radius, type_or_model, flag0, flag1); }
@@ -4694,8 +4699,8 @@ public:
     static inline auto IsGameKeyboardNavLeftPressed(bool a1) { return NativeInvoke::Invoke<1317, std::to_underlying(NativeHashes::IS_GAME_KEYBOARD_NAV_LEFT_PRESSED), bool>(a1); }
     static inline auto IsGameKeyboardNavRightPressed(bool a1) { return NativeInvoke::Invoke<1318, std::to_underlying(NativeHashes::IS_GAME_KEYBOARD_NAV_RIGHT_PRESSED), bool>(a1); }
     static inline auto IsGameKeyboardNavUpPressed(bool a1) { return NativeInvoke::Invoke<1319, std::to_underlying(NativeHashes::IS_GAME_KEYBOARD_NAV_UP_PRESSED), bool>(a1); }
-    static inline auto IsGarageClosed(char* garageName) { return NativeInvoke::Invoke<1320, std::to_underlying(NativeHashes::IS_GARAGE_CLOSED), bool>(garageName); }
-    static inline auto IsGarageOpen(char* garageName) { return NativeInvoke::Invoke<1321, std::to_underlying(NativeHashes::IS_GARAGE_OPEN), bool>(garageName); }
+    static inline auto IsGarageClosed(char *garageName) { return NativeInvoke::Invoke<1320, std::to_underlying(NativeHashes::IS_GARAGE_CLOSED), bool>(garageName); }
+    static inline auto IsGarageOpen(char *garageName) { return NativeInvoke::Invoke<1321, std::to_underlying(NativeHashes::IS_GARAGE_OPEN), bool>(garageName); }
     static inline auto IsGroupLeader(Ped ped, Group group) { return NativeInvoke::Invoke<1322, std::to_underlying(NativeHashes::IS_GROUP_LEADER), bool>(ped, group); }
     static inline auto IsGroupMember(Ped ped, Group g) { return NativeInvoke::Invoke<1323, std::to_underlying(NativeHashes::IS_GROUP_MEMBER), bool>(ped, g); }
     static inline auto IsHeliPartBroken(Vehicle heli, bool flag0, bool flag1, bool flag2) { return NativeInvoke::Invoke<1324, std::to_underlying(NativeHashes::IS_HELI_PART_BROKEN), bool>(heli, flag0, flag1, flag2); }
@@ -4744,7 +4749,7 @@ public:
     static inline auto IsObjectOnFire(Object obj) { return NativeInvoke::Invoke<1367, std::to_underlying(NativeHashes::IS_OBJECT_ON_FIRE), bool>(obj); }
     static inline auto IsObjectOnPlayerMachine() { return NativeInvoke::Invoke<1368, std::to_underlying(NativeHashes::IS_OBJECT_ON_PLAYER_MACHINE), Any>(); }
     static inline auto IsObjectOnScreen(Object obj) { return NativeInvoke::Invoke<1369, std::to_underlying(NativeHashes::IS_OBJECT_ON_SCREEN), bool>(obj); }
-    static inline auto IsObjectPlayingAnim(Object obj, char* animname0, char* animname1) { return NativeInvoke::Invoke<1370, std::to_underlying(NativeHashes::IS_OBJECT_PLAYING_ANIM), bool>(obj, animname0, animname1); }
+    static inline auto IsObjectPlayingAnim(Object obj, char *animname0, char *animname1) { return NativeInvoke::Invoke<1370, std::to_underlying(NativeHashes::IS_OBJECT_PLAYING_ANIM), bool>(obj, animname0, animname1); }
     static inline auto IsObjectReassignmentInProgress() { return NativeInvoke::Invoke<1371, std::to_underlying(NativeHashes::IS_OBJECT_REASSIGNMENT_IN_PROGRESS), Any>(); }
     static inline auto IsObjectStatic(Object obj) { return NativeInvoke::Invoke<1372, std::to_underlying(NativeHashes::IS_OBJECT_STATIC), bool>(obj); }
     static inline auto IsObjectTouchingObject(Object obj0, Object obj1) { return NativeInvoke::Invoke<1373, std::to_underlying(NativeHashes::IS_OBJECT_TOUCHING_OBJECT), bool>(obj0, obj1); }
@@ -4823,13 +4828,13 @@ public:
     static inline auto IsSphereVisibleToAnotherMachine(Any a1, Any a2, Any a3, Any a4) { return NativeInvoke::Invoke<1446, std::to_underlying(NativeHashes::IS_SPHERE_VISIBLE_TO_ANOTHER_MACHINE), Any>(a1, a2, a3, a4); }
     static inline auto IsStreamingAdditionalText(uint32_t textIndex) { return NativeInvoke::Invoke<1447, std::to_underlying(NativeHashes::IS_STREAMING_ADDITIONAL_TEXT), bool>(textIndex); }
     static inline auto IsStreamingPriorityRequests() { return NativeInvoke::Invoke<1448, std::to_underlying(NativeHashes::IS_STREAMING_PRIORITY_REQUESTS), bool>(); }
-    static inline auto IsStreamingThisAdditionalText(char* a1, int a2, int a3) { return NativeInvoke::Invoke<1449, std::to_underlying(NativeHashes::IS_STREAMING_THIS_ADDITIONAL_TEXT), bool>(a1, a2, a3); }
-    static inline auto IsStringNull(char* str) { return NativeInvoke::Invoke<1450, std::to_underlying(NativeHashes::IS_STRING_NULL), bool>(str); }
+    static inline auto IsStreamingThisAdditionalText(char *a1, int a2, int a3) { return NativeInvoke::Invoke<1449, std::to_underlying(NativeHashes::IS_STREAMING_THIS_ADDITIONAL_TEXT), bool>(a1, a2, a3); }
+    static inline auto IsStringNull(char *str) { return NativeInvoke::Invoke<1450, std::to_underlying(NativeHashes::IS_STRING_NULL), bool>(str); }
     static inline auto IsSystemUiShowing() { return NativeInvoke::Invoke<1451, std::to_underlying(NativeHashes::IS_SYSTEM_UI_SHOWING), bool>(); }
     static inline auto IsThisAMinigameScript() { return NativeInvoke::Invoke<1452, std::to_underlying(NativeHashes::IS_THIS_A_MINIGAME_SCRIPT), bool>(); }
-    static inline auto IsThisHelpMessageBeingDisplayed(char* gxtentry) { return NativeInvoke::Invoke<1453, std::to_underlying(NativeHashes::IS_THIS_HELP_MESSAGE_BEING_DISPLAYED), bool>(gxtentry); }
-    static inline auto IsThisHelpMessageWithNumberBeingDisplayed(char* gxtentry, int32_t number) { return NativeInvoke::Invoke<1454, std::to_underlying(NativeHashes::IS_THIS_HELP_MESSAGE_WITH_NUMBER_BEING_DISPLAYED), bool>(gxtentry, number); }
-    static inline auto IsThisHelpMessageWithStringBeingDisplayed(char* gxtentry, char* str) { return NativeInvoke::Invoke<1455, std::to_underlying(NativeHashes::IS_THIS_HELP_MESSAGE_WITH_STRING_BEING_DISPLAYED), bool>(gxtentry, str); }
+    static inline auto IsThisHelpMessageBeingDisplayed(char *gxtentry) { return NativeInvoke::Invoke<1453, std::to_underlying(NativeHashes::IS_THIS_HELP_MESSAGE_BEING_DISPLAYED), bool>(gxtentry); }
+    static inline auto IsThisHelpMessageWithNumberBeingDisplayed(char *gxtentry, int32_t number) { return NativeInvoke::Invoke<1454, std::to_underlying(NativeHashes::IS_THIS_HELP_MESSAGE_WITH_NUMBER_BEING_DISPLAYED), bool>(gxtentry, number); }
+    static inline auto IsThisHelpMessageWithStringBeingDisplayed(char *gxtentry, char *str) { return NativeInvoke::Invoke<1455, std::to_underlying(NativeHashes::IS_THIS_HELP_MESSAGE_WITH_STRING_BEING_DISPLAYED), bool>(gxtentry, str); }
     static inline auto IsThisMachineTheServer() { return NativeInvoke::Invoke<1456, std::to_underlying(NativeHashes::IS_THIS_MACHINE_THE_SERVER), Any>(); }
     static inline auto IsThisModelABike(uint32_t model) { return NativeInvoke::Invoke<1457, std::to_underlying(NativeHashes::IS_THIS_MODEL_A_BIKE), bool>(model); }
     static inline auto IsThisModelABoat(uint32_t model) { return NativeInvoke::Invoke<1458, std::to_underlying(NativeHashes::IS_THIS_MODEL_A_BOAT), bool>(model); }
@@ -4840,7 +4845,7 @@ public:
     static inline auto IsThisModelATrain(uint32_t model) { return NativeInvoke::Invoke<1463, std::to_underlying(NativeHashes::IS_THIS_MODEL_A_TRAIN), bool>(model); }
     static inline auto IsThisModelAVehicle(uint32_t model) { return NativeInvoke::Invoke<1464, std::to_underlying(NativeHashes::IS_THIS_MODEL_A_VEHICLE), bool>(model); }
     static inline auto IsThisPedAPlayer(Ped ped) { return NativeInvoke::Invoke<1465, std::to_underlying(NativeHashes::IS_THIS_PED_A_PLAYER), bool>(ped); }
-    static inline auto IsThisPrintBeingDisplayed(char* gxtentry, int a2, int a3, int a4, int a5, int a6, int a7, int a8, int a9, int a10, int a11) { return NativeInvoke::Invoke<1466, std::to_underlying(NativeHashes::IS_THIS_PRINT_BEING_DISPLAYED), Any>(gxtentry, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11); }
+    static inline auto IsThisPrintBeingDisplayed(char *gxtentry, int a2, int a3, int a4, int a5, int a6, int a7, int a8, int a9, int a10, int a11) { return NativeInvoke::Invoke<1466, std::to_underlying(NativeHashes::IS_THIS_PRINT_BEING_DISPLAYED), Any>(gxtentry, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11); }
     static inline auto IsThreadActive(uint32_t threadId) { return NativeInvoke::Invoke<1467, std::to_underlying(NativeHashes::IS_THREAD_ACTIVE), bool>(threadId); }
     static inline auto IsUsingController() { return NativeInvoke::Invoke<1468, std::to_underlying(NativeHashes::IS_USING_CONTROLLER), bool>(); }
     static inline auto IsVehDriveable(Vehicle vehicle) { return NativeInvoke::Invoke<1469, std::to_underlying(NativeHashes::IS_VEH_DRIVEABLE), bool>(vehicle); }
@@ -4854,26 +4859,26 @@ public:
     static inline auto IsWantedLevelGreater(Player playerIndex, uint32_t level) { return NativeInvoke::Invoke<1477, std::to_underlying(NativeHashes::IS_WANTED_LEVEL_GREATER), bool>(playerIndex, level); }
     static inline auto IsWorldPointWithinBrainActivationRange() { return NativeInvoke::Invoke<1478, std::to_underlying(NativeHashes::IS_WORLD_POINT_WITHIN_BRAIN_ACTIVATION_RANGE), bool>(); }
     static inline auto KnockPedOffBike(Vehicle vehicle) { return NativeInvoke::Invoke<1479, std::to_underlying(NativeHashes::KNOCK_PED_OFF_BIKE), void>(vehicle); }
-    static inline auto LoadGroupDecisionMaker(uint32_t type, DecisionMaker* pDM) { return NativeInvoke::Invoke<1480, std::to_underlying(NativeHashes::LOAD_GROUP_DECISION_MAKER), void>(type, pDM); }
+    static inline auto LoadGroupDecisionMaker(uint32_t type, DecisionMaker *pDM) { return NativeInvoke::Invoke<1480, std::to_underlying(NativeHashes::LOAD_GROUP_DECISION_MAKER), void>(type, pDM); }
     static inline auto LaunchLocalPlayerInNetworkGame() { return NativeInvoke::Invoke<1481, std::to_underlying(NativeHashes::LAUNCH_LOCAL_PLAYER_IN_NETWORK_GAME), void>(); }
     static inline auto LcpdFirstTime() { return NativeInvoke::Invoke<1482, std::to_underlying(NativeHashes::LCPD_FIRST_TIME), Any>(); }
     static inline auto LcpdHasBeenConfigured() { return NativeInvoke::Invoke<1483, std::to_underlying(NativeHashes::LCPD_HAS_BEEN_CONFIGURED), Any>(); }
-    static inline auto LimitAngle(float angle, float* anglelimited) { return NativeInvoke::Invoke<1484, std::to_underlying(NativeHashes::LIMIT_ANGLE), void>(angle, anglelimited); }
+    static inline auto LimitAngle(float angle, float *anglelimited) { return NativeInvoke::Invoke<1484, std::to_underlying(NativeHashes::LIMIT_ANGLE), void>(angle, anglelimited); }
     static inline auto LimitTwoPlayerDistance(float distance) { return NativeInvoke::Invoke<1485, std::to_underlying(NativeHashes::LIMIT_TWO_PLAYER_DISTANCE), void>(distance); }
     static inline auto Line(float x0, float y0, float z0, float x1, float y1, float z1) { return NativeInvoke::Invoke<1486, std::to_underlying(NativeHashes::LINE), void>(x0, y0, z0, x1, y1, z1); }
     static inline auto ListenToPlayerGroupCommands(Ped ped, bool set) { return NativeInvoke::Invoke<1487, std::to_underlying(NativeHashes::LISTEN_TO_PLAYER_GROUP_COMMANDS), void>(ped, set); }
-    static inline auto LoadAdditionalText(char* textName, uint32_t textIndex) { return NativeInvoke::Invoke<1488, std::to_underlying(NativeHashes::LOAD_ADDITIONAL_TEXT), void>(textName, textIndex); }
+    static inline auto LoadAdditionalText(char *textName, uint32_t textIndex) { return NativeInvoke::Invoke<1488, std::to_underlying(NativeHashes::LOAD_ADDITIONAL_TEXT), void>(textName, textIndex); }
     static inline auto LoadAllObjectsNow() { return NativeInvoke::Invoke<1489, std::to_underlying(NativeHashes::LOAD_ALL_OBJECTS_NOW), void>(); }
     static inline auto LoadAllPathNodes(bool value) { return NativeInvoke::Invoke<1490, std::to_underlying(NativeHashes::LOAD_ALL_PATH_NODES), uint32_t>(value); }
-    static inline auto LoadCharDecisionMaker(uint32_t type, DecisionMaker* pDM) { return NativeInvoke::Invoke<1491, std::to_underlying(NativeHashes::LOAD_CHAR_DECISION_MAKER), void>(type, pDM); }
-    static inline auto LoadCombatDecisionMaker(uint32_t type, DecisionMaker* pDM) { return NativeInvoke::Invoke<1492, std::to_underlying(NativeHashes::LOAD_COMBAT_DECISION_MAKER), void>(type, pDM); }
+    static inline auto LoadCharDecisionMaker(uint32_t type, DecisionMaker *pDM) { return NativeInvoke::Invoke<1491, std::to_underlying(NativeHashes::LOAD_CHAR_DECISION_MAKER), void>(type, pDM); }
+    static inline auto LoadCombatDecisionMaker(uint32_t type, DecisionMaker *pDM) { return NativeInvoke::Invoke<1492, std::to_underlying(NativeHashes::LOAD_COMBAT_DECISION_MAKER), void>(type, pDM); }
     static inline auto LoadPathNodesInArea(float x, float y, float z, float radius) { return NativeInvoke::Invoke<1493, std::to_underlying(NativeHashes::LOAD_PATH_NODES_IN_AREA), void>(x, y, z, radius); }
     static inline auto LoadScene(float x, float y, float z) { return NativeInvoke::Invoke<1494, std::to_underlying(NativeHashes::LOAD_SCENE), void>(x, y, z); }
     static inline auto LoadSceneForRoomByKey(int32_t interior, uint32_t roomhash) { return NativeInvoke::Invoke<1495, std::to_underlying(NativeHashes::LOAD_SCENE_FOR_ROOM_BY_KEY), void>(interior, roomhash); }
     static inline auto LoadSettings() { return NativeInvoke::Invoke<1496, std::to_underlying(NativeHashes::LOAD_SETTINGS), void>(); }
     static inline auto LoadTextFont(uint32_t font) { return NativeInvoke::Invoke<1497, std::to_underlying(NativeHashes::LOAD_TEXT_FONT), void>(font); }
-    static inline auto LoadTxd(char* txdName) { return NativeInvoke::Invoke<1498, std::to_underlying(NativeHashes::LOAD_TXD), TextureDict>(txdName); }
-    static inline auto LoadWebPage(int32_t htmlviewport, char* webaddress) { return NativeInvoke::Invoke<1499, std::to_underlying(NativeHashes::LOAD_WEB_PAGE), void>(htmlviewport, webaddress); }
+    static inline auto LoadTxd(char *txdName) { return NativeInvoke::Invoke<1498, std::to_underlying(NativeHashes::LOAD_TXD), TextureDict>(txdName); }
+    static inline auto LoadWebPage(int32_t htmlviewport, char *webaddress) { return NativeInvoke::Invoke<1499, std::to_underlying(NativeHashes::LOAD_WEB_PAGE), void>(htmlviewport, webaddress); }
     static inline auto LocalPlayerIsReadyToStartPlaying() { return NativeInvoke::Invoke<1500, std::to_underlying(NativeHashes::LOCAL_PLAYER_IS_READY_TO_START_PLAYING), Any>(); }
     static inline auto LocateCar2d(Car car, float x0, float y0, float xUnk, float yUnk, bool flag) { return NativeInvoke::Invoke<1501, std::to_underlying(NativeHashes::LOCATE_CAR_2D), bool>(car, x0, y0, xUnk, yUnk, flag); }
     static inline auto LocateCar3d(Car car, float x, float y, float z, float xa, float ya, float za, bool flag) { return NativeInvoke::Invoke<1502, std::to_underlying(NativeHashes::LOCATE_CAR_3D), bool>(car, x, y, z, xa, ya, za, flag); }
@@ -4907,7 +4912,7 @@ public:
     static inline auto LockCarDoors(Vehicle vehicle, uint32_t value) { return NativeInvoke::Invoke<1530, std::to_underlying(NativeHashes::LOCK_CAR_DOORS), void>(vehicle, value); }
     static inline auto LockLazlowStation() { return NativeInvoke::Invoke<1531, std::to_underlying(NativeHashes::LOCK_LAZLOW_STATION), void>(); }
     static inline auto LockPlayerSettingsGenreChange(int32_t lock_bit_mask) { return NativeInvoke::Invoke<1532, std::to_underlying(NativeHashes::LOCK_PLAYER_SETTINGS_GENRE_CHANGE), void>(lock_bit_mask); }
-    static inline auto LookAtNearbyEntityWithSpecialAttribute(int a1, Vector3* a2, float* a3, Any* a4, Any* a5, Any* a6) { return NativeInvoke::Invoke<1533, std::to_underlying(NativeHashes::LOOK_AT_NEARBY_ENTITY_WITH_SPECIAL_ATTRIBUTE), bool>(a1, a2, a3, a4, a5, a6); }
+    static inline auto LookAtNearbyEntityWithSpecialAttribute(int a1, Vector3 *a2, float *a3, Any *a4, Any *a5, Any *a6) { return NativeInvoke::Invoke<1533, std::to_underlying(NativeHashes::LOOK_AT_NEARBY_ENTITY_WITH_SPECIAL_ATTRIBUTE), bool>(a1, a2, a3, a4, a5, a6); }
     static inline auto LoopRaceTrack(bool loop) { return NativeInvoke::Invoke<1534, std::to_underlying(NativeHashes::LOOP_RACE_TRACK), void>(loop); }
     static inline auto MaintainFlashingStarAfterOffence(int32_t player, bool maintain) { return NativeInvoke::Invoke<1535, std::to_underlying(NativeHashes::MAINTAIN_FLASHING_STAR_AFTER_OFFENCE), void>(player, maintain); }
     static inline auto MakeObjectTargettable(Object obj, bool targettable) { return NativeInvoke::Invoke<1536, std::to_underlying(NativeHashes::MAKE_OBJECT_TARGETTABLE), void>(obj, targettable); }
@@ -4917,15 +4922,15 @@ public:
     static inline auto MakePlayerSafeForCutscene(int32_t player) { return NativeInvoke::Invoke<1540, std::to_underlying(NativeHashes::MAKE_PLAYER_SAFE_FOR_CUTSCENE), void>(player); }
     static inline auto MakeRoomInPlayerGangForMissionPeds() { return NativeInvoke::Invoke<1541, std::to_underlying(NativeHashes::MAKE_ROOM_IN_PLAYER_GANG_FOR_MISSION_PEDS), Any>(); }
     static inline auto MarkCarAsConvoyCar(Vehicle vehicle, bool convoyCar) { return NativeInvoke::Invoke<1542, std::to_underlying(NativeHashes::MARK_CAR_AS_CONVOY_CAR), void>(vehicle, convoyCar); }
-    static inline auto MarkCarAsNoLongerNeeded(Vehicle* pVehicle) { return NativeInvoke::Invoke<1543, std::to_underlying(NativeHashes::MARK_CAR_AS_NO_LONGER_NEEDED), void>(pVehicle); }
-    static inline auto MarkCharAsNoLongerNeeded(Ped* pPed) { return NativeInvoke::Invoke<1544, std::to_underlying(NativeHashes::MARK_CHAR_AS_NO_LONGER_NEEDED), void>(pPed); }
+    static inline auto MarkCarAsNoLongerNeeded(Vehicle *pVehicle) { return NativeInvoke::Invoke<1543, std::to_underlying(NativeHashes::MARK_CAR_AS_NO_LONGER_NEEDED), void>(pVehicle); }
+    static inline auto MarkCharAsNoLongerNeeded(Ped *pPed) { return NativeInvoke::Invoke<1544, std::to_underlying(NativeHashes::MARK_CHAR_AS_NO_LONGER_NEEDED), void>(pPed); }
     static inline auto MarkMissionTrainAsNoLongerNeeded(Train train) { return NativeInvoke::Invoke<1545, std::to_underlying(NativeHashes::MARK_MISSION_TRAIN_AS_NO_LONGER_NEEDED), void>(train); }
     static inline auto MarkMissionTrainsAsNoLongerNeeded() { return NativeInvoke::Invoke<1546, std::to_underlying(NativeHashes::MARK_MISSION_TRAINS_AS_NO_LONGER_NEEDED), void>(); }
     static inline auto MarkModelAsNoLongerNeeded(uint32_t model) { return NativeInvoke::Invoke<1547, std::to_underlying(NativeHashes::MARK_MODEL_AS_NO_LONGER_NEEDED), void>(model); }
-    static inline auto MarkObjectAsNoLongerNeeded(Object* pObj) { return NativeInvoke::Invoke<1548, std::to_underlying(NativeHashes::MARK_OBJECT_AS_NO_LONGER_NEEDED), void>(pObj); }
+    static inline auto MarkObjectAsNoLongerNeeded(Object *pObj) { return NativeInvoke::Invoke<1548, std::to_underlying(NativeHashes::MARK_OBJECT_AS_NO_LONGER_NEEDED), void>(pObj); }
     static inline auto MarkRoadNodeAsDontWander(float x, float y, float z) { return NativeInvoke::Invoke<1549, std::to_underlying(NativeHashes::MARK_ROAD_NODE_AS_DONT_WANDER), void>(x, y, z); }
-    static inline auto MarkScriptAsNoLongerNeeded(char* scriptName) { return NativeInvoke::Invoke<1550, std::to_underlying(NativeHashes::MARK_SCRIPT_AS_NO_LONGER_NEEDED), void>(scriptName); }
-    static inline auto MarkStreamedTxdAsNoLongerNeeded(char* txdName) { return NativeInvoke::Invoke<1551, std::to_underlying(NativeHashes::MARK_STREAMED_TXD_AS_NO_LONGER_NEEDED), void>(txdName); }
+    static inline auto MarkScriptAsNoLongerNeeded(char *scriptName) { return NativeInvoke::Invoke<1550, std::to_underlying(NativeHashes::MARK_SCRIPT_AS_NO_LONGER_NEEDED), void>(scriptName); }
+    static inline auto MarkStreamedTxdAsNoLongerNeeded(char *txdName) { return NativeInvoke::Invoke<1551, std::to_underlying(NativeHashes::MARK_STREAMED_TXD_AS_NO_LONGER_NEEDED), void>(txdName); }
     static inline auto MissionAudioBankNoLongerNeeded() { return NativeInvoke::Invoke<1552, std::to_underlying(NativeHashes::MISSION_AUDIO_BANK_NO_LONGER_NEEDED), void>(); }
     static inline auto ModifyCharMoveBlendRatio(Ped ped, Any a2) { return NativeInvoke::Invoke<1553, std::to_underlying(NativeHashes::MODIFY_CHAR_MOVE_BLEND_RATIO), void>(ped, a2); }
     static inline auto ModifyCharMoveState(Ped ped, uint32_t state) { return NativeInvoke::Invoke<1554, std::to_underlying(NativeHashes::MODIFY_CHAR_MOVE_STATE), void>(ped, state); }
@@ -4969,7 +4974,7 @@ public:
     static inline auto NetworkGetHostLatency(int32_t host) { return NativeInvoke::Invoke<1592, std::to_underlying(NativeHashes::NETWORK_GET_HOST_LATENCY), int32_t>(host); }
     static inline auto NetworkGetHostMatchProgress(int32_t host) { return NativeInvoke::Invoke<1593, std::to_underlying(NativeHashes::NETWORK_GET_HOST_MATCH_PROGRESS), int32_t>(host); }
     static inline auto NetworkGetHostName() { return NativeInvoke::Invoke<1594, std::to_underlying(NativeHashes::NETWORK_GET_HOST_NAME), Any>(); }
-    static inline auto NetworkGetHostServerName(int32_t host) { return NativeInvoke::Invoke<1595, std::to_underlying(NativeHashes::NETWORK_GET_HOST_SERVER_NAME), char*>(host); }
+    static inline auto NetworkGetHostServerName(int32_t host) { return NativeInvoke::Invoke<1595, std::to_underlying(NativeHashes::NETWORK_GET_HOST_SERVER_NAME), char *>(host); }
     static inline auto NetworkGetLanSession() { return NativeInvoke::Invoke<1596, std::to_underlying(NativeHashes::NETWORK_GET_LAN_SESSION), Any>(); }
     static inline auto NetworkGetMaxPrivateSlots() { return NativeInvoke::Invoke<1597, std::to_underlying(NativeHashes::NETWORK_GET_MAX_PRIVATE_SLOTS), Any>(); }
     static inline auto NetworkGetMaxSlots() { return NativeInvoke::Invoke<1598, std::to_underlying(NativeHashes::NETWORK_GET_MAX_SLOTS), Any>(); }
@@ -5071,12 +5076,12 @@ public:
     static inline auto NewScriptedConversation() { return NativeInvoke::Invoke<1694, std::to_underlying(NativeHashes::NEW_SCRIPTED_CONVERSATION), void>(); }
     static inline auto ObfuscateInt(Any a1, Any a2) { return NativeInvoke::Invoke<1695, std::to_underlying(NativeHashes::OBFUSCATE_INT), void>(a1, a2); }
     static inline auto ObfuscateIntArray(Any a1, Any a2) { return NativeInvoke::Invoke<1696, std::to_underlying(NativeHashes::OBFUSCATE_INT_ARRAY), void>(a1, a2); }
-    static inline auto ObfuscateString(char* str) { return NativeInvoke::Invoke<1697, std::to_underlying(NativeHashes::OBFUSCATE_STRING), char*>(str); }
+    static inline auto ObfuscateString(char *str) { return NativeInvoke::Invoke<1697, std::to_underlying(NativeHashes::OBFUSCATE_STRING), char *>(str); }
     static inline auto OnFireScream(Ped ped) { return NativeInvoke::Invoke<1698, std::to_underlying(NativeHashes::ON_FIRE_SCREAM), void>(ped); }
     static inline auto OpenCarDoor(Vehicle vehicle, uint32_t door) { return NativeInvoke::Invoke<1699, std::to_underlying(NativeHashes::OPEN_CAR_DOOR), void>(vehicle, door); }
     static inline auto OpenDebugFile() { return NativeInvoke::Invoke<1700, std::to_underlying(NativeHashes::OPEN_DEBUG_FILE), void>(); }
-    static inline auto OpenGarage(char* name) { return NativeInvoke::Invoke<1701, std::to_underlying(NativeHashes::OPEN_GARAGE), void>(name); }
-    static inline auto OpenSequenceTask(TaskSequence* pTaskSequence) { return NativeInvoke::Invoke<1702, std::to_underlying(NativeHashes::OPEN_SEQUENCE_TASK), void>(pTaskSequence); }
+    static inline auto OpenGarage(char *name) { return NativeInvoke::Invoke<1701, std::to_underlying(NativeHashes::OPEN_GARAGE), void>(name); }
+    static inline auto OpenSequenceTask(TaskSequence *pTaskSequence) { return NativeInvoke::Invoke<1702, std::to_underlying(NativeHashes::OPEN_SEQUENCE_TASK), void>(pTaskSequence); }
     static inline auto OverrideFreezeFlags(bool a1) { return NativeInvoke::Invoke<1703, std::to_underlying(NativeHashes::OVERRIDE_FREEZE_FLAGS), void>(a1); }
     static inline auto OverrideNextRestart(float x, float y, float z, float heading) { return NativeInvoke::Invoke<1704, std::to_underlying(NativeHashes::OVERRIDE_NEXT_RESTART), void>(x, y, z, heading); }
     static inline auto OverrideNumberOfParkedCars(int32_t num) { return NativeInvoke::Invoke<1705, std::to_underlying(NativeHashes::OVERRIDE_NUMBER_OF_PARKED_CARS), void>(num); }
@@ -5091,21 +5096,21 @@ public:
     static inline auto PickupsPassTime(uint32_t time) { return NativeInvoke::Invoke<1714, std::to_underlying(NativeHashes::PICKUPS_PASS_TIME), void>(time); }
     static inline auto PlaceObjectRelativeToCar(Object obj, Car car, float x, float y, float z) { return NativeInvoke::Invoke<1715, std::to_underlying(NativeHashes::PLACE_OBJECT_RELATIVE_TO_CAR), void>(obj, car, x, y, z); }
     static inline auto PlaneStartsInAir(Vehicle plain) { return NativeInvoke::Invoke<1716, std::to_underlying(NativeHashes::PLANE_STARTS_IN_AIR), void>(plain); }
-    static inline auto PlayAudioEvent(char* name) { return NativeInvoke::Invoke<1717, std::to_underlying(NativeHashes::PLAY_AUDIO_EVENT), void>(name); }
-    static inline auto PlayAudioEventFromObject(char* EventName, Object obj) { return NativeInvoke::Invoke<1718, std::to_underlying(NativeHashes::PLAY_AUDIO_EVENT_FROM_OBJECT), void>(EventName, obj); }
-    static inline auto PlayAudioEventFromPed(char* name, Ped ped) { return NativeInvoke::Invoke<1719, std::to_underlying(NativeHashes::PLAY_AUDIO_EVENT_FROM_PED), void>(name, ped); }
-    static inline auto PlayAudioEventFromVehicle(char* name, Vehicle veh) { return NativeInvoke::Invoke<1720, std::to_underlying(NativeHashes::PLAY_AUDIO_EVENT_FROM_VEHICLE), void>(name, veh); }
-    static inline auto PlayCarAnim(Car car, char* animname0, char* animname1, float a4, bool flag0, bool flag1) { return NativeInvoke::Invoke<1721, std::to_underlying(NativeHashes::PLAY_CAR_ANIM), bool>(car, animname0, animname1, a4, flag0, flag1); }
+    static inline auto PlayAudioEvent(char *name) { return NativeInvoke::Invoke<1717, std::to_underlying(NativeHashes::PLAY_AUDIO_EVENT), void>(name); }
+    static inline auto PlayAudioEventFromObject(char *EventName, Object obj) { return NativeInvoke::Invoke<1718, std::to_underlying(NativeHashes::PLAY_AUDIO_EVENT_FROM_OBJECT), void>(EventName, obj); }
+    static inline auto PlayAudioEventFromPed(char *name, Ped ped) { return NativeInvoke::Invoke<1719, std::to_underlying(NativeHashes::PLAY_AUDIO_EVENT_FROM_PED), void>(name, ped); }
+    static inline auto PlayAudioEventFromVehicle(char *name, Vehicle veh) { return NativeInvoke::Invoke<1720, std::to_underlying(NativeHashes::PLAY_AUDIO_EVENT_FROM_VEHICLE), void>(name, veh); }
+    static inline auto PlayCarAnim(Car car, char *animname0, char *animname1, float a4, bool flag0, bool flag1) { return NativeInvoke::Invoke<1721, std::to_underlying(NativeHashes::PLAY_CAR_ANIM), bool>(car, animname0, animname1, a4, flag0, flag1); }
     static inline auto PlayFireSoundFromPosition(int32_t sound_id, float x, float y, float z) { return NativeInvoke::Invoke<1722, std::to_underlying(NativeHashes::PLAY_FIRE_SOUND_FROM_POSITION), void>(sound_id, x, y, z); }
     static inline auto PlayMovie() { return NativeInvoke::Invoke<1723, std::to_underlying(NativeHashes::PLAY_MOVIE), void>(); }
-    static inline auto PlayObjectAnim(Object obj, char* animname0, char* animname1, float unk, bool flag0, bool flag1) { return NativeInvoke::Invoke<1724, std::to_underlying(NativeHashes::PLAY_OBJECT_ANIM), bool>(obj, animname0, animname1, unk, flag0, flag1); }
+    static inline auto PlayObjectAnim(Object obj, char *animname0, char *animname1, float unk, bool flag0, bool flag1) { return NativeInvoke::Invoke<1724, std::to_underlying(NativeHashes::PLAY_OBJECT_ANIM), bool>(obj, animname0, animname1, unk, flag0, flag1); }
     static inline auto PlayScriptedConversationFrontend(bool play) { return NativeInvoke::Invoke<1725, std::to_underlying(NativeHashes::PLAY_SCRIPTED_CONVERSATION_FRONTEND), void>(play); }
-    static inline auto PlaySound(int32_t SoundId, char* SoundName) { return NativeInvoke::Invoke<1726, std::to_underlying(NativeHashes::PLAY_SOUND), void>(SoundId, SoundName); }
-    static inline auto PlaySoundFromObject(int32_t sound_id, char* name, Object obj) { return NativeInvoke::Invoke<1727, std::to_underlying(NativeHashes::PLAY_SOUND_FROM_OBJECT), void>(sound_id, name, obj); }
-    static inline auto PlaySoundFromPed(int32_t SoundId, char* SoundName, Ped ped) { return NativeInvoke::Invoke<1728, std::to_underlying(NativeHashes::PLAY_SOUND_FROM_PED), void>(SoundId, SoundName, ped); }
-    static inline auto PlaySoundFromPosition(int32_t sound_id, char* name, float x, float y, float z) { return NativeInvoke::Invoke<1729, std::to_underlying(NativeHashes::PLAY_SOUND_FROM_POSITION), void>(sound_id, name, x, y, z); }
-    static inline auto PlaySoundFromVehicle(int32_t SoundId, char* SoundName, Vehicle veh) { return NativeInvoke::Invoke<1730, std::to_underlying(NativeHashes::PLAY_SOUND_FROM_VEHICLE), void>(SoundId, SoundName, veh); }
-    static inline auto PlaySoundFrontend(uint32_t sound, char* soundName) { return NativeInvoke::Invoke<1731, std::to_underlying(NativeHashes::PLAY_SOUND_FRONTEND), void>(sound, soundName); }
+    static inline auto PlaySound(int32_t SoundId, char *SoundName) { return NativeInvoke::Invoke<1726, std::to_underlying(NativeHashes::PLAY_SOUND), void>(SoundId, SoundName); }
+    static inline auto PlaySoundFromObject(int32_t sound_id, char *name, Object obj) { return NativeInvoke::Invoke<1727, std::to_underlying(NativeHashes::PLAY_SOUND_FROM_OBJECT), void>(sound_id, name, obj); }
+    static inline auto PlaySoundFromPed(int32_t SoundId, char *SoundName, Ped ped) { return NativeInvoke::Invoke<1728, std::to_underlying(NativeHashes::PLAY_SOUND_FROM_PED), void>(SoundId, SoundName, ped); }
+    static inline auto PlaySoundFromPosition(int32_t sound_id, char *name, float x, float y, float z) { return NativeInvoke::Invoke<1729, std::to_underlying(NativeHashes::PLAY_SOUND_FROM_POSITION), void>(sound_id, name, x, y, z); }
+    static inline auto PlaySoundFromVehicle(int32_t SoundId, char *SoundName, Vehicle veh) { return NativeInvoke::Invoke<1730, std::to_underlying(NativeHashes::PLAY_SOUND_FROM_VEHICLE), void>(SoundId, SoundName, veh); }
+    static inline auto PlaySoundFrontend(uint32_t sound, char *soundName) { return NativeInvoke::Invoke<1731, std::to_underlying(NativeHashes::PLAY_SOUND_FRONTEND), void>(sound, soundName); }
     static inline auto PlayStreamFromObject(Object obj) { return NativeInvoke::Invoke<1732, std::to_underlying(NativeHashes::PLAY_STREAM_FROM_OBJECT), void>(obj); }
     static inline auto PlayStreamFromPed(Ped ped) { return NativeInvoke::Invoke<1733, std::to_underlying(NativeHashes::PLAY_STREAM_FROM_PED), void>(ped); }
     static inline auto PlayStreamFrontend() { return NativeInvoke::Invoke<1734, std::to_underlying(NativeHashes::PLAY_STREAM_FRONTEND), void>(); }
@@ -5124,7 +5129,7 @@ public:
     static inline auto PlaystatsIntInt(Any a1, int a2, int a3) { return NativeInvoke::Invoke<1747, std::to_underlying(NativeHashes::PLAYSTATS_INT_INT), void>(a1, a2, a3); }
     static inline auto PlaystatsMissionCancelled(int a1) { return NativeInvoke::Invoke<1748, std::to_underlying(NativeHashes::PLAYSTATS_MISSION_CANCELLED), void>(a1); }
     static inline auto PlaystatsMissionFailed(int a1) { return NativeInvoke::Invoke<1749, std::to_underlying(NativeHashes::PLAYSTATS_MISSION_FAILED), void>(a1); }
-    static inline auto PlaystatsMissionPassed(char* a1) { return NativeInvoke::Invoke<1750, std::to_underlying(NativeHashes::PLAYSTATS_MISSION_PASSED), void>(a1); }
+    static inline auto PlaystatsMissionPassed(char *a1) { return NativeInvoke::Invoke<1750, std::to_underlying(NativeHashes::PLAYSTATS_MISSION_PASSED), void>(a1); }
     static inline auto PlaystatsMissionStarted(int a1) { return NativeInvoke::Invoke<1751, std::to_underlying(NativeHashes::PLAYSTATS_MISSION_STARTED), void>(a1); }
     static inline auto PointCamAtCam(int32_t cam, int32_t camnext) { return NativeInvoke::Invoke<1752, std::to_underlying(NativeHashes::POINT_CAM_AT_CAM), void>(cam, camnext); }
     static inline auto PointCamAtCoord(int32_t cam, float x, float y, float z) { return NativeInvoke::Invoke<1753, std::to_underlying(NativeHashes::POINT_CAM_AT_COORD), void>(cam, x, y, z); }
@@ -5139,52 +5144,52 @@ public:
     static inline auto PopCarBoot(Vehicle vehicle) { return NativeInvoke::Invoke<1762, std::to_underlying(NativeHashes::POP_CAR_BOOT), void>(vehicle); }
     static inline auto PopulateNow() { return NativeInvoke::Invoke<1763, std::to_underlying(NativeHashes::POPULATE_NOW), void>(); }
     static inline auto Pow(float base, float power) { return NativeInvoke::Invoke<1764, std::to_underlying(NativeHashes::POW), float>(base, power); }
-    static inline auto PreloadStream(char* name) { return NativeInvoke::Invoke<1765, std::to_underlying(NativeHashes::PRELOAD_STREAM), bool>(name); }
-    static inline auto PreloadStreamWithStartOffset(char* StreamName, int32_t StartOffset) { return NativeInvoke::Invoke<1766, std::to_underlying(NativeHashes::PRELOAD_STREAM_WITH_START_OFFSET), bool>(StreamName, StartOffset); }
+    static inline auto PreloadStream(char *name) { return NativeInvoke::Invoke<1765, std::to_underlying(NativeHashes::PRELOAD_STREAM), bool>(name); }
+    static inline auto PreloadStreamWithStartOffset(char *StreamName, int32_t StartOffset) { return NativeInvoke::Invoke<1766, std::to_underlying(NativeHashes::PRELOAD_STREAM_WITH_START_OFFSET), bool>(StreamName, StartOffset); }
     static inline auto PreviewRingtone(int32_t RingtoneId) { return NativeInvoke::Invoke<1767, std::to_underlying(NativeHashes::PREVIEW_RINGTONE), void>(RingtoneId); }
-    static inline auto Print(char* gxtName, uint32_t timeMS, bool enable) { return NativeInvoke::Invoke<1768, std::to_underlying(NativeHashes::PRINT), void>(gxtName, timeMS, enable); }
-    static inline auto PrintBig(char* gxtName, uint32_t timeMS, bool enable) { return NativeInvoke::Invoke<1769, std::to_underlying(NativeHashes::PRINT_BIG), void>(gxtName, timeMS, enable); }
-    static inline auto PrintBigQ(char* gxtentry, int32_t time, int32_t flag) { return NativeInvoke::Invoke<1770, std::to_underlying(NativeHashes::PRINT_BIG_Q), void>(gxtentry, time, flag); }
-    static inline auto PrintHelp(char* gxtName) { return NativeInvoke::Invoke<1771, std::to_underlying(NativeHashes::PRINT_HELP), void>(gxtName); }
-    static inline auto PrintHelpForever(char* gxtName) { return NativeInvoke::Invoke<1772, std::to_underlying(NativeHashes::PRINT_HELP_FOREVER), void>(gxtName); }
-    static inline auto PrintHelpForeverWithNumber(char* gxtName, int32_t value) { return NativeInvoke::Invoke<1773, std::to_underlying(NativeHashes::PRINT_HELP_FOREVER_WITH_NUMBER), void>(gxtName, value); }
-    static inline auto PrintHelpForeverWithString(char* gxtName, char* gxtText) { return NativeInvoke::Invoke<1774, std::to_underlying(NativeHashes::PRINT_HELP_FOREVER_WITH_STRING), void>(gxtName, gxtText); }
-    static inline auto PrintHelpForeverWithStringNoSound(char* gxtName, char* gxtText) { return NativeInvoke::Invoke<1775, std::to_underlying(NativeHashes::PRINT_HELP_FOREVER_WITH_STRING_NO_SOUND), void>(gxtName, gxtText); }
-    static inline auto PrintHelpForeverWithTwoNumbers(char* gxtentry, int a2, int a3) { return NativeInvoke::Invoke<1776, std::to_underlying(NativeHashes::PRINT_HELP_FOREVER_WITH_TWO_NUMBERS), void>(gxtentry, a2, a3); }
-    static inline auto PrintHelpOverFrontend(char* gxtentry) { return NativeInvoke::Invoke<1777, std::to_underlying(NativeHashes::PRINT_HELP_OVER_FRONTEND), void>(gxtentry); }
-    static inline auto PrintHelpWithNumber(char* gxtName, int32_t value) { return NativeInvoke::Invoke<1778, std::to_underlying(NativeHashes::PRINT_HELP_WITH_NUMBER), void>(gxtName, value); }
-    static inline auto PrintHelpWithString(char* gxtName, char* gxtText) { return NativeInvoke::Invoke<1779, std::to_underlying(NativeHashes::PRINT_HELP_WITH_STRING), void>(gxtName, gxtText); }
-    static inline auto PrintHelpWithStringNoSound(char* gxtName, char* gxtText) { return NativeInvoke::Invoke<1780, std::to_underlying(NativeHashes::PRINT_HELP_WITH_STRING_NO_SOUND), void>(gxtName, gxtText); }
-    static inline auto PrintHelpWithTwoNumbers(char* gxtentry, int a2, int a3) { return NativeInvoke::Invoke<1781, std::to_underlying(NativeHashes::PRINT_HELP_WITH_TWO_NUMBERS), void>(gxtentry, a2, a3); }
+    static inline auto Print(char *gxtName, uint32_t timeMS, bool enable) { return NativeInvoke::Invoke<1768, std::to_underlying(NativeHashes::PRINT), void>(gxtName, timeMS, enable); }
+    static inline auto PrintBig(char *gxtName, uint32_t timeMS, bool enable) { return NativeInvoke::Invoke<1769, std::to_underlying(NativeHashes::PRINT_BIG), void>(gxtName, timeMS, enable); }
+    static inline auto PrintBigQ(char *gxtentry, int32_t time, int32_t flag) { return NativeInvoke::Invoke<1770, std::to_underlying(NativeHashes::PRINT_BIG_Q), void>(gxtentry, time, flag); }
+    static inline auto PrintHelp(char *gxtName) { return NativeInvoke::Invoke<1771, std::to_underlying(NativeHashes::PRINT_HELP), void>(gxtName); }
+    static inline auto PrintHelpForever(char *gxtName) { return NativeInvoke::Invoke<1772, std::to_underlying(NativeHashes::PRINT_HELP_FOREVER), void>(gxtName); }
+    static inline auto PrintHelpForeverWithNumber(char *gxtName, int32_t value) { return NativeInvoke::Invoke<1773, std::to_underlying(NativeHashes::PRINT_HELP_FOREVER_WITH_NUMBER), void>(gxtName, value); }
+    static inline auto PrintHelpForeverWithString(char *gxtName, char *gxtText) { return NativeInvoke::Invoke<1774, std::to_underlying(NativeHashes::PRINT_HELP_FOREVER_WITH_STRING), void>(gxtName, gxtText); }
+    static inline auto PrintHelpForeverWithStringNoSound(char *gxtName, char *gxtText) { return NativeInvoke::Invoke<1775, std::to_underlying(NativeHashes::PRINT_HELP_FOREVER_WITH_STRING_NO_SOUND), void>(gxtName, gxtText); }
+    static inline auto PrintHelpForeverWithTwoNumbers(char *gxtentry, int a2, int a3) { return NativeInvoke::Invoke<1776, std::to_underlying(NativeHashes::PRINT_HELP_FOREVER_WITH_TWO_NUMBERS), void>(gxtentry, a2, a3); }
+    static inline auto PrintHelpOverFrontend(char *gxtentry) { return NativeInvoke::Invoke<1777, std::to_underlying(NativeHashes::PRINT_HELP_OVER_FRONTEND), void>(gxtentry); }
+    static inline auto PrintHelpWithNumber(char *gxtName, int32_t value) { return NativeInvoke::Invoke<1778, std::to_underlying(NativeHashes::PRINT_HELP_WITH_NUMBER), void>(gxtName, value); }
+    static inline auto PrintHelpWithString(char *gxtName, char *gxtText) { return NativeInvoke::Invoke<1779, std::to_underlying(NativeHashes::PRINT_HELP_WITH_STRING), void>(gxtName, gxtText); }
+    static inline auto PrintHelpWithStringNoSound(char *gxtName, char *gxtText) { return NativeInvoke::Invoke<1780, std::to_underlying(NativeHashes::PRINT_HELP_WITH_STRING_NO_SOUND), void>(gxtName, gxtText); }
+    static inline auto PrintHelpWithTwoNumbers(char *gxtentry, int a2, int a3) { return NativeInvoke::Invoke<1781, std::to_underlying(NativeHashes::PRINT_HELP_WITH_TWO_NUMBERS), void>(gxtentry, a2, a3); }
     static inline auto PrintMissionDescription() { return NativeInvoke::Invoke<1782, std::to_underlying(NativeHashes::PRINT_MISSION_DESCRIPTION), Any>(); }
-    static inline auto PrintNow(char* gxtName, uint32_t timeMS, bool enable) { return NativeInvoke::Invoke<1783, std::to_underlying(NativeHashes::PRINT_NOW), void>(gxtName, timeMS, enable); }
-    static inline auto PrintStringInString(char* gxtName, char* gxtText, uint32_t timeMS, bool enable) { return NativeInvoke::Invoke<1784, std::to_underlying(NativeHashes::PRINT_STRING_IN_STRING), void>(gxtName, gxtText, timeMS, enable); }
-    static inline auto PrintStringInStringNow(char* gxtName, char* gxtText, uint32_t timeMS, bool enable) { return NativeInvoke::Invoke<1785, std::to_underlying(NativeHashes::PRINT_STRING_IN_STRING_NOW), void>(gxtName, gxtText, timeMS, enable); }
-    static inline auto PrintStringWithLiteralString(char* gxtentry, char* string, int32_t time, int32_t flag) { return NativeInvoke::Invoke<1786, std::to_underlying(NativeHashes::PRINT_STRING_WITH_LITERAL_STRING), void>(gxtentry, string, time, flag); }
-    static inline auto PrintStringWithLiteralStringNow(char* gxtName, void* text, uint32_t timeMS, bool enable) { return NativeInvoke::Invoke<1787, std::to_underlying(NativeHashes::PRINT_STRING_WITH_LITERAL_STRING_NOW), void>(gxtName, text, timeMS, enable); }
-    static inline auto PrintStringWithSubstringGivenHashKeyNow(char* gxtkey0, uint32_t gxtkey1, int32_t time, int32_t style) { return NativeInvoke::Invoke<1788, std::to_underlying(NativeHashes::PRINT_STRING_WITH_SUBSTRING_GIVEN_HASH_KEY_NOW), void>(gxtkey0, gxtkey1, time, style); }
-    static inline auto PrintStringWithTwoLiteralStrings(char* gxtentry, char* string1, char* string2, int32_t time, int32_t flag) { return NativeInvoke::Invoke<1789, std::to_underlying(NativeHashes::PRINT_STRING_WITH_TWO_LITERAL_STRINGS), void>(gxtentry, string1, string2, time, flag); }
-    static inline auto PrintStringWithTwoLiteralStringsNow(char* gxtentry, char* string1, char* string2, int32_t time, int32_t flag) { return NativeInvoke::Invoke<1790, std::to_underlying(NativeHashes::PRINT_STRING_WITH_TWO_LITERAL_STRINGS_NOW), void>(gxtentry, string1, string2, time, flag); }
-    static inline auto PrintWith2Numbers(char* gxtName, int32_t value1, int32_t value2, uint32_t timeMS, bool enable) { return NativeInvoke::Invoke<1791, std::to_underlying(NativeHashes::PRINT_WITH_2_NUMBERS), void>(gxtName, value1, value2, timeMS, enable); }
-    static inline auto PrintWith2NumbersBig(char* gxtentry, int a2, int a3, int32_t time, int32_t flag) { return NativeInvoke::Invoke<1792, std::to_underlying(NativeHashes::PRINT_WITH_2_NUMBERS_BIG), void>(gxtentry, a2, a3, time, flag); }
-    static inline auto PrintWith2NumbersNow(char* gxtName, int32_t value1, int32_t value2, uint32_t timeMS, bool enable) { return NativeInvoke::Invoke<1793, std::to_underlying(NativeHashes::PRINT_WITH_2_NUMBERS_NOW), void>(gxtName, value1, value2, timeMS, enable); }
-    static inline auto PrintWith3Numbers(char* gxtentry, int a2, int a3, int a4, int32_t time, int32_t flag) { return NativeInvoke::Invoke<1794, std::to_underlying(NativeHashes::PRINT_WITH_3_NUMBERS), void>(gxtentry, a2, a3, a4, time, flag); }
-    static inline auto PrintWith3NumbersNow(char* gxtentry, int a2, int a3, int a4, int32_t time, int32_t flag) { return NativeInvoke::Invoke<1795, std::to_underlying(NativeHashes::PRINT_WITH_3_NUMBERS_NOW), void>(gxtentry, a2, a3, a4, time, flag); }
-    static inline auto PrintWith4Numbers(char* gxtentry, int a2, int a3, int a4, int a5, int32_t time, int32_t flag) { return NativeInvoke::Invoke<1796, std::to_underlying(NativeHashes::PRINT_WITH_4_NUMBERS), void>(gxtentry, a2, a3, a4, a5, time, flag); }
-    static inline auto PrintWith4NumbersNow(char* gxtentry, int a2, int a3, int a4, int a5, int32_t time, int32_t flag) { return NativeInvoke::Invoke<1797, std::to_underlying(NativeHashes::PRINT_WITH_4_NUMBERS_NOW), void>(gxtentry, a2, a3, a4, a5, time, flag); }
-    static inline auto PrintWith5Numbers(char* gxtentry, int a2, int a3, int a4, int a5, int a6, int32_t time, int32_t flag) { return NativeInvoke::Invoke<1798, std::to_underlying(NativeHashes::PRINT_WITH_5_NUMBERS), void>(gxtentry, a2, a3, a4, a5, a6, time, flag); }
-    static inline auto PrintWith5NumbersNow(char* gxtentry, int a2, int a3, int a4, int a5, int a6, int32_t time, int32_t flag) { return NativeInvoke::Invoke<1799, std::to_underlying(NativeHashes::PRINT_WITH_5_NUMBERS_NOW), void>(gxtentry, a2, a3, a4, a5, a6, time, flag); }
-    static inline auto PrintWith6Numbers(char* gxtentry, int a2, int a3, int a4, int a5, int a6, int a7, int32_t time, int32_t flag) { return NativeInvoke::Invoke<1800, std::to_underlying(NativeHashes::PRINT_WITH_6_NUMBERS), void>(gxtentry, a2, a3, a4, a5, a6, a7, time, flag); }
-    static inline auto PrintWith6NumbersNow(char* gxtentry, int a2, int a3, int a4, int a5, int a6, int a7, int32_t time, int32_t flag) { return NativeInvoke::Invoke<1801, std::to_underlying(NativeHashes::PRINT_WITH_6_NUMBERS_NOW), void>(gxtentry, a2, a3, a4, a5, a6, a7, time, flag); }
-    static inline auto PrintWithNumber(char* gxtName, int32_t value, uint32_t timeMS, bool enable) { return NativeInvoke::Invoke<1802, std::to_underlying(NativeHashes::PRINT_WITH_NUMBER), void>(gxtName, value, timeMS, enable); }
-    static inline auto PrintWithNumberBig(char* gxtName, int32_t value, uint32_t timeMS, bool enable) { return NativeInvoke::Invoke<1803, std::to_underlying(NativeHashes::PRINT_WITH_NUMBER_BIG), void>(gxtName, value, timeMS, enable); }
-    static inline auto PrintWithNumberNow(char* gxtName, int32_t value, uint32_t timeMS, bool enable) { return NativeInvoke::Invoke<1804, std::to_underlying(NativeHashes::PRINT_WITH_NUMBER_NOW), void>(gxtName, value, timeMS, enable); }
+    static inline auto PrintNow(char *gxtName, uint32_t timeMS, bool enable) { return NativeInvoke::Invoke<1783, std::to_underlying(NativeHashes::PRINT_NOW), void>(gxtName, timeMS, enable); }
+    static inline auto PrintStringInString(char *gxtName, char *gxtText, uint32_t timeMS, bool enable) { return NativeInvoke::Invoke<1784, std::to_underlying(NativeHashes::PRINT_STRING_IN_STRING), void>(gxtName, gxtText, timeMS, enable); }
+    static inline auto PrintStringInStringNow(char *gxtName, char *gxtText, uint32_t timeMS, bool enable) { return NativeInvoke::Invoke<1785, std::to_underlying(NativeHashes::PRINT_STRING_IN_STRING_NOW), void>(gxtName, gxtText, timeMS, enable); }
+    static inline auto PrintStringWithLiteralString(char *gxtentry, char *string, int32_t time, int32_t flag) { return NativeInvoke::Invoke<1786, std::to_underlying(NativeHashes::PRINT_STRING_WITH_LITERAL_STRING), void>(gxtentry, string, time, flag); }
+    static inline auto PrintStringWithLiteralStringNow(char *gxtName, void *text, uint32_t timeMS, bool enable) { return NativeInvoke::Invoke<1787, std::to_underlying(NativeHashes::PRINT_STRING_WITH_LITERAL_STRING_NOW), void>(gxtName, text, timeMS, enable); }
+    static inline auto PrintStringWithSubstringGivenHashKeyNow(char *gxtkey0, uint32_t gxtkey1, int32_t time, int32_t style) { return NativeInvoke::Invoke<1788, std::to_underlying(NativeHashes::PRINT_STRING_WITH_SUBSTRING_GIVEN_HASH_KEY_NOW), void>(gxtkey0, gxtkey1, time, style); }
+    static inline auto PrintStringWithTwoLiteralStrings(char *gxtentry, char *string1, char *string2, int32_t time, int32_t flag) { return NativeInvoke::Invoke<1789, std::to_underlying(NativeHashes::PRINT_STRING_WITH_TWO_LITERAL_STRINGS), void>(gxtentry, string1, string2, time, flag); }
+    static inline auto PrintStringWithTwoLiteralStringsNow(char *gxtentry, char *string1, char *string2, int32_t time, int32_t flag) { return NativeInvoke::Invoke<1790, std::to_underlying(NativeHashes::PRINT_STRING_WITH_TWO_LITERAL_STRINGS_NOW), void>(gxtentry, string1, string2, time, flag); }
+    static inline auto PrintWith2Numbers(char *gxtName, int32_t value1, int32_t value2, uint32_t timeMS, bool enable) { return NativeInvoke::Invoke<1791, std::to_underlying(NativeHashes::PRINT_WITH_2_NUMBERS), void>(gxtName, value1, value2, timeMS, enable); }
+    static inline auto PrintWith2NumbersBig(char *gxtentry, int a2, int a3, int32_t time, int32_t flag) { return NativeInvoke::Invoke<1792, std::to_underlying(NativeHashes::PRINT_WITH_2_NUMBERS_BIG), void>(gxtentry, a2, a3, time, flag); }
+    static inline auto PrintWith2NumbersNow(char *gxtName, int32_t value1, int32_t value2, uint32_t timeMS, bool enable) { return NativeInvoke::Invoke<1793, std::to_underlying(NativeHashes::PRINT_WITH_2_NUMBERS_NOW), void>(gxtName, value1, value2, timeMS, enable); }
+    static inline auto PrintWith3Numbers(char *gxtentry, int a2, int a3, int a4, int32_t time, int32_t flag) { return NativeInvoke::Invoke<1794, std::to_underlying(NativeHashes::PRINT_WITH_3_NUMBERS), void>(gxtentry, a2, a3, a4, time, flag); }
+    static inline auto PrintWith3NumbersNow(char *gxtentry, int a2, int a3, int a4, int32_t time, int32_t flag) { return NativeInvoke::Invoke<1795, std::to_underlying(NativeHashes::PRINT_WITH_3_NUMBERS_NOW), void>(gxtentry, a2, a3, a4, time, flag); }
+    static inline auto PrintWith4Numbers(char *gxtentry, int a2, int a3, int a4, int a5, int32_t time, int32_t flag) { return NativeInvoke::Invoke<1796, std::to_underlying(NativeHashes::PRINT_WITH_4_NUMBERS), void>(gxtentry, a2, a3, a4, a5, time, flag); }
+    static inline auto PrintWith4NumbersNow(char *gxtentry, int a2, int a3, int a4, int a5, int32_t time, int32_t flag) { return NativeInvoke::Invoke<1797, std::to_underlying(NativeHashes::PRINT_WITH_4_NUMBERS_NOW), void>(gxtentry, a2, a3, a4, a5, time, flag); }
+    static inline auto PrintWith5Numbers(char *gxtentry, int a2, int a3, int a4, int a5, int a6, int32_t time, int32_t flag) { return NativeInvoke::Invoke<1798, std::to_underlying(NativeHashes::PRINT_WITH_5_NUMBERS), void>(gxtentry, a2, a3, a4, a5, a6, time, flag); }
+    static inline auto PrintWith5NumbersNow(char *gxtentry, int a2, int a3, int a4, int a5, int a6, int32_t time, int32_t flag) { return NativeInvoke::Invoke<1799, std::to_underlying(NativeHashes::PRINT_WITH_5_NUMBERS_NOW), void>(gxtentry, a2, a3, a4, a5, a6, time, flag); }
+    static inline auto PrintWith6Numbers(char *gxtentry, int a2, int a3, int a4, int a5, int a6, int a7, int32_t time, int32_t flag) { return NativeInvoke::Invoke<1800, std::to_underlying(NativeHashes::PRINT_WITH_6_NUMBERS), void>(gxtentry, a2, a3, a4, a5, a6, a7, time, flag); }
+    static inline auto PrintWith6NumbersNow(char *gxtentry, int a2, int a3, int a4, int a5, int a6, int a7, int32_t time, int32_t flag) { return NativeInvoke::Invoke<1801, std::to_underlying(NativeHashes::PRINT_WITH_6_NUMBERS_NOW), void>(gxtentry, a2, a3, a4, a5, a6, a7, time, flag); }
+    static inline auto PrintWithNumber(char *gxtName, int32_t value, uint32_t timeMS, bool enable) { return NativeInvoke::Invoke<1802, std::to_underlying(NativeHashes::PRINT_WITH_NUMBER), void>(gxtName, value, timeMS, enable); }
+    static inline auto PrintWithNumberBig(char *gxtName, int32_t value, uint32_t timeMS, bool enable) { return NativeInvoke::Invoke<1803, std::to_underlying(NativeHashes::PRINT_WITH_NUMBER_BIG), void>(gxtName, value, timeMS, enable); }
+    static inline auto PrintWithNumberNow(char *gxtName, int32_t value, uint32_t timeMS, bool enable) { return NativeInvoke::Invoke<1804, std::to_underlying(NativeHashes::PRINT_WITH_NUMBER_NOW), void>(gxtName, value, timeMS, enable); }
     static inline auto Printfloat(float value) { return NativeInvoke::Invoke<1805, std::to_underlying(NativeHashes::PRINTFLOAT), void>(value); }
     static inline auto Printfloat2() { return NativeInvoke::Invoke<1806, std::to_underlying(NativeHashes::PRINTFLOAT2), Any>(); }
     static inline auto Printint(int32_t value) { return NativeInvoke::Invoke<1807, std::to_underlying(NativeHashes::PRINTINT), void>(value); }
     static inline auto Printint2() { return NativeInvoke::Invoke<1808, std::to_underlying(NativeHashes::PRINTINT2), Any>(); }
     static inline auto Printnl() { return NativeInvoke::Invoke<1809, std::to_underlying(NativeHashes::PRINTNL), void>(); }
-    static inline auto Printstring(char* value) { return NativeInvoke::Invoke<1810, std::to_underlying(NativeHashes::PRINTSTRING), void>(value); }
+    static inline auto Printstring(char *value) { return NativeInvoke::Invoke<1810, std::to_underlying(NativeHashes::PRINTSTRING), void>(value); }
     static inline auto Printvector(float x, float y, float z) { return NativeInvoke::Invoke<1811, std::to_underlying(NativeHashes::PRINTVECTOR), void>(x, y, z); }
     static inline auto PrioritizeStreamingRequest() { return NativeInvoke::Invoke<1812, std::to_underlying(NativeHashes::PRIORITIZE_STREAMING_REQUEST), void>(); }
     static inline auto ProcessMissionDeletionList() { return NativeInvoke::Invoke<1813, std::to_underlying(NativeHashes::PROCESS_MISSION_DELETION_LIST), void>(); }
@@ -5200,18 +5205,18 @@ public:
     static inline auto RegisterHostBroadcastVariables(Any a1, Any a2, Any a3) { return NativeInvoke::Invoke<1823, std::to_underlying(NativeHashes::REGISTER_HOST_BROADCAST_VARIABLES), void>(a1, a2, a3); }
     static inline auto RegisterIntStat(int32_t stat, int32_t val) { return NativeInvoke::Invoke<1824, std::to_underlying(NativeHashes::REGISTER_INT_STAT), void>(stat, val); }
     static inline auto RegisterKillInMultiplayerGame(Any a1, Any a2, Any a3) { return NativeInvoke::Invoke<1825, std::to_underlying(NativeHashes::REGISTER_KILL_IN_MULTIPLAYER_GAME), void>(a1, a2, a3); }
-    static inline auto RegisterMissionPassed(char* a1) { return NativeInvoke::Invoke<1826, std::to_underlying(NativeHashes::REGISTER_MISSION_PASSED), void>(a1); }
+    static inline auto RegisterMissionPassed(char *a1) { return NativeInvoke::Invoke<1826, std::to_underlying(NativeHashes::REGISTER_MISSION_PASSED), void>(a1); }
     static inline auto RegisterMod() { return NativeInvoke::Invoke<1827, std::to_underlying(NativeHashes::REGISTER_MOD), Any>(); }
     static inline auto RegisterModelForRankPoints() { return NativeInvoke::Invoke<1828, std::to_underlying(NativeHashes::REGISTER_MODEL_FOR_RANK_POINTS), Any>(); }
     static inline auto RegisterMultiplayerGameWin(Any a1, Any a2) { return NativeInvoke::Invoke<1829, std::to_underlying(NativeHashes::REGISTER_MULTIPLAYER_GAME_WIN), void>(a1, a2); }
     static inline auto RegisterNetworkBestGameScores(Any a1, Any a2, Any a3) { return NativeInvoke::Invoke<1830, std::to_underlying(NativeHashes::REGISTER_NETWORK_BEST_GAME_SCORES), void>(a1, a2, a3); }
     static inline auto RegisterOddjobMissionPassed() { return NativeInvoke::Invoke<1831, std::to_underlying(NativeHashes::REGISTER_ODDJOB_MISSION_PASSED), void>(); }
     static inline auto RegisterPlayerRespawnCoords(Player playerIndex, float x, float y, float z) { return NativeInvoke::Invoke<1832, std::to_underlying(NativeHashes::REGISTER_PLAYER_RESPAWN_COORDS), void>(playerIndex, x, y, z); }
-    static inline auto RegisterSaveHouse(float x, float y, float z, float unkf, char* name, uint32_t unku) { return NativeInvoke::Invoke<1833, std::to_underlying(NativeHashes::REGISTER_SAVE_HOUSE), uint32_t>(x, y, z, unkf, name, unku); }
+    static inline auto RegisterSaveHouse(float x, float y, float z, float unkf, char *name, uint32_t unku) { return NativeInvoke::Invoke<1833, std::to_underlying(NativeHashes::REGISTER_SAVE_HOUSE), uint32_t>(x, y, z, unkf, name, unku); }
     static inline auto RegisterScriptWithAudio(bool reg) { return NativeInvoke::Invoke<1834, std::to_underlying(NativeHashes::REGISTER_SCRIPT_WITH_AUDIO), void>(reg); }
-    static inline auto RegisterStringForFrontendStat(int32_t stat, char* str) { return NativeInvoke::Invoke<1835, std::to_underlying(NativeHashes::REGISTER_STRING_FOR_FRONTEND_STAT), void>(stat, str); }
+    static inline auto RegisterStringForFrontendStat(int32_t stat, char *str) { return NativeInvoke::Invoke<1835, std::to_underlying(NativeHashes::REGISTER_STRING_FOR_FRONTEND_STAT), void>(stat, str); }
     static inline auto RegisterTarget(Ped ped, Ped target) { return NativeInvoke::Invoke<1836, std::to_underlying(NativeHashes::REGISTER_TARGET), void>(ped, target); }
-    static inline auto RegisterWorldPointScriptBrain(char* ScriptName, float radius) { return NativeInvoke::Invoke<1837, std::to_underlying(NativeHashes::REGISTER_WORLD_POINT_SCRIPT_BRAIN), void>(ScriptName, radius); }
+    static inline auto RegisterWorldPointScriptBrain(char *ScriptName, float radius) { return NativeInvoke::Invoke<1837, std::to_underlying(NativeHashes::REGISTER_WORLD_POINT_SCRIPT_BRAIN), void>(ScriptName, radius); }
     static inline auto ReleaseEntityFromRopeForObject() { return NativeInvoke::Invoke<1838, std::to_underlying(NativeHashes::RELEASE_ENTITY_FROM_ROPE_FOR_OBJECT), Any>(); }
     static inline auto ReleaseMovie() { return NativeInvoke::Invoke<1839, std::to_underlying(NativeHashes::RELEASE_MOVIE), void>(); }
     static inline auto ReleasePathNodes() { return NativeInvoke::Invoke<1840, std::to_underlying(NativeHashes::RELEASE_PATH_NODES), void>(); }
@@ -5228,7 +5233,7 @@ public:
     static inline auto RemoveAllNetworkRestartPoints() { return NativeInvoke::Invoke<1851, std::to_underlying(NativeHashes::REMOVE_ALL_NETWORK_RESTART_POINTS), Any>(); }
     static inline auto RemoveAllPickupsOfType(uint32_t type) { return NativeInvoke::Invoke<1852, std::to_underlying(NativeHashes::REMOVE_ALL_PICKUPS_OF_TYPE), void>(type); }
     static inline auto RemoveAllScriptFires() { return NativeInvoke::Invoke<1853, std::to_underlying(NativeHashes::REMOVE_ALL_SCRIPT_FIRES), Any>(); }
-    static inline auto RemoveAnims(char* animName) { return NativeInvoke::Invoke<1854, std::to_underlying(NativeHashes::REMOVE_ANIMS), void>(animName); }
+    static inline auto RemoveAnims(char *animName) { return NativeInvoke::Invoke<1854, std::to_underlying(NativeHashes::REMOVE_ANIMS), void>(animName); }
     static inline auto RemoveBlip(Blip blip) { return NativeInvoke::Invoke<1855, std::to_underlying(NativeHashes::REMOVE_BLIP), void>(blip); }
     static inline auto RemoveBlipAndClearIndex(int32_t blip) { return NativeInvoke::Invoke<1856, std::to_underlying(NativeHashes::REMOVE_BLIP_AND_CLEAR_INDEX), void>(blip); }
     static inline auto RemoveCarRecording(int32_t CarRec) { return NativeInvoke::Invoke<1857, std::to_underlying(NativeHashes::REMOVE_CAR_RECORDING), void>(CarRec); }
@@ -5243,8 +5248,8 @@ public:
     static inline auto RemoveDecisionMaker(DecisionMaker dm) { return NativeInvoke::Invoke<1866, std::to_underlying(NativeHashes::REMOVE_DECISION_MAKER), void>(dm); }
     static inline auto RemoveFakeNetworkNameFromPed(Ped ped) { return NativeInvoke::Invoke<1867, std::to_underlying(NativeHashes::REMOVE_FAKE_NETWORK_NAME_FROM_PED), void>(ped); }
     static inline auto RemoveGroup(Group group) { return NativeInvoke::Invoke<1868, std::to_underlying(NativeHashes::REMOVE_GROUP), void>(group); }
-    static inline auto RemoveIpl(char* iplName) { return NativeInvoke::Invoke<1869, std::to_underlying(NativeHashes::REMOVE_IPL), void>(iplName); }
-    static inline auto RemoveIplDiscreetly(char* iplname) { return NativeInvoke::Invoke<1870, std::to_underlying(NativeHashes::REMOVE_IPL_DISCREETLY), void>(iplname); }
+    static inline auto RemoveIpl(char *iplName) { return NativeInvoke::Invoke<1869, std::to_underlying(NativeHashes::REMOVE_IPL), void>(iplName); }
+    static inline auto RemoveIplDiscreetly(char *iplname) { return NativeInvoke::Invoke<1870, std::to_underlying(NativeHashes::REMOVE_IPL_DISCREETLY), void>(iplname); }
     static inline auto RemoveNavmeshRequiredRegion(float a1, float a2) { return NativeInvoke::Invoke<1871, std::to_underlying(NativeHashes::REMOVE_NAVMESH_REQUIRED_REGION), bool>(a1, a2); }
     static inline auto RemovePedHelmet(Ped ped, bool removed) { return NativeInvoke::Invoke<1872, std::to_underlying(NativeHashes::REMOVE_PED_HELMET), void>(ped, removed); }
     static inline auto RemovePedQueue() { return NativeInvoke::Invoke<1873, std::to_underlying(NativeHashes::REMOVE_PED_QUEUE), Any>(); }
@@ -5271,26 +5276,26 @@ public:
     static inline auto RenderRadiohudSpriteInLobby() { return NativeInvoke::Invoke<1894, std::to_underlying(NativeHashes::RENDER_RADIOHUD_SPRITE_IN_LOBBY), Any>(); }
     static inline auto RenderRadiohudSpriteInMobilePhone() { return NativeInvoke::Invoke<1895, std::to_underlying(NativeHashes::RENDER_RADIOHUD_SPRITE_IN_MOBILE_PHONE), Any>(); }
     static inline auto RenderWeaponPickupsBigger(bool value) { return NativeInvoke::Invoke<1896, std::to_underlying(NativeHashes::RENDER_WEAPON_PICKUPS_BIGGER), void>(value); }
-    static inline auto ReportCrime(float x, float y, float z, char* name) { return NativeInvoke::Invoke<1897, std::to_underlying(NativeHashes::REPORT_CRIME), void>(x, y, z, name); }
+    static inline auto ReportCrime(float x, float y, float z, char *name) { return NativeInvoke::Invoke<1897, std::to_underlying(NativeHashes::REPORT_CRIME), void>(x, y, z, name); }
     static inline auto ReportDispatch(int32_t id, float x, float y, float z) { return NativeInvoke::Invoke<1898, std::to_underlying(NativeHashes::REPORT_DISPATCH), void>(id, x, y, z); }
     static inline auto ReportPoliceSpottingSuspect(Vehicle veh) { return NativeInvoke::Invoke<1899, std::to_underlying(NativeHashes::REPORT_POLICE_SPOTTING_SUSPECT), void>(veh); }
     static inline auto ReportSuspectArrested() { return NativeInvoke::Invoke<1900, std::to_underlying(NativeHashes::REPORT_SUSPECT_ARRESTED), void>(); }
     static inline auto ReportSuspectDown() { return NativeInvoke::Invoke<1901, std::to_underlying(NativeHashes::REPORT_SUSPECT_DOWN), void>(); }
     static inline auto ReportTaggedRadioTrack(int32_t TrackTextId) { return NativeInvoke::Invoke<1902, std::to_underlying(NativeHashes::REPORT_TAGGED_RADIO_TRACK), void>(TrackTextId); }
-    static inline auto RequestAdditionalText(char* textName, uint32_t textIndex) { return NativeInvoke::Invoke<1903, std::to_underlying(NativeHashes::REQUEST_ADDITIONAL_TEXT), void>(textName, textIndex); }
+    static inline auto RequestAdditionalText(char *textName, uint32_t textIndex) { return NativeInvoke::Invoke<1903, std::to_underlying(NativeHashes::REQUEST_ADDITIONAL_TEXT), void>(textName, textIndex); }
     static inline auto RequestAllSlodsInWorld() { return NativeInvoke::Invoke<1904, std::to_underlying(NativeHashes::REQUEST_ALL_SLODS_IN_WORLD), void>(); }
-    static inline auto RequestAmbientAudioBank(char* name) { return NativeInvoke::Invoke<1905, std::to_underlying(NativeHashes::REQUEST_AMBIENT_AUDIO_BANK), bool>(name); }
-    static inline auto RequestAnims(char* animName) { return NativeInvoke::Invoke<1906, std::to_underlying(NativeHashes::REQUEST_ANIMS), void>(animName); }
+    static inline auto RequestAmbientAudioBank(char *name) { return NativeInvoke::Invoke<1905, std::to_underlying(NativeHashes::REQUEST_AMBIENT_AUDIO_BANK), bool>(name); }
+    static inline auto RequestAnims(char *animName) { return NativeInvoke::Invoke<1906, std::to_underlying(NativeHashes::REQUEST_ANIMS), void>(animName); }
     static inline auto RequestCarRecording(int32_t CarRecId) { return NativeInvoke::Invoke<1907, std::to_underlying(NativeHashes::REQUEST_CAR_RECORDING), void>(CarRecId); }
     static inline auto RequestCollisionAtPosn(float x, float y, float z) { return NativeInvoke::Invoke<1908, std::to_underlying(NativeHashes::REQUEST_COLLISION_AT_POSN), void>(x, y, z); }
     static inline auto RequestCollisionForModel(uint32_t model) { return NativeInvoke::Invoke<1909, std::to_underlying(NativeHashes::REQUEST_COLLISION_FOR_MODEL), void>(model); }
     static inline auto RequestControlOfNetworkId(Any a1) { return NativeInvoke::Invoke<1910, std::to_underlying(NativeHashes::REQUEST_CONTROL_OF_NETWORK_ID), Any>(a1); }
-    static inline auto RequestInteriorModels(uint32_t model, char* interiorName) { return NativeInvoke::Invoke<1911, std::to_underlying(NativeHashes::REQUEST_INTERIOR_MODELS), void>(model, interiorName); }
-    static inline auto RequestIpl(char* iplName) { return NativeInvoke::Invoke<1912, std::to_underlying(NativeHashes::REQUEST_IPL), void>(iplName); }
-    static inline auto RequestMissionAudioBank(char* name) { return NativeInvoke::Invoke<1913, std::to_underlying(NativeHashes::REQUEST_MISSION_AUDIO_BANK), bool>(name); }
+    static inline auto RequestInteriorModels(uint32_t model, char *interiorName) { return NativeInvoke::Invoke<1911, std::to_underlying(NativeHashes::REQUEST_INTERIOR_MODELS), void>(model, interiorName); }
+    static inline auto RequestIpl(char *iplName) { return NativeInvoke::Invoke<1912, std::to_underlying(NativeHashes::REQUEST_IPL), void>(iplName); }
+    static inline auto RequestMissionAudioBank(char *name) { return NativeInvoke::Invoke<1913, std::to_underlying(NativeHashes::REQUEST_MISSION_AUDIO_BANK), bool>(name); }
     static inline auto RequestModel(uint32_t model) { return NativeInvoke::Invoke<1914, std::to_underlying(NativeHashes::REQUEST_MODEL), void>(model); }
-    static inline auto RequestScript(char* scriptName) { return NativeInvoke::Invoke<1915, std::to_underlying(NativeHashes::REQUEST_SCRIPT), void>(scriptName); }
-    static inline auto RequestStreamedTxd(char* txdName, bool unknown) { return NativeInvoke::Invoke<1916, std::to_underlying(NativeHashes::REQUEST_STREAMED_TXD), void>(txdName, unknown); }
+    static inline auto RequestScript(char *scriptName) { return NativeInvoke::Invoke<1915, std::to_underlying(NativeHashes::REQUEST_SCRIPT), void>(scriptName); }
+    static inline auto RequestStreamedTxd(char *txdName, bool unknown) { return NativeInvoke::Invoke<1916, std::to_underlying(NativeHashes::REQUEST_STREAMED_TXD), void>(txdName, unknown); }
     static inline auto ReserveNetworkMissionObjects(Any a1) { return NativeInvoke::Invoke<1917, std::to_underlying(NativeHashes::RESERVE_NETWORK_MISSION_OBJECTS), void>(a1); }
     static inline auto ReserveNetworkMissionObjectsForHost(Any a1) { return NativeInvoke::Invoke<1918, std::to_underlying(NativeHashes::RESERVE_NETWORK_MISSION_OBJECTS_FOR_HOST), void>(a1); }
     static inline auto ReserveNetworkMissionPeds(Any a1) { return NativeInvoke::Invoke<1919, std::to_underlying(NativeHashes::RESERVE_NETWORK_MISSION_PEDS), void>(a1); }
@@ -5319,7 +5324,7 @@ public:
     static inline auto ResurrectNetworkPlayer(Any a1, Any a2, Any a3, Any a4, Any a5) { return NativeInvoke::Invoke<1942, std::to_underlying(NativeHashes::RESURRECT_NETWORK_PLAYER), void>(a1, a2, a3, a4, a5); }
     static inline auto RetuneRadioDown() { return NativeInvoke::Invoke<1943, std::to_underlying(NativeHashes::RETUNE_RADIO_DOWN), void>(); }
     static inline auto RetuneRadioToStationIndex(uint32_t radioStation) { return NativeInvoke::Invoke<1944, std::to_underlying(NativeHashes::RETUNE_RADIO_TO_STATION_INDEX), void>(radioStation); }
-    static inline auto RetuneRadioToStationName(char* name) { return NativeInvoke::Invoke<1945, std::to_underlying(NativeHashes::RETUNE_RADIO_TO_STATION_NAME), void>(name); }
+    static inline auto RetuneRadioToStationName(char *name) { return NativeInvoke::Invoke<1945, std::to_underlying(NativeHashes::RETUNE_RADIO_TO_STATION_NAME), void>(name); }
     static inline auto RetuneRadioUp() { return NativeInvoke::Invoke<1946, std::to_underlying(NativeHashes::RETUNE_RADIO_UP), void>(); }
     static inline auto ReviveInjuredPed(Ped ped) { return NativeInvoke::Invoke<1947, std::to_underlying(NativeHashes::REVIVE_INJURED_PED), void>(ped); }
     static inline auto RotateObject(Object obj, float x, float y, bool flag) { return NativeInvoke::Invoke<1948, std::to_underlying(NativeHashes::ROTATE_OBJECT), bool>(obj, x, y, flag); }
@@ -5334,8 +5339,8 @@ public:
     static inline auto SaveScriptArrayInScratchpad(Any a1, Any a2, Any a3, Any a4) { return NativeInvoke::Invoke<1957, std::to_underlying(NativeHashes::SAVE_SCRIPT_ARRAY_IN_SCRATCHPAD), void>(a1, a2, a3, a4); }
     static inline auto SaveSettings() { return NativeInvoke::Invoke<1958, std::to_underlying(NativeHashes::SAVE_SETTINGS), void>(); }
     static inline auto SaveStringToDebugFile(Any a1) { return NativeInvoke::Invoke<1959, std::to_underlying(NativeHashes::SAVE_STRING_TO_DEBUG_FILE), void>(a1); }
-    static inline auto SayAmbientSpeech(Ped ped, char* phraseName, bool flag0, bool flag1, int32_t style) { return NativeInvoke::Invoke<1960, std::to_underlying(NativeHashes::SAY_AMBIENT_SPEECH), void>(ped, phraseName, flag0, flag1, style); }
-    static inline auto SayAmbientSpeechWithVoice(Ped ped, char* SpeechName, char* VoiceName, bool flag0, bool flag1, int32_t style) { return NativeInvoke::Invoke<1961, std::to_underlying(NativeHashes::SAY_AMBIENT_SPEECH_WITH_VOICE), void>(ped, SpeechName, VoiceName, flag0, flag1, style); }
+    static inline auto SayAmbientSpeech(Ped ped, char *phraseName, bool flag0, bool flag1, int32_t style) { return NativeInvoke::Invoke<1960, std::to_underlying(NativeHashes::SAY_AMBIENT_SPEECH), void>(ped, phraseName, flag0, flag1, style); }
+    static inline auto SayAmbientSpeechWithVoice(Ped ped, char *SpeechName, char *VoiceName, bool flag0, bool flag1, int32_t style) { return NativeInvoke::Invoke<1961, std::to_underlying(NativeHashes::SAY_AMBIENT_SPEECH_WITH_VOICE), void>(ped, SpeechName, VoiceName, flag0, flag1, style); }
     static inline auto ScriptAssert(Any a1) { return NativeInvoke::Invoke<1962, std::to_underlying(NativeHashes::SCRIPT_ASSERT), void>(a1); }
     static inline auto ScriptIsMovingMobilePhoneOffscreen(bool set) { return NativeInvoke::Invoke<1963, std::to_underlying(NativeHashes::SCRIPT_IS_MOVING_MOBILE_PHONE_OFFSCREEN), void>(set); }
     static inline auto ScriptIsUsingMobilePhone(bool set) { return NativeInvoke::Invoke<1964, std::to_underlying(NativeHashes::SCRIPT_IS_USING_MOBILE_PHONE), void>(set); }
@@ -5362,14 +5367,14 @@ public:
     static inline auto SetAlternativeHeadForPedQueue() { return NativeInvoke::Invoke<1985, std::to_underlying(NativeHashes::SET_ALTERNATIVE_HEAD_FOR_PED_QUEUE), Any>(); }
     static inline auto SetAlwaysDisplayWeaponPickupMessage(bool set) { return NativeInvoke::Invoke<1986, std::to_underlying(NativeHashes::SET_ALWAYS_DISPLAY_WEAPON_PICKUP_MESSAGE), void>(set); }
     static inline auto SetAmbientPlanesSpeedMultiplier(float multiplier) { return NativeInvoke::Invoke<1987, std::to_underlying(NativeHashes::SET_AMBIENT_PLANES_SPEED_MULTIPLIER), void>(multiplier); }
-    static inline auto SetAmbientVoiceName(Ped ped, char* name) { return NativeInvoke::Invoke<1988, std::to_underlying(NativeHashes::SET_AMBIENT_VOICE_NAME), void>(ped, name); }
+    static inline auto SetAmbientVoiceName(Ped ped, char *name) { return NativeInvoke::Invoke<1988, std::to_underlying(NativeHashes::SET_AMBIENT_VOICE_NAME), void>(ped, name); }
     static inline auto SetAmmoInClip(Ped ped, uint32_t weapon, uint32_t ammo) { return NativeInvoke::Invoke<1989, std::to_underlying(NativeHashes::SET_AMMO_IN_CLIP), Any>(ped, weapon, ammo); }
-    static inline auto SetAnimGroupForChar(Ped ped, char* grname) { return NativeInvoke::Invoke<1990, std::to_underlying(NativeHashes::SET_ANIM_GROUP_FOR_CHAR), void>(ped, grname); }
+    static inline auto SetAnimGroupForChar(Ped ped, char *grname) { return NativeInvoke::Invoke<1990, std::to_underlying(NativeHashes::SET_ANIM_GROUP_FOR_CHAR), void>(ped, grname); }
     static inline auto SetAreaName() { return NativeInvoke::Invoke<1991, std::to_underlying(NativeHashes::SET_AREA_NAME), Any>(); }
     static inline auto SetArmourPickupNetworkRegenTime(Any a1) { return NativeInvoke::Invoke<1992, std::to_underlying(NativeHashes::SET_ARMOUR_PICKUP_NETWORK_REGEN_TIME), void>(a1); }
     static inline auto SetBikeRiderWillPutFootDownWhenStopped(Vehicle bike, bool set) { return NativeInvoke::Invoke<1993, std::to_underlying(NativeHashes::SET_BIKE_RIDER_WILL_PUT_FOOT_DOWN_WHEN_STOPPED), void>(bike, set); }
-    static inline auto SetBit(int32_t* val, int32_t bit) { return NativeInvoke::Invoke<1994, std::to_underlying(NativeHashes::SET_BIT), void>(val, bit); }
-    static inline auto SetBitsInRange(int32_t* a1, int32_t rangebegin, int32_t rangeend, int32_t val) { return NativeInvoke::Invoke<1995, std::to_underlying(NativeHashes::SET_BITS_IN_RANGE), void>(a1, rangebegin, rangeend, val); }
+    static inline auto SetBit(int32_t *val, int32_t bit) { return NativeInvoke::Invoke<1994, std::to_underlying(NativeHashes::SET_BIT), void>(val, bit); }
+    static inline auto SetBitsInRange(int32_t *a1, int32_t rangebegin, int32_t rangeend, int32_t val) { return NativeInvoke::Invoke<1995, std::to_underlying(NativeHashes::SET_BITS_IN_RANGE), void>(a1, rangebegin, rangeend, val); }
     static inline auto SetBlipAsFriendly(Blip blip, bool value) { return NativeInvoke::Invoke<1996, std::to_underlying(NativeHashes::SET_BLIP_AS_FRIENDLY), void>(blip, value); }
     static inline auto SetBlipAsShortRange(Blip blip, bool value) { return NativeInvoke::Invoke<1997, std::to_underlying(NativeHashes::SET_BLIP_AS_SHORT_RANGE), void>(blip, value); }
     static inline auto SetBlipCoordinates(int32_t blip, float x, float y, float z) { return NativeInvoke::Invoke<1998, std::to_underlying(NativeHashes::SET_BLIP_COORDINATES), void>(blip, x, y, z); }
@@ -5397,7 +5402,7 @@ public:
     static inline auto SetCamInterpStyleCore(int32_t cam0, int32_t cam1, int32_t cam2, int32_t time, bool flag) { return NativeInvoke::Invoke<2020, std::to_underlying(NativeHashes::SET_CAM_INTERP_STYLE_CORE), void>(cam0, cam1, cam2, time, flag); }
     static inline auto SetCamInterpStyleDetailed(int32_t cam, bool a2, bool a3, bool a4, bool a5) { return NativeInvoke::Invoke<2021, std::to_underlying(NativeHashes::SET_CAM_INTERP_STYLE_DETAILED), void>(cam, a2, a3, a4, a5); }
     static inline auto SetCamMotionBlur(int32_t cam, float blur) { return NativeInvoke::Invoke<2022, std::to_underlying(NativeHashes::SET_CAM_MOTION_BLUR), void>(cam, blur); }
-    static inline auto SetCamName(int32_t cam, char* camname) { return NativeInvoke::Invoke<2023, std::to_underlying(NativeHashes::SET_CAM_NAME), void>(cam, camname); }
+    static inline auto SetCamName(int32_t cam, char *camname) { return NativeInvoke::Invoke<2023, std::to_underlying(NativeHashes::SET_CAM_NAME), void>(cam, camname); }
     static inline auto SetCamNearClip(int32_t cam, float clip) { return NativeInvoke::Invoke<2024, std::to_underlying(NativeHashes::SET_CAM_NEAR_CLIP), void>(cam, clip); }
     static inline auto SetCamNearDof(int32_t cam, float dof) { return NativeInvoke::Invoke<2025, std::to_underlying(NativeHashes::SET_CAM_NEAR_DOF), void>(cam, dof); }
     static inline auto SetCamPointDampingParams(int32_t cam, float x, float y, float z) { return NativeInvoke::Invoke<2026, std::to_underlying(NativeHashes::SET_CAM_POINT_DAMPING_PARAMS), void>(cam, x, y, z); }
@@ -5422,8 +5427,8 @@ public:
     static inline auto SetCanTargetCharWithoutLos(Ped ped, bool set) { return NativeInvoke::Invoke<2045, std::to_underlying(NativeHashes::SET_CAN_TARGET_CHAR_WITHOUT_LOS), void>(ped, set); }
     static inline auto SetCarAllowedToDrown(Car car, bool allowed) { return NativeInvoke::Invoke<2046, std::to_underlying(NativeHashes::SET_CAR_ALLOWED_TO_DROWN), void>(car, allowed); }
     static inline auto SetCarAlwaysCreateSkids(Car car, bool set) { return NativeInvoke::Invoke<2047, std::to_underlying(NativeHashes::SET_CAR_ALWAYS_CREATE_SKIDS), void>(car, set); }
-    static inline auto SetCarAnimCurrentTime(Car car, char* animname0, char* animname1, float time) { return NativeInvoke::Invoke<2048, std::to_underlying(NativeHashes::SET_CAR_ANIM_CURRENT_TIME), void>(car, animname0, animname1, time); }
-    static inline auto SetCarAnimSpeed(Car car, char* animname0, char* animname1, float speed) { return NativeInvoke::Invoke<2049, std::to_underlying(NativeHashes::SET_CAR_ANIM_SPEED), void>(car, animname0, animname1, speed); }
+    static inline auto SetCarAnimCurrentTime(Car car, char *animname0, char *animname1, float time) { return NativeInvoke::Invoke<2048, std::to_underlying(NativeHashes::SET_CAR_ANIM_CURRENT_TIME), void>(car, animname0, animname1, time); }
+    static inline auto SetCarAnimSpeed(Car car, char *animname0, char *animname1, float speed) { return NativeInvoke::Invoke<2049, std::to_underlying(NativeHashes::SET_CAR_ANIM_SPEED), void>(car, animname0, animname1, speed); }
     static inline auto SetCarAsMissionCar(Car car) { return NativeInvoke::Invoke<2050, std::to_underlying(NativeHashes::SET_CAR_AS_MISSION_CAR), void>(car); }
     static inline auto SetCarCanBeDamaged(Vehicle vehicle, bool value) { return NativeInvoke::Invoke<2051, std::to_underlying(NativeHashes::SET_CAR_CAN_BE_DAMAGED), void>(vehicle, value); }
     static inline auto SetCarCanBeVisiblyDamaged(Vehicle vehicle, bool value) { return NativeInvoke::Invoke<2052, std::to_underlying(NativeHashes::SET_CAR_CAN_BE_VISIBLY_DAMAGED), void>(vehicle, value); }
@@ -5471,10 +5476,10 @@ public:
     static inline auto SetCharAllowedToRunOnBoats(Ped ped, bool set) { return NativeInvoke::Invoke<2094, std::to_underlying(NativeHashes::SET_CHAR_ALLOWED_TO_RUN_ON_BOATS), void>(ped, set); }
     static inline auto SetCharAmmo(Ped ped, uint32_t weapon, uint32_t ammo) { return NativeInvoke::Invoke<2095, std::to_underlying(NativeHashes::SET_CHAR_AMMO), void>(ped, weapon, ammo); }
     static inline auto SetCharAngledDefensiveArea(Ped ped, float x0, float y0, float z0, float x1, float y1, float z1, float angle) { return NativeInvoke::Invoke<2096, std::to_underlying(NativeHashes::SET_CHAR_ANGLED_DEFENSIVE_AREA), void>(ped, x0, y0, z0, x1, y1, z1, angle); }
-    static inline auto SetCharAnimBlendOutDelta(Ped ped, char* AnimName0, char* AnimName1, float delta) { return NativeInvoke::Invoke<2097, std::to_underlying(NativeHashes::SET_CHAR_ANIM_BLEND_OUT_DELTA), void>(ped, AnimName0, AnimName1, delta); }
-    static inline auto SetCharAnimCurrentTime(Ped ped, char* AnimName0, char* AnimName1, float time) { return NativeInvoke::Invoke<2098, std::to_underlying(NativeHashes::SET_CHAR_ANIM_CURRENT_TIME), void>(ped, AnimName0, AnimName1, time); }
-    static inline auto SetCharAnimPlayingFlag(Ped ped, char* AnimName0, char* AnimName1, bool flag) { return NativeInvoke::Invoke<2099, std::to_underlying(NativeHashes::SET_CHAR_ANIM_PLAYING_FLAG), bool>(ped, AnimName0, AnimName1, flag); }
-    static inline auto SetCharAnimSpeed(Ped ped, char* AnimName0, char* AnimName1, float speed) { return NativeInvoke::Invoke<2100, std::to_underlying(NativeHashes::SET_CHAR_ANIM_SPEED), void>(ped, AnimName0, AnimName1, speed); }
+    static inline auto SetCharAnimBlendOutDelta(Ped ped, char *AnimName0, char *AnimName1, float delta) { return NativeInvoke::Invoke<2097, std::to_underlying(NativeHashes::SET_CHAR_ANIM_BLEND_OUT_DELTA), void>(ped, AnimName0, AnimName1, delta); }
+    static inline auto SetCharAnimCurrentTime(Ped ped, char *AnimName0, char *AnimName1, float time) { return NativeInvoke::Invoke<2098, std::to_underlying(NativeHashes::SET_CHAR_ANIM_CURRENT_TIME), void>(ped, AnimName0, AnimName1, time); }
+    static inline auto SetCharAnimPlayingFlag(Ped ped, char *AnimName0, char *AnimName1, bool flag) { return NativeInvoke::Invoke<2099, std::to_underlying(NativeHashes::SET_CHAR_ANIM_PLAYING_FLAG), bool>(ped, AnimName0, AnimName1, flag); }
+    static inline auto SetCharAnimSpeed(Ped ped, char *AnimName0, char *AnimName1, float speed) { return NativeInvoke::Invoke<2100, std::to_underlying(NativeHashes::SET_CHAR_ANIM_SPEED), void>(ped, AnimName0, AnimName1, speed); }
     static inline auto SetCharAsEnemy(Ped ped, bool value) { return NativeInvoke::Invoke<2101, std::to_underlying(NativeHashes::SET_CHAR_AS_ENEMY), void>(ped, value); }
     static inline auto SetCharAsMissionChar(Ped ped) { return NativeInvoke::Invoke<2102, std::to_underlying(NativeHashes::SET_CHAR_AS_MISSION_CHAR), void>(ped); }
     static inline auto SetCharBleeding(Ped ped, bool set) { return NativeInvoke::Invoke<2103, std::to_underlying(NativeHashes::SET_CHAR_BLEEDING), void>(ped, set); }
@@ -5507,7 +5512,7 @@ public:
     static inline auto SetCharDuckingTimed(Ped ped, int32_t timed) { return NativeInvoke::Invoke<2130, std::to_underlying(NativeHashes::SET_CHAR_DUCKING_TIMED), void>(ped, timed); }
     static inline auto SetCharFireDamageMultiplier(Ped ped, float multiplier) { return NativeInvoke::Invoke<2131, std::to_underlying(NativeHashes::SET_CHAR_FIRE_DAMAGE_MULTIPLIER), void>(ped, multiplier); }
     static inline auto SetCharForceDieInCar(Ped ped, bool set) { return NativeInvoke::Invoke<2132, std::to_underlying(NativeHashes::SET_CHAR_FORCE_DIE_IN_CAR), void>(ped, set); }
-    static inline auto SetCharGestureGroup(Ped ped, char* AnimGroup) { return NativeInvoke::Invoke<2133, std::to_underlying(NativeHashes::SET_CHAR_GESTURE_GROUP), void>(ped, AnimGroup); }
+    static inline auto SetCharGestureGroup(Ped ped, char *AnimGroup) { return NativeInvoke::Invoke<2133, std::to_underlying(NativeHashes::SET_CHAR_GESTURE_GROUP), void>(ped, AnimGroup); }
     static inline auto SetCharGetOutUpsideDownCar(Ped ped, bool set) { return NativeInvoke::Invoke<2134, std::to_underlying(NativeHashes::SET_CHAR_GET_OUT_UPSIDE_DOWN_CAR), void>(ped, set); }
     static inline auto SetCharGravity(Ped ped, float value) { return NativeInvoke::Invoke<2135, std::to_underlying(NativeHashes::SET_CHAR_GRAVITY), void>(ped, value); }
     static inline auto SetCharHeading(Ped ped, float heading) { return NativeInvoke::Invoke<2136, std::to_underlying(NativeHashes::SET_CHAR_HEADING), void>(ped, heading); }
@@ -5578,7 +5583,7 @@ public:
     static inline auto SetCreateRandomCops(bool set) { return NativeInvoke::Invoke<2201, std::to_underlying(NativeHashes::SET_CREATE_RANDOM_COPS), void>(set); }
     static inline auto SetCreditsToRenderBeforeFade(bool set) { return NativeInvoke::Invoke<2202, std::to_underlying(NativeHashes::SET_CREDITS_TO_RENDER_BEFORE_FADE), void>(set); }
     static inline auto SetCurrentCharWeapon(Ped ped, uint32_t w, bool unknownTrue) { return NativeInvoke::Invoke<2203, std::to_underlying(NativeHashes::SET_CURRENT_CHAR_WEAPON), void>(ped, w, unknownTrue); }
-    static inline auto SetCurrentMovie(char* filename) { return NativeInvoke::Invoke<2204, std::to_underlying(NativeHashes::SET_CURRENT_MOVIE), void>(filename); }
+    static inline auto SetCurrentMovie(char *filename) { return NativeInvoke::Invoke<2204, std::to_underlying(NativeHashes::SET_CURRENT_MOVIE), void>(filename); }
     static inline auto SetCutsceneExtraRoomPos(float x, float y, float z) { return NativeInvoke::Invoke<2205, std::to_underlying(NativeHashes::SET_CUTSCENE_EXTRA_ROOM_POS), void>(x, y, z); }
     static inline auto SetDanceShakeActiveThisUpdate(float shake) { return NativeInvoke::Invoke<2206, std::to_underlying(NativeHashes::SET_DANCE_SHAKE_ACTIVE_THIS_UPDATE), void>(shake); }
     static inline auto SetDanceShakeInactiveImmediately() { return NativeInvoke::Invoke<2207, std::to_underlying(NativeHashes::SET_DANCE_SHAKE_INACTIVE_IMMEDIATELY), void>(); }
@@ -5700,8 +5705,8 @@ public:
     static inline auto SetLoadCollisionForCharFlag(Ped ped, bool set) { return NativeInvoke::Invoke<2323, std::to_underlying(NativeHashes::SET_LOAD_COLLISION_FOR_CHAR_FLAG), void>(ped, set); }
     static inline auto SetLoadCollisionForObjectFlag(Object obj, bool set) { return NativeInvoke::Invoke<2324, std::to_underlying(NativeHashes::SET_LOAD_COLLISION_FOR_OBJECT_FLAG), void>(obj, set); }
     static inline auto SetLobbyMuteOverride(bool set) { return NativeInvoke::Invoke<2325, std::to_underlying(NativeHashes::SET_LOBBY_MUTE_OVERRIDE), void>(set); }
-    static inline auto SetLocalPlayerPainVoice(char* name) { return NativeInvoke::Invoke<2326, std::to_underlying(NativeHashes::SET_LOCAL_PLAYER_PAIN_VOICE), void>(name); }
-    static inline auto SetLocalPlayerVoice(char* name) { return NativeInvoke::Invoke<2327, std::to_underlying(NativeHashes::SET_LOCAL_PLAYER_VOICE), void>(name); }
+    static inline auto SetLocalPlayerPainVoice(char *name) { return NativeInvoke::Invoke<2326, std::to_underlying(NativeHashes::SET_LOCAL_PLAYER_PAIN_VOICE), void>(name); }
+    static inline auto SetLocalPlayerVoice(char *name) { return NativeInvoke::Invoke<2327, std::to_underlying(NativeHashes::SET_LOCAL_PLAYER_VOICE), void>(name); }
     static inline auto SetLoudVehicleRadio(Vehicle veh, bool set) { return NativeInvoke::Invoke<2328, std::to_underlying(NativeHashes::SET_LOUD_VEHICLE_RADIO), void>(veh, set); }
     static inline auto SetMask(float a1, float a2, float a3, float a4) { return NativeInvoke::Invoke<2329, std::to_underlying(NativeHashes::SET_MASK), void>(a1, a2, a3, a4); }
     static inline auto SetMaxFireGenerations(int32_t max) { return NativeInvoke::Invoke<2330, std::to_underlying(NativeHashes::SET_MAX_FIRE_GENERATIONS), void>(max); }
@@ -5709,15 +5714,15 @@ public:
     static inline auto SetMenuColumn(int32_t menuid, Any a2, Any a3, Any a4, Any a5, Any a6, Any a7, Any a8, Any a9, Any a10, Any a11, Any a12, Any a13, Any a14, Any a15) { return NativeInvoke::Invoke<2332, std::to_underlying(NativeHashes::SET_MENU_COLUMN), void>(menuid, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15); }
     static inline auto SetMenuColumnOrientation(int32_t menuid, int32_t column, int32_t orientation) { return NativeInvoke::Invoke<2333, std::to_underlying(NativeHashes::SET_MENU_COLUMN_ORIENTATION), void>(menuid, column, orientation); }
     static inline auto SetMenuColumnWidth(int32_t menuid, int32_t column, float width) { return NativeInvoke::Invoke<2334, std::to_underlying(NativeHashes::SET_MENU_COLUMN_WIDTH), void>(menuid, column, width); }
-    static inline auto SetMenuItemWith2Numbers(int32_t menuid, int32_t item, int a3, char* gxtkey, int32_t number0, int32_t number1) { return NativeInvoke::Invoke<2335, std::to_underlying(NativeHashes::SET_MENU_ITEM_WITH_2_NUMBERS), void>(menuid, item, a3, gxtkey, number0, number1); }
-    static inline auto SetMenuItemWithNumber(int32_t menuid, int32_t item, int a3, char* gxtkey, int32_t number) { return NativeInvoke::Invoke<2336, std::to_underlying(NativeHashes::SET_MENU_ITEM_WITH_NUMBER), void>(menuid, item, a3, gxtkey, number); }
+    static inline auto SetMenuItemWith2Numbers(int32_t menuid, int32_t item, int a3, char *gxtkey, int32_t number0, int32_t number1) { return NativeInvoke::Invoke<2335, std::to_underlying(NativeHashes::SET_MENU_ITEM_WITH_2_NUMBERS), void>(menuid, item, a3, gxtkey, number0, number1); }
+    static inline auto SetMenuItemWithNumber(int32_t menuid, int32_t item, int a3, char *gxtkey, int32_t number) { return NativeInvoke::Invoke<2336, std::to_underlying(NativeHashes::SET_MENU_ITEM_WITH_NUMBER), void>(menuid, item, a3, gxtkey, number); }
     static inline auto SetMessageFormatting(bool a1, int a2, int a3) { return NativeInvoke::Invoke<2337, std::to_underlying(NativeHashes::SET_MESSAGE_FORMATTING), void>(a1, a2, a3); }
     static inline auto SetMessagesWaiting(bool set) { return NativeInvoke::Invoke<2338, std::to_underlying(NativeHashes::SET_MESSAGES_WAITING), void>(set); }
     static inline auto SetMinMaxPedAccuracy(Ped ped, float min, float max) { return NativeInvoke::Invoke<2339, std::to_underlying(NativeHashes::SET_MIN_MAX_PED_ACCURACY), void>(ped, min, max); }
     static inline auto SetMinigameInProgress(bool set) { return NativeInvoke::Invoke<2340, std::to_underlying(NativeHashes::SET_MINIGAME_IN_PROGRESS), void>(set); }
     static inline auto SetMissionFlag(bool isMission) { return NativeInvoke::Invoke<2341, std::to_underlying(NativeHashes::SET_MISSION_FLAG), void>(isMission); }
     static inline auto SetMissionPassedCash(bool add, int32_t cash, int a3) { return NativeInvoke::Invoke<2342, std::to_underlying(NativeHashes::SET_MISSION_PASSED_CASH), void>(add, cash, a3); }
-    static inline auto SetMissionPickupSound(uint32_t model, char* SoundName) { return NativeInvoke::Invoke<2343, std::to_underlying(NativeHashes::SET_MISSION_PICKUP_SOUND), void>(model, SoundName); }
+    static inline auto SetMissionPickupSound(uint32_t model, char *SoundName) { return NativeInvoke::Invoke<2343, std::to_underlying(NativeHashes::SET_MISSION_PICKUP_SOUND), void>(model, SoundName); }
     static inline auto SetMissionRespectTotal(float respect) { return NativeInvoke::Invoke<2344, std::to_underlying(NativeHashes::SET_MISSION_RESPECT_TOTAL), void>(respect); }
     static inline auto SetMissionTrainCoordinates(Vehicle train, float x, float y, float z) { return NativeInvoke::Invoke<2345, std::to_underlying(NativeHashes::SET_MISSION_TRAIN_COORDINATES), void>(train, x, y, z); }
     static inline auto SetMobilePhonePosition(float x, float y, float z) { return NativeInvoke::Invoke<2346, std::to_underlying(NativeHashes::SET_MOBILE_PHONE_POSITION), void>(x, y, z); }
@@ -5734,7 +5739,7 @@ public:
     static inline auto SetMsgForLoadingScreen(Any a1) { return NativeInvoke::Invoke<2357, std::to_underlying(NativeHashes::SET_MSG_FOR_LOADING_SCREEN), void>(a1); }
     static inline auto SetMultiplayerBrief() { return NativeInvoke::Invoke<2358, std::to_underlying(NativeHashes::SET_MULTIPLAYER_BRIEF), Any>(); }
     static inline auto SetMultiplayerHudCash(uint32_t cash) { return NativeInvoke::Invoke<2359, std::to_underlying(NativeHashes::SET_MULTIPLAYER_HUD_CASH), void>(cash); }
-    static inline auto SetMultiplayerHudTime(char* str) { return NativeInvoke::Invoke<2360, std::to_underlying(NativeHashes::SET_MULTIPLAYER_HUD_TIME), void>(str); }
+    static inline auto SetMultiplayerHudTime(char *str) { return NativeInvoke::Invoke<2360, std::to_underlying(NativeHashes::SET_MULTIPLAYER_HUD_TIME), void>(str); }
     static inline auto SetNeedsToBeHotwired(Vehicle veh, bool set) { return NativeInvoke::Invoke<2361, std::to_underlying(NativeHashes::SET_NEEDS_TO_BE_HOTWIRED), void>(veh, set); }
     static inline auto SetNetworkIdCanMigrate(Any a1, Any a2) { return NativeInvoke::Invoke<2362, std::to_underlying(NativeHashes::SET_NETWORK_ID_CAN_MIGRATE), void>(a1, a2); }
     static inline auto SetNetworkIdExistsOnAllMachines(Any a1, Any a2) { return NativeInvoke::Invoke<2363, std::to_underlying(NativeHashes::SET_NETWORK_ID_EXISTS_ON_ALL_MACHINES), void>(a1, a2); }
@@ -5746,18 +5751,18 @@ public:
     static inline auto SetNetworkVehicleRespotTimer(Any a1, Any a2) { return NativeInvoke::Invoke<2369, std::to_underlying(NativeHashes::SET_NETWORK_VEHICLE_RESPOT_TIMER), void>(a1, a2); }
     static inline auto SetNetworkVisibility() { return NativeInvoke::Invoke<2370, std::to_underlying(NativeHashes::SET_NETWORK_VISIBILITY), Any>(); }
     static inline auto SetNextDesiredMoveState(int32_t state) { return NativeInvoke::Invoke<2371, std::to_underlying(NativeHashes::SET_NEXT_DESIRED_MOVE_STATE), void>(state); }
-    static inline auto SetNmAnimPose(Ped ped, char* AnimName0, char* AnimName1, float pose) { return NativeInvoke::Invoke<2372, std::to_underlying(NativeHashes::SET_NM_ANIM_POSE), void>(ped, AnimName0, AnimName1, pose); }
+    static inline auto SetNmAnimPose(Ped ped, char *AnimName0, char *AnimName1, float pose) { return NativeInvoke::Invoke<2372, std::to_underlying(NativeHashes::SET_NM_ANIM_POSE), void>(ped, AnimName0, AnimName1, pose); }
     static inline auto SetNmMessageBool(int32_t id, bool value) { return NativeInvoke::Invoke<2373, std::to_underlying(NativeHashes::SET_NM_MESSAGE_BOOL), void>(id, value); }
     static inline auto SetNmMessageFloat(int32_t id, float value) { return NativeInvoke::Invoke<2374, std::to_underlying(NativeHashes::SET_NM_MESSAGE_FLOAT), void>(id, value); }
     static inline auto SetNmMessageInstanceIndex(int32_t id, Ped ped, Car car, Object obj) { return NativeInvoke::Invoke<2375, std::to_underlying(NativeHashes::SET_NM_MESSAGE_INSTANCE_INDEX), void>(id, ped, car, obj); }
     static inline auto SetNmMessageInt(int32_t id, int32_t value) { return NativeInvoke::Invoke<2376, std::to_underlying(NativeHashes::SET_NM_MESSAGE_INT), void>(id, value); }
-    static inline auto SetNmMessageString(int32_t id, char* string) { return NativeInvoke::Invoke<2377, std::to_underlying(NativeHashes::SET_NM_MESSAGE_STRING), void>(id, string); }
+    static inline auto SetNmMessageString(int32_t id, char *string) { return NativeInvoke::Invoke<2377, std::to_underlying(NativeHashes::SET_NM_MESSAGE_STRING), void>(id, string); }
     static inline auto SetNmMessageVec3(int32_t id, float x, float y, float z) { return NativeInvoke::Invoke<2378, std::to_underlying(NativeHashes::SET_NM_MESSAGE_VEC3), void>(id, x, y, z); }
     static inline auto SetNoResprays(bool set) { return NativeInvoke::Invoke<2379, std::to_underlying(NativeHashes::SET_NO_RESPRAYS), void>(set); }
     static inline auto SetObjectAlpha(Object obj, int32_t alpha) { return NativeInvoke::Invoke<2380, std::to_underlying(NativeHashes::SET_OBJECT_ALPHA), void>(obj, alpha); }
-    static inline auto SetObjectAnimCurrentTime(Object obj, char* animname0, char* animname1, float time) { return NativeInvoke::Invoke<2381, std::to_underlying(NativeHashes::SET_OBJECT_ANIM_CURRENT_TIME), void>(obj, animname0, animname1, time); }
-    static inline auto SetObjectAnimPlayingFlag(Object obj, char* animname0, char* animname1, bool flag) { return NativeInvoke::Invoke<2382, std::to_underlying(NativeHashes::SET_OBJECT_ANIM_PLAYING_FLAG), void>(obj, animname0, animname1, flag); }
-    static inline auto SetObjectAnimSpeed(Object obj, char* animname0, char* animname1, float speed) { return NativeInvoke::Invoke<2383, std::to_underlying(NativeHashes::SET_OBJECT_ANIM_SPEED), void>(obj, animname0, animname1, speed); }
+    static inline auto SetObjectAnimCurrentTime(Object obj, char *animname0, char *animname1, float time) { return NativeInvoke::Invoke<2381, std::to_underlying(NativeHashes::SET_OBJECT_ANIM_CURRENT_TIME), void>(obj, animname0, animname1, time); }
+    static inline auto SetObjectAnimPlayingFlag(Object obj, char *animname0, char *animname1, bool flag) { return NativeInvoke::Invoke<2382, std::to_underlying(NativeHashes::SET_OBJECT_ANIM_PLAYING_FLAG), void>(obj, animname0, animname1, flag); }
+    static inline auto SetObjectAnimSpeed(Object obj, char *animname0, char *animname1, float speed) { return NativeInvoke::Invoke<2383, std::to_underlying(NativeHashes::SET_OBJECT_ANIM_SPEED), void>(obj, animname0, animname1, speed); }
     static inline auto SetObjectAsStealable(Object obj, bool set) { return NativeInvoke::Invoke<2384, std::to_underlying(NativeHashes::SET_OBJECT_AS_STEALABLE), void>(obj, set); }
     static inline auto SetObjectCcd(Object obj, bool set) { return NativeInvoke::Invoke<2385, std::to_underlying(NativeHashes::SET_OBJECT_CCD), void>(obj, set); }
     static inline auto SetObjectCollision(Object obj, bool value) { return NativeInvoke::Invoke<2386, std::to_underlying(NativeHashes::SET_OBJECT_COLLISION), void>(obj, value); }
@@ -5825,7 +5830,7 @@ public:
     static inline auto SetPedWontAttackPlayerWithoutWantedLevel(Ped ped, bool set) { return NativeInvoke::Invoke<2448, std::to_underlying(NativeHashes::SET_PED_WONT_ATTACK_PLAYER_WITHOUT_WANTED_LEVEL), void>(ped, set); }
     static inline auto SetPetrolTankHealth(Vehicle vehicle, float value) { return NativeInvoke::Invoke<2449, std::to_underlying(NativeHashes::SET_PETROL_TANK_HEALTH), void>(vehicle, value); }
     static inline auto SetPetrolTankWeakpoint(Car car, bool set) { return NativeInvoke::Invoke<2450, std::to_underlying(NativeHashes::SET_PETROL_TANK_WEAKPOINT), void>(car, set); }
-    static inline auto SetPhoneHudItem(int32_t id, char* gxttext, int a3) { return NativeInvoke::Invoke<2451, std::to_underlying(NativeHashes::SET_PHONE_HUD_ITEM), void>(id, gxttext, a3); }
+    static inline auto SetPhoneHudItem(int32_t id, char *gxttext, int a3) { return NativeInvoke::Invoke<2451, std::to_underlying(NativeHashes::SET_PHONE_HUD_ITEM), void>(id, gxttext, a3); }
     static inline auto SetPhysCcdHandlesRotation(bool set) { return NativeInvoke::Invoke<2452, std::to_underlying(NativeHashes::SET_PHYS_CCD_HANDLES_ROTATION), void>(set); }
     static inline auto SetPickupCollectableByCar(Object pickup, bool set) { return NativeInvoke::Invoke<2453, std::to_underlying(NativeHashes::SET_PICKUP_COLLECTABLE_BY_CAR), void>(pickup, set); }
     static inline auto SetPickupsFixCars(bool set) { return NativeInvoke::Invoke<2454, std::to_underlying(NativeHashes::SET_PICKUPS_FIX_CARS), void>(set); }
@@ -5862,7 +5867,7 @@ public:
     static inline auto SetPlayerMoodPissedOff(Player playerIndex, uint32_t unknown150) { return NativeInvoke::Invoke<2485, std::to_underlying(NativeHashes::SET_PLAYER_MOOD_PISSED_OFF), void>(playerIndex, unknown150); }
     static inline auto SetPlayerMpModifier(int32_t player, int a2, float modifier) { return NativeInvoke::Invoke<2486, std::to_underlying(NativeHashes::SET_PLAYER_MP_MODIFIER), void>(player, a2, modifier); }
     static inline auto SetPlayerNeverGetsTired(Player playerIndex, bool value) { return NativeInvoke::Invoke<2487, std::to_underlying(NativeHashes::SET_PLAYER_NEVER_GETS_TIRED), void>(playerIndex, value); }
-    static inline auto SetPlayerPainRootBankName(char* name) { return NativeInvoke::Invoke<2488, std::to_underlying(NativeHashes::SET_PLAYER_PAIN_ROOT_BANK_NAME), void>(name); }
+    static inline auto SetPlayerPainRootBankName(char *name) { return NativeInvoke::Invoke<2488, std::to_underlying(NativeHashes::SET_PLAYER_PAIN_ROOT_BANK_NAME), void>(name); }
     static inline auto SetPlayerPlayerTargetting(bool set) { return NativeInvoke::Invoke<2489, std::to_underlying(NativeHashes::SET_PLAYER_PLAYER_TARGETTING), void>(set); }
     static inline auto SetPlayerSettingsGenre(Ped ped) { return NativeInvoke::Invoke<2490, std::to_underlying(NativeHashes::SET_PLAYER_SETTINGS_GENRE), void>(ped); }
     static inline auto SetPlayerTeam(int32_t Player, int a2) { return NativeInvoke::Invoke<2491, std::to_underlying(NativeHashes::SET_PLAYER_TEAM), void>(Player, a2); }
@@ -5900,13 +5905,13 @@ public:
     static inline auto SetRocketLauncherFreebieInHeli(bool set) { return NativeInvoke::Invoke<2523, std::to_underlying(NativeHashes::SET_ROCKET_LAUNCHER_FREEBIE_IN_HELI), void>(set); }
     static inline auto SetRomansMood(int32_t moood) { return NativeInvoke::Invoke<2524, std::to_underlying(NativeHashes::SET_ROMANS_MOOD), void>(moood); }
     static inline auto SetRoomForCarByKey(Car car, uint32_t roomkey) { return NativeInvoke::Invoke<2525, std::to_underlying(NativeHashes::SET_ROOM_FOR_CAR_BY_KEY), void>(car, roomkey); }
-    static inline auto SetRoomForCarByName(Car car, char* roomname) { return NativeInvoke::Invoke<2526, std::to_underlying(NativeHashes::SET_ROOM_FOR_CAR_BY_NAME), void>(car, roomname); }
+    static inline auto SetRoomForCarByName(Car car, char *roomname) { return NativeInvoke::Invoke<2526, std::to_underlying(NativeHashes::SET_ROOM_FOR_CAR_BY_NAME), void>(car, roomname); }
     static inline auto SetRoomForCharByKey(Ped ped, uint32_t key) { return NativeInvoke::Invoke<2527, std::to_underlying(NativeHashes::SET_ROOM_FOR_CHAR_BY_KEY), void>(ped, key); }
-    static inline auto SetRoomForCharByName(Ped ped, char* roomname) { return NativeInvoke::Invoke<2528, std::to_underlying(NativeHashes::SET_ROOM_FOR_CHAR_BY_NAME), void>(ped, roomname); }
+    static inline auto SetRoomForCharByName(Ped ped, char *roomname) { return NativeInvoke::Invoke<2528, std::to_underlying(NativeHashes::SET_ROOM_FOR_CHAR_BY_NAME), void>(ped, roomname); }
     static inline auto SetRoomForDummyCharByKey(Ped dummy, int32_t key) { return NativeInvoke::Invoke<2529, std::to_underlying(NativeHashes::SET_ROOM_FOR_DUMMY_CHAR_BY_KEY), void>(dummy, key); }
-    static inline auto SetRoomForDummyCharByName(Ped ped, char* roomname) { return NativeInvoke::Invoke<2530, std::to_underlying(NativeHashes::SET_ROOM_FOR_DUMMY_CHAR_BY_NAME), void>(ped, roomname); }
+    static inline auto SetRoomForDummyCharByName(Ped ped, char *roomname) { return NativeInvoke::Invoke<2530, std::to_underlying(NativeHashes::SET_ROOM_FOR_DUMMY_CHAR_BY_NAME), void>(ped, roomname); }
     static inline auto SetRoomForViewportByKey(int32_t viewportid, uint32_t roomkey) { return NativeInvoke::Invoke<2531, std::to_underlying(NativeHashes::SET_ROOM_FOR_VIEWPORT_BY_KEY), void>(viewportid, roomkey); }
-    static inline auto SetRoomForViewportByName(int32_t viewportid, char* roomname) { return NativeInvoke::Invoke<2532, std::to_underlying(NativeHashes::SET_ROOM_FOR_VIEWPORT_BY_NAME), void>(viewportid, roomname); }
+    static inline auto SetRoomForViewportByName(int32_t viewportid, char *roomname) { return NativeInvoke::Invoke<2532, std::to_underlying(NativeHashes::SET_ROOM_FOR_VIEWPORT_BY_NAME), void>(viewportid, roomname); }
     static inline auto SetRopeHeightForObject() { return NativeInvoke::Invoke<2533, std::to_underlying(NativeHashes::SET_ROPE_HEIGHT_FOR_OBJECT), Any>(); }
     static inline auto SetRotOrder(int32_t order) { return NativeInvoke::Invoke<2534, std::to_underlying(NativeHashes::SET_ROT_ORDER), void>(order); }
     static inline auto SetRotationForAttachedPed(Ped ped, float xr, float yr, float zr) { return NativeInvoke::Invoke<2535, std::to_underlying(NativeHashes::SET_ROTATION_FOR_ATTACHED_PED), void>(ped, xr, yr, zr); }
@@ -5973,7 +5978,7 @@ public:
     static inline auto SetTimeOneDayBack() { return NativeInvoke::Invoke<2596, std::to_underlying(NativeHashes::SET_TIME_ONE_DAY_BACK), void>(); }
     static inline auto SetTimeOneDayForward() { return NativeInvoke::Invoke<2597, std::to_underlying(NativeHashes::SET_TIME_ONE_DAY_FORWARD), void>(); }
     static inline auto SetTimeScale(float scale) { return NativeInvoke::Invoke<2598, std::to_underlying(NativeHashes::SET_TIME_SCALE), void>(scale); }
-    static inline auto SetTimecycleModifier(char* name) { return NativeInvoke::Invoke<2599, std::to_underlying(NativeHashes::SET_TIMECYCLE_MODIFIER), void>(name); }
+    static inline auto SetTimecycleModifier(char *name) { return NativeInvoke::Invoke<2599, std::to_underlying(NativeHashes::SET_TIMECYCLE_MODIFIER), void>(name); }
     static inline auto SetTimerBeepCountdownTime(int32_t timerid, int32_t beeptime) { return NativeInvoke::Invoke<2600, std::to_underlying(NativeHashes::SET_TIMER_BEEP_COUNTDOWN_TIME), void>(timerid, beeptime); }
     static inline auto SetTotalNumberOfMissions(float floatstatval) { return NativeInvoke::Invoke<2601, std::to_underlying(NativeHashes::SET_TOTAL_NUMBER_OF_MISSIONS), void>(floatstatval); }
     static inline auto SetTrainAudioRolloff(Vehicle train, float rolloff) { return NativeInvoke::Invoke<2602, std::to_underlying(NativeHashes::SET_TRAIN_AUDIO_ROLLOFF), void>(train, rolloff); }
@@ -5992,7 +5997,7 @@ public:
     static inline auto SetUseLegIk(int32_t player, bool set) { return NativeInvoke::Invoke<2615, std::to_underlying(NativeHashes::SET_USE_LEG_IK), void>(player, set); }
     static inline auto SetUsePoolGamePhysicsSettings(bool set) { return NativeInvoke::Invoke<2616, std::to_underlying(NativeHashes::SET_USE_POOL_GAME_PHYSICS_SETTINGS), void>(set); }
     static inline auto SetUsesCollisionOfClosestObjectOfType(float x, float y, float z, float radius, uint32_t type_or_model, bool flag) { return NativeInvoke::Invoke<2617, std::to_underlying(NativeHashes::SET_USES_COLLISION_OF_CLOSEST_OBJECT_OF_TYPE), void>(x, y, z, radius, type_or_model, flag); }
-    static inline auto SetVariableOnSound(uint32_t sound, char* varname, float value) { return NativeInvoke::Invoke<2618, std::to_underlying(NativeHashes::SET_VARIABLE_ON_SOUND), void>(sound, varname, value); }
+    static inline auto SetVariableOnSound(uint32_t sound, char *varname, float value) { return NativeInvoke::Invoke<2618, std::to_underlying(NativeHashes::SET_VARIABLE_ON_SOUND), void>(sound, varname, value); }
     static inline auto SetVehAlarm(Vehicle veh, bool set) { return NativeInvoke::Invoke<2619, std::to_underlying(NativeHashes::SET_VEH_ALARM), void>(veh, set); }
     static inline auto SetVehAlarmDuration(Vehicle veh, int32_t duration) { return NativeInvoke::Invoke<2620, std::to_underlying(NativeHashes::SET_VEH_ALARM_DURATION), void>(veh, duration); }
     static inline auto SetVehHasStrongAxles(Vehicle veh, bool set) { return NativeInvoke::Invoke<2621, std::to_underlying(NativeHashes::SET_VEH_HAS_STRONG_AXLES), void>(veh, set); }
@@ -6023,9 +6028,9 @@ public:
     static inline auto SetWebPageScroll(int32_t htmlviewport, float scroll) { return NativeInvoke::Invoke<2646, std::to_underlying(NativeHashes::SET_WEB_PAGE_SCROLL), void>(htmlviewport, scroll); }
     static inline auto SetWidescreenBorders(bool set) { return NativeInvoke::Invoke<2647, std::to_underlying(NativeHashes::SET_WIDESCREEN_BORDERS), void>(set); }
     static inline auto SetWidescreenFormat(int32_t wideformatid) { return NativeInvoke::Invoke<2648, std::to_underlying(NativeHashes::SET_WIDESCREEN_FORMAT), void>(wideformatid); }
-    static inline auto SetZoneNoCops(char* name, bool set) { return NativeInvoke::Invoke<2649, std::to_underlying(NativeHashes::SET_ZONE_NO_COPS), void>(name, set); }
-    static inline auto SetZonePopulationType(char* zone, int32_t poptype) { return NativeInvoke::Invoke<2650, std::to_underlying(NativeHashes::SET_ZONE_POPULATION_TYPE), void>(zone, poptype); }
-    static inline auto SetZoneScumminess(char* zone, int32_t scumminess) { return NativeInvoke::Invoke<2651, std::to_underlying(NativeHashes::SET_ZONE_SCUMMINESS), void>(zone, scumminess); }
+    static inline auto SetZoneNoCops(char *name, bool set) { return NativeInvoke::Invoke<2649, std::to_underlying(NativeHashes::SET_ZONE_NO_COPS), void>(name, set); }
+    static inline auto SetZonePopulationType(char *zone, int32_t poptype) { return NativeInvoke::Invoke<2650, std::to_underlying(NativeHashes::SET_ZONE_POPULATION_TYPE), void>(zone, poptype); }
+    static inline auto SetZoneScumminess(char *zone, int32_t scumminess) { return NativeInvoke::Invoke<2651, std::to_underlying(NativeHashes::SET_ZONE_SCUMMINESS), void>(zone, scumminess); }
     static inline auto Settimera(uint32_t value) { return NativeInvoke::Invoke<2652, std::to_underlying(NativeHashes::SETTIMERA), void>(value); }
     static inline auto Settimerb(uint32_t value) { return NativeInvoke::Invoke<2653, std::to_underlying(NativeHashes::SETTIMERB), void>(value); }
     static inline auto Settimerc(int a1) { return NativeInvoke::Invoke<2654, std::to_underlying(NativeHashes::SETTIMERC), void>(a1); }
@@ -6070,18 +6075,18 @@ public:
     static inline auto StartCredits() { return NativeInvoke::Invoke<2693, std::to_underlying(NativeHashes::START_CREDITS), void>(); }
     static inline auto StartCustomMobilePhoneRinging(int32_t RingtoneId) { return NativeInvoke::Invoke<2694, std::to_underlying(NativeHashes::START_CUSTOM_MOBILE_PHONE_RINGING), void>(RingtoneId); }
     static inline auto StartCutscene() { return NativeInvoke::Invoke<2695, std::to_underlying(NativeHashes::START_CUTSCENE), void>(); }
-    static inline auto StartCutsceneNow(char* name) { return NativeInvoke::Invoke<2696, std::to_underlying(NativeHashes::START_CUTSCENE_NOW), void>(name); }
+    static inline auto StartCutsceneNow(char *name) { return NativeInvoke::Invoke<2696, std::to_underlying(NativeHashes::START_CUTSCENE_NOW), void>(name); }
     static inline auto StartEndCreditsMusic() { return NativeInvoke::Invoke<2697, std::to_underlying(NativeHashes::START_END_CREDITS_MUSIC), void>(); }
     static inline auto StartFiringAmnesty() { return NativeInvoke::Invoke<2698, std::to_underlying(NativeHashes::START_FIRING_AMNESTY), void>(); }
     static inline auto StartGpsRaceTrack(int32_t trackid) { return NativeInvoke::Invoke<2699, std::to_underlying(NativeHashes::START_GPS_RACE_TRACK), void>(trackid); }
-    static inline auto StartKillFrenzy(char* gxtname, int a2, int a3, int a4, int a5, int a6, int a7, int a8, bool a9) { return NativeInvoke::Invoke<2700, std::to_underlying(NativeHashes::START_KILL_FRENZY), void>(gxtname, a2, a3, a4, a5, a6, a7, a8, a9); }
+    static inline auto StartKillFrenzy(char *gxtname, int a2, int a3, int a4, int a5, int a6, int a7, int a8, bool a9) { return NativeInvoke::Invoke<2700, std::to_underlying(NativeHashes::START_KILL_FRENZY), void>(gxtname, a2, a3, a4, a5, a6, a7, a8, a9); }
     static inline auto StartKillTracking() { return NativeInvoke::Invoke<2701, std::to_underlying(NativeHashes::START_KILL_TRACKING), Any>(); }
     static inline auto StartLoadScene(float x, float y, float z) { return NativeInvoke::Invoke<2702, std::to_underlying(NativeHashes::START_LOAD_SCENE), void>(x, y, z); }
-    static inline auto StartMobilePhoneCall(Ped callfrom, char* callfromvoice, Ped callto, char* calltovoice, bool flag0, bool flag1) { return NativeInvoke::Invoke<2703, std::to_underlying(NativeHashes::START_MOBILE_PHONE_CALL), void>(callfrom, callfromvoice, callto, calltovoice, flag0, flag1); }
+    static inline auto StartMobilePhoneCall(Ped callfrom, char *callfromvoice, Ped callto, char *calltovoice, bool flag0, bool flag1) { return NativeInvoke::Invoke<2703, std::to_underlying(NativeHashes::START_MOBILE_PHONE_CALL), void>(callfrom, callfromvoice, callto, calltovoice, flag0, flag1); }
     static inline auto StartMobilePhoneCalling() { return NativeInvoke::Invoke<2704, std::to_underlying(NativeHashes::START_MOBILE_PHONE_CALLING), void>(); }
     static inline auto StartMobilePhoneRinging() { return NativeInvoke::Invoke<2705, std::to_underlying(NativeHashes::START_MOBILE_PHONE_RINGING), void>(); }
-    static inline auto StartNewScript(char* scriptName, uint32_t stacksize) { return NativeInvoke::Invoke<2706, std::to_underlying(NativeHashes::START_NEW_SCRIPT), uint32_t>(scriptName, stacksize); }
-    static inline auto StartNewScriptWithArgs(char* scriptname, void* params, int32_t paramcount, int32_t stacksize) { return NativeInvoke::Invoke<2707, std::to_underlying(NativeHashes::START_NEW_SCRIPT_WITH_ARGS), int32_t>(scriptname, params, paramcount, stacksize); }
+    static inline auto StartNewScript(char *scriptName, uint32_t stacksize) { return NativeInvoke::Invoke<2706, std::to_underlying(NativeHashes::START_NEW_SCRIPT), uint32_t>(scriptName, stacksize); }
+    static inline auto StartNewScriptWithArgs(char *scriptname, void *params, int32_t paramcount, int32_t stacksize) { return NativeInvoke::Invoke<2707, std::to_underlying(NativeHashes::START_NEW_SCRIPT_WITH_ARGS), int32_t>(scriptname, params, paramcount, stacksize); }
     static inline auto StartNewWidgetCombo() { return NativeInvoke::Invoke<2708, std::to_underlying(NativeHashes::START_NEW_WIDGET_COMBO), void>(); }
     static inline auto StartObjectFire(Object obj) { return NativeInvoke::Invoke<2709, std::to_underlying(NativeHashes::START_OBJECT_FIRE), Any>(obj); }
     static inline auto StartPedMobileRinging(Ped ped, int32_t unk) { return NativeInvoke::Invoke<2710, std::to_underlying(NativeHashes::START_PED_MOBILE_RINGING), void>(ped, unk); }
@@ -6090,15 +6095,15 @@ public:
     static inline auto StartPlaybackRecordedCarUsingAi(Car car, int32_t CarRec) { return NativeInvoke::Invoke<2713, std::to_underlying(NativeHashes::START_PLAYBACK_RECORDED_CAR_USING_AI), void>(car, CarRec); }
     static inline auto StartPlaybackRecordedCarWithOffset(Car car, int32_t CarRec, float x, float y, float z) { return NativeInvoke::Invoke<2714, std::to_underlying(NativeHashes::START_PLAYBACK_RECORDED_CAR_WITH_OFFSET), void>(car, CarRec, x, y, z); }
     static inline auto StartProfileTimer() { return NativeInvoke::Invoke<2715, std::to_underlying(NativeHashes::START_PROFILE_TIMER), Any>(); }
-    static inline auto StartPtfx(char* name, float x, float y, float z, float a5, float a6, float a7, uint32_t flags) { return NativeInvoke::Invoke<2716, std::to_underlying(NativeHashes::START_PTFX), uint32_t>(name, x, y, z, a5, a6, a7, flags); }
-    static inline auto StartPtfxOnObj(char* name, Object obj, float x, float y, float z, float a6, float a7, float a8, uint32_t flags) { return NativeInvoke::Invoke<2717, std::to_underlying(NativeHashes::START_PTFX_ON_OBJ), uint32_t>(name, obj, x, y, z, a6, a7, a8, flags); }
-    static inline auto StartPtfxOnObjBone(char* name, Object obj, float x, float y, float z, float a6, float a7, float a8, int32_t objbone, uint32_t flags) { return NativeInvoke::Invoke<2718, std::to_underlying(NativeHashes::START_PTFX_ON_OBJ_BONE), uint32_t>(name, obj, x, y, z, a6, a7, a8, objbone, flags); }
-    static inline auto StartPtfxOnPed(char* name, Ped ped, float x, float y, float z, float a6, float a7, float a8, uint32_t flags) { return NativeInvoke::Invoke<2719, std::to_underlying(NativeHashes::START_PTFX_ON_PED), uint32_t>(name, ped, x, y, z, a6, a7, a8, flags); }
-    static inline auto StartPtfxOnPedBone(char* name, Ped ped, float x, float y, float z, float a6, float a7, float a8, int32_t pedbone, uint32_t flags) { return NativeInvoke::Invoke<2720, std::to_underlying(NativeHashes::START_PTFX_ON_PED_BONE), uint32_t>(name, ped, x, y, z, a6, a7, a8, pedbone, flags); }
-    static inline auto StartPtfxOnVeh(char* name, Vehicle veh, float x, float y, float z, float a6, float a7, float a8, float a9) { return NativeInvoke::Invoke<2721, std::to_underlying(NativeHashes::START_PTFX_ON_VEH), uint32_t>(name, veh, x, y, z, a6, a7, a8, a9); }
+    static inline auto StartPtfx(char *name, float x, float y, float z, float a5, float a6, float a7, uint32_t flags) { return NativeInvoke::Invoke<2716, std::to_underlying(NativeHashes::START_PTFX), uint32_t>(name, x, y, z, a5, a6, a7, flags); }
+    static inline auto StartPtfxOnObj(char *name, Object obj, float x, float y, float z, float a6, float a7, float a8, uint32_t flags) { return NativeInvoke::Invoke<2717, std::to_underlying(NativeHashes::START_PTFX_ON_OBJ), uint32_t>(name, obj, x, y, z, a6, a7, a8, flags); }
+    static inline auto StartPtfxOnObjBone(char *name, Object obj, float x, float y, float z, float a6, float a7, float a8, int32_t objbone, uint32_t flags) { return NativeInvoke::Invoke<2718, std::to_underlying(NativeHashes::START_PTFX_ON_OBJ_BONE), uint32_t>(name, obj, x, y, z, a6, a7, a8, objbone, flags); }
+    static inline auto StartPtfxOnPed(char *name, Ped ped, float x, float y, float z, float a6, float a7, float a8, uint32_t flags) { return NativeInvoke::Invoke<2719, std::to_underlying(NativeHashes::START_PTFX_ON_PED), uint32_t>(name, ped, x, y, z, a6, a7, a8, flags); }
+    static inline auto StartPtfxOnPedBone(char *name, Ped ped, float x, float y, float z, float a6, float a7, float a8, int32_t pedbone, uint32_t flags) { return NativeInvoke::Invoke<2720, std::to_underlying(NativeHashes::START_PTFX_ON_PED_BONE), uint32_t>(name, ped, x, y, z, a6, a7, a8, pedbone, flags); }
+    static inline auto StartPtfxOnVeh(char *name, Vehicle veh, float x, float y, float z, float a6, float a7, float a8, float a9) { return NativeInvoke::Invoke<2721, std::to_underlying(NativeHashes::START_PTFX_ON_VEH), uint32_t>(name, veh, x, y, z, a6, a7, a8, a9); }
     static inline auto StartScriptConversation(bool flag0, bool flag1) { return NativeInvoke::Invoke<2722, std::to_underlying(NativeHashes::START_SCRIPT_CONVERSATION), void>(flag0, flag1); }
     static inline auto StartScriptFire(float x, float y, float z, uint32_t numGenerationsAllowed, uint32_t strength) { return NativeInvoke::Invoke<2723, std::to_underlying(NativeHashes::START_SCRIPT_FIRE), FireId>(x, y, z, numGenerationsAllowed, strength); }
-    static inline auto StartStreamingRequestList(char* name) { return NativeInvoke::Invoke<2724, std::to_underlying(NativeHashes::START_STREAMING_REQUEST_LIST), void>(name); }
+    static inline auto StartStreamingRequestList(char *name) { return NativeInvoke::Invoke<2724, std::to_underlying(NativeHashes::START_STREAMING_REQUEST_LIST), void>(name); }
     static inline auto StopCarBreaking(Car car, bool stop) { return NativeInvoke::Invoke<2725, std::to_underlying(NativeHashes::STOP_CAR_BREAKING), void>(car, stop); }
     static inline auto StopCredits() { return NativeInvoke::Invoke<2726, std::to_underlying(NativeHashes::STOP_CREDITS), void>(); }
     static inline auto StopCutscene() { return NativeInvoke::Invoke<2727, std::to_underlying(NativeHashes::STOP_CUTSCENE), void>(); }
@@ -6118,15 +6123,15 @@ public:
     static inline auto StopStream() { return NativeInvoke::Invoke<2741, std::to_underlying(NativeHashes::STOP_STREAM), void>(); }
     static inline auto StopSyncingScriptAnimations(Any a1) { return NativeInvoke::Invoke<2742, std::to_underlying(NativeHashes::STOP_SYNCING_SCRIPT_ANIMATIONS), void>(a1); }
     static inline auto StopVehicleAlwaysRender(Vehicle veh) { return NativeInvoke::Invoke<2743, std::to_underlying(NativeHashes::STOP_VEHICLE_ALWAYS_RENDER), void>(veh); }
-    static inline auto StoreCarCharIsInNoSave(Ped ped, Car* car) { return NativeInvoke::Invoke<2744, std::to_underlying(NativeHashes::STORE_CAR_CHAR_IS_IN_NO_SAVE), void>(ped, car); }
+    static inline auto StoreCarCharIsInNoSave(Ped ped, Car *car) { return NativeInvoke::Invoke<2744, std::to_underlying(NativeHashes::STORE_CAR_CHAR_IS_IN_NO_SAVE), void>(ped, car); }
     static inline auto StoreDamageTrackerForNetworkPlayer(Any a1, Any a2, Any a3) { return NativeInvoke::Invoke<2745, std::to_underlying(NativeHashes::STORE_DAMAGE_TRACKER_FOR_NETWORK_PLAYER), Any>(a1, a2, a3); }
-    static inline auto StoreScore(Player playerIndex, uint32_t* value) { return NativeInvoke::Invoke<2746, std::to_underlying(NativeHashes::STORE_SCORE), void>(playerIndex, value); }
+    static inline auto StoreScore(Player playerIndex, uint32_t *value) { return NativeInvoke::Invoke<2746, std::to_underlying(NativeHashes::STORE_SCORE), void>(playerIndex, value); }
     static inline auto StoreScriptValuesForNetworkGame(Any a1) { return NativeInvoke::Invoke<2747, std::to_underlying(NativeHashes::STORE_SCRIPT_VALUES_FOR_NETWORK_GAME), void>(a1); }
-    static inline auto StoreWantedLevel(Player playerIndex, uint32_t* value) { return NativeInvoke::Invoke<2748, std::to_underlying(NativeHashes::STORE_WANTED_LEVEL), void>(playerIndex, value); }
+    static inline auto StoreWantedLevel(Player playerIndex, uint32_t *value) { return NativeInvoke::Invoke<2748, std::to_underlying(NativeHashes::STORE_WANTED_LEVEL), void>(playerIndex, value); }
     static inline auto StreamCutscene() { return NativeInvoke::Invoke<2749, std::to_underlying(NativeHashes::STREAM_CUTSCENE), Any>(); }
-    static inline auto StringDifference(char* str0, char* str1) { return NativeInvoke::Invoke<2750, std::to_underlying(NativeHashes::STRING_DIFFERENCE), int32_t>(str0, str1); }
-    static inline auto StringString(char* a1, char* a2) { return NativeInvoke::Invoke<2751, std::to_underlying(NativeHashes::STRING_STRING), int32_t>(a1, a2); }
-    static inline auto StringToInt(char* str, int32_t* intval) { return NativeInvoke::Invoke<2752, std::to_underlying(NativeHashes::STRING_TO_INT), bool>(str, intval); }
+    static inline auto StringDifference(char *str0, char *str1) { return NativeInvoke::Invoke<2750, std::to_underlying(NativeHashes::STRING_DIFFERENCE), int32_t>(str0, str1); }
+    static inline auto StringString(char *a1, char *a2) { return NativeInvoke::Invoke<2751, std::to_underlying(NativeHashes::STRING_STRING), int32_t>(a1, a2); }
+    static inline auto StringToInt(char *str, int32_t *intval) { return NativeInvoke::Invoke<2752, std::to_underlying(NativeHashes::STRING_TO_INT), bool>(str, intval); }
     static inline auto SuppressCarModel(uint32_t model) { return NativeInvoke::Invoke<2753, std::to_underlying(NativeHashes::SUPPRESS_CAR_MODEL), void>(model); }
     static inline auto SuppressFadeInAfterDeathArrest(bool set) { return NativeInvoke::Invoke<2754, std::to_underlying(NativeHashes::SUPPRESS_FADE_IN_AFTER_DEATH_ARREST), void>(set); }
     static inline auto SuppressPedModel(uint32_t model) { return NativeInvoke::Invoke<2755, std::to_underlying(NativeHashes::SUPPRESS_PED_MODEL), void>(model); }
@@ -6248,7 +6253,7 @@ public:
     static inline auto TaskPickupAndCarryObject(Ped ped, Any a2, Any a3, Any a4, Any a5, Any a6) { return NativeInvoke::Invoke<2871, std::to_underlying(NativeHashes::TASK_PICKUP_AND_CARRY_OBJECT), void>(ped, a2, a3, a4, a5, a6); }
     static inline auto TaskPlayAnim(Ped ped, Any a2, Any a3, Any a4, Any a5, Any a6, Any a7, Any a8, Any a9) { return NativeInvoke::Invoke<2872, std::to_underlying(NativeHashes::TASK_PLAY_ANIM), void>(ped, a2, a3, a4, a5, a6, a7, a8, a9); }
     static inline auto TaskPlayAnimFacial(Ped ped, Any a2, Any a3, Any a4, Any a5, Any a6, Any a7) { return NativeInvoke::Invoke<2873, std::to_underlying(NativeHashes::TASK_PLAY_ANIM_FACIAL), void>(ped, a2, a3, a4, a5, a6, a7); }
-    static inline auto TaskPlayAnimNonInterruptable(Ped ped, char* animname0, char* animname1, float a4, int a5, int a6, int a7, int a8, int a9) { return NativeInvoke::Invoke<2874, std::to_underlying(NativeHashes::TASK_PLAY_ANIM_NON_INTERRUPTABLE), void>(ped, animname0, animname1, a4, a5, a6, a7, a8, a9); }
+    static inline auto TaskPlayAnimNonInterruptable(Ped ped, char *animname0, char *animname1, float a4, int a5, int a6, int a7, int a8, int a9) { return NativeInvoke::Invoke<2874, std::to_underlying(NativeHashes::TASK_PLAY_ANIM_NON_INTERRUPTABLE), void>(ped, animname0, animname1, a4, a5, a6, a7, a8, a9); }
     static inline auto TaskPlayAnimOnClone(Ped ped, Any a2, Any a3, Any a4, Any a5, Any a6, Any a7, Any a8, Any a9) { return NativeInvoke::Invoke<2875, std::to_underlying(NativeHashes::TASK_PLAY_ANIM_ON_CLONE), void>(ped, a2, a3, a4, a5, a6, a7, a8, a9); }
     static inline auto TaskPlayAnimReadyToBeExecuted(Ped ped, Any a2, Any a3, Any a4) { return NativeInvoke::Invoke<2876, std::to_underlying(NativeHashes::TASK_PLAY_ANIM_READY_TO_BE_EXECUTED), void>(ped, a2, a3, a4); }
     static inline auto TaskPlayAnimSecondary(Ped ped, Any a2, Any a3, Any a4, Any a5, Any a6, Any a7, Any a8, Any a9) { return NativeInvoke::Invoke<2877, std::to_underlying(NativeHashes::TASK_PLAY_ANIM_SECONDARY), void>(ped, a2, a3, a4, a5, a6, a7, a8, a9); }
@@ -6257,7 +6262,7 @@ public:
     static inline auto TaskPlayAnimSecondaryUpperBody(Ped ped, Any a2, Any a3, Any a4, Any a5, Any a6, Any a7, Any a8, Any a9) { return NativeInvoke::Invoke<2880, std::to_underlying(NativeHashes::TASK_PLAY_ANIM_SECONDARY_UPPER_BODY), void>(ped, a2, a3, a4, a5, a6, a7, a8, a9); }
     static inline auto TaskPlayAnimUpperBody(Ped ped, Any a2, Any a3, Any a4, Any a5, Any a6, Any a7, Any a8, Any a9) { return NativeInvoke::Invoke<2881, std::to_underlying(NativeHashes::TASK_PLAY_ANIM_UPPER_BODY), void>(ped, a2, a3, a4, a5, a6, a7, a8, a9); }
     static inline auto TaskPlayAnimWithAdvancedFlags(Ped ped, Any a2, Any a3, Any a4, Any a5, Any a6, Any a7, Any a8, Any a9, Any a10, Any a11, Any a12) { return NativeInvoke::Invoke<2882, std::to_underlying(NativeHashes::TASK_PLAY_ANIM_WITH_ADVANCED_FLAGS), void>(ped, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12); }
-    static inline auto TaskPlayAnimWithFlags(Ped ped, char* animName, char* animSet, float unknown0_8, uint32_t unknown1_0, uint32_t flags) { return NativeInvoke::Invoke<2883, std::to_underlying(NativeHashes::TASK_PLAY_ANIM_WITH_FLAGS), void>(ped, animName, animSet, unknown0_8, unknown1_0, flags); }
+    static inline auto TaskPlayAnimWithFlags(Ped ped, char *animName, char *animSet, float unknown0_8, uint32_t unknown1_0, uint32_t flags) { return NativeInvoke::Invoke<2883, std::to_underlying(NativeHashes::TASK_PLAY_ANIM_WITH_FLAGS), void>(ped, animName, animSet, unknown0_8, unknown1_0, flags); }
     static inline auto TaskPlayAnimWithFlagsAndStartPhase(Ped ped, Any a2, Any a3, Any a4, Any a5, Any a6, Any a7) { return NativeInvoke::Invoke<2884, std::to_underlying(NativeHashes::TASK_PLAY_ANIM_WITH_FLAGS_AND_START_PHASE), void>(ped, a2, a3, a4, a5, a6, a7); }
     static inline auto TaskPutCharDirectlyIntoCover(Any a1, Any a2, Any a3, Any a4, Any a5) { return NativeInvoke::Invoke<2885, std::to_underlying(NativeHashes::TASK_PUT_CHAR_DIRECTLY_INTO_COVER), void>(a1, a2, a3, a4, a5); }
     static inline auto TaskSay() { return NativeInvoke::Invoke<2886, std::to_underlying(NativeHashes::TASK_SAY), Any>(); }
@@ -6309,7 +6314,7 @@ public:
     static inline auto TeleportNetworkPlayer() { return NativeInvoke::Invoke<2932, std::to_underlying(NativeHashes::TELEPORT_NETWORK_PLAYER), Any>(); }
     static inline auto TellNetPlayerToStartPlaying(Any a1, Any a2) { return NativeInvoke::Invoke<2933, std::to_underlying(NativeHashes::TELL_NET_PLAYER_TO_START_PLAYING), void>(a1, a2); }
     static inline auto TerminateAllScriptsForNetworkGame() { return NativeInvoke::Invoke<2934, std::to_underlying(NativeHashes::TERMINATE_ALL_SCRIPTS_FOR_NETWORK_GAME), void>(); }
-    static inline auto TerminateAllScriptsWithThisName(char* name) { return NativeInvoke::Invoke<2935, std::to_underlying(NativeHashes::TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME), void>(name); }
+    static inline auto TerminateAllScriptsWithThisName(char *name) { return NativeInvoke::Invoke<2935, std::to_underlying(NativeHashes::TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME), void>(name); }
     static inline auto TerminateThisScript() { return NativeInvoke::Invoke<2936, std::to_underlying(NativeHashes::TERMINATE_THIS_SCRIPT), void>(); }
     static inline auto ThisScriptIsSafeForNetworkGame() { return NativeInvoke::Invoke<2937, std::to_underlying(NativeHashes::THIS_SCRIPT_IS_SAFE_FOR_NETWORK_GAME), void>(); }
     static inline auto ThisScriptShouldBeSaved() { return NativeInvoke::Invoke<2938, std::to_underlying(NativeHashes::THIS_SCRIPT_SHOULD_BE_SAVED), void>(); }
@@ -6324,13 +6329,13 @@ public:
     static inline auto TrainLeaveStation(Vehicle train) { return NativeInvoke::Invoke<2947, std::to_underlying(NativeHashes::TRAIN_LEAVE_STATION), void>(train); }
     static inline auto TriggerLoadingMusicOnNextFade() { return NativeInvoke::Invoke<2948, std::to_underlying(NativeHashes::TRIGGER_LOADING_MUSIC_ON_NEXT_FADE), void>(); }
     static inline auto TriggerMissionCompleteAudio(int32_t id) { return NativeInvoke::Invoke<2949, std::to_underlying(NativeHashes::TRIGGER_MISSION_COMPLETE_AUDIO), void>(id); }
-    static inline auto TriggerPoliceReport(char* name) { return NativeInvoke::Invoke<2950, std::to_underlying(NativeHashes::TRIGGER_POLICE_REPORT), void>(name); }
-    static inline auto TriggerPtfx(char* name, float x, float y, float z, float a5, float a6, float a7, uint32_t flags) { return NativeInvoke::Invoke<2951, std::to_underlying(NativeHashes::TRIGGER_PTFX), bool>(name, x, y, z, a5, a6, a7, flags); }
-    static inline auto TriggerPtfxOnObj(char* name, Object obj, float x, float y, float z, float a6, float a7, float a8, uint32_t flags) { return NativeInvoke::Invoke<2952, std::to_underlying(NativeHashes::TRIGGER_PTFX_ON_OBJ), bool>(name, obj, x, y, z, a6, a7, a8, flags); }
-    static inline auto TriggerPtfxOnObjBone(char* name, Object obj, float x, float y, float z, float a6, float a7, float a8, int32_t objbone, uint32_t flags) { return NativeInvoke::Invoke<2953, std::to_underlying(NativeHashes::TRIGGER_PTFX_ON_OBJ_BONE), bool>(name, obj, x, y, z, a6, a7, a8, objbone, flags); }
-    static inline auto TriggerPtfxOnPed(char* name, Ped ped, float x, float y, float z, float a6, float a7, float a8, uint32_t flags) { return NativeInvoke::Invoke<2954, std::to_underlying(NativeHashes::TRIGGER_PTFX_ON_PED), bool>(name, ped, x, y, z, a6, a7, a8, flags); }
-    static inline auto TriggerPtfxOnPedBone(char* name, Ped ped, float x, float y, float z, float a6, float a7, float a8, int32_t pedbone, uint32_t flags) { return NativeInvoke::Invoke<2955, std::to_underlying(NativeHashes::TRIGGER_PTFX_ON_PED_BONE), bool>(name, ped, x, y, z, a6, a7, a8, pedbone, flags); }
-    static inline auto TriggerPtfxOnVeh(char* name, Vehicle veh, float x, float y, float z, float a6, float a7, float a8, float a9) { return NativeInvoke::Invoke<2956, std::to_underlying(NativeHashes::TRIGGER_PTFX_ON_VEH), bool>(name, veh, x, y, z, a6, a7, a8, a9); }
+    static inline auto TriggerPoliceReport(char *name) { return NativeInvoke::Invoke<2950, std::to_underlying(NativeHashes::TRIGGER_POLICE_REPORT), void>(name); }
+    static inline auto TriggerPtfx(char *name, float x, float y, float z, float a5, float a6, float a7, uint32_t flags) { return NativeInvoke::Invoke<2951, std::to_underlying(NativeHashes::TRIGGER_PTFX), bool>(name, x, y, z, a5, a6, a7, flags); }
+    static inline auto TriggerPtfxOnObj(char *name, Object obj, float x, float y, float z, float a6, float a7, float a8, uint32_t flags) { return NativeInvoke::Invoke<2952, std::to_underlying(NativeHashes::TRIGGER_PTFX_ON_OBJ), bool>(name, obj, x, y, z, a6, a7, a8, flags); }
+    static inline auto TriggerPtfxOnObjBone(char *name, Object obj, float x, float y, float z, float a6, float a7, float a8, int32_t objbone, uint32_t flags) { return NativeInvoke::Invoke<2953, std::to_underlying(NativeHashes::TRIGGER_PTFX_ON_OBJ_BONE), bool>(name, obj, x, y, z, a6, a7, a8, objbone, flags); }
+    static inline auto TriggerPtfxOnPed(char *name, Ped ped, float x, float y, float z, float a6, float a7, float a8, uint32_t flags) { return NativeInvoke::Invoke<2954, std::to_underlying(NativeHashes::TRIGGER_PTFX_ON_PED), bool>(name, ped, x, y, z, a6, a7, a8, flags); }
+    static inline auto TriggerPtfxOnPedBone(char *name, Ped ped, float x, float y, float z, float a6, float a7, float a8, int32_t pedbone, uint32_t flags) { return NativeInvoke::Invoke<2955, std::to_underlying(NativeHashes::TRIGGER_PTFX_ON_PED_BONE), bool>(name, ped, x, y, z, a6, a7, a8, pedbone, flags); }
+    static inline auto TriggerPtfxOnVeh(char *name, Vehicle veh, float x, float y, float z, float a6, float a7, float a8, float a9) { return NativeInvoke::Invoke<2956, std::to_underlying(NativeHashes::TRIGGER_PTFX_ON_VEH), bool>(name, veh, x, y, z, a6, a7, a8, a9); }
     static inline auto TriggerVehAlarm(Vehicle car) { return NativeInvoke::Invoke<2957, std::to_underlying(NativeHashes::TRIGGER_VEH_ALARM), void>(car); }
     static inline auto TriggerVigilanteCrime(int32_t id, float x, float y, float z) { return NativeInvoke::Invoke<2958, std::to_underlying(NativeHashes::TRIGGER_VIGILANTE_CRIME), void>(id, x, y, z); }
     static inline auto TurnCarToFaceCoord(Car car, float x, float y) { return NativeInvoke::Invoke<2959, std::to_underlying(NativeHashes::TURN_CAR_TO_FACE_COORD), void>(car, x, y); }
@@ -6338,7 +6343,7 @@ public:
     static inline auto TurnOffVehicleExtra(Vehicle veh, int32_t extra, bool turnoff) { return NativeInvoke::Invoke<2961, std::to_underlying(NativeHashes::TURN_OFF_VEHICLE_EXTRA), void>(veh, extra, turnoff); }
     static inline auto TurnOnRadiohudInLobby() { return NativeInvoke::Invoke<2962, std::to_underlying(NativeHashes::TURN_ON_RADIOHUD_IN_LOBBY), Any>(); }
     static inline auto UnattachCam(int32_t cam) { return NativeInvoke::Invoke<2963, std::to_underlying(NativeHashes::UNATTACH_CAM), void>(cam); }
-    static inline auto UnfreezeRadioStation(char* radiostation) { return NativeInvoke::Invoke<2964, std::to_underlying(NativeHashes::UNFREEZE_RADIO_STATION), void>(radiostation); }
+    static inline auto UnfreezeRadioStation(char *radiostation) { return NativeInvoke::Invoke<2964, std::to_underlying(NativeHashes::UNFREEZE_RADIO_STATION), void>(radiostation); }
     static inline auto UninheritCamRoll(int32_t cam) { return NativeInvoke::Invoke<2965, std::to_underlying(NativeHashes::UNINHERIT_CAM_ROLL), void>(cam); }
     static inline auto UnloadTextFont() { return NativeInvoke::Invoke<2966, std::to_underlying(NativeHashes::UNLOAD_TEXT_FONT), void>(); }
     static inline auto UnlockGenericNewsStory(int32_t StoryId) { return NativeInvoke::Invoke<2967, std::to_underlying(NativeHashes::UNLOCK_GENERIC_NEWS_STORY), void>(StoryId); }
@@ -6346,9 +6351,9 @@ public:
     static inline auto UnlockMissionNewsStory(int32_t id) { return NativeInvoke::Invoke<2969, std::to_underlying(NativeHashes::UNLOCK_MISSION_NEWS_STORY), void>(id); }
     static inline auto UnlockRagdoll(Ped ped, bool value) { return NativeInvoke::Invoke<2970, std::to_underlying(NativeHashes::UNLOCK_RAGDOLL), void>(ped, value); }
     static inline auto UnmarkAllRoadNodesAsDontWander() { return NativeInvoke::Invoke<2971, std::to_underlying(NativeHashes::UNMARK_ALL_ROAD_NODES_AS_DONT_WANDER), void>(); }
-    static inline auto UnobfuscateInt(int32_t count, int32_t* val) { return NativeInvoke::Invoke<2972, std::to_underlying(NativeHashes::UNOBFUSCATE_INT), void>(count, val); }
+    static inline auto UnobfuscateInt(int32_t count, int32_t *val) { return NativeInvoke::Invoke<2972, std::to_underlying(NativeHashes::UNOBFUSCATE_INT), void>(count, val); }
     static inline auto UnobfuscateIntArray(Any a1, Any a2) { return NativeInvoke::Invoke<2973, std::to_underlying(NativeHashes::UNOBFUSCATE_INT_ARRAY), void>(a1, a2); }
-    static inline auto UnobfuscateString(char* str) { return NativeInvoke::Invoke<2974, std::to_underlying(NativeHashes::UNOBFUSCATE_STRING), char*>(str); }
+    static inline auto UnobfuscateString(char *str) { return NativeInvoke::Invoke<2974, std::to_underlying(NativeHashes::UNOBFUSCATE_STRING), char *>(str); }
     static inline auto UnpauseGame() { return NativeInvoke::Invoke<2975, std::to_underlying(NativeHashes::UNPAUSE_GAME), void>(); }
     static inline auto UnpausePlaybackRecordedCar(Car car) { return NativeInvoke::Invoke<2976, std::to_underlying(NativeHashes::UNPAUSE_PLAYBACK_RECORDED_CAR), void>(car); }
     static inline auto UnpauseRadio() { return NativeInvoke::Invoke<2977, std::to_underlying(NativeHashes::UNPAUSE_RADIO), void>(); }

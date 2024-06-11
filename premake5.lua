@@ -61,6 +61,7 @@ workspace "GTAIV.EFLC.FusionFix"
    includedirs { "external/hooking" }
    includedirs { "external/injector/include" }
    includedirs { "external/inireader" }
+   includedirs { "external/simdstring" }
    files { "external/hooking/Hooking.Patterns.h", "external/hooking/Hooking.Patterns.cpp" }
    files { "external/injector/safetyhook/*.h", "external/injector/safetyhook/*.hpp" }
    files { "external/injector/safetyhook/*.c", "external/injector/safetyhook/*.cpp" }

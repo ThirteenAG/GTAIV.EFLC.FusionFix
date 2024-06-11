@@ -9,7 +9,7 @@ import <stacktrace>;
 export class FusionFix
 {
 public:
-    template<typename... Args>
+    template <typename... Args>
     class Event : public std::function<void(Args...)>
     {
     public:
@@ -19,7 +19,7 @@ public:
         std::vector<std::function<void(Args...)>> handlers;
 
     public:
-        void operator+=(std::function<void(Args...)>&& handler)
+        void operator+=(std::function<void(Args...)> &&handler)
         {
             handlers.push_back(handler);
         }
@@ -28,7 +28,7 @@ public:
         {
             if (!handlers.empty())
             {
-                for (auto& handler : handlers)
+                for (auto &handler : handlers)
                 {
                     handler(args...);
                 }
@@ -40,7 +40,7 @@ public:
             static std::vector<std::future<void>> pendingFutures;
             if (!handlers.empty())
             {
-                for (auto& handler : handlers)
+                for (auto &handler : handlers)
                 {
                     pendingFutures.emplace_back(std::async(std::launch::async, std::cref(handler), args...));
                 }
@@ -50,151 +50,187 @@ public:
     };
 
 public:
-    static Event<>& onInitEvent() {
+    static Event<> &onInitEvent()
+    {
         static Event<> InitEvent;
         return InitEvent;
     }
-    static Event<>& onInitEventAsync() {
+    static Event<> &onInitEventAsync()
+    {
         static Event<> InitEventAsync;
         return InitEventAsync;
     }
-    static Event<>& onAfterUALRestoredIATEvent() {
+    static Event<> &onAfterUALRestoredIATEvent()
+    {
         static Event<> AfterUALRestoredIATEvent;
         return AfterUALRestoredIATEvent;
     }
-    static Event<>& onShutdownEvent() {
+    static Event<> &onShutdownEvent()
+    {
         static Event<> ShutdownEvent;
         return ShutdownEvent;
     }
-    static Event<>& onGameInitEvent() {
+    static Event<> &onGameInitEvent()
+    {
         static Event<> GameInitEvent;
         return GameInitEvent;
     }
-    static Event<>& onGameProcessEvent() {
+    static Event<> &onGameProcessEvent()
+    {
         static Event<> GameProcessEvent;
         return GameProcessEvent;
     }
-    static Event<>& onMenuDrawingEvent() {
+    static Event<> &onMenuDrawingEvent()
+    {
         static Event<> MenuDrawingEvent;
         return MenuDrawingEvent;
     }
-    static Event<>& onMenuEnterEvent() {
+    static Event<> &onMenuEnterEvent()
+    {
         static Event<> MenuEnterEvent;
         return MenuEnterEvent;
     }
-    static Event<>& onMenuExitEvent() {
+    static Event<> &onMenuExitEvent()
+    {
         static Event<> MenuExitEvent;
         return MenuExitEvent;
     }
-    static Event<>& onBeforeReset() {
+    static Event<> &onBeforeReset()
+    {
         static Event<> BeforeReset;
         return BeforeReset;
     }
-    static Event<>& onBeforePostFX() {
+    static Event<> &onBeforePostFX()
+    {
         static Event<> BeforePostFX;
         return BeforePostFX;
     }
-    static Event<>& onAfterPostFX() {
+    static Event<> &onAfterPostFX()
+    {
         static Event<> AfterPostFX;
         return AfterPostFX;
     }
 
-    struct D3D9 {
-        static Event<LPDIRECT3D9&, UINT&, D3DDEVTYPE&, HWND&, DWORD&, D3DPRESENT_PARAMETERS*&, IDirect3DDevice9**&>& onBeforeCreateDevice() {
-            static Event<LPDIRECT3D9&, UINT&, D3DDEVTYPE&, HWND&, DWORD&, D3DPRESENT_PARAMETERS*&, IDirect3DDevice9**&> BeforeCreateDevice;
+    struct D3D9
+    {
+        static Event<LPDIRECT3D9 &, UINT &, D3DDEVTYPE &, HWND &, DWORD &, D3DPRESENT_PARAMETERS *&, IDirect3DDevice9 **&> &onBeforeCreateDevice()
+        {
+            static Event<LPDIRECT3D9 &, UINT &, D3DDEVTYPE &, HWND &, DWORD &, D3DPRESENT_PARAMETERS *&, IDirect3DDevice9 **&> BeforeCreateDevice;
             return BeforeCreateDevice;
         }
-        static Event<LPDIRECT3D9&, UINT&, D3DDEVTYPE&, HWND&, DWORD&, D3DPRESENT_PARAMETERS*&, IDirect3DDevice9**&>& onAfterCreateDevice() {
-            static Event<LPDIRECT3D9&, UINT&, D3DDEVTYPE&, HWND&, DWORD&, D3DPRESENT_PARAMETERS*&, IDirect3DDevice9**&> AfterCreateDevice;
+        static Event<LPDIRECT3D9 &, UINT &, D3DDEVTYPE &, HWND &, DWORD &, D3DPRESENT_PARAMETERS *&, IDirect3DDevice9 **&> &onAfterCreateDevice()
+        {
+            static Event<LPDIRECT3D9 &, UINT &, D3DDEVTYPE &, HWND &, DWORD &, D3DPRESENT_PARAMETERS *&, IDirect3DDevice9 **&> AfterCreateDevice;
             return AfterCreateDevice;
         }
-        static Event<LPDIRECT3DDEVICE9&>& onBeginScene() {
-            static Event<LPDIRECT3DDEVICE9&> BeginScene;
+        static Event<LPDIRECT3DDEVICE9 &> &onBeginScene()
+        {
+            static Event<LPDIRECT3DDEVICE9 &> BeginScene;
             return BeginScene;
         }
-        static Event<LPDIRECT3DDEVICE9&>& onEndScene() {
-            static Event<LPDIRECT3DDEVICE9&> EndScene;
+        static Event<LPDIRECT3DDEVICE9 &> &onEndScene()
+        {
+            static Event<LPDIRECT3DDEVICE9 &> EndScene;
             return EndScene;
         }
-        static Event<LPDIRECT3DDEVICE9&, D3DPRESENT_PARAMETERS*&>& onBeforeReset() {
-            static Event<LPDIRECT3DDEVICE9&, D3DPRESENT_PARAMETERS*&> BeforeReset;
+        static Event<LPDIRECT3DDEVICE9 &, D3DPRESENT_PARAMETERS *&> &onBeforeReset()
+        {
+            static Event<LPDIRECT3DDEVICE9 &, D3DPRESENT_PARAMETERS *&> BeforeReset;
             return BeforeReset;
         }
-        static Event<LPDIRECT3DDEVICE9&, D3DPRESENT_PARAMETERS*&>& onAfterReset() {
-            static Event<LPDIRECT3DDEVICE9&, D3DPRESENT_PARAMETERS*&> AfterReset;
+        static Event<LPDIRECT3DDEVICE9 &, D3DPRESENT_PARAMETERS *&> &onAfterReset()
+        {
+            static Event<LPDIRECT3DDEVICE9 &, D3DPRESENT_PARAMETERS *&> AfterReset;
             return AfterReset;
         }
-        static Event<LPDIRECT3DDEVICE9&, IDirect3DPixelShader9*&>& onBeforeSetPixelShader() {
-            static Event<LPDIRECT3DDEVICE9&, IDirect3DPixelShader9*&> BeforeSetPixelShader;
+        static Event<LPDIRECT3DDEVICE9 &, IDirect3DPixelShader9 *&> &onBeforeSetPixelShader()
+        {
+            static Event<LPDIRECT3DDEVICE9 &, IDirect3DPixelShader9 *&> BeforeSetPixelShader;
             return BeforeSetPixelShader;
         }
-        static Event<LPDIRECT3DDEVICE9&, IDirect3DPixelShader9*&>& onAfterSetPixelShader() {
-            static Event<LPDIRECT3DDEVICE9&, IDirect3DPixelShader9*&> AfterSetPixelShader;
+        static Event<LPDIRECT3DDEVICE9 &, IDirect3DPixelShader9 *&> &onAfterSetPixelShader()
+        {
+            static Event<LPDIRECT3DDEVICE9 &, IDirect3DPixelShader9 *&> AfterSetPixelShader;
             return AfterSetPixelShader;
         }
-        static Event<LPDIRECT3DDEVICE9&, IDirect3DVertexShader9*&>& onBeforeSetVertexShader() {
-            static Event<LPDIRECT3DDEVICE9&, IDirect3DVertexShader9*&> BeforeSetVertexShader;
+        static Event<LPDIRECT3DDEVICE9 &, IDirect3DVertexShader9 *&> &onBeforeSetVertexShader()
+        {
+            static Event<LPDIRECT3DDEVICE9 &, IDirect3DVertexShader9 *&> BeforeSetVertexShader;
             return BeforeSetVertexShader;
         }
-        static Event<LPDIRECT3DDEVICE9&, IDirect3DVertexShader9*&>& onAfterSetVertexShader() {
-            static Event<LPDIRECT3DDEVICE9&, IDirect3DVertexShader9*&> AfterSetVertexShader;
+        static Event<LPDIRECT3DDEVICE9 &, IDirect3DVertexShader9 *&> &onAfterSetVertexShader()
+        {
+            static Event<LPDIRECT3DDEVICE9 &, IDirect3DVertexShader9 *&> AfterSetVertexShader;
             return AfterSetVertexShader;
         }
-        static Event<LPDIRECT3DDEVICE9&, UINT&, float*&, UINT&>& onSetVertexShaderConstantF() {
-            static Event<LPDIRECT3DDEVICE9&, UINT&, float*&, UINT&> SetVertexShaderConstantF;
+        static Event<LPDIRECT3DDEVICE9 &, UINT &, float *&, UINT &> &onSetVertexShaderConstantF()
+        {
+            static Event<LPDIRECT3DDEVICE9 &, UINT &, float *&, UINT &> SetVertexShaderConstantF;
             return SetVertexShaderConstantF;
         }
-        static Event<LPDIRECT3DDEVICE9&, UINT&, float*&, UINT&>& onSetPixelShaderConstantF() {
-            static Event<LPDIRECT3DDEVICE9&, UINT&, float*&, UINT&> SetPixelShaderConstantF;
+        static Event<LPDIRECT3DDEVICE9 &, UINT &, float *&, UINT &> &onSetPixelShaderConstantF()
+        {
+            static Event<LPDIRECT3DDEVICE9 &, UINT &, float *&, UINT &> SetPixelShaderConstantF;
             return SetPixelShaderConstantF;
         }
-        static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DPixelShader9**&>& onBeforeCreatePixelShader() {
-            static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DPixelShader9**&> BeforeCreatePixelShader;
+        static Event<LPDIRECT3DDEVICE9 &, DWORD *&, IDirect3DPixelShader9 **&> &onBeforeCreatePixelShader()
+        {
+            static Event<LPDIRECT3DDEVICE9 &, DWORD *&, IDirect3DPixelShader9 **&> BeforeCreatePixelShader;
             return BeforeCreatePixelShader;
         }
-        static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DPixelShader9**&>& onAfterCreatePixelShader() {
-            static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DPixelShader9**&> AfterCreatePixelShader;
+        static Event<LPDIRECT3DDEVICE9 &, DWORD *&, IDirect3DPixelShader9 **&> &onAfterCreatePixelShader()
+        {
+            static Event<LPDIRECT3DDEVICE9 &, DWORD *&, IDirect3DPixelShader9 **&> AfterCreatePixelShader;
             return AfterCreatePixelShader;
         }
-        static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DVertexShader9**&>& onBeforeCreateVertexShader() {
-            static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DVertexShader9**&> BeforeCreateVertexShader;
+        static Event<LPDIRECT3DDEVICE9 &, DWORD *&, IDirect3DVertexShader9 **&> &onBeforeCreateVertexShader()
+        {
+            static Event<LPDIRECT3DDEVICE9 &, DWORD *&, IDirect3DVertexShader9 **&> BeforeCreateVertexShader;
             return BeforeCreateVertexShader;
         }
-        static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DVertexShader9**&>& onAfterCreateVertexShader() {
-            static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DVertexShader9**&> AfterCreateVertexShader;
+        static Event<LPDIRECT3DDEVICE9 &, DWORD *&, IDirect3DVertexShader9 **&> &onAfterCreateVertexShader()
+        {
+            static Event<LPDIRECT3DDEVICE9 &, DWORD *&, IDirect3DVertexShader9 **&> AfterCreateVertexShader;
             return AfterCreateVertexShader;
         }
-        static Event<LPDIRECT3DDEVICE9&, UINT&, UINT&, UINT&, DWORD&, D3DFORMAT&, D3DPOOL&, IDirect3DTexture9**&, HANDLE*&>& onBeforeCreateTexture() {
-            static Event<LPDIRECT3DDEVICE9&, UINT&, UINT&, UINT&, DWORD&, D3DFORMAT&, D3DPOOL&, IDirect3DTexture9**&, HANDLE*&> BeforeCreateTexture;
+        static Event<LPDIRECT3DDEVICE9 &, UINT &, UINT &, UINT &, DWORD &, D3DFORMAT &, D3DPOOL &, IDirect3DTexture9 **&, HANDLE *&> &onBeforeCreateTexture()
+        {
+            static Event<LPDIRECT3DDEVICE9 &, UINT &, UINT &, UINT &, DWORD &, D3DFORMAT &, D3DPOOL &, IDirect3DTexture9 **&, HANDLE *&> BeforeCreateTexture;
             return BeforeCreateTexture;
         }
-        static Event<LPDIRECT3DDEVICE9&, UINT&, UINT&, UINT&, DWORD&, D3DFORMAT&, D3DPOOL&, IDirect3DTexture9**&, HANDLE*&>& onAfterCreateTexture() {
-            static Event<LPDIRECT3DDEVICE9&, UINT&, UINT&, UINT&, DWORD&, D3DFORMAT&, D3DPOOL&, IDirect3DTexture9**&, HANDLE*&> AfterCreateTexture;
+        static Event<LPDIRECT3DDEVICE9 &, UINT &, UINT &, UINT &, DWORD &, D3DFORMAT &, D3DPOOL &, IDirect3DTexture9 **&, HANDLE *&> &onAfterCreateTexture()
+        {
+            static Event<LPDIRECT3DDEVICE9 &, UINT &, UINT &, UINT &, DWORD &, D3DFORMAT &, D3DPOOL &, IDirect3DTexture9 **&, HANDLE *&> AfterCreateTexture;
             return AfterCreateTexture;
         }
-        static Event<LPDIRECT3DDEVICE9&, DWORD&, IDirect3DBaseTexture9*&>& onSetTexture() {
-            static Event<LPDIRECT3DDEVICE9&, DWORD&, IDirect3DBaseTexture9*&> SetTexture;
+        static Event<LPDIRECT3DDEVICE9 &, DWORD &, IDirect3DBaseTexture9 *&> &onSetTexture()
+        {
+            static Event<LPDIRECT3DDEVICE9 &, DWORD &, IDirect3DBaseTexture9 *&> SetTexture;
             return SetTexture;
         }
-        static Event<LPDIRECT3DDEVICE9&, D3DPRIMITIVETYPE&, UINT&, UINT&>& onBeforeDrawPrimitive() {
-            static Event<LPDIRECT3DDEVICE9&, D3DPRIMITIVETYPE&, UINT&, UINT&> BeforeDrawPrimitive;
+        static Event<LPDIRECT3DDEVICE9 &, D3DPRIMITIVETYPE &, UINT &, UINT &> &onBeforeDrawPrimitive()
+        {
+            static Event<LPDIRECT3DDEVICE9 &, D3DPRIMITIVETYPE &, UINT &, UINT &> BeforeDrawPrimitive;
             return BeforeDrawPrimitive;
         }
-        static bool& isInsteadDrawPrimitive() {
+        static bool &isInsteadDrawPrimitive()
+        {
             static bool InsteadDrawPrimitive = false;
             return InsteadDrawPrimitive;
         }
-        static void setInsteadDrawPrimitive(bool set) {
+        static void setInsteadDrawPrimitive(bool set)
+        {
             isInsteadDrawPrimitive() = set;
         }
-        static Event<LPDIRECT3DDEVICE9&, D3DPRIMITIVETYPE&, UINT&, UINT&>& onAfterDrawPrimitive() {
-            static Event<LPDIRECT3DDEVICE9&, D3DPRIMITIVETYPE&, UINT&, UINT&> AfterDrawPrimitive;
+        static Event<LPDIRECT3DDEVICE9 &, D3DPRIMITIVETYPE &, UINT &, UINT &> &onAfterDrawPrimitive()
+        {
+            static Event<LPDIRECT3DDEVICE9 &, D3DPRIMITIVETYPE &, UINT &, UINT &> AfterDrawPrimitive;
             return AfterDrawPrimitive;
         }
     };
 };
 
-export template<class T = std::filesystem::path>
+export template <class T = std::filesystem::path>
 T GetModulePath(HMODULE hModule)
 {
     static constexpr auto INITIAL_BUFFER_SIZE = MAX_PATH;
@@ -230,7 +266,7 @@ T GetModulePath(HMODULE hModule)
         {
             ret.resize(bufferSize);
             size_t charsReturned = 0;
-            if constexpr (std::is_same_v<T, std::string>)
+            if constexpr (std::is_same_v<T, SIMDString<64>>)
                 charsReturned = GetModuleFileNameA(hModule, &ret[0], bufferSize);
             else
                 charsReturned = GetModuleFileNameW(hModule, &ret[0], bufferSize);
@@ -248,7 +284,7 @@ T GetModulePath(HMODULE hModule)
     return T();
 }
 
-export template<class T = std::filesystem::path>
+export template <class T = std::filesystem::path>
 T GetThisModulePath()
 {
     HMODULE hm = NULL;
@@ -256,14 +292,14 @@ T GetThisModulePath()
     T r = GetModulePath<T>(hm);
     if constexpr (std::is_same_v<T, std::filesystem::path>)
         return r.parent_path();
-    else if constexpr (std::is_same_v<T, std::string>)
+    else if constexpr (std::is_same_v<T, SIMDString<64>>)
         r = r.substr(0, r.find_last_of("/\\") + 1);
     else
         r = r.substr(0, r.find_last_of(L"/\\") + 1);
     return r;
 }
 
-export template<class T = std::filesystem::path>
+export template <class T = std::filesystem::path>
 T GetThisModuleName()
 {
     HMODULE hm = NULL;
@@ -272,42 +308,43 @@ T GetThisModuleName()
 
     if constexpr (std::is_same_v<T, std::filesystem::path>)
         return moduleFileName.filename();
-    else if constexpr (std::is_same_v<T, std::string>)
+    else if constexpr (std::is_same_v<T, SIMDString<64>>)
         return moduleFileName.substr(moduleFileName.find_last_of("/\\") + 1);
     else
         return moduleFileName.substr(moduleFileName.find_last_of(L"/\\") + 1);
 }
 
-export template<class T = std::filesystem::path>
+export template <class T = std::filesystem::path>
 T GetExeModulePath()
 {
     T r = GetModulePath<T>(NULL);
 
     if constexpr (std::is_same_v<T, std::filesystem::path>)
         return r.parent_path();
-    else if constexpr (std::is_same_v<T, std::string>)
+    else if constexpr (std::is_same_v<T, SIMDString<64>>)
         r = r.substr(0, r.find_last_of("/\\") + 1);
     else
         r = r.substr(0, r.find_last_of(L"/\\") + 1);
     return r;
 }
 
-export template<class T = std::filesystem::path>
+export template <class T = std::filesystem::path>
 T GetExeModuleName()
 {
     const T moduleFileName = GetModulePath<T>(NULL);
     if constexpr (std::is_same_v<T, std::filesystem::path>)
         return moduleFileName.filename();
-    else if constexpr (std::is_same_v<T, std::string>)
+    else if constexpr (std::is_same_v<T, SIMDString<64>>)
         return moduleFileName.substr(moduleFileName.find_last_of("/\\") + 1);
     else
         return moduleFileName.substr(moduleFileName.find_last_of(L"/\\") + 1);
 }
 
 export template <typename T, typename V>
-bool iequals(const T& s1, const V& s2)
+bool iequals(const T &s1, const V &s2)
 {
-    T str1(s1); T str2(s2);
+    T str1(s1);
+    T str2(s2);
     std::transform(str1.begin(), str1.end(), str1.begin(), ::tolower);
     std::transform(str2.begin(), str2.end(), str2.begin(), ::tolower);
     return (str1 == str2);
@@ -325,10 +362,13 @@ export inline bool IsModuleUAL(HMODULE mod)
     return false;
 }
 
-export bool IsUALPresent() {
-    for (const auto& entry : std::stacktrace::current()) {
+export bool IsUALPresent()
+{
+    for (const auto &entry : std::stacktrace::current())
+    {
         HMODULE hModule = NULL;
-        if (GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCSTR)entry.native_handle(), &hModule)) {
+        if (GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCSTR)entry.native_handle(), &hModule))
+        {
             if (IsModuleUAL(hModule))
                 return true;
         }
@@ -339,12 +379,12 @@ export bool IsUALPresent() {
 export class CallbackHandler
 {
 public:
-    static inline void RegisterCallback(std::function<void()>&& fn)
+    static inline void RegisterCallback(std::function<void()> &&fn)
     {
         fn();
     }
 
-    static inline void RegisterCallback(std::wstring_view module_name, std::function<void()>&& fn, bool bOnUnload = false)
+    static inline void RegisterCallback(std::wstring_view module_name, std::function<void()> &&fn, bool bOnUnload = false)
     {
         if (!bOnUnload && (module_name.empty() || GetModuleHandleW(module_name.data()) != NULL))
         {
@@ -360,13 +400,13 @@ public:
         }
     }
 
-    static inline void RegisterCallback(std::function<void(HMODULE)>&& fn)
+    static inline void RegisterCallback(std::function<void(HMODULE)> &&fn)
     {
         RegisterDllNotification();
         GetOnAnyModuleLoadCallbackList().emplace_back(std::forward<std::function<void(HMODULE)>>(fn));
     }
 
-    static inline void RegisterCallback(std::function<void()>&& fn, bool bPatternNotFound, ptrdiff_t offset = 0x1100, uint32_t* ptr = nullptr)
+    static inline void RegisterCallback(std::function<void()> &&fn, bool bPatternNotFound, ptrdiff_t offset = 0x1100, uint32_t *ptr = nullptr)
     {
         if (!bPatternNotFound)
         {
@@ -375,20 +415,20 @@ public:
         else
         {
             auto mh = GetModuleHandle(NULL);
-            IMAGE_NT_HEADERS* ntHeader = (IMAGE_NT_HEADERS*)((DWORD)mh + ((IMAGE_DOS_HEADER*)mh)->e_lfanew);
+            IMAGE_NT_HEADERS *ntHeader = (IMAGE_NT_HEADERS *)((DWORD)mh + ((IMAGE_DOS_HEADER *)mh)->e_lfanew);
             if (ptr == nullptr)
-                ptr = (uint32_t*)((DWORD)mh + ntHeader->OptionalHeader.BaseOfCode + ntHeader->OptionalHeader.SizeOfCode - offset);
-            std::thread([](std::function<void()>&& fn, uint32_t* ptr, uint32_t val)
-                {
+                ptr = (uint32_t *)((DWORD)mh + ntHeader->OptionalHeader.BaseOfCode + ntHeader->OptionalHeader.SizeOfCode - offset);
+            std::thread([](std::function<void()> &&fn, uint32_t *ptr, uint32_t val)
+                        {
                     while (*ptr == val)
                         std::this_thread::yield();
 
-                    fn();
-                }, fn, ptr, *ptr).detach();
+                    fn(); }, fn, ptr, *ptr)
+                .detach();
         }
     }
 
-    static inline void RegisterCallback(std::function<void()>&& fn, hook::pattern pattern)
+    static inline void RegisterCallback(std::function<void()> &&fn, hook::pattern pattern)
     {
         if (!pattern.empty())
         {
@@ -396,7 +436,7 @@ public:
         }
         else
         {
-            auto* ptr = new ThreadParams{ fn, pattern };
+            auto *ptr = new ThreadParams{fn, pattern};
             CreateThreadAutoClose(0, 0, (LPTHREAD_START_ROUTINE)&ThreadProc, (LPVOID)ptr, 0, NULL);
         }
     }
@@ -422,7 +462,7 @@ private:
     {
         if (!GetOnAnyModuleLoadCallbackList().empty())
         {
-            for (auto& f : GetOnAnyModuleLoadCallbackList())
+            for (auto &f : GetOnAnyModuleLoadCallbackList())
             {
                 f(mod);
             }
@@ -433,7 +473,7 @@ private:
     {
         if (!GetOnAnyModuleUnloadCallbackList().empty())
         {
-            for (auto& f : GetOnAnyModuleUnloadCallbackList())
+            for (auto &f : GetOnAnyModuleUnloadCallbackList())
             {
                 f(mod);
             }
@@ -442,41 +482,41 @@ private:
 
     static inline void InvokeAll()
     {
-        for (auto&& fn : GetOnModuleLoadCallbackList())
+        for (auto &&fn : GetOnModuleLoadCallbackList())
             fn.second();
     }
 
 private:
     struct Comparator
     {
-        bool operator() (const std::wstring& s1, const std::wstring& s2) const
+        bool operator()(const std::wstring &s1, const std::wstring &s2) const
         {
             std::wstring str1(s1.length(), ' ');
             std::wstring str2(s2.length(), ' ');
             std::transform(s1.begin(), s1.end(), str1.begin(), tolower);
             std::transform(s2.begin(), s2.end(), str2.begin(), tolower);
-            return  str1 < str2;
+            return str1 < str2;
         }
     };
 
-    static inline std::map<std::wstring, std::function<void()>, Comparator>& GetOnModuleLoadCallbackList()
+    static inline std::map<std::wstring, std::function<void()>, Comparator> &GetOnModuleLoadCallbackList()
     {
         static std::map<std::wstring, std::function<void()>, Comparator> onModuleLoad;
         return onModuleLoad;
     }
 
-    static inline std::map<std::wstring, std::function<void()>, Comparator>& GetOnModuleUnloadCallbackList()
+    static inline std::map<std::wstring, std::function<void()>, Comparator> &GetOnModuleUnloadCallbackList()
     {
         static std::map<std::wstring, std::function<void()>, Comparator> onModuleUnload;
         return onModuleUnload;
     }
 
-    static inline std::vector<std::function<void(HMODULE)>>& GetOnAnyModuleLoadCallbackList()
+    static inline std::vector<std::function<void(HMODULE)>> &GetOnAnyModuleLoadCallbackList()
     {
         return onAnyModuleLoad;
     }
 
-    static inline std::vector<std::function<void(HMODULE)>>& GetOnAnyModuleUnloadCallbackList()
+    static inline std::vector<std::function<void(HMODULE)>> &GetOnAnyModuleUnloadCallbackList()
     {
         return onAnyModuleUnload;
     }
@@ -487,49 +527,41 @@ private:
         hook::pattern pattern;
     };
 
-    typedef NTSTATUS(NTAPI* _LdrRegisterDllNotification) (ULONG, PVOID, PVOID, PVOID);
-    typedef NTSTATUS(NTAPI* _LdrUnregisterDllNotification) (PVOID);
+    typedef NTSTATUS(NTAPI *_LdrRegisterDllNotification)(ULONG, PVOID, PVOID, PVOID);
+    typedef NTSTATUS(NTAPI *_LdrUnregisterDllNotification)(PVOID);
 
     typedef struct _LDR_DLL_LOADED_NOTIFICATION_DATA
     {
-        ULONG Flags;                    //Reserved.
-        PUNICODE_STRING FullDllName;    //The full path name of the DLL module.
-        PUNICODE_STRING BaseDllName;    //The base file name of the DLL module.
-        PVOID DllBase;                  //A pointer to the base address for the DLL in memory.
-        ULONG SizeOfImage;              //The size of the DLL image, in bytes.
-    } LDR_DLL_LOADED_NOTIFICATION_DATA, LDR_DLL_UNLOADED_NOTIFICATION_DATA, * PLDR_DLL_LOADED_NOTIFICATION_DATA, * PLDR_DLL_UNLOADED_NOTIFICATION_DATA;
+        ULONG Flags;                 // Reserved.
+        PUNICODE_STRING FullDllName; // The full path name of the DLL module.
+        PUNICODE_STRING BaseDllName; // The base file name of the DLL module.
+        PVOID DllBase;               // A pointer to the base address for the DLL in memory.
+        ULONG SizeOfImage;           // The size of the DLL image, in bytes.
+    } LDR_DLL_LOADED_NOTIFICATION_DATA, LDR_DLL_UNLOADED_NOTIFICATION_DATA, *PLDR_DLL_LOADED_NOTIFICATION_DATA, *PLDR_DLL_UNLOADED_NOTIFICATION_DATA;
 
     typedef union _LDR_DLL_NOTIFICATION_DATA
     {
         LDR_DLL_LOADED_NOTIFICATION_DATA Loaded;
         LDR_DLL_UNLOADED_NOTIFICATION_DATA Unloaded;
-    } LDR_DLL_NOTIFICATION_DATA, * PLDR_DLL_NOTIFICATION_DATA;
+    } LDR_DLL_NOTIFICATION_DATA, *PLDR_DLL_NOTIFICATION_DATA;
 
-    typedef NTSTATUS(NTAPI* PLDR_MANIFEST_PROBER_ROUTINE)
-        (
-            IN HMODULE DllBase,
-            IN PCWSTR FullDllPath,
-            OUT PHANDLE ActivationContext
-            );
+    typedef NTSTATUS(NTAPI *PLDR_MANIFEST_PROBER_ROUTINE)(
+        IN HMODULE DllBase,
+        IN PCWSTR FullDllPath,
+        OUT PHANDLE ActivationContext);
 
-    typedef NTSTATUS(NTAPI* PLDR_ACTX_LANGUAGE_ROURINE)
-        (
-            IN HANDLE Unk,
-            IN USHORT LangID,
-            OUT PHANDLE ActivationContext
-            );
+    typedef NTSTATUS(NTAPI *PLDR_ACTX_LANGUAGE_ROURINE)(
+        IN HANDLE Unk,
+        IN USHORT LangID,
+        OUT PHANDLE ActivationContext);
 
-    typedef void(NTAPI* PLDR_RELEASE_ACT_ROUTINE)
-        (
-            IN HANDLE ActivationContext
-            );
+    typedef void(NTAPI *PLDR_RELEASE_ACT_ROUTINE)(
+        IN HANDLE ActivationContext);
 
-    typedef VOID(NTAPI* fnLdrSetDllManifestProber)
-        (
-            IN PLDR_MANIFEST_PROBER_ROUTINE ManifestProberRoutine,
-            IN PLDR_ACTX_LANGUAGE_ROURINE CreateActCtxLanguageRoutine,
-            IN PLDR_RELEASE_ACT_ROUTINE ReleaseActCtxRoutine
-            );
+    typedef VOID(NTAPI *fnLdrSetDllManifestProber)(
+        IN PLDR_MANIFEST_PROBER_ROUTINE ManifestProberRoutine,
+        IN PLDR_ACTX_LANGUAGE_ROURINE CreateActCtxLanguageRoutine,
+        IN PLDR_RELEASE_ACT_ROUTINE ReleaseActCtxRoutine);
 
 private:
     static inline void CALLBACK LdrDllNotification(ULONG NotificationReason, PLDR_DLL_NOTIFICATION_DATA NotificationData, PVOID Context)
@@ -550,17 +582,17 @@ private:
 
     static inline NTSTATUS NTAPI ProbeCallback(IN HMODULE DllBase, IN PCWSTR FullDllPath, OUT PHANDLE ActivationContext)
     {
-        //wprintf(L"ProbeCallback: Base %p, path '%ls', context %p\r\n", DllBase, FullDllPath, *ActivationContext);
+        // wprintf(L"ProbeCallback: Base %p, path '%ls', context %p\r\n", DllBase, FullDllPath, *ActivationContext);
 
         std::wstring str(FullDllPath);
         invokeOnModuleLoad(str.substr(str.find_last_of(L"/\\") + 1));
         invokeOnAnyModuleLoad(DllBase);
 
-        //if (!*ActivationContext)
-        //    return STATUS_INVALID_PARAMETER; // breaks on xp
+        // if (!*ActivationContext)
+        //     return STATUS_INVALID_PARAMETER; // breaks on xp
 
         HANDLE actx = NULL;
-        ACTCTXW act = { 0 };
+        ACTCTXW act = {0};
 
         act.cbSize = sizeof(act);
         act.dwFlags = ACTCTX_FLAG_RESOURCE_NAME_VALID | ACTCTX_FLAG_HMODULE_VALID;
@@ -575,7 +607,7 @@ private:
 
         // Report no manifest is present
         if (actx == INVALID_HANDLE_VALUE)
-            return 0xC000008B; //STATUS_RESOURCE_NAME_NOT_FOUND;
+            return 0xC000008B; // STATUS_RESOURCE_NAME_NOT_FOUND;
 
         *ActivationContext = actx;
 
@@ -610,7 +642,7 @@ private:
 private:
     static inline DWORD WINAPI ThreadProc(LPVOID ptr)
     {
-        auto paramsPtr = static_cast<CallbackHandler::ThreadParams*>(ptr);
+        auto paramsPtr = static_cast<CallbackHandler::ThreadParams *>(ptr);
         auto params = *paramsPtr;
         delete paramsPtr;
 
@@ -635,11 +667,13 @@ private:
 
         return 0;
     }
+
 private:
-    static inline _LdrRegisterDllNotification   LdrRegisterDllNotification;
+    static inline _LdrRegisterDllNotification LdrRegisterDllNotification;
     static inline _LdrUnregisterDllNotification LdrUnregisterDllNotification;
-    static inline void* cookie;
-    static inline fnLdrSetDllManifestProber     LdrSetDllManifestProber;
+    static inline void *cookie;
+    static inline fnLdrSetDllManifestProber LdrSetDllManifestProber;
+
 public:
     static inline std::once_flag flag;
     static inline std::vector<std::function<void(HMODULE)>> onAnyModuleLoad;
@@ -654,7 +688,7 @@ hook::pattern find_pattern(Args... args)
     return pattern;
 }
 
-std::string format(const char* fmt, ...)
+SIMDString<64> format(const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -668,7 +702,7 @@ std::string format(const char* fmt, ...)
         {
             va_end(args);
             va_end(args2);
-            return std::string(v.data());
+            return SIMDString<64>(v.data());
         }
         size_t size;
         if (res < 0)
@@ -681,39 +715,39 @@ std::string format(const char* fmt, ...)
     }
 }
 
-export template<typename T>
-std::array<uint8_t, sizeof(T)> to_bytes(const T& object)
+export template <typename T>
+std::array<uint8_t, sizeof(T)> to_bytes(const T &object)
 {
     std::array<uint8_t, sizeof(T)> bytes;
-    const uint8_t* begin = reinterpret_cast<const uint8_t*>(std::addressof(object));
-    const uint8_t* end = begin + sizeof(T);
+    const uint8_t *begin = reinterpret_cast<const uint8_t *>(std::addressof(object));
+    const uint8_t *end = begin + sizeof(T);
     std::copy(begin, end, std::begin(bytes));
     return bytes;
 }
 
-export template<typename T>
-T& from_bytes(const std::array<uint8_t, sizeof(T)>& bytes, T& object)
+export template <typename T>
+T &from_bytes(const std::array<uint8_t, sizeof(T)> &bytes, T &object)
 {
     static_assert(std::is_trivially_copyable<T>::value, "not a TriviallyCopyable type");
-    uint8_t* begin_object = reinterpret_cast<uint8_t*>(std::addressof(object));
+    uint8_t *begin_object = reinterpret_cast<uint8_t *>(std::addressof(object));
     std::copy(std::begin(bytes), std::end(bytes), begin_object);
     return object;
 }
 
-export template<class T, class T1>
-T from_bytes(const T1& bytes)
+export template <class T, class T1>
+T from_bytes(const T1 &bytes)
 {
     static_assert(std::is_trivially_copyable<T>::value, "not a TriviallyCopyable type");
     T object;
-    uint8_t* begin_object = reinterpret_cast<uint8_t*>(std::addressof(object));
+    uint8_t *begin_object = reinterpret_cast<uint8_t *>(std::addressof(object));
     std::copy(std::begin(bytes), std::end(bytes) - (sizeof(T1) - sizeof(T)), begin_object);
     return object;
 }
 
 export template <size_t n>
-std::string pattern_str(const std::array<uint8_t, n> bytes)
+SIMDString<64> pattern_str(const std::array<uint8_t, n> bytes)
 {
-    std::string result;
+    SIMDString<64> result;
     for (size_t i = 0; i < n; i++)
     {
         result += format("%02X ", bytes[i]);
@@ -722,36 +756,38 @@ std::string pattern_str(const std::array<uint8_t, n> bytes)
 }
 
 export template <typename T>
-std::string pattern_str(T t)
+SIMDString<64> pattern_str(T t)
 {
-    return std::string((std::is_same<T, char>::value ? format("%c ", t) : format("%02X ", t)));
+    return SIMDString<64>((std::is_same<T, char>::value ? format("%c ", t) : format("%02X ", t)));
 }
 
 export template <typename T, typename... Rest>
-std::string pattern_str(T t, Rest... rest)
+SIMDString<64> pattern_str(T t, Rest... rest)
 {
-    return std::string((std::is_same<T, char>::value ? format("%c ", t) : format("%02X ", t)) + pattern_str(rest...));
+    return SIMDString<64>((std::is_same<T, char>::value ? format("%c ", t) : format("%02X ", t)) + pattern_str(rest...));
 }
 
-export std::string pattern_str(std::string_view str) {
+export SIMDString<64> pattern_str(SIMDString<64> str)
+{
     std::stringstream str_stream;
-    for (const auto& item : str) {
+    for (const auto &item : str)
+    {
         str_stream << std::uppercase << std::hex << std::setw(2) << std::setfill('0') << +uint8_t(item) << " ";
     }
-    return str_stream.str();
+    return SIMDString<64>(str_stream.str());
 }
 
 export class IATHook
 {
 public:
     template <class... Ts>
-    static void Replace(HMODULE target_module, std::string_view dll_name, Ts&& ... inputs)
+    static void Replace(HMODULE target_module, SIMDString<64> dll_name, Ts &&...inputs)
     {
         auto hExecutableInstance = (size_t)target_module;
-        IMAGE_NT_HEADERS* ntHeader = (IMAGE_NT_HEADERS*)(hExecutableInstance + ((IMAGE_DOS_HEADER*)hExecutableInstance)->e_lfanew);
-        IMAGE_IMPORT_DESCRIPTOR* pImports = (IMAGE_IMPORT_DESCRIPTOR*)(hExecutableInstance + ntHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress);
+        IMAGE_NT_HEADERS *ntHeader = (IMAGE_NT_HEADERS *)(hExecutableInstance + ((IMAGE_DOS_HEADER *)hExecutableInstance)->e_lfanew);
+        IMAGE_IMPORT_DESCRIPTOR *pImports = (IMAGE_IMPORT_DESCRIPTOR *)(hExecutableInstance + ntHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress);
         size_t nNumImports = ntHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].Size / sizeof(IMAGE_IMPORT_DESCRIPTOR) - 1;
-    
+
         auto PatchIAT = [&](size_t start, size_t end, size_t exe_end)
         {
             for (size_t i = 0; i < nNumImports; i++)
@@ -759,61 +795,64 @@ public:
                 if (hExecutableInstance + (pImports + i)->FirstThunk > start && !(end && hExecutableInstance + (pImports + i)->FirstThunk > end))
                     end = hExecutableInstance + (pImports + i)->FirstThunk;
             }
-    
-            if (!end) { end = start + 0x100; }
+
+            if (!end)
+            {
+                end = start + 0x100;
+            }
             if (end > exe_end)
             {
                 start = hExecutableInstance;
                 end = exe_end;
             }
-    
+
             for (auto i = start; i < end; i += sizeof(size_t))
             {
                 DWORD dwProtect[2];
-                VirtualProtect((size_t*)i, sizeof(size_t), PAGE_EXECUTE_READWRITE, &dwProtect[0]);
-    
-                auto ptr = *(size_t*)i;
+                VirtualProtect((size_t *)i, sizeof(size_t), PAGE_EXECUTE_READWRITE, &dwProtect[0]);
+
+                auto ptr = *(size_t *)i;
                 if (!ptr)
                     continue;
-    
+
                 ([&]
-                {
+                 {
                     auto func_name = std::get<0>(inputs);
                     auto func_hook = std::get<1>(inputs);
                     if (func_hook && ptr == (size_t)GetProcAddress(GetModuleHandleA(dll_name.data()), func_name))
-                        *(size_t*)i = (size_t)func_hook;
-                } (), ...);
+                        *(size_t*)i = (size_t)func_hook; }(), ...);
 
-                VirtualProtect((size_t*)i, sizeof(size_t), dwProtect[0], &dwProtect[1]);
+                VirtualProtect((size_t *)i, sizeof(size_t), dwProtect[0], &dwProtect[1]);
             }
         };
-    
+
         static auto getSection = [](const PIMAGE_NT_HEADERS nt_headers, unsigned section) -> PIMAGE_SECTION_HEADER
         {
             return reinterpret_cast<PIMAGE_SECTION_HEADER>(
-                (UCHAR*)nt_headers->OptionalHeader.DataDirectory +
+                (UCHAR *)nt_headers->OptionalHeader.DataDirectory +
                 nt_headers->OptionalHeader.NumberOfRvaAndSizes * sizeof(IMAGE_DATA_DIRECTORY) +
                 section * sizeof(IMAGE_SECTION_HEADER));
         };
-    
-        static auto getSectionEnd = [](IMAGE_NT_HEADERS* ntHeader, size_t inst) -> auto
+
+        static auto getSectionEnd = [](IMAGE_NT_HEADERS *ntHeader, size_t inst) -> auto
         {
             auto sec = getSection(ntHeader, ntHeader->FileHeader.NumberOfSections - 1);
-            while (sec->Misc.VirtualSize == 0) sec--;
-    
-            auto secSize = max(sec->SizeOfRawData, sec->Misc.VirtualSize);
-            auto end = inst + max(sec->PointerToRawData, sec->VirtualAddress) + secSize;
+            while (sec->Misc.VirtualSize == 0)
+                sec--;
+
+            auto secSize = std::max(sec->SizeOfRawData, sec->Misc.VirtualSize);
+            auto end = inst + std::max(sec->PointerToRawData, sec->VirtualAddress) + secSize;
             return end;
         };
-    
+
         auto hExecutableInstance_end = getSectionEnd(ntHeader, hExecutableInstance);
-    
+
         // Find DLL
         for (size_t i = 0; i < nNumImports; i++)
         {
             if ((size_t)(hExecutableInstance + (pImports + i)->Name) < hExecutableInstance_end)
             {
-                if (!_stricmp((const char*)(hExecutableInstance + (pImports + i)->Name), dll_name.data()))
+                if (!_stricmp((const char *)(hExecutableInstance + (pImports + i)->Name), dll_name.data()))
                     PatchIAT(hExecutableInstance + (pImports + i)->FirstThunk, 0, hExecutableInstance_end);
             }
         }

@@ -29,7 +29,7 @@ int GetFusionShaderID(T pShader)
         static auto sFusionShader = to_bytes("FusionShader");
         auto s = pattern_str(sFusionShader);
         while (s.back() == ' ' || s.back() == '0') s.pop_back();
-        auto pattern = hook::range_pattern((uintptr_t)pbFunc.data(), (uintptr_t)pbFunc.data() + pbFunc.size(), s);
+        auto pattern = hook::range_pattern((uintptr_t)pbFunc.data(), (uintptr_t)pbFunc.data() + pbFunc.size(), std::string_view(s));
         if (!pattern.empty()) {
             auto id = *pattern.get_first<int>(sFusionShader.size() - 1);
             if constexpr (IsAnyOf<remove_cvref_t<T>, IDirect3DVertexShader9>)

@@ -10,41 +10,42 @@ import common;
 class LimitAdjuster
 {
 private:
-    size_t    m_increaseby = 2;
-    bool      m_patchedXrefs = false;
-    bool      m_patchedNumRefs = false;
+    size_t m_increaseby = 2;
+    bool m_patchedXrefs = false;
+    bool m_patchedNumRefs = false;
     uintptr_t m_startAddress = 0;
-    size_t    m_elementSize = 0;
-    size_t    m_elementsCount = 0;
-    size_t    m_xrefCount = 0;
-    uint8_t*  m_array = nullptr;
-public:
-    LimitAdjuster(auto startAddress, auto elementSize, auto elementsCount, auto xrefCount) :
-        m_startAddress(startAddress), m_elementSize(elementSize), m_elementsCount(elementsCount), m_xrefCount(xrefCount){}
+    size_t m_elementSize = 0;
+    size_t m_elementsCount = 0;
+    size_t m_xrefCount = 0;
+    uint8_t *m_array = nullptr;
 
-    LimitAdjuster& IncreaseBy(auto num)
+public:
+    LimitAdjuster(auto startAddress, auto elementSize, auto elementsCount, auto xrefCount) : m_startAddress(startAddress), m_elementSize(elementSize), m_elementsCount(elementsCount), m_xrefCount(xrefCount) {}
+
+    LimitAdjuster &IncreaseBy(auto num)
     {
         if (num > 1)
             m_increaseby = num;
         return *this;
     }
 
-    LimitAdjuster& InsertNewArrayPointer(uint8_t* ptr)
+    LimitAdjuster &InsertNewArrayPointer(uint8_t *ptr)
     {
         m_array = ptr;
         return *this;
     }
 
-    LimitAdjuster& ReplaceXrefs(std::convertible_to<ptrdiff_t> auto&& ...offsets)
+    LimitAdjuster &ReplaceXrefs(std::convertible_to<ptrdiff_t> auto &&...offsets)
     {
         if (!m_patchedXrefs)
         {
-            auto list = std::initializer_list<ptrdiff_t>{ offsets... };
+            auto list = std::initializer_list<ptrdiff_t>{offsets...};
             ptrdiff_t max_array_offset = m_elementSize * m_elementsCount;
             auto max_needed_offset = *std::max_element(list.begin(), list.end());
             auto i = 0;
 
-            if (m_array == nullptr) {
+            if (m_array == nullptr)
+            {
                 auto vec = new std::vector<uint8_t>(m_increaseby * max_array_offset + ((max_needed_offset > max_array_offset) ? max_needed_offset - max_array_offset : 0), 0);
                 m_array = vec->data();
             }
@@ -52,9 +53,9 @@ public:
             for (auto v : list)
             {
                 auto ptr = m_startAddress + v;
-                auto pattern = hook::pattern(pattern_str(to_bytes(ptr)));
+                auto pattern = hook::pattern(std::string_view(pattern_str(to_bytes(ptr))));
                 pattern.for_each_result([&](hook::pattern_match match)
-                {
+                                        {
                     auto xref = match.get<uint32_t>();
                     if (*xref == ptr)
                     {
@@ -63,8 +64,7 @@ public:
                         else
                             injector::WriteMemory(xref, m_array + ((m_elementSize * m_elementsCount * m_increaseby) + (v - max_array_offset)), true);
                     }
-                    i++;
-                });
+                    i++; });
             }
 
             assert(i == m_xrefCount);
@@ -73,28 +73,32 @@ public:
         return *this;
     }
 
-    LimitAdjuster& ReplaceNumericRefs(std::convertible_to<intptr_t> auto&& ...pointers)
+    LimitAdjuster &ReplaceNumericRefs(std::convertible_to<intptr_t> auto &&...pointers)
     {
         if (!m_patchedNumRefs && m_patchedXrefs)
         {
-            auto TryPatchAddr = [&]<typename T>(intptr_t ptr) {
+            auto TryPatchAddr = [&]<typename T>(intptr_t ptr)
+            {
                 auto val = injector::ReadMemory<T>(ptr, true);
-                if (val == m_elementsCount) {
+                if (val == m_elementsCount)
+                {
                     injector::WriteMemory<T>(ptr, T(m_elementsCount * m_increaseby), true);
                     return true;
                 }
-                if (val == m_elementsCount + 1) {
+                if (val == m_elementsCount + 1)
+                {
                     injector::WriteMemory<T>(ptr, T(m_elementsCount * m_increaseby + 1), true);
                     return true;
                 }
-                if (val == m_elementsCount - 1) {
+                if (val == m_elementsCount - 1)
+                {
                     injector::WriteMemory<T>(ptr, T(m_elementsCount * m_increaseby - 1), true);
                     return true;
                 }
                 return false;
             };
 
-            auto list = std::initializer_list<intptr_t>{ pointers... };
+            auto list = std::initializer_list<intptr_t>{pointers...};
             for (auto v : list)
             {
                 if (TryPatchAddr.template operator()<uint64_t>(v))
@@ -122,7 +126,7 @@ public:
             CIniReader iniReader("");
 
             // Increasing all pools is not safe, leads to crashing
-            static std::vector<std::string> poolNames = { "Task" };
+            static std::vector<SIMDString<64>> poolNames = {"Task"};
 
             //[BudgetedIV]
             uint32_t nVehicleBudget = iniReader.ReadInteger("BudgetedIV", "VehicleBudget", 0);
@@ -131,7 +135,7 @@ public:
             if (nVehicleBudget)
             {
                 auto pattern = find_pattern("F7 2D ? ? ? ? 8B CA C1 E9 1F 03 CA B8 ? ? ? ? F7 2D ? ? ? ? 8B C2 C1 E8 1F 03 C2 89 0D ? ? ? ? A3 ? ? ? ? 83 C4 10 C3", "8B 0D ? ? ? ? B8 ? ? ? ? F7 E9 8B 0D");
-                injector::WriteMemory(*pattern.get_first<void*>(2), nVehicleBudget, true);
+                injector::WriteMemory(*pattern.get_first<void *>(2), nVehicleBudget, true);
 
                 // Increase VehicleStruct pool size, to avoid certain crash with high budget
                 poolNames.push_back("VehicleStruct");
@@ -140,7 +144,7 @@ public:
             if (nPedBudget)
             {
                 auto pattern = find_pattern("F7 2D ? ? ? ? 8B C2 C1 E8 1F 03 C2 89 0D ? ? ? ? A3 ? ? ? ? 83 C4 10 C3", "8B 0D ? ? ? ? 8B C2 C1 E8 1F");
-                injector::WriteMemory(*pattern.get_first<void*>(2), nPedBudget, true);
+                injector::WriteMemory(*pattern.get_first<void *>(2), nPedBudget, true);
             }
 
             auto pattern = hook::pattern("8B C7 0F AF C2 8B F1");
@@ -148,28 +152,32 @@ public:
             {
                 struct atPool
                 {
-                    void operator()(injector::reg_pack& regs)
+                    void operator()(injector::reg_pack &regs)
                     {
-                        auto name = std::string_view(*(const char**)(regs.esp + 16));
-                        if (std::any_of(poolNames.begin(), poolNames.end(), [&name](auto& i) {return i == name; }))
+                        auto name = SIMDString<64>(*(const char **)(regs.esp + 16));
+                        if (std::any_of(poolNames.begin(), poolNames.end(), [&name](auto &i)
+                                        { return i == name; }))
                             regs.edi *= 2;
                         regs.eax = regs.edi * regs.edx;
                     }
-                }; injector::MakeInline<atPool>(pattern.get_first(0));
+                };
+                injector::MakeInline<atPool>(pattern.get_first(0));
             }
             else
             {
                 auto pattern = hook::pattern("8B CF 0F AF C8 51");
                 struct atPool
                 {
-                    void operator()(injector::reg_pack& regs)
+                    void operator()(injector::reg_pack &regs)
                     {
-                        auto name = std::string_view(*(const char**)(regs.esp + 16));
-                        if (std::any_of(poolNames.begin(), poolNames.end(), [&name](auto& i) {return i == name; }))
+                        auto name = SIMDString<64>(*(const char **)(regs.esp + 16));
+                        if (std::any_of(poolNames.begin(), poolNames.end(), [&name](auto &i)
+                                        { return i == name; }))
                             regs.edi *= 2;
                         regs.ecx = regs.edi * regs.eax;
                     }
-                }; injector::MakeInline<atPool>(pattern.get_first(0));
+                };
+                injector::MakeInline<atPool>(pattern.get_first(0));
             }
 
             // Drawable reference list limit, fixes In the Crosshairs mission crash with maxed out draw distance
@@ -234,7 +242,7 @@ public:
                     };
 
                     auto pattern = hook::pattern("8B C8 E8 ? ? ? ? B9 ? ? ? ? A3");
-                    auto CModelInfoStore__ms_baseModels = *pattern.get_first<CDataStore*>(8);
+                    auto CModelInfoStore__ms_baseModels = *pattern.get_first<CDataStore *>(8);
 
                     for (size_t i = CModelInfoStore::ms_baseModels; i < CModelInfoStore::amount; i++)
                     {
@@ -242,9 +250,9 @@ public:
                     }
 
                     pattern = hook::pattern("B9 ? ? ? ? E8 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? FF 35");
-                    auto ms_mloPortalStore = *pattern.get_first<CDataStore*>(1);
+                    auto ms_mloPortalStore = *pattern.get_first<CDataStore *>(1);
                     pattern = hook::pattern("B9 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? FF 35 ? ? ? ? C7 05");
-                    auto ms_mloRoomStore = *pattern.get_first<CDataStore*>(1);
+                    auto ms_mloRoomStore = *pattern.get_first<CDataStore *>(1);
 
                     ms_mloPortalStore->nSize *= 2;
                     ms_mloRoomStore->nSize *= 2;
@@ -257,23 +265,23 @@ public:
                     auto ms_iBikeLines = 40;
                     auto ms_iFlyingLines = 40;
                     auto ms_iBoatLines = 40;
-                
+
                     auto ms_iStandardLinesLimit = ms_iStandardLines * increaseby;
                     auto ms_iBikeLinesLimit = ms_iBikeLines * increaseby;
                     auto ms_iFlyingLinesLimit = ms_iFlyingLines * increaseby;
                     auto ms_iBoatLinesLimit = ms_iBoatLines * increaseby;
-                
+
                     static std::vector<uint8_t> handling((0x110 * ms_iStandardLinesLimit) + (0x40 * ms_iBikeLinesLimit) + (0x60 * ms_iFlyingLinesLimit) + (0xE0 * ms_iBoatLinesLimit), 0);
                     auto aHandlingLines = *hook::get_pattern<uintptr_t>("8D B0 ? ? ? ? 57 8B CE E8 ? ? ? ? 8B CE E8", 2);
                     auto aBikeHandlingLines = aHandlingLines + (0x110 * ms_iStandardLines);
                     auto aFlyingHandlingLines = aHandlingLines + (0x110 * ms_iStandardLines) + (0x40 * ms_iBikeLines);
                     auto aBoatHandlingLines = aHandlingLines + (0x110 * ms_iStandardLines) + (0x40 * ms_iBikeLines) + (0x60 * ms_iFlyingLines);
-                
+
                     auto HandlingLines = LimitAdjuster(aHandlingLines, 0x110, ms_iStandardLines, 26).IncreaseBy(increaseby).InsertNewArrayPointer(handling.data()).ReplaceXrefs(0x0, 0xF8, 0xFC, 0x100, 0x5F60, 0xAA00, 0xAAFC);
-                    //auto BikeHandlingLines = LimitAdjuster(aBikeHandlingLines, 0x40, ms_iBikeLines, 7).IncreaseBy(increaseby).InsertNewArrayPointer(handling.data() + (0x110 * ms_iStandardLinesLimit)).ReplaceXrefs(0);
+                    // auto BikeHandlingLines = LimitAdjuster(aBikeHandlingLines, 0x40, ms_iBikeLines, 7).IncreaseBy(increaseby).InsertNewArrayPointer(handling.data() + (0x110 * ms_iStandardLinesLimit)).ReplaceXrefs(0);
                     auto FlyingHandlingLines = LimitAdjuster(aFlyingHandlingLines, 0x40, ms_iFlyingLines, 5).IncreaseBy(increaseby).InsertNewArrayPointer(handling.data() + (0x110 * ms_iStandardLinesLimit) + (0x40 * ms_iBikeLinesLimit)).ReplaceXrefs(0);
                     auto BoatHandlingLines = LimitAdjuster(aBoatHandlingLines, 0x40, ms_iBoatLines, 5).IncreaseBy(increaseby).InsertNewArrayPointer(handling.data() + (0x110 * ms_iStandardLinesLimit) + (0x40 * ms_iBikeLinesLimit) + (0x60 * ms_iFlyingLinesLimit)).ReplaceXrefs(0);
-                
+
                     auto pattern = hook::pattern("BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 81 C6 ? ? ? ? 4F 79 F0 5F 5E C3 CC CC CC CC CC CC CC CC CC CC CC CC CC 56 57 BE ? ? ? ? BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 83 C6 20");
                     injector::WriteMemory(pattern.get_first(1), ms_iStandardLinesLimit - 1, true);
                     pattern = hook::pattern("BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 83 C6 40 4F 79 F3 5F 5E C3 56 57 BE ? ? ? ? BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 81 C6 ? ? ? ? 4F 79 F0 5F");
@@ -282,18 +290,18 @@ public:
                     injector::WriteMemory(pattern.get_first(1), ms_iFlyingLinesLimit - 1, true);
                     pattern = hook::pattern("BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 81 C6 ? ? ? ? 4F 79 F0 5F 5E C3 CC CC CC CC CC CC CC CC CC CC CC CC CC 56 57 BE ? ? ? ? BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 83 C6 60");
                     injector::WriteMemory(pattern.get_first(1), ms_iBoatLinesLimit - 1, true);
-                
-                    pattern = hook::pattern("7D 1B 8B C2");    //bikeHandlingCount
+
+                    pattern = hook::pattern("7D 1B 8B C2"); // bikeHandlingCount
                     injector::MakeNOP(pattern.get_first(), 2);
-                
-                    pattern = hook::pattern("7D 1C 8D 04 52"); //flyingHandlingCount
+
+                    pattern = hook::pattern("7D 1C 8D 04 52"); // flyingHandlingCount
                     injector::MakeNOP(pattern.get_first(), 2);
-                
-                    pattern = hook::pattern("7D 1E 8B C2");    //boatHandlingCount
+
+                    pattern = hook::pattern("7D 1E 8B C2"); // boatHandlingCount
                     injector::MakeNOP(pattern.get_first(), 2);
                 }
-                
-                //carcols
+
+                // carcols
                 {
                     auto pattern = hook::pattern("8B 87 ? ? ? ? 25 ? ? ? ? 0B C8 89 8F");
                     auto ref1 = (intptr_t)hook::get_pattern("81 3D ? ? ? ? ? ? ? ? 0F 8D ? ? ? ? 8D 84 24", 6);
@@ -312,7 +320,7 @@ public:
                     pattern = hook::pattern("7D 0C 69 C0");
                     injector::MakeNOP(pattern.get_first(), 2);
                 }
-                
+
                 {
                     auto pattern = hook::pattern("81 C7 ? ? ? ? 83 BB");
                     auto VehOff = LimitAdjuster(*pattern.get_first<uintptr_t>(2), 640, 205, 4).ReplaceXrefs(0);

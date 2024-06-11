@@ -12,8 +12,8 @@ import natives;
 class Buttons
 {
 private:
-    static inline std::vector<std::string> btnPrefix = {
-        "", //XBOX360
+    static inline std::vector<SIMDString<64>> btnPrefix = {
+        "", // XBOX360
         "XBONE_",
         "PS3_",
         "PS4_",
@@ -23,24 +23,24 @@ private:
         "SC_",
     };
 
-    static inline std::vector<std::string> buttons = {
+    static inline std::vector<SIMDString<64>> buttons = {
         "UP_ARROW", "DOWN_ARROW", "LEFT_ARROW", "RIGHT_ARROW", "DPAD_UP", "DPAD_DOWN", "DPAD_LEFT", "DPAD_RIGHT", "DPAD_NONE",
         "DPAD_ALL", "DPAD_UPDOWN", "DPAD_LEFTRIGHT", "LSTICK_UP", "LSTICK_DOWN", "LSTICK_LEFT", "LSTICK_RIGHT", "LSTICK_NONE",
         "LSTICK_ALL", "LSTICK_UPDOWN", "LSTICK_LEFTRIGHT", "RSTICK_UP", "RSTICK_DOWN", "RSTICK_LEFT", "RSTICK_RIGHT", "RSTICK_NONE",
         "RSTICK_ALL", "RSTICK_UPDOWN", "RSTICK_LEFTRIGHT", "A_BUTT", "B_BUTT", "X_BUTT", "Y_BUTT", "LB_BUTT", "LT_BUTT", "RB_BUTT",
-        "RT_BUTT", "START_BUTT", "BACK_BUTT", "A_BUTT", "B_BUTT"
-    };
+        "RT_BUTT", "START_BUTT", "BACK_BUTT", "A_BUTT", "B_BUTT"};
 
-    static inline std::vector<void*> controllerTexPtrs;
-    static inline std::vector<std::vector<void*>> buttonTexPtrs;
-    static inline void** gameButtonPtrs = nullptr;
-    static inline void** gameControllerPtrs = nullptr;
+    static inline std::vector<void *> controllerTexPtrs;
+    static inline std::vector<std::vector<void *>> buttonTexPtrs;
+    static inline void **gameButtonPtrs = nullptr;
+    static inline void **gameControllerPtrs = nullptr;
     static void ButtonsCallback()
     {
         auto prefvalue = FusionFixSettings("PREF_BUTTONS");
         auto prefvalueindex = prefvalue - FusionFixSettings.ButtonsText.eXbox360;
         auto bNeedsReset = false;
-        while (std::any_of(buttonTexPtrs[prefvalueindex].begin(), buttonTexPtrs[prefvalueindex].end(), [](auto i) { return i == nullptr; }))
+        while (std::any_of(buttonTexPtrs[prefvalueindex].begin(), buttonTexPtrs[prefvalueindex].end(), [](auto i)
+                           { return i == nullptr; }))
         {
             prefvalue++;
 
@@ -69,8 +69,8 @@ private:
             gameControllerPtrs[0] = controllerTexPtrs[prefvalueindex];
     }
 
-    static inline injector::hook_back<void(__fastcall*)(void*, void*, const char*)> CTxdStore__LoadTexture;
-    static void __fastcall LoadCustomButtons(void* dst, void* edx, const char* name)
+    static inline injector::hook_back<void(__fastcall *)(void *, void *, const char *)> CTxdStore__LoadTexture;
+    static void __fastcall LoadCustomButtons(void *dst, void *edx, const char *name)
     {
         CTxdStore__LoadTexture.fun(dst, edx, name);
 
@@ -79,7 +79,7 @@ private:
         controllerTexPtrs.clear();
         controllerTexPtrs.resize(btnPrefix.size());
 
-        for (auto& v : buttonTexPtrs)
+        for (auto &v : buttonTexPtrs)
             v.resize(buttons.size());
 
         for (auto prefix = btnPrefix.begin(); prefix < btnPrefix.end(); prefix++)
@@ -97,23 +97,23 @@ private:
         ButtonsCallback();
     }
 
-    static void __fastcall ControllerTextureCallback(void* dst, void* edx, const char* name)
+    static void __fastcall ControllerTextureCallback(void *dst, void *edx, const char *name)
     {
         CTxdStore__LoadTexture.fun(dst, edx, name);
         if (!controllerTexPtrs[0])
-            controllerTexPtrs[0] = *(void**)dst;
+            controllerTexPtrs[0] = *(void **)dst;
         ButtonsCallback();
     }
 
     static inline injector::hook_back<decltype(&Natives::GetTexture)> hbNATIVE_GET_TEXTURE;
-    static Texture __cdecl NATIVE_GET_TEXTURE(TextureDict dictionary, const char* textureName)
+    static Texture __cdecl NATIVE_GET_TEXTURE(TextureDict dictionary, const char *textureName)
     {
-        static std::vector<std::string> scriptButtons = {
-            "A_BUTT", "B_BUTT", "X_BUTT", "LT_BUTT", "RT_BUTT"
-        };
+        static std::vector<SIMDString<64>> scriptButtons = {
+            "A_BUTT", "B_BUTT", "X_BUTT", "LT_BUTT", "RT_BUTT"};
 
-        auto texName = std::string(textureName);
-        if (std::any_of(std::begin(scriptButtons), std::end(scriptButtons), [&](auto& i) { return iequals(texName, i); }))
+        auto texName = SIMDString<64>(textureName);
+        if (std::any_of(std::begin(scriptButtons), std::end(scriptButtons), [&](auto &i)
+                        { return iequals(texName, i); }))
         {
             auto prefvalue = FusionFixSettings("PREF_BUTTONS");
             auto prefvalueindex = prefvalue - FusionFixSettings.ButtonsText.eXbox360;
@@ -147,24 +147,22 @@ public:
         {
             auto pattern = hook::pattern("83 C4 14 B9 ? ? ? ? 68 ? ? ? ? E8");
             if (!pattern.empty())
-                gameButtonPtrs = *pattern.get_first<void**>(4);
+                gameButtonPtrs = *pattern.get_first<void **>(4);
             else
             {
                 pattern = hook::pattern("83 C4 14 68 ? ? ? ? B9");
-                gameButtonPtrs = *pattern.get_first<void**>(9);
+                gameButtonPtrs = *pattern.get_first<void **>(9);
             }
 
             pattern = hook::pattern("B9 ? ? ? ? E8 ? ? ? ? 68 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? 68 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? 68 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? 68 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? E8");
-            gameControllerPtrs = *pattern.get_first<void**>(1);
+            gameControllerPtrs = *pattern.get_first<void **>(1);
             CTxdStore__LoadTexture.fun = injector::MakeCALL(pattern.get_first(5), ControllerTextureCallback).get();
 
             pattern = find_pattern("E8 ? ? ? ? 6A FF E8 ? ? ? ? C7 05", "E8 ? ? ? ? 55 E8 ? ? ? ? C7 05");
             CTxdStore__LoadTexture.fun = injector::MakeCALL(pattern.get_first(), LoadCustomButtons).get();
 
             FusionFixSettings.SetCallback("PREF_BUTTONS", [](int32_t value)
-            {
-                ButtonsCallback();
-            });
+                                          { ButtonsCallback(); });
 
             // Script
             {
