@@ -1,15 +1,15 @@
 module;
 
 #include <common.hxx>
-#include "d3dx9.h"
-#pragma comment(lib, "d3dx9.lib")
 #include <shlobj.h>
 #include <filesystem>
+#include <d3dx9.h>
 
 export module settings;
 
 import common;
 import comvars;
+import d3dx9_43;
 
 export class CSettings
 {
@@ -547,120 +547,123 @@ public:
         };
 
         // FPS Counter
-        auto pattern = find_pattern("A1 ? ? ? ? 83 F8 08 74 17", "A1 ? ? ? ? 83 F8 08 74 0C");
-        if (!pattern.empty())
+        if (GetD3DX9_43DLL())
         {
-            static auto& menuTab = **pattern.get_first<int32_t*>(1);
-            static ID3DXFont* pFPSFont = nullptr;
-
-            FusionFix::D3D9::onBeforeCreateDevice() += [](LPDIRECT3D9& pDirect3D9, UINT& Adapter, D3DDEVTYPE& DeviceType, HWND& hFocusWindow, DWORD& BehaviorFlags, D3DPRESENT_PARAMETERS*& pPresentationParameters, IDirect3DDevice9**& ppReturnedDeviceInterface)
+            auto pattern = find_pattern("A1 ? ? ? ? 83 F8 08 74 17", "A1 ? ? ? ? 83 F8 08 74 0C");
+            if (!pattern.empty())
             {
-                if (pFPSFont)
-                    pFPSFont->Release();
-                pFPSFont = nullptr;
-            };
+                static auto& menuTab = **pattern.get_first<int32_t*>(1);
+                static ID3DXFont* pFPSFont = nullptr;
 
-            FusionFix::onBeforeReset() += []()
-            {
-                if (pFPSFont)
-                    pFPSFont->Release();
-                pFPSFont = nullptr;
-            };
-
-            FusionFix::D3D9::onEndScene() += [](LPDIRECT3DDEVICE9 pDevice)
-            {
-                if (!bMainEndScene)
-                    return;
-                else
-                    bMainEndScene = false;
-
-                static auto fpsc = FusionFixSettings.GetRef("PREF_FPSCOUNTER");
-                if (menuTab == 8 || menuTab == 49 || fpsc->get())
+                FusionFix::D3D9::onBeforeCreateDevice() += [](LPDIRECT3D9& pDirect3D9, UINT& Adapter, D3DDEVTYPE& DeviceType, HWND& hFocusWindow, DWORD& BehaviorFlags, D3DPRESENT_PARAMETERS*& pPresentationParameters, IDirect3DDevice9**& ppReturnedDeviceInterface)
                 {
-                    static std::list<int> m_times;
+                    if (pFPSFont)
+                        pFPSFont->Release();
+                    pFPSFont = nullptr;
+                };
 
-                    LARGE_INTEGER frequency;
-                    LARGE_INTEGER time;
-                    QueryPerformanceFrequency(&frequency);
-                    QueryPerformanceCounter(&time);
+                FusionFix::onBeforeReset() += []()
+                {
+                    if (pFPSFont)
+                        pFPSFont->Release();
+                    pFPSFont = nullptr;
+                };
 
-                    if (m_times.size() == 50)
-                        m_times.pop_front();
-                    m_times.push_back(static_cast<int>(time.QuadPart));
-
-                    uint32_t fps = 0;
-                    if (m_times.size() >= 2)
-                        fps = static_cast<uint32_t>(0.5f + (static_cast<double>(m_times.size() - 1) * static_cast<double>(frequency.QuadPart)) / static_cast<double>(m_times.back() - m_times.front()));
-
-                    if (!pFPSFont)
-                    {
-                        D3DDEVICE_CREATION_PARAMETERS cparams;
-                        RECT rect;
-                        pDevice->GetCreationParameters(&cparams);
-                        GetClientRect(cparams.hFocusWindow, &rect);
-
-                        D3DXFONT_DESC fps_font;
-                        ZeroMemory(&fps_font, sizeof(D3DXFONT_DESC));
-                        fps_font.Height = rect.bottom / 20;
-                        fps_font.Width = 0;
-                        fps_font.Weight = 400;
-                        fps_font.MipLevels = 0;
-                        fps_font.Italic = 0;
-                        fps_font.CharSet = DEFAULT_CHARSET;
-                        fps_font.OutputPrecision = OUT_DEFAULT_PRECIS;
-                        fps_font.Quality = ANTIALIASED_QUALITY;
-                        fps_font.PitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
-                        wchar_t FaceName[] = L"Arial";
-                        memcpy(&fps_font.FaceName, &FaceName, sizeof(FaceName));
-
-                        if (D3DXCreateFontIndirect(pDevice, &fps_font, &pFPSFont) != D3D_OK)
-                            return;
-                    }
+                FusionFix::D3D9::onEndScene() += [](LPDIRECT3DDEVICE9 pDevice)
+                {
+                    if (!bMainEndScene)
+                        return;
                     else
+                        bMainEndScene = false;
+
+                    static auto fpsc = FusionFixSettings.GetRef("PREF_FPSCOUNTER");
+                    if (menuTab == 8 || menuTab == 49 || fpsc->get())
                     {
-                        auto DrawTextOutline = [](ID3DXFont* pFont, FLOAT X, FLOAT Y, D3DXCOLOR dColor, CONST PCHAR cString, ...)
+                        static std::list<int> m_times;
+
+                        LARGE_INTEGER frequency;
+                        LARGE_INTEGER time;
+                        QueryPerformanceFrequency(&frequency);
+                        QueryPerformanceCounter(&time);
+
+                        if (m_times.size() == 50)
+                            m_times.pop_front();
+                        m_times.push_back(static_cast<int>(time.QuadPart));
+
+                        uint32_t fps = 0;
+                        if (m_times.size() >= 2)
+                            fps = static_cast<uint32_t>(0.5f + (static_cast<double>(m_times.size() - 1) * static_cast<double>(frequency.QuadPart)) / static_cast<double>(m_times.back() - m_times.front()));
+
+                        if (!pFPSFont)
                         {
-                            const D3DXCOLOR BLACK(D3DCOLOR_XRGB(0, 0, 0));
-                            CHAR cBuffer[101] = "";
+                            D3DDEVICE_CREATION_PARAMETERS cparams;
+                            RECT rect;
+                            pDevice->GetCreationParameters(&cparams);
+                            GetClientRect(cparams.hFocusWindow, &rect);
 
-                            va_list oArgs;
-                            va_start(oArgs, cString);
-                            _vsnprintf((cBuffer + strlen(cBuffer)), (sizeof(cBuffer) - strlen(cBuffer)), cString, oArgs);
-                            va_end(oArgs);
+                            D3DXFONT_DESC fps_font;
+                            ZeroMemory(&fps_font, sizeof(D3DXFONT_DESC));
+                            fps_font.Height = rect.bottom / 20;
+                            fps_font.Width = 0;
+                            fps_font.Weight = 400;
+                            fps_font.MipLevels = 0;
+                            fps_font.Italic = 0;
+                            fps_font.CharSet = DEFAULT_CHARSET;
+                            fps_font.OutputPrecision = OUT_DEFAULT_PRECIS;
+                            fps_font.Quality = ANTIALIASED_QUALITY;
+                            fps_font.PitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
+                            wchar_t FaceName[] = L"Arial";
+                            memcpy(&fps_font.FaceName, &FaceName, sizeof(FaceName));
 
-                            RECT Rect[5] =
+                            if (D3DXCreateFontIndirect(pDevice, &fps_font, &pFPSFont) != D3D_OK)
+                                return;
+                        }
+                        else
+                        {
+                            auto DrawTextOutline = [](ID3DXFont* pFont, FLOAT X, FLOAT Y, D3DXCOLOR dColor, CONST PCHAR cString, ...)
                             {
-                                { LONG(X - 1), LONG(Y), LONG(X + 500.0f), LONG(Y + 50.0f) },
-                                { LONG(X), LONG(Y - 1), LONG(X + 500.0f), LONG(Y + 50.0f) },
-                                { LONG(X + 1), LONG(Y), LONG(X + 500.0f), LONG(Y + 50.0f) },
-                                { LONG(X), LONG(Y + 1), LONG(X + 500.0f), LONG(Y + 50.0f) },
-                                { LONG(X), LONG(Y), LONG(X + 500.0f), LONG(Y + 50.0f)},
+                                const D3DXCOLOR BLACK(D3DCOLOR_XRGB(0, 0, 0));
+                                CHAR cBuffer[101] = "";
+
+                                va_list oArgs;
+                                va_start(oArgs, cString);
+                                _vsnprintf((cBuffer + strlen(cBuffer)), (sizeof(cBuffer) - strlen(cBuffer)), cString, oArgs);
+                                va_end(oArgs);
+
+                                RECT Rect[5] =
+                                {
+                                    { LONG(X - 1), LONG(Y), LONG(X + 500.0f), LONG(Y + 50.0f) },
+                                    { LONG(X), LONG(Y - 1), LONG(X + 500.0f), LONG(Y + 50.0f) },
+                                    { LONG(X + 1), LONG(Y), LONG(X + 500.0f), LONG(Y + 50.0f) },
+                                    { LONG(X), LONG(Y + 1), LONG(X + 500.0f), LONG(Y + 50.0f) },
+                                    { LONG(X), LONG(Y), LONG(X + 500.0f), LONG(Y + 50.0f)},
+                                };
+
+                                if (dColor != BLACK)
+                                {
+                                    for (auto i = 0; i < 4; i++)
+                                        pFont->DrawTextA(NULL, cBuffer, -1, &Rect[i], DT_NOCLIP, BLACK);
+                                }
+
+                                pFont->DrawTextA(NULL, cBuffer, -1, &Rect[4], DT_NOCLIP, dColor);
                             };
-
-                            if (dColor != BLACK)
-                            {
-                                for (auto i = 0; i < 4; i++)
-                                    pFont->DrawTextA(NULL, cBuffer, -1, &Rect[i], DT_NOCLIP, BLACK);
-                            }
-
-                            pFont->DrawTextA(NULL, cBuffer, -1, &Rect[4], DT_NOCLIP, dColor);
-                        };
-                        auto curEp = _dwCurrentEpisode ? *_dwCurrentEpisode : 0;
-                        static char str_format_fps[] = "%02d";
-                        static const D3DXCOLOR TBOGT(D3DCOLOR_XRGB(0xD7, 0x11, 0x6E));
-                        static const D3DXCOLOR TLAD(D3DCOLOR_XRGB(0x6F, 0x0D, 0x0F));
-                        static const D3DXCOLOR IV(D3DCOLOR_XRGB(0xF0, 0xA0, 0x00));
-                        DrawTextOutline(pFPSFont, 10, 10, (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), str_format_fps, fps);
+                            auto curEp = _dwCurrentEpisode ? *_dwCurrentEpisode : 0;
+                            static char str_format_fps[] = "%02d";
+                            static const D3DXCOLOR TBOGT(D3DCOLOR_XRGB(0xD7, 0x11, 0x6E));
+                            static const D3DXCOLOR TLAD(D3DCOLOR_XRGB(0x6F, 0x0D, 0x0F));
+                            static const D3DXCOLOR IV(D3DCOLOR_XRGB(0xF0, 0xA0, 0x00));
+                            DrawTextOutline(pFPSFont, 10, 10, (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), str_format_fps, fps);
+                        }
                     }
-                }
-            };
+                };
 
-            FusionFix::onShutdownEvent() += []()
-            {
-                if (pFPSFont)
-                    pFPSFont->Release();
-                pFPSFont = nullptr;
-            };
+                FusionFix::onShutdownEvent() += []()
+                {
+                    if (pFPSFont)
+                        pFPSFont->Release();
+                    pFPSFont = nullptr;
+                };
+            }
         }
     }
 } Settings;
