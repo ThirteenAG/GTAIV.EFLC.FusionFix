@@ -50,12 +50,12 @@ public:
                             {
                                 if (bLamppostShadows)
                                 {
-                                    if (iequals(filePath.stem(), L"FusionLights"))
+                                    if (iequals(filePath.stem().native(), L"FusionLights"))
                                         continue;
                                 }
                                 else
                                 {
-                                    if (iequals(filePath.stem(), L"FusionLightsShadowcast"))
+                                    if (iequals(filePath.stem().native(), L"FusionLightsShadowcast"))
                                         continue;
                                 }
 
