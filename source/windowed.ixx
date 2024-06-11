@@ -75,6 +75,26 @@ BOOL WINAPI AdjustWindowRect_Hook(LPRECT lpRect, DWORD dwStyle, BOOL bMenu)
     return AdjustWindowRect(lpRect, dwStyle, bMenu);
 }
 
+BOOL WINAPI SetWindowPos_Hook(HWND hWnd, HWND hWndInsertAfter, int X, int Y, int cx, int cy, UINT uFlags)
+{
+    if (*rage__grcWindow__ms_bOnTop)
+        hWndInsertAfter = HWND_TOPMOST;
+    else
+        hWndInsertAfter = HWND_NOTOPMOST;
+    BOOL res = SetWindowPos(hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags);
+    SwitchWindowStyle();
+    return res;
+}
+
+LONG WINAPI SetWindowLongA_Hook(HWND hWnd, int nIndex, LONG dwNewLong)
+{
+    if (!*rage__grcWindow__ms_bOnTop)
+        if (nIndex == GWL_EXSTYLE)
+            dwNewLong &= ~WS_EX_TOPMOST;
+
+    return SetWindowLongA(hWnd, nIndex, dwNewLong);
+}
+
 class Windowed
 {
 public:
@@ -82,16 +102,58 @@ public:
     {
         FusionFix::onInitEvent() += []()
         {
+            auto pattern = hook::pattern("33 FF 85 C0 0F 45 F8");
+            if (!pattern.empty())
+            {
+                injector::MakeNOP(pattern.get_first(), 2);
+                static auto g_cmdarg_windowed_hook = safetyhook::create_mid(pattern.get_first(),
+                [](SafetyHookContext& ctx)
+                {
+                    ctx.edi = FusionFixSettings.Get("PREF_WINDOWED");
+                });
+
+                pattern = hook::pattern("89 3D ? ? ? ? A3 ? ? ? ? 8D 44 24 17");
+                static auto g_cmdarg_windowed_hook2 = safetyhook::create_mid(pattern.get_first(),
+                [](SafetyHookContext& ctx)
+                {
+                    FusionFixSettings.Set("PREF_WINDOWED", !ctx.eax);
+                });
+            }
+            else
+            {
+                pattern = hook::pattern("33 F6 3B C7 0F 45 F0");
+                injector::MakeNOP(pattern.get_first(), 2);
+                static auto g_cmdarg_windowed_hook = safetyhook::create_mid(pattern.get_first(),
+                [](SafetyHookContext& ctx)
+                {
+                    ctx.esi = FusionFixSettings.Get("PREF_WINDOWED");
+                });
+
+                pattern = hook::pattern("89 35 ? ? ? ? A3 ? ? ? ? 8D 44 24 17");
+                static auto g_cmdarg_windowed_hook2 = safetyhook::create_mid(pattern.get_first(),
+                [](SafetyHookContext& ctx)
+                {
+                    FusionFixSettings.Set("PREF_WINDOWED", !ctx.eax);
+                });
+            }
+
             IATHook::Replace(GetModuleHandleA(NULL), "USER32.DLL", 
                 std::forward_as_tuple("CreateWindowExA", CreateWindowExA_Hook),
                 std::forward_as_tuple("CreateWindowExW", CreateWindowExW_Hook),
                 std::forward_as_tuple("MoveWindow", MoveWindow_Hook),
                 std::forward_as_tuple("AdjustWindowRect", AdjustWindowRect_Hook),
-                std::forward_as_tuple("SetRect", SetRect_Hook)
+                std::forward_as_tuple("SetWindowPos", SetWindowPos_Hook),
+                std::forward_as_tuple("SetRect", SetRect_Hook),
+                std::forward_as_tuple("SetWindowLongA", SetWindowLongA_Hook)
             );
 
             FusionFixSettings.SetCallback("PREF_BORDERLESS", [](int32_t value) {
                 SwitchWindowStyle();
+            });
+
+            FusionFixSettings.SetCallback("PREF_WINDOWED", [](int32_t value) {
+                if (*rage__grcWindow__ms_bWindowed != !!value)
+                    SendMessageA(gWnd, 260, 13, 0);
             });
         };
     }
