@@ -15,7 +15,8 @@ workspace "GTAIV.EFLC.FusionFix"
    targetdir "bin/%{cfg.buildcfg}"
    targetextension ".asi"
    buildoptions { "/dxifcInlineFunctions-" }
-   
+   staticruntime "On"
+      
    defines { "rsc_CompanyName=\"GTAIV.EFLC.FusionFix\"" }
    defines { "rsc_LegalCopyright=\"GTAIV.EFLC.FusionFix\""} 
    defines { "rsc_InternalName=\"%{prj.name}\"", "rsc_ProductName=\"%{prj.name}\"", "rsc_OriginalFilename=\"%{prj.name}.dll\"" }
@@ -56,11 +57,13 @@ workspace "GTAIV.EFLC.FusionFix"
    files { "source/resources/Versioninfo.rc" }
    files { "source/resources/Shaders.rc" }
    links { "LogitechLEDLib.lib" }
-   
+
    includedirs { "external/injector/safetyhook" }
    includedirs { "external/hooking" }
    includedirs { "external/injector/include" }
    includedirs { "external/inireader" }
+   includedirs { "external/modupdater/dist" }
+   libdirs { "external/modupdater/dist" }
    files { "external/hooking/Hooking.Patterns.h", "external/hooking/Hooking.Patterns.cpp" }
    files { "external/injector/safetyhook/*.h", "external/injector/safetyhook/*.hpp" }
    files { "external/injector/safetyhook/*.c", "external/injector/safetyhook/*.cpp" }
@@ -97,11 +100,12 @@ workspace "GTAIV.EFLC.FusionFix"
    filter "configurations:Debug"
       defines { "DEBUG" }
       symbols "On"
+      links { "libmodupdater_debug_win32.lib" }
 
    filter "configurations:Release"
       defines { "NDEBUG" }
       optimize "On"
-      staticruntime "On"
+      links { "libmodupdater_release_win32.lib" }
       
 project "GTAIV.EFLC.FusionFix"
    setpaths("H:/SteamLibrary/steamapps/common/Grand Theft Auto IV/GTAIV/", "GTAIV.exe", "plugins/")
