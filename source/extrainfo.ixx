@@ -16,9 +16,9 @@ public:
         {
             CIniReader iniReader("");
 
-            auto bExraInfo = iniReader.ReadInteger("MISC", "ExtraInfo", 1) != 0;
+            auto bExtraInfo = iniReader.ReadInteger("MISC", "ExtraInfo", 1) != 0;
 
-            if (bExraInfo)
+            if (bExtraInfo)
             {
                 auto pattern = hook::pattern("05 ? ? ? ? E9 ? ? ? ? E8 ? ? ? ? 84 C0");
                 if (!pattern.empty())
