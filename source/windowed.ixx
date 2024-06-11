@@ -189,6 +189,17 @@ public:
             // Do not process input on focus loss
             pattern = find_pattern("E8 ? ? ? ? A1 ? ? ? ? A3 ? ? ? ? A1 ? ? ? ? 83 C4 04", "E8 ? ? ? ? 8B 0D ? ? ? ? 8B 15 ? ? ? ? 83 C4 04 83 3D");
             hbsub_7870A0.fun = injector::MakeCALL(pattern.get_first(), sub_69F0C0).get();
+
+            FusionFixSettings.SetCallback("PREF_BLOCKONLOSTFOCUS", [](int32_t value) {
+                *grcDevice__ms_bNoBlockOnLostFocus = value;
+            });
+
+            pattern = find_pattern("B9 ? ? ? ? 66 23 C1 68", "66 25 FF 03 0F B7 C8");
+            static auto NoBlockOnLostFocusHook = safetyhook::create_mid(pattern.get_first(),
+            [](SafetyHookContext& ctx)
+            {
+                *grcDevice__ms_bNoBlockOnLostFocus = FusionFixSettings.Get("PREF_BLOCKONLOSTFOCUS");
+            });
         };
     }
 } Windowed;
