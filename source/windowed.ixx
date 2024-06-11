@@ -95,6 +95,17 @@ LONG WINAPI SetWindowLongA_Hook(HWND hWnd, int nIndex, LONG dwNewLong)
     return SetWindowLongA(hWnd, nIndex, dwNewLong);
 }
 
+injector::hook_back<void(__cdecl*)(char)> hbsub_7870A0;
+void __cdecl sub_69F0C0(char a1)
+{
+    if (*rage__grcWindow__ms_bWindowed)
+    {
+        if (*rage__grcWindow__ms_bFocusLost)
+            return;
+    }
+    return hbsub_7870A0.fun(a1);
+}
+
 class Windowed
 {
 public:
@@ -174,6 +185,10 @@ public:
                     FusionFixSettings.Set("PREF_WINDOWED", !FusionFixSettings.Get("PREF_WINDOWED"));
                 bSkipWindowedCallback2 = false;
             });
+
+            // Do not process input on focus loss
+            pattern = find_pattern("E8 ? ? ? ? A1 ? ? ? ? A3 ? ? ? ? A1 ? ? ? ? 83 C4 04", "E8 ? ? ? ? 8B 0D ? ? ? ? 8B 15 ? ? ? ? 83 C4 04 83 3D");
+            hbsub_7870A0.fun = injector::MakeCALL(pattern.get_first(), sub_69F0C0).get();
         };
     }
 } Windowed;

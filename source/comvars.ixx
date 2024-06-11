@@ -23,6 +23,7 @@ export uintptr_t** rage__scrProgram__ms_pGlobals;
 export uint32_t* rage__scrProgram__ms_pGlobalsSize;
 export bool* rage__grcWindow__ms_bWindowed;
 export bool* rage__grcWindow__ms_bOnTop;
+export bool* rage__grcWindow__ms_bFocusLost;
 export uint32_t* CCutscenes__m_dwCutsceneState;
 export void* (__stdcall* getNativeAddress)(uint32_t);
 export float* fTimeStep;
@@ -185,6 +186,9 @@ public:
 
             pattern = find_pattern("80 3D ? ? ? ? ? 74 07 BF", "80 3D ? ? ? ? ? 74 07 B8 ? ? ? ? EB 02 33 C0 8B 55 F4");
             rage__grcWindow__ms_bOnTop = *pattern.get_first<bool*>(2);
+
+            pattern = find_pattern("C6 05 ? ? ? ? ? 85 C0 74 02 FF D0 E8", "C6 05 ? ? ? ? ? 74 02 FF D0 C6 05");
+            rage__grcWindow__ms_bFocusLost = *pattern.get_first<bool*>(2);
         };
     }
 } Common;
