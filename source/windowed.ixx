@@ -151,9 +151,28 @@ public:
                 SwitchWindowStyle();
             });
 
+            static auto bSkipWindowedCallback1 = false;
+            static auto bSkipWindowedCallback2 = false;
             FusionFixSettings.SetCallback("PREF_WINDOWED", [](int32_t value) {
-                if (*rage__grcWindow__ms_bWindowed != !!value)
-                    SendMessageA(gWnd, 260, 13, 0);
+                if (!bSkipWindowedCallback1)
+                {
+                    if (*rage__grcWindow__ms_bWindowed != !!value)
+                    {
+                        bSkipWindowedCallback2 = true;
+                        SendMessageA(gWnd, 260, 13, 0);
+                    }
+                }
+                bSkipWindowedCallback1 = false;
+            });
+
+            pattern = find_pattern("C6 05 ? ? ? ? ? FF 75 14", "C6 05 ? ? ? ? ? 8B 54 24 1C");
+            static auto AltEnterHandlerHook = safetyhook::create_mid(pattern.get_first(),
+            [](SafetyHookContext& ctx)
+            {
+                bSkipWindowedCallback1 = true;
+                if (!bSkipWindowedCallback2)
+                    FusionFixSettings.Set("PREF_WINDOWED", !FusionFixSettings.Get("PREF_WINDOWED"));
+                bSkipWindowedCallback2 = false;
             });
         };
     }
