@@ -50,18 +50,20 @@ workspace "GTAIV.EFLC.FusionFix"
    includedirs { "source/includes" }
    includedirs { "source/ledsdk" }
    includedirs { "source/dxsdk" }
+   includedirs { "source/simdstring" }
    libdirs { "source/ledsdk" }
    libdirs { "source/dxsdk" }
+   libdirs { "source/simdstring" }
    files { "source/*.h", "source/*.hpp", "source/*.cpp", "source/*.hxx", "source/*.ixx" }
    files { "source/resources/Versioninfo.rc" }
    files { "source/resources/Shaders.rc" }
    links { "LogitechLEDLib.lib" }
+   links { "SIMDString.lib" }
    
    includedirs { "external/injector/safetyhook" }
    includedirs { "external/hooking" }
    includedirs { "external/injector/include" }
    includedirs { "external/inireader" }
-   includedirs { "external/simdstring" }
    files { "external/hooking/Hooking.Patterns.h", "external/hooking/Hooking.Patterns.cpp" }
    files { "external/injector/safetyhook/*.h", "external/injector/safetyhook/*.hpp" }
    files { "external/injector/safetyhook/*.c", "external/injector/safetyhook/*.cpp" }
