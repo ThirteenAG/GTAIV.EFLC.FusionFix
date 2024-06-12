@@ -176,7 +176,7 @@ public:
                 bSkipWindowedCallback1 = false;
             });
 
-            pattern = find_pattern("C6 05 ? ? ? ? ? FF 75 14", "C6 05 ? ? ? ? ? 8B 54 24 1C");
+            pattern = find_pattern("C6 05 ? ? ? ? ? FF 75 14", "C6 05 ? ? ? ? ? 8B 54 24 1C", "C6 05 ? ? ? ? ? FF 15 ? ? ? ? 5F");
             static auto AltEnterHandlerHook = safetyhook::create_mid(pattern.get_first(),
             [](SafetyHookContext& ctx)
             {
