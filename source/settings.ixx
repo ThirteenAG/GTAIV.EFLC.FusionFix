@@ -43,7 +43,7 @@ private:
     static inline std::filesystem::path cfgPath;
     static inline std::vector<MenuPrefs> aMenuPrefs;
     static inline auto firstCustomID = 0;
-    static inline std::map<int32_t, std::pair<const char*, const char*>> slidersList;
+    static inline std::map<int32_t, std::pair<std::string, std::string>> slidersList;
 private:
     static inline int32_t* mPrefs = nullptr;
     static inline std::map<uint32_t, CSetting> mFusionPrefs;
@@ -228,9 +228,18 @@ public:
         injector::WriteMemory<uint8_t>(pOriginalEnumsNum2, uint8_t(aMenuEnums.size()), true);
 
         // Sliders
-        slidersList.emplace(*GetPrefIDByName("PREF_EPISODIC_RACECLASS_RACE_3"), std::make_pair("PREF_EPISODIC_RACECLASS_RACE_3", "PREF_CUSTOMFOV"));
-        slidersList.emplace(*GetPrefIDByName("PREF_EPISODIC_RACECLASS_RACE_4"), std::make_pair("PREF_EPISODIC_RACECLASS_RACE_4", "PREF_KBCAMCENTERDELAY"));
-        slidersList.emplace(*GetPrefIDByName("PREF_EPISODIC_RACECLASS_RACE_5"), std::make_pair("PREF_EPISODIC_RACECLASS_RACE_5", "PREF_PADCAMCENTERDELAY"));
+        std::vector<std::pair<std::string_view, std::string_view>> matchingSettingsList =
+        {
+            { "PREF_EPISODIC_RACECLASS_RACE_3", "PREF_CUSTOMFOV" },
+            { "PREF_EPISODIC_RACECLASS_RACE_4", "PREF_KBCAMCENTERDELAY" },
+            { "PREF_EPISODIC_RACECLASS_RACE_5", "PREF_PADCAMCENTERDELAY" },
+        };
+
+        for (auto& it : matchingSettingsList)
+        {
+            slidersList.emplace(*GetPrefIDByName(it.first), std::make_pair(it.first, it.second));
+            FusionFixSettings.Set(it.first, FusionFixSettings.Get(it.second));
+        }
 
         pattern = find_pattern("3D ? ? ? ? 7C DF 83 EC 10", "3D ? ? ? ? 7C E1 B8");
         injector::WriteMemory(pattern.get_first(1), 136 - slidersList.size(), true);
