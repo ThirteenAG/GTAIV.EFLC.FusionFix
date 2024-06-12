@@ -198,6 +198,11 @@ public:
             static auto NoBlockOnLostFocusHook = safetyhook::create_mid(pattern.get_first(),
             [](SafetyHookContext& ctx)
             {
+                if (!*grcDevice__ms_bNoBlockOnLostFocus)
+                {
+                    FusionFixSettings.Set("PREF_BLOCKONLOSTFOCUS", *grcDevice__ms_bNoBlockOnLostFocus);
+                    return;
+                }
                 *grcDevice__ms_bNoBlockOnLostFocus = FusionFixSettings.Get("PREF_BLOCKONLOSTFOCUS");
             });
         };
