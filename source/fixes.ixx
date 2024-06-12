@@ -42,7 +42,7 @@ public:
             bMenuNeedsUpdate2--;
             return 0;
         }
-        return *CTimer__m_UserPause;
+        return *CTimer::m_UserPause;
     }
 
     static inline injector::hook_back<int(__fastcall*)(int* _this, void* edx, int a2)> hbsub_B64D60;
@@ -253,12 +253,12 @@ public:
                             Natives::GetMouseInput(&x, &y);
 
                         if (x || y)
-                            nTimeToPassBeforeCenteringCameraOnFoot = *CTimer__m_snTimeInMilliseconds + ((pad ? nTimeToWaitBeforeCenteringCameraOnFootPad->get() : nTimeToWaitBeforeCenteringCameraOnFootKB->get()) * 1000);
+                            nTimeToPassBeforeCenteringCameraOnFoot = *CTimer::m_snTimeInMilliseconds + ((pad ? nTimeToWaitBeforeCenteringCameraOnFootPad->get() : nTimeToWaitBeforeCenteringCameraOnFootKB->get()) * 1000);
 
                         if (pad && !nTimeToWaitBeforeCenteringCameraOnFootPad->get())
                             nTimeToPassBeforeCenteringCameraOnFoot = 0;
 
-                        if (nTimeToPassBeforeCenteringCameraOnFoot < *CTimer__m_snTimeInMilliseconds)
+                        if (nTimeToPassBeforeCenteringCameraOnFoot < *CTimer::m_snTimeInMilliseconds)
                             posX = f;
                         else
                             posX = 0.0f;

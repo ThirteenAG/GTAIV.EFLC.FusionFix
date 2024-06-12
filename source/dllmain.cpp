@@ -32,11 +32,11 @@ void CGameProcessHook()
         FusionFix::onGameInitEvent().executeAll();
     });
 
-    if (CTimer__m_UserPause && CTimer__m_CodePause)
+    if (CTimer::m_UserPause && CTimer::m_CodePause)
     {
         static auto oldMenuState = 0;
 
-        if (!*CTimer__m_UserPause && !*CTimer__m_CodePause)
+        if (!*CTimer::m_UserPause && !*CTimer::m_CodePause)
         {
             uint32_t curMenuState = false;
             if (curMenuState != oldMenuState) {

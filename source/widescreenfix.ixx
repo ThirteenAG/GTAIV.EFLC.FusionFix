@@ -10,8 +10,8 @@ import settings;
 import natives;
 import renderthread;
 
-#define SCREEN_WIDTH ((float)*rage__grcDevice__ms_nActiveWidth)
-#define SCREEN_HEIGHT ((float)*rage__grcDevice__ms_nActiveHeight)
+#define SCREEN_WIDTH ((float)*rage::grcDevice::ms_nActiveWidth)
+#define SCREEN_HEIGHT ((float)*rage::grcDevice::ms_nActiveHeight)
 #define DEFAULT_SCREEN_WIDTH 1280.0f
 #define DEFAULT_SCREEN_HEIGHT 720.0f
 #define DEFAULT_ASPECT_RATIO (16.0f / 9.0f)
@@ -31,7 +31,7 @@ public:
         f075 = 0.75f * DEFAULT_ASPECT_RATIO / SCREEN_ASPECT_RATIO;
         f01152 = 1152.0f * DEFAULT_ASPECT_RATIO / SCREEN_ASPECT_RATIO;
 
-        if (bordersTimer < (*CTimer__m_snTimeInMilliseconds))
+        if (bordersTimer < (*CTimer::m_snTimeInMilliseconds))
             bordersMult = -5.0f;
     }
 
@@ -83,8 +83,8 @@ public:
             CSprite2d__DrawRect(rect, col);
         }
 
-        bordersTimer = (*CTimer__m_snTimeInMilliseconds) + 500;
-        bordersMult += 2.0f * (*fTimeStep);
+        bordersTimer = (*CTimer::m_snTimeInMilliseconds) + 500;
+        bordersMult += 2.0f * (*CTimer::fTimeStep);
         if (bordersMult >= 1.0f)
             bordersMult = 1.0f;
 

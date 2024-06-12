@@ -137,7 +137,7 @@ void __cdecl sub_855640()
 {
     static auto preset = FusionFixSettings.GetRef("PREF_FPS_LIMIT_PRESET");
 
-    if ((bLoadscreenShown && !*bLoadscreenShown && !bLoadingShown) || !bUnlockFramerateDuringLoadscreens)
+    if ((CMenuManager::bLoadscreenShown && !*CMenuManager::bLoadscreenShown && !bLoadingShown) || !bUnlockFramerateDuringLoadscreens)
     {
         if (preset && *preset >= FusionFixSettings.FpsCaps.eCustom) {
             if (fFpsLimit > 0.0f || (*preset > FusionFixSettings.FpsCaps.eCustom && *preset < int32_t(FusionFixSettings.FpsCaps.data.size())))
@@ -155,9 +155,9 @@ void __cdecl sub_855640()
                 ScriptCutsceneFpsLimiter.Sync();
 
             // To avoid more softlocks with high fps
-            if (!fCutsceneFpsLimit && CCutscenes__m_dwCutsceneState)
+            if (!fCutsceneFpsLimit && CCutscenes::m_dwCutsceneState)
             {
-                if (*CCutscenes__m_dwCutsceneState == 9 || *CCutscenes__m_dwCutsceneState == 10)
+                if (*CCutscenes::m_dwCutsceneState == 9 || *CCutscenes::m_dwCutsceneState == 10)
                     LoadingFpsLimiter2.Sync();
             }
         }
@@ -221,9 +221,6 @@ public:
                     else
                         FpsLimiter.Init(mode, fFpsLimit);
                 });
-
-                pattern = find_pattern("80 3D ? ? ? ? ? 53 56 8A FA", "80 3D ? ? ? ? ? 53 8A 5C 24 1C");
-                bLoadscreenShown = *pattern.get_first<uint8_t*>(2);
 
                 pattern = find_pattern("8B 4C 24 04 8B 54 24 08 8B 41 08");
                 if (!pattern.empty())

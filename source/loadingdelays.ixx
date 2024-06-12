@@ -13,8 +13,8 @@ void WINAPI FusionSleep(DWORD dwMilliseconds)
 {
     //if (!bRestoreSleep)
     {
-        auto bMenuActive = CMenuManager__m_MenuActive && *CMenuManager__m_MenuActive;
-        auto bLoadscreenActive = (bLoadscreenShown && *bLoadscreenShown) || bLoadingShown;
+        auto bMenuActive = CMenuManager::m_MenuActive && *CMenuManager::m_MenuActive;
+        auto bLoadscreenActive = (CMenuManager::bLoadscreenShown && *CMenuManager::bLoadscreenShown) || bLoadingShown;
 
         if (!bMenuActive && bLoadscreenActive)
             return Sleep(0);

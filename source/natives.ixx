@@ -170,8 +170,8 @@ public:
         if (getNativeAddress)
             return reinterpret_cast<ncall>(getNativeAddress(Hash));
         
-        auto ms_pNatives = *rage__scrEngine__ms_pNatives;
-        auto ms_dwNativeTableSize = *rage__scrEngine__ms_dwNativeTableSize;
+        auto ms_pNatives = *rage::scrEngine::ms_pNatives;
+        auto ms_dwNativeTableSize = *rage::scrEngine::ms_dwNativeTableSize;
 
         if (ms_dwNativeTableSize == 0 || Hash == 0)
             return nullptr;
@@ -204,7 +204,7 @@ public:
         NativeContext cxt;
         (cxt.Push(args), ...);
 
-        if (CTimer__m_CodePause && !*CTimer__m_CodePause)
+        if (CTimer::m_CodePause && !*CTimer::m_CodePause)
         {
             if (!m_IndexTable[Index])
             {

@@ -30,12 +30,12 @@ public:
                             static std::wstring extra = L"";
                             regs.eax += 0x78;
 
-                            if (pCGameConfigReader__ms_imgFiles)
+                            if (CGameConfigReader::ms_imgFiles)
                             {
                                 auto s = std::wstring_view((wchar_t*)regs.eax);
                                 auto imgNum = 0;
                                 auto imgArrSize = 0;
-                                for (auto& it : *pCGameConfigReader__ms_imgFiles)
+                                for (auto& it : *CGameConfigReader::ms_imgFiles)
                                 {
                                     if (it.m_hFile != -1)
                                         imgNum++;
