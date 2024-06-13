@@ -270,16 +270,13 @@ public:
     {
         FusionFix::onInitEvent() += []()
         {
-            auto pattern = find_pattern("55 8B EC 83 E4 F0 81 EC ? ? ? ? 8B 0D ? ? ? ? 53 0F B7 41 04", "55 8B EC 83 E4 F0 81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 8B 0D ? ? ? ? 0F B7 41 04");
-            static auto CTimeCycleInitialise = pattern.get_first(0);
-
             FusionFixSettings.SetCallback("PREF_TIMECYC", [](int32_t value) {
-                injector::fastcall<void()>::call(CTimeCycleInitialise);
+                CTimeCycle::Initialise();
                 bMenuNeedsUpdate = 200;
             });
 
             // make timecyc changes visible in menu
-            pattern = hook::pattern("0A 05 ? ? ? ? 0A 05 ? ? ? ? 0F 85 ? ? ? ? E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 11 04 24");
+            auto pattern = hook::pattern("0A 05 ? ? ? ? 0A 05 ? ? ? ? 0F 85 ? ? ? ? E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 11 04 24");
             if (!pattern.empty())
             {
                 static auto byte_1173590 = *pattern.get_first<uint8_t*>(2);
@@ -322,12 +319,12 @@ public:
             injector::MakeCALL(pattern.get_first(0), timecyc_scanf, true);
 
             FusionFixSettings.SetCallback("PREF_TCYC_DOF", [](int32_t value) {
-                injector::fastcall<void()>::call(CTimeCycleInitialise);
+                CTimeCycle::Initialise();
                 bMenuNeedsUpdate = 200;
             });
 
             FusionFixSettings.SetCallback("PREF_BLOOM", [](int32_t value) {
-                injector::fastcall<void()>::call(CTimeCycleInitialise);
+                CTimeCycle::Initialise();
                 bMenuNeedsUpdate = 200;
             });
 

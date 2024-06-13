@@ -603,6 +603,11 @@ export namespace CTimer
     int32_t* m_snTimeInMilliseconds = nullptr;
 }
 
+export namespace CTimeCycle
+{
+    void(__cdecl* Initialise)() = nullptr;
+}
+
 export int32_t* _dwCurrentEpisode;
 export void* (__stdcall* getNativeAddress)(uint32_t);
 export HWND gWnd;
@@ -726,5 +731,8 @@ public:
 
         pattern = find_pattern("A3 ? ? ? ? FF 35 ? ? ? ? C7 44 24 ? ? ? ? ? 8B 01", "A3 ? ? ? ? C7 44 24 ? ? ? ? ? 8B 01 8B 40 38 6A 03 68 ? ? ? ? FF D0 80 7C 24");
         CViewport3DScene::pStencilRT = *pattern.get_first<rage::grcRenderTargetPC**>(1);
+
+        pattern = find_pattern("55 8B EC 83 E4 F0 81 EC ? ? ? ? 8B 0D ? ? ? ? 53 0F B7 41 04", "55 8B EC 83 E4 F0 81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 8B 0D ? ? ? ? 0F B7 41 04");
+        CTimeCycle::Initialise = pattern.get_first<void(__cdecl)()>(0);
     }
 } Common;
