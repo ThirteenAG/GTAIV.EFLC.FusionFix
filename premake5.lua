@@ -2,7 +2,7 @@ newoption {
     trigger     = "with-version",
     value       = "STRING",
     description = "Current version",
-    default     = "1.0",
+    default     = "2.0",
 }
 
 workspace "GTAIV.EFLC.FusionFix"
@@ -16,7 +16,8 @@ workspace "GTAIV.EFLC.FusionFix"
    targetextension ".asi"
    buildoptions { "/dxifcInlineFunctions-" }
    staticruntime "On"
-      
+   characterset ("Unicode")
+
    defines { "rsc_CompanyName=\"GTAIV.EFLC.FusionFix\"" }
    defines { "rsc_LegalCopyright=\"GTAIV.EFLC.FusionFix\""} 
    defines { "rsc_InternalName=\"%{prj.name}\"", "rsc_ProductName=\"%{prj.name}\"", "rsc_OriginalFilename=\"%{prj.name}.dll\"" }
@@ -53,9 +54,10 @@ workspace "GTAIV.EFLC.FusionFix"
    includedirs { "source/dxsdk" }
    libdirs { "source/ledsdk" }
    libdirs { "source/dxsdk" }
-   files { "source/*.h", "source/*.hpp", "source/*.cpp", "source/*.hxx", "source/*.ixx" }
+   files { "source/*.h", "source/*.hpp", "source/*.cpp", "source/*.hxx", "source/*.ixx", "source/snow/*.ixx" }
    files { "source/resources/Versioninfo.rc" }
    files { "source/resources/Shaders.rc" }
+   files { "source/snow/*.rc" }
    links { "LogitechLEDLib.lib" }
 
    includedirs { "external/injector/safetyhook" }
@@ -68,7 +70,10 @@ workspace "GTAIV.EFLC.FusionFix"
    files { "external/injector/safetyhook/*.h", "external/injector/safetyhook/*.hpp" }
    files { "external/injector/safetyhook/*.c", "external/injector/safetyhook/*.cpp" }
 
-   characterset ("Unicode")
+    prebuildcommands {
+        "for /R \"../source/snow/\" %%f in (*.ps) do (\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E main /Fo \"../source/snow/%%~nfps.cso\" %%f)",
+        "for /R \"../source/snow/\" %%f in (*.vs) do (\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E main /Fo \"../source/snow/%%~nfvs.cso\" %%f)",
+    }
    
    pbcommands = { 
       "setlocal EnableDelayedExpansion",

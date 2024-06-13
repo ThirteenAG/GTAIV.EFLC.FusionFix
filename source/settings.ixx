@@ -10,6 +10,7 @@ export module settings;
 import common;
 import comvars;
 import d3dx9_43;
+import fusiondxhook;
 
 export class CSettings
 {

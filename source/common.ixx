@@ -90,6 +90,10 @@ public:
         static Event<> BeforeReset;
         return BeforeReset;
     }
+    static Event<>& onAfterReset() {
+        static Event<> AfterReset;
+        return AfterReset;
+    }
     static Event<>& onBeforePostFX() {
         static Event<> BeforePostFX;
         return BeforePostFX;
