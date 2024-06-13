@@ -56,6 +56,12 @@ public:
         return r;
     }
 
+    static inline SafetyHookInline shSetShadowRes{};
+    static void SetShadowRes(int shadow_res, int a2, int a3)
+    {
+        return shSetShadowRes.ccall(shadow_res * 2, a2, a3);
+    }
+
     Fixes()
     {
         FusionFix::onInitEvent() += []()
@@ -68,6 +74,9 @@ public:
             //[MISC]
             bool bDefaultCameraAngleInTLAD = iniReader.ReadInteger("MISC", "DefaultCameraAngleInTLAD", 0) != 0;
             bool bPedDeathAnimFixFromTBOGT = iniReader.ReadInteger("MISC", "PedDeathAnimFixFromTBOGT", 1) != 0;
+
+            //[SHADOWS]
+            bool bHighResolutionShadows = iniReader.ReadInteger("SHADOWS", "HighResolutionShadows", 0) != 0;
 
             //fix for zoom flag in tbogt
             if (nAimingZoomFix)
@@ -427,6 +436,12 @@ public:
 
             // Fix Cascaded Shadow Map Resolution
             {
+                if (bHighResolutionShadows)
+                {
+                    auto pattern = find_pattern("83 EC 30 53 8B 5C 24 3C 56 8B 74 24 3C 57 8B 7C 24 48", "83 EC 30 53 8B 5C 24 3C 56 8B 74 24 3C 39 35 ? ? ? ? 57 8B 7C 24 48 75 14");
+                    shSetShadowRes = safetyhook::create_inline(pattern.get_first(), SetShadowRes);
+                }
+
                 auto pattern = hook::pattern("03 F6 E8 ? ? ? ? 8B 0D");
                 injector::MakeNOP(pattern.get_first(0), 2, true);
 

@@ -49,11 +49,18 @@ public:
         static bool bFixAutoExposure = false;
         static float fTreeAlphaMultiplier = 1.0f;
 
+        static float fShadowSoftness = 1.0;
+        static float fShadowBias = 1.0;
+        static float fShadowBlendRange = 0.3;
+
         FusionFix::onInitEvent() += []()
         {
             CIniReader iniReader("");
             bFixAutoExposure = iniReader.ReadInteger("MISC", "FixAutoExposure", 1) != 0;
             fTreeAlphaMultiplier = std::clamp(iniReader.ReadFloat("MISC", "TreeAlphaMultiplier", 1.0f), 0.0f, 255.0f);
+            fShadowSoftness = std::clamp(iniReader.ReadFloat("SHADOWS", "ShadowSoftness", 1.0f), 0.0f, 8.0f);
+            fShadowBias = std::clamp(iniReader.ReadFloat("SHADOWS", "ShadowBias", 1.0f), 0.0f, 8.0f);
+            fShadowBlendRange = std::clamp(iniReader.ReadFloat("SHADOWS", "ShadowBlendRange", 0.3f), 0.0f, 1.0f);
 
             // Redirect path to one unified folder
             auto pattern = hook::pattern("8B 04 8D ? ? ? ? A3 ? ? ? ? 8B 44 24 04");
@@ -121,6 +128,18 @@ public:
                         arr2[2] = 0.0f;
                         arr2[3] = 0.0f;
                         pDevice->SetVertexShaderConstantF(233, &arr2[0], 1);
+                    }
+
+                    // Shadow Ini Settings
+                    {
+                        static float arr7[4];
+
+                        arr7[0] = fShadowSoftness;
+                        arr7[1] = fShadowBias;
+                        arr7[2] = fShadowBlendRange;
+                        arr7[3] = 0.0f;
+
+                        pDevice->SetPixelShaderConstantF(218, &arr7[0], 1);
                     }
 
                     // Shadow Quality
