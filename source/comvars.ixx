@@ -612,6 +612,7 @@ export bool bMoreShadows = false;
 export bool bLoadingShown = false;
 export int bMenuNeedsUpdate = 0;
 export int bMenuNeedsUpdate2 = 0;
+export bool bEnableSnow = false;
 
 export inline LONG getWindowWidth()
 {

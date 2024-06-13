@@ -49,9 +49,9 @@ public:
         static bool bFixAutoExposure = false;
         static float fTreeAlphaMultiplier = 1.0f;
 
-        static float fShadowSoftness = 1.0;
-        static float fShadowBias = 1.0;
-        static float fShadowBlendRange = 0.3;
+        static float fShadowSoftness = 1.0f;
+        static float fShadowBias = 1.0f;
+        static float fShadowBlendRange = 0.3f;
 
         FusionFix::onInitEvent() += []()
         {
