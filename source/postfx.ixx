@@ -147,15 +147,6 @@ public:
     std::map<IDirect3DPixelShader9*, int> ShaderListPS;
     std::map<IDirect3DVertexShader9*, int> ShaderListVS;
 
-    float SunCentre[4] = { 0.f };
-    float SunColor[4] = { 0.f };
-    float SunDirection[4] = { 0.f };
-    float gWorld[4 * 4] = { 0.f };
-    float gWorldView[4 * 4] = { 0.f };
-    float gWorldViewProj[4 * 4] = { 0.f };
-    float gViewInverse[4 * 4] = { 0.f };
-    float gShadowMatrix[4 * 4] = { 0.f };
-
     float AoDistance = 100;
     float AOFocusPoint[4] = { 350, 0, 0, 0 };
     float AOFocusScale[4] = { 300, 0, 0, 0 };
@@ -163,7 +154,7 @@ public:
     float SunShafts_params1[4] = { 1.5f, 0.95f, 0.01f, 0.975f };
     float SunShafts_params2[4] = { 0.5f, 1.f, 2.f, 1.5f };
 
-    float ResSSAA = 1;
+    float ResSSAA = 1.0f;
 
     // 0 off, 1 horizontal, 2 vertical, 3 horizontal e vertical.
     int useDefferedShadows = 3;
@@ -339,7 +330,6 @@ public:
 };
 
 PostFxResource PostFxResources;
-std::vector<float> mtx;
 
 class PostFX {
 public:
@@ -353,7 +343,7 @@ public:
 
             // none, fxaa, smaa, blend, edge
             UsePostFxAA = FusionFixSettings.GetRef("PREF_ANTIALIASING");
-            useSSAA = FusionFixSettings.Get("PREF_SSAA") != 0;
+            useSSAA = false;
 
             static HMODULE hm = NULL;
             GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)&FusionFix::onInitEvent, &hm);
@@ -372,25 +362,20 @@ public:
                     PostFxResources.ShaderListPS[*ppShader] = id;
             };
 
-            FusionFix::D3D9::onBeforeCreateTexture() += [](LPDIRECT3DDEVICE9& pDevice, UINT& Width, UINT& Height, UINT& Levels, DWORD& Usage, D3DFORMAT& Format, D3DPOOL& Pool, IDirect3DTexture9**& ppTexture, HANDLE*& pSharedHandle)
+            if (useSSAA)
             {
-                auto gWindowWidth = (gRect.right - gRect.left);
-                auto gWindowHeight = (gRect.bottom - gRect.top);
-
-                if (useSSAA && Width == getWindowWidth() && Height == getWindowHeight())
+                FusionFix::D3D9::onBeforeCreateTexture() += [](LPDIRECT3DDEVICE9& pDevice, UINT& Width, UINT& Height, UINT& Levels, DWORD& Usage, D3DFORMAT& Format, D3DPOOL& Pool, IDirect3DTexture9**& ppTexture, HANDLE*& pSharedHandle)
                 {
-                    Width *= 2;
-                    Height *= 2;
-                }
-            };
+                    auto gWindowWidth = (gRect.right - gRect.left);
+                    auto gWindowHeight = (gRect.bottom - gRect.top);
 
-            //FusionFix::D3D9::onAfterCreateDevice() += [](LPDIRECT3D9& pDirect3D9, UINT& Adapter, D3DDEVTYPE& DeviceType, HWND& hFocusWindow, DWORD& BehaviorFlags, D3DPRESENT_PARAMETERS*& pPresentationParameters, IDirect3DDevice9**& ppReturnedDeviceInterface)
-            //{
-            //};
-
-            //FusionFix::D3D9::onAfterReset() += [](LPDIRECT3DDEVICE9& pDevice, D3DPRESENT_PARAMETERS*& pPresentationParameters)
-            //{
-            //};
+                    if (useSSAA && Width == getWindowWidth() && Height == getWindowHeight())
+                    {
+                        Width *= 2;
+                        Height *= 2;
+                    }
+                };
+            }
 
             FusionFix::D3D9::onBeforeReset() += [](LPDIRECT3DDEVICE9& pDevice, D3DPRESENT_PARAMETERS*& pPresentationParameters)
             {
@@ -708,180 +693,24 @@ public:
                 return hr;
             };
 
-            FusionFix::D3D9::onSetVertexShaderConstantF() += [](LPDIRECT3DDEVICE9& pDevice, UINT& StartRegister, float*& pConstantData, UINT& Vector4fCount)
+            if (useSSAA)
             {
-                IDirect3DVertexShader9* pShader = 0;
-                pDevice->GetVertexShader(&pShader);
-                if (pShader) {
-                    int id = PostFxResources.ShaderListVS[pShader];
-                    if (Vector4fCount >= 4) {
-                        if (StartRegister == 0) {
-                            switch (id) {
-                            case 29:
-                            case 34:
-                            {
-                                if (Vector4fCount == 16) {
-                                    if (mtx.size() < (Vector4fCount * 4))
-                                        mtx.resize(Vector4fCount * 4);
-                                    memcpy(&mtx[0], pConstantData, 4 * 4 * Vector4fCount);
-                                    memcpy(PostFxResources.gWorld, pConstantData, 4 * 4 * 4);
-                                }
-                            }
-                            }
-                        }
-                        if (StartRegister == 4) {
-                            switch (id) {
-                            case 34:
-                            {
-                                if (pConstantData[0] != 0.f)
-                                    memcpy(PostFxResources.gWorldView, pConstantData, 4 * 4 * 4);
-                            }
-                            }
-                        }
-                        if (StartRegister == 8) {
-                            switch (id) {
-                            case  29:
-                            {
-                                if (pConstantData[0] != 0.f)
-                                    memcpy(PostFxResources.gWorldViewProj, pConstantData, 4 * 4 * 4);
-                            }
-                            }
-                        }
-                        if (StartRegister == 12) {
-                            switch (id) {
-                            case 10:
-                            case 14:
-                            case 15:
-                            case 20:
-                            case 21:
-                            case 22:
-                            case 28:
-                            case 534:
-                            case 537:
-                            case 538:
-                            case 539:
-                            case 540:
-                            case 541:
-                            {
-                                if (pConstantData[0] != 0.f)
-                                    memcpy(PostFxResources.gViewInverse, pConstantData, 4 * 4 * 4);
-                            }
-                            }
-                        }
-                        if (StartRegister == 60) {
-                            switch (id) {
-                            case 2:
-                            case 3:
-                            case 20:
-                            case 130:
-                            case 537:
-                            case 538:
-                            case 539:
-                            case 540:
-                            case 809:
-                            case 831:
-                            {
-                                if (pConstantData[0] != 0.f)
-                                    memcpy(PostFxResources.gShadowMatrix, pConstantData, 4 * 4 * 4);
-                            }
-                            }
-                        }
-                    }
-                }
-            };
-
-            FusionFix::D3D9::onSetPixelShaderConstantF() += [](LPDIRECT3DDEVICE9& pDevice, UINT& StartRegister, float*& pConstantData, UINT& Vector4fCount)
-            {
-                if (useSSAA && pConstantData[0] == 1.f / getWindowWidth() && pConstantData[1] == 1.f / getWindowHeight() && Vector4fCount == 1) {
-                    pConstantData[0] *= 0.5f;
-                    pConstantData[1] *= 0.5f;
-                    pConstantData[2] *= 2.0f;
-                    pConstantData[3] *= 2.0f;
-                }
-                else if (useSSAA && pConstantData[0] == getWindowWidth() && pConstantData[1] == getWindowHeight() && Vector4fCount == 1) {
-                    pConstantData[0] *= 2.0f;
-                    pConstantData[1] *= 2.0f;
-                    pConstantData[2] *= 0.5f;
-                    pConstantData[3] *= 0.5f;
-                }
-
+                FusionFix::D3D9::onSetPixelShaderConstantF() += [](LPDIRECT3DDEVICE9& pDevice, UINT& StartRegister, float*& pConstantData, UINT& Vector4fCount)
                 {
-                    IDirect3DPixelShader9* pShader = 0;
-                    pDevice->GetPixelShader(&pShader);
-                    if (pShader) {
-                        int id = PostFxResources.ShaderListPS[pShader];
-                        if (StartRegister == 65 && Vector4fCount >= 1) {
-                            switch (id) {
-                            case 65:
-                            case 66:
-                            {
-                                if (pConstantData[1] != 0.f && (pConstantData[1] == -pConstantData[3] || pConstantData[1] == pConstantData[3]))
-                                    memcpy(PostFxResources.SunDirection, pConstantData, 4 * 4);
-                            }
-                            }
-                        }
-                        if (StartRegister == 64 && Vector4fCount >= 1) {
-                            switch (id) {
-                            case 65:
-                            case 66:
-                            {
-                                if (pConstantData[0] != 0.f)
-                                    memcpy(PostFxResources.SunCentre, pConstantData, 4 * 4);
-                            }
-                            }
-                        }
-                        if (StartRegister == 66 && Vector4fCount >= 1) {
-                            switch (id) {
-                            case 65:
-                            case 66:
-                            {
-                                if (pConstantData[0] != 0.f)
-                                    memcpy(PostFxResources.SunColor, pConstantData, 4 * 4);
-                            }
-                            }
-                        }
-                        if (Vector4fCount >= 4) {
-                            if (StartRegister == 12) {
-                                switch (id) {
-                                case 7:
-                                case 8:
-                                case 12:
-                                case 13:
-                                case 15:
-                                case 16:
-                                case 17:
-                                case 21:
-                                case 23:
-                                case 34:
-                                case 35:
-                                case 148:
-                                case 158:
-                                case 281:
-                                case 550:
-                                {
-                                    if (pConstantData[0] != 0.f)
-                                        memcpy(PostFxResources.gViewInverse, pConstantData, 4 * 4 * 4);
-                                }
-                                }
-                                if (StartRegister == 60) {
-                                    switch (id) {
-                                    case 7:
-                                    case 8:
-                                    case 148:
-                                    case 158:
-                                    case 281:
-                                    case 550:
-                                    {
-                                        if (pConstantData[0] != 0.f)
-                                            memcpy(PostFxResources.gShadowMatrix, pConstantData, 4 * 4 * 4);
-                                    }
-                                    }
-                                }
-                            }
-                        }
+                    if (useSSAA && pConstantData[0] == 1.f / getWindowWidth() && pConstantData[1] == 1.f / getWindowHeight() && Vector4fCount == 1) {
+                        pConstantData[0] *= 0.5f;
+                        pConstantData[1] *= 0.5f;
+                        pConstantData[2] *= 2.0f;
+                        pConstantData[3] *= 2.0f;
                     }
-                }
-            };
+                    else if (useSSAA && pConstantData[0] == getWindowWidth() && pConstantData[1] == getWindowHeight() && Vector4fCount == 1) {
+                        pConstantData[0] *= 2.0f;
+                        pConstantData[1] *= 2.0f;
+                        pConstantData[2] *= 0.5f;
+                        pConstantData[3] *= 0.5f;
+                    }
+                };
+            }
 
             FusionFix::D3D9::onSetTexture() += [](LPDIRECT3DDEVICE9& pDevice, DWORD& Stage, IDirect3DBaseTexture9*& pTexture)
             {
@@ -1008,6 +837,11 @@ public:
         IDirect3DSurface9* aoSurface = nullptr;
 
         D3DVOLUME_DESC volumeDescription;
+
+        auto currGrcViewport = rage::GetCurrentViewport();
+        auto SunColor = rage::grmShaderInfo::getParam("gta_atmoscatt_clouds.fxc", "SunColor");
+        auto SunDirection = rage::grmShaderInfo::getParam("gta_atmoscatt_clouds.fxc", "SunDirection");
+        auto gShadowMatrix = (float*)rage::grmShaderInfo::getGlobalParam("gShadowMatrix")->pValue; // unverified, null
 
         HRESULT hr = S_FALSE;
 
@@ -1389,14 +1223,16 @@ public:
 
                                 pDevice->SetPixelShaderConstantF(96, PostFxResources.SunShafts_params1, 1);
                                 pDevice->SetPixelShaderConstantF(99, PostFxResources.SunShafts_params2, 1);
-                                pDevice->SetPixelShaderConstantF(97, PostFxResources.SunDirection, 1);
-                                pDevice->SetPixelShaderConstantF(98, PostFxResources.SunColor, 1);
-                                pDevice->SetPixelShaderConstantF(100, PostFxResources.gWorld, 4);
-                                pDevice->SetPixelShaderConstantF(104, PostFxResources.gWorldView, 4);
-                                pDevice->SetPixelShaderConstantF(108, PostFxResources.gWorldViewProj, 4);
-                                pDevice->SetPixelShaderConstantF(112, PostFxResources.gViewInverse, 4);
-                                pDevice->SetPixelShaderConstantF(116, PostFxResources.gShadowMatrix, 4);
-                                pDevice->SetPixelShaderConstantF(100, &mtx[0], mtx.size() / 4);
+                                pDevice->SetPixelShaderConstantF(97, SunDirection, 1);
+                                pDevice->SetPixelShaderConstantF(98, SunColor, 1);
+                                pDevice->SetPixelShaderConstantF(100, currGrcViewport->mWorldMatrix[0], 4);
+                                pDevice->SetPixelShaderConstantF(104, currGrcViewport->mWorldViewMatrix[0], 4);
+                                pDevice->SetPixelShaderConstantF(108, currGrcViewport->mWorldViewProjMatrix[0], 4);
+                                pDevice->SetPixelShaderConstantF(112, currGrcViewport->mViewInverseMatrix[0], 4);
+
+                                if (gShadowMatrix)
+                                    pDevice->SetPixelShaderConstantF(116, gShadowMatrix, 4);
+
                                 pDevice->SetPixelShaderConstantF(120, SunShaftsSamples2, 1);
                                 pDevice->SetPixelShaderConstantI(5, SunShaftsSamplesa, 1);
                                 pDevice->SetPixelShaderConstantI(6, SunShaftsSamplesb, 1);
@@ -1481,14 +1317,16 @@ public:
 
                             pDevice->SetPixelShaderConstantF(96, PostFxResources.SunShafts_params1, 1);
                             pDevice->SetPixelShaderConstantF(99, PostFxResources.SunShafts_params2, 1);
-                            pDevice->SetPixelShaderConstantF(97, PostFxResources.SunDirection, 1);
-                            pDevice->SetPixelShaderConstantF(98, PostFxResources.SunColor, 1);
-                            pDevice->SetPixelShaderConstantF(100, PostFxResources.gWorld, 4);
-                            pDevice->SetPixelShaderConstantF(104, PostFxResources.gWorldView, 4);
-                            pDevice->SetPixelShaderConstantF(108, PostFxResources.gWorldViewProj, 4);
-                            pDevice->SetPixelShaderConstantF(112, PostFxResources.gViewInverse, 4);
-                            pDevice->SetPixelShaderConstantF(116, PostFxResources.gShadowMatrix, 4);
-                            pDevice->SetPixelShaderConstantF(100, &mtx[0], mtx.size() / 4);
+                            pDevice->SetPixelShaderConstantF(97, SunDirection, 1);
+                            pDevice->SetPixelShaderConstantF(98, SunColor, 1);
+                            pDevice->SetPixelShaderConstantF(100, currGrcViewport->mWorldMatrix[0], 4);
+                            pDevice->SetPixelShaderConstantF(104, currGrcViewport->mWorldViewMatrix[0], 4);
+                            pDevice->SetPixelShaderConstantF(108, currGrcViewport->mWorldViewProjMatrix[0], 4);
+                            pDevice->SetPixelShaderConstantF(112, currGrcViewport->mViewInverseMatrix[0], 4);
+
+                            if (gShadowMatrix)
+                                pDevice->SetPixelShaderConstantF(116, gShadowMatrix, 4);
+
                             pDevice->SetPixelShaderConstantF(120, SunShaftsSamples2, 1);
                             pDevice->SetPixelShaderConstantI(5, SunShaftsSamplesa, 1);
                             pDevice->SetPixelShaderConstantI(6, SunShaftsSamplesb, 1);
@@ -1586,14 +1424,15 @@ public:
 
                             pDevice->SetPixelShaderConstantF(96, PostFxResources.SunShafts_params1, 1);
                             pDevice->SetPixelShaderConstantF(99, PostFxResources.SunShafts_params2, 1);
-                            pDevice->SetPixelShaderConstantF(97, PostFxResources.SunDirection, 1);
-                            pDevice->SetPixelShaderConstantF(98, PostFxResources.SunColor, 1);
-                            pDevice->SetPixelShaderConstantF(100, PostFxResources.gWorld, 4);
-                            pDevice->SetPixelShaderConstantF(104, PostFxResources.gWorldView, 4);
-                            pDevice->SetPixelShaderConstantF(108, PostFxResources.gWorldViewProj, 4);
-                            pDevice->SetPixelShaderConstantF(112, PostFxResources.gViewInverse, 4);
-                            pDevice->SetPixelShaderConstantF(116, PostFxResources.gShadowMatrix, 4);
-                            pDevice->SetPixelShaderConstantF(100, &mtx[0], mtx.size() / 4);
+                            pDevice->SetPixelShaderConstantF(97, SunDirection, 1);
+                            pDevice->SetPixelShaderConstantF(98, SunColor, 1);
+                            pDevice->SetPixelShaderConstantF(100, currGrcViewport->mWorldMatrix[0], 4);
+                            pDevice->SetPixelShaderConstantF(104, currGrcViewport->mWorldViewMatrix[0], 4);
+                            pDevice->SetPixelShaderConstantF(108, currGrcViewport->mWorldViewProjMatrix[0], 4);
+                            pDevice->SetPixelShaderConstantF(112, currGrcViewport->mViewInverseMatrix[0], 4);
+
+                            if (gShadowMatrix)
+                                pDevice->SetPixelShaderConstantF(116, gShadowMatrix, 4);
 
                             pDevice->SetPixelShaderConstantF(120, SunShaftsSamples2, 1);
                             pDevice->SetPixelShaderConstantI(5, SunShaftsSamplesa, 1);
@@ -1664,14 +1503,15 @@ public:
 
                             pDevice->SetPixelShaderConstantF(96, PostFxResources.SunShafts_params1, 1);
                             pDevice->SetPixelShaderConstantF(99, PostFxResources.SunShafts_params2, 1);
-                            pDevice->SetPixelShaderConstantF(97, PostFxResources.SunDirection, 1);
-                            pDevice->SetPixelShaderConstantF(98, PostFxResources.SunColor, 1);
-                            pDevice->SetPixelShaderConstantF(100, PostFxResources.gWorld, 4);
-                            pDevice->SetPixelShaderConstantF(104, PostFxResources.gWorldView, 4);
-                            pDevice->SetPixelShaderConstantF(108, PostFxResources.gWorldViewProj, 4);
-                            pDevice->SetPixelShaderConstantF(112, PostFxResources.gViewInverse, 4);
-                            pDevice->SetPixelShaderConstantF(116, PostFxResources.gShadowMatrix, 4);
-                            pDevice->SetPixelShaderConstantF(100, &mtx[0], mtx.size() / 4);
+                            pDevice->SetPixelShaderConstantF(97, SunDirection, 1);
+                            pDevice->SetPixelShaderConstantF(98, SunColor, 1);
+                            pDevice->SetPixelShaderConstantF(100, currGrcViewport->mWorldMatrix[0], 4);
+                            pDevice->SetPixelShaderConstantF(104, currGrcViewport->mWorldViewMatrix[0], 4);
+                            pDevice->SetPixelShaderConstantF(108, currGrcViewport->mWorldViewProjMatrix[0], 4);
+                            pDevice->SetPixelShaderConstantF(112, currGrcViewport->mViewInverseMatrix[0], 4);
+
+                            if (gShadowMatrix)
+                                pDevice->SetPixelShaderConstantF(116, gShadowMatrix, 4);
 
                             pDevice->SetPixelShaderConstantF(120, SunShaftsSamples2, 1);
                             pDevice->SetPixelShaderConstantI(5, SunShaftsSamplesa, 1);
