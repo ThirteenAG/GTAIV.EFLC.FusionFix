@@ -33,7 +33,8 @@ int GetFusionShaderID(T pShader)
         if (!pattern.empty()) {
             auto id = *pattern.get_first<int>(sFusionShader.size() - 1);
             if constexpr (IsAnyOf<remove_cvref_t<T>, IDirect3DVertexShader9>)
-                id -= 2000;
+                if(id >= 0)
+                    id -= 2000;
             return id;
         }
     }
@@ -246,21 +247,21 @@ public:
                         if (cam)
                         {
                             float fov = 0.0f;
-                            uint32_t hour = -1;
-                            uint32_t minute = -1;
-                            Natives::GetTimeOfDay(&hour, &minute);
+                        uint32_t hour = -1;
+                        uint32_t minute = -1;
+                        Natives::GetTimeOfDay(&hour, &minute);
                             Natives::GetCamFov(cam, &fov);
-                            static auto tree_lighting = FusionFixSettings.GetRef("PREF_TREE_LIGHTING");
-                            static auto shadowFilter = FusionFixSettings.GetRef("PREF_SHADOW_FILTER");
-                            static auto definition = FusionFixSettings.GetRef("PREF_DEFINITION");
-                            static float arr4[4];
-                            arr4[0] = static_cast<float>(tree_lighting->get() - FusionFixSettings.TreeFxText.ePC);
+                        static auto tree_lighting = FusionFixSettings.GetRef("PREF_TREE_LIGHTING");
+                        static auto shadowFilter = FusionFixSettings.GetRef("PREF_SHADOW_FILTER");
+                        static auto definition = FusionFixSettings.GetRef("PREF_DEFINITION");
+                        static float arr4[4];
+                        arr4[0] = static_cast<float>(tree_lighting->get() - FusionFixSettings.TreeFxText.ePC);
                             arr4[1] = (fov > 45.0f) ? pow((fov / 45.0f), 1.25f) : 1.0f;
-                            arr4[2] = static_cast<float>(definition->get() - FusionFixSettings.DefinitionText.eClassic);
-                            arr4[3] = (((hour == 6 && minute >= 45) || (hour > 6)) && ((hour == 19 && minute < 15) || (hour < 19))) ? 0.0f : 1.0f;
-                            pDevice->SetPixelShaderConstantF(223, &arr4[0], 1);
-                        }
+                        arr4[2] = static_cast<float>(definition->get() - FusionFixSettings.DefinitionText.eClassic);
+                        arr4[3] = (((hour == 6 && minute >= 45) || (hour > 6)) && ((hour == 19 && minute < 15) || (hour < 19))) ? 0.0f : 1.0f;
+                        pDevice->SetPixelShaderConstantF(223, &arr4[0], 1);
                     }
+                }
                 }
             };
         };
@@ -293,7 +294,7 @@ public:
             //{               
             //
             //};
-
+            
             //FusionFix::D3D9::onBeforeCreateTexture() += [](LPDIRECT3DDEVICE9& pDevice, UINT& Width, UINT& Height, UINT& Levels, DWORD& Usage, D3DFORMAT& Format, D3DPOOL& Pool, IDirect3DTexture9**& ppTexture, HANDLE*& pSharedHandle)
             //{
             //
