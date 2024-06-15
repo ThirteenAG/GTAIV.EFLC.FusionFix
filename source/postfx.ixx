@@ -546,149 +546,149 @@ public:
                     pDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, oldSampler);
                     return hr;
                 }
-                else if (id == 6 || id == 7) // deferred 1 e 2
-                {
-                    IDirect3DSurface9* pShadowBlurSurf1 = nullptr;
-                    IDirect3DSurface9* pShadowBlurSurf2 = nullptr;
-                    IDirect3DSurface9* OldRenderTarget = nullptr;
-
-                    if (PostFxResources.useDefferedShadows > 0 && PostFxResources.pShadowBlurTex1 && PostFxResources.pShadowBlurTex2) {
-                        PostFxResources.pShadowBlurTex1->GetSurfaceLevel(0, &pShadowBlurSurf1);
-                        PostFxResources.pShadowBlurTex2->GetSurfaceLevel(0, &pShadowBlurSurf2);
-                        pDevice->GetRenderTarget(0, &OldRenderTarget);
-                        if (pShadowBlurSurf1 && pShadowBlurSurf2 && OldRenderTarget) {
-                            pDevice->SetRenderTarget(0, pShadowBlurSurf1);
-                            pDevice->SetPixelShader(PostFxResources.DeferredShadowGen_ps);
-                            pDevice->SetPixelShaderConstantF(140, PostFxResources.BilateralDepthTreshold, 1);
-                            DWORD old_SAMP_MAGFILTER = 0;
-                            pDevice->GetSamplerState(14, D3DSAMP_MAGFILTER, &old_SAMP_MAGFILTER);
-                            pDevice->SetSamplerState(14, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-
-                            if (PostFxResources.useNewShadowAtlas == true && PostFxResources.NewShadowAtlas) {
-                                pDevice->SetTexture(15, PostFxResources.NewShadowAtlas);
-                                //To enable Fetch - 4 on a texture sampler(sampler 0 in this example) :
-                                #define FETCH4_ENABLE ((DWORD)MAKEFOURCC('G', 'E', 'T', '4'))
-                                #define FETCH4_DISABLE ((DWORD)MAKEFOURCC('G', 'E', 'T', '1'))
-                                DWORD old_SAMP_MIPMAPLODBIAS = 0;
-                                DWORD old_SAMP_MAGFILTER = 0;
-                                DWORD old_SAMP_MINFILTER = 0;
-
-                                // Enable Fetch-4 on sampler 0 by overloading the MIPMAPLODBIAS render state
-                                pDevice->GetSamplerState(15, D3DSAMP_MIPMAPLODBIAS, &old_SAMP_MIPMAPLODBIAS);
-                                pDevice->GetSamplerState(15, D3DSAMP_MAGFILTER, &old_SAMP_MAGFILTER);
-                                pDevice->GetSamplerState(15, D3DSAMP_MINFILTER, &old_SAMP_MINFILTER);
-
-                                pDevice->SetSamplerState(15, D3DSAMP_MIPMAPLODBIAS, FETCH4_ENABLE);
-                                // Set point sampling filtering (required for Fetch-4 to work)
-                                pDevice->SetSamplerState(15, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                                pDevice->SetSamplerState(15, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
-                                pDevice->SetSamplerState(15, D3DSAMP_MIPFILTER, D3DTEXF_POINT);
-                                hr = DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
-
-                                pDevice->SetSamplerState(15, D3DSAMP_MIPMAPLODBIAS, old_SAMP_MIPMAPLODBIAS);
-                                pDevice->SetSamplerState(15, D3DSAMP_MAGFILTER, old_SAMP_MAGFILTER);
-                                pDevice->SetSamplerState(15, D3DSAMP_MINFILTER, old_SAMP_MINFILTER);
-
-                                pDevice->SetTexture(15, PostFxResources.OldShadowAtlas);
-                            }
-                            else
-                                DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
-
-                            if (PostFxResources.useDefferedShadows == 1) {
-                                pDevice->SetRenderTarget(0, pShadowBlurSurf2);
-                                pDevice->SetTexture(14, PostFxResources.pShadowBlurTex1);
-                                pDevice->SetPixelShader(PostFxResources.DeferredShadowBlur1_ps);
-                                DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
-                            }
-                            if (PostFxResources.useDefferedShadows == 2) {
-                                pDevice->SetRenderTarget(0, pShadowBlurSurf2);
-                                pDevice->SetTexture(14, PostFxResources.pShadowBlurTex1);
-                                pDevice->SetPixelShader(PostFxResources.DeferredShadowBlur2_ps);
-                                DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
-                            }
-                            if (PostFxResources.useDefferedShadows == 3) {
-                                pDevice->SetPixelShader(PostFxResources.DeferredShadowBlur1_ps);
-                                pDevice->SetTexture(14, PostFxResources.pShadowBlurTex1);
-                                pDevice->SetRenderTarget(0, pShadowBlurSurf2);
-                                DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
-
-                                pDevice->SetPixelShader(PostFxResources.DeferredShadowBlur2_ps);
-                                pDevice->SetTexture(14, PostFxResources.pShadowBlurTex2);
-                                pDevice->SetRenderTarget(0, pShadowBlurSurf1);
-                                DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
-                            }
-                            if (PostFxResources.useDefferedShadows == 4) {
-                                pDevice->SetRenderTarget(0, pShadowBlurSurf2);
-                                pDevice->SetTexture(14, PostFxResources.pShadowBlurTex1);
-                                pDevice->SetPixelShader(PostFxResources.DeferredShadowBlur3_ps);
-                                DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
-                            }
-
-                            pDevice->SetRenderTarget(0, OldRenderTarget);
-                            if (PostFxResources.useDefferedShadows == 3)
-                                pDevice->SetTexture(14, PostFxResources.pShadowBlurTex1);
-
-                            else
-                                pDevice->SetTexture(14, PostFxResources.pShadowBlurTex2);
-
-                            if (id == 6)
-                                pDevice->SetPixelShader(PostFxResources.DeferredShadowUse1_ps);
-                            else
-                                pDevice->SetPixelShader(PostFxResources.DeferredShadowUse2_ps);
-                            DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
-                            pDevice->SetTexture(14, 0);
-                            pDevice->SetPixelShader(pShader);
-                            pDevice->SetSamplerState(14, D3DSAMP_MAGFILTER, old_SAMP_MAGFILTER);
-                            SAFE_RELEASE(pShadowBlurSurf1);
-                            SAFE_RELEASE(pShadowBlurSurf2);
-                            SAFE_RELEASE(OldRenderTarget);
-                            FusionFix::D3D9::setInsteadDrawPrimitive(true);
-                            return hr;
-                        }
-                        SAFE_RELEASE(pShadowBlurSurf1);
-                        SAFE_RELEASE(pShadowBlurSurf2);
-                        SAFE_RELEASE(OldRenderTarget);
-                        //SetPixelShader(pShader);
-                        DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
-                        FusionFix::D3D9::setInsteadDrawPrimitive(true);
-                        return hr;
-                    }
-
-                    if (PostFxResources.useNewShadowAtlas == true && PostFxResources.NewShadowAtlas) {
-                        pDevice->SetTexture(15, PostFxResources.NewShadowAtlas);
-                        //To enable Fetch - 4 on a texture sampler(sampler 0 in this example) :
-                        #define FETCH4_ENABLE ((DWORD)MAKEFOURCC('G', 'E', 'T', '4'))
-                        #define FETCH4_DISABLE ((DWORD)MAKEFOURCC('G', 'E', 'T', '1'))
-                        DWORD old_SAMP_MIPMAPLODBIAS = 0;
-                        DWORD old_SAMP_MAGFILTER = 0;
-                        DWORD old_SAMP_MINFILTER = 0;
-
-                        // Enable Fetch-4 on sampler 0 by overloading the MIPMAPLODBIAS render state
-                        pDevice->GetSamplerState(15, D3DSAMP_MIPMAPLODBIAS, &old_SAMP_MIPMAPLODBIAS);
-                        pDevice->GetSamplerState(15, D3DSAMP_MAGFILTER, &old_SAMP_MAGFILTER);
-                        pDevice->GetSamplerState(15, D3DSAMP_MINFILTER, &old_SAMP_MINFILTER);
-
-                        //pDevice->SetSamplerState(15, D3DSAMP_MIPMAPLODBIAS, FETCH4_ENABLE);
-                        // Set point sampling filtering (required for Fetch-4 to work)
-                        pDevice->SetSamplerState(15, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                        pDevice->SetSamplerState(15, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
-                        pDevice->SetSamplerState(15, D3DSAMP_MIPFILTER, D3DTEXF_POINT);
-                        hr = DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
-
-                        pDevice->SetSamplerState(15, D3DSAMP_MIPMAPLODBIAS, old_SAMP_MIPMAPLODBIAS);
-                        pDevice->SetSamplerState(15, D3DSAMP_MAGFILTER, old_SAMP_MAGFILTER);
-                        pDevice->SetSamplerState(15, D3DSAMP_MINFILTER, old_SAMP_MINFILTER);
-
-                        pDevice->SetTexture(15, PostFxResources.OldShadowAtlas);
-                        FusionFix::D3D9::setInsteadDrawPrimitive(true);
-                        return hr;
-                    }
-
-                    // use new deferred
-                    pDevice->SetPixelShader(pShader);
-                    DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
-                    return hr;
-                }
+                //else if (id == 6 || id == 7) // deferred 1 e 2 // breaks lights atm
+                //{
+                //    IDirect3DSurface9* pShadowBlurSurf1 = nullptr;
+                //    IDirect3DSurface9* pShadowBlurSurf2 = nullptr;
+                //    IDirect3DSurface9* OldRenderTarget = nullptr;
+                //
+                //    if (PostFxResources.useDefferedShadows > 0 && PostFxResources.pShadowBlurTex1 && PostFxResources.pShadowBlurTex2) {
+                //        PostFxResources.pShadowBlurTex1->GetSurfaceLevel(0, &pShadowBlurSurf1);
+                //        PostFxResources.pShadowBlurTex2->GetSurfaceLevel(0, &pShadowBlurSurf2);
+                //        pDevice->GetRenderTarget(0, &OldRenderTarget);
+                //        if (pShadowBlurSurf1 && pShadowBlurSurf2 && OldRenderTarget) {
+                //            pDevice->SetRenderTarget(0, pShadowBlurSurf1);
+                //            pDevice->SetPixelShader(PostFxResources.DeferredShadowGen_ps);
+                //            pDevice->SetPixelShaderConstantF(140, PostFxResources.BilateralDepthTreshold, 1);
+                //            DWORD old_SAMP_MAGFILTER = 0;
+                //            pDevice->GetSamplerState(14, D3DSAMP_MAGFILTER, &old_SAMP_MAGFILTER);
+                //            pDevice->SetSamplerState(14, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+                //
+                //            if (PostFxResources.useNewShadowAtlas == true && PostFxResources.NewShadowAtlas) {
+                //                pDevice->SetTexture(15, PostFxResources.NewShadowAtlas);
+                //                //To enable Fetch - 4 on a texture sampler(sampler 0 in this example) :
+                //                #define FETCH4_ENABLE ((DWORD)MAKEFOURCC('G', 'E', 'T', '4'))
+                //                #define FETCH4_DISABLE ((DWORD)MAKEFOURCC('G', 'E', 'T', '1'))
+                //                DWORD old_SAMP_MIPMAPLODBIAS = 0;
+                //                DWORD old_SAMP_MAGFILTER = 0;
+                //                DWORD old_SAMP_MINFILTER = 0;
+                //
+                //                // Enable Fetch-4 on sampler 0 by overloading the MIPMAPLODBIAS render state
+                //                pDevice->GetSamplerState(15, D3DSAMP_MIPMAPLODBIAS, &old_SAMP_MIPMAPLODBIAS);
+                //                pDevice->GetSamplerState(15, D3DSAMP_MAGFILTER, &old_SAMP_MAGFILTER);
+                //                pDevice->GetSamplerState(15, D3DSAMP_MINFILTER, &old_SAMP_MINFILTER);
+                //
+                //                pDevice->SetSamplerState(15, D3DSAMP_MIPMAPLODBIAS, FETCH4_ENABLE);
+                //                // Set point sampling filtering (required for Fetch-4 to work)
+                //                pDevice->SetSamplerState(15, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+                //                pDevice->SetSamplerState(15, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+                //                pDevice->SetSamplerState(15, D3DSAMP_MIPFILTER, D3DTEXF_POINT);
+                //                hr = DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
+                //
+                //                pDevice->SetSamplerState(15, D3DSAMP_MIPMAPLODBIAS, old_SAMP_MIPMAPLODBIAS);
+                //                pDevice->SetSamplerState(15, D3DSAMP_MAGFILTER, old_SAMP_MAGFILTER);
+                //                pDevice->SetSamplerState(15, D3DSAMP_MINFILTER, old_SAMP_MINFILTER);
+                //
+                //                pDevice->SetTexture(15, PostFxResources.OldShadowAtlas);
+                //            }
+                //            else
+                //                DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
+                //
+                //            if (PostFxResources.useDefferedShadows == 1) {
+                //                pDevice->SetRenderTarget(0, pShadowBlurSurf2);
+                //                pDevice->SetTexture(14, PostFxResources.pShadowBlurTex1);
+                //                pDevice->SetPixelShader(PostFxResources.DeferredShadowBlur1_ps);
+                //                DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
+                //            }
+                //            if (PostFxResources.useDefferedShadows == 2) {
+                //                pDevice->SetRenderTarget(0, pShadowBlurSurf2);
+                //                pDevice->SetTexture(14, PostFxResources.pShadowBlurTex1);
+                //                pDevice->SetPixelShader(PostFxResources.DeferredShadowBlur2_ps);
+                //                DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
+                //            }
+                //            if (PostFxResources.useDefferedShadows == 3) {
+                //                pDevice->SetPixelShader(PostFxResources.DeferredShadowBlur1_ps);
+                //                pDevice->SetTexture(14, PostFxResources.pShadowBlurTex1);
+                //                pDevice->SetRenderTarget(0, pShadowBlurSurf2);
+                //                DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
+                //
+                //                pDevice->SetPixelShader(PostFxResources.DeferredShadowBlur2_ps);
+                //                pDevice->SetTexture(14, PostFxResources.pShadowBlurTex2);
+                //                pDevice->SetRenderTarget(0, pShadowBlurSurf1);
+                //                DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
+                //            }
+                //            if (PostFxResources.useDefferedShadows == 4) {
+                //                pDevice->SetRenderTarget(0, pShadowBlurSurf2);
+                //                pDevice->SetTexture(14, PostFxResources.pShadowBlurTex1);
+                //                pDevice->SetPixelShader(PostFxResources.DeferredShadowBlur3_ps);
+                //                DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
+                //            }
+                //
+                //            pDevice->SetRenderTarget(0, OldRenderTarget);
+                //            if (PostFxResources.useDefferedShadows == 3)
+                //                pDevice->SetTexture(14, PostFxResources.pShadowBlurTex1);
+                //
+                //            else
+                //                pDevice->SetTexture(14, PostFxResources.pShadowBlurTex2);
+                //
+                //            if (id == 6)
+                //                pDevice->SetPixelShader(PostFxResources.DeferredShadowUse1_ps);
+                //            else
+                //                pDevice->SetPixelShader(PostFxResources.DeferredShadowUse2_ps);
+                //            DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
+                //            pDevice->SetTexture(14, 0);
+                //            pDevice->SetPixelShader(pShader);
+                //            pDevice->SetSamplerState(14, D3DSAMP_MAGFILTER, old_SAMP_MAGFILTER);
+                //            SAFE_RELEASE(pShadowBlurSurf1);
+                //            SAFE_RELEASE(pShadowBlurSurf2);
+                //            SAFE_RELEASE(OldRenderTarget);
+                //            FusionFix::D3D9::setInsteadDrawPrimitive(true);
+                //            return hr;
+                //        }
+                //        SAFE_RELEASE(pShadowBlurSurf1);
+                //        SAFE_RELEASE(pShadowBlurSurf2);
+                //        SAFE_RELEASE(OldRenderTarget);
+                //        //SetPixelShader(pShader);
+                //        DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
+                //        FusionFix::D3D9::setInsteadDrawPrimitive(true);
+                //        return hr;
+                //    }
+                //
+                //    if (PostFxResources.useNewShadowAtlas == true && PostFxResources.NewShadowAtlas) {
+                //        pDevice->SetTexture(15, PostFxResources.NewShadowAtlas);
+                //        //To enable Fetch - 4 on a texture sampler(sampler 0 in this example) :
+                //        #define FETCH4_ENABLE ((DWORD)MAKEFOURCC('G', 'E', 'T', '4'))
+                //        #define FETCH4_DISABLE ((DWORD)MAKEFOURCC('G', 'E', 'T', '1'))
+                //        DWORD old_SAMP_MIPMAPLODBIAS = 0;
+                //        DWORD old_SAMP_MAGFILTER = 0;
+                //        DWORD old_SAMP_MINFILTER = 0;
+                //
+                //        // Enable Fetch-4 on sampler 0 by overloading the MIPMAPLODBIAS render state
+                //        pDevice->GetSamplerState(15, D3DSAMP_MIPMAPLODBIAS, &old_SAMP_MIPMAPLODBIAS);
+                //        pDevice->GetSamplerState(15, D3DSAMP_MAGFILTER, &old_SAMP_MAGFILTER);
+                //        pDevice->GetSamplerState(15, D3DSAMP_MINFILTER, &old_SAMP_MINFILTER);
+                //
+                //        //pDevice->SetSamplerState(15, D3DSAMP_MIPMAPLODBIAS, FETCH4_ENABLE);
+                //        // Set point sampling filtering (required for Fetch-4 to work)
+                //        pDevice->SetSamplerState(15, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+                //        pDevice->SetSamplerState(15, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+                //        pDevice->SetSamplerState(15, D3DSAMP_MIPFILTER, D3DTEXF_POINT);
+                //        hr = DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
+                //
+                //        pDevice->SetSamplerState(15, D3DSAMP_MIPMAPLODBIAS, old_SAMP_MIPMAPLODBIAS);
+                //        pDevice->SetSamplerState(15, D3DSAMP_MAGFILTER, old_SAMP_MAGFILTER);
+                //        pDevice->SetSamplerState(15, D3DSAMP_MINFILTER, old_SAMP_MINFILTER);
+                //
+                //        pDevice->SetTexture(15, PostFxResources.OldShadowAtlas);
+                //        FusionFix::D3D9::setInsteadDrawPrimitive(true);
+                //        return hr;
+                //    }
+                //
+                //    // use new deferred
+                //    pDevice->SetPixelShader(pShader);
+                //    DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
+                //    return hr;
+                //}
 
                 return hr;
             };
@@ -841,7 +841,7 @@ public:
         auto currGrcViewport = rage::GetCurrentViewport();
         auto SunColor = rage::grmShaderInfo::getParam("gta_atmoscatt_clouds.fxc", "SunColor");
         auto SunDirection = rage::grmShaderInfo::getParam("gta_atmoscatt_clouds.fxc", "SunDirection");
-        auto gShadowMatrix = (float*)rage::grmShaderInfo::getGlobalParam("gShadowMatrix")->pValue; // unverified, null
+        auto gShadowMatrix = rage::grmShaderInfo::getGlobalParam("gShadowMatrix");
 
         HRESULT hr = S_FALSE;
 
@@ -1229,10 +1229,7 @@ public:
                                 pDevice->SetPixelShaderConstantF(104, currGrcViewport->mWorldViewMatrix[0], 4);
                                 pDevice->SetPixelShaderConstantF(108, currGrcViewport->mWorldViewProjMatrix[0], 4);
                                 pDevice->SetPixelShaderConstantF(112, currGrcViewport->mViewInverseMatrix[0], 4);
-
-                                if (gShadowMatrix)
-                                    pDevice->SetPixelShaderConstantF(116, gShadowMatrix, 4);
-
+                                pDevice->SetPixelShaderConstantF(116, gShadowMatrix, 4);
                                 pDevice->SetPixelShaderConstantF(120, SunShaftsSamples2, 1);
                                 pDevice->SetPixelShaderConstantI(5, SunShaftsSamplesa, 1);
                                 pDevice->SetPixelShaderConstantI(6, SunShaftsSamplesb, 1);
@@ -1323,10 +1320,7 @@ public:
                             pDevice->SetPixelShaderConstantF(104, currGrcViewport->mWorldViewMatrix[0], 4);
                             pDevice->SetPixelShaderConstantF(108, currGrcViewport->mWorldViewProjMatrix[0], 4);
                             pDevice->SetPixelShaderConstantF(112, currGrcViewport->mViewInverseMatrix[0], 4);
-
-                            if (gShadowMatrix)
-                                pDevice->SetPixelShaderConstantF(116, gShadowMatrix, 4);
-
+                            pDevice->SetPixelShaderConstantF(116, gShadowMatrix, 4);
                             pDevice->SetPixelShaderConstantF(120, SunShaftsSamples2, 1);
                             pDevice->SetPixelShaderConstantI(5, SunShaftsSamplesa, 1);
                             pDevice->SetPixelShaderConstantI(6, SunShaftsSamplesb, 1);
@@ -1430,10 +1424,7 @@ public:
                             pDevice->SetPixelShaderConstantF(104, currGrcViewport->mWorldViewMatrix[0], 4);
                             pDevice->SetPixelShaderConstantF(108, currGrcViewport->mWorldViewProjMatrix[0], 4);
                             pDevice->SetPixelShaderConstantF(112, currGrcViewport->mViewInverseMatrix[0], 4);
-
-                            if (gShadowMatrix)
-                                pDevice->SetPixelShaderConstantF(116, gShadowMatrix, 4);
-
+                            pDevice->SetPixelShaderConstantF(116, gShadowMatrix, 4);
                             pDevice->SetPixelShaderConstantF(120, SunShaftsSamples2, 1);
                             pDevice->SetPixelShaderConstantI(5, SunShaftsSamplesa, 1);
                             pDevice->SetPixelShaderConstantI(6, SunShaftsSamplesb, 1);
@@ -1509,10 +1500,7 @@ public:
                             pDevice->SetPixelShaderConstantF(104, currGrcViewport->mWorldViewMatrix[0], 4);
                             pDevice->SetPixelShaderConstantF(108, currGrcViewport->mWorldViewProjMatrix[0], 4);
                             pDevice->SetPixelShaderConstantF(112, currGrcViewport->mViewInverseMatrix[0], 4);
-
-                            if (gShadowMatrix)
-                                pDevice->SetPixelShaderConstantF(116, gShadowMatrix, 4);
-
+                            pDevice->SetPixelShaderConstantF(116, gShadowMatrix, 4);
                             pDevice->SetPixelShaderConstantF(120, SunShaftsSamples2, 1);
                             pDevice->SetPixelShaderConstantI(5, SunShaftsSamplesa, 1);
                             pDevice->SetPixelShaderConstantI(6, SunShaftsSamplesb, 1);
