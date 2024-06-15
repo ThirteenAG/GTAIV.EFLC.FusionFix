@@ -225,16 +225,13 @@ public:
                         pDevice->SetPixelShaderConstantF(221, &arr5[0], 1);
                     }
 
-                    // FXAA, DOF, Gamma
+                    // FXAA, Gamma
                     {
-                        static auto cutscene_dof = FusionFixSettings.GetRef("PREF_TCYC_DOF");
                         static auto gamma = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA");
                         static auto mblur = FusionFixSettings.GetRef("PREF_MOTIONBLUR");
                         static float arr3[4];
                         arr3[0] = (bFixAutoExposure ? 1.0f : 0.0f);
-                        arr3[1] = static_cast<float>(cutscene_dof->get() >= FusionFixSettings.DofText.eCutscenesOnly);
-                        if (cutscene_dof->get() == FusionFixSettings.DofText.eCutscenesOnly && Natives::HasCutsceneFinished())
-                            arr3[1] = 0.0f;
+                        arr3[1] = 0.0f;
                         arr3[2] = static_cast<float>(gamma->get());
                         arr3[3] = static_cast<float>(mblur->get());
                         pDevice->SetPixelShaderConstantF(222, &arr3[0], 1);
@@ -247,21 +244,21 @@ public:
                         if (cam)
                         {
                             float fov = 0.0f;
-                        uint32_t hour = -1;
-                        uint32_t minute = -1;
-                        Natives::GetTimeOfDay(&hour, &minute);
+                            uint32_t hour = -1;
+                            uint32_t minute = -1;
+                            Natives::GetTimeOfDay(&hour, &minute);
                             Natives::GetCamFov(cam, &fov);
-                        static auto tree_lighting = FusionFixSettings.GetRef("PREF_TREE_LIGHTING");
-                        static auto shadowFilter = FusionFixSettings.GetRef("PREF_SHADOW_FILTER");
-                        static auto definition = FusionFixSettings.GetRef("PREF_DEFINITION");
-                        static float arr4[4];
-                        arr4[0] = static_cast<float>(tree_lighting->get() - FusionFixSettings.TreeFxText.ePC);
-                            arr4[1] = (fov > 45.0f) ? pow((fov / 45.0f), 1.25f) : 1.0f;
-                        arr4[2] = static_cast<float>(definition->get() - FusionFixSettings.DefinitionText.eClassic);
-                        arr4[3] = (((hour == 6 && minute >= 45) || (hour > 6)) && ((hour == 19 && minute < 15) || (hour < 19))) ? 0.0f : 1.0f;
-                        pDevice->SetPixelShaderConstantF(223, &arr4[0], 1);
+                            static auto tree_lighting = FusionFixSettings.GetRef("PREF_TREE_LIGHTING");
+                            static auto shadowFilter = FusionFixSettings.GetRef("PREF_SHADOW_FILTER");
+                            static auto definition = FusionFixSettings.GetRef("PREF_DEFINITION");
+                            static float arr4[4];
+                            arr4[0] = static_cast<float>(tree_lighting->get() - FusionFixSettings.TreeFxText.ePC);
+                                arr4[1] = (fov > 45.0f) ? pow((fov / 45.0f), 1.25f) : 1.0f;
+                            arr4[2] = static_cast<float>(definition->get() - FusionFixSettings.DefinitionText.eClassic);
+                            arr4[3] = (((hour == 6 && minute >= 45) || (hour > 6)) && ((hour == 19 && minute < 15) || (hour < 19))) ? 0.0f : 1.0f;
+                            pDevice->SetPixelShaderConstantF(223, &arr4[0], 1);
+                        }
                     }
-                }
                 }
             };
         };

@@ -1112,8 +1112,7 @@
       <!--optionspc action="MENUOPT_ADJUST" label="MO_DOF" value="PREF_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" /-->
       <optionspc action="MENUOPT_ADJUST" label="MO_VSYNC" value="PREF_VSYNC" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-      <optionspc action="MENUOPT_ADJUST" label="PCSS" value="PREF_PCSS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-      <optionspc action="MENUOPT_ADJUST" label="Console Shadows" value="PREF_CONSOLE_SHADOWS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="Sun Shafts" value="PREF_SUNSHAFTS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="MENUOPT_ADJUST" label="Antialiasing" value="PREF_ANTIALIASING" scaler="8" displayValue="MENU_DISPLAY_ANTIALIASING" />
       <optionspc action="MENUOPT_ADJUST" label="FPS Limiter" value="PREF_FPS_LIMIT_PRESET" scaler="15" displayValue="MENU_DISPLAY_FRAMELIMIT" />
       <optionspc action="MENUOPT_ADJUST" label="MO_FOV" value="PREF_EPISODIC_RACECLASS_RACE_3" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
@@ -1165,8 +1164,7 @@
       <optionspc action="MENUOPT_ADJUST" label="MO_CARS" value="PREF_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="MENUOPT_ADJUST" label="MO_VSYNC" value="PREF_VSYNC" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-      <optionspc action="MENUOPT_ADJUST" label="PCSS" value="PREF_PCSS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-      <optionspc action="MENUOPT_ADJUST" label="Console Shadows" value="PREF_CONSOLE_SHADOWS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="Sun Shafts" value="PREF_SUNSHAFTS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="MENUOPT_ADJUST" label="Antialiasing" value="PREF_ANTIALIASING" scaler="8" displayValue="MENU_DISPLAY_ANTIALIASING" />
       <optionspc action="MENUOPT_ADJUST" label="FPS Limiter" value="PREF_FPS_LIMIT_PRESET" scaler="15" displayValue="MENU_DISPLAY_FRAMELIMIT" />
       <optionspc action="MENUOPT_ADJUST" label="MO_FOV" value="PREF_EPISODIC_RACECLASS_RACE_3" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
