@@ -160,7 +160,7 @@ public:
     // 0 off, 1 horizontal, 2 vertical, 3 horizontal e vertical.
     int useDefferedShadows = 3;
     int UseSunShafts = 2;
-    int useDepthOfField = 2;
+    int useDepthOfField = 3;
     int UseDebugTextures = 0;
     bool UseSSAO = false;
     bool useStippleFilter = false;
@@ -314,7 +314,7 @@ public:
         SunShafts_params2[3] = iniReader.ReadFloat("SUNSHAFTS", "SSPower", 1.5f);
 
         // downscaled simple, downscaled two passes, full screen simple, fullscreen 2 passes
-        useDepthOfField = iniReader.ReadInteger("SRF", "DepthOfFieldType", 2);
+        useDepthOfField = iniReader.ReadInteger("SRF", "DepthOfFieldType", 3);
         UseSSAO = iniReader.ReadInteger("SRF", "UseSSAO", 0) != 0;
         useStippleFilter = iniReader.ReadInteger("SRF", "StippleFilter", 0) != 0;
 
