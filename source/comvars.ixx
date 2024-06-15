@@ -9,6 +9,51 @@ import common;
 
 #define VALIDATE_SIZE(struc, size) static_assert(sizeof(struc) == size, "Invalid structure size of " #struc)
 
+export class CBaseDC
+{
+public:
+    uint32_t field_1;
+
+public:
+    static inline void* AppendAddr;
+    void Append()
+    {
+        reinterpret_cast<void(__thiscall*)(CBaseDC*)>(AppendAddr)(this);
+    }
+
+    static inline void* operator_newAddr;
+    void* operator new(std::size_t size)
+    {
+        return reinterpret_cast<void* (__cdecl*)(std::size_t, int32_t)>(operator_newAddr)(size, 0);
+    }
+
+    virtual ~CBaseDC() {}
+    virtual void DrawCommand() {}
+    virtual int32_t GetSize() { return sizeof(CBaseDC); }
+};
+
+export class T_CB_Generic_NoArgs : public CBaseDC
+{
+public:
+    void (*cb)();
+
+public:
+    T_CB_Generic_NoArgs(void (*c)()) : CBaseDC()
+    {
+        cb = c;
+    }
+
+    void DrawCommand() override
+    {
+        cb();
+    }
+
+    int32_t GetSize() override
+    {
+        return sizeof(T_CB_Generic_NoArgs);
+    }
+};
+
 export namespace rage
 {
     struct Vector3
@@ -731,6 +776,72 @@ export namespace CTimeCycle
     void(__cdecl* Initialise)() = nullptr;
 }
 
+export namespace CWeather
+{
+    float* Rain = nullptr;
+}
+
+export class CRenderPhaseDeferredLighting_LightsToScreen
+{
+public:
+    static FusionFix::Event<>& OnBuildRenderList() {
+        static FusionFix::Event<> BuildRenderListEvent;
+        return BuildRenderListEvent;
+    }
+    static FusionFix::Event<rage::CLightSource*>& OnAfterCopyLight() {
+        static FusionFix::Event<rage::CLightSource*> AfterCopyLightEvent;
+        return AfterCopyLightEvent;
+    }
+
+    static inline SafetyHookInline shBuildRenderList{};
+    static inline SafetyHookInline shCopyLight{};
+
+    static void __fastcall BuildRenderList(CBaseDC* _this, void* edx)
+    {
+        OnBuildRenderList().executeAll();
+        return shBuildRenderList.fastcall(_this, edx);
+    }
+
+    static rage::CLightSource* __fastcall CopyLight(void* _this, void* edx, void* a2)
+    {
+        auto ret = shCopyLight.fastcall<rage::CLightSource*>(_this, edx, a2);
+        OnAfterCopyLight().executeAll(ret);
+        return ret;
+    }
+};
+
+export class CRenderPhaseDrawScene
+{
+public:
+    static FusionFix::Event<>& OnBuildRenderList() {
+        static FusionFix::Event<> BuildRenderListEvent;
+        return BuildRenderListEvent;
+    }
+    static FusionFix::Event<>& onBeforePostFX() {
+        static FusionFix::Event<> BeforePostFX;
+        return BeforePostFX;
+    }
+    static FusionFix::Event<>& onAfterPostFX() {
+        static FusionFix::Event<> AfterPostFX;
+        return AfterPostFX;
+    }
+
+    static inline injector::hook_back<void(__cdecl*)(void*)> hbCBaseDCexecute;
+    static void __cdecl DrawPostFXHook(void* cb)
+    {
+        onBeforePostFX().executeAll();
+        hbCBaseDCexecute.fun(cb);
+        onAfterPostFX().executeAll();
+    }
+
+    static inline SafetyHookInline shBuildRenderList{};
+    static void __fastcall BuildRenderList(CBaseDC* _this, void* edx)
+    {  
+        OnBuildRenderList().executeAll();
+        shBuildRenderList.fastcall<void*>(_this, edx);
+    }
+};
+
 export int32_t* _dwCurrentEpisode;
 export void* (__stdcall* getNativeAddress)(uint32_t);
 export HWND gWnd;
@@ -780,9 +891,15 @@ class Common
 public:
     Common()
     {
+        auto pattern = find_pattern("56 57 8B F9 8B 07 FF 50 08 25", "56 8B F1 8B 06 8B 50 08 57 FF D2 25");
+        CBaseDC::AppendAddr = pattern.get_first(0);
+
+        pattern = find_pattern("53 56 57 8B 7C 24 10 FF 74 24 14", "8B 44 24 08 56 57 8B 7C 24 0C 8B F7");
+        CBaseDC::operator_newAddr = pattern.get_first(0);
+
         _dwCurrentEpisode = *find_pattern("83 3D ? ? ? ? ? 75 0F 6A 02", "89 35 ? ? ? ? 89 35 ? ? ? ? 6A 00 6A 01").get_first<int32_t*>(2);
 
-        auto pattern = find_pattern("0A 05 ? ? ? ? 0A 05 ? ? ? ? 75 38", "0A 05 ? ? ? ? 0A 05");
+        pattern = find_pattern("0A 05 ? ? ? ? 0A 05 ? ? ? ? 75 38", "0A 05 ? ? ? ? 0A 05");
         CTimer::m_UserPause = *pattern.get_first<uint8_t*>(2);
         CTimer::m_CodePause = *pattern.get_first<uint8_t*>(8);
 
@@ -875,5 +992,22 @@ public:
 
         pattern = find_pattern("83 3D ? ? ? ? ? 75 61 8B 44 24 04", "83 3D ? ? ? ? ? 75 5D");
         rage::grmShaderInfo::shsetGlobalParam = safetyhook::create_inline(pattern.get_first(0), rage::grmShaderInfo::setGlobalParam);
+
+        pattern = find_pattern("55 8B EC 83 E4 F0 81 EC ? ? ? ? 53 8B D9 56 F7 83", "55 8B EC 83 E4 F0 81 EC ? ? ? ? 53 56 57 8B F9 33 DB");
+        CRenderPhaseDeferredLighting_LightsToScreen::shBuildRenderList = safetyhook::create_inline(pattern.get_first(), CRenderPhaseDeferredLighting_LightsToScreen::BuildRenderList);
+
+        pattern = find_pattern("E8 ? ? ? ? F3 0F 10 44 24 ? 51 F3 0F 11 04 24 56 E8 ? ? ? ? 83 C4 08 FF 05", "E8 ? ? ? ? D9 44 24 0C 51 D9 1C 24 56 E8 ? ? ? ? 83 C4 08");
+        CRenderPhaseDeferredLighting_LightsToScreen::shCopyLight = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first()).get<void*>(), CRenderPhaseDeferredLighting_LightsToScreen::CopyLight);
+
+        pattern = find_pattern("55 8B EC 83 E4 F0 83 EC 18 56 57 8B F9 83 BF", "55 8B EC 83 E4 F0 83 EC 24 53 56 8B D9 83 BB");
+        CRenderPhaseDrawScene::shBuildRenderList = safetyhook::create_inline(pattern.get_first(0), CRenderPhaseDrawScene::BuildRenderList);
+
+        pattern = find_pattern("E8 ? ? ? ? E9 ? ? ? ? 33 C0 50 E8 ? ? ? ? E9 ? ? ? ? E8 ? ? ? ? 83 C4 08", "E8 ? ? ? ? 6A 00 68 ? ? ? ? E8 ? ? ? ? 83 C4 08 85 C0 74 10 8D 93 ? ? ? ? 52 8B C8 E8 ? ? ? ? EB 02 33 C0 8B C8 E8 ? ? ? ? F7 83");
+        CRenderPhaseDrawScene::hbCBaseDCexecute.fun = injector::MakeCALL(pattern.get_first(0), CRenderPhaseDrawScene::DrawPostFXHook).get();
+
+        pattern = hook::pattern("F3 0F 11 05 ? ? ? ? A3 ? ? ? ? A3 ? ? ? ? A3 ? ? ? ? F3 0F 11 0D");
+        if (pattern.empty())
+            pattern = hook::pattern("F3 0F 11 05 ? ? ? ? E8 ? ? ? ? 84 C0 74 15 E8 ? ? ? ? 84 C0");
+        CWeather::Rain = *pattern.get_first<float*>(4);
     }
 } Common;

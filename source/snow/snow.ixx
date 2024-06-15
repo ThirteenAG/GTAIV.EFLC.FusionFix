@@ -7,7 +7,6 @@ module;
 export module snow;
 
 import common;
-import renderthread;
 import comvars;
 import d3dx9_43;
 import fusiondxhook;
@@ -282,69 +281,10 @@ private:
         }
     }
 
-    static void OnBuildRenderList()
-    {
-        Init();
-
-        auto mBeforeLightingCB = new T_CB_Generic_NoArgs(OnBeforeLighting);
-
-        if (mBeforeLightingCB)
-            mBeforeLightingCB->Append();
-    }
-
-    static void OnAfterCopyLight(rage::CLightSource* light)
-    {
-        //CLightSource doesnt have a member to control the volume intensity so
-        //i abuse type casting to use mTxdId for it as im p sure its only used for headlights anyway
-
-        if (bEnableSnow)
-        {
-            if (light->mFlags & 8 /*volumetric*/)
-            {
-                *(float*)&light->mTxdId = 1.0f;
-            }
-            else if (light->mType == rage::LT_SPOT && !(light->mFlags & 0x300)/*vehicles and traffic lights*/)
-            {
-                if (mVolumeIntensity > 0.0f && light->mRadius < 50.0f)
-                {
-                    light->mVolumeSize = 1.0f;
-                    light->mVolumeScale = 0.5f;
-                    //light->field_64 = -1; //not really sure what this is but setting it to -1 makes the light not cast shadows
-                    light->mFlags |= 8;
-                    *(float*)&light->mTxdId = mVolumeIntensity;
-                    //light->mPosition.z += 0.1f;
-                }
-            }
-        }
-    }
-
-    class CRenderPhaseDeferredLighting_LightsToScreen
-    {
-    public:
-        static inline SafetyHookInline shBuildRenderList{};
-        static inline SafetyHookInline shCopyLight{};
-
-        static void* __fastcall BuildRenderList(CBaseDC* _this, void* edx)
-        {
-            OnBuildRenderList();
-            return shBuildRenderList.fastcall<void*>(_this, edx);
-        }
-
-        static rage::CLightSource* __fastcall CopyLight(void* _this, void* edx, void* a2)
-        {
-            auto ret = shCopyLight.fastcall<rage::CLightSource*>(_this, edx, a2);
-            OnAfterCopyLight(ret);
-            return ret;
-        }
-    };
-
     static inline uint8_t* byte_1723BB0 = nullptr;
-    static inline float* CWeatherRain = nullptr;
-    static inline SafetyHookInline shPostFXWrap{};
-    static int __cdecl PostFXWrap(char edx)
+    static void LCSSnow()
     {
-        auto ret = shPostFXWrap.ccall<int>(edx);
-
+        if (bEnableSnow)
         {
             static CSnow::RwMatrix GviewMatrix;
             static CSnow::RwMatrix camMatrix;
@@ -358,8 +298,8 @@ private:
                     ts = 0.0f;
                 }
             }
-            
-            CSnow::targetSnow = *CWeatherRain;
+
+            CSnow::targetSnow = *CWeather::Rain;
 
             auto pViewport = rage::GetCurrentViewport();
 
@@ -375,8 +315,6 @@ private:
 
             CSnow::AddSnow(rage::grcDevice::GetD3DDevice(), *rage::grcDevice::ms_nActiveWidth, *rage::grcDevice::ms_nActiveHeight, &camMatrix, &GviewMatrix, &ts, byte_1723BB0[12]);
         }
-
-        return ret;
     }
 
 public:
@@ -386,7 +324,120 @@ public:
         {
             if (GetD3DX9_43DLL())
             {
+                FusionFix::onGameProcessEvent() += []()
+                {
+                    auto now = std::chrono::system_clock::now();
+                    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+                    struct tm* date = std::localtime(&now_c);
+                    if ((date->tm_mon == 0 && date->tm_mday <= 2) || (date->tm_mon == 11 && date->tm_mday >= 30))
+                    {
+                        bEnableSnow = true;
+                        CTimeCycle::Initialise();
+                    }
 
+                    static auto oldState = GetAsyncKeyState(VK_F3);
+                    auto curState = GetAsyncKeyState(VK_F3);
+                    if ((oldState & 0x8000) == 0 && (curState & 0x8000))
+                    {
+                        bEnableSnow = !bEnableSnow;
+                        CTimeCycle::Initialise();
+                    }
+                    oldState = curState;
+                };
+
+                auto pattern = find_pattern("A3 ? ? ? ? E8 ? ? ? ? 83 EC 0C", "A3 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? 5E");
+                rage::grcTextureFactory::g_pTextureFactory = *pattern.get_first<rage::grcTextureFactoryPC**>(1);
+
+                CRenderPhaseDeferredLighting_LightsToScreen::OnBuildRenderList() += []()
+                {
+                    Init();
+                    auto mBeforeLightingCB = new T_CB_Generic_NoArgs(OnBeforeLighting);
+                    if (mBeforeLightingCB)
+                        mBeforeLightingCB->Append();
+                };
+
+                CRenderPhaseDeferredLighting_LightsToScreen::OnAfterCopyLight() += [](rage::CLightSource* light)
+                {
+                    //CLightSource doesnt have a member to control the volume intensity so
+                    //i abuse type casting to use mTxdId for it as im p sure its only used for headlights anyway
+                    
+                    if (bEnableSnow)
+                    {
+                        if (light->mFlags & 8 /*volumetric*/)
+                        {
+                            *(float*)&light->mTxdId = 1.0f;
+                        }
+                        else if (light->mType == rage::LT_SPOT && !(light->mFlags & 0x300)/*vehicles and traffic lights*/)
+                        {
+                            if (mVolumeIntensity > 0.0f && light->mRadius < 50.0f)
+                            {
+                                light->mVolumeSize = 1.0f;
+                                light->mVolumeScale = 0.5f;
+                                //light->field_64 = -1; //not really sure what this is but setting it to -1 makes the light not cast shadows
+                                light->mFlags |= 8;
+                                *(float*)&light->mTxdId = mVolumeIntensity;
+                                //light->mPosition.z += 0.1f;
+                            }
+                        }
+                    }
+                };
+
+                CRenderPhaseDrawScene::onBeforePostFX() += []()
+                {
+                    auto cb = new T_CB_Generic_NoArgs(LCSSnow);
+                    if (cb)
+                        cb->Append();
+                };
+
+                pattern = hook::pattern("C7 84 24 ? ? ? ? ? ? ? ? FF 74 06 44");
+                if (!pattern.empty())
+                {
+                    struct LightsHook
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            if (bEnableSnow)
+                                *(float*)(regs.esp + 0xEC) = *(float*)(regs.esi + regs.eax * 1 + 0x4C);
+                            else
+                                *(float*)(regs.esp + 0xEC) = 1.0f;
+                        }
+                    }; injector::MakeInline<LightsHook>(pattern.get_first(0), pattern.get_first(11));
+                }
+                else
+                {
+                    pattern = hook::pattern("F3 0F 11 44 24 ? 8B 54 06 44");
+                    struct LightsHook
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            if (bEnableSnow)
+                                *(float*)(regs.esp + 0xEC) = *(float*)(regs.esi + regs.eax * 1 + 0x4C);
+                            else
+                                *(float*)(regs.esp + 0x68) = 1.0f;
+                        }
+                    }; injector::MakeInline<LightsHook>(pattern.get_first(0), pattern.get_first(6));
+                }
+
+                pattern = find_pattern("B9 ? ? ? ? E8 ? ? ? ? 8B 4D 0C 51 F3 0F 10 41 ? 8D 41 20", "B9 ? ? ? ? D9 44 24 1C D9 5C 24 04");
+                byte_1723BB0 = *pattern.get_first<uint8_t*>(1);
+                
+                pattern = hook::pattern("76 15 B3 01");
+                if (pattern.empty())
+                {
+                    pattern = hook::pattern("74 16 33 C0 80 7C 06");
+                    if (!pattern.empty())
+                    {
+                        injector::MakeNOP(pattern.get_first(-9), 3);
+                        injector::WriteMemory<uint16_t>(pattern.get_first(-9), 0x01B0, true); //mov al,01
+                    }
+                }
+                else
+                    injector::MakeNOP(pattern.get_first(0), 2);
+
+                FusionFix::onBeforeReset() += []()
+                {
+                    CSnow::Reset();
+                };
             }
         };
     }

@@ -8,7 +8,6 @@ import common;
 import comvars;
 import settings;
 import natives;
-import renderthread;
 
 #define SCREEN_WIDTH ((float)*rage::grcDevice::ms_nActiveWidth)
 #define SCREEN_HEIGHT ((float)*rage::grcDevice::ms_nActiveHeight)
