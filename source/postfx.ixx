@@ -378,7 +378,7 @@ public:
                 };
             }
 
-            FusionFix::D3D9::onBeforeReset() += [](LPDIRECT3DDEVICE9& pDevice, D3DPRESENT_PARAMETERS*& pPresentationParameters)
+            FusionFix::onBeforeReset() += []()
             {
                 PostFxResources.ReleaseTextures();
                 SAFE_RELEASE(PostFxResources.pHDRTex2);
@@ -402,7 +402,8 @@ public:
                 if (*ppTexture != nullptr) {
                     if (*ppTexture != nullptr && (Format == D3DFMT_R16F || Format == D3DFMT_R32F) && Height >= 128 && Width == Height * 4 && Levels == 1) {
                         PostFxResources.OldShadowAtlas = *ppTexture;
-                        CreateTextureOriginal.unsafe_stdcall<HRESULT>(pDevice, Width, Height, Levels, D3DUSAGE_DEPTHSTENCIL, D3DFMT_D24X8, Pool, &PostFxResources.NewShadowAtlas, 0);
+                        SAFE_RELEASE(PostFxResources.NewShadowAtlas);
+                        CreateTextureOriginal.unsafe_stdcall<HRESULT>(pDevice, Width, Height, Levels, D3DUSAGE_DEPTHSTENCIL, D3DFMT_D24X8, D3DPOOL_DEFAULT, &PostFxResources.NewShadowAtlas, 0);
                     }
                     if (Format == D3DFMT_A16B16G16R16F && Width == getWindowWidth() / 2 && Height == getWindowHeight() / 2) {
                         PostFxResources.pHalfHDRTex = (*ppTexture);
