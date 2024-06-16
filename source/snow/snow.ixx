@@ -8,6 +8,7 @@ export module snow;
 
 import common;
 import comvars;
+import natives;
 import d3dx9_43;
 import fusiondxhook;
 
@@ -405,7 +406,7 @@ private:
     static inline gtaRainRender RainRenderCopy;
     static inline gtaRainEmitter RainEmitterCopy;
 
-    static void rainRenderParams()
+    static void SetRainRenderParams()
     {
         if (bEnableSnow)
         {
@@ -462,17 +463,18 @@ public:
                         {
                             bEnableSnow = true;
                             CTimeCycle::Initialise();
-                            rainRenderParams();
+                            SetRainRenderParams();
                         }
                         else if (bEnableSnow)
                         {
                             bEnableSnow = false;
                             CTimeCycle::Initialise();
-                            rainRenderParams();
+                            SetRainRenderParams();
                         }
                     };
                 }
 
+                #ifdef _DEBUG
                 FusionFix::onGameProcessEvent() += []()
                 {
                     static auto oldState = GetAsyncKeyState(VK_F3);
@@ -481,10 +483,11 @@ public:
                     {
                         bEnableSnow = !bEnableSnow;
                         CTimeCycle::Initialise();
-                        rainRenderParams();
+                        SetRainRenderParams();
                     }
                     oldState = curState;
                 };
+                #endif
 
                 auto pattern = find_pattern("A3 ? ? ? ? E8 ? ? ? ? 83 EC 0C", "A3 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? 5E");
                 rage::grcTextureFactory::g_pTextureFactory = *pattern.get_first<rage::grcTextureFactoryPC**>(1);
@@ -573,6 +576,13 @@ public:
 
                 pattern = find_pattern("88 41 61 F3 0F 10 0D", "48 60 8A 15 ? ? ? ? 88 50 61");
                 pRainEmitter = *pattern.get_first<gtaRainEmitter*>(15);
+
+                NativeOverride::RegisterPhoneCheat("7665550100", []
+                {
+                    bEnableSnow = !bEnableSnow;
+                    CTimeCycle::Initialise();
+                    SetRainRenderParams();
+                });
             }
         };
     }
