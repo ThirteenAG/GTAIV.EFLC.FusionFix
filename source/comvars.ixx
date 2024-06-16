@@ -778,7 +778,22 @@ export namespace CTimeCycle
 
 export namespace CWeather
 {
+    enum eWeatherType : uint32_t
+    {
+        EXTRASUNNY,
+        SUNNY,
+        SUNNY_WINDY,
+        CLOUDY,
+        RAIN,
+        DRIZZLE,
+        FOGGY,
+        LIGHTNING
+    };
+
     float* Rain = nullptr;
+    eWeatherType* CurrentWeather = nullptr;
+    eWeatherType* NextWeather = nullptr;
+    float* NextWeatherPercentage = nullptr;
 }
 
 export class CRenderPhaseDeferredLighting_LightsToScreen
@@ -1009,5 +1024,14 @@ public:
         if (pattern.empty())
             pattern = hook::pattern("F3 0F 11 05 ? ? ? ? E8 ? ? ? ? 84 C0 74 15 E8 ? ? ? ? 84 C0");
         CWeather::Rain = *pattern.get_first<float*>(4);
+
+        pattern = find_pattern("A1 ? ? ? ? 83 C4 08 8B CF", "A1 ? ? ? ? 80 3F 04");
+        CWeather::CurrentWeather = *pattern.get_first<CWeather::eWeatherType*>(1);
+        
+        pattern = find_pattern("A1 ? ? ? ? 89 46 4C A1", "A1 ? ? ? ? 77 05 A1 ? ? ? ? 80 3F 04");
+        CWeather::NextWeather = *pattern.get_first<CWeather::eWeatherType*>(1);
+        
+        pattern = hook::pattern("F3 0F 10 05 ? ? ? ? 8B 44 24 0C 8B 4C 24 04");
+        CWeather::NextWeatherPercentage = *pattern.get_first<float*>(4);
     }
 } Common;

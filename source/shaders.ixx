@@ -58,7 +58,7 @@ public:
         {
             CIniReader iniReader("");
             bFixAutoExposure = iniReader.ReadInteger("MISC", "FixAutoExposure", 1) != 0;
-            fTreeAlphaMultiplier = std::clamp(iniReader.ReadFloat("MISC", "TreeAlphaMultiplier", 1.0f), 0.0f, 255.0f);
+            fTreeAlphaMultiplier = std::clamp(iniReader.ReadFloat("MISC", "TreeAlphaMultiplier", 1.0f), 1.0f, 255.0f);
             fShadowSoftness = std::clamp(iniReader.ReadFloat("SHADOWS", "ShadowSoftness", 1.0f), 0.0f, 8.0f);
             fShadowBias = std::clamp(iniReader.ReadFloat("SHADOWS", "ShadowBias", 1.0f), 0.0f, 8.0f);
             fShadowBlendRange = std::clamp(iniReader.ReadFloat("SHADOWS", "ShadowBlendRange", 0.3f), 0.0f, 1.0f);

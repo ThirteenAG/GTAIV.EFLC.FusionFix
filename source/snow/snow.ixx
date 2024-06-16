@@ -176,108 +176,118 @@ private:
         if (!bEnableSnow)
             return;
 
+        auto HasSnow = [](CWeather::eWeatherType type) -> bool
+        {
+            if (type == CWeather::LIGHTNING)
+                return false;
+            return true;
+        };
+
         IDirect3DDevice9* device = rage::grcDevice::GetD3DDevice();
 
         mVolumeIntensity = 1.0f;
 
-        //static CWeather::eWeatherType currWeather;
-        //
-        //CWeather::eWeatherType prevWeather = currWeather;
-        //currWeather = CWeather::GetCurrentWeather();
-        //CWeather::eWeatherType nextWeather = CWeather::GetNextWeather();
+        static CWeather::eWeatherType currWeather;
 
-        DWORD prevMinFilters[5];
-        DWORD prevMagFilters[5];
-        for (uint32_t i = 0; i < 5; i++)
+        auto prevWeather = currWeather;
+        currWeather = *CWeather::CurrentWeather;
+        auto nextWeather = *CWeather::NextWeather;
+
+        if (HasSnow(prevWeather) || HasSnow(currWeather) || HasSnow(nextWeather))
         {
-            device->GetSamplerState(i, D3DSAMP_MINFILTER, &prevMinFilters[i]);
-            device->GetSamplerState(i, D3DSAMP_MAGFILTER, &prevMagFilters[i]);
+            DWORD prevMinFilters[5];
+            DWORD prevMagFilters[5];
+            for (uint32_t i = 0; i < 5; i++)
+            {
+                device->GetSamplerState(i, D3DSAMP_MINFILTER, &prevMinFilters[i]);
+                device->GetSamplerState(i, D3DSAMP_MAGFILTER, &prevMagFilters[i]);
 
-            device->SetSamplerState(i, D3DSAMP_MINFILTER, D3DTEXF_POINT);
-            device->SetSamplerState(i, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
-        }
+                device->SetSamplerState(i, D3DSAMP_MINFILTER, D3DTEXF_POINT);
+                device->SetSamplerState(i, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+            }
 
-        rage::grcViewport* currGrcViewport = rage::GetCurrentViewport();
+            rage::grcViewport* currGrcViewport = rage::GetCurrentViewport();
 
-        rage::Vector4 pixelOffset;
-        pixelOffset.x = (-1.0f / mNormalRT->mWidth);
-        pixelOffset.y = (1.0f / mNormalRT->mHeight);
-        device->SetVertexShaderConstantF(5, &pixelOffset.x, 1);
+            rage::Vector4 pixelOffset;
+            pixelOffset.x = (-1.0f / mNormalRT->mWidth);
+            pixelOffset.y = (1.0f / mNormalRT->mHeight);
+            device->SetVertexShaderConstantF(5, &pixelOffset.x, 1);
 
-        //copy normal gbuffer
-        {
-            rage::grcTextureFactoryPC::GetInstance()->LockRenderTarget(0, mNormalRtCopy, nullptr);
-            device->SetVertexShader(mBlitVS);
-            device->SetPixelShader(mBlitPS);
+            //copy normal gbuffer
+            {
+                rage::grcTextureFactoryPC::GetInstance()->LockRenderTarget(0, mNormalRtCopy, nullptr);
+                device->SetVertexShader(mBlitVS);
+                device->SetPixelShader(mBlitPS);
+
+                device->SetVertexDeclaration(mQuadVertexDecl);
+                device->SetStreamSource(0, mQuadVertexBuffer, 0, sizeof(VertexFormat));
+
+                device->SetTexture(0, mNormalRT->mD3DTexture);
+
+                device->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
+
+                rage::grcDevice::grcResolveFlags resolveFlags{};
+                rage::grcTextureFactoryPC::GetInstance()->UnlockRenderTarget(0, &resolveFlags);
+            }
+
+            //render snow
+            rage::grcTextureFactoryPC::GetInstance()->LockRenderTarget(0, mDiffuseRT, nullptr);
+            rage::grcTextureFactoryPC::GetInstance()->LockRenderTarget(1, mNormalRT, nullptr);
+            rage::grcTextureFactoryPC::GetInstance()->LockRenderTarget(2, mSpecularAoRT, nullptr);
+
+            device->SetVertexShader(mSnowVS);
+            device->SetPixelShader(mSnowPS);
 
             device->SetVertexDeclaration(mQuadVertexDecl);
             device->SetStreamSource(0, mQuadVertexBuffer, 0, sizeof(VertexFormat));
 
-            device->SetTexture(0, mNormalRT->mD3DTexture);
+            rage::Vector4 projParams;
+            float a = currGrcViewport->mFarClip / (currGrcViewport->mFarClip - currGrcViewport->mNearClip);
+            projParams.x = currGrcViewport->field_2CC;
+            projParams.y = currGrcViewport->field_2C8;
+            projParams.z = 1.0f / (0.0f - (a * currGrcViewport->mNearClip));
+            projParams.w = projParams.z * a;
+
+            device->SetVertexShaderConstantF(0, &projParams.x, 1);
+            device->SetVertexShaderConstantF(1, &currGrcViewport->mViewInverseMatrix[0][0], 4);
+
+            rage::Vector4 threshold;
+            if (!HasSnow(currWeather) && HasSnow(nextWeather))
+                threshold.y = *CWeather::NextWeatherPercentage;
+            else if (HasSnow(currWeather) && !HasSnow(nextWeather))
+                threshold.y = 0.9999f - *CWeather::NextWeatherPercentage;
+            else if (!HasSnow(currWeather) && !HasSnow(nextWeather))
+                threshold.y = 0.0f;
+            else
+                threshold.y = 0.9999f;
+
+            mVolumeIntensity = threshold.y * 4.0f * mCfgVolumetricIntensityMultiplier;
+
+            threshold.y = pow(threshold.y, 0.20f);
+            threshold.x = max(0.9999f, (threshold.y / (threshold.y + 0.15f)) * 1.15f);
+
+            device->SetPixelShaderConstantF(0, &threshold.x, 1);
+            device->SetPixelShaderConstantF(1, &projParams.x, 1);
+            device->SetPixelShaderConstantF(2, &currGrcViewport->mViewInverseMatrix[0][0], 4);
+
+            device->SetTexture(0, mNormalRtCopy->mD3DTexture);
+            device->SetTexture(1, mSpecularAoRT->mD3DTexture);
+            device->SetTexture(2, mStencilRT->mD3DTexture);
+            device->SetTexture(3, mDepthRT->mD3DTexture);
+            device->SetTexture(4, mSnowTexture);
 
             device->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
 
             rage::grcDevice::grcResolveFlags resolveFlags{};
             rage::grcTextureFactoryPC::GetInstance()->UnlockRenderTarget(0, &resolveFlags);
-        }
+            rage::grcTextureFactoryPC::GetInstance()->UnlockRenderTarget(1, &resolveFlags);
+            rage::grcTextureFactoryPC::GetInstance()->UnlockRenderTarget(2, &resolveFlags);
 
-        //render snow
-        rage::grcTextureFactoryPC::GetInstance()->LockRenderTarget(0, mDiffuseRT, nullptr);
-        rage::grcTextureFactoryPC::GetInstance()->LockRenderTarget(1, mNormalRT, nullptr);
-        rage::grcTextureFactoryPC::GetInstance()->LockRenderTarget(2, mSpecularAoRT, nullptr);
-
-        device->SetVertexShader(mSnowVS);
-        device->SetPixelShader(mSnowPS);
-
-        device->SetVertexDeclaration(mQuadVertexDecl);
-        device->SetStreamSource(0, mQuadVertexBuffer, 0, sizeof(VertexFormat));
-
-        rage::Vector4 projParams;
-        float a = currGrcViewport->mFarClip / (currGrcViewport->mFarClip - currGrcViewport->mNearClip);
-        projParams.x = currGrcViewport->field_2CC;
-        projParams.y = currGrcViewport->field_2C8;
-        projParams.z = 1.0f / (0.0f - (a * currGrcViewport->mNearClip));
-        projParams.w = projParams.z * a;
-
-        device->SetVertexShaderConstantF(0, &projParams.x, 1);
-        device->SetVertexShaderConstantF(1, &currGrcViewport->mViewInverseMatrix[0][0], 4);
-
-        rage::Vector4 threshold;
-        //if (!HasSnow(currWeather) && HasSnow(nextWeather))
-        //    threshold.y = CWeather::GetNextWeatherPercentage();
-        //else if (HasSnow(currWeather) && !HasSnow(nextWeather))
-        //    threshold.y = 0.9999f - CWeather::GetNextWeatherPercentage();
-        //else if (!HasSnow(currWeather) && !HasSnow(nextWeather))
-        //    threshold.y = 0.0f;
-        //else
-            threshold.y = 0.9999f;
-
-        mVolumeIntensity = threshold.y * 4.0f * mCfgVolumetricIntensityMultiplier;
-
-        threshold.y = pow(threshold.y, 0.20f);
-        threshold.x = max(0.9999f, (threshold.y / (threshold.y + 0.15f)) * 1.15f);
-
-        device->SetPixelShaderConstantF(0, &threshold.x, 1);
-        device->SetPixelShaderConstantF(1, &projParams.x, 1);
-        device->SetPixelShaderConstantF(2, &currGrcViewport->mViewInverseMatrix[0][0], 4);
-
-        device->SetTexture(0, mNormalRtCopy->mD3DTexture);
-        device->SetTexture(1, mSpecularAoRT->mD3DTexture);
-        device->SetTexture(2, mStencilRT->mD3DTexture);
-        device->SetTexture(3, mDepthRT->mD3DTexture);
-        device->SetTexture(4, mSnowTexture);
-
-        device->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-
-        rage::grcDevice::grcResolveFlags resolveFlags{};
-        rage::grcTextureFactoryPC::GetInstance()->UnlockRenderTarget(0, &resolveFlags);
-        rage::grcTextureFactoryPC::GetInstance()->UnlockRenderTarget(1, &resolveFlags);
-        rage::grcTextureFactoryPC::GetInstance()->UnlockRenderTarget(2, &resolveFlags);
-
-        for (uint32_t i = 0; i < 5; i++)
-        {
-            device->SetSamplerState(i, D3DSAMP_MINFILTER, prevMinFilters[i]);
-            device->SetSamplerState(i, D3DSAMP_MAGFILTER, prevMagFilters[i]);
+            for (uint32_t i = 0; i < 5; i++)
+            {
+                device->SetSamplerState(i, D3DSAMP_MINFILTER, prevMinFilters[i]);
+                device->SetSamplerState(i, D3DSAMP_MAGFILTER, prevMagFilters[i]);
+            }
         }
     }
 
