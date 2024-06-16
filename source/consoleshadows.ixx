@@ -14,7 +14,7 @@ bool bHeadlightShadows = true;
 bool bVehicleNightShadows = false;
 int __cdecl sub_AE3DE0(int a1, int a2)
 {
-    if ((bVehicleNightShadows && !bHeadlightShadows) || bMoreShadows)
+    if (bVehicleNightShadows && !bHeadlightShadows)
         injector::cstd<void(int, int, int, int, int)>::call(fnAE3310, a1, 0, 0, 0, a2);
     return injector::cstd<int(int, int)>::call(fnAE3DE0, a1, a2);
 }
@@ -37,7 +37,6 @@ public:
         FusionFix::onInitEvent() += []()
         {
             CIniReader iniReader("");
-            bMoreShadows = iniReader.ReadInteger("SHADOWS", "MoreShadows", 0) != 0;
             bHeadlightShadows = iniReader.ReadInteger("SHADOWS", "HeadlightShadows", 1) != 0;
             bVehicleNightShadows = iniReader.ReadInteger("SHADOWS", "VehicleNightShadows", 0) != 0;
 
