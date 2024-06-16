@@ -408,7 +408,7 @@ private:
             pRainRender->tintColorX = 30.0f;
             pRainRender->tintColorY = 30.0f;
             pRainRender->tintColorZ = 30.0f;
-            pRainRender->tintColorW = 0.6f;
+            pRainRender->tintColorW = 0.15f;
             pRainRender->tintColorPhase2X = 1.0f;
             pRainRender->tintColorPhase2Y = 1.0f;
             pRainRender->tintColorPhase2Z = 1.0f;
