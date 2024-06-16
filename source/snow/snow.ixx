@@ -552,10 +552,10 @@ public:
                 pattern = find_pattern("B9 ? ? ? ? E8 ? ? ? ? 8B 4D 0C 51 F3 0F 10 41 ? 8D 41 20", "B9 ? ? ? ? D9 44 24 1C D9 5C 24 04");
                 byte_1723BB0 = *pattern.get_first<uint8_t*>(1);
 
-                pattern = find_pattern("89 41 28 F3 0F 10 0D", "");
+                pattern = find_pattern("89 41 28 F3 0F 10 0D", "50 24 8B 0D ? ? ? ? 89 48 28 F3 0F 10 0D");
                 pRainRender = *pattern.get_first<gtaRainRender*>(15);
 
-                pattern = find_pattern("88 41 61 F3 0F 10 0D", "");
+                pattern = find_pattern("88 41 61 F3 0F 10 0D", "48 60 8A 15 ? ? ? ? 88 50 61");
                 pRainEmitter = *pattern.get_first<gtaRainEmitter*>(15);
 
                 FusionFix::onBeforeReset() += []()

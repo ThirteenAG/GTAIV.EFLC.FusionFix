@@ -125,7 +125,7 @@ public:
                     {
                         static float arr2[4];
                         arr2[0] = Natives::IsInteriorScene() ? 0.0f : *dw11A2948;
-                        arr2[1] = 0.0f;
+                        arr2[1] = bEnableSnow ? 1.0f : 0.0f;
                         arr2[2] = 0.0f;
                         arr2[3] = 0.0f;
                         pDevice->SetVertexShaderConstantF(233, &arr2[0], 1);
