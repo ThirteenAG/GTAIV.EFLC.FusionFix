@@ -138,7 +138,7 @@ public:
                         arr7[0] = fShadowSoftness;
                         arr7[1] = fShadowBias;
                         arr7[2] = fShadowBlendRange;
-                        arr7[3] = 0.0f;
+                        arr7[3] = bEnableSnow ? 1.0f : 0.0f;
 
                         pDevice->SetPixelShaderConstantF(218, &arr7[0], 1);
                     }

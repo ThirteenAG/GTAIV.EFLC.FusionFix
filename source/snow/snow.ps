@@ -48,14 +48,14 @@ PSOut main(PSIn psIn)
     float stencil = tex2D(GBufferStencilSampler, psIn.TexCoord).x * 255.0;
     float ao = tex2D(GBufferSpecularAoSampler, psIn.TexCoord).z;
     
-    float treeMask = abs(stencil - (LOG_DEPTH ? 6.0 : 3.0)) < 0.1 ? 1.0 : 0.0;
+    float treeMask = abs(stencil - 3.0) < 0.1 ? 1.0 : 0.0;
     float objectMask = stencil > 0.0 ? 0.0 : 1.0;
     
     float3 posWS = psIn.TexCoord1.xyz / -depth + ViewInverse[3].xyz;
     const float3 snowDir = float3(0.001425, -0.00771, 0.996);
     
     float3 snowNormal = tex2D(SnowSampler, posWS.xy * 0.7).xyz * 2.0 - 1.0;
-    snowNormal.xy *= 0.23;
+    snowNormal.xy *= 0.53;
     snowNormal = snowNormal * 0.5 + 0.5;
     
     float snowMask = saturate(dot(snowDir, normalWS * 2.0 - 1.0)) * objectMask * ao;

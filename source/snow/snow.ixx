@@ -317,6 +317,118 @@ private:
         }
     }
 
+    struct gtaRainEmitter
+    {
+        float posX;
+        float posY;
+        float posZ;
+        int unk1;
+        float posRangeX;
+        float posRangeY;
+        float posRangeZ;
+        int unk2;
+        float LifeRangeOffsetX;
+        float LifeRangeOffsetY;
+        int unk3;
+        int unk4;
+        float velX;
+        float velY;
+        float velZ;
+        int unk5;
+        float velRangeX;
+        float velRangeY;
+        float velRangeZ;
+        int posRelative;
+        int AddCameraOffset;
+        float collisionVelocityModifierX;
+        float collisionVelocityModifierY;
+        float collisionVelocityModifierZ;
+        int unk6;
+        int unk7;
+        int unk8;
+        int unk9;
+        float collisionLifeModifierX;
+        float collisionLifeModifierY;
+        int unk10;
+        int unk11;
+        float collisionPositionModifierX;
+        float collisionPositionModifierY;
+        float collisionPositionModifierZ;
+        int unk12;
+        float gustSpacingX;
+        float gustSpacingY;
+        int unk13[6];
+        float disperseRange;
+        float disperseAmt;
+        float inertia;
+        float probablityPhase2;
+    };
+
+    struct gtaRainRender
+    {
+        float motionBlurAmt;
+        float radius;
+        float radiusVariance;
+        float radius2;
+        float radius2Variance;
+        float lifeFadeX;
+        float lifeFadeY;
+        int useDirectional;
+        int unk1;
+        int unk2;
+        int unk3;
+        float tintColorX;
+        float tintColorY;
+        float tintColorZ;
+        float tintColorW;
+        float tintColorPhase2X;
+        float tintColorPhase2Y;
+        float tintColorPhase2Z;
+        float tintColorPhase2W;
+        float AnimStart;
+        float AnimEnd;
+        float NumFrames;
+    };
+
+    static inline gtaRainRender* pRainRender = nullptr;
+    static inline gtaRainEmitter* pRainEmitter = nullptr;
+    static inline gtaRainRender RainRenderCopy;
+    static inline gtaRainEmitter RainEmitterCopy;
+
+    static void rainRenderParams()
+    {
+        if (bEnableSnow)
+        {
+            RainRenderCopy = *pRainRender;
+            RainEmitterCopy = *pRainEmitter;
+
+            pRainRender->motionBlurAmt = 0.01f;
+            pRainRender->radius = 0.042f;
+            pRainRender->radius2 = 0.0f;
+            pRainRender->tintColorX = 30.0f;
+            pRainRender->tintColorY = 30.0f;
+            pRainRender->tintColorZ = 30.0f;
+            pRainRender->tintColorW = 0.6f;
+            pRainRender->tintColorPhase2X = 1.0f;
+            pRainRender->tintColorPhase2Y = 1.0f;
+            pRainRender->tintColorPhase2Z = 1.0f;
+            pRainRender->tintColorPhase2W = 1.0f;
+
+            pRainEmitter->velX = -10.0f;
+            pRainEmitter->velY = -10.0f;
+            pRainEmitter->velZ = -5.0f;
+            pRainEmitter->velRangeX = 4.0f;
+            pRainEmitter->velRangeY = 4.0f;
+            pRainEmitter->velRangeZ = -2.2f;
+            pRainEmitter->probablityPhase2 = 0.1f;
+        }
+        else
+        {
+             *pRainRender = RainRenderCopy;
+             *pRainEmitter = RainEmitterCopy;
+        }
+    }
+
 public:
     Snow()
     {
@@ -324,23 +436,42 @@ public:
         {
             if (GetD3DX9_43DLL())
             {
+                auto now = std::chrono::system_clock::now();
+                std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+                struct tm* date = std::localtime(&now_c);
+
+                if ((date->tm_mon == 0 && date->tm_mday <= 2) || (date->tm_mon == 11 && date->tm_mday >= 30))
+                {
+                    FusionFix::onGameProcessEvent() += []()
+                    {
+                        auto now = std::chrono::system_clock::now();
+                        std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+                        struct tm* date = std::localtime(&now_c);
+
+                        if ((date->tm_mon == 0 && date->tm_mday <= 2) || (date->tm_mon == 11 && date->tm_mday >= 30))
+                        {
+                            bEnableSnow = true;
+                            CTimeCycle::Initialise();
+                            rainRenderParams();
+                        }
+                        else if (bEnableSnow)
+                        {
+                            bEnableSnow = false;
+                            CTimeCycle::Initialise();
+                            rainRenderParams();
+                        }
+                    };
+                }
+
                 FusionFix::onGameProcessEvent() += []()
                 {
-                    auto now = std::chrono::system_clock::now();
-                    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
-                    struct tm* date = std::localtime(&now_c);
-                    if ((date->tm_mon == 0 && date->tm_mday <= 2) || (date->tm_mon == 11 && date->tm_mday >= 30))
-                    {
-                        bEnableSnow = true;
-                        CTimeCycle::Initialise();
-                    }
-
                     static auto oldState = GetAsyncKeyState(VK_F3);
                     auto curState = GetAsyncKeyState(VK_F3);
                     if ((oldState & 0x8000) == 0 && (curState & 0x8000))
                     {
                         bEnableSnow = !bEnableSnow;
                         CTimeCycle::Initialise();
+                        rainRenderParams();
                     }
                     oldState = curState;
                 };
@@ -382,12 +513,12 @@ public:
                     }
                 };
 
-                CRenderPhaseDrawScene::onBeforePostFX() += []()
-                {
-                    auto cb = new T_CB_Generic_NoArgs(LCSSnow);
-                    if (cb)
-                        cb->Append();
-                };
+                //CRenderPhaseDrawScene::onBeforePostFX() += []()
+                //{
+                //    auto cb = new T_CB_Generic_NoArgs(LCSSnow);
+                //    if (cb)
+                //        cb->Append();
+                //};
 
                 pattern = hook::pattern("C7 84 24 ? ? ? ? ? ? ? ? FF 74 06 44");
                 if (!pattern.empty())
@@ -420,19 +551,12 @@ public:
 
                 pattern = find_pattern("B9 ? ? ? ? E8 ? ? ? ? 8B 4D 0C 51 F3 0F 10 41 ? 8D 41 20", "B9 ? ? ? ? D9 44 24 1C D9 5C 24 04");
                 byte_1723BB0 = *pattern.get_first<uint8_t*>(1);
-                
-                pattern = hook::pattern("76 15 B3 01");
-                if (pattern.empty())
-                {
-                    pattern = hook::pattern("74 16 33 C0 80 7C 06");
-                    if (!pattern.empty())
-                    {
-                        injector::MakeNOP(pattern.get_first(-9), 3);
-                        injector::WriteMemory<uint16_t>(pattern.get_first(-9), 0x01B0, true); //mov al,01
-                    }
-                }
-                else
-                    injector::MakeNOP(pattern.get_first(0), 2);
+
+                pattern = find_pattern("89 41 28 F3 0F 10 0D", "");
+                pRainRender = *pattern.get_first<gtaRainRender*>(15);
+
+                pattern = find_pattern("88 41 61 F3 0F 10 0D", "");
+                pRainEmitter = *pattern.get_first<gtaRainEmitter*>(15);
 
                 FusionFix::onBeforeReset() += []()
                 {
