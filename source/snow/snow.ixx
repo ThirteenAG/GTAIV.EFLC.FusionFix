@@ -513,11 +513,17 @@ public:
                     }
                 };
 
+                // LCS Snow test
                 //CRenderPhaseDrawScene::onBeforePostFX() += []()
                 //{
                 //    auto cb = new T_CB_Generic_NoArgs(LCSSnow);
                 //    if (cb)
                 //        cb->Append();
+                //};
+                //
+                //FusionFix::onBeforeReset() += []()
+                //{
+                //    CSnow::Reset();
                 //};
 
                 pattern = hook::pattern("C7 84 24 ? ? ? ? ? ? ? ? FF 74 06 44");
@@ -557,11 +563,6 @@ public:
 
                 pattern = find_pattern("88 41 61 F3 0F 10 0D", "48 60 8A 15 ? ? ? ? 88 50 61");
                 pRainEmitter = *pattern.get_first<gtaRainEmitter*>(15);
-
-                FusionFix::onBeforeReset() += []()
-                {
-                    CSnow::Reset();
-                };
             }
         };
     }
