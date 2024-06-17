@@ -50,8 +50,8 @@ public:
         static bool bFixAutoExposure = false;
         static float fTreeAlphaMultiplier = 1.0f;
 
-        static float fShadowSoftness = 1.0f;
-        static float fShadowBias = 1.0f;
+        static float fShadowSoftness = 1.5f;
+        static float fShadowBias = 5.0f;
         static float fShadowBlendRange = 0.3f;
 
         FusionFix::onInitEvent() += []()
@@ -59,8 +59,8 @@ public:
             CIniReader iniReader("");
             bFixAutoExposure = iniReader.ReadInteger("MISC", "FixAutoExposure", 1) != 0;
             fTreeAlphaMultiplier = std::clamp(iniReader.ReadFloat("MISC", "TreeAlphaMultiplier", 1.0f), 1.0f, 255.0f);
-            fShadowSoftness = std::clamp(iniReader.ReadFloat("SHADOWS", "ShadowSoftness", 1.0f), 0.0f, 8.0f);
-            fShadowBias = std::clamp(iniReader.ReadFloat("SHADOWS", "ShadowBias", 1.0f), 0.0f, 8.0f);
+            fShadowSoftness = iniReader.ReadFloat("SHADOWS", "ShadowSoftness", 1.5f);
+            fShadowBias = iniReader.ReadFloat("SHADOWS", "ShadowBias", 5.0f);
             fShadowBlendRange = std::clamp(iniReader.ReadFloat("SHADOWS", "ShadowBlendRange", 0.3f), 0.0f, 1.0f);
 
             // Redirect path to one unified folder
