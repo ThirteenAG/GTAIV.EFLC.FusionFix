@@ -49,16 +49,18 @@ public:
         static IDirect3DTexture9* pHDRTexQuarter = nullptr;
         static bool bFixAutoExposure = false;
         static float fTreeAlphaMultiplier = 1.0f;
+        static float fCoronaReflectionIntensity = 1.0f;
 
         static float fShadowSoftness = 1.5f;
         static float fShadowBias = 5.0f;
         static float fShadowBlendRange = 0.3f;
 
-        FusionFix::onInitEventAsync() += []()
+        FusionFix::onInitEvent() += []()
         {
             CIniReader iniReader("");
             bFixAutoExposure = iniReader.ReadInteger("MISC", "FixAutoExposure", 1) != 0;
             fTreeAlphaMultiplier = std::clamp(iniReader.ReadFloat("MISC", "TreeAlphaMultiplier", 1.0f), 1.0f, 255.0f);
+            fCoronaReflectionIntensity = iniReader.ReadFloat("MISC", "CoronaReflectionIntensity", 1.0f);
             fShadowSoftness = iniReader.ReadFloat("SHADOWS", "ShadowSoftness", 1.5f);
             fShadowBias = iniReader.ReadFloat("SHADOWS", "ShadowBias", 5.0f);
             fShadowBlendRange = std::clamp(iniReader.ReadFloat("SHADOWS", "ShadowBlendRange", 0.3f), 0.0f, 1.0f);
@@ -126,7 +128,7 @@ public:
                         static float arr2[4];
                         arr2[0] = Natives::IsInteriorScene() ? 0.0f : *dw11A2948;
                         arr2[1] = bEnableSnow ? 1.0f : 0.0f;
-                        arr2[2] = 0.0f;
+                        arr2[2] = fCoronaReflectionIntensity;
                         arr2[3] = 0.0f;
                         pDevice->SetVertexShaderConstantF(233, &arr2[0], 1);
                     }
