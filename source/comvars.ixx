@@ -508,6 +508,26 @@ export namespace rage
                 return RTCache[name];
             return nullptr;
         }
+
+        static grcTexturePC* FindTextureByRawPointer(IDirect3DTexture9* ptr)
+        {
+            for (auto& [name, tex] : TextureCache)
+            {
+                if (tex->mD3DTexture == ptr)
+                    return tex;
+            }
+            return nullptr;
+        }
+
+        static grcRenderTargetPC* FindRTByRawPointer(IDirect3DTexture9* ptr)
+        {
+            for (auto& [name, rt] : RTCache)
+            {
+                if (rt->mD3DTexture == ptr)
+                    return rt;
+            }
+            return nullptr;
+        }
     };
 
     VALIDATE_SIZE(grcTextureFactoryPC, 0x74);
