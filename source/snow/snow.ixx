@@ -500,16 +500,14 @@ public:
                         mBeforeLightingCB->Append();
                 };
 
+                static std::map<std::tuple<int, int, int>, float> LightVolumeIntensity;
                 CRenderPhaseDeferredLighting_LightsToScreen::OnAfterCopyLight() += [](rage::CLightSource* light)
                 {
-                    //CLightSource doesnt have a member to control the volume intensity so
-                    //i abuse type casting to use mTxdId for it as im p sure its only used for headlights anyway
-                    
                     if (bEnableSnow)
                     {
                         if (light->mFlags & 8 /*volumetric*/)
                         {
-                            *(float*)&light->mTxdId = 1.0f;
+                            LightVolumeIntensity[std::make_tuple(static_cast<int>(light->mPosition.x), static_cast<int>(light->mPosition.y), static_cast<int>(light->mPosition.z))] = 1.0f;
                         }
                         else if (light->mType == rage::LT_SPOT && !(light->mFlags & 0x300)/*vehicles and traffic lights*/)
                         {
@@ -517,27 +515,12 @@ public:
                             {
                                 light->mVolumeSize = 1.0f;
                                 light->mVolumeScale = 0.5f;
-                                //light->field_64 = -1; //not really sure what this is but setting it to -1 makes the light not cast shadows
                                 light->mFlags |= 8;
-                                *(float*)&light->mTxdId = mVolumeIntensity;
-                                //light->mPosition.z += 0.1f;
+                                LightVolumeIntensity[std::make_tuple(static_cast<int>(light->mPosition.x), static_cast<int>(light->mPosition.y), static_cast<int>(light->mPosition.z))] = mVolumeIntensity;
                             }
                         }
                     }
                 };
-
-                // LCS Snow test
-                //CRenderPhaseDrawScene::onBeforePostFX() += []()
-                //{
-                //    auto cb = new T_CB_Generic_NoArgs(LCSSnow);
-                //    if (cb)
-                //        cb->Append();
-                //};
-                //
-                //FusionFix::onBeforeReset() += []()
-                //{
-                //    CSnow::Reset();
-                //};
 
                 pattern = hook::pattern("C7 84 24 ? ? ? ? ? ? ? ? FF 74 06 44");
                 if (!pattern.empty())
@@ -547,7 +530,10 @@ public:
                         void operator()(injector::reg_pack& regs)
                         {
                             if (bEnableSnow)
-                                *(float*)(regs.esp + 0xEC) = *(float*)(regs.esi + regs.eax * 1 + 0x4C);
+                            {
+                                auto light = (rage::CLightSource*)(regs.esi + regs.eax);
+                                *(float*)(regs.esp + 0xEC) = LightVolumeIntensity[std::make_tuple(static_cast<int>(light->mPosition.x), static_cast<int>(light->mPosition.y), static_cast<int>(light->mPosition.z))];
+                            }
                             else
                                 *(float*)(regs.esp + 0xEC) = 1.0f;
                         }
@@ -561,7 +547,10 @@ public:
                         void operator()(injector::reg_pack& regs)
                         {
                             if (bEnableSnow)
-                                *(float*)(regs.esp + 0xEC) = *(float*)(regs.esi + regs.eax * 1 + 0x4C);
+                            {
+                                auto light = (rage::CLightSource*)(regs.esi + regs.eax * 1);
+                                *(float*)(regs.esp + 0xEC) = LightVolumeIntensity[std::make_tuple(static_cast<int>(light->mPosition.x), static_cast<int>(light->mPosition.y), static_cast<int>(light->mPosition.z))];
+                            }
                             else
                                 *(float*)(regs.esp + 0x68) = 1.0f;
                         }
@@ -583,6 +572,19 @@ public:
                     CTimeCycle::Initialise();
                     SetRainRenderParams();
                 });
+
+                // LCS Snow test
+                //CRenderPhaseDrawScene::onBeforePostFX() += []()
+                //{
+                //    auto cb = new T_CB_Generic_NoArgs(LCSSnow);
+                //    if (cb)
+                //        cb->Append();
+                //};
+                //
+                //FusionFix::onBeforeReset() += []()
+                //{
+                //    CSnow::Reset();
+                //};
             }
         };
     }
