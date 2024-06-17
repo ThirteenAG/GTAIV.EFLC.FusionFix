@@ -165,7 +165,10 @@ public:
             {
                 ButtonsCallback();
             });
+        };
 
+        FusionFix::onInitEvent() += []()
+        {
             // Script
             {
                 hbNATIVE_GET_CONTROL_VALUE.fun = NativeOverride::Register(Natives::NativeHashes::GET_CONTROL_VALUE, NATIVE_GET_CONTROL_VALUE, "E8 ? ? ? ? 8B 0E 83", 30);
