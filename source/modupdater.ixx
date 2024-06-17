@@ -30,7 +30,7 @@ public:
 
     ModUpdater()
     {
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
             if (FusionFixSettings.Get("PREF_UPDATE"))
                 Initialize();

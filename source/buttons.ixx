@@ -143,7 +143,7 @@ private:
 public:
     Buttons()
     {
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
             auto pattern = hook::pattern("83 C4 14 B9 ? ? ? ? 68 ? ? ? ? E8");
             if (!pattern.empty())

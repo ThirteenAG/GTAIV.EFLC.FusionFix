@@ -64,7 +64,7 @@ public:
 
     Fixes()
     {
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
             CIniReader iniReader("");
 

@@ -82,7 +82,7 @@ class Shadows
 public:
     Shadows()
     {
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
             CIniReader iniReader("");
 

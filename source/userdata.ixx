@@ -48,7 +48,7 @@ class UserData
 public:
     UserData()
     {
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
             CIniReader iniReader("");
             customUserProfilePath = std::filesystem::path(iniReader.ReadString("USERPROFILE", "CustomUserProfilePath", ""));

@@ -111,7 +111,7 @@ class RawInput
 public:
     RawInput()
     {
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
             // Menu
             auto pattern = hook::pattern("0F 48 C1 A3 ? ? ? ? 5F");

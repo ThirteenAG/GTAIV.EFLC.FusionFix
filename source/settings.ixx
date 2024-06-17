@@ -403,7 +403,7 @@ class Settings
 public:
     Settings()
     {
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
             // runtime settings
             auto pattern = hook::pattern("89 1C ? ? ? ? ? E8 ? ? ? ? A1");

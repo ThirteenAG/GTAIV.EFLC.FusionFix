@@ -12,7 +12,7 @@ class ExtraInfo
 public:
     ExtraInfo()
     {
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
             CIniReader iniReader("");
 

@@ -239,7 +239,7 @@ class AltDialogue
 public:
     AltDialogue()
     {
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
             FusionFixSettings.SetCallback("PREF_ALTDIALOGUE", [](int32_t value) {
                 auto pGlobals = *rage::scrProgram::ms_pGlobals;

@@ -443,7 +443,7 @@ private:
 public:
     Snow()
     {
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
             if (GetD3DX9_43DLL())
             {

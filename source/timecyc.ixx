@@ -268,7 +268,7 @@ class Timecyc
 public:
     Timecyc()
     {
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
             FusionFixSettings.SetCallback("PREF_TIMECYC", [](int32_t value) {
                 CTimeCycle::Initialise();
