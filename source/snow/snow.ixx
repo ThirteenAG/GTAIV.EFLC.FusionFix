@@ -440,6 +440,13 @@ private:
         }
     }
 
+    static void ToggleSnow(bool bValue)
+    {
+        bEnableSnow = bValue;
+        //CTimeCycle::Initialise(); // not needed atm, no timecyc changes
+        SetRainRenderParams();
+    }
+
 public:
     Snow()
     {
@@ -461,15 +468,11 @@ public:
 
                         if ((date->tm_mon == 0 && date->tm_mday <= 2) || (date->tm_mon == 11 && date->tm_mday >= 30))
                         {
-                            bEnableSnow = true;
-                            CTimeCycle::Initialise();
-                            SetRainRenderParams();
+                            ToggleSnow(true);
                         }
                         else if (bEnableSnow)
                         {
-                            bEnableSnow = false;
-                            CTimeCycle::Initialise();
-                            SetRainRenderParams();
+                            ToggleSnow(false);
                         }
                     };
                 }
@@ -481,9 +484,7 @@ public:
                     auto curState = GetAsyncKeyState(VK_F3);
                     if ((oldState & 0x8000) == 0 && (curState & 0x8000))
                     {
-                        bEnableSnow = !bEnableSnow;
-                        CTimeCycle::Initialise();
-                        SetRainRenderParams();
+                        ToggleSnow(!bEnableSnow);
                     }
                     oldState = curState;
                 };
@@ -576,9 +577,7 @@ public:
 
                 NativeOverride::RegisterPhoneCheat("7665550100", []
                 {
-                    bEnableSnow = !bEnableSnow;
-                    CTimeCycle::Initialise();
-                    SetRainRenderParams();
+                    ToggleSnow(!bEnableSnow);
                 });
 
                 // LCS Snow test
