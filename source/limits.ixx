@@ -181,7 +181,7 @@ public:
 
             // Liveries
             {
-                static std::map<uint32_t, std::array<uint32_t, CHAR_MAX + 1>> liveries;
+                static std::unordered_map<uint32_t, std::array<uint32_t, CHAR_MAX + 1>> liveries;
 
                 auto pattern = hook::pattern("89 86 ? ? ? ? 89 86 ? ? ? ? 89 86 ? ? ? ? 89 86 ? ? ? ? C7 86 ? ? ? ? ? ? ? ? C7 86 ? ? ? ? ? ? ? ? C7 86 ? ? ? ? ? ? ? ? C7 86 ? ? ? ? ? ? ? ? C7 86");
                 if (!pattern.empty())

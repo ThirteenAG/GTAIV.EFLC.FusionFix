@@ -145,8 +145,8 @@ public:
 
     IDirect3DPixelShader9* CascadeAtlasGen = nullptr;
 
-    std::map<IDirect3DPixelShader9*, int> ShaderListPS;
-    std::map<IDirect3DVertexShader9*, int> ShaderListVS;
+    std::unordered_map<IDirect3DPixelShader9*, int> ShaderListPS;
+    std::unordered_map<IDirect3DVertexShader9*, int> ShaderListVS;
 
     float AoDistance = 100;
     float AOFocusPoint[4] = { 350, 0, 0, 0 };

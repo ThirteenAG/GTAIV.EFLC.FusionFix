@@ -44,10 +44,10 @@ private:
     static inline std::filesystem::path cfgPath;
     static inline std::vector<MenuPrefs> aMenuPrefs;
     static inline auto firstCustomID = 0;
-    static inline std::map<int32_t, std::pair<std::string, std::string>> slidersList;
+    static inline std::unordered_map<int32_t, std::pair<std::string, std::string>> slidersList;
 private:
     static inline int32_t* mPrefs = nullptr;
-    static inline std::map<uint32_t, CSetting> mFusionPrefs;
+    static inline std::unordered_map<uint32_t, CSetting> mFusionPrefs;
 
     std::optional<std::string> GetPrefNameByID(auto prefID) {
         auto it = std::find_if(std::begin(aMenuPrefs), std::end(aMenuPrefs), [&prefID](auto& it) {

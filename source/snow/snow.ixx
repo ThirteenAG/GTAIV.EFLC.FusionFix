@@ -500,7 +500,15 @@ public:
                         mBeforeLightingCB->Append();
                 };
 
-                static std::map<std::tuple<int, int, int>, float> LightVolumeIntensity;
+                struct hash_tuple
+                {
+                    size_t operator()(const std::tuple<int, int, int>& t) const
+                    {
+                        return get<0>(t) ^ get<1>(t) ^ get<2>(t);
+                    }
+                };
+
+                static std::unordered_map<std::tuple<int, int, int>, float, hash_tuple> LightVolumeIntensity;
                 CRenderPhaseDeferredLighting_LightsToScreen::OnAfterCopyLight() += [](rage::CLightSource* light)
                 {
                     if (bEnableSnow)

@@ -6389,7 +6389,7 @@ public:
         return injector::auto_pointer(nullptr);
     }
 
-    static inline std::map<std::string_view, std::pair<std::function<void()>, int>> customCheatHandlers;
+    static inline std::unordered_map<std::string_view, std::pair<std::function<void()>, int>> customCheatHandlers;
     static inline injector::hook_back<decltype(&Natives::StopMobilePhoneRinging)> hbNATIVE_STOP_MOBILE_PHONE_RINGING;
     static void __cdecl NATIVE_STOP_MOBILE_PHONE_RINGING()
     {

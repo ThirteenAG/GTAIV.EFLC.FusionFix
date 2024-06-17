@@ -477,8 +477,8 @@ export namespace rage
             func(this, index, resolveFlags, unused);
         }
 
-        static inline std::map<std::string, grcTexturePC*> TextureCache;
-        static inline std::map<std::string, grcRenderTargetPC*> RTCache;
+        static inline std::unordered_map<std::string, grcTexturePC*> TextureCache;
+        static inline std::unordered_map<std::string, grcRenderTargetPC*> RTCache;
         static inline SafetyHookInline shCreateTexture{};
         static grcTexturePC* __fastcall CreateTexture(grcTextureFactoryPC* _this, void* edx, const char* name, void* a3)
         {
@@ -705,8 +705,8 @@ export namespace rage
         int m_pNext;
 
     public:
-        static inline std::map<int, std::vector<uint8_t>> GlobalParams;
-        static inline std::map<grmShaderInfo*, std::map<int, std::vector<uint8_t>>> ShaderInfoParams;
+        static inline std::unordered_map<int, std::vector<uint8_t>> GlobalParams;
+        static inline std::unordered_map<grmShaderInfo*, std::unordered_map<int, std::vector<uint8_t>>> ShaderInfoParams;
 
         static inline void* pfngetParamIndex = nullptr;
         static int getParamIndex(grmShaderInfo* instance, const char* name, int a3)
