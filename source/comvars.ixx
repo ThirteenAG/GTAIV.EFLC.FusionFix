@@ -476,6 +476,38 @@ export namespace rage
             auto func = (void(__thiscall*)(grcTextureFactory*, uint32_t, grcDevice::grcResolveFlags*, int32_t))(_vft[16]);
             func(this, index, resolveFlags, unused);
         }
+
+        static inline std::map<std::string, grcTexturePC*> TextureCache;
+        static inline std::map<std::string, grcRenderTargetPC*> RTCache;
+        static inline SafetyHookInline shCreateTexture{};
+        static grcTexturePC* __fastcall CreateTexture(grcTextureFactoryPC* _this, void* edx, const char* name, void* a3)
+        {
+            auto ret = shCreateTexture.fastcall<grcTexturePC*>(_this, edx, name, a3);
+            TextureCache[name] = ret;
+            return ret;
+        }
+
+        static inline SafetyHookInline shCreateRT{};
+        static grcRenderTargetPC* __stdcall CreateRT(const char* name, grcRenderTargetPC* a2, int a3, int a4, int a5, char* a6)
+        {
+            auto ret = shCreateRT.stdcall<grcRenderTargetPC*>(name, a2, a3, a4, a5, a6);
+            RTCache[name] = ret;
+            return ret;
+        }
+
+        static grcTexturePC* GetTextureByName(const char* name)
+        {
+            if (TextureCache.contains(name))
+                return TextureCache[name];
+            return nullptr;
+        }
+
+        static grcRenderTargetPC* GetRTByName(const char* name)
+        {
+            if (RTCache.contains(name))
+                return RTCache[name];
+            return nullptr;
+        }
     };
 
     VALIDATE_SIZE(grcTextureFactoryPC, 0x74);
@@ -796,6 +828,25 @@ export namespace CWeather
     float* NextWeatherPercentage = nullptr;
 }
 
+export namespace RageDirect3DDevice9
+{
+    enum eTexture : uint32_t
+    {
+        unk,
+        unk2,
+        HDRTex,
+    };
+
+    IDirect3DTexture9** g_TexturesBySampler = nullptr;
+
+    IDirect3DTexture9* GetTexture(uint32_t index)
+    {
+        if (index < 272)
+            return g_TexturesBySampler[index];
+        return nullptr;
+    }
+}
+
 export class CRenderPhaseDeferredLighting_LightsToScreen
 {
 public:
@@ -1033,5 +1084,14 @@ public:
         
         pattern = hook::pattern("F3 0F 10 05 ? ? ? ? 8B 44 24 0C 8B 4C 24 04");
         CWeather::NextWeatherPercentage = *pattern.get_first<float*>(4);
+
+        pattern = find_pattern("BF ? ? ? ? F3 AB B8", "BF ? ? ? ? F3 AB B8 ? ? ? ? B9");
+        RageDirect3DDevice9::g_TexturesBySampler = *pattern.get_first<IDirect3DTexture9**>(1);
+
+        pattern = find_pattern("81 EC ? ? ? ? 8D 04 24 68 ? ? ? ? FF B4 24", "8B 44 24 04 81 EC ? ? ? ? 68");
+        rage::grcTextureFactoryPC::shCreateTexture = safetyhook::create_inline(pattern.get_first(0), rage::grcTextureFactoryPC::CreateTexture);
+
+        pattern = find_pattern("53 8B 5C 24 08 56 33 F6", "53 8B 5C 24 08 56 57 33 FF 39 3D");
+        rage::grcTextureFactoryPC::shCreateRT = safetyhook::create_inline(pattern.get_first(0), rage::grcTextureFactoryPC::CreateRT);
     }
 } Common;
