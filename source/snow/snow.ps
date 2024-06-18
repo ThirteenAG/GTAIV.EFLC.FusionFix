@@ -132,7 +132,7 @@ float DecodeLogDepth(float logDepth)
 {
     if(logDepth != 0.99999)
     {
-        float w = pow(NearFarPlane.y / NearFarPlane.x, logDepth) * NearFarPlane.x;
+        float w = pow(abs(NearFarPlane.y / NearFarPlane.x), logDepth) * NearFarPlane.x;
         return ((w - NearFarPlane.x) * NearFarPlane.y) / ((NearFarPlane.y - NearFarPlane.x) * w);
     }
     else
