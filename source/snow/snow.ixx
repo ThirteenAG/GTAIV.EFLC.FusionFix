@@ -528,7 +528,7 @@ public:
                     }
                 };
 
-                pattern = hook::pattern("C7 84 24 ? ? ? ? ? ? ? ? FF 74 06 44");
+                auto pattern = hook::pattern("C7 84 24 ? ? ? ? ? ? ? ? FF 74 06 44");
                 if (!pattern.empty())
                 {
                     struct LightsHook
