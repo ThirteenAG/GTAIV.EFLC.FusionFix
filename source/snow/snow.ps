@@ -1,4 +1,3 @@
-//compile with fxc with "/T ps_3_0 /nologo /Fo Snow.pso Snow.ps" and export the bytecode with your preferred hex editor or whatever
 #define LOG_DEPTH 1
 
 uniform sampler2D GBufferNormalSampler : register(s0);
@@ -49,7 +48,11 @@ PSOut main(PSIn psIn)
     float ao = tex2D(GBufferSpecularAoSampler, psIn.TexCoord).z;
     
     float treeMask = abs(stencil - 3.0) < 0.1 ? 1.0 : 0.0;
-    float objectMask = stencil > 0.0 ? 0.0 : 1.0;
+    float objectMask = 0.0;
+    if(stencil < 0.99 || abs(stencil - 128.0) < 0.1)
+    {
+        objectMask = 1.0;
+    }
     
     float3 posWS = psIn.TexCoord1.xyz / -depth + ViewInverse[3].xyz;
     const float3 snowDir = float3(0.001425, -0.00771, 0.996);
@@ -129,7 +132,7 @@ float DecodeLogDepth(float logDepth)
 {
     if(logDepth != 0.99999)
     {
-        float w = pow(abs(NearFarPlane.y / NearFarPlane.x), logDepth) * NearFarPlane.x;
+        float w = pow(NearFarPlane.y / NearFarPlane.x, logDepth) * NearFarPlane.x;
         return ((w - NearFarPlane.x) * NearFarPlane.y) / ((NearFarPlane.y - NearFarPlane.x) * w);
     }
     else
