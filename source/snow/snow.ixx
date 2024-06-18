@@ -490,9 +490,6 @@ public:
                 };
                 #endif
 
-                auto pattern = find_pattern("A3 ? ? ? ? E8 ? ? ? ? 83 EC 0C", "A3 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? 5E");
-                rage::grcTextureFactory::g_pTextureFactory = *pattern.get_first<rage::grcTextureFactoryPC**>(1);
-
                 CRenderPhaseDeferredLighting_LightsToScreen::OnBuildRenderList() += []()
                 {
                     Init();
