@@ -38,12 +38,20 @@
 	
 	
     dcl_texcoord v0.xy
-    dcl_2d s1
+    dcl_2d s3
     dcl_2d s2
-    texld r1, v0.xy, s1
+    texld r1, v0.xy, s3
     texld r2, v0.xy, s2
-	mul oC0, r1, r2
+    pow r1.y, r1.y, c0.y
+    add r1.y, c0.w, -r1.y
+    pow r1.x, r1.x, -c3.w
+    
+    // dest = src0 * src1 + (1-src0) * src2    
+    lrp r3.x, r1.y, r1.x, c0.w
+	mul oC0, r3.x, r2
+	//mov oC0, r3.x
 	mov oC0.w, c0.w
 	
 
 // approximately 134 instruction slots used (9 texture, 125 arithmetic)
+

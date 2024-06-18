@@ -9,7 +9,7 @@
 
 // float4 SMAA_RT_METRICS = float4(1/1280.0, 1/720.0, 1280, 720): register(c24);
 float4 SMAA_RT_METRICS : register(c24);
-// float4 PostFxINT : register(c5); // = float4(UsePostFx.x, 2, 3, 4);
+float4 PostFxINT : register(c5); // = float4(UsePostFx.x, 2, 3, 4);
 // float4 gDepthFxParams : register(c16);
 
 
@@ -967,15 +967,15 @@ float4 SMAANeighborhoodBlendingPS(float2 texcoord: TEXCOORD0,
         #endif
 
         // Debug SMAA textures. (UsePostFx)
-        // if(PostFxINT.x == PostFxINT.y){
-        //     color = SMAASample(colorTex, texcoord);
-        // }
-        // if(PostFxINT.x == PostFxINT.z){
-        //     color = SMAASample(blendTex, texcoord);
-        // }
-        // if(PostFxINT.x == PostFxINT.w){
-        //     color = SMAASample(edgesTex, texcoord);
-        // }
+        if(PostFxINT.x == PostFxINT.y){
+            color = SMAASample(colorTex, texcoord);
+        }
+        if(PostFxINT.x == PostFxINT.z){
+            color = SMAASample(blendTex, texcoord);
+        }
+        if(PostFxINT.x == PostFxINT.w){
+            color = SMAASample(edgesTex, texcoord);
+        }
 
         return color;
     }

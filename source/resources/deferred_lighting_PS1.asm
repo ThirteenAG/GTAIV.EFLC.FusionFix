@@ -56,7 +56,7 @@
 //
 
     ps_3_0
-    // def c219, 1.8395173895e+25, 3.9938258725e+24, 4.5435787456e+30, 8.4077907859e-45 // 6
+    def c219, 1.8395173895e+25, 3.9938258725e+24, 4.5435787456e+30, 8.4077907859e-45 // 6
     def c99, 0.1, 0, 0, 0 // normal offset bias magnitude
     def c127, 0.9999999, 1, 0, 0	// LogDepth constants
     def c0, 512, 0.99609375, 7.96875, 63.75
@@ -113,6 +113,7 @@
     dcl_2d s5
 	dcl_2d s6
     dcl_2d s10
+    dcl_2d s11
     dcl_2d s15
     texld r1, v0, s1
     mul r2.xyz, r1.w, c0.yzww
@@ -139,10 +140,8 @@
 		
 		min r0, r20.w, c127.x		// FP error hack
 	endif
-	
 	// ----------------------------------------------------------------------------------------------------------------------------------------------
     mad r0.x, r0.x, c66.z, -c66.w
-    mov r30.y, r0.x
     mul r0.x, r0.x, v1.w
     rcp r0.x, r0.x
     mad r0.yzw, v1.xxyz, -r0.x, c15.xxyz
@@ -169,6 +168,7 @@
     mad r1.xyz, r20, c99.x, r1 // normal offset bias
     mad r0.zw, r1.xyxy, r2.xyxy, r3.xyxy
     
+	// ---------------------------------------------------------- Improved Shadow Filter ------------------------------------------------------------
 	mov r20.xy, c53.y
 	rcp r20.z, c58.x
 	mul r20.z, r20.z, c57.x
@@ -191,9 +191,6 @@
 	add_sat r24, c110.y, -r24_abs
 	m4x4 r25, r21_abs, c114
 	dp4 r25.x, r25, r24
-	
-		
-
 	add r1.z, r1.z, -r25.x // apply per cascade bias
 	
 	dp4 r20.z, r21_abs, c120 // fix pixels leaking into other cascades
@@ -338,12 +335,19 @@
     mul_sat r20.y, r20.y, r0.y
     mul r20.y, r20.y, r20.y
     lrp r0.y, r20.y, c110.y, r20.x // improved fadeout
-	
-		mov r30.x, r0.y	
-		mov oC0, r30
-	
-	/*
+    texld r30, v0, s11
+    mov r0.y, r30.x
 	// ----------------------------------------------------------------------------------------------------------------------------------------------
+    /* moved normal
+    texld r1, v0, s1
+    mul r2.xyz, r1.w, c0.yzww
+    frc r2.xyz, r2
+    add r3.xyz, r2, r2
+    mad r3.xy, r2.yzzw, -c1.x, r3
+    mad r1.xyz, r1, c1.y, r3
+    add r1.xyz, r1, c1.z
+    nrm r2.xyz, r1
+    moved normal */
     mov r2.xyz, r31.xyz
     mad r1.xyz, v1, -r0.x, c1.w
 	// ----------------------------------------------------------- Console Tree Lighting ------------------------------------------------------------
@@ -487,8 +491,6 @@
 		mad oC0.xyz, r0.w, r1.yzw, r0.xyz
 		mov oC0.w, c2.w
 	endif
-	*/
-	
 	// ----------------------------------------------------------------------------------------------------------------------------------------------
 
 // approximately 167 instruction slots used (18 texture, 149 arithmetic)

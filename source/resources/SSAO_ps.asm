@@ -80,7 +80,8 @@
         rcp r20.z, r20.z
         // mul r2, r20.y, r20.z        // Linear depth
         mul r2.x, c211.y, r2.x
-
+		mov r30.y, r2.y
+		
     add r1.xw, c3.x, v0.xyzy
     mul r4.xy, r1.xwzw, c119
     mov r4.z, c3.y
@@ -295,6 +296,9 @@
     dp4 r0.x, r2, -c0.z
     log r0.x, r0.x
     mul r0.x, r0.x, c117.w
-    exp oC0, r0.x
+    exp r31, r0.x
+    mov r30.x, r31.x
+	mov oC0, r30
 
 // approximately 134 instruction slots used (9 texture, 125 arithmetic)
+
