@@ -3,6 +3,8 @@ module;
 #include <common.hxx>
 #include <d3dx9tex.h>
 #include "snow.h"
+#include <chrono>
+#include <ctime>
 
 export module snow;
 
@@ -455,24 +457,34 @@ public:
             if (GetD3DX9_43DLL())
             {
                 auto now = std::chrono::system_clock::now();
-                std::time_t now_c = std::chrono::system_clock::to_time_t(now);
-                struct tm* date = std::localtime(&now_c);
+                auto now_c = std::chrono::system_clock::to_time_t(now);
+                auto date = std::localtime(&now_c);
 
-                if ((date->tm_mon == 0 && date->tm_mday <= 2) || (date->tm_mon == 11 && date->tm_mday >= 30))
+                if ((date->tm_mon == 0 && date->tm_mday <= 2) || (date->tm_mon == 11 && date->tm_mday >= 29))
                 {
                     FusionFix::onGameProcessEvent() += []()
                     {
                         auto now = std::chrono::system_clock::now();
-                        std::time_t now_c = std::chrono::system_clock::to_time_t(now);
-                        struct tm* date = std::localtime(&now_c);
+                        auto now_c = std::chrono::system_clock::to_time_t(now);
+                        auto date = std::localtime(&now_c);
 
                         if ((date->tm_mon == 0 && date->tm_mday <= 2) || (date->tm_mon == 11 && date->tm_mday >= 30))
                         {
-                            ToggleSnow(true);
+                            static bool bOnce = false;
+                            if (!bOnce)
+                            {
+                                bOnce = true;
+                                ToggleSnow(true);
+                            }
                         }
                         else if (bEnableSnow)
                         {
-                            ToggleSnow(false);
+                            static bool bOnce = false;
+                            if (!bOnce)
+                            {
+                                bOnce = true;
+                                ToggleSnow(false);
+                            }
                         }
                     };
                 }
