@@ -927,31 +927,6 @@ public:
         static FusionFix::Event<> AfterPostFX;
         return AfterPostFX;
     }
-    static FusionFix::Event<>& onInsteadPostFX() {
-        static FusionFix::Event<> InsteadPostFX;
-        return InsteadPostFX;
-    }
-
-    static inline thread_local bool bInsteadDrawPrimitivePostFX = false;
-    static inline injector::hook_back<void(__fastcall*)(void*, void*, int, int, int)> hbDrawCallPostFX;
-    static void __fastcall DrawCallPostFX(void* _this, void* edx, int a2, int a3, int a4) {
-        bInsteadDrawPrimitivePostFX = true;
-        hbDrawCallPostFX.fun(_this, edx, a2, a3, a4);
-        bInsteadDrawPrimitivePostFX = false;
-    }
-
-    static inline injector::hook_back<void(__stdcall*)()> hbDrawPrimitivePostFX;
-    static void __stdcall DrawPrimitivePostFX() {
-        if(bInsteadDrawPrimitivePostFX)
-        {
-            bInsteadDrawPrimitivePostFX = false;
-            onInsteadPostFX().executeAll();
-        }
-        else
-        {
-            hbDrawPrimitivePostFX.fun();
-        }
-    }
 
     static inline SafetyHookInline shBuildRenderList{};
     static void __fastcall BuildRenderList(CBaseDC* _this, void* edx)
@@ -1120,12 +1095,6 @@ public:
 
         pattern = find_pattern("55 8B EC 83 E4 F0 83 EC 18 56 57 8B F9 83 BF", "55 8B EC 83 E4 F0 83 EC 24 53 56 8B D9 83 BB");
         CRenderPhaseDrawScene::shBuildRenderList = safetyhook::create_inline(pattern.get_first(0), CRenderPhaseDrawScene::BuildRenderList);
-
-        pattern = find_pattern("E8 ? ? ? ? 8B 4F 60 E8 ? ? ? ? 8B 4F 60", "E8 ? ? ? ? 8B 4F 60 E8 ? ? ? ? 8B 4F 60");
-        CRenderPhaseDrawScene::hbDrawPrimitivePostFX.fun = injector::MakeCALL(pattern.get_first(0), CRenderPhaseDrawScene::DrawPrimitivePostFX).get();
-
-        pattern = find_pattern("E8 ? ? ? ? 6A 0A FF B7", "E8 ? ? ? ? 8B 8E ? ? ? ? 8B 56 10");
-        CRenderPhaseDrawScene::hbDrawCallPostFX.fun = injector::MakeCALL(pattern.get_first(0), CRenderPhaseDrawScene::DrawCallPostFX).get();
 
         pattern = hook::pattern("F3 0F 11 05 ? ? ? ? A3 ? ? ? ? A3 ? ? ? ? A3 ? ? ? ? F3 0F 11 0D");
         if (pattern.empty())

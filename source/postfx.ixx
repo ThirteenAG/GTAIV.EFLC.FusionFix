@@ -193,10 +193,7 @@ public:
     float NoiseSale[4] = { 1.f / 256, 0.3f, -0.5f, 0 };
     float BilateralDepthTreshold[4] = { 0.003f, 0.002f, 0.004f, 0.005f };
 
-    bool fixDistantOutlineUsingDXVK = false;
-
     bool shadersLoaded = false;
-    bool EnablePostfx = false;
 
     bool loadShaders(LPDIRECT3DDEVICE9 pDevice, HMODULE hm) {
         ID3DXBuffer* bf1 = nullptr;
@@ -332,9 +329,6 @@ public:
         DofSamples[0] = iniReader.ReadInteger("SRF", "DofSamples", 20);
         NoiseSale[0] = iniReader.ReadFloat("SRF", "NoiseSale", 1.f / 256.f);
         BilateralDepthTreshold[0] = iniReader.ReadFloat("SRF", "BilateralDepthTreshold", 0.003f);
-
-        fixDistantOutlineUsingDXVK = iniReader.ReadInteger("SRF", "fixDXVKOutlines", 0) != 0;
-        EnablePostfx = iniReader.ReadInteger("SRF", "EnablePostfx  ", 0) != 0;
     }
 
     void createTextures(UINT Width, UINT Height, HMODULE hm) {
@@ -640,10 +634,10 @@ private:
             blueTimerVec4[2] = static_cast<float>(blueTimer) / float(volumeDescription.Depth);
             blueTimerVec4[3] = static_cast<float>(blueTimer);
         }
-        vec4[0] = 1.f / getWindowWidth();
-        vec4[1] = 1.f / getWindowHeight();
-        vec4[2] = getWindowWidth();
-        vec4[3] = getWindowHeight();
+        vec4[0] = 1.f / static_cast<float>(getWindowWidth());
+        vec4[1] = 1.f / static_cast<float>(getWindowHeight());
+        vec4[2] = static_cast<float>(getWindowWidth());
+        vec4[3] = static_cast<float>(getWindowHeight());
 
 
         pDevice->SetPixelShaderConstantI(5, SunShaftsSamplesa, 1);
@@ -1111,20 +1105,42 @@ private:
         return S_FALSE;
     }
 
+    static inline thread_local bool bInsteadDrawPrimitivePostFX = false;
+    static inline injector::hook_back<void(__fastcall*)(void*, void*, int, int, int)> hbDrawCallPostFX;
+    static void __fastcall DrawCallPostFX(void* _this, void* edx, int a2, int a3, int a4) {
+        bInsteadDrawPrimitivePostFX = true;
+        hbDrawCallPostFX.fun(_this, edx, a2, a3, a4);
+        bInsteadDrawPrimitivePostFX = false;
+    }
+
+    static inline injector::hook_back<void(__stdcall*)()> hbDrawPrimitivePostFX;
+    static void __stdcall DrawPrimitivePostFX() {
+        if (bInsteadDrawPrimitivePostFX)
+        {
+            bInsteadDrawPrimitivePostFX = false;
+            Init();
+            NewPostFX();
+        }
+        else
+        {
+            hbDrawPrimitivePostFX.fun();
+        }
+    }
+
 public:
     PostFX()
     {
         FusionFix::onInitEventAsync() += []()
         {
+            auto pattern = find_pattern("E8 ? ? ? ? 8B 4F 60 E8 ? ? ? ? 8B 4F 60", "E8 ? ? ? ? 8B 4F 60 E8 ? ? ? ? 8B 4F 60");
+            hbDrawPrimitivePostFX.fun = injector::MakeCALL(pattern.get_first(0), DrawPrimitivePostFX).get();
+
+            pattern = find_pattern("E8 ? ? ? ? 6A 0A FF B7", "E8 ? ? ? ? 8B 8E ? ? ? ? 8B 56 10");
+            hbDrawCallPostFX.fun = injector::MakeCALL(pattern.get_first(0), DrawCallPostFX).get();
+
             PostFxResources.Readini();
             if (GetD3DX9_43DLL())
             {
-                CRenderPhaseDrawScene::onInsteadPostFX() += []()
-                {
-                    Init();
-                    NewPostFX();
-                };
-
                 FusionFix::D3D9::onAfterCreateVertexShader() += [] (LPDIRECT3DDEVICE9& pDevice, DWORD*& pFunction, IDirect3DVertexShader9**& ppShader) {
                     int id = GetFusionShaderID(*ppShader);
                     if((*ppShader) && id >= 0)
@@ -1162,7 +1178,7 @@ public:
                             SAFE_RELEASE(oldRenderTarget1);
                             SAFE_RELEASE(DiffuseSurf);
                             FusionFix::D3D9::setInsteadDrawPrimitive(true);
-                            return hr;
+                            return;
                         }
                         SAFE_RELEASE(DiffuseSurf);
                     }
