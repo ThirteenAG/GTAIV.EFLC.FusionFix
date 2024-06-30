@@ -45,7 +45,7 @@ void* __cdecl CModelInfoStore__allocateInstanceModelHook(char* modelName)
     return injector::cstd<void* (char*)>::call(CModelInfoStore__allocateInstanceModel, modelName);
 }
 
-std::vector<std::string> modelNames = { "track", "fence", "rail", "pillar", "post", "road", "trn", "trk" };
+std::vector<std::string> modelNames = { "track", "fence", "rail", "pillar", "post", "trn", "trk" };
 injector::memory_pointer_raw CBaseModelInfo__setFlags = nullptr;
 void __cdecl CBaseModelInfo__setFlagsHook(void* pModel, int dwFlags, int a3)
 {
@@ -87,7 +87,6 @@ public:
             CIniReader iniReader("");
 
             //[SHADOWS]
-            bool bFlickeringShadowsFix = iniReader.ReadInteger("SHADOWS", "FlickeringShadowsFix", 1) != 0;
             bExtraDynamicShadows = iniReader.ReadInteger("SHADOWS", "ExtraDynamicShadows", 1);
             bDynamicShadowForTrees = iniReader.ReadInteger("SHADOWS", "DynamicShadowForTrees", 0) != 0;
             bool bOverrideCascadeRanges = iniReader.ReadInteger("SHADOWS", "OverrideCascadeRanges", 1) != 0;
@@ -110,12 +109,6 @@ public:
 
                 if (bExtraDynamicShadows == 2)
                     modelNames.insert(modelNames.end(), vegetationNames.begin(), vegetationNames.end());
-            }
-
-            if (bFlickeringShadowsFix)
-            {
-                auto pattern = find_pattern<2>("C3 68 ? ? ? ? 6A 02 6A 00 E8 ? ? ? ? 83 C4 40 8B E5 5D C3", "50 68 ? ? ? ? 6A 02 6A 00 E8 ? ? ? ? 83 C4 40 5B 8B E5 5D C3");
-                injector::WriteMemory(pattern.count(2).get(1).get<void*>(2), 0x100, true);
             }
 
             if (bOverrideCascadeRanges)
