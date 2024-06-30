@@ -14,7 +14,7 @@
 //
 //   Name                                Reg   Size
 //   ----------------------------------- ----- ----
-//   globalScreenSize                    c210      1
+//   globalScreenSize                    c44      1
 //   gDeferredLightColourAndIntensity    c117     1
 //   gDeferredProjParams                 c119     1
 //   g_fSSAOKernelScale                  c137     1
@@ -28,29 +28,19 @@
     def c3, -0.5, 0.5, 0, -2
     def c4, 1.00010002, 4.5, 14.9069996, 0.5
 	
-    // def c117     ,1, 1, 1, 1   //   gDeferredLightColourAndIntensity    
-    // def c119     ,1, 1, 1, 1   //   gDeferredProjParams                 
-    // def c137     ,1, 1, 1, 1   //   g_fSSAOKernelScale                  
     def c117, 1, 1, 1, 1          //   gDeferredLightColourAndIntensity    
     def c119, 0.5, 0.25, 1, 1     //   gDeferredProjParams                 
     def c137, 0.5, 1, 1, 1        //   g_fSSAOKernelScale                  
-    // def c210, 1280, 720, 0.00078125, 0.01388888
-	
+    // def c44, 1280, 720, 0.00078125, 0.01388888	
 	
     dcl_texcoord v0.xy
     dcl_2d s1
     mov r0.y, c3.y
-    rcp r1.y, c210.x
-    rcp r1.z, c210.y
+    rcp r1.y, c44.x
+    rcp r1.z, c44.y
     mad r1.xw, r1.zyzy, c3.zyzw, v0.yyzx
     add r2.xy, r1.xwzw, c3.x
-    texld r3, r1.wxzw, s1
-	
-		// rcp r30.w, c128.x
-		// mul r30.w, r30.w, c128.y		
-	
-		// pow r30.x, r30.w, r3.x
-		// mul r30.x, r30.x, c128.y
+    texld r3, r1.wxzw, s1	
 	
         rcp r20.x, c128.x
         mul r20.x, r20.x, c128.y
@@ -160,7 +150,7 @@
     mul_sat r0.y, r0.x, c137.x
     mad r0.y, r0.y, c0.x, c0.y
     mul r0.yz, r0.y, r1
-    mov r1.xy, c210
+    mov r1.xy, c44
     mul r1, r1.xyxy, c4.yzww
     dp2add r0.w, v0, r1, c3.z
     mad r0.w, r0.w, c1.x, c1.y

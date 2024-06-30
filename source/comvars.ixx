@@ -325,7 +325,7 @@ export namespace rage
         uint16_t mHeight;
         grcTextureFormat mFormat;
         uint8_t mIndex;
-        bool mBitsPerPixel;
+        uint8_t mBitsPerPixel;
         uint8_t mMultisampleCount;
         bool field_44;
         uint8_t gap45[2];
@@ -488,9 +488,25 @@ export namespace rage
         }
 
         static inline SafetyHookInline shCreateRT{};
-        static grcRenderTargetPC* __stdcall CreateRT(const char* name, grcRenderTargetPC* a2, int a3, int a4, int a5, char* a6)
+        static grcRenderTargetPC* __stdcall CreateRT(const char* name, grcRenderTargetPC* a2, int width, int height, int bpp, char* a6)
         {
-            auto ret = shCreateRT.stdcall<grcRenderTargetPC*>(name, a2, a3, a4, a5, a6);
+            //TODO:
+            //if(strcmp("PHONE_SCREEN", name) == 0) {
+            //    width  = static_cast<int>((256/1280.f) * 1280/*width*/ );
+            //    height = static_cast<int>((256/720.f) * 720/*height*/);
+            //}
+            //else if(strcmp("PHOTO", name) == 0) {
+            //    width  = static_cast<int>((256/1280.f) * 1280/*width*/ /4);
+            //    height = static_cast<int>((256/720.f) * 720/*height*//4);
+            //}
+
+            auto ret = shCreateRT.stdcall<grcRenderTargetPC*>(name, a2, width, height, bpp, a6);
+            
+            //     if(strcmp("WATER_REFLECTION_COLOUR", name) == 0) { ret->mMultisampleCount=1; }
+            //else if(strcmp("WATER_REFLECTION_DEPTH" , name) == 0) { ret->mMultisampleCount=1; }
+            //else if(strcmp("REFLECTION_MAP_COLOUR"  , name) == 0) { ret->mMultisampleCount=1; }
+            //else if(strcmp("REFLECTION_MAP_DEPTH"   , name) == 0) { ret->mMultisampleCount=1; }
+
             RTCache[name] = ret;
             return ret;
         }
@@ -911,13 +927,30 @@ public:
         static FusionFix::Event<> AfterPostFX;
         return AfterPostFX;
     }
+    static FusionFix::Event<>& onInsteadPostFX() {
+        static FusionFix::Event<> InsteadPostFX;
+        return InsteadPostFX;
+    }
 
-    static inline injector::hook_back<void(__cdecl*)(void*)> hbCBaseDCexecute;
-    static void __cdecl DrawPostFXHook(void* cb)
-    {
-        onBeforePostFX().executeAll();
-        hbCBaseDCexecute.fun(cb);
-        onAfterPostFX().executeAll();
+    static inline thread_local bool bInsteadDrawPrimitivePostFX = false;
+    static inline injector::hook_back<void(__fastcall*)(void*, void*, int, int, int)> hbDrawCallPostFX;
+    static void __fastcall DrawCallPostFX(void* _this, void* edx, int a2, int a3, int a4) {
+        bInsteadDrawPrimitivePostFX = true;
+        hbDrawCallPostFX.fun(_this, edx, a2, a3, a4);
+        bInsteadDrawPrimitivePostFX = false;
+    }
+
+    static inline injector::hook_back<void(__stdcall*)()> hbDrawPrimitivePostFX;
+    static void __stdcall DrawPrimitivePostFX() {
+        if(bInsteadDrawPrimitivePostFX)
+        {
+            bInsteadDrawPrimitivePostFX = false;
+            onInsteadPostFX().executeAll();
+        }
+        else
+        {
+            hbDrawPrimitivePostFX.fun();
+        }
     }
 
     static inline SafetyHookInline shBuildRenderList{};
@@ -1088,8 +1121,11 @@ public:
         pattern = find_pattern("55 8B EC 83 E4 F0 83 EC 18 56 57 8B F9 83 BF", "55 8B EC 83 E4 F0 83 EC 24 53 56 8B D9 83 BB");
         CRenderPhaseDrawScene::shBuildRenderList = safetyhook::create_inline(pattern.get_first(0), CRenderPhaseDrawScene::BuildRenderList);
 
-        pattern = find_pattern("E8 ? ? ? ? E9 ? ? ? ? 33 C0 50 E8 ? ? ? ? E9 ? ? ? ? E8 ? ? ? ? 83 C4 08", "E8 ? ? ? ? 6A 00 68 ? ? ? ? E8 ? ? ? ? 83 C4 08 85 C0 74 10 8D 93 ? ? ? ? 52 8B C8 E8 ? ? ? ? EB 02 33 C0 8B C8 E8 ? ? ? ? F7 83");
-        CRenderPhaseDrawScene::hbCBaseDCexecute.fun = injector::MakeCALL(pattern.get_first(0), CRenderPhaseDrawScene::DrawPostFXHook).get();
+        pattern = find_pattern("E8 ? ? ? ? 8B 4F 60 E8 ? ? ? ? 8B 4F 60", "E8 ? ? ? ? 8B 4F 60 E8 ? ? ? ? 8B 4F 60");
+        CRenderPhaseDrawScene::hbDrawPrimitivePostFX.fun = injector::MakeCALL(pattern.get_first(0), CRenderPhaseDrawScene::DrawPrimitivePostFX).get();
+
+        pattern = find_pattern("E8 ? ? ? ? 6A 0A FF B7", "E8 ? ? ? ? 8B 8E ? ? ? ? 8B 56 10");
+        CRenderPhaseDrawScene::hbDrawCallPostFX.fun = injector::MakeCALL(pattern.get_first(0), CRenderPhaseDrawScene::DrawCallPostFX).get();
 
         pattern = hook::pattern("F3 0F 11 05 ? ? ? ? A3 ? ? ? ? A3 ? ? ? ? A3 ? ? ? ? F3 0F 11 0D");
         if (pattern.empty())
