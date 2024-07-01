@@ -405,9 +405,9 @@ public:
             // Fix Cascaded Shadow Map Resolution
             {
                 // Clamp night shadow resolution to 512x512 @ Very High (was 1024x1024)
-                auto pattern = hook::pattern("B9 ? ? ? ? 3B C1 0F 4F C1 C3 33 C0 C3");
+                auto pattern = hook::pattern("83 3D ? ? ? ? ? 7E 12 B8 ? ? ? ? D3 E0 B9 ? ? ? ? 3B C1 0F 4F C1 C3");
                 if (!pattern.empty())
-                    injector::WriteMemory(pattern.get_first(1), 0x200, true);
+                    injector::WriteMemory(pattern.get_first(17), 0x200, true);
                 else
                 {
                     pattern = hook::pattern("3D ? ? ? ? 7E 05 B8 ? ? ? ? C3");
