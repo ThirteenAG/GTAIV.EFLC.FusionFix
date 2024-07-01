@@ -191,22 +191,7 @@ public:
                     {
                         static float arr5[4];
 
-                        switch (FusionFixSettings.Get("PREF_WATER_QUALITY"))
-                        {
-                        case 0:
-                            arr5[0] = 2.0f;
-                            break;
-                        case 1:
-                            arr5[0] = 1.0f;
-                            break;
-                        case 2:
-                            arr5[0] = 0.5f;
-                            break;
-                        case 3:
-                        default:
-                            arr5[0] = 0.25f;
-                            break;
-                        }
+                        arr5[0] = 0.0f;
 
                         switch (FusionFixSettings.Get("PREF_BLOOM"))
                         {
@@ -269,16 +254,6 @@ public:
         {
             CIniReader iniReader("");
             static auto bFixRainDrops = iniReader.ReadInteger("MISC", "FixRainDrops", 1) != 0;
-            static auto nRainDropsBlur = iniReader.ReadInteger("MISC", "RainDropsBlur", 2);
-            if (nRainDropsBlur < 1) {
-                nRainDropsBlur = 1;
-            }
-            if (nRainDropsBlur > 4) {
-                nRainDropsBlur = 4;
-            }
-            if (nRainDropsBlur != 1 && nRainDropsBlur != 2 && nRainDropsBlur != 4) {
-                nRainDropsBlur = 2;
-            }
 
             //SetRenderState D3DRS_ADAPTIVETESS_X
             auto pattern = hook::pattern("74 ? 68 4E 56 44 42 68");
@@ -301,8 +276,8 @@ public:
             
             FusionFix::D3D9::onAfterCreateTexture() += [](LPDIRECT3DDEVICE9& pDevice, UINT& Width, UINT& Height, UINT& Levels, DWORD& Usage, D3DFORMAT& Format, D3DPOOL& Pool, IDirect3DTexture9**& ppTexture, HANDLE*& pSharedHandle)
             {
-                if (bFixRainDrops && Format == D3DFMT_A16B16G16R16F && Width == (gRect.right - gRect.left) / nRainDropsBlur &&
-                    Height == (gRect.bottom - gRect.top) / nRainDropsBlur && ppTexture != nullptr && *ppTexture != nullptr) {
+                if (bFixRainDrops && Format == D3DFMT_A16B16G16R16F && Width == *rage::grcDevice::ms_nActiveWidth / 2 &&
+                    Height == *rage::grcDevice::ms_nActiveHeight / 2 && ppTexture != nullptr && *ppTexture != nullptr) {
                     pHDRTexQuarter = *ppTexture;
                 }
             };

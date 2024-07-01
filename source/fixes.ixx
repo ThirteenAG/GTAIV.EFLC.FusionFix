@@ -56,10 +56,12 @@ public:
         return r;
     }
 
-    static inline SafetyHookInline shSetShadowRes{};
-    static void SetShadowRes(int shadow_res, int a2, int a3)
+    static inline injector::hook_back<void* (__fastcall*)(void*, void*, int, int, int, char, char, int, int)> hbCMobilePhone__CreateRenderTarget;
+    static void* __fastcall CMobilePhone__CreateRenderTarget(void* _this, void* edx, int a2, int a3, int a4, char a5, char a6, int a7, int a8)
     {
-        return shSetShadowRes.ccall(shadow_res * 2, a2, a3);
+        auto res = (int32_t)(std::ceil((float)*rage::grcDevice::ms_nActiveHeight / 720.0f) * 256.0f);
+
+        return hbCMobilePhone__CreateRenderTarget.fun(_this, edx, a2, res, res, a5, a6, a7, a8);
     }
 
     Fixes()
@@ -335,40 +337,6 @@ public:
                 injector::MakeNOP(pattern.get_first(0), 16, true);
             }
 
-            // Fix for light coronas being rendered through objects in water reflections.
-            {
-                static auto bCoronaShader = false;
-                static DWORD CoronaDepth = 0;
-                static IDirect3DVertexShader9* CoronaVertexShader = nullptr;
-                FusionFix::D3D9::onAfterCreateVertexShader() += [](LPDIRECT3DDEVICE9& pDevice, DWORD*& pFunction, IDirect3DVertexShader9**& ppShader)
-                {
-                    static constexpr auto CoronaVertexShaderID = 15;
-                    if (GetFusionShaderID(*ppShader) == CoronaVertexShaderID)
-                        CoronaVertexShader = *ppShader;
-                };
-
-                FusionFix::D3D9::onBeforeDrawPrimitive() += [](LPDIRECT3DDEVICE9& pDevice, D3DPRIMITIVETYPE& PrimitiveType, UINT& StartVertex, UINT& PrimitiveCount)
-                {
-                    IDirect3DVertexShader9* vShader = nullptr;
-                    pDevice->GetVertexShader(&vShader);
-                    if (vShader && CoronaVertexShader && vShader == CoronaVertexShader)
-                    {
-                        bCoronaShader = true;
-                        pDevice->GetRenderState(D3DRS_ZENABLE, &CoronaDepth);
-                        pDevice->SetRenderState(D3DRS_ZENABLE, 1);
-                    }
-                };
-
-                FusionFix::D3D9::onAfterDrawPrimitive() += [](LPDIRECT3DDEVICE9& pDevice, D3DPRIMITIVETYPE& PrimitiveType, UINT& StartVertex, UINT& PrimitiveCount)
-                {
-                    if (bCoronaShader)
-                    {
-                        pDevice->SetRenderState(D3DRS_ZENABLE, CoronaDepth);
-                        bCoronaShader = false;
-                    }
-                };
-            }
-
             // Remove free cam boundary limits in the video editor.
             {
                 auto pattern = hook::pattern("73 5C 56 6A 00 6A 01 E8 ? ? ? ? 83 C4 0C 84 C0 74 4B");
@@ -436,14 +404,59 @@ public:
 
             // Fix Cascaded Shadow Map Resolution
             {
-                if (bHighResolutionShadows)
+                // Clamp night shadow resolution to 512x512 @ Very High (was 1024x1024)
+                auto pattern = hook::pattern("B9 ? ? ? ? 3B C1 0F 4F C1 C3 33 C0 C3");
+                if (!pattern.empty())
+                    injector::WriteMemory(pattern.get_first(1), 0x200, true);
+                else
                 {
-                    auto pattern = find_pattern("83 EC 30 53 8B 5C 24 3C 56 8B 74 24 3C 57 8B 7C 24 48", "83 EC 30 53 8B 5C 24 3C 56 8B 74 24 3C 39 35 ? ? ? ? 57 8B 7C 24 48 75 14");
-                    shSetShadowRes = safetyhook::create_inline(pattern.get_first(), SetShadowRes);
+                    pattern = hook::pattern("3D ? ? ? ? 7E 05 B8 ? ? ? ? C3");
+                    injector::WriteMemory(pattern.count(2).get(0).get<void*>(1), 0x200, true);
+                    injector::WriteMemory(pattern.count(2).get(0).get<void*>(8), 0x200, true);
                 }
 
-                auto pattern = hook::pattern("03 F6 E8 ? ? ? ? 8B 0D");
+                // Remove code that doubled shadow cascade resolution.
+                pattern = find_pattern("03 F6 E8 ? ? ? ? 8B 0D ? ? ? ? 8D 54 24 0C", "03 F6 E8 ? ? ? ? 8B 0D ? ? ? ? 8D 44 24 0C");
                 injector::MakeNOP(pattern.get_first(0), 2, true);
+
+                // WATER_SURFACE0_COLOUR & WATER_SURFACE1_COLOUR texture resolution forced to 256x256. Restores console water tiling from game code side.
+                pattern = hook::pattern("E8 ? ? ? ? 8B 0D ? ? ? ? 8D 54 24 20 52 6A 20 57 57 C6 44 24");
+                if (!pattern.empty())
+                {
+                    static auto WaterSurfaceResHook = safetyhook::create_mid(pattern.get_first(),
+                    [](SafetyHookContext& ctx)
+                    {
+                        ctx.edi = 256;
+                    });
+                }
+                else
+                {
+                    pattern = hook::pattern("E8 ? ? ? ? 8B 0D ? ? ? ? 8D 44 24 24 50 6A 20 56 56 88 5C 24 34 C7 44 24");
+                    static auto WaterSurfaceResHook = safetyhook::create_mid(pattern.get_first(),
+                    [](SafetyHookContext& ctx)
+                    {
+                        ctx.esi = 256;
+                    });
+                }
+
+                static uint32_t dwWaterQuality = 1;
+                pattern = find_pattern("8B 0D ? ? ? ? 03 F0 BA ? ? ? ? 8B C2 D3 E0 8B 0D", "8B 0D ? ? ? ? 03 F0 B8 ? ? ? ? D3 E0 83 C4 04 0F AF C0 8D 0C 80");
+                injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true);
+                pattern = find_pattern("8B 0D ? ? ? ? 83 C4 08 03 F0 83 D5 00 BA ? ? ? ? 8B C2 D3 E0 8B 0D", "8B 0D ? ? ? ? 03 F8 B8 ? ? ? ? D3 E0 8B 0D");
+                injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true);
+                pattern = find_pattern("8B 0D ? ? ? ? 53 BB ? ? ? ? D3 E3 85 D2 0F 85", "8B 0D ? ? ? ? BF ? ? ? ? D3 E7 85 C0 0F 85");
+                injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true);
+                pattern = find_pattern("8B 0D ? ? ? ? F3 0F 10 0D ? ? ? ? B8 ? ? ? ? D3 E0 8B 0D", "8B 0D ? ? ? ? F3 0F 10 05 ? ? ? ? 6A 02 6A 01 BA");
+                injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true);
+                pattern = find_pattern("8B 0D ? ? ? ? BE ? ? ? ? D3 E6 83 3D", "8B 0D ? ? ? ? F3 0F 11 0D ? ? ? ? F3 0F 10 0D");
+                injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true);
+
+                // Scale PHONE_SCREEN texture with screen resolution. 1280x720 -> 256x256 (vanilla default), 1920x1080 -> 512x512, 4K -> 786x768, ...
+                pattern = hook::pattern("E8 ? ? ? ? 50 B9 ? ? ? ? A3 ? ? ? ? E8 ? ? ? ? A3 ? ? ? ? 89 04 24 8D 04 24");
+                if (!pattern.empty())
+                {
+                    hbCMobilePhone__CreateRenderTarget.fun = injector::MakeCALL(pattern.get_first(), CMobilePhone__CreateRenderTarget, true).get();
+                }
 
                 // Switch texture formats
                 // CASCADE_ATLAS
