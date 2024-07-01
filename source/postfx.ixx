@@ -170,6 +170,7 @@ public:
     std::unordered_map<IDirect3DPixelShader9*, int> ShaderListPS;
     std::unordered_map<IDirect3DVertexShader9*, int> ShaderListVS;
 
+    bool EnablePostfx = false;
     float AoDistance = 100;
     float AOFocusPoint[4] = { 350, 0, 0, 0 };
     float AOFocusScale[4] = { 300, 0, 0, 0 };
@@ -304,6 +305,7 @@ public:
 
     void Readini() {
         CIniReader iniReader("");
+        EnablePostfx = iniReader.ReadInteger("SRF", "EnablePostfx", 1);
         UseSunShafts = iniReader.ReadInteger("SUNSHAFTS", "SSType", 2);
         SunShaftsSamples[0] = iniReader.ReadInteger("SUNSHAFTS", "SSamples", 20);
 
@@ -323,8 +325,8 @@ public:
         useStippleFilter = iniReader.ReadInteger("SRF", "StippleFilter", 0) != 0;
 
         // 0 off, 1 horizontal, 2 vertical, 3 horizontal e vertical.
-        useScreenSpaceShadowsBlur = iniReader.ReadInteger("SRF", "ScreenSpaceShadowsBlur", 0);
-        useHardwareBilinearSampling = iniReader.ReadInteger("SRF", "NewShadowAtlas", 0) != 0;
+        //useScreenSpaceShadowsBlur = iniReader.ReadInteger("SRF", "ScreenSpaceShadowsBlur", 0);
+        //useHardwareBilinearSampling = iniReader.ReadInteger("SRF", "NewShadowAtlas", 0) != 0;
 
         DofSamples[0] = iniReader.ReadInteger("SRF", "DofSamples", 20);
         NoiseSale[0] = iniReader.ReadFloat("SRF", "NoiseSale", 1.f / 256.f);
@@ -717,37 +719,6 @@ private:
                         pDevice->SetPixelShader(pShader);
                     }
 
-                    static auto dof = FusionFixSettings.GetRef("PREF_TCYC_DOF");
-                    if(dof->get() > FusionFixSettings.DofText.eCutscenesOnly || (dof->get() == FusionFixSettings.DofText.eCutscenesOnly && Natives::HasCutsceneFinished())) {
-                        if(PostFxResources.useDepthOfField > 0 && PostFxResources.dof_blur_ps && PostFxResources.dof_coc_ps) {
-                            if(PostFxResources.ppZStencilSurface && PostFxResources.halfZStencilSurface && PostFxResources.FullScreenDownsampleSurf && PostFxResources.FullScreenDownsampleSurf2) {
-                                pDevice->SetSamplerState(8, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                                pDevice->SetSamplerState(8, D3DSAMP_ADDRESSU, D3DTADDRESS_MIRROR);
-                                pDevice->SetSamplerState(8, D3DSAMP_ADDRESSV, D3DTADDRESS_MIRROR);
-                                pDevice->SetSamplerState(2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-
-                                pDevice->SetDepthStencilSurface(PostFxResources.halfZStencilSurface);
-
-                                pDevice->SetPixelShader(PostFxResources.dof_blur_ps);
-                                pDevice->SetRenderTarget(0, PostFxResources.FullScreenDownsampleSurf);
-                                pDevice->SetTexture(2, PostFxResources.textureRead);
-                                pDevice->SetTexture(8, PostFxResources.HalfScreenTex);
-                                pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-
-                                pDevice->SetPixelShader(PostFxResources.dof_coc_ps);
-                                pDevice->SetDepthStencilSurface(PostFxResources.ppZStencilSurface);
-                                pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
-                                pDevice->SetTexture(2, PostFxResources.textureRead);
-                                pDevice->SetTexture(8, PostFxResources.FullScreenDownsampleTex);
-                                pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-                                PostFxResources.swapbuffers();
-                                pDevice->SetTexture(8, PostFxResources.HalfScreenTex);
-
-                                pDevice->SetPixelShader(pShader);
-                            }
-                        }
-                    }
-
                     // This implementation has some problems with cuts in some 
                     // places (when smoothing some diagonal lines there are pixels that break the smoothing), 
                     // I didn't find the reason, but using antialiasing.ixx it works almost perfectly despite being 
@@ -789,7 +760,7 @@ private:
                             pDevice->GetSamplerState(3, D3DSAMP_MAGFILTER, &oldSample);
                             pDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
                             pDevice->SetSamplerState(1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                            pDevice->SetSamplerState(2, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+                            pDevice->SetSamplerState(2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
                             pDevice->SetSamplerState(3, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
                             pDevice->SetSamplerState(4, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
                             pDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 0, 0);
@@ -837,6 +808,37 @@ private:
                             pDevice->SetSamplerState(3, D3DSAMP_MAGFILTER, oldSample);
                             pDevice->SetPixelShader(pShader);
                             pDevice->SetVertexShader(vShader);
+                        }
+                    }
+
+                    static auto dof = FusionFixSettings.GetRef("PREF_TCYC_DOF");
+                    if(dof->get() > FusionFixSettings.DofText.eCutscenesOnly || (dof->get() == FusionFixSettings.DofText.eCutscenesOnly && Natives::HasCutsceneFinished())) {
+                        if(PostFxResources.useDepthOfField > 0 && PostFxResources.dof_blur_ps && PostFxResources.dof_coc_ps) {
+                            if(PostFxResources.ppZStencilSurface && PostFxResources.halfZStencilSurface && PostFxResources.FullScreenDownsampleSurf && PostFxResources.FullScreenDownsampleSurf2) {
+                                pDevice->SetSamplerState(8, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+                                pDevice->SetSamplerState(8, D3DSAMP_ADDRESSU, D3DTADDRESS_MIRROR);
+                                pDevice->SetSamplerState(8, D3DSAMP_ADDRESSV, D3DTADDRESS_MIRROR);
+                                pDevice->SetSamplerState(2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+
+                                pDevice->SetDepthStencilSurface(PostFxResources.halfZStencilSurface);
+
+                                pDevice->SetPixelShader(PostFxResources.dof_blur_ps);
+                                pDevice->SetRenderTarget(0, PostFxResources.FullScreenDownsampleSurf);
+                                pDevice->SetTexture(2, PostFxResources.textureRead);
+                                pDevice->SetTexture(8, PostFxResources.HalfScreenTex);
+                                pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
+
+                                pDevice->SetPixelShader(PostFxResources.dof_coc_ps);
+                                pDevice->SetDepthStencilSurface(PostFxResources.ppZStencilSurface);
+                                pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
+                                pDevice->SetTexture(2, PostFxResources.textureRead);
+                                pDevice->SetTexture(8, PostFxResources.FullScreenDownsampleTex);
+                                pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
+                                PostFxResources.swapbuffers();
+                                pDevice->SetTexture(8, PostFxResources.HalfScreenTex);
+
+                                pDevice->SetPixelShader(pShader);
+                            }
                         }
                     }
 
@@ -1076,7 +1078,8 @@ private:
 
                         pDevice->SetPixelShader(pShader);
                         pDevice->SetVertexShader(vShader);
-                        hr = pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
+                        //hr = pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
+                        hbDrawPrimitivePostFX.fun();
                         pDevice->SetTexture(9, 0);
                     }
 
@@ -1132,58 +1135,65 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            auto pattern = find_pattern("E8 ? ? ? ? 8B 4F 60 E8 ? ? ? ? 8B 4F 60", "E8 ? ? ? ? 8B 4F 60 E8 ? ? ? ? 8B 4F 60");
-            hbDrawPrimitivePostFX.fun = injector::MakeCALL(pattern.get_first(0), DrawPrimitivePostFX).get();
-
-            pattern = find_pattern("E8 ? ? ? ? 6A 0A FF B7", "E8 ? ? ? ? 8B 8E ? ? ? ? 8B 56 10");
-            hbDrawCallPostFX.fun = injector::MakeCALL(pattern.get_first(0), DrawCallPostFX).get();
-
             PostFxResources.Readini();
-            if (GetD3DX9_43DLL())
+
+            //if(PostFxResources.EnablePostfx)
             {
-                FusionFix::D3D9::onAfterCreateVertexShader() += [] (LPDIRECT3DDEVICE9& pDevice, DWORD*& pFunction, IDirect3DVertexShader9**& ppShader) {
-                    int id = GetFusionShaderID(*ppShader);
-                    if((*ppShader) && id >= 0)
-                        PostFxResources.ShaderListVS[*ppShader] = id;
-                };
+                auto pattern = find_pattern("E8 ? ? ? ? 8B 4F 60 E8 ? ? ? ? 8B 4F 60", "E8 ? ? ? ? 8B 4F 60 E8 ? ? ? ? 8B 4F 60");
+                hbDrawPrimitivePostFX.fun = injector::MakeCALL(pattern.get_first(0), DrawPrimitivePostFX).get();
 
-                FusionFix::D3D9::onAfterCreatePixelShader() += [] (LPDIRECT3DDEVICE9& pDevice, DWORD*& pFunction, IDirect3DPixelShader9**& ppShader) {
-                    int id = GetFusionShaderID(*ppShader);
-                    if((*ppShader) && id >= 0)
-                        PostFxResources.ShaderListPS[*ppShader] = id;
-                };
+                pattern = find_pattern("E8 ? ? ? ? 6A 0A FF B7", "E8 ? ? ? ? 8B 8E ? ? ? ? 8B 56 10");
+                hbDrawCallPostFX.fun = injector::MakeCALL(pattern.get_first(0), DrawCallPostFX).get();
 
-                FusionFix::D3D9::onBeforeDrawPrimitive() += [] (LPDIRECT3DDEVICE9& pDevice, D3DPRIMITIVETYPE& PrimitiveType, UINT& StartVertex, UINT& PrimitiveCount) {
-                    IDirect3DPixelShader9* pShader = nullptr;
-                    HRESULT hr = S_FALSE;
-                    pDevice->GetPixelShader(&pShader);
-                    int id = 0;
-                    if(pShader)
-                        id = PostFxResources.ShaderListPS[pShader];
-                    // atmoscat clouds
-                    if((id == 65 || id == 66) && PostFxResources.DiffuseTex != nullptr) {
-                        IDirect3DSurface9* DiffuseSurf = nullptr;
-                        PostFxResources.DiffuseTex->GetSurfaceLevel(0, &DiffuseSurf);
-                        if(DiffuseSurf) {
-                            IDirect3DSurface9* oldRenderTarget1 = 0;
-                            pDevice->GetRenderTarget(1, &oldRenderTarget1);
-                            pDevice->SetRenderTarget(1, DiffuseSurf);
-                            if(id == 65)
-                                pDevice->SetPixelShader(PostFxResources.SSDiffuseCloudsGen_PS);
-                            hr = DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
+                if (GetD3DX9_43DLL())
+                {
+                    FusionFix::D3D9::onAfterCreateVertexShader() += [] (LPDIRECT3DDEVICE9& pDevice, DWORD*& pFunction, IDirect3DVertexShader9**& ppShader) {
+                        int id = GetFusionShaderID(*ppShader);
+                        if((*ppShader) && id >= 0)
+                            PostFxResources.ShaderListVS[*ppShader] = id;
+                    };
 
-                            pDevice->SetPixelShader(pShader);
-                            pDevice->SetRenderTarget(1, oldRenderTarget1);
+                    FusionFix::D3D9::onAfterCreatePixelShader() += [] (LPDIRECT3DDEVICE9& pDevice, DWORD*& pFunction, IDirect3DPixelShader9**& ppShader) {
+                        int id = GetFusionShaderID(*ppShader);
+                        if((*ppShader) && id >= 0)
+                            PostFxResources.ShaderListPS[*ppShader] = id;
+                    };
 
-                            SAFE_RELEASE(oldRenderTarget1);
+                    FusionFix::D3D9::onBeforeDrawPrimitive() += [] (LPDIRECT3DDEVICE9& pDevice, D3DPRIMITIVETYPE& PrimitiveType, UINT& StartVertex, UINT& PrimitiveCount) {
+                        IDirect3DPixelShader9* pShader = nullptr;
+                        HRESULT hr = S_FALSE;
+                        pDevice->GetPixelShader(&pShader);
+                        int id = 0;
+                        if(pShader)
+                            id = PostFxResources.ShaderListPS[pShader];
+                        // atmoscat clouds
+                        if((id == 65 || id == 66) && PostFxResources.DiffuseTex != nullptr) {
+                            IDirect3DSurface9* DiffuseSurf = nullptr;
+                            PostFxResources.DiffuseTex->GetSurfaceLevel(0, &DiffuseSurf);
+                            if(DiffuseSurf) {
+                                IDirect3DSurface9* oldRenderTarget1 = 0;
+                                pDevice->GetRenderTarget(1, &oldRenderTarget1);
+                                pDevice->SetRenderTarget(1, DiffuseSurf);
+                                if(id == 65)
+                                    pDevice->SetPixelShader(PostFxResources.SSDiffuseCloudsGen_PS);
+                                hr = DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
+
+                                pDevice->SetPixelShader(pShader);
+                                pDevice->SetRenderTarget(1, oldRenderTarget1);
+
+                                SAFE_RELEASE(oldRenderTarget1);
+                                SAFE_RELEASE(DiffuseSurf);
+                                FusionFix::D3D9::setInsteadDrawPrimitive(true);
+                                return;
+                            }
                             SAFE_RELEASE(DiffuseSurf);
-                            FusionFix::D3D9::setInsteadDrawPrimitive(true);
-                            return;
                         }
-                        SAFE_RELEASE(DiffuseSurf);
-                    }
-                };
+                    };
+                }
             }
+
+            // reimplemented bloom
+
         };
     }
 } PostFX;
