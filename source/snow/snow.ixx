@@ -445,7 +445,7 @@ private:
     static void ToggleSnow(bool bValue)
     {
         bEnableSnow = bValue;
-        //CTimeCycle::Initialise(); // not needed atm, no timecyc changes
+        CTimeCycle::Initialise();
         SetRainRenderParams();
     }
 

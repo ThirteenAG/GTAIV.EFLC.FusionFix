@@ -8,6 +8,9 @@ import common;
 import settings;
 import comvars;
 
+#define IDR_SNOWTC 205
+std::vector<std::string> snowTC;
+
 int scanfCount = 0;
 int timecyc_scanf(const char* i, const char* fmt, int* mAmbient0ColorR, int* mAmbient0ColorG, int* mAmbient0ColorB, int* mAmbient1ColorR, int* mAmbient1ColorG, int* mAmbient1ColorB,
     int* mDirLightColorR, int* mDirLightColorG, int* mDirLightColorB, int* unusedParam, int* mFilmGrain, int* mSkyBottomColorFogDensityA,
@@ -46,6 +49,28 @@ int timecyc_scanf(const char* i, const char* fmt, int* mAmbient0ColorR, int* mAm
         mDetailNoiseOffset, mStarsBrightness, mVisibleStars, mMoonBrightness, mMoonColorR, mMoonColorG, mMoonColorB, mMoonGlow, mMoonParam3, unusedParam9,
         unusedParam10, mSunSize, mUnknown46, mDOFStart, unusedParam11, unusedParam12, mNearDOFBlur, mFarDOFBlur, mWaterReflectionMultiplier, mParticleBrightness,
         mCoronaSize, mSkyBrightness, mAOStrength, mRimLightingMultiplier, mDistantCoronaBrightness, mDistantCoronaSize, mPedAOStrength);
+
+    if (bEnableSnow)
+    {
+        if (snowTC.size() == 99)
+        {
+            res = sscanf(snowTC[scanfCount].c_str(), fmt, mAmbient0ColorR, mAmbient0ColorG, mAmbient0ColorB, mAmbient1ColorR, mAmbient1ColorG, mAmbient1ColorB, mDirLightColorR,
+                mDirLightColorG, mDirLightColorB, unusedParam, mFilmGrain, mSkyBottomColorFogDensityA, mSkyBottomColorFogDensityR, mSkyBottomColorFogDensityG,
+                mSkyBottomColorFogDensityB, mSunCoreR, mSunCoreG, mSunCoreB, unusedParam1, unusedParam2, unusedParam3, unusedParam4, mCoronaBrightness, mFarClip,
+                mFogStart, mLowCloudsColorR, mLowCloudsColorG, mLowCloudsColorB, mBottomCloudsColorR, mBottomCloudsColorG, mBottomCloudsColorB, mWaterR, mWaterG,
+                mWaterB, mWaterA, mExposure, mBloomThreshold, mMidGrayValue, mBloomIntensity, mColorCorrectionR, mColorCorrectionG, mColorCorrectionB, mColorAddR,
+                mColorAddG, mColorAddB, mDesaturation, mContrast, mGamma, mDesaturationFar, mContrastFar, mGammaFar, mDepthFxNear, mDepthFxFar, mLumMin, mLumMax,
+                mLumDelay, mCloudAlpha, mDirLightMultiplier, mAmbient0Multiplier, mAmbient1Multiplier, mSkyLightMultiplier, mDirLightSpecMultiplier, mTemperature,
+                mGlobalReflectionMultiplier, mSkyColorR, mSkyColorG, mSkyColorB, mSkyHorizonColorR, mSkyHorizonColorG, mSkyHorizonColorB, mSkyEastHorizonColorR,
+                mSkyEastHorizonColorG, mSkyEastHorizonColorB, mCloud1ColorR, mCloud1ColorG, mCloud1ColorB, mUnknown3, mSkyHorizonHeight, mSkyHorizonBrightness,
+                unusedParam5, unusedParam6, mCloud2ColorR, mCloud2ColorG, mCloud2ColorB, mCloud2ShadowStrength, mCloud2Threshold, mCloud2Bias1, mCloud2Scale,
+                unusedParam7, mCloud2Bias2, mDetailNoiseScale, mDetailNoiseMultiplier, mCloud2Offset, unusedParam8, mCloudsFadeOut, mCloud1Bias, mCloud1Detail,
+                mCloud1Threshold, mCloud1Height, mCloud3ColorR, mCloud3ColorG, mCloud3ColorB, mUnknown29, mSunColorR, mSunColorG, mSunColorB, mCloudsBrightness,
+                mDetailNoiseOffset, mStarsBrightness, mVisibleStars, mMoonBrightness, mMoonColorR, mMoonColorG, mMoonColorB, mMoonGlow, mMoonParam3, unusedParam9,
+                unusedParam10, mSunSize, mUnknown46, mDOFStart, unusedParam11, unusedParam12, mNearDOFBlur, mFarDOFBlur, mWaterReflectionMultiplier, mParticleBrightness,
+                mCoronaSize, mSkyBrightness, mAOStrength, mRimLightingMultiplier, mDistantCoronaBrightness, mDistantCoronaSize, mPedAOStrength);
+        }
+    }
 
     if (FusionFixSettings("PREF_BLOOM") <= FusionFixSettings.BloomText.eOff)
         *mBloomIntensity = 0.0f;
@@ -339,6 +364,36 @@ public:
 
                 pattern = hook::pattern("E8 ? ? ? ? 69 F6 ? ? ? ? 8D 84 24");
                 injector::MakeCALL(pattern.get_first(0), timecyclemodifiers_scanf, true);
+            }
+
+            {
+                HMODULE hm = NULL;
+                GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)&timecyc_scanf, &hm);
+                auto hResource = FindResource(hm, MAKEINTRESOURCE(IDR_SNOWTC), RT_RCDATA);
+
+                if (hResource)
+                {
+                    auto hLoadedResource = LoadResource(hm, hResource);
+                    if (hLoadedResource)
+                    {
+                        auto pLockedResource = LockResource(hLoadedResource);
+                        if (pLockedResource)
+                        {
+                            auto dwResourceSize = SizeofResource(hm, hResource);
+                            if (dwResourceSize)
+                            {
+                                std::string line;
+                                std::istringstream str((char*)pLockedResource, dwResourceSize);
+                                while (getline(str, line))
+                                {
+                                    if (*line.begin() != '\r' && !line.empty() && !line.contains("/"))
+                                        snowTC.emplace_back(line);
+                                }
+                                assert(snowTC.size() == 99);
+                            }
+                        }
+                    }
+                }
             }
         };
     }
