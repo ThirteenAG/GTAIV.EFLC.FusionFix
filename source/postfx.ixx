@@ -335,21 +335,21 @@ public:
 
     void createTextures(UINT Width, UINT Height, HMODULE hm) {
         IDirect3DDevice9* pDevice = rage::grcDevice::GetD3DDevice();
-
-        pDevice->CreateTexture(Width, Height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A16B16G16R16F, D3DPOOL_DEFAULT, &FullScreenTex_temp1, 0);
-        pDevice->CreateTexture(Width, Height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A16B16G16R16F, D3DPOOL_DEFAULT, &FullScreenTex_temp2, 0);
-        pDevice->CreateTexture(Width, Height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_G16R16F, D3DPOOL_DEFAULT, &pShadowBlurTex1, 0);
-        pDevice->CreateTexture(Width, Height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_G16R16F, D3DPOOL_DEFAULT, &pShadowBlurTex2, 0);
-        pDevice->CreateTexture(Width, Height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &edgesTex, 0);
-        pDevice->CreateTexture(Width, Height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &blendTex, 0);
-        pDevice->CreateTexture(Width / 2, Height / 2, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A16B16G16R16F, D3DPOOL_DEFAULT, &FullScreenDownsampleTex, 0);
-        pDevice->CreateTexture(Width / 2, Height / 2, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A16B16G16R16F, D3DPOOL_DEFAULT, &FullScreenDownsampleTex2, 0);
-        pDevice->CreateTexture(Width / 2, Height / 2, 1, D3DUSAGE_DEPTHSTENCIL, D3DFMT_D24S8, D3DPOOL_DEFAULT, &HalfDepthStenciltex, 0);
+    
+        //pDevice->CreateTexture(Width, Height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A16B16G16R16F, D3DPOOL_DEFAULT, &FullScreenTex_temp1, 0);
+        //pDevice->CreateTexture(Width, Height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A16B16G16R16F, D3DPOOL_DEFAULT, &FullScreenTex_temp2, 0);
+        //pDevice->CreateTexture(Width, Height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_G16R16F, D3DPOOL_DEFAULT, &pShadowBlurTex1, 0);
+        //pDevice->CreateTexture(Width, Height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_G16R16F, D3DPOOL_DEFAULT, &pShadowBlurTex2, 0);
+        //pDevice->CreateTexture(Width, Height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &edgesTex, 0);
+        //pDevice->CreateTexture(Width, Height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &blendTex, 0);
+        //pDevice->CreateTexture(Width / 2, Height / 2, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A16B16G16R16F, D3DPOOL_DEFAULT, &FullScreenDownsampleTex, 0);
+        //pDevice->CreateTexture(Width / 2, Height / 2, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A16B16G16R16F, D3DPOOL_DEFAULT, &FullScreenDownsampleTex2, 0);
+        //pDevice->CreateTexture(Width / 2, Height / 2, 1, D3DUSAGE_DEPTHSTENCIL, D3DFMT_D24S8, D3DPOOL_DEFAULT, &HalfDepthStenciltex, 0);
     
         D3DXCreateTextureFromResourceExW(pDevice, hm, MAKEINTRESOURCEW(IDR_AreaTex), 0, 0, 0, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_LINEAR, D3DX_FILTER_LINEAR, D3DCOLOR_ARGB(150, 100, 100, 100), NULL, NULL, &SMAA_areaTex);
         D3DXCreateTextureFromResourceExW(pDevice, hm, MAKEINTRESOURCEW(IDR_SearchTex), 0, 0, 0, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_LINEAR, D3DX_FILTER_LINEAR, D3DCOLOR_ARGB(150, 100, 100, 100), NULL, NULL, &SMAA_searchTex);
         D3DXCreateVolumeTextureFromResourceExW(pDevice, hm, MAKEINTRESOURCEW(IDR_bluenoisevolume), 0, 0, 0, 0, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_LINEAR, D3DX_FILTER_LINEAR, D3DCOLOR_ARGB(150, 100, 100, 100), NULL, NULL, &blueNoiseVolume);
-
+    
     }
 };
 
@@ -1147,6 +1147,37 @@ public:
 
                 if (GetD3DX9_43DLL())
                 {
+                    FusionFix::D3D9::onAfterCreateTexture() += [](LPDIRECT3DDEVICE9& pDevice, UINT& Width, UINT& Height, UINT& Levels, DWORD& Usage, D3DFORMAT& Format, D3DPOOL& Pool, IDirect3DTexture9**& ppTexture, HANDLE*& pSharedHandle)
+                    {
+                        if (Format == D3DFMT_A16B16G16R16F && ppTexture && getWindowWidth() && Height == getWindowHeight())
+                        {
+                            SAFE_RELEASE(PostFxResources.FullScreenTex_temp1);
+                            SAFE_RELEASE(PostFxResources.FullScreenTex_temp2);
+                            SAFE_RELEASE(PostFxResources.edgesTex);
+                            SAFE_RELEASE(PostFxResources.blendTex);
+
+                            SAFE_RELEASE(PostFxResources.FullScreenDownsampleTex);
+                            SAFE_RELEASE(PostFxResources.FullScreenDownsampleTex2);
+                            SAFE_RELEASE(PostFxResources.HalfDepthStenciltex);
+
+                            SAFE_RELEASE(PostFxResources.pShadowBlurTex1);
+                            SAFE_RELEASE(PostFxResources.pShadowBlurTex2);
+
+                            auto width = *rage::grcDevice::ms_nActiveWidth;
+                            auto height = *rage::grcDevice::ms_nActiveHeight;
+
+                            CreateTextureOriginal.unsafe_stdcall<HRESULT>(pDevice, width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A16B16G16R16F, D3DPOOL_DEFAULT, &PostFxResources.FullScreenTex_temp1, 0);
+                            CreateTextureOriginal.unsafe_stdcall<HRESULT>(pDevice, width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A16B16G16R16F, D3DPOOL_DEFAULT, &PostFxResources.FullScreenTex_temp2, 0);
+                            CreateTextureOriginal.unsafe_stdcall<HRESULT>(pDevice, width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_G16R16F, D3DPOOL_DEFAULT, &PostFxResources.pShadowBlurTex1, 0);
+                            CreateTextureOriginal.unsafe_stdcall<HRESULT>(pDevice, width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_G16R16F, D3DPOOL_DEFAULT, &PostFxResources.pShadowBlurTex2, 0);
+                            CreateTextureOriginal.unsafe_stdcall<HRESULT>(pDevice, width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &PostFxResources.edgesTex, 0);
+                            CreateTextureOriginal.unsafe_stdcall<HRESULT>(pDevice, width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &PostFxResources.blendTex, 0);
+                            CreateTextureOriginal.unsafe_stdcall<HRESULT>(pDevice, width / 2, height / 2, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A16B16G16R16F, D3DPOOL_DEFAULT, &PostFxResources.FullScreenDownsampleTex, 0);
+                            CreateTextureOriginal.unsafe_stdcall<HRESULT>(pDevice, width / 2, height / 2, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A16B16G16R16F, D3DPOOL_DEFAULT, &PostFxResources.FullScreenDownsampleTex2, 0);
+                            CreateTextureOriginal.unsafe_stdcall<HRESULT>(pDevice, width / 2, height / 2, 1, D3DUSAGE_DEPTHSTENCIL, D3DFMT_D24S8, D3DPOOL_DEFAULT, &PostFxResources.HalfDepthStenciltex, 0);
+                        }
+                    };
+
                     FusionFix::D3D9::onAfterCreateVertexShader() += [] (LPDIRECT3DDEVICE9& pDevice, DWORD*& pFunction, IDirect3DVertexShader9**& ppShader) {
                         int id = GetFusionShaderID(*ppShader);
                         if((*ppShader) && id >= 0)

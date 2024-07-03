@@ -81,6 +81,7 @@ export namespace rage
         GRCFMT_A16B16G16R16F2,
         GRCFMT_A16B16G16R16,
         GRCFMT_L8,
+        GRCFMT_X8R8G8B8 = 0x10,
     };
 
     inline std::vector<std::pair<grcTextureFormat, D3DFORMAT>> m_Formats
@@ -98,6 +99,7 @@ export namespace rage
         { GRCFMT_A16B16G16R16F2, D3DFMT_A16B16G16R16F },
         { GRCFMT_A16B16G16R16,   D3DFMT_A16B16G16R16 },
         { GRCFMT_L8,             D3DFMT_L8 },
+        { GRCFMT_X8R8G8B8,       D3DFMT_X8R8G8B8 },
     };
 
     inline grcTextureFormat getEngineTextureFormat(D3DFORMAT format)
