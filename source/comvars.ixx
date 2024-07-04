@@ -724,7 +724,7 @@ export namespace rage
 
     public:
         static inline std::unordered_map<int, std::vector<uint8_t>> GlobalParams;
-        static inline std::unordered_map<grmShaderInfo*, std::unordered_map<int, std::vector<uint8_t>>> ShaderInfoParams;
+        static inline std::unordered_map<uintptr_t, std::unordered_map<int, std::vector<uint8_t>>> ShaderInfoParams;
 
         static inline void* pfngetParamIndex = nullptr;
         static int getParamIndex(grmShaderInfo* instance, const char* name, int a3)
@@ -736,7 +736,7 @@ export namespace rage
         static inline SafetyHookInline shsub_436D70{};
         static void __fastcall setShaderParam(grmShaderInfo* _this, void* edx, void* a2, int index, void* in, int a5, int a6, int a7)
         {
-            ShaderInfoParams[_this][index].assign((uint8_t*)in, (uint8_t*)in + a5);
+            ShaderInfoParams[(uintptr_t)_this][index].assign((uint8_t*)in, (uint8_t*)in + a5);
             return shsub_436D70.fastcall(_this, edx, a2, index, in, a5, a6, a7);
         }
 
@@ -777,11 +777,12 @@ export namespace rage
         {
             for (auto& it : ShaderInfoParams)
             {
-                if (std::string_view(it.first->m_pszShaderPath).ends_with(shaderName))
+                auto si = (grmShaderInfo*)it.first;
+                if (std::string_view(si->m_pszShaderPath).ends_with(shaderName))
                 {
-                    auto i = getParamIndex(it.first, paramName, 1);
+                    auto i = getParamIndex(si, paramName, 1);
                     if (i)
-                        return reinterpret_cast<float*>(ShaderInfoParams[it.first][i].data());
+                        return reinterpret_cast<float*>(it.second[i].data());
                     else
                         break;
                 }
