@@ -381,6 +381,21 @@ export namespace rage
 
     VALIDATE_SIZE(grcTexturePC, 0x50);
 
+    struct grcTextureReferenceBase : public pgBase
+    {
+        char field_8;
+        char field_9;
+        int16_t m_wUsageCount;
+        int field_C;
+    };
+
+    struct grcTextureReference : public grcTextureReferenceBase
+    {
+        int field_10;
+        const char* m_pszName;
+        grcTexturePC* m_pTexture;
+    };
+
     namespace grcDevice
     {
         struct grcResolveFlags
