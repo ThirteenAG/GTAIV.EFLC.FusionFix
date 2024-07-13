@@ -456,6 +456,63 @@ export namespace rage
             bool NeedResolve;
             bool MipMap;
         };
+
+        IDirect3DDevice9** ms_pD3DDevice = nullptr;
+        int32_t* ms_nActiveWidth = nullptr;
+        int32_t* ms_nActiveHeight = nullptr;
+        bool* ms_bNoBlockOnLostFocus = nullptr;
+
+        IDirect3DDevice9* GetD3DDevice()
+        {
+            return *ms_pD3DDevice;
+        }
+
+        void* SetCallbackAddr;
+        class FunctorBase
+        {
+        public:
+            FunctorBase()
+            {
+                memset(mMemFunc, 0xAA, 8);
+                mCallee = 0;
+            }
+
+            FunctorBase(void* callee, void(__fastcall* function)(), void* mf, uint32_t size)
+            {
+                auto SetCallback = (void(__thiscall*)(FunctorBase*, void*, void(__fastcall*)(), void*, uint32_t))SetCallbackAddr;
+                SetCallback(this, callee, function, mf, size);
+            }
+
+            union
+            {
+                void(__fastcall* mFunction)();
+                uint8_t mMemFunc[8];
+            };
+
+            uint32_t mCallee;
+        };
+
+        class Functor0 : public FunctorBase
+        {
+        public:
+            Functor0(void* callee, void(__fastcall* function)(), void* mf, uint32_t size)
+                : FunctorBase(callee, function, mf, size)
+            {
+                mThunk = Translator;
+            }
+
+        private:
+            void(__cdecl* mThunk)(FunctorBase*);
+
+            static void Translator(FunctorBase* functor)
+            {
+                functor->mFunction();
+            }
+        };
+
+        VALIDATE_SIZE(Functor0, 0x10);
+
+        void(__cdecl* RegisterDeviceCallbacks)(Functor0 onLost, Functor0 onReset);
     }
 
     class grcTextureFactoryPC;
@@ -539,15 +596,12 @@ export namespace rage
         static inline SafetyHookInline shCreateRT{};
         static grcRenderTargetPC* __stdcall CreateRT(const char* name, grcRenderTargetPC* a2, int width, int height, int bpp, char* a6)
         {
-            //TODO:
-            //if(strcmp("PHONE_SCREEN", name) == 0) {
-            //    width  = static_cast<int>((256/1280.f) * 1280/*width*/ );
-            //    height = static_cast<int>((256/720.f) * 720/*height*/);
-            //}
-            //else if(strcmp("PHOTO", name) == 0) {
-            //    width  = static_cast<int>((256/1280.f) * 1280/*width*/ /4);
-            //    height = static_cast<int>((256/720.f) * 720/*height*//4);
-            //}
+            if(std::string_view(name) == "PHONE_SCREEN" || std::string_view(name) == "PHOTO")
+            {
+                auto res = (int32_t)(std::ceil((float)*rage::grcDevice::ms_nActiveHeight / 720.0f) * 256.0f);
+                width  = res;
+                height = res;
+            }
 
             auto ret = shCreateRT.stdcall<grcRenderTargetPC*>(name, a2, width, height, bpp, a6);
             
@@ -596,66 +650,6 @@ export namespace rage
     };
 
     VALIDATE_SIZE(grcTextureFactoryPC, 0x74);
-
-    namespace grcDevice
-    {
-        IDirect3DDevice9** ms_pD3DDevice = nullptr;
-        int32_t* ms_nActiveWidth = nullptr;
-        int32_t* ms_nActiveHeight = nullptr;
-        bool* ms_bNoBlockOnLostFocus = nullptr;
-
-        IDirect3DDevice9* GetD3DDevice()
-        {
-            return *ms_pD3DDevice;
-        }
-
-        void* SetCallbackAddr;
-        class FunctorBase
-        {
-        public:
-            FunctorBase()
-            {
-                memset(mMemFunc, 0xAA, 8);
-                mCallee = 0;
-            }
-
-            FunctorBase(void* callee, void(__fastcall* function)(), void* mf, uint32_t size)
-            {
-                auto SetCallback = (void(__thiscall *)(FunctorBase*, void*, void(__fastcall*)(), void*, uint32_t))SetCallbackAddr;
-                SetCallback(this, callee, function, mf, size);
-            }
-
-            union
-            {
-                void(__fastcall* mFunction)();
-                uint8_t mMemFunc[8];
-            };
-
-            uint32_t mCallee;
-        };
-
-        class Functor0 : public FunctorBase
-        {
-        public:
-            Functor0(void* callee, void(__fastcall* function)(), void* mf, uint32_t size)
-                : FunctorBase(callee, function, mf, size)
-            {
-                mThunk = Translator;
-            }
-
-        private:
-            void(__cdecl* mThunk)(FunctorBase*);
-
-            static void Translator(FunctorBase* functor)
-            {
-                functor->mFunction();
-            }
-        };
-
-        VALIDATE_SIZE(Functor0, 0x10);
-
-        void(__cdecl* RegisterDeviceCallbacks)(Functor0 onLost, Functor0 onReset);
-    }
 
     enum eLightType
     {
@@ -1190,8 +1184,8 @@ public:
 
         pattern = find_pattern("81 EC ? ? ? ? 8D 04 24 68 ? ? ? ? FF B4 24", "8B 44 24 04 81 EC ? ? ? ? 68");
         rage::grcTextureFactoryPC::shCreateTexture = safetyhook::create_inline(pattern.get_first(0), rage::grcTextureFactoryPC::CreateTexture);
-
-        pattern = find_pattern("53 8B 5C 24 08 56 33 F6", "53 8B 5C 24 08 56 57 33 FF 39 3D");
+        
+        pattern = find_pattern("53 8B 5C 24 08 56 33 F6 57 39 35 ? ? ? ? 7E 25 8B 3C B5", "53 8B 5C 24 08 56 57 33 FF 39 3D", "53 8B 5C 24 08 56 33 F6 39 35 ? ? ? ? 57 7E 29 8B 3C B5 ? ? ? ? 8B 07 8B 50 14 53 8B CF FF D2 50 E8 ? ? ? ? 83 C4 08 85 C0");
         rage::grcTextureFactoryPC::shCreateRT = safetyhook::create_inline(pattern.get_first(0), rage::grcTextureFactoryPC::CreateRT);
 
         pattern = find_pattern("53 55 56 57 8B F9 85 FF 74 3F", "53 55 8B 6C 24 0C 56 57 EB 06 8D 9B 00 00 00 00 0F B7 51 14 33 FF 83 EA 01 78 26 8B 59 10", "85 C9 53 55 56 57 74 40 8B 6C 24 14 8D 64 24 00");

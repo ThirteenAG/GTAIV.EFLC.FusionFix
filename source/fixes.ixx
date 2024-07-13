@@ -56,14 +56,6 @@ public:
         return r;
     }
 
-    static inline injector::hook_back<void* (__fastcall*)(void*, void*, int, int, int, char, char, int, int)> hbCMobilePhone__CreateRenderTarget;
-    static void* __fastcall CMobilePhone__CreateRenderTarget(void* _this, void* edx, int a2, int a3, int a4, char a5, char a6, int a7, int a8)
-    {
-        auto res = (int32_t)(std::ceil((float)*rage::grcDevice::ms_nActiveHeight / 720.0f) * 256.0f);
-
-        return hbCMobilePhone__CreateRenderTarget.fun(_this, edx, a2, res, res, a5, a6, a7, a8);
-    }
-
     Fixes()
     {
         FusionFix::onInitEventAsync() += []()
@@ -452,13 +444,6 @@ public:
                     injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true);
                     pattern = find_pattern("8B 0D ? ? ? ? BE ? ? ? ? D3 E6 83 3D", "8B 0D ? ? ? ? F3 0F 11 0D ? ? ? ? F3 0F 10 0D");
                     injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true);
-                }
-
-                // Scale PHONE_SCREEN texture with screen resolution. 1280x720 -> 256x256 (vanilla default), 1920x1080 -> 512x512, 4K -> 786x768, ...
-                pattern = hook::pattern("E8 ? ? ? ? 50 B9 ? ? ? ? A3 ? ? ? ? E8 ? ? ? ? A3 ? ? ? ? 89 04 24 8D 04 24");
-                if (!pattern.empty())
-                {
-                    hbCMobilePhone__CreateRenderTarget.fun = injector::MakeCALL(pattern.get_first(), CMobilePhone__CreateRenderTarget, true).get();
                 }
 
                 // Switch texture formats

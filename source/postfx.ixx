@@ -167,8 +167,8 @@ public:
 
     IDirect3DPixelShader9* CascadeAtlasGen = nullptr;
 
-    std::unordered_map<IDirect3DPixelShader9*, int> ShaderListPS;
-    std::unordered_map<IDirect3DVertexShader9*, int> ShaderListVS;
+    //std::unordered_map<IDirect3DPixelShader9*, int> ShaderListPS;
+    //std::unordered_map<IDirect3DVertexShader9*, int> ShaderListVS;
 
     bool EnablePostfx = false;
     float AoDistance = 100;
@@ -1130,73 +1130,109 @@ private:
         }
     }
 
+    static inline injector::hook_back<int(__fastcall*)(int, void*, int, int, char, char, int, char)> hbDrawSkyHook;
+    static int __fastcall DrawSky(int _this, void* edx, int a2, int a3, char a4, char a5, int a6, char a7)
+    {
+        auto pDevice = rage::grcDevice::GetD3DDevice();
+        IDirect3DPixelShader9* pShader = nullptr;
+        HRESULT hr = S_FALSE;
+        pDevice->GetPixelShader(&pShader);
+        // atmoscat clouds
+        if (PostFxResources.DiffuseTex != nullptr)
+        {
+            IDirect3DSurface9* DiffuseSurf = nullptr;
+            PostFxResources.DiffuseTex->GetSurfaceLevel(0, &DiffuseSurf);
+            if (DiffuseSurf)
+            {
+                IDirect3DSurface9* oldRenderTarget1 = 0;
+                pDevice->GetRenderTarget(1, &oldRenderTarget1);
+                pDevice->SetRenderTarget(1, DiffuseSurf);
+                pDevice->SetPixelShader(PostFxResources.SSDiffuseCloudsGen_PS);
+                hr = hbDrawSkyHook.fun(_this, edx, a2, a3, a4, a5, a6, a7);
+                pDevice->SetPixelShader(pShader);
+                pDevice->SetRenderTarget(1, oldRenderTarget1);
+                hr = hbDrawSkyHook.fun(_this, edx, a2, a3, a4, a5, a6, a7);
+                SAFE_RELEASE(oldRenderTarget1);
+                SAFE_RELEASE(DiffuseSurf);
+                SAFE_RELEASE(pShader);
+                return hr;
+            }
+            SAFE_RELEASE(DiffuseSurf);
+            SAFE_RELEASE(pShader);
+        }
+        return hbDrawSkyHook.fun(_this, edx, a2, a3, a4, a5, a6, a7);
+    }
+
 public:
     PostFX()
     {
         FusionFix::onInitEventAsync() += []()
         {
-            PostFxResources.Readini();
-
-            //if(PostFxResources.EnablePostfx)
+            if (GetD3DX9_43DLL())
             {
-                auto pattern = find_pattern("E8 ? ? ? ? 8B 4F 60 E8 ? ? ? ? 8B 4F 60", "E8 ? ? ? ? 8B 4F 60 E8 ? ? ? ? 8B 4F 60");
-                hbDrawPrimitivePostFX.fun = injector::MakeCALL(pattern.get_first(0), DrawPrimitivePostFX).get();
-
-                pattern = find_pattern("E8 ? ? ? ? 6A 0A FF B7", "E8 ? ? ? ? 8B 8E ? ? ? ? 8B 56 10");
-                hbDrawCallPostFX.fun = injector::MakeCALL(pattern.get_first(0), DrawCallPostFX).get();
-
-                if (GetD3DX9_43DLL())
+                PostFxResources.Readini();
+            
+                //if(PostFxResources.EnablePostfx)
                 {
-                    FusionFix::D3D9::onAfterCreateVertexShader() += [] (LPDIRECT3DDEVICE9& pDevice, DWORD*& pFunction, IDirect3DVertexShader9**& ppShader) {
-                        int id = GetFusionShaderID(*ppShader);
-                        if((*ppShader) && id >= 0)
-                            PostFxResources.ShaderListVS[*ppShader] = id;
-                    };
+                    auto pattern = find_pattern("E8 ? ? ? ? 8B 4F 60 E8 ? ? ? ? 8B 4F 60", "E8 ? ? ? ? 8B 4F 60 E8 ? ? ? ? 8B 4F 60");
+                    hbDrawPrimitivePostFX.fun = injector::MakeCALL(pattern.get_first(0), DrawPrimitivePostFX).get();
+            
+                    pattern = find_pattern("E8 ? ? ? ? 8D 44 24 60 50 8B CF E8 ? ? ? ? 8D 84 24", "E8 ? ? ? ? 8D 44 24 40 50 8B CE E8 ? ? ? ? 8D 8C 24");
+                    hbDrawSkyHook.fun = injector::MakeCALL(pattern.get_first(0), DrawSky).get();
+            
+                    pattern = find_pattern("E8 ? ? ? ? 6A 0A FF B7", "E8 ? ? ? ? 8B 8E ? ? ? ? 8B 56 10");
+                    hbDrawCallPostFX.fun = injector::MakeCALL(pattern.get_first(0), DrawCallPostFX).get();
+            
+                    //replaced by DrawSky
+                    //FusionFix::D3D9::onAfterCreateVertexShader() += [] (LPDIRECT3DDEVICE9& pDevice, DWORD*& pFunction, IDirect3DVertexShader9**& ppShader) {
+                    //    int id = GetFusionShaderID(*ppShader);
+                    //    if((*ppShader) && id >= 0)
+                    //        PostFxResources.ShaderListVS[*ppShader] = id;
+                    //};
+                    //
+                    //FusionFix::D3D9::onAfterCreatePixelShader() += [] (LPDIRECT3DDEVICE9& pDevice, DWORD*& pFunction, IDirect3DPixelShader9**& ppShader) {
+                    //    int id = GetFusionShaderID(*ppShader);
+                    //    if((*ppShader) && id >= 0)
+                    //        PostFxResources.ShaderListPS[*ppShader] = id;
+                    //};
+                    // 
+                    //FusionFix::D3D9::onBeforeDrawPrimitive() += [] (LPDIRECT3DDEVICE9& pDevice, D3DPRIMITIVETYPE& PrimitiveType, UINT& StartVertex, UINT& PrimitiveCount) {
+                    //    IDirect3DPixelShader9* pShader = nullptr;
+                    //    HRESULT hr = S_FALSE;
+                    //    pDevice->GetPixelShader(&pShader);
+                    //    int id = 0;
+                    //    if(pShader)
+                    //        id = PostFxResources.ShaderListPS[pShader];
+                    //    // atmoscat clouds
+                    //    if ((id == 65) && PostFxResources.DiffuseTex != nullptr)
+                    //    {
+                    //        IDirect3DSurface9* DiffuseSurf = nullptr;
+                    //        PostFxResources.DiffuseTex->GetSurfaceLevel(0, &DiffuseSurf);
+                    //        if (DiffuseSurf)
+                    //        {
+                    //            IDirect3DSurface9* oldRenderTarget1 = 0;
+                    //            pDevice->GetRenderTarget(1, &oldRenderTarget1);
+                    //            pDevice->SetRenderTarget(1, DiffuseSurf);
+                    //            pDevice->SetPixelShader(PostFxResources.SSDiffuseCloudsGen_PS);
+                    //            hr = DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
+                    //
+                    //            pDevice->SetPixelShader(pShader);
+                    //            pDevice->SetRenderTarget(1, oldRenderTarget1);
+                    //
+                    //            SAFE_RELEASE(oldRenderTarget1);
+                    //            SAFE_RELEASE(DiffuseSurf);
+                    //            SAFE_RELEASE(pShader);
+                    //            //FusionFix::D3D9::setInsteadDrawPrimitive(true); // causes water bug
+                    //            return;
+                    //        }
+                    //        SAFE_RELEASE(DiffuseSurf);
+                    //        SAFE_RELEASE(pShader);
+                    //    }
+                    //};
 
-                    FusionFix::D3D9::onAfterCreatePixelShader() += [] (LPDIRECT3DDEVICE9& pDevice, DWORD*& pFunction, IDirect3DPixelShader9**& ppShader) {
-                        int id = GetFusionShaderID(*ppShader);
-                        if((*ppShader) && id >= 0)
-                            PostFxResources.ShaderListPS[*ppShader] = id;
-                    };
-
-                    FusionFix::D3D9::onBeforeDrawPrimitive() += [] (LPDIRECT3DDEVICE9& pDevice, D3DPRIMITIVETYPE& PrimitiveType, UINT& StartVertex, UINT& PrimitiveCount) {
-                        IDirect3DPixelShader9* pShader = nullptr;
-                        HRESULT hr = S_FALSE;
-                        pDevice->GetPixelShader(&pShader);
-                        int id = 0;
-                        if(pShader)
-                            id = PostFxResources.ShaderListPS[pShader];
-                        // atmoscat clouds
-                        if ((id == 65) && PostFxResources.DiffuseTex != nullptr)
-                        {
-                            IDirect3DSurface9* DiffuseSurf = nullptr;
-                            PostFxResources.DiffuseTex->GetSurfaceLevel(0, &DiffuseSurf);
-                            if (DiffuseSurf)
-                            {
-                                IDirect3DSurface9* oldRenderTarget1 = 0;
-                                pDevice->GetRenderTarget(1, &oldRenderTarget1);
-                                pDevice->SetRenderTarget(1, DiffuseSurf);
-                                pDevice->SetPixelShader(PostFxResources.SSDiffuseCloudsGen_PS);
-                                hr = DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
-
-                                pDevice->SetPixelShader(pShader);
-                                pDevice->SetRenderTarget(1, oldRenderTarget1);
-
-                                SAFE_RELEASE(oldRenderTarget1);
-                                SAFE_RELEASE(DiffuseSurf);
-                                SAFE_RELEASE(pShader);
-                                //FusionFix::D3D9::setInsteadDrawPrimitive(true); // causes water bug
-                                return;
-                            }
-                            SAFE_RELEASE(DiffuseSurf);
-                            SAFE_RELEASE(pShader);
-                        }
-                    };
+                    // reimplemented bloom
                 }
             }
-
-            // reimplemented bloom
-
         };
     }
 } PostFX;
