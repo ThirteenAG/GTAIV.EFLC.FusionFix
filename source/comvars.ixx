@@ -765,8 +765,8 @@ export namespace rage
 
     public:
         static inline std::unordered_map<int, std::vector<uint8_t>> GlobalParams;
-        static inline std::map<std::string, std::map<int, std::vector<uint8_t>>> ShaderInfoParams;
-        static inline std::map<std::string, std::pair<int, int>> ShaderInfoParamHashes;
+        static inline std::map<unsigned int, std::map<int, std::vector<uint8_t>>> ShaderInfoParams;
+        static inline std::map<unsigned int, std::pair<int, int>> ShaderInfoParamHashes;
 
         static inline void* pfngetParamIndex = nullptr;
         static int getParamIndex(grmShaderInfo* instance, const char* name, int a3)
@@ -775,10 +775,10 @@ export namespace rage
             return func(instance, name, a3);
         }
 
-        static int getParamIndex(const char* shader_path, unsigned int name_hash, int a3)
+        static int getParamIndex(unsigned int shader_hash, unsigned int name_hash, int a3)
         {
             auto j = 1;
-            for (auto i = (int*)(ShaderInfoParamHashes[shader_path].first + 0xC); j < ShaderInfoParamHashes[shader_path].second; i += 0xC, ++j)
+            for (auto i = (int*)(ShaderInfoParamHashes[shader_hash].first + 0xC); j < ShaderInfoParamHashes[shader_hash].second; i += 0xC, ++j)
             {
                 if (i[0] == name_hash || i[1] == name_hash)
                     return j;
@@ -792,8 +792,11 @@ export namespace rage
             size_t j = 1;
             if (_this->m_parameters.wCount)
             {
-                ShaderInfoParamHashes[_this->m_pszShaderPath] = { _this->m_parameters.pData, _this->m_parameters.wSize };
-                ShaderInfoParams[_this->m_pszShaderPath][index].assign((uint8_t*)in, (uint8_t*)in + a5);
+                auto sv = std::string_view(_this->m_pszShaderPath);
+                auto shader_name = sv.substr(sv.find_last_of('/') + 1);
+                auto hash = hashStringLowercaseFromSeed(shader_name.data(), 0);
+                ShaderInfoParamHashes[hash] = { _this->m_parameters.pData, _this->m_parameters.wSize };
+                ShaderInfoParams[hash][index].assign((uint8_t*)in, (uint8_t*)in + a5);
             }
             return shsub_436D70.fastcall(_this, edx, a2, index, in, a5, a6, a7);
         }
@@ -837,9 +840,9 @@ export namespace rage
 
             for (auto& it : ShaderInfoParams)
             {
-                if (it.first.ends_with(shaderName))
+                if (it.first == hashStringLowercaseFromSeed(shaderName, 0))
                  {
-                    auto i = getParamIndex(it.first.c_str(), hash, 1);
+                    auto i = getParamIndex(it.first, hash, 1);
                     if (i)
                         return reinterpret_cast<float*>(it.second[i].data());
                     else

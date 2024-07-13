@@ -60,15 +60,16 @@ workspace "GTAIV.EFLC.FusionFix"
    files { "source/snow/*.rc" }
    links { "LogitechLEDLib.lib" }
 
-   includedirs { "external/injector/safetyhook" }
+   includedirs { "external/injector/safetyhook/include" }
+   includedirs { "external/injector/zydis" }
    includedirs { "external/hooking" }
    includedirs { "external/injector/include" }
    includedirs { "external/inireader" }
    includedirs { "external/modupdater/dist" }
    libdirs { "external/modupdater/dist" }
    files { "external/hooking/Hooking.Patterns.h", "external/hooking/Hooking.Patterns.cpp" }
-   files { "external/injector/safetyhook/*.h", "external/injector/safetyhook/*.hpp" }
-   files { "external/injector/safetyhook/*.c", "external/injector/safetyhook/*.cpp" }
+   files { "external/injector/safetyhook/include/**.hpp", "external/injector/safetyhook/src/**.cpp" }
+   files { "external/injector/zydis/**.h", "external/injector/zydis/**.c" }
 
     prebuildcommands {
         "for /R \"../source/snow/\" %%f in (*.ps) do (\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E main /Fo \"../source/snow/%%~nfps.cso\" %%f)",
