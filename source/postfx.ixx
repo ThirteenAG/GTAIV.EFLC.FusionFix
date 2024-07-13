@@ -1185,7 +1185,7 @@ public:
                                 SAFE_RELEASE(oldRenderTarget1);
                                 SAFE_RELEASE(DiffuseSurf);
                                 SAFE_RELEASE(pShader);
-                                FusionFix::D3D9::setInsteadDrawPrimitive(true);
+                                //FusionFix::D3D9::setInsteadDrawPrimitive(true); // causes water bug
                                 return;
                             }
                             SAFE_RELEASE(DiffuseSurf);

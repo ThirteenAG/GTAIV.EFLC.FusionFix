@@ -440,16 +440,19 @@ public:
                 }
 
                 static uint32_t dwWaterQuality = 1;
-                pattern = find_pattern("8B 0D ? ? ? ? 03 F0 BA ? ? ? ? 8B C2 D3 E0 8B 0D", "8B 0D ? ? ? ? 03 F0 B8 ? ? ? ? D3 E0 83 C4 04 0F AF C0 8D 0C 80");
-                injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true);
                 pattern = find_pattern("8B 0D ? ? ? ? 83 C4 08 03 F0 83 D5 00 BA ? ? ? ? 8B C2 D3 E0 8B 0D", "8B 0D ? ? ? ? 03 F8 B8 ? ? ? ? D3 E0 8B 0D");
-                injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true);
-                pattern = find_pattern("8B 0D ? ? ? ? 53 BB ? ? ? ? D3 E3 85 D2 0F 85", "8B 0D ? ? ? ? BF ? ? ? ? D3 E7 85 C0 0F 85");
-                injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true);
-                pattern = find_pattern("8B 0D ? ? ? ? F3 0F 10 0D ? ? ? ? B8 ? ? ? ? D3 E0 8B 0D", "8B 0D ? ? ? ? F3 0F 10 05 ? ? ? ? 6A 02 6A 01 BA");
-                injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true);
-                pattern = find_pattern("8B 0D ? ? ? ? BE ? ? ? ? D3 E6 83 3D", "8B 0D ? ? ? ? F3 0F 11 0D ? ? ? ? F3 0F 10 0D");
-                injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true);
+                if (!pattern.empty())
+                {
+                    injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true);
+                    pattern = find_pattern("8B 0D ? ? ? ? 03 F0 BA ? ? ? ? 8B C2 D3 E0 8B 0D", "8B 0D ? ? ? ? 03 F0 B8 ? ? ? ? D3 E0 83 C4 04 0F AF C0 8D 0C 80");
+                    injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true);                   
+                    pattern = find_pattern("8B 0D ? ? ? ? 53 BB ? ? ? ? D3 E3 85 D2 0F 85", "8B 0D ? ? ? ? BF ? ? ? ? D3 E7 85 C0 0F 85");
+                    injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true);
+                    pattern = find_pattern("8B 0D ? ? ? ? F3 0F 10 0D ? ? ? ? B8 ? ? ? ? D3 E0 8B 0D", "8B 0D ? ? ? ? F3 0F 10 05 ? ? ? ? 6A 02 6A 01 BA");
+                    injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true);
+                    pattern = find_pattern("8B 0D ? ? ? ? BE ? ? ? ? D3 E6 83 3D", "8B 0D ? ? ? ? F3 0F 11 0D ? ? ? ? F3 0F 10 0D");
+                    injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true);
+                }
 
                 // Scale PHONE_SCREEN texture with screen resolution. 1280x720 -> 256x256 (vanilla default), 1920x1080 -> 512x512, 4K -> 786x768, ...
                 pattern = hook::pattern("E8 ? ? ? ? 50 B9 ? ? ? ? A3 ? ? ? ? E8 ? ? ? ? A3 ? ? ? ? 89 04 24 8D 04 24");

@@ -20,6 +20,27 @@ import fusiondxhook;
 #define IDR_SNOWPS 203
 #define IDR_SNOWVS 204
 
+rage::grcTexturePC* vehicle_generic_tyre_snow;
+rage::grcTexturePC* vehicle_generic_glasswindows2_snow;
+
+static SafetyHookInline shsub_41B920{};
+rage::grcTexturePC* __fastcall sub_41B920(rage::grcTextureReference* tex, void* edx)
+{
+    if (bEnableSnow)
+    {
+        if (vehicle_generic_glasswindows2_snow && std::string_view(tex->m_pszName).contains("vehicle_generic_glasswindows2"))
+        {
+            return vehicle_generic_glasswindows2_snow;
+        }
+        else if (vehicle_generic_tyre_snow && std::string_view(tex->m_pszName).contains("vehicle_generic_tyre"))
+        {
+            return vehicle_generic_tyre_snow;
+        }
+    }
+
+    return shsub_41B920.fastcall<rage::grcTexturePC*>(tex, edx);
+}
+
 class Snow
 {
 private:
@@ -589,6 +610,24 @@ public:
                     ToggleSnow(!bEnableSnow);
                 });
 
+                NativeOverride::RegisterPhoneCheat("2665550100", []
+                {
+                    bEnableHall = !bEnableHall;
+                    ToggleSnow(false);
+                });
+
+                // Snow on vehicles: load textures
+                pattern = find_pattern("E8 ? ? ? ? 8B 0D ? ? ? ? 83 C4 18 8B 01 6A 00", "E8 ? ? ? ? 83 C4 18 8B 0D");
+                static auto FXRain__CTxdStore__setCurrent = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& ctx)
+                {
+                    vehicle_generic_glasswindows2_snow = CTxdStore::getEntryByKey(CTxdStore::at(ctx.esi), 0, hashStringLowercaseFromSeed("vehicle_generic_glasswindows2_snow", 0));
+                    vehicle_generic_tyre_snow = CTxdStore::getEntryByKey(CTxdStore::at(ctx.esi), 0, hashStringLowercaseFromSeed("vehicle_generic_tyre_snow", 0));
+                });
+
+                // Snow on vehicles: replace textures
+                pattern = find_pattern("8B 49 18 85 C9 74 05 8B 01 FF 60 3C", "83 79 18 00 74 0A 8B 49 18 8B 01 8B 50 38", "55 8B EC 83 E4 F0 8B 01 8B 50 38 83 EC 10 FF D2 85 C0 74 0F 8B 10 8B 52 34");
+                shsub_41B920 = safetyhook::create_inline(pattern.get_first(), sub_41B920);
+                
                 // LCS Snow test
                 //CRenderPhaseDrawScene::onBeforePostFX() += []()
                 //{

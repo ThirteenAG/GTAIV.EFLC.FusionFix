@@ -9,6 +9,38 @@ import common;
 
 #define VALIDATE_SIZE(struc, size) static_assert(sizeof(struc) == size, "Invalid structure size of " #struc)
 
+export unsigned int hashStringLowercaseFromSeed(const char* str, unsigned int seed)
+{
+    auto hash = seed;
+    auto currentChar = str;
+    
+    if (*str == '"')
+        currentChar = str + 1;
+    
+    while (*currentChar)
+    {
+        char character = *currentChar;
+    
+        if (*str == '"' && character == '"')
+            break;
+    
+        ++currentChar;
+    
+        if ((uint8_t)(character - 'A') <= 25)
+        {
+            character += 32; // Convert uppercase to lowercase
+        }
+        else if (character == '\\')
+        {
+            character = '/';
+        }
+    
+        hash = (1025 * (hash + character) >> 6) ^ 1025 * (hash + character);
+    }
+    
+    return 32769 * (9 * hash ^ (9 * hash >> 11));
+}
+
 export class CBaseDC
 {
 public:
@@ -739,7 +771,8 @@ export namespace rage
 
     public:
         static inline std::unordered_map<int, std::vector<uint8_t>> GlobalParams;
-        static inline std::unordered_map<uintptr_t, std::unordered_map<int, std::vector<uint8_t>>> ShaderInfoParams;
+        static inline std::map<std::string, std::map<int, std::vector<uint8_t>>> ShaderInfoParams;
+        static inline std::map<std::string, std::pair<int, int>> ShaderInfoParamHashes;
 
         static inline void* pfngetParamIndex = nullptr;
         static int getParamIndex(grmShaderInfo* instance, const char* name, int a3)
@@ -748,10 +781,26 @@ export namespace rage
             return func(instance, name, a3);
         }
 
+        static int getParamIndex(const char* shader_path, unsigned int name_hash, int a3)
+        {
+            auto j = 1;
+            for (auto i = (int*)(ShaderInfoParamHashes[shader_path].first + 0xC); j < ShaderInfoParamHashes[shader_path].second; i += 0xC, ++j)
+            {
+                if (i[0] == name_hash || i[1] == name_hash)
+                    return j;
+            }
+            return 0;
+        }
+
         static inline SafetyHookInline shsub_436D70{};
         static void __fastcall setShaderParam(grmShaderInfo* _this, void* edx, void* a2, int index, void* in, int a5, int a6, int a7)
         {
-            ShaderInfoParams[(uintptr_t)_this][index].assign((uint8_t*)in, (uint8_t*)in + a5);
+            size_t j = 1;
+            if (_this->m_parameters.wCount)
+            {
+                ShaderInfoParamHashes[_this->m_pszShaderPath] = { _this->m_parameters.pData, _this->m_parameters.wSize };
+                ShaderInfoParams[_this->m_pszShaderPath][index].assign((uint8_t*)in, (uint8_t*)in + a5);
+            }
             return shsub_436D70.fastcall(_this, edx, a2, index, in, a5, a6, a7);
         }
 
@@ -790,12 +839,13 @@ export namespace rage
 
         static float* getParam(const char* shaderName, const char* paramName)
         {
+            auto hash = hashStringLowercaseFromSeed(paramName, 0);
+
             for (auto& it : ShaderInfoParams)
             {
-                auto si = (grmShaderInfo*)it.first;
-                if (std::string_view(si->m_pszShaderPath).ends_with(shaderName))
-                {
-                    auto i = getParamIndex(si, paramName, 1);
+                if (it.first.ends_with(shaderName))
+                 {
+                    auto i = getParamIndex(it.first.c_str(), hash, 1);
                     if (i)
                         return reinterpret_cast<float*>(it.second[i].data());
                     else
@@ -954,6 +1004,12 @@ public:
     }
 };
 
+export namespace CTxdStore
+{
+    rage::grcTexturePC* (__fastcall* getEntryByKey)(int* _this, void* edx, unsigned int a2);
+    int* (__cdecl* at)(int);
+}
+
 export int32_t* _dwCurrentEpisode;
 export void* (__stdcall* getNativeAddress)(uint32_t);
 export HWND gWnd;
@@ -964,6 +1020,7 @@ export bool bLoadingShown = false;
 export int bMenuNeedsUpdate = 0;
 export int bMenuNeedsUpdate2 = 0;
 export bool bEnableSnow = false;
+export bool bEnableHall = false;
 
 export inline LONG getWindowWidth()
 {
@@ -1136,5 +1193,17 @@ public:
 
         pattern = find_pattern("53 8B 5C 24 08 56 33 F6", "53 8B 5C 24 08 56 57 33 FF 39 3D");
         rage::grcTextureFactoryPC::shCreateRT = safetyhook::create_inline(pattern.get_first(0), rage::grcTextureFactoryPC::CreateRT);
+
+        pattern = find_pattern("53 55 56 57 8B F9 85 FF 74 3F", "53 55 8B 6C 24 0C 56 57 EB 06 8D 9B 00 00 00 00 0F B7 51 14 33 FF 83 EA 01 78 26 8B 59 10", "85 C9 53 55 56 57 74 40 8B 6C 24 14 8D 64 24 00");
+        CTxdStore::getEntryByKey = pattern.get_first<rage::grcTexturePC*(__fastcall)(int*, void*, unsigned int)>(0);
+
+        pattern = hook::pattern("8B 0D ? ? ? ? 8B 54 24 04 8B 41 04 F6 04 02 80 74 05 33 C0 8B 00 C3");
+        if (!pattern.empty())
+            CTxdStore::at = pattern.count(9).get(2).get<int*(__cdecl)(int)>(0);
+        else
+        {
+            pattern = hook::pattern("8B 0D ? ? ? ? 8B 41 04 8B 54 24 04 F6 04 02 80 74 05 33 C0 8B 00 C3");
+            CTxdStore::at = pattern.count(11).get(2).get<int*(__cdecl)(int)>(0);
+        }  
     }
 } Common;
