@@ -113,6 +113,7 @@ export namespace rage
         GRCFMT_A16B16G16R16F2,
         GRCFMT_A16B16G16R16,
         GRCFMT_L8,
+        GRCFMT_D24S8 = 0xE,
         GRCFMT_X8R8G8B8 = 0x10,
     };
 
@@ -131,6 +132,7 @@ export namespace rage
         { GRCFMT_A16B16G16R16F2, D3DFMT_A16B16G16R16F },
         { GRCFMT_A16B16G16R16,   D3DFMT_A16B16G16R16 },
         { GRCFMT_L8,             D3DFMT_L8 },
+        { GRCFMT_D24S8,          D3DFMT_D24S8 },
         { GRCFMT_X8R8G8B8,       D3DFMT_X8R8G8B8 },
     };
 
@@ -594,7 +596,7 @@ export namespace rage
         }
 
         static inline SafetyHookInline shCreateRT{};
-        static grcRenderTargetPC* __stdcall CreateRT(const char* name, grcRenderTargetPC* a2, int width, int height, int bpp, char* a6)
+        static grcRenderTargetPC* __stdcall CreateRT(const char* name, int32_t a2, uint32_t width, uint32_t height, uint32_t bitsPerPixel, grcRenderTargetDesc* desc)
         {
             if(std::string_view(name) == "PHONE_SCREEN" || std::string_view(name) == "PHOTO")
             {
@@ -603,7 +605,12 @@ export namespace rage
                 height = res;
             }
 
-            auto ret = shCreateRT.stdcall<grcRenderTargetPC*>(name, a2, width, height, bpp, a6);
+            if (std::string_view(name) == "_BACK_ZBUFFER_")
+            {
+                int x = 0;
+            }
+
+            auto ret = shCreateRT.stdcall<grcRenderTargetPC*>(name, a2, width, height, bitsPerPixel, desc);
             
             //     if(strcmp("WATER_REFLECTION_COLOUR", name) == 0) { ret->mMultisampleCount=1; }
             //else if(strcmp("WATER_REFLECTION_DEPTH" , name) == 0) { ret->mMultisampleCount=1; }

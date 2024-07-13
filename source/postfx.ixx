@@ -68,15 +68,15 @@ public:
 
     //------- full screen ---------
     // postfx textures created
-    IDirect3DTexture9* FullScreenTex_temp1 = nullptr; // main temp texture
-    IDirect3DTexture9* FullScreenTex_temp2 = nullptr; // main temp texture
+    rage::grcRenderTargetPC* FullScreenTex_temp1 = nullptr; // main temp texture
+    rage::grcRenderTargetPC* FullScreenTex_temp2 = nullptr; // main temp texture
 
-    IDirect3DTexture9* pShadowBlurTex1 = nullptr; // main shadow temp texture
-    IDirect3DTexture9* pShadowBlurTex2 = nullptr; // main shadow temp texture
+    rage::grcRenderTargetPC* pShadowBlurTex1 = nullptr; // main shadow temp texture
+    rage::grcRenderTargetPC* pShadowBlurTex2 = nullptr; // main shadow temp texture
 
     // smaa textures
-    IDirect3DTexture9* edgesTex = nullptr; // smaa gen
-    IDirect3DTexture9* blendTex = nullptr; // smaa gen
+    rage::grcRenderTargetPC* edgesTex = nullptr; // smaa gen
+    rage::grcRenderTargetPC* blendTex = nullptr; // smaa gen
 
     // temp set and used in postfx
     IDirect3DTexture9* renderTargetTex = nullptr;
@@ -86,13 +86,13 @@ public:
 
 
     //-------- half resolution screen --------------
-    IDirect3DTexture9* FullScreenDownsampleTex = nullptr; // main downsampled texture
-    IDirect3DTexture9* FullScreenDownsampleTex2 = nullptr; // main downsampled texture
+    rage::grcRenderTargetPC* FullScreenDownsampleTex = nullptr; // main downsampled texture
+    rage::grcRenderTargetPC* FullScreenDownsampleTex2 = nullptr; // main downsampled texture
 
 
     // ----------- unused ----------- 
     IDirect3DTexture9* stencilDownsampled = nullptr; // gen
-    IDirect3DTexture9* HalfDepthStenciltex = nullptr; // gen
+    rage::grcRenderTargetPC* HalfDepthStenciltex = nullptr; // gen
 
 
     // game render targets
@@ -272,22 +272,63 @@ public:
         HalfScreenTex = nullptr;
         pQuarterHDRTex = nullptr;
 
-        SAFE_RELEASE(FullScreenTex_temp1);
-        SAFE_RELEASE(FullScreenTex_temp2);
-        SAFE_RELEASE(SMAA_areaTex);
-        SAFE_RELEASE(SMAA_searchTex);
-        SAFE_RELEASE(edgesTex);
-        SAFE_RELEASE(blendTex);
-        SAFE_RELEASE(blueNoiseVolume);
+        if (FullScreenTex_temp1)
+        {
+            FullScreenTex_temp1->Destroy();
+            FullScreenTex_temp1 = nullptr;
+        }
+
+        if (FullScreenTex_temp2)
+        {
+            FullScreenTex_temp2->Destroy();
+            FullScreenTex_temp2 = nullptr;
+        }
+
+        if (edgesTex)
+        {
+            edgesTex->Destroy();
+            edgesTex = nullptr;
+        }
+
+        if (blendTex)
+        {
+            blendTex->Destroy();
+            blendTex = nullptr;
+        }
+
 
         //SAFE_RELEASE(DepthStenciltex);
         SAFE_RELEASE(stencilDownsampled);
-        SAFE_RELEASE(FullScreenDownsampleTex);
-        SAFE_RELEASE(FullScreenDownsampleTex2);
-        SAFE_RELEASE(HalfDepthStenciltex);
 
-        SAFE_RELEASE(pShadowBlurTex1);
-        SAFE_RELEASE(pShadowBlurTex2);
+        if (FullScreenDownsampleTex)
+        {
+            FullScreenDownsampleTex->Destroy();
+            FullScreenDownsampleTex = nullptr;
+        }
+
+        if (FullScreenDownsampleTex2)
+        {
+            FullScreenDownsampleTex2->Destroy();
+            FullScreenDownsampleTex2 = nullptr;
+        }
+
+        if (HalfDepthStenciltex)
+        {
+            HalfDepthStenciltex->Destroy();
+            HalfDepthStenciltex = nullptr;
+        }
+
+        if (pShadowBlurTex1)
+        {
+            pShadowBlurTex1->Destroy();
+            pShadowBlurTex1 = nullptr;
+        }
+
+        if (pShadowBlurTex2)
+        {
+            pShadowBlurTex2->Destroy();
+            pShadowBlurTex2 = nullptr;
+        }
     }
 
     bool ShadersFinishedLoading() {
@@ -333,23 +374,63 @@ public:
         BilateralDepthTreshold[0] = iniReader.ReadFloat("SRF", "BilateralDepthTreshold", 0.003f);
     }
 
-    void createTextures(UINT Width, UINT Height, HMODULE hm) {
+    void createTextures(UINT Width, UINT Height, HMODULE hm)
+    {
         IDirect3DDevice9* pDevice = rage::grcDevice::GetD3DDevice();
 
-        pDevice->CreateTexture(Width, Height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A16B16G16R16F, D3DPOOL_DEFAULT, &FullScreenTex_temp1, 0);
-        pDevice->CreateTexture(Width, Height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A16B16G16R16F, D3DPOOL_DEFAULT, &FullScreenTex_temp2, 0);
-        pDevice->CreateTexture(Width, Height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_G16R16F, D3DPOOL_DEFAULT, &pShadowBlurTex1, 0);
-        pDevice->CreateTexture(Width, Height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_G16R16F, D3DPOOL_DEFAULT, &pShadowBlurTex2, 0);
-        pDevice->CreateTexture(Width, Height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &edgesTex, 0);
-        pDevice->CreateTexture(Width, Height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &blendTex, 0);
-        pDevice->CreateTexture(Width / 2, Height / 2, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A16B16G16R16F, D3DPOOL_DEFAULT, &FullScreenDownsampleTex, 0);
-        pDevice->CreateTexture(Width / 2, Height / 2, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A16B16G16R16F, D3DPOOL_DEFAULT, &FullScreenDownsampleTex2, 0);
-        pDevice->CreateTexture(Width / 2, Height / 2, 1, D3DUSAGE_DEPTHSTENCIL, D3DFMT_D24S8, D3DPOOL_DEFAULT, &HalfDepthStenciltex, 0);
-    
-        D3DXCreateTextureFromResourceExW(pDevice, hm, MAKEINTRESOURCEW(IDR_AreaTex), 0, 0, 0, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_LINEAR, D3DX_FILTER_LINEAR, D3DCOLOR_ARGB(150, 100, 100, 100), NULL, NULL, &SMAA_areaTex);
-        D3DXCreateTextureFromResourceExW(pDevice, hm, MAKEINTRESOURCEW(IDR_SearchTex), 0, 0, 0, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_LINEAR, D3DX_FILTER_LINEAR, D3DCOLOR_ARGB(150, 100, 100, 100), NULL, NULL, &SMAA_searchTex);
-        D3DXCreateVolumeTextureFromResourceExW(pDevice, hm, MAKEINTRESOURCEW(IDR_bluenoisevolume), 0, 0, 0, 0, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_LINEAR, D3DX_FILTER_LINEAR, D3DCOLOR_ARGB(150, 100, 100, 100), NULL, NULL, &blueNoiseVolume);
+        rage::grcRenderTargetDesc desc{};
+        desc.mMultisampleCount = 0;
+        desc.field_0 = 1;
+        desc.field_12 = 1;
+        desc.mDepthRT = nullptr;
+        desc.field_8 = 1;
+        desc.field_10 = 1;
+        desc.field_11 = 1;
+        desc.field_24 = false;
+        desc.mFormat = rage::GRCFMT_A16B16G16R16F;
 
+        auto CreateEmptyRT = [](const char* name, int32_t a2, uint32_t width, uint32_t height, uint32_t bitsPerPixel, rage::grcRenderTargetDesc* desc) -> rage::grcRenderTargetPC*
+        {
+            auto rt = rage::grcTextureFactory::GetInstance()->CreateRenderTarget(name, a2, width, height, bitsPerPixel, desc);
+            rage::grcDevice::grcResolveFlags resolveFlags{};
+            rage::grcTextureFactoryPC::GetInstance()->LockRenderTarget(0, rt, nullptr);
+            rage::grcTextureFactoryPC::GetInstance()->UnlockRenderTarget(0, &resolveFlags);
+            return rt;
+        };
+
+        FullScreenTex_temp1 = CreateEmptyRT("FullScreenTex_temp1", 3, Width, Height, 32, &desc);
+        FullScreenTex_temp2 = CreateEmptyRT("FullScreenTex_temp2", 3, Width, Height, 32, &desc);
+
+        desc.mFormat = rage::GRCFMT_G16R16F;
+
+        pShadowBlurTex1 = CreateEmptyRT("pShadowBlurTex1", 3, Width, Height, 32, &desc);
+        pShadowBlurTex2 = CreateEmptyRT("pShadowBlurTex2", 3, Width, Height, 32, &desc);
+
+        desc.mFormat = rage::GRCFMT_X8R8G8B8;
+
+        edgesTex = CreateEmptyRT("edgesTex", 3, Width, Height, 32, &desc);
+
+        desc.mFormat = rage::GRCFMT_A8R8G8B8;
+
+        blendTex = CreateEmptyRT("blendTex", 3, Width, Height, 32, &desc);
+
+        desc.mFormat = rage::GRCFMT_A16B16G16R16F;
+
+        FullScreenDownsampleTex = CreateEmptyRT("FullScreenDownsampleTex", 3, Width / 2, Height / 2, 32, &desc);
+        FullScreenDownsampleTex2 = CreateEmptyRT("FullScreenDownsampleTex2", 3, Width / 2, Height / 2, 32, &desc);
+
+        desc.mFormat = rage::GRCFMT_D24S8;
+        desc.field_24 = true; //D3DUSAGE_DEPTHSTENCIL ?
+
+        //pDevice->CreateTexture(Width / 2, Height / 2, 1, D3DUSAGE_DEPTHSTENCIL, D3DFMT_D24S8, D3DPOOL_DEFAULT, &HalfDepthStenciltex, 0);
+        HalfDepthStenciltex = CreateEmptyRT("HalfDepthStenciltex", 3, Width / 2, Height / 2, 32, &desc);
+
+        if (!SMAA_areaTex)
+            D3DXCreateTextureFromResourceExW(pDevice, hm, MAKEINTRESOURCEW(IDR_AreaTex), 0, 0, 0, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_LINEAR, D3DX_FILTER_LINEAR, D3DCOLOR_ARGB(150, 100, 100, 100), NULL, NULL, &SMAA_areaTex);
+        if (!SMAA_searchTex)
+            D3DXCreateTextureFromResourceExW(pDevice, hm, MAKEINTRESOURCEW(IDR_SearchTex), 0, 0, 0, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_LINEAR, D3DX_FILTER_LINEAR, D3DCOLOR_ARGB(150, 100, 100, 100), NULL, NULL, &SMAA_searchTex);
+        if (!blueNoiseVolume)
+            D3DXCreateVolumeTextureFromResourceExW(pDevice, hm, MAKEINTRESOURCEW(IDR_bluenoisevolume), 0, 0, 0, 0, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_LINEAR, D3DX_FILTER_LINEAR, D3DCOLOR_ARGB(150, 100, 100, 100), NULL, NULL, &blueNoiseVolume);
     }
 };
 
@@ -519,18 +600,18 @@ private:
         if(PostFxResources.FullScreenTex2)
             PostFxResources.FullScreenTex2->GetSurfaceLevel(0, &PostFxResources.FullScreenSurface2);
 
-        PostFxResources.FullScreenTex_temp1->GetSurfaceLevel(0, &PostFxResources.FullScreenSurface_temp1);
-        PostFxResources.FullScreenTex_temp2->GetSurfaceLevel(0, &PostFxResources.FullScreenSurface_temp2);
-        PostFxResources.edgesTex->GetSurfaceLevel(0, &PostFxResources.edgesSurf);
-        PostFxResources.blendTex->GetSurfaceLevel(0, &PostFxResources.blendSurf);
+        PostFxResources.FullScreenTex_temp1->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.FullScreenSurface_temp1);
+        PostFxResources.FullScreenTex_temp2->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.FullScreenSurface_temp2);
+        PostFxResources.edgesTex->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.edgesSurf);
+        PostFxResources.blendTex->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.blendSurf);
 
-        PostFxResources.HalfDepthStenciltex->GetSurfaceLevel(0, &PostFxResources.halfZStencilSurface);
-        PostFxResources.FullScreenDownsampleTex->GetSurfaceLevel(0, &PostFxResources.FullScreenDownsampleSurf);
-        PostFxResources.FullScreenDownsampleTex2->GetSurfaceLevel(0, &PostFxResources.FullScreenDownsampleSurf2);
+        PostFxResources.HalfDepthStenciltex->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.halfZStencilSurface);
+        PostFxResources.FullScreenDownsampleTex->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.FullScreenDownsampleSurf);
+        PostFxResources.FullScreenDownsampleTex2->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.FullScreenDownsampleSurf2);
 
         PostFxResources.CascadeAtlasTex->GetSurfaceLevel(0, &PostFxResources.CascadeAtlasSurf);
-        PostFxResources.pShadowBlurTex1->GetSurfaceLevel(0, &PostFxResources.pShadowBlurSurf1);
-        PostFxResources.pShadowBlurTex2->GetSurfaceLevel(0, &PostFxResources.pShadowBlurSurf2);
+        PostFxResources.pShadowBlurTex1->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.pShadowBlurSurf1);
+        PostFxResources.pShadowBlurTex2->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.pShadowBlurSurf2);
 
         //PostFxResources.stencilDownsampled->GetSurfaceLevel(0, &stencilDownsampledSurf       );
 
@@ -670,12 +751,12 @@ private:
         // main postfx passes
         {
             if(PostFxResources.FullScreenTex_temp1 && PostFxResources.FullScreenTex /*&& PostFxResources.aoTex*/) {
-                PostFxResources.renderTargetTex = PostFxResources.FullScreenTex_temp1;
+                PostFxResources.renderTargetTex = PostFxResources.FullScreenTex_temp1->mD3DTexture;
 
                 PostFxResources.textureRead = PostFxResources.FullScreenTex;
                 PostFxResources.surfaceRead = PostFxResources.FullScreenSurface;
 
-                PostFxResources.renderTargetTex = PostFxResources.FullScreenTex_temp1;
+                PostFxResources.renderTargetTex = PostFxResources.FullScreenTex_temp1->mD3DTexture;
                 PostFxResources.renderTargetSurf = PostFxResources.FullScreenSurface_temp1;
 
                 // ready for new post processing?
@@ -694,7 +775,7 @@ private:
 
                         pDevice->SetPixelShader(PostFxResources.DeferredShadowBlurCircle_ps);
                         pDevice->SetRenderTarget(0, PostFxResources.pShadowBlurSurf2);
-                        pDevice->SetTexture(11, PostFxResources.pShadowBlurTex1);
+                        pDevice->SetTexture(11, PostFxResources.pShadowBlurTex1->mD3DTexture);
                         pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
 
                         pDevice->SetTexture(11, 0);
@@ -702,7 +783,7 @@ private:
                         pDevice->SetPixelShader(PostFxResources.SSAO_blend_ps);
                         pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
                         pDevice->SetTexture(2, PostFxResources.textureRead);
-                        pDevice->SetTexture(3, PostFxResources.pShadowBlurTex2);
+                        pDevice->SetTexture(3, PostFxResources.pShadowBlurTex2->mD3DTexture);
                         pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
                         PostFxResources.swapbuffers();
                         pDevice->SetTexture(2, PostFxResources.textureRead);
@@ -773,7 +854,7 @@ private:
                             pDevice->SetPixelShader(PostFxResources.SMAA_BlendingWeightsCalculation);
                             pDevice->SetVertexShader(PostFxResources.SMAA_BlendingWeightsCalculationVS);
                             pDevice->SetRenderTarget(0, PostFxResources.blendSurf);
-                            pDevice->SetTexture(1, PostFxResources.edgesTex);
+                            pDevice->SetTexture(1, PostFxResources.edgesTex->mD3DTexture);
                             pDevice->SetTexture(2, PostFxResources.SMAA_areaTex);
                             pDevice->SetTexture(3, PostFxResources.SMAA_searchTex);
                             pDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 0, 0);
@@ -795,8 +876,8 @@ private:
 
                             //pDevice->SetTexture(2,  textureRead);
                             pDevice->SetTexture(0, PostFxResources.textureRead);
-                            pDevice->SetTexture(1, PostFxResources.edgesTex);
-                            pDevice->SetTexture(4, PostFxResources.blendTex);
+                            pDevice->SetTexture(1, PostFxResources.edgesTex->mD3DTexture);
+                            pDevice->SetTexture(4, PostFxResources.blendTex->mD3DTexture);
                             pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, 0);
                             pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
                             PostFxResources.swapbuffers();
@@ -832,7 +913,7 @@ private:
                                 pDevice->SetDepthStencilSurface(PostFxResources.ppZStencilSurface);
                                 pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
                                 pDevice->SetTexture(2, PostFxResources.textureRead);
-                                pDevice->SetTexture(8, PostFxResources.FullScreenDownsampleTex);
+                                pDevice->SetTexture(8, PostFxResources.FullScreenDownsampleTex->mD3DTexture);
                                 pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
                                 PostFxResources.swapbuffers();
                                 pDevice->SetTexture(8, PostFxResources.HalfScreenTex);
@@ -879,14 +960,14 @@ private:
                                 // litle blur
                                 pDevice->SetPixelShader(PostFxResources.depth_of_field_tent_ps);
                                 pDevice->SetRenderTarget(0, PostFxResources.FullScreenDownsampleSurf);
-                                pDevice->SetTexture(8, PostFxResources.FullScreenDownsampleTex2);
+                                pDevice->SetTexture(8, PostFxResources.FullScreenDownsampleTex2->mD3DTexture);
                                 pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
 
                                 // sample sun shafts
                                 pDevice->SetPixelShader(PostFxResources.SunShafts_PS);
                                 pDevice->SetRenderTarget(0, PostFxResources.FullScreenDownsampleSurf2);
                                 pDevice->SetTexture(8, 0);
-                                pDevice->SetTexture(11, PostFxResources.FullScreenDownsampleTex);
+                                pDevice->SetTexture(11, PostFxResources.FullScreenDownsampleTex->mD3DTexture);
                                 pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
 
                                 pDevice->SetTexture(8, 0);
@@ -899,7 +980,7 @@ private:
                                 pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
                                 pDevice->SetTexture(2, PostFxResources.textureRead);
                                 pDevice->SetTexture(8, PostFxResources.HalfScreenTex);
-                                pDevice->SetTexture(11, PostFxResources.FullScreenDownsampleTex2);
+                                pDevice->SetTexture(11, PostFxResources.FullScreenDownsampleTex2->mD3DTexture);
                                 if(PostFxResources.blueNoiseVolume)
                                     pDevice->SetTexture(9, PostFxResources.blueNoiseVolume);
 
@@ -946,20 +1027,20 @@ private:
                                 // litle blur
                                 pDevice->SetPixelShader(PostFxResources.depth_of_field_tent_ps);
                                 pDevice->SetRenderTarget(0, PostFxResources.FullScreenDownsampleSurf);
-                                pDevice->SetTexture(8, PostFxResources.FullScreenDownsampleTex2);
+                                pDevice->SetTexture(8, PostFxResources.FullScreenDownsampleTex2->mD3DTexture);
                                 pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
 
                                 // sample sunshafts from a croped texture
                                 pDevice->SetPixelShader(PostFxResources.SunShafts_PS);
                                 pDevice->SetRenderTarget(0, PostFxResources.FullScreenDownsampleSurf2);
                                 pDevice->SetTexture(8, 0);
-                                pDevice->SetTexture(11, PostFxResources.FullScreenDownsampleTex);
+                                pDevice->SetTexture(11, PostFxResources.FullScreenDownsampleTex->mD3DTexture);
                                 pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
 
                                 // second sunshafts pass
                                 pDevice->SetPixelShader(PostFxResources.SunShafts2_PS);
                                 pDevice->SetRenderTarget(0, PostFxResources.FullScreenDownsampleSurf);
-                                pDevice->SetTexture(11, PostFxResources.FullScreenDownsampleTex2);
+                                pDevice->SetTexture(11, PostFxResources.FullScreenDownsampleTex2->mD3DTexture);
                                 pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
 
                                 pDevice->SetTexture(8, 0);
@@ -972,7 +1053,7 @@ private:
                                 pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
                                 pDevice->SetTexture(2, PostFxResources.textureRead);
                                 pDevice->SetTexture(8, PostFxResources.HalfScreenTex);
-                                pDevice->SetTexture(11, PostFxResources.FullScreenDownsampleTex);
+                                pDevice->SetTexture(11, PostFxResources.FullScreenDownsampleTex->mD3DTexture);
                                 if(PostFxResources.blueNoiseVolume)
                                     pDevice->SetTexture(9, PostFxResources.blueNoiseVolume);
 
@@ -1015,7 +1096,7 @@ private:
                                 pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
 
                                 //pDevice->SetTexture(8,  HalfScreenTex);
-                                pDevice->SetTexture(11, PostFxResources.FullScreenTex_temp2);
+                                pDevice->SetTexture(11, PostFxResources.FullScreenTex_temp2->mD3DTexture);
                                 if(PostFxResources.blueNoiseVolume)
                                     pDevice->SetTexture(9, PostFxResources.blueNoiseVolume);
 
@@ -1054,7 +1135,7 @@ private:
                                 if(PostFxResources.blueNoiseVolume)
                                     pDevice->SetTexture(9, PostFxResources.blueNoiseVolume);
 
-                                pDevice->SetTexture(11, PostFxResources.FullScreenDownsampleTex);
+                                pDevice->SetTexture(11, PostFxResources.FullScreenDownsampleTex->mD3DTexture);
                                 pDevice->SetTexture(13, PostFxResources.DiffuseTex);
                                 pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
                                 PostFxResources.swapbuffers();
