@@ -605,11 +605,6 @@ export namespace rage
                 height = res;
             }
 
-            if (std::string_view(name) == "_BACK_ZBUFFER_")
-            {
-                int x = 0;
-            }
-
             auto ret = shCreateRT.stdcall<grcRenderTargetPC*>(name, a2, width, height, bitsPerPixel, desc);
             
             //     if(strcmp("WATER_REFLECTION_COLOUR", name) == 0) { ret->mMultisampleCount=1; }
