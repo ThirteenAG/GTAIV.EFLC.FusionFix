@@ -240,8 +240,8 @@ public:
                             static auto definition = FusionFixSettings.GetRef("PREF_DEFINITION");
                             static float arr4[4];
                             arr4[0] = static_cast<float>(tree_lighting->get() - FusionFixSettings.TreeFxText.ePC);
-                                arr4[1] = (fov > 45.0f) ? pow((fov / 45.0f), 1.25f) : 1.0f;
-                            arr4[2] = static_cast<float>(definition->get() - FusionFixSettings.DefinitionText.eClassic);
+                            arr4[1] = (fov > 45.0f) ? pow((fov / 45.0f), 1.25f) : 1.0f;
+                            arr4[2] = static_cast<float>(definition->get());
                             arr4[3] = (((hour == 6 && minute >= 45) || (hour > 6)) && ((hour == 19 && minute < 15) || (hour < 19))) ? 0.0f : 1.0f;
                             pDevice->SetPixelShaderConstantF(223, &arr4[0], 1);
                         }
