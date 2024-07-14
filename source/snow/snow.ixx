@@ -26,7 +26,7 @@ rage::grcTexturePC* vehicle_generic_glasswindows2_snow;
 static SafetyHookInline shsub_41B920{};
 rage::grcTexturePC* __fastcall sub_41B920(rage::grcTextureReference* tex, void* edx)
 {
-    if (bEnableSnow)
+    if (bEnableSnow && *CWeather::CurrentWeather != CWeather::LIGHTNING)
     {
         if (vehicle_generic_glasswindows2_snow && std::string_view(tex->m_pszName).contains("vehicle_generic_glasswindows2"))
         {
