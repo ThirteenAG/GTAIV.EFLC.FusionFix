@@ -37,8 +37,8 @@ public:
         FusionFix::onInitEventAsync() += []()
         {
             CIniReader iniReader("");
-            bHeadlightShadows = iniReader.ReadInteger("SHADOWS", "HeadlightShadows", 1) != 0;
-            bVehicleNightShadows = iniReader.ReadInteger("SHADOWS", "VehicleNightShadows", 0) != 0;
+            bHeadlightShadows = iniReader.ReadInteger("NIGHTSHADOWS", "HeadlightShadows", 1) != 0;
+            bVehicleNightShadows = iniReader.ReadInteger("NIGHTSHADOWS", "VehicleNightShadows", 0) != 0;
 
             // Render dynamic shadows casted by vehicles from point lights.
             {

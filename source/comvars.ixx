@@ -371,9 +371,9 @@ export namespace rage
         bool field_4D;
         uint8_t field_4E;
 
-        void Destroy(bool a2 = true)
+        void Destroy(uint8_t a2 = 1)
         {
-            auto func = (void(__thiscall*)(grcRenderTargetPC*, bool))(_vft[0]);
+            auto func = (void(__thiscall*)(grcRenderTargetPC*, uint8_t))(_vft[0]);
             func(this, a2);
         }
     };

@@ -186,7 +186,7 @@ public:
     int useDepthOfField = 3;
     int UseDebugTextures = 0;
     bool UseSSAO = false;
-    bool useStippleFilter = false;
+    bool useStippleFilter = true;
     bool useHardwareBilinearSampling = false;
 
     int SunShaftsSamples[4] = { 20, 20, 20, 20 };
@@ -363,7 +363,7 @@ public:
         // downscaled simple, downscaled two passes, full screen simple, fullscreen 2 passes
         useDepthOfField = iniReader.ReadInteger("SRF", "DepthOfFieldType", 3);
         UseSSAO = iniReader.ReadInteger("SRF", "UseSSAO", 0) != 0;
-        useStippleFilter = iniReader.ReadInteger("SRF", "StippleFilter", 0) != 0;
+        useStippleFilter = iniReader.ReadInteger("SRF", "StippleFilter", 1) != 0;
 
         // 0 off, 1 horizontal, 2 vertical, 3 horizontal e vertical.
         //useScreenSpaceShadowsBlur = iniReader.ReadInteger("SRF", "ScreenSpaceShadowsBlur", 0);

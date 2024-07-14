@@ -55,6 +55,8 @@ public:
         static float fShadowBias = 5.0f;
         static float fShadowBlendRange = 0.3f;
 
+        static int nForceShadowFilter = 0;
+
         FusionFix::onInitEvent() += []()
         {
             CIniReader iniReader("");
@@ -64,6 +66,7 @@ public:
             fShadowSoftness = iniReader.ReadFloat("SHADOWS", "ShadowSoftness", 1.5f);
             fShadowBias = iniReader.ReadFloat("SHADOWS", "ShadowBias", 5.0f);
             fShadowBlendRange = std::clamp(iniReader.ReadFloat("SHADOWS", "ShadowBlendRange", 0.3f), 0.0f, 1.0f);
+            nForceShadowFilter = std::clamp(iniReader.ReadInteger("SHADOWS", "ForceShadowFilter", 0), 0, 2);
 
             // Redirect path to one unified folder
             auto pattern = hook::pattern("8B 04 8D ? ? ? ? A3 ? ? ? ? 8B 44 24 04");
@@ -191,7 +194,19 @@ public:
                     {
                         static float arr5[4];
 
-                        arr5[0] = 0.0f;
+                        if (nForceShadowFilter == 0)
+                        {
+                            static auto definition = FusionFixSettings.GetRef("PREF_DEFINITION");
+                            arr5[0] = static_cast<float>(definition->get());
+                        }
+                        else if (nForceShadowFilter == 1)
+                        {
+                            arr5[0] = 0.0f;
+                        }
+                        else if (nForceShadowFilter == 2)
+                        {
+                            arr5[0] = 1.0f;
+                        }
 
                         switch (FusionFixSettings.Get("PREF_BLOOM"))
                         {
