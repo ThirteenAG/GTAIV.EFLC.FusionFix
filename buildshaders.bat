@@ -12,4 +12,4 @@ for /R "%shaders_path%" %%i in (*.fxc) do (
 echo D | xcopy "%%i" "%win32_30%" /K /H /Y
 )
 
-echo D | xcopy "%cd%/shaders/GTAIV.EFLC.FusionShaders/other_assets/Improved Stipple" "%cd%/data/update" /K /H /Y /S
+echo D | xcopy "%cd%/shaders/GTAIV.EFLC.FusionShaders/assets/Custom_Stipple" "%cd%/data/update" /K /H /Y /S
