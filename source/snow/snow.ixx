@@ -468,6 +468,7 @@ private:
         }
     }
 
+public:
     static void ToggleSnow(bool bValue)
     {
         bEnableSnow = bValue;
@@ -475,7 +476,6 @@ private:
         SetRainRenderParams();
     }
 
-public:
     Snow()
     {
         FusionFix::onInitEventAsync() += []()
@@ -652,3 +652,21 @@ public:
         };
     }
 } Snow;
+
+extern "C"
+{
+    bool __declspec(dllexport) IsSnowEnabled()
+    {
+        return bEnableSnow;
+    }
+
+    bool __declspec(dllexport) IsWeatherSnow()
+    {
+        return CWeather::CurrentWeather && *CWeather::CurrentWeather != CWeather::LIGHTNING;
+    }
+
+    void __declspec(dllexport) ToggleSnow()
+    {
+        Snow::ToggleSnow(!bEnableSnow);
+    }
+}
