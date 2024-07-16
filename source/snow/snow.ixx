@@ -20,8 +20,14 @@ import fusiondxhook;
 #define IDR_SNOWPS 203
 #define IDR_SNOWVS 204
 
-rage::grcTexturePC* vehicle_generic_tyre_snow;
+rage::grcTexturePC* vehicle_generic_glasswindows2;
+rage::grcTexturePC* vehicle_generic_tyrewallblack;
+rage::grcTexturePC* vehicle_generic_glassdirt;
+rage::grcTexturePC* vehicle_genericmud_car;
+rage::grcTexturePC* vehicle_genericmud_truck;
+
 rage::grcTexturePC* vehicle_generic_glasswindows2_snow;
+rage::grcTexturePC* vehicle_generic_tyrewallblack_snow;
 rage::grcTexturePC* vehicle_generic_glassdirt_snow;
 rage::grcTexturePC* vehicle_genericmud_car_snow;
 rage::grcTexturePC* vehicle_genericmud_truck_snow;
@@ -31,15 +37,44 @@ rage::grcTexturePC* __fastcall sub_41B920(rage::grcTextureReference* tex, void* 
 {
     if (bEnableSnow && *CWeather::CurrentWeather != CWeather::LIGHTNING)
     {
-        if (vehicle_generic_glasswindows2_snow && std::string_view(tex->m_pszName).contains("vehicle_generic_glasswindows2"))
+        if (!vehicle_generic_glasswindows2)
+        {
+            if (std::string_view(tex->m_pszName) == "vehicle_generic_glasswindows2")
+                vehicle_generic_glasswindows2 = tex->m_pTexture;
+        }
+        else if (vehicle_generic_glasswindows2_snow && tex->m_pTexture == vehicle_generic_glasswindows2)
             return vehicle_generic_glasswindows2_snow;
-        else if (vehicle_generic_tyre_snow && std::string_view(tex->m_pszName).contains("vehicle_generic_tyre"))
-            return vehicle_generic_tyre_snow;
-        else if (vehicle_generic_glassdirt_snow && std::string_view(tex->m_pszName).contains("vehicle_generic_glassdirt"))
+
+        if (!vehicle_generic_tyrewallblack)
+        {
+            if (std::string_view(tex->m_pszName).contains("vehicle_generic_tyrewallblack"))
+                vehicle_generic_tyrewallblack = tex->m_pTexture;
+        }
+        else if (vehicle_generic_tyrewallblack_snow && tex->m_pTexture == vehicle_generic_tyrewallblack)
+            return vehicle_generic_tyrewallblack_snow;
+
+        if (!vehicle_generic_glassdirt)
+        {
+            if (std::string_view(tex->m_pszName) == "vehicle_generic_glassdirt")
+                vehicle_generic_glassdirt = tex->m_pTexture;
+        }
+        else if (vehicle_generic_glassdirt_snow && tex->m_pTexture == vehicle_generic_glassdirt)
             return vehicle_generic_glassdirt_snow;
-        else if (vehicle_genericmud_car_snow && std::string_view(tex->m_pszName).contains("vehicle_genericmud_car"))
+
+        if (!vehicle_genericmud_car)
+        {
+            if (std::string_view(tex->m_pszName) == "vehicle_genericmud_car")
+                vehicle_genericmud_car = tex->m_pTexture;
+        }
+        else if (vehicle_genericmud_car_snow && tex->m_pTexture == vehicle_genericmud_car)
             return vehicle_genericmud_car_snow;
-        else if (vehicle_genericmud_truck_snow && std::string_view(tex->m_pszName).contains("vehicle_genericmud_truck"))
+
+        if (!vehicle_genericmud_truck)
+        {
+            if (std::string_view(tex->m_pszName) == "vehicle_genericmud_truck")
+                vehicle_genericmud_truck = tex->m_pTexture;
+        }
+        else if (vehicle_genericmud_truck_snow && tex->m_pTexture == vehicle_genericmud_truck)
             return vehicle_genericmud_truck_snow;
     }
 
@@ -626,7 +661,7 @@ public:
                 static auto FXRain__CTxdStore__setCurrent = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& ctx)
                 {
                     vehicle_generic_glasswindows2_snow = CTxdStore::getEntryByKey(CTxdStore::at(ctx.esi), 0, hashStringLowercaseFromSeed("vehicle_generic_glasswindows2_snow", 0));
-                    vehicle_generic_tyre_snow = CTxdStore::getEntryByKey(CTxdStore::at(ctx.esi), 0, hashStringLowercaseFromSeed("vehicle_generic_tyre_snow", 0));
+                    vehicle_generic_tyrewallblack_snow = CTxdStore::getEntryByKey(CTxdStore::at(ctx.esi), 0, hashStringLowercaseFromSeed("vehicle_generic_tyrewallblack_snow", 0));
                     vehicle_generic_glassdirt_snow = CTxdStore::getEntryByKey(CTxdStore::at(ctx.esi), 0, hashStringLowercaseFromSeed("vehicle_generic_glassdirt_snow", 0));
                     vehicle_genericmud_car_snow = CTxdStore::getEntryByKey(CTxdStore::at(ctx.esi), 0, hashStringLowercaseFromSeed("vehicle_genericmud_car_snow", 0));
                     vehicle_genericmud_truck_snow = CTxdStore::getEntryByKey(CTxdStore::at(ctx.esi), 0, hashStringLowercaseFromSeed("vehicle_genericmud_truck_snow", 0));
