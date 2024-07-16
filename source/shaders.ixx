@@ -51,8 +51,8 @@ public:
         static float fTreeAlphaMultiplier = 1.0f;
         static float fCoronaReflectionIntensity = 1.0f;
 
-        static float fShadowSoftness = 1.5f;
-        static float fShadowBias = 5.0f;
+        static float fShadowSoftness = 3.0f;
+        static float fShadowBias = 8.0f;
         static float fShadowBlendRange = 0.3f;
 
         static int nForceShadowFilter = 0;
@@ -63,8 +63,8 @@ public:
             bFixAutoExposure = iniReader.ReadInteger("MISC", "FixAutoExposure", 1) != 0;
             fTreeAlphaMultiplier = std::clamp(iniReader.ReadFloat("MISC", "TreeAlphaMultiplier", 1.0f), 1.0f, 255.0f);
             fCoronaReflectionIntensity = iniReader.ReadFloat("MISC", "CoronaReflectionIntensity", 1.0f);
-            fShadowSoftness = iniReader.ReadFloat("SHADOWS", "ShadowSoftness", 1.5f);
-            fShadowBias = iniReader.ReadFloat("SHADOWS", "ShadowBias", 5.0f);
+            fShadowSoftness = iniReader.ReadFloat("SHADOWS", "ShadowSoftness", 3.0f);
+            fShadowBias = iniReader.ReadFloat("SHADOWS", "ShadowBias", 8.0f);
             fShadowBlendRange = std::clamp(iniReader.ReadFloat("SHADOWS", "ShadowBlendRange", 0.3f), 0.0f, 1.0f);
             nForceShadowFilter = std::clamp(iniReader.ReadInteger("SHADOWS", "ForceShadowFilter", 0), 0, 2);
 
@@ -288,28 +288,24 @@ public:
             //{
             //
             //};
-            
-            FusionFix::D3D9::onAfterCreateTexture() += [](LPDIRECT3DDEVICE9& pDevice, UINT& Width, UINT& Height, UINT& Levels, DWORD& Usage, D3DFORMAT& Format, D3DPOOL& Pool, IDirect3DTexture9**& ppTexture, HANDLE*& pSharedHandle)
-            {
-                if (bFixRainDrops && Format == D3DFMT_A16B16G16R16F && Width == *rage::grcDevice::ms_nActiveWidth / 2 &&
-                    Height == *rage::grcDevice::ms_nActiveHeight / 2 && ppTexture != nullptr && *ppTexture != nullptr) {
-                    pHDRTexQuarter = *ppTexture;
-                }
-            };
-            
+                        
             FusionFix::D3D9::onSetTexture() += [](LPDIRECT3DDEVICE9& pDevice, DWORD& Stage, IDirect3DBaseTexture9*& pTexture)
             {
-                if (bFixRainDrops && Stage == 1 && pTexture == nullptr && pHDRTexQuarter) {
-                    pTexture = pHDRTexQuarter;
+                if (bFixRainDrops && Stage == 1 && pTexture == nullptr)
+                {
+                    if (!pHDRTexQuarter)
+                    {
+                        auto qs0 = rage::grcTextureFactoryPC::GetRTByName("Quarter Screen 0");
+                        if (qs0)
+                            pHDRTexQuarter = qs0->mD3DTexture;
+                    }
+                    
+                    if (pHDRTexQuarter)
+                        pTexture = pHDRTexQuarter;
                 }
             };
 
             FusionFix::D3D9::onBeforeCreateDevice() += [](LPDIRECT3D9& pDirect3D9, UINT& Adapter, D3DDEVTYPE& DeviceType, HWND& hFocusWindow, DWORD& BehaviorFlags, D3DPRESENT_PARAMETERS*& pPresentationParameters, IDirect3DDevice9**& ppReturnedDeviceInterface)
-            {
-                pHDRTexQuarter = nullptr;
-            };
-
-            FusionFix::D3D9::onBeforeReset() += [](LPDIRECT3DDEVICE9& pDevice, D3DPRESENT_PARAMETERS*& pPresentationParameters)
             {
                 pHDRTexQuarter = nullptr;
             };
