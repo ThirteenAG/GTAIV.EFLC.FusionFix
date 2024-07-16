@@ -13,7 +13,7 @@ for /f "delims=" %%i in ('dir %src% /a:d/s/b') do (
     if not exist !modified! mkdir !modified!
     set "string=%%i"
     set "modified=!string:%src%=%dst%!"
-    ResourceBuilder.exe -c_wtd_v8 !modified! -f %%i
+    fftdc.exe -c_wtd_v8 !modified! -f %%i
   )
 )
 cd ..

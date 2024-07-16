@@ -111,7 +111,7 @@ class RawInput
 public:
     RawInput()
     {
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
             // Menu
             auto pattern = hook::pattern("0F 48 C1 A3 ? ? ? ? 5F");
@@ -267,11 +267,12 @@ public:
                     regs.xmm0.f32[0] = *(float*)(ptr + 0x1B0);
                 }
             }; injector::MakeInline<CCamFollowVehicleHook>(pattern.get_first(0), pattern.get_first(8));
+        };
 
+        FusionFix::onInitEvent() += []()
+        {
             // Script
-            {
-                hbNATIVE_GET_MOUSE_INPUT.fun = NativeOverride::Register(Natives::NativeHashes::GET_MOUSE_INPUT, NATIVE_GET_MOUSE_INPUT, "E8 ? ? ? ? 83 C4 08 C3", 30);
-            }
+            hbNATIVE_GET_MOUSE_INPUT.fun = NativeOverride::Register(Natives::NativeHashes::GET_MOUSE_INPUT, NATIVE_GET_MOUSE_INPUT, "E8 ? ? ? ? 83 C4 08 C3", 30);
         };
     }
 } RawInput;

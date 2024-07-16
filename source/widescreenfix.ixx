@@ -8,10 +8,9 @@ import common;
 import comvars;
 import settings;
 import natives;
-import renderthread;
 
-#define SCREEN_WIDTH ((float)*rage__grcDevice__ms_nActiveWidth)
-#define SCREEN_HEIGHT ((float)*rage__grcDevice__ms_nActiveHeight)
+#define SCREEN_WIDTH ((float)*rage::grcDevice::ms_nActiveWidth)
+#define SCREEN_HEIGHT ((float)*rage::grcDevice::ms_nActiveHeight)
 #define DEFAULT_SCREEN_WIDTH 1280.0f
 #define DEFAULT_SCREEN_HEIGHT 720.0f
 #define DEFAULT_ASPECT_RATIO (16.0f / 9.0f)
@@ -31,7 +30,7 @@ public:
         f075 = 0.75f * DEFAULT_ASPECT_RATIO / SCREEN_ASPECT_RATIO;
         f01152 = 1152.0f * DEFAULT_ASPECT_RATIO / SCREEN_ASPECT_RATIO;
 
-        if (bordersTimer < (*CTimer__m_snTimeInMilliseconds))
+        if (bordersTimer < (*CTimer::m_snTimeInMilliseconds))
             bordersMult = -5.0f;
     }
 
@@ -83,8 +82,8 @@ public:
             CSprite2d__DrawRect(rect, col);
         }
 
-        bordersTimer = (*CTimer__m_snTimeInMilliseconds) + 500;
-        bordersMult += 2.0f * (*fTimeStep);
+        bordersTimer = (*CTimer::m_snTimeInMilliseconds) + 500;
+        bordersMult += 2.0f * (*CTimer::fTimeStep);
         if (bordersMult >= 1.0f)
             bordersMult = 1.0f;
 
@@ -148,7 +147,7 @@ public:
 
     WidescreenFix()
     {
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
             // CSprite2d
             auto pattern = find_pattern("6A 00 E8 ? ? ? ? 8B 44 24 08 83 C4 04 F3 0F 10 40", "6A 00 E8 ? ? ? ? D9 EE 8B 44 24 0C");
@@ -196,8 +195,8 @@ public:
             injector::MakeCALL(pattern.get_first(0), DrawLoadingScreen, true);
 
             // Camera overlay
-            pattern = hook::pattern("5E C3 5F 5E E9");
-            hbDrawCameraOverlay.fun = injector::MakeJMP(pattern.get_first(4), DrawCameraOverlay, true).get();
+            pattern = find_pattern("31 47 04 5F 5E C3 5F 5E E9", "31 46 04 5F 5E C3 5F 5E E9");
+            hbDrawCameraOverlay.fun = injector::MakeJMP(pattern.get_first(8), DrawCameraOverlay, true).get();
 
             pattern = find_pattern("C7 47 ? ? ? ? ? EB 02 33 FF 8B 07 8B CF FF 50 08 25 ? ? ? ? 79 05 48 83 C8 F0 40 BE ? ? ? ? 2B F0 81 E6 ? ? ? ? 79 05 4E 83 CE F0 46 8B 07 8B CF FF 50 08 03 C6 99 83 E2 0F 03 C2 C1 F8 04 C1 E0 0E 33 47 04 25 ? ? ? ? 31 47 04 5F 5E C3 5F",
             "C7 40 ? ? ? ? ? EB 02 33 F6 8B 16 8B 42 08 8B CE FF D0 25 ? ? ? ? 79 05 48 83 C8 F0 40 BF ? ? ? ? 2B F8 81 E7 ? ? ? ? 79 05 4F 83 CF F0 47 8B 16 8B 42 08 8B CE FF D0 03 C7 99 83 E2 0F 03 C2 C1 F8 04 C1 E0 0E 33 46 04 25 ? ? ? ? 31 46 04 5F 5E C3");

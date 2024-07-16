@@ -11,3 +11,6 @@
 	path = shaders/GTAIV.EFLC.FusionShaders
 	url = https://github.com/Parallellines0451/GTAIV.EFLC.FusionShaders
 	ignore = dirty
+[submodule "external/modupdater"]
+	path = external/modupdater
+	url = https://github.com/ThirteenAG/modupdater

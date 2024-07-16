@@ -1,0 +1,15 @@
+#define IDR_SNOWTX 200
+#define IDR_BLITPS 201
+#define IDR_BLITVS 202
+#define IDR_SNOWPS 203
+#define IDR_SNOWVS 204
+#define IDR_SNOWTC 205
+#define IDR_HALLTC 206
+
+IDR_SNOWTX RCDATA "snow.dds"
+IDR_BLITPS RCDATA "blitps.cso"
+IDR_BLITVS RCDATA "blitvs.cso"
+IDR_SNOWPS RCDATA "snowps.cso"
+IDR_SNOWVS RCDATA "snowvs.cso"
+IDR_SNOWTC RCDATA "snow.dat"
+IDR_HALLTC RCDATA "halloween.dat"

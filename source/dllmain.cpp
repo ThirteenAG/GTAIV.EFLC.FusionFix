@@ -3,6 +3,7 @@
 import common;
 import comvars;
 import dllblacklist;
+import fusiondxhook;
 
 injector::hook_back<void(__fastcall*)(void*, void*, int, int, int)> hbsub_92E7C0;
 void __fastcall sub_92E7C0Hook(void* _this, void* edx, int a2, int a3, int a4)
@@ -32,11 +33,11 @@ void CGameProcessHook()
         FusionFix::onGameInitEvent().executeAll();
     });
 
-    if (CTimer__m_UserPause && CTimer__m_CodePause)
+    if (CTimer::m_UserPause && CTimer::m_CodePause)
     {
         static auto oldMenuState = 0;
 
-        if (!*CTimer__m_UserPause && !*CTimer__m_CodePause)
+        if (!*CTimer::m_UserPause && !*CTimer::m_CodePause)
         {
             uint32_t curMenuState = false;
             if (curMenuState != oldMenuState) {
@@ -72,11 +73,11 @@ void Init()
         {
             void operator()(injector::reg_pack& regs)
             {
+                bMainReset = true;
                 *(LPDIRECT3DDEVICE9*)&regs.eax = *Direct3DDevice;
-                FusionFix::onBeforeReset().executeAll();
             }
         };
-
+        
         injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
         pattern = hook::pattern("A1 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? 8B 08 68");
         injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
@@ -100,12 +101,12 @@ void Init()
         {
             void operator()(injector::reg_pack& regs)
             {
+                bMainReset = true;
                 regs.ecx = *(uint32_t*)regs.eax;
                 regs.edx = *(uint32_t*)(regs.ecx + 0x40);
-                FusionFix::onBeforeReset().executeAll();
             }
         };
-
+        
         injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));
         pattern = hook::pattern("8B 08 8B 51 40 68 ? ? ? ? 50 FF D2 85 C0");
         injector::MakeInline<AuxBeforeResetHook>(pattern.get_first(0));

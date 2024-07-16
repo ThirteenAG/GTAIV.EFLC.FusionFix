@@ -1,0 +1,142 @@
+#define LOG_DEPTH 1
+
+uniform sampler2D GBufferNormalSampler : register(s0);
+uniform sampler2D GBufferSpecularAoSampler : register(s1);
+uniform sampler2D GBufferStencilSampler : register(s2);
+uniform sampler2D GBufferDepthSampler : register(s3);
+uniform sampler2D SnowSampler : register(s4);
+
+uniform float4 Threshold : register(c0);
+uniform float4 DeferredProjParams : register(c1);
+uniform row_major float4x4 ViewInverse : register(c2);
+uniform float4 NearFarPlane : register(c128);
+
+struct PSIn
+{
+    float2 TexCoord : TEXCOORD0;
+    float3 TexCoord1 : TEXCOORD1;
+};
+
+struct PSOut
+{
+    float4 Diffuse : COLOR;
+    float4 Normal : COLOR1;
+    float4 SpecAO : COLOR2;
+};
+
+float4 Hash4(float2 p);
+float4 TextureNoTile(float2 uv);
+float3 BlendOverlay(float3 layer1, float3 layer2);
+float DecodeLogDepth(float logDepth);
+
+PSOut main(PSIn psIn)
+{
+    PSOut psOut;
+    
+    float depth;
+    if(LOG_DEPTH)
+    {
+        depth = DecodeLogDepth(tex2D(GBufferDepthSampler, psIn.TexCoord).x) * DeferredProjParams.z - DeferredProjParams.w;
+    }
+    else
+    {
+        depth = tex2D(GBufferDepthSampler, psIn.TexCoord).x * DeferredProjParams.z - DeferredProjParams.w;
+    }
+    
+    float3 normalWS = tex2D(GBufferNormalSampler, psIn.TexCoord).xyz;
+    float stencil = tex2D(GBufferStencilSampler, psIn.TexCoord).x * 255.0;
+    float ao = tex2D(GBufferSpecularAoSampler, psIn.TexCoord).z;
+    
+    float treeMask = abs(stencil - 3.0) < 0.1 ? 1.0 : 0.0;
+    float objectMask = 0.0;
+    if(stencil < 0.99 || abs(stencil - 4.0) < 0.1 || abs(stencil - 128.0) < 0.1)
+    {
+        objectMask = 1.0;
+    }
+    
+    float3 posWS = psIn.TexCoord1.xyz / -depth + ViewInverse[3].xyz;
+    const float3 snowDir = float3(0.001425, -0.00771, 0.996);
+    
+    float3 snowNormal = tex2D(SnowSampler, posWS.xy * 0.7).xyz * 2.0 - 1.0;
+    snowNormal.xy *= 0.53;
+    snowNormal = snowNormal * 0.5 + 0.5;
+    
+    float snowMask = saturate(dot(snowDir, normalWS * 2.0 - 1.0)) * objectMask * ao;
+    float threshold = smoothstep(Threshold.x, Threshold.y, TextureNoTile(posWS.xy * 2.0).x);
+    
+    normalWS = BlendOverlay(normalWS, snowNormal);
+    
+    psOut.Diffuse.xyz = .87;	
+    psOut.Normal.xyz = normalWS;
+    psOut.Normal.w = threshold * snowMask;
+    psOut.Diffuse.w = threshold * saturate(snowMask + treeMask);
+    
+    psOut.SpecAO.x = .001;
+    psOut.SpecAO.y = .1;
+    psOut.SpecAO.z = 1;
+    psOut.SpecAO.w = threshold * snowMask;
+    
+    return psOut;
+}
+
+float4 Hash4(float2 p) 
+{ 
+    return frac(sin(float4(1.0 + dot(p, float2(37.0, 17.0)), 
+                        2.0 + dot(p, float2(11.0, 47.0)),
+                        3.0 + dot(p, float2(41.0, 29.0)),
+                        4.0 + dot(p, float2(23.0, 31.0)))) * 103.0); 
+}
+
+// The MIT License
+// Copyright © 2015 Inigo Quilez
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// https://www.youtube.com/c/InigoQuilez
+// https://iquilezles.org
+float4 TextureNoTile(float2 uv)
+{
+    float2 iuv = floor(uv);
+    float2 fuv = frac(uv);
+    
+    float4 ofa = Hash4(iuv + float2(0.0, 0.0));
+    float4 ofb = Hash4(iuv + float2(1.0, 0.0));
+    float4 ofc = Hash4(iuv + float2(0.0, 1.0));
+    float4 ofd = Hash4(iuv + float2(1.0, 1.0));
+    
+    float2 dfdx = ddx(uv);
+    float2 dfdy = ddy(uv);
+    
+    ofa.zw = sign(ofa.zw - 0.5);
+    ofb.zw = sign(ofb.zw - 0.5);
+    ofc.zw = sign(ofc.zw - 0.5);
+    ofd.zw = sign(ofd.zw - 0.5);
+    
+    float2 uva = uv * ofa.zw + ofa.xy; float2 ddxa = dfdx * ofa.zw; float2 ddya = dfdy * ofa.zw;
+    float2 uvb = uv * ofb.zw + ofb.xy; float2 ddxb = dfdx * ofb.zw; float2 ddyb = dfdy * ofb.zw;
+    float2 uvc = uv * ofc.zw + ofc.xy; float2 ddxc = dfdx * ofc.zw; float2 ddyc = dfdy * ofc.zw;
+    float2 uvd = uv * ofd.zw + ofd.xy; float2 ddxd = dfdx * ofd.zw; float2 ddyd = dfdy * ofd.zw;
+    
+    float2 b = smoothstep(0.25, 0.75, fuv);
+    
+    return lerp( lerp(tex2Dgrad(SnowSampler, uva, ddxa, ddya).a, 
+                      tex2Dgrad(SnowSampler, uvb, ddxb, ddyb), b.x).a, 
+                 lerp(tex2Dgrad(SnowSampler, uvc, ddxc, ddyc).a,
+                      tex2Dgrad(SnowSampler, uvd, ddxd, ddyd), b.x), b.y).a;
+}
+
+float3 BlendOverlay(float3 layer1, float3 layer2)
+{
+    return (layer1 > 0.5f) * (1.0f - (1.0f - 2.0f * (layer1 - 0.5f)) * (1.0f - layer2)) + (layer1 <= 0.5f) * ((2.0f * layer1) * layer2);
+}
+
+float DecodeLogDepth(float logDepth)
+{
+    if(logDepth != 0.99999)
+    {
+        float w = pow(abs(NearFarPlane.y / NearFarPlane.x), logDepth) * NearFarPlane.x;
+        return ((w - NearFarPlane.x) * NearFarPlane.y) / ((NearFarPlane.y - NearFarPlane.x) * w);
+    }
+    else
+    {
+        return logDepth;
+    }
+}

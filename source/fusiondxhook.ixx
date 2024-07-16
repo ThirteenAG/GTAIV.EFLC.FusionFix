@@ -13,6 +13,9 @@ import <functional>;
 import <typeindex>;
 import <typeinfo>;
 
+export bool bMainReset = false;
+export bool bMainEndScene = false;
+
 class VTBL
 {
 private:
@@ -332,9 +335,12 @@ public:
 
                 auto D3D9Reset = [](LPDIRECT3DDEVICE9 pDevice, D3DPRESENT_PARAMETERS* pPresentationParameters) -> HRESULT
                 {
+                    if (bMainReset) FusionFix::onBeforeReset().executeAll();
                     FusionFix::D3D9::onBeforeReset().executeAll(pDevice, pPresentationParameters);
                     auto res = ResetOriginal.unsafe_stdcall<HRESULT>(pDevice, pPresentationParameters);
+                    if (bMainReset) FusionFix::onAfterReset().executeAll();
                     FusionFix::D3D9::onAfterReset().executeAll(pDevice, pPresentationParameters);
+                    bMainReset = false;
                     return res;
                 };
 

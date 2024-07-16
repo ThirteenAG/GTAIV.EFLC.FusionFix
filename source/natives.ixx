@@ -170,8 +170,8 @@ public:
         if (getNativeAddress)
             return reinterpret_cast<ncall>(getNativeAddress(Hash));
         
-        auto ms_pNatives = *rage__scrEngine__ms_pNatives;
-        auto ms_dwNativeTableSize = *rage__scrEngine__ms_dwNativeTableSize;
+        auto ms_pNatives = *rage::scrEngine::ms_pNatives;
+        auto ms_dwNativeTableSize = *rage::scrEngine::ms_dwNativeTableSize;
 
         if (ms_dwNativeTableSize == 0 || Hash == 0)
             return nullptr;
@@ -204,7 +204,7 @@ public:
         NativeContext cxt;
         (cxt.Push(args), ...);
 
-        if (CTimer__m_CodePause && !*CTimer__m_CodePause)
+        if (CTimer::m_CodePause && !*CTimer::m_CodePause)
         {
             if (!m_IndexTable[Index])
             {
@@ -224,26 +224,6 @@ public:
         {
             return cxt.GetResult<R>();
         }
-    }
-};
-
-export class NativeOverride
-{
-public:
-    static auto Register(auto hash, auto fn, std::string_view dest_pattern_str, size_t fn_size)
-    {
-        auto nativeHash = std::to_underlying(hash);
-        auto pattern = hook::pattern(pattern_str(0x68, to_bytes(nativeHash))); // push 0x...
-        auto addr = *pattern.get_first<uintptr_t>(-4);
-        auto range = hook::range_pattern(addr, addr + fn_size, dest_pattern_str);
-        if (!range.empty())
-        {
-            if (dest_pattern_str.starts_with("E8"))
-                return injector::MakeCALL(range.get_first(0), fn, true).get();
-            else if (dest_pattern_str.starts_with("E9"))
-                return injector::MakeJMP(range.get_first(0), fn, true).get();
-        }
-        return injector::auto_pointer(nullptr);
     }
 };
 
@@ -6389,3 +6369,58 @@ public:
     static inline auto WinchCanPickObjectUp(Object obj, bool can) { return NativeInvoke::Invoke<3012, std::to_underlying(NativeHashes::WINCH_CAN_PICK_OBJECT_UP), void>(obj, can); }
     static inline auto WriteLobbyPreference() { return NativeInvoke::Invoke<3013, std::to_underlying(NativeHashes::WRITE_LOBBY_PREFERENCE), Any>(); }
 };
+
+export class NativeOverride
+{
+public:
+    static auto Register(auto hash, auto fn, std::string_view dest_pattern_str, size_t fn_size)
+    {
+        auto nativeHash = std::to_underlying(hash);
+        auto pattern = hook::pattern(pattern_str(0x68, to_bytes(nativeHash))); // push 0x...
+        auto addr = *pattern.get_first<uintptr_t>(-4);
+        auto range = hook::range_pattern(addr, addr + fn_size, dest_pattern_str);
+        if (!range.empty())
+        {
+            if (dest_pattern_str.starts_with("E8"))
+                return injector::MakeCALL(range.get_first(0), fn, true).get();
+            else if (dest_pattern_str.starts_with("E9"))
+                return injector::MakeJMP(range.get_first(0), fn, true).get();
+        }
+        return injector::auto_pointer(nullptr);
+    }
+
+    static inline std::unordered_map<std::string_view, std::pair<std::function<void()>, int>> customCheatHandlers;
+    static inline injector::hook_back<decltype(&Natives::StopMobilePhoneRinging)> hbNATIVE_STOP_MOBILE_PHONE_RINGING;
+    static void __cdecl NATIVE_STOP_MOBILE_PHONE_RINGING()
+    {
+        if (rage::scrProgram::ms_pGlobals)
+        {
+            auto pGlobals = *rage::scrProgram::ms_pGlobals;
+            for (auto i : { 123, 126, 127 })
+            {
+                auto phoneNumber = std::string_view((const char*)&pGlobals[i], 10);
+                if (customCheatHandlers.contains(phoneNumber))
+                {
+                    customCheatHandlers[phoneNumber].second++;
+                    if (customCheatHandlers[phoneNumber].second > 2)
+                    {
+                        customCheatHandlers[phoneNumber].second = 0;
+                        customCheatHandlers[phoneNumber].first();
+                        break;
+                    }
+                }
+            }
+        }
+        return hbNATIVE_STOP_MOBILE_PHONE_RINGING.fun();
+    }
+
+    static void RegisterPhoneCheat(std::string_view phone_number, std::function<void()>&& fn)
+    {
+        customCheatHandlers[phone_number].first = std::forward<std::function<void()>>(fn);
+    }
+
+    NativeOverride()
+    {
+        hbNATIVE_STOP_MOBILE_PHONE_RINGING.fun = Register(Natives::NativeHashes::STOP_MOBILE_PHONE_RINGING, NATIVE_STOP_MOBILE_PHONE_RINGING, "E9", 5);
+    }
+} CheatOverride;

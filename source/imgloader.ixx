@@ -15,6 +15,9 @@ public:
     {
         FusionFix::onInitEvent() += []()
         {
+            CIniReader iniReader("");
+            static auto bLamppostShadows = iniReader.ReadInteger("NIGHTSHADOWS", "LamppostShadows", 0) != 0;
+
             //IMG Loader
             auto pattern = find_pattern("E8 ? ? ? ? 6A 00 E8 ? ? ? ? 83 C4 14 6A 00 B9 ? ? ? ? E8 ? ? ? ? 83 3D", "E8 ? ? ? ? 6A 00 E8 ? ? ? ? 83 C4 14 6A 00 B9");
             static auto CImgManager__addImgFile = (void(__cdecl*)(const char*, char, int)) injector::GetBranchDestination(pattern.get_first(0)).get();
@@ -45,6 +48,17 @@ public:
 
                             if (!std::filesystem::is_directory(file) && iequals(filePath.extension().native(), L".img"))
                             {
+                                if (bLamppostShadows)
+                                {
+                                    if (iequals(filePath.stem().native(), L"FusionLights"))
+                                        continue;
+                                }
+                                else
+                                {
+                                    if (iequals(filePath.stem().native(), L"FusionLightsShadowcast"))
+                                        continue;
+                                }
+
                                 static std::vector<std::filesystem::path> episodicPaths = {
                                     std::filesystem::path("IV"),
                                     std::filesystem::path("TLAD"),
