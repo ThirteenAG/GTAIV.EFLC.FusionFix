@@ -566,13 +566,6 @@ public:
                 static auto& menuTab = **pattern.get_first<int32_t*>(1);
                 static ID3DXFont* pFPSFont = nullptr;
 
-                FusionFix::D3D9::onBeforeCreateDevice() += [](LPDIRECT3D9& pDirect3D9, UINT& Adapter, D3DDEVTYPE& DeviceType, HWND& hFocusWindow, DWORD& BehaviorFlags, D3DPRESENT_PARAMETERS*& pPresentationParameters, IDirect3DDevice9**& ppReturnedDeviceInterface)
-                {
-                    if (pFPSFont)
-                        pFPSFont->Release();
-                    pFPSFont = nullptr;
-                };
-
                 FusionFix::onBeforeReset() += []()
                 {
                     if (pFPSFont)
@@ -580,17 +573,14 @@ public:
                     pFPSFont = nullptr;
                 };
 
-                FusionFix::D3D9::onEndScene() += [](LPDIRECT3DDEVICE9 pDevice)
+                FusionFix::onEndScene() += []()
                 {
-                    if (!bMainEndScene)
-                        return;
-                    else
-                        bMainEndScene = false;
-
                     static auto fpsc = FusionFixSettings.GetRef("PREF_FPSCOUNTER");
                     if (menuTab == 8 || menuTab == 49 || fpsc->get())
                     {
                         static std::list<int> m_times;
+
+                        auto pDevice = *RageDirect3DDevice9::m_pRealDevice;
 
                         LARGE_INTEGER frequency;
                         LARGE_INTEGER time;
@@ -626,7 +616,7 @@ public:
                             wchar_t FaceName[] = L"Arial";
                             memcpy(&fps_font.FaceName, &FaceName, sizeof(FaceName));
 
-                            if (D3DXCreateFontIndirect(pDevice, &fps_font, &pFPSFont) != D3D_OK)
+                            if (D3DXCreateFontIndirectW(pDevice, &fps_font, &pFPSFont) != D3D_OK)
                                 return;
                         }
                         else

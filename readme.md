@@ -18,7 +18,7 @@ This projects aims to fix some issues in Grand Theft Auto IV: The Complete Editi
 >
 > **Download**: [GTAIV.EFLC.FusionFix.zip](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFix.zip)
 >
-> Unpack content of the archive to your **GTAIV: The Complete Edition** root directory.
+> Unpack content of the archive to your **GTAIV: The Complete Edition** root directory, where the exe is located.
 
 > [!WARNING]
 > Non-Windows users (Proton/Wine) need to perform a [DLL override](https://cookieplmonster.github.io/setup-instructions/#proton-wine).

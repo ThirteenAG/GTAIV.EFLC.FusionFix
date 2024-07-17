@@ -940,6 +940,8 @@ export namespace RageDirect3DDevice9
         HDRTex,
     };
 
+    IDirect3DDevice9** m_pRealDevice = nullptr;
+
     IDirect3DTexture9** g_TexturesBySampler = nullptr;
 
     IDirect3DTexture9* GetTexture(uint32_t index)
@@ -1203,6 +1205,9 @@ public:
         {
             pattern = hook::pattern("8B 0D ? ? ? ? 8B 41 04 8B 54 24 04 F6 04 02 80 74 05 33 C0 8B 00 C3");
             CTxdStore::at = pattern.count(11).get(2).get<int*(__cdecl)(int)>(0);
-        }  
+        }
+
+        pattern = find_pattern("A3 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? E8 ? ? ? ? A1", "A3 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? E8 ? ? ? ? 8B 0D");
+        RageDirect3DDevice9::m_pRealDevice = *pattern.get_first<IDirect3DDevice9**>(1);
     }
 } Common;

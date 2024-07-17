@@ -99,8 +99,11 @@ public:
 
         FusionFix::onGameInitEvent() += []()
         {
-            FusionFix::D3D9::onBeginScene() += [](LPDIRECT3DDEVICE9 pDevice)
+            auto pattern = hook::pattern("80 7C 24 ? ? 74 3F 80 BE ? ? ? ? ? 74 36");
+            static auto BeginSceneHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
             {
+                auto pDevice = rage::grcDevice::GetD3DDevice();
+
                 // Setup variables for shaders
                 static auto dw11A2948 = *find_pattern("C7 05 ? ? ? ? ? ? ? ? 0F 85 ? ? ? ? 6A 00", "D8 05 ? ? ? ? D9 1D ? ? ? ? 83 05").get_first<float*>(2);
                 static auto dw103E49C = *hook::get_pattern<void**>("A3 ? ? ? ? C7 80", 1);
@@ -114,10 +117,10 @@ public:
                     {
                         static float farclip;
                         static float nearclip;
-                
+
                         Natives::GetCamFarClip(cam, &farclip);
                         Natives::GetCamNearClip(cam, &nearclip);
-                
+
                         static float arr[4];
                         arr[0] = nearclip;
                         arr[1] = farclip;
@@ -125,7 +128,7 @@ public:
                         arr[3] = 0.0f;
                         pDevice->SetVertexShaderConstantF(227, &arr[0], 1);
                     }
-                
+
                     // DynamicShadowForTrees Wind Sway
                     {
                         static float arr2[4];
@@ -221,7 +224,7 @@ public:
                             arr5[1] = 0.0f;
                             break;
                         }
-                        
+
                         arr5[2] = 1.0f / (30.0f * Natives::Timestep());
                         arr5[3] = fTreeAlphaMultiplier;
                         pDevice->SetPixelShaderConstantF(221, &arr5[0], 1);
@@ -262,7 +265,7 @@ public:
                         }
                     }
                 }
-            };
+            });
         };
 
         FusionFix::onInitEventAsync() += []()
@@ -274,24 +277,11 @@ public:
             auto pattern = hook::pattern("74 ? 68 4E 56 44 42 68");
             injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
 
-            //FusionFix::D3D9::onSetVertexShaderConstantF() += [](LPDIRECT3DDEVICE9& pDevice, UINT& StartRegister, float*& pConstantData, UINT& Vector4fCount)
-            //{
-            //
-            //};
-
-            //FusionFix::D3D9::onSetPixelShaderConstantF() += [](LPDIRECT3DDEVICE9& pDevice, UINT& StartRegister, float*& pConstantData, UINT& Vector4fCount)
-            //{               
-            //
-            //};
-            
-            //FusionFix::D3D9::onBeforeCreateTexture() += [](LPDIRECT3DDEVICE9& pDevice, UINT& Width, UINT& Height, UINT& Levels, DWORD& Usage, D3DFORMAT& Format, D3DPOOL& Pool, IDirect3DTexture9**& ppTexture, HANDLE*& pSharedHandle)
-            //{
-            //
-            //};
-                        
-            FusionFix::D3D9::onSetTexture() += [](LPDIRECT3DDEVICE9& pDevice, DWORD& Stage, IDirect3DBaseTexture9*& pTexture)
+            pattern = find_pattern<2>("89 3C B5 ? ? ? ? 8B 82 ? ? ? ? 57 8B 08 56 50 FF 91 ? ? ? ? 5F 5E C2 0C 00", "89 14 8D ? ? ? ? 8B 80 ? ? ? ? 8B 30 52 8B 96 ? ? ? ? 51 50 FF D2 5E C2 0C 00");
+            static auto reg = *pattern.get(1).get<uint8_t>(1);
+            static auto SetTextureHook = safetyhook::create_mid(pattern.get(1).get<void>(0), [](SafetyHookContext& regs)
             {
-                if (bFixRainDrops && Stage == 1 && pTexture == nullptr)
+                if (bFixRainDrops && ((reg == 0x3C && regs.esi == 1 && regs.edi == 0) || (reg != 0x3C && regs.ecx == 1 && regs.edx == 0)))
                 {
                     if (!pHDRTexQuarter)
                     {
@@ -299,21 +289,16 @@ public:
                         if (qs0)
                             pHDRTexQuarter = qs0->mD3DTexture;
                     }
-                    
+                
                     if (pHDRTexQuarter)
-                        pTexture = pHDRTexQuarter;
+                    {
+                        if (reg == 0x3C)
+                            regs.edi = (uintptr_t)pHDRTexQuarter;
+                        else
+                            regs.edx = (uintptr_t)pHDRTexQuarter;
+                    }
                 }
-            };
-
-            FusionFix::D3D9::onBeforeCreateDevice() += [](LPDIRECT3D9& pDirect3D9, UINT& Adapter, D3DDEVTYPE& DeviceType, HWND& hFocusWindow, DWORD& BehaviorFlags, D3DPRESENT_PARAMETERS*& pPresentationParameters, IDirect3DDevice9**& ppReturnedDeviceInterface)
-            {
-                pHDRTexQuarter = nullptr;
-            };
-
-            FusionFix::onBeforeReset() += []()
-            {
-                pHDRTexQuarter = nullptr;
-            };
+            });
         };
     };
 } Shaders;

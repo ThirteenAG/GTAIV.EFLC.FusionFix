@@ -5,6 +5,8 @@ module;
 export module fusiondxhook;
 import common;
 
+#pragma message ("FusionDxHook is disabled")
+
 import <map>;
 import <functional>;
 import <numeric>;
@@ -12,9 +14,6 @@ import <algorithm>;
 import <functional>;
 import <typeindex>;
 import <typeinfo>;
-
-export bool bMainReset = false;
-export bool bMainEndScene = false;
 
 class VTBL
 {
@@ -279,6 +278,8 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
+            return;
+
             auto hD3D9 = GetModuleHandleW(L"d3d9.dll");
             if (!hD3D9) return;
             auto Direct3DCreate9 = GetProcAddress(hD3D9, "Direct3DCreate9");
@@ -335,12 +336,9 @@ public:
 
                 auto D3D9Reset = [](LPDIRECT3DDEVICE9 pDevice, D3DPRESENT_PARAMETERS* pPresentationParameters) -> HRESULT
                 {
-                    if (bMainReset) FusionFix::onBeforeReset().executeAll();
                     FusionFix::D3D9::onBeforeReset().executeAll(pDevice, pPresentationParameters);
                     auto res = ResetOriginal.unsafe_stdcall<HRESULT>(pDevice, pPresentationParameters);
-                    if (bMainReset) FusionFix::onAfterReset().executeAll();
                     FusionFix::D3D9::onAfterReset().executeAll(pDevice, pPresentationParameters);
-                    bMainReset = false;
                     return res;
                 };
 

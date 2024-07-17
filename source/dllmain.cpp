@@ -13,17 +13,6 @@ void __fastcall sub_92E7C0Hook(void* _this, void* edx, int a2, int a3, int a4)
     FusionFix::onAfterPostFX().executeAll();
 }
 
-injector::hook_back<void(*)()> hbsub_8C4480;
-void __cdecl sub_8C4480Hook()
-{
-    static std::once_flag of;
-    std::call_once(of, []()
-    {
-        FusionFix::onAfterUALRestoredIATEvent().executeAll();
-    });
-    return hbsub_8C4480.fun();
-}
-
 injector::hook_back<void(*)()> hbCGameProcess;
 void CGameProcessHook()
 {
@@ -73,7 +62,7 @@ void Init()
         {
             void operator()(injector::reg_pack& regs)
             {
-                bMainReset = true;
+                FusionFix::onBeforeReset().executeAll();
                 *(LPDIRECT3DDEVICE9*)&regs.eax = *Direct3DDevice;
             }
         };
@@ -90,7 +79,7 @@ void Init()
             void operator()(injector::reg_pack& regs)
             {
                 *(LPDIRECT3DDEVICE9*)&regs.eax = *Direct3DDevice;
-                bMainEndScene = true;
+                FusionFix::onEndScene().executeAll();
             }
         }; injector::MakeInline<AuxEndSceneHook>(pattern.get_first(0));
     }
@@ -101,7 +90,7 @@ void Init()
         {
             void operator()(injector::reg_pack& regs)
             {
-                bMainReset = true;
+                FusionFix::onBeforeReset().executeAll();
                 regs.ecx = *(uint32_t*)regs.eax;
                 regs.edx = *(uint32_t*)(regs.ecx + 0x40);
             }
@@ -122,13 +111,10 @@ void Init()
             void operator()(injector::reg_pack& regs)
             {
                 *(LPDIRECT3DDEVICE9*)&regs.eax = *Direct3DDevice;
-                bMainEndScene = true;
+                FusionFix::onEndScene().executeAll();
             }
         }; injector::MakeInline<AuxEndSceneHook>(pattern.get_first(0));
     }
-
-    pattern = find_pattern("E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? 8D 54 24 08", "E8 ? ? ? ? E8 ? ? ? ? 68 ? ? ? ? 6A 00 6A 00");
-    hbsub_8C4480.fun = injector::MakeCALL(pattern.get_first(0), sub_8C4480Hook, true).get();
 
     pattern = find_pattern("E8 ? ? ? ? 6A 0A FF B7", "E8 ? ? ? ? 8B 8E ? ? ? ? 8B 56 10");
     hbsub_92E7C0.fun = injector::MakeCALL(pattern.get_first(0), sub_92E7C0Hook, true).get();

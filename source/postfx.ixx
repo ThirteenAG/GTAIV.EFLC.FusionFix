@@ -588,7 +588,8 @@ private:
         PostFxResources.BloomTex = PostFxResources.mBloomRT->mD3DTexture;
         PostFxResources.CurrentLumTex = PostFxResources.mCurrentLum->mD3DTexture;
         PostFxResources.DepthTex = PostFxResources.mDepthRT->mD3DTexture;
-        PostFxResources.CascadeAtlasTex = PostFxResources.mCascadeAtlasRT->mD3DTexture;
+        if (PostFxResources.mCascadeAtlasRT)
+            PostFxResources.CascadeAtlasTex = PostFxResources.mCascadeAtlasRT->mD3DTexture;
 
         PostFxResources.FullScreenTex = PostFxResources.mFullScreenRT->mD3DTexture;
         PostFxResources.FullScreenTex2 = PostFxResources.mFullScreenRT2->mD3DTexture;
@@ -1263,55 +1264,6 @@ public:
             
                     pattern = find_pattern("E8 ? ? ? ? 6A 0A FF B7", "E8 ? ? ? ? 8B 8E ? ? ? ? 8B 56 10");
                     hbDrawCallPostFX.fun = injector::MakeCALL(pattern.get_first(0), DrawCallPostFX).get();
-            
-                    //replaced by DrawSky
-                    //FusionFix::D3D9::onAfterCreateVertexShader() += [] (LPDIRECT3DDEVICE9& pDevice, DWORD*& pFunction, IDirect3DVertexShader9**& ppShader) {
-                    //    int id = GetFusionShaderID(*ppShader);
-                    //    if((*ppShader) && id >= 0)
-                    //        PostFxResources.ShaderListVS[*ppShader] = id;
-                    //};
-                    //
-                    //FusionFix::D3D9::onAfterCreatePixelShader() += [] (LPDIRECT3DDEVICE9& pDevice, DWORD*& pFunction, IDirect3DPixelShader9**& ppShader) {
-                    //    int id = GetFusionShaderID(*ppShader);
-                    //    if((*ppShader) && id >= 0)
-                    //        PostFxResources.ShaderListPS[*ppShader] = id;
-                    //};
-                    // 
-                    //FusionFix::D3D9::onBeforeDrawPrimitive() += [] (LPDIRECT3DDEVICE9& pDevice, D3DPRIMITIVETYPE& PrimitiveType, UINT& StartVertex, UINT& PrimitiveCount) {
-                    //    IDirect3DPixelShader9* pShader = nullptr;
-                    //    HRESULT hr = S_FALSE;
-                    //    pDevice->GetPixelShader(&pShader);
-                    //    int id = 0;
-                    //    if(pShader)
-                    //        id = PostFxResources.ShaderListPS[pShader];
-                    //    // atmoscat clouds
-                    //    if ((id == 65) && PostFxResources.DiffuseTex != nullptr)
-                    //    {
-                    //        IDirect3DSurface9* DiffuseSurf = nullptr;
-                    //        PostFxResources.DiffuseTex->GetSurfaceLevel(0, &DiffuseSurf);
-                    //        if (DiffuseSurf)
-                    //        {
-                    //            IDirect3DSurface9* oldRenderTarget1 = 0;
-                    //            pDevice->GetRenderTarget(1, &oldRenderTarget1);
-                    //            pDevice->SetRenderTarget(1, DiffuseSurf);
-                    //            pDevice->SetPixelShader(PostFxResources.SSDiffuseCloudsGen_PS);
-                    //            hr = DrawPrimitiveOriginal.unsafe_stdcall<HRESULT>(pDevice, PrimitiveType, StartVertex, PrimitiveCount);
-                    //
-                    //            pDevice->SetPixelShader(pShader);
-                    //            pDevice->SetRenderTarget(1, oldRenderTarget1);
-                    //
-                    //            SAFE_RELEASE(oldRenderTarget1);
-                    //            SAFE_RELEASE(DiffuseSurf);
-                    //            SAFE_RELEASE(pShader);
-                    //            //FusionFix::D3D9::setInsteadDrawPrimitive(true); // causes water bug
-                    //            return;
-                    //        }
-                    //        SAFE_RELEASE(DiffuseSurf);
-                    //        SAFE_RELEASE(pShader);
-                    //    }
-                    //};
-
-                    // reimplemented bloom
                 }
             }
         };
