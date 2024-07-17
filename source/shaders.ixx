@@ -299,6 +299,11 @@ public:
                     }
                 }
             });
+
+            FusionFix::onBeforeReset() += []()
+            {
+                pHDRTexQuarter = nullptr;
+            };
         };
     };
 } Shaders;
