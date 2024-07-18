@@ -300,12 +300,15 @@ public:
                     auto pattern = hook::pattern("8B C8 E8 ? ? ? ? B9 ? ? ? ? A3");
                     auto CModelInfoStore__ms_baseModels = *pattern.get_first<CDataStore*>(8);
 
+                    pattern = hook::pattern("B9 ? ? ? ? E8 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? FF 35");
+                    if (pattern.empty())
+                        return;
+
                     for (size_t i = CModelInfoStore::ms_baseModels; i < CModelInfoStore::amount; i++)
                     {
                         CModelInfoStore__ms_baseModels[i].nSize *= 2;
                     }
 
-                    pattern = hook::pattern("B9 ? ? ? ? E8 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? FF 35");
                     auto ms_mloPortalStore = *pattern.get_first<CDataStore*>(1);
                     pattern = hook::pattern("B9 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? FF 35 ? ? ? ? C7 05");
                     auto ms_mloRoomStore = *pattern.get_first<CDataStore*>(1);
