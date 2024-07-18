@@ -411,34 +411,11 @@ public:
                 pattern = find_pattern("03 F6 E8 ? ? ? ? 8B 0D ? ? ? ? 8D 54 24 0C", "03 F6 E8 ? ? ? ? 8B 0D ? ? ? ? 8D 44 24 0C");
                 injector::MakeNOP(pattern.get_first(0), 2, true);
 
-                // WATER_SURFACE0_COLOUR & WATER_SURFACE1_COLOUR texture resolution forced to 256x256. Restores console water tiling from game code side.
-                pattern = hook::pattern("E8 ? ? ? ? 8B 0D ? ? ? ? 8D 54 24 20 52 6A 20 57 57 C6 44 24");
-                if (!pattern.empty())
-                {
-                    static auto WaterSurfaceResHook = safetyhook::create_mid(pattern.get_first(),
-                    [](SafetyHookContext& ctx)
-                    {
-                        ctx.edi = 256;
-                    });
-                }
-                else
-                {
-                    pattern = hook::pattern("E8 ? ? ? ? 8B 0D ? ? ? ? 8D 44 24 24 50 6A 20 56 56 88 5C 24 34 C7 44 24");
-                    static auto WaterSurfaceResHook = safetyhook::create_mid(pattern.get_first(),
-                    [](SafetyHookContext& ctx)
-                    {
-                        ctx.esi = 256;
-                    });
-                }
-
+                // Force water surface rendertarget resolution to always be 256x256. This matches the water tiling on the console version.
                 static uint32_t dwWaterQuality = 1;
-                pattern = find_pattern("8B 0D ? ? ? ? 83 C4 08 03 F0 83 D5 00 BA ? ? ? ? 8B C2 D3 E0 8B 0D", "8B 0D ? ? ? ? 03 F8 B8 ? ? ? ? D3 E0 8B 0D");
+                pattern = find_pattern("8B 0D ? ? ? ? 53 BB ? ? ? ? D3 E3 85 D2 0F 85", "8B 0D ? ? ? ? BF ? ? ? ? D3 E7 85 C0 0F 85");
                 if (!pattern.empty())
                 {
-                    injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true);
-                    pattern = find_pattern("8B 0D ? ? ? ? 03 F0 BA ? ? ? ? 8B C2 D3 E0 8B 0D", "8B 0D ? ? ? ? 03 F0 B8 ? ? ? ? D3 E0 83 C4 04 0F AF C0 8D 0C 80");
-                    injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true);                   
-                    pattern = find_pattern("8B 0D ? ? ? ? 53 BB ? ? ? ? D3 E3 85 D2 0F 85", "8B 0D ? ? ? ? BF ? ? ? ? D3 E7 85 C0 0F 85");
                     injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true);
                     pattern = find_pattern("8B 0D ? ? ? ? F3 0F 10 0D ? ? ? ? B8 ? ? ? ? D3 E0 8B 0D", "8B 0D ? ? ? ? F3 0F 10 05 ? ? ? ? 6A 02 6A 01 BA");
                     injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true);
