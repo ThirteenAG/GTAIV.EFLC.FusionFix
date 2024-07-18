@@ -306,6 +306,8 @@ public:
 
                     for (size_t i = CModelInfoStore::ms_baseModels; i < CModelInfoStore::amount; i++)
                     {
+                        if (i == CModelInfoStore::ms_weaponModels) // bugs out buzzard rockets
+                            continue;
                         CModelInfoStore__ms_baseModels[i].nSize *= 2;
                     }
 

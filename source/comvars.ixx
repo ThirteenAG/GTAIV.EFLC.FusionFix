@@ -1198,14 +1198,8 @@ public:
         pattern = find_pattern("53 55 56 57 8B F9 85 FF 74 3F", "53 55 8B 6C 24 0C 56 57 EB 06 8D 9B 00 00 00 00 0F B7 51 14 33 FF 83 EA 01 78 26 8B 59 10", "85 C9 53 55 56 57 74 40 8B 6C 24 14 8D 64 24 00");
         CTxdStore::getEntryByKey = pattern.get_first<rage::grcTexturePC*(__fastcall)(int*, void*, unsigned int)>(0);
 
-        pattern = hook::pattern("8B 0D ? ? ? ? 8B 54 24 04 8B 41 04 F6 04 02 80 74 05 33 C0 8B 00 C3");
-        if (!pattern.empty())
-            CTxdStore::at = pattern.count(9).get(2).get<int*(__cdecl)(int)>(0);
-        else
-        {
-            pattern = hook::pattern("8B 0D ? ? ? ? 8B 41 04 8B 54 24 04 F6 04 02 80 74 05 33 C0 8B 00 C3");
-            CTxdStore::at = pattern.count(11).get(2).get<int*(__cdecl)(int)>(0);
-        }
+        pattern = hook::pattern("68 ? ? ? ? 68 ? ? ? ? 68 ? ? ? ? 68 ? ? ? ? E8 ? ? ? ? 8B C8 E8 ? ? ? ? A3 ? ? ? ? 5E");
+        CTxdStore::at = (int* (__cdecl*)(int))injector::ReadMemory<uint32_t>(pattern.get_first(1), true);
 
         pattern = find_pattern("A3 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? E8 ? ? ? ? A1", "A3 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? E8 ? ? ? ? 8B 0D");
         RageDirect3DDevice9::m_pRealDevice = *pattern.get_first<IDirect3DDevice9**>(1);
