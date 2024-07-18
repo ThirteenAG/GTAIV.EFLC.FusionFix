@@ -675,9 +675,9 @@ private:
         D3DVOLUME_DESC volumeDescription;
 
         auto currGrcViewport = rage::GetCurrentViewport();
-        D3DXVECTOR4 SunColor = rage::grmShaderInfo::getParam("gta_atmoscatt_clouds.fxc", "SunColor");
-        D3DXVECTOR4 SunDirection = rage::grmShaderInfo::getParam("gta_atmoscatt_clouds.fxc", "SunDirection");
-        D3DXMATRIX gShadowMatrix = rage::grmShaderInfo::getGlobalParam("gShadowMatrix");
+        auto SunColor = rage::grmShaderInfo::getParam("gta_atmoscatt_clouds.fxc", "SunColor");
+        auto SunDirection = rage::grmShaderInfo::getParam("gta_atmoscatt_clouds.fxc", "SunDirection");
+        auto gShadowMatrix = rage::grmShaderInfo::getGlobalParam("gShadowMatrix");
 
         HRESULT hr = S_FALSE;
 

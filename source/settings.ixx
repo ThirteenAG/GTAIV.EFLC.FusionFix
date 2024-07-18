@@ -229,7 +229,7 @@ public:
         injector::WriteMemory<uint8_t>(pOriginalEnumsNum2, uint8_t(aMenuEnums.size()), true);
 
         // Sliders
-        std::vector<std::pair<std::string_view, std::string_view>> matchingSettingsList =
+        static std::vector<std::pair<std::string_view, std::string_view>> matchingSettingsList =
         {
             { "PREF_EPISODIC_RACECLASS_RACE_3", "PREF_CUSTOMFOV" },
             { "PREF_EPISODIC_RACECLASS_RACE_4", "PREF_KBCAMCENTERDELAY" },
@@ -239,8 +239,16 @@ public:
         for (auto& it : matchingSettingsList)
         {
             slidersList.emplace(*GetPrefIDByName(it.first), std::make_pair(it.first, it.second));
-            FusionFixSettings.Set(it.first, FusionFixSettings.Get(it.second));
         }
+
+        pattern = find_pattern("C6 05 ? ? ? ? ? 5E 74 1D", "C6 05 ? ? ? ? ? 74 1B 38 1D", "C6 05 ? ? ? ? ? 5E 74 1B");
+        static auto slidersHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+        {
+            for (auto& it : matchingSettingsList)
+            {
+                FusionFixSettings.Set(it.first, FusionFixSettings.Get(it.second));
+            }
+        });
 
         pattern = find_pattern("3D ? ? ? ? 7C DF 83 EC 10", "3D ? ? ? ? 7C E1 B8");
         injector::WriteMemory(pattern.get_first(1), 136 - slidersList.size(), true);
