@@ -239,10 +239,10 @@ class AltDialogue
 public:
     AltDialogue()
     {
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
             FusionFixSettings.SetCallback("PREF_ALTDIALOGUE", [](int32_t value) {
-                auto pGlobals = *rage__scrProgram__ms_pGlobals;
+                auto pGlobals = *rage::scrProgram::ms_pGlobals;
                 for (auto& it : gAltDialogueVars[*_dwCurrentEpisode])
                     pGlobals[std::get<1>(it)] = value;
             });
@@ -253,12 +253,12 @@ public:
             static auto altdialogue = FusionFixSettings.GetRef("PREF_ALTDIALOGUE");
             if (altdialogue->get())
             {
-                if (*rage__scrProgram__ms_pGlobals)
+                if (*rage::scrProgram::ms_pGlobals)
                 {
                     static uintptr_t* pGlobals = nullptr;
-                    if (pGlobals != *rage__scrProgram__ms_pGlobals)
+                    if (pGlobals != *rage::scrProgram::ms_pGlobals)
                     {
-                        pGlobals = *rage__scrProgram__ms_pGlobals;
+                        pGlobals = *rage::scrProgram::ms_pGlobals;
                         for (auto& it : gAltDialogueVars[*_dwCurrentEpisode])
                             pGlobals[std::get<1>(it)] = FusionFixSettings("PREF_ALTDIALOGUE");
                     }

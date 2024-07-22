@@ -18,12 +18,12 @@
 -rebuild
 -close
 
--create "FusionTrees.img" "3" "IMG_VERSION_3_ENCRYPTION_TYPE_NONE"
--importFromDirectory "FusionTrees"
+-create "FusionLights.img" "3" "IMG_VERSION_3_ENCRYPTION_TYPE_NONE"
+-importFromDirectory "FusionLights"
 -rebuild
 -close
 
--create "FusionLights.img" "3" "IMG_VERSION_3_ENCRYPTION_TYPE_NONE"
--importFromDirectory "FusionLights"
+-create "FusionLightsShadowcast.img" "3" "IMG_VERSION_3_ENCRYPTION_TYPE_NONE"
+-importFromDirectory "FusionLightsShadowcast"
 -rebuild
 -close

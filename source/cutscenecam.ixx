@@ -12,7 +12,7 @@ class CutsceneCam
 public:
     CutsceneCam()
     {
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
             CIniReader iniReader("");
             auto bExtraCutsceneFix = iniReader.ReadInteger("MISC", "ExtraCutsceneFix", 1) != 0;

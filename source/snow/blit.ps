@@ -1,0 +1,10 @@
+sampler TextureSampler;
+
+float4 main(float2 texcoord : TEXCOORD) : COLOR
+{
+	float4 o;
+
+	o = tex2D(TextureSampler, texcoord);
+
+	return o;
+}

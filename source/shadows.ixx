@@ -45,7 +45,7 @@ void* __cdecl CModelInfoStore__allocateInstanceModelHook(char* modelName)
     return injector::cstd<void* (char*)>::call(CModelInfoStore__allocateInstanceModel, modelName);
 }
 
-std::vector<std::string> modelNames = { "track", "fence", "rail", "pillar", "post", "road", "trn", "trk" };
+std::vector<std::string> modelNames = { "track", "fence", "rail", "pillar", "post", "trn", "trk" };
 injector::memory_pointer_raw CBaseModelInfo__setFlags = nullptr;
 void __cdecl CBaseModelInfo__setFlagsHook(void* pModel, int dwFlags, int a3)
 {
@@ -82,14 +82,14 @@ class Shadows
 public:
     Shadows()
     {
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
             CIniReader iniReader("");
 
             //[SHADOWS]
-            bool bFlickeringShadowsFix = iniReader.ReadInteger("SHADOWS", "FlickeringShadowsFix", 1) != 0;
             bExtraDynamicShadows = iniReader.ReadInteger("SHADOWS", "ExtraDynamicShadows", 1);
             bDynamicShadowForTrees = iniReader.ReadInteger("SHADOWS", "DynamicShadowForTrees", 0) != 0;
+            bool bOverrideCascadeRanges = iniReader.ReadInteger("SHADOWS", "OverrideCascadeRanges", 1) != 0;
 
             if (bExtraDynamicShadows || bDynamicShadowForTrees)
             {
@@ -111,10 +111,40 @@ public:
                     modelNames.insert(modelNames.end(), vegetationNames.begin(), vegetationNames.end());
             }
 
-            if (bFlickeringShadowsFix)
+            if (bOverrideCascadeRanges)
             {
-                auto pattern = find_pattern<2>("C3 68 ? ? ? ? 6A 02 6A 00 E8 ? ? ? ? 83 C4 40 8B E5 5D C3", "50 68 ? ? ? ? 6A 02 6A 00 E8 ? ? ? ? 83 C4 40 5B 8B E5 5D C3");
-                injector::WriteMemory(pattern.count(2).get(1).get<void*>(2), 0x100, true);
+                struct CascadeRange
+                {
+                    float CascadeRange0;
+                    float CascadeRange1;
+                    float CascadeRange2;
+                    float CascadeRange3;
+                    float CascadeRange4;
+                };
+
+                auto pattern = find_pattern("8B 87 ? ? ? ? 89 04 B5 ? ? ? ? 83 FE 04 0F 8D ? ? ? ? 8D 04 8E 8B 04 85 ? ? ? ? 89 04 B5 ? ? ? ? E9 ? ? ? ? 0F 2F DC",
+                                            "D9 82 ? ? ? ? D9 1C BD ? ? ? ? 0F 8D ? ? ? ? 8D 04 87 D9 04 85 ? ? ? ? D9 1C BD ? ? ? ? E9 ? ? ? ? 0F 2F C1");
+                auto pCascadeRange1 = *pattern.get_first<CascadeRange*>(2);
+
+                pattern = find_pattern("8B 87 ? ? ? ? 89 04 B5 ? ? ? ? 83 FE 04 0F 8D ? ? ? ? 8D 04 8E 8B 04 85 ? ? ? ? 89 04 B5 ? ? ? ? E9 ? ? ? ? 85 D2",
+                                       "D9 82 ? ? ? ? D9 1C BD ? ? ? ? 0F 8D ? ? ? ? 8D 04 87 D9 04 85 ? ? ? ? D9 1C BD ? ? ? ? E9 ? ? ? ? 85 C9");
+                auto pCascadeRange2 = *pattern.get_first<CascadeRange*>(2);
+
+                for (size_t i = 0; i < 4; i++) // low medium high veryhigh
+                {
+                    injector::scoped_unprotect(&pCascadeRange1[i], sizeof(CascadeRange));
+                    injector::scoped_unprotect(&pCascadeRange2[i], sizeof(CascadeRange));
+
+                    pCascadeRange1[i].CascadeRange1 = 10.0f;
+                    pCascadeRange1[i].CascadeRange2 = 30.0f;
+                    pCascadeRange1[i].CascadeRange3 = 85.0f;
+                    pCascadeRange1[i].CascadeRange4 = 256.0f;
+
+                    pCascadeRange2[i].CascadeRange1 = 10.0f;
+                    pCascadeRange2[i].CascadeRange2 = 30.0f;
+                    pCascadeRange2[i].CascadeRange3 = 85.0f;
+                    pCascadeRange2[i].CascadeRange4 = 256.0f;
+                }
             }
         };
     }

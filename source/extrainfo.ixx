@@ -12,13 +12,13 @@ class ExtraInfo
 public:
     ExtraInfo()
     {
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
             CIniReader iniReader("");
 
-            auto bExraInfo = iniReader.ReadInteger("MISC", "ExtraInfo", 1) != 0;
+            auto bExtraInfo = iniReader.ReadInteger("MISC", "ExtraInfo", 1) != 0;
 
-            if (bExraInfo)
+            if (bExtraInfo)
             {
                 auto pattern = hook::pattern("05 ? ? ? ? E9 ? ? ? ? E8 ? ? ? ? 84 C0");
                 if (!pattern.empty())
@@ -30,12 +30,12 @@ public:
                             static std::wstring extra = L"";
                             regs.eax += 0x78;
 
-                            if (pCGameConfigReader__ms_imgFiles)
+                            if (CGameConfigReader::ms_imgFiles)
                             {
                                 auto s = std::wstring_view((wchar_t*)regs.eax);
                                 auto imgNum = 0;
                                 auto imgArrSize = 0;
-                                for (auto& it : *pCGameConfigReader__ms_imgFiles)
+                                for (auto& it : *CGameConfigReader::ms_imgFiles)
                                 {
                                     if (it.m_hFile != -1)
                                         imgNum++;

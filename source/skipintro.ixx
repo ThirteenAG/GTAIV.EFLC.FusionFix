@@ -27,6 +27,19 @@ void __cdecl sub_7870A0(int a1)
     return hbsub_7870A0.fun(a1);
 }
 
+namespace CGame
+{
+    bool bAfterFirstRun = false;
+    injector::hook_back<void(__fastcall*)(int, int, int)> hbshowLoadscreen;
+    void __fastcall showLoadscreen(int dl, int cl, int a1)
+    {
+        if (bAfterFirstRun)
+            return hbshowLoadscreen.fun(dl, cl, a1);
+        else
+            bAfterFirstRun = true;
+    }
+}
+
 class SkipIntro
 {
 public:
@@ -65,6 +78,20 @@ public:
                         }
                     }
                 }; injector::MakeInline<Loadsc>(pattern.get_first(0), pattern.get_first(10));
+
+                #ifdef _DEBUG
+                // don't load loadscreens at the start
+                pattern = hook::pattern("E8 ? ? ? ? 83 C4 04 E8 ? ? ? ? 6A 00 E8 ? ? ? ? 83 C4 04 C7 06");
+                if (!pattern.count_hint(1).empty()) {
+                    CGame::hbshowLoadscreen.fun = injector::MakeCALL(pattern.get_first(), CGame::showLoadscreen, true).get();
+                    injector::MakeNOP(pattern.get_first(5), 3, true); // nop add esp, 4 since it's not fastcall
+                }
+                
+                // don't wait for loadscreens at the start
+                pattern = hook::pattern("80 3D ? ? ? ? 00 B9 01 00 00 00 0F 45 C1 80 3D");
+                if (!pattern.count_hint(1).empty())
+                    injector::WriteMemory<uint8_t>(pattern.get_first(-23), 0xEB, true);
+                #endif
             }
 
             //if (bSkipMenu)

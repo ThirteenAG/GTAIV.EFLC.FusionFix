@@ -7,6 +7,12 @@ export module timecyc;
 import common;
 import settings;
 import comvars;
+import natives;
+
+#define IDR_SNOWTC 205
+#define IDR_HALLTC 206
+std::vector<std::string> snowTC;
+std::vector<std::string> hallTC;
 
 int scanfCount = 0;
 int timecyc_scanf(const char* i, const char* fmt, int* mAmbient0ColorR, int* mAmbient0ColorG, int* mAmbient0ColorB, int* mAmbient1ColorR, int* mAmbient1ColorG, int* mAmbient1ColorB,
@@ -31,6 +37,18 @@ int timecyc_scanf(const char* i, const char* fmt, int* mAmbient0ColorR, int* mAm
     float* mCoronaSize, float* mSkyBrightness, float* mAOStrength, float* mRimLightingMultiplier, float* mDistantCoronaBrightness, float* mDistantCoronaSize,
     float* mPedAOStrength)
 {
+    if (bEnableSnow)
+    {
+        if (snowTC.size() == 99)
+            i = snowTC[scanfCount].c_str();
+    }
+
+    if (bEnableHall)
+    {
+        if (hallTC.size() == 99)
+            i = hallTC[scanfCount].c_str();
+    }
+
     auto res = sscanf(i, fmt, mAmbient0ColorR, mAmbient0ColorG, mAmbient0ColorB, mAmbient1ColorR, mAmbient1ColorG, mAmbient1ColorB, mDirLightColorR,
         mDirLightColorG, mDirLightColorB, unusedParam, mFilmGrain, mSkyBottomColorFogDensityA, mSkyBottomColorFogDensityR, mSkyBottomColorFogDensityG,
         mSkyBottomColorFogDensityB, mSunCoreR, mSunCoreG, mSunCoreB, unusedParam1, unusedParam2, unusedParam3, unusedParam4, mCoronaBrightness, mFarClip,
@@ -47,7 +65,7 @@ int timecyc_scanf(const char* i, const char* fmt, int* mAmbient0ColorR, int* mAm
         unusedParam10, mSunSize, mUnknown46, mDOFStart, unusedParam11, unusedParam12, mNearDOFBlur, mFarDOFBlur, mWaterReflectionMultiplier, mParticleBrightness,
         mCoronaSize, mSkyBrightness, mAOStrength, mRimLightingMultiplier, mDistantCoronaBrightness, mDistantCoronaSize, mPedAOStrength);
 
-    if (!FusionFixSettings("PREF_BLOOM"))
+    if (FusionFixSettings("PREF_BLOOM") <= FusionFixSettings.BloomText.eOff)
         *mBloomIntensity = 0.0f;
 
     switch (FusionFixSettings("PREF_TCYC_DOF"))
@@ -268,18 +286,15 @@ class Timecyc
 public:
     Timecyc()
     {
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
-            auto pattern = find_pattern("55 8B EC 83 E4 F0 81 EC ? ? ? ? 8B 0D ? ? ? ? 53 0F B7 41 04", "55 8B EC 83 E4 F0 81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 8B 0D ? ? ? ? 0F B7 41 04");
-            static auto CTimeCycleInitialise = pattern.get_first(0);
-
             FusionFixSettings.SetCallback("PREF_TIMECYC", [](int32_t value) {
-                injector::fastcall<void()>::call(CTimeCycleInitialise);
+                CTimeCycle::Initialise();
                 bMenuNeedsUpdate = 200;
             });
 
             // make timecyc changes visible in menu
-            pattern = hook::pattern("0A 05 ? ? ? ? 0A 05 ? ? ? ? 0F 85 ? ? ? ? E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 11 04 24");
+            auto pattern = hook::pattern("0A 05 ? ? ? ? 0A 05 ? ? ? ? 0F 85 ? ? ? ? E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 11 04 24");
             if (!pattern.empty())
             {
                 static auto byte_1173590 = *pattern.get_first<uint8_t*>(2);
@@ -322,12 +337,12 @@ public:
             injector::MakeCALL(pattern.get_first(0), timecyc_scanf, true);
 
             FusionFixSettings.SetCallback("PREF_TCYC_DOF", [](int32_t value) {
-                injector::fastcall<void()>::call(CTimeCycleInitialise);
+                CTimeCycle::Initialise();
                 bMenuNeedsUpdate = 200;
             });
 
             FusionFixSettings.SetCallback("PREF_BLOOM", [](int32_t value) {
-                injector::fastcall<void()>::call(CTimeCycleInitialise);
+                CTimeCycle::Initialise();
                 bMenuNeedsUpdate = 200;
             });
 
@@ -342,6 +357,66 @@ public:
 
                 pattern = hook::pattern("E8 ? ? ? ? 69 F6 ? ? ? ? 8D 84 24");
                 injector::MakeCALL(pattern.get_first(0), timecyclemodifiers_scanf, true);
+            }
+
+            {
+                HMODULE hm = NULL;
+                GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)&timecyc_scanf, &hm);
+                auto hResource = FindResource(hm, MAKEINTRESOURCE(IDR_SNOWTC), RT_RCDATA);
+
+                if (hResource)
+                {
+                    auto hLoadedResource = LoadResource(hm, hResource);
+                    if (hLoadedResource)
+                    {
+                        auto pLockedResource = LockResource(hLoadedResource);
+                        if (pLockedResource)
+                        {
+                            auto dwResourceSize = SizeofResource(hm, hResource);
+                            if (dwResourceSize)
+                            {
+                                std::string line;
+                                std::istringstream str((char*)pLockedResource, dwResourceSize);
+                                while (getline(str, line))
+                                {
+                                    if (*line.begin() != '\r' && !line.empty() && !line.contains("/"))
+                                        snowTC.emplace_back(line);
+                                }
+                                assert(snowTC.size() == 99);
+                            }
+                        }
+                    }
+                }
+            }
+
+            {
+                HMODULE hm = NULL;
+                GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)&timecyc_scanf, &hm);
+                auto hResource = FindResource(hm, MAKEINTRESOURCE(IDR_HALLTC), RT_RCDATA);
+
+                if (hResource)
+                {
+                    auto hLoadedResource = LoadResource(hm, hResource);
+                    if (hLoadedResource)
+                    {
+                        auto pLockedResource = LockResource(hLoadedResource);
+                        if (pLockedResource)
+                        {
+                            auto dwResourceSize = SizeofResource(hm, hResource);
+                            if (dwResourceSize)
+                            {
+                                std::string line;
+                                std::istringstream str((char*)pLockedResource, dwResourceSize);
+                                while (getline(str, line))
+                                {
+                                    if (*line.begin() != '\r' && !line.empty() && !line.contains("/"))
+                                        hallTC.emplace_back(line);
+                                }
+                                assert(hallTC.size() == 99);
+                            }
+                        }
+                    }
+                }
             }
         };
     }

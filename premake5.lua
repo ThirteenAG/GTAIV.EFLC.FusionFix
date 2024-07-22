@@ -2,7 +2,7 @@ newoption {
     trigger     = "with-version",
     value       = "STRING",
     description = "Current version",
-    default     = "1.0",
+    default     = "2.0",
 }
 
 workspace "GTAIV.EFLC.FusionFix"
@@ -15,7 +15,9 @@ workspace "GTAIV.EFLC.FusionFix"
    targetdir "bin/%{cfg.buildcfg}"
    targetextension ".asi"
    buildoptions { "/dxifcInlineFunctions-" }
-   
+   staticruntime "On"
+   characterset ("Unicode")
+
    defines { "rsc_CompanyName=\"GTAIV.EFLC.FusionFix\"" }
    defines { "rsc_LegalCopyright=\"GTAIV.EFLC.FusionFix\""} 
    defines { "rsc_InternalName=\"%{prj.name}\"", "rsc_ProductName=\"%{prj.name}\"", "rsc_OriginalFilename=\"%{prj.name}.dll\"" }
@@ -52,20 +54,27 @@ workspace "GTAIV.EFLC.FusionFix"
    includedirs { "source/dxsdk" }
    libdirs { "source/ledsdk" }
    libdirs { "source/dxsdk" }
-   files { "source/*.h", "source/*.hpp", "source/*.cpp", "source/*.hxx", "source/*.ixx" }
+   files { "source/*.h", "source/*.hpp", "source/*.cpp", "source/*.hxx", "source/*.ixx", "source/snow/*.ixx" }
    files { "source/resources/Versioninfo.rc" }
    files { "source/resources/Shaders.rc" }
+   files { "source/snow/*.rc" }
    links { "LogitechLEDLib.lib" }
-   
-   includedirs { "external/injector/safetyhook" }
+
+   includedirs { "external/injector/safetyhook/include" }
+   includedirs { "external/injector/zydis" }
    includedirs { "external/hooking" }
    includedirs { "external/injector/include" }
    includedirs { "external/inireader" }
+   includedirs { "external/modupdater/dist" }
+   libdirs { "external/modupdater/dist" }
    files { "external/hooking/Hooking.Patterns.h", "external/hooking/Hooking.Patterns.cpp" }
-   files { "external/injector/safetyhook/*.h", "external/injector/safetyhook/*.hpp" }
-   files { "external/injector/safetyhook/*.c", "external/injector/safetyhook/*.cpp" }
+   files { "external/injector/safetyhook/include/**.hpp", "external/injector/safetyhook/src/**.cpp" }
+   files { "external/injector/zydis/**.h", "external/injector/zydis/**.c" }
 
-   characterset ("Unicode")
+    prebuildcommands {
+        "for /R \"../source/snow/\" %%f in (*.ps) do (\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E main /Fo \"../source/snow/%%~nfps.cso\" %%f)",
+        "for /R \"../source/snow/\" %%f in (*.vs) do (\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E main /Fo \"../source/snow/%%~nfvs.cso\" %%f)",
+    }
    
    pbcommands = { 
       "setlocal EnableDelayedExpansion",
@@ -97,11 +106,12 @@ workspace "GTAIV.EFLC.FusionFix"
    filter "configurations:Debug"
       defines { "DEBUG" }
       symbols "On"
+      links { "libmodupdater_debug_win32.lib" }
 
    filter "configurations:Release"
       defines { "NDEBUG" }
       optimize "On"
-      staticruntime "On"
+      links { "libmodupdater_release_win32.lib" }
       
 project "GTAIV.EFLC.FusionFix"
    setpaths("H:/SteamLibrary/steamapps/common/Grand Theft Auto IV/GTAIV/", "GTAIV.exe", "plugins/")
