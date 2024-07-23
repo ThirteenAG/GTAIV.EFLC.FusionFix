@@ -996,14 +996,14 @@ public:
         static FusionFix::Event<> BuildRenderListEvent;
         return BuildRenderListEvent;
     }
-    static FusionFix::Event<>& onBeforePostFX() {
-        static FusionFix::Event<> BeforePostFX;
-        return BeforePostFX;
-    }
-    static FusionFix::Event<>& onAfterPostFX() {
-        static FusionFix::Event<> AfterPostFX;
-        return AfterPostFX;
-    }
+    //static FusionFix::Event<>& onBeforePostFX() {
+    //    static FusionFix::Event<> BeforePostFX;
+    //    return BeforePostFX;
+    //}
+    //static FusionFix::Event<>& onAfterPostFX() {
+    //    static FusionFix::Event<> AfterPostFX;
+    //    return AfterPostFX;
+    //}
 
     static inline SafetyHookInline shBuildRenderList{};
     static void __fastcall BuildRenderList(CBaseDC* _this, void* edx)
