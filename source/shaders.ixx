@@ -47,7 +47,6 @@ public:
     Shaders()
     {
         static IDirect3DTexture9* pHDRTexQuarter = nullptr;
-        static bool bFixAutoExposure = false;
         static float fTreeAlphaMultiplier = 1.0f;
         static float fCoronaReflectionIntensity = 1.0f;
 

@@ -1023,13 +1023,14 @@ export int32_t* _dwCurrentEpisode;
 export void* (__stdcall* getNativeAddress)(uint32_t);
 export HWND gWnd;
 export RECT gRect;
-export bool bDynamicShadowForTrees;
+export bool bDynamicShadowForTrees = true;
 export bool bMoreShadows = false;
 export bool bLoadingShown = false;
 export int bMenuNeedsUpdate = 0;
 export int bMenuNeedsUpdate2 = 0;
 export bool bEnableSnow = false;
 export bool bEnableHall = false;
+export bool bFixAutoExposure = true;
 
 export inline LONG getWindowWidth()
 {
