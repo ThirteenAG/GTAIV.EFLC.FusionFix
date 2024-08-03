@@ -84,7 +84,7 @@ This projects aims to fix some issues in Grand Theft Auto IV: The Complete Editi
 - Increased corona limit to avoid heavy flickering of game's lights
 - Improved ultrawidescreen support
 - Added sun shafts
-- Added various fixed animations and vehicle models
+- Added various fixed animations and vehicle models and lamppost coronas
 - Fixed glass shards lacking colors
 
 ### Scripts
