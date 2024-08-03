@@ -65,7 +65,7 @@ int timecyc_scanf(const char* i, const char* fmt, int* mAmbient0ColorR, int* mAm
         unusedParam10, mSunSize, mUnknown46, mDOFStart, unusedParam11, unusedParam12, mNearDOFBlur, mFarDOFBlur, mWaterReflectionMultiplier, mParticleBrightness,
         mCoronaSize, mSkyBrightness, mAOStrength, mRimLightingMultiplier, mDistantCoronaBrightness, mDistantCoronaSize, mPedAOStrength);
 
-    if (FusionFixSettings("PREF_BLOOM") <= FusionFixSettings.BloomText.eOff)
+    if (!FusionFixSettings("PREF_BLOOM"))
         *mBloomIntensity = 0.0f;
 
     switch (FusionFixSettings("PREF_TCYC_DOF"))
