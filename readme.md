@@ -85,6 +85,7 @@ This projects aims to fix some issues in Grand Theft Auto IV: The Complete Editi
 - Improved ultrawidescreen support
 - Added sun shafts
 - Added various fixed animations and vehicle models
+- Fixed glass shards lacking colors
 
 ### Scripts
 
