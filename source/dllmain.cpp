@@ -5,14 +5,6 @@ import comvars;
 import dllblacklist;
 import fusiondxhook;
 
-injector::hook_back<void(__fastcall*)(void*, void*, int, int, int)> hbsub_92E7C0;
-void __fastcall sub_92E7C0Hook(void* _this, void* edx, int a2, int a3, int a4)
-{
-    FusionFix::onBeforePostFX().executeAll();
-    hbsub_92E7C0.fun(_this, edx, a2, a3, a4);
-    FusionFix::onAfterPostFX().executeAll();
-}
-
 injector::hook_back<void(*)()> hbCGameProcess;
 void CGameProcessHook()
 {
@@ -115,9 +107,6 @@ void Init()
             }
         }; injector::MakeInline<AuxEndSceneHook>(pattern.get_first(0));
     }
-
-    pattern = find_pattern("E8 ? ? ? ? 6A 0A FF B7", "E8 ? ? ? ? 8B 8E ? ? ? ? 8B 56 10");
-    hbsub_92E7C0.fun = injector::MakeCALL(pattern.get_first(0), sub_92E7C0Hook, true).get();
 
     static auto futures = FusionFix::onInitEventAsync().executeAllAsync();
 

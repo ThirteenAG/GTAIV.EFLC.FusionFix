@@ -47,7 +47,6 @@ public:
     Shaders()
     {
         static IDirect3DTexture9* pHDRTexQuarter = nullptr;
-        static bool bFixAutoExposure = false;
         static float fTreeAlphaMultiplier = 1.0f;
         static float fCoronaReflectionIntensity = 1.0f;
 
@@ -211,20 +210,7 @@ public:
                             arr5[0] = 1.0f;
                         }
 
-                        switch (FusionFixSettings.Get("PREF_BLOOM"))
-                        {
-                        case FusionFixSettings.BloomText.eCross:
-                            arr5[1] = 1.0f;
-                            break;
-                        case FusionFixSettings.BloomText.eCircle:
-                            arr5[1] = 2.0f;
-                            break;
-                        case FusionFixSettings.BloomText.eOff:
-                        default:
-                            arr5[1] = 0.0f;
-                            break;
-                        }
-
+                        arr5[1] = 0.0f;
                         arr5[2] = 1.0f / (30.0f * Natives::Timestep());
                         arr5[3] = fTreeAlphaMultiplier;
                         pDevice->SetPixelShaderConstantF(221, &arr5[0], 1);

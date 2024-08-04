@@ -98,14 +98,14 @@ public:
     //    static Event<> AfterReset;
     //    return AfterReset;
     //}
-    static Event<>& onBeforePostFX() {
-        static Event<> BeforePostFX;
-        return BeforePostFX;
-    }
-    static Event<>& onAfterPostFX() {
-        static Event<> AfterPostFX;
-        return AfterPostFX;
-    }
+    //static Event<>& onBeforePostFX() {
+    //    static Event<> BeforePostFX;
+    //    return BeforePostFX;
+    //}
+    //static Event<>& onAfterPostFX() {
+    //    static Event<> AfterPostFX;
+    //    return AfterPostFX;
+    //}
 
     struct D3D9 {
         [[deprecated]] static Event<LPDIRECT3D9&, UINT&, D3DDEVTYPE&, HWND&, DWORD&, D3DPRESENT_PARAMETERS*&, IDirect3DDevice9**&>& onBeforeCreateDevice() {

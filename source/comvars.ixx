@@ -996,14 +996,14 @@ public:
         static FusionFix::Event<> BuildRenderListEvent;
         return BuildRenderListEvent;
     }
-    static FusionFix::Event<>& onBeforePostFX() {
-        static FusionFix::Event<> BeforePostFX;
-        return BeforePostFX;
-    }
-    static FusionFix::Event<>& onAfterPostFX() {
-        static FusionFix::Event<> AfterPostFX;
-        return AfterPostFX;
-    }
+    //static FusionFix::Event<>& onBeforePostFX() {
+    //    static FusionFix::Event<> BeforePostFX;
+    //    return BeforePostFX;
+    //}
+    //static FusionFix::Event<>& onAfterPostFX() {
+    //    static FusionFix::Event<> AfterPostFX;
+    //    return AfterPostFX;
+    //}
 
     static inline SafetyHookInline shBuildRenderList{};
     static void __fastcall BuildRenderList(CBaseDC* _this, void* edx)
@@ -1023,13 +1023,14 @@ export int32_t* _dwCurrentEpisode;
 export void* (__stdcall* getNativeAddress)(uint32_t);
 export HWND gWnd;
 export RECT gRect;
-export bool bDynamicShadowForTrees;
+export bool bDynamicShadowForTrees = true;
 export bool bMoreShadows = false;
 export bool bLoadingShown = false;
 export int bMenuNeedsUpdate = 0;
 export int bMenuNeedsUpdate2 = 0;
 export bool bEnableSnow = false;
 export bool bEnableHall = false;
+export bool bFixAutoExposure = true;
 
 export inline LONG getWindowWidth()
 {
