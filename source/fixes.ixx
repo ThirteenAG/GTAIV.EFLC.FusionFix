@@ -66,10 +66,23 @@ public:
                 return -1;
         }
 
-        if ((flags & 0x8000000) != 0)
-            return -1;
+        //if ((flags & 0x8000000) != 0)
+        //    return -1;
 
         return shsub_925DB0.ccall<int>(a1, a2, flags);
+    }
+
+    static inline SafetyHookInline shsub_D77A00{};
+    static void __fastcall sub_D77A00(void* _this, void* edx)
+    {
+        static auto LamppostShadows = FusionFixSettings.GetRef("PREF_LAMPPOSTSHADOWS");
+        if (!LamppostShadows->get())
+        {
+            if (!Natives::IsInteriorScene())
+                return;
+        }
+
+        return shsub_D77A00.fastcall(_this, edx);
     }
 
     Fixes()
@@ -498,6 +511,9 @@ public:
 
                 pattern = hook::pattern("80 3D ? ? ? ? ? 75 04 83 C8 FF");
                 shsub_925DB0 = safetyhook::create_inline(pattern.get_first(), sub_925DB0);
+
+                pattern = find_pattern("83 EC 3C 80 3D ? ? ? ? ? 56 8B F1", "83 EC 3C 53 33 DB");
+                shsub_D77A00 = safetyhook::create_inline(pattern.get_first(0), sub_D77A00);
             }
         };
     }
