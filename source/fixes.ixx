@@ -56,6 +56,30 @@ public:
         return r;
     }
 
+
+    static inline injector::hook_back<void(__cdecl*)(void*, float)> hbsub_ABD2C0;
+    static void __cdecl sub_ABD2C0(void* a1, float a2)
+    {
+        *(uint32_t*)((uintptr_t)a1 + 0x48) |= 4;
+        return hbsub_ABD2C0.fun(a1, a2);
+    }
+
+    static inline SafetyHookInline shsub_925DB0{};
+    static int __cdecl sub_925DB0(int a1, int a2, int flags)
+    {
+        static auto LamppostShadows = FusionFixSettings.GetRef("PREF_LAMPPOSTSHADOWS");
+        if (!LamppostShadows->get())
+        {
+            if (!Natives::IsInteriorScene())
+                return -1;
+        }
+
+        if ((flags & 0x8000000) != 0)
+            return -1;
+
+        return shsub_925DB0.ccall<int>(a1, a2, flags);
+    }
+
     Fixes()
     {
         FusionFix::onInitEventAsync() += []()
@@ -451,6 +475,37 @@ public:
                 auto pattern = hook::pattern("F3 0F 58 0D ? ? ? ? 83 EC 08 F3 0F 59 05");
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(0), 8, true);
+            }
+
+            // Lampposts issue workaround
+            {
+                auto pattern = find_pattern("89 4C 24 18 74 13");
+                if (!pattern.empty())
+                {
+                    static auto ShadowsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        if ((*(uint32_t*)(regs.edi + 0x4C) & 0x8000000) != 0)
+                        {
+                            regs.ecx |= 0x8000000; // new flag to detect affected lampposts
+                            regs.ecx |= 4;         // original light flag, currently disabled for these models
+                        }
+                    });
+                }
+                else
+                {
+                    pattern = hook::pattern("BB ? ? ? ? 74 0E F7 46");
+                    static auto ShadowsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        if ((*(uint32_t*)(regs.esi + 0x4C) & 0x8000000) != 0)
+                        {
+                            regs.ebx |= 0x8000000; // new flag to detect affected lampposts
+                            regs.ebx |= 4;         // original light flag, currently disabled for these models
+                        }
+                    });
+                }
+
+                pattern = hook::pattern("80 3D ? ? ? ? ? 75 04 83 C8 FF");
+                shsub_925DB0 = safetyhook::create_inline(pattern.get_first(), sub_925DB0);
             }
         };
     }
