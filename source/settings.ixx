@@ -169,6 +169,7 @@ public:
             { 0, "PREF_ANTIALIASING",      "MISC",       "Antialiasing",                    "MENU_DISPLAY_ANTIALIASING",  1, nullptr, AntialiasingText.eMO_OFF, std::distance(std::begin(AntialiasingText.data), std::end(AntialiasingText.data)) - 1 },
             { 0, "PREF_UPDATE",            "UPDATE",     "CheckForUpdates",                 "",                           0, nullptr, 0, 1 },
             { 0, "PREF_BLOCKONLOSTFOCUS",  "MAIN",       "BlockOnLostFocus",                "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_LAMPPOSTSHADOWS",   "SHADOWS",    "LamppostShadows",                 "",                           0, nullptr, 0, 1 },
             // Enums are at capacity, to use more enums, replace multiplayer ones. On/Off toggles should still be possible to add.
         };
 
@@ -568,10 +569,8 @@ public:
         // FPS Counter
         if (GetD3DX9_43DLL())
         {
-            auto pattern = find_pattern("A1 ? ? ? ? 83 F8 08 74 17", "A1 ? ? ? ? 83 F8 08 74 0C");
-            if (!pattern.empty())
+            if (pMenuTab)
             {
-                static auto& menuTab = **pattern.get_first<int32_t*>(1);
                 static ID3DXFont* pFPSFont = nullptr;
 
                 FusionFix::onBeforeReset() += []()
@@ -584,7 +583,7 @@ public:
                 FusionFix::onEndScene() += []()
                 {
                     static auto fpsc = FusionFixSettings.GetRef("PREF_FPSCOUNTER");
-                    if (menuTab == 8 || menuTab == 49 || fpsc->get())
+                    if (*pMenuTab == 8 || *pMenuTab == 49 || fpsc->get())
                     {
                         static std::list<int> m_times;
 
