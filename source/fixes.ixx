@@ -66,9 +66,6 @@ public:
                 return -1;
         }
 
-        //if ((flags & 0x8000000) != 0)
-        //    return -1;
-
         return shsub_925DB0.ccall<int>(a1, a2, flags);
     }
 
@@ -484,32 +481,32 @@ public:
 
             // Lampposts issue workaround
             {
-                auto pattern = find_pattern("89 4C 24 18 74 13");
-                if (!pattern.empty())
-                {
-                    static auto ShadowsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                    {
-                        if ((*(uint32_t*)(regs.edi + 0x4C) & 0x8000000) != 0)
-                        {
-                            regs.ecx |= 0x8000000; // new flag to detect affected lampposts
-                            regs.ecx |= 4;         // original light flag, currently disabled for these models
-                        }
-                    });
-                }
-                else
-                {
-                    pattern = hook::pattern("BB ? ? ? ? 74 0E F7 46");
-                    static auto ShadowsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                    {
-                        if ((*(uint32_t*)(regs.esi + 0x4C) & 0x8000000) != 0)
-                        {
-                            regs.ebx |= 0x8000000; // new flag to detect affected lampposts
-                            regs.ebx |= 4;         // original light flag, currently disabled for these models
-                        }
-                    });
-                }
+                //auto pattern = find_pattern("89 4C 24 18 74 13");
+                //if (!pattern.empty())
+                //{
+                //    static auto ShadowsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                //    {
+                //        if ((*(uint32_t*)(regs.edi + 0x4C) & 0x8000000) != 0)
+                //        {
+                //            regs.ecx |= 0x8000000; // new flag to detect affected lampposts
+                //            regs.ecx |= 4;         // original light flag, currently disabled for these models
+                //        }
+                //    });
+                //}
+                //else
+                //{
+                //    pattern = hook::pattern("BB ? ? ? ? 74 0E F7 46");
+                //    static auto ShadowsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                //    {
+                //        if ((*(uint32_t*)(regs.esi + 0x4C) & 0x8000000) != 0)
+                //        {
+                //            regs.ebx |= 0x8000000; // new flag to detect affected lampposts
+                //            regs.ebx |= 4;         // original light flag, currently disabled for these models
+                //        }
+                //    });
+                //}
 
-                pattern = hook::pattern("80 3D ? ? ? ? ? 75 04 83 C8 FF");
+                auto pattern = hook::pattern("80 3D ? ? ? ? ? 75 04 83 C8 FF");
                 shsub_925DB0 = safetyhook::create_inline(pattern.get_first(), sub_925DB0);
 
                 pattern = find_pattern("83 EC 3C 80 3D ? ? ? ? ? 56 8B F1", "83 EC 3C 53 33 DB");
