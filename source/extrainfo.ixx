@@ -28,7 +28,7 @@ public:
                     {
                         static std::wstring extra = L"";
                         
-                        if (CGameConfigReader::ms_imgFiles)
+                        if (CGameConfigReader::ms_imgFiles && pMenuTab && *pMenuTab == 49)
                         {
                             auto s = std::wstring_view((wchar_t*)regs.eax);
                             auto imgNum = 0;

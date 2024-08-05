@@ -56,14 +56,6 @@ public:
         return r;
     }
 
-
-    static inline injector::hook_back<void(__cdecl*)(void*, float)> hbsub_ABD2C0;
-    static void __cdecl sub_ABD2C0(void* a1, float a2)
-    {
-        *(uint32_t*)((uintptr_t)a1 + 0x48) |= 4;
-        return hbsub_ABD2C0.fun(a1, a2);
-    }
-
     static inline SafetyHookInline shsub_925DB0{};
     static int __cdecl sub_925DB0(int a1, int a2, int flags)
     {

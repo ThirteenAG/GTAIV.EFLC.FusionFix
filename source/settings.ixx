@@ -569,10 +569,8 @@ public:
         // FPS Counter
         if (GetD3DX9_43DLL())
         {
-            auto pattern = find_pattern("A1 ? ? ? ? 83 F8 08 74 17", "A1 ? ? ? ? 83 F8 08 74 0C");
-            if (!pattern.empty())
+            if (pMenuTab)
             {
-                static auto& menuTab = **pattern.get_first<int32_t*>(1);
                 static ID3DXFont* pFPSFont = nullptr;
 
                 FusionFix::onBeforeReset() += []()
@@ -585,7 +583,7 @@ public:
                 FusionFix::onEndScene() += []()
                 {
                     static auto fpsc = FusionFixSettings.GetRef("PREF_FPSCOUNTER");
-                    if (menuTab == 8 || menuTab == 49 || fpsc->get())
+                    if (*pMenuTab == 8 || *pMenuTab == 49 || fpsc->get())
                     {
                         static std::list<int> m_times;
 
