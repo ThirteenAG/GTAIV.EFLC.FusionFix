@@ -1,8 +1,8 @@
 ﻿[Skip Intro]
-Skip Intro
+Intro überspringen
 
 [Skip Menu]
-Skip Menu
+Menü überspringen
 
 [Windowed]
 Fenstermodus
@@ -17,7 +17,7 @@ Bei Fokusverlust Spielpause einlegen
 Logitech LightSync RGB
 
 [FPS Counter]
-FPS Counter
+FPS Anzeige
 
 [Letterbox]
 Cutscene Letterbox
@@ -26,25 +26,25 @@ Cutscene Letterbox
 Cutscene Pillarbox
 
 [Alt. Dialogues]
-Alternate Dialogues
+Alternativer Dialog
 
 [Check Updates]
-Check For Fusion Fix Updates
+Nach Fusion Fix Updates prüfen
 
 [Raw Input]
 Raw Input
 
 [Always Run]
-Always Run
+Immer rennen
 
 [Cover Centering]
-Cover Centering
+Deckungszentrierung
 
 [Centering Delay]
-Centering Delay
+Zentrierungsverzögerung
 
 [Gamepad Icons]
-Gamepad Icons
+Controllerikonen
 
 [Motion Blur]
 Bewegungsunschärfe
@@ -53,28 +53,28 @@ Bewegungsunschärfe
 Bloom
 
 [Console Gamma]
-Console Gamma
+Konsolengamma
 
 [Screen Filter]
-Screen Filter
+Bildschirmfilter
 
 [Depth of Field]
 Schärfentiefe
 
 [TreeFX]
-Tree Effects
+Baumbeleuchtung
 
 [Sun Shafts]
-Sun Shafts
+Sonnenstrahlen
 
 [Antialiasing]
 Antialiasing
 
 [FPS Limiter]
-FPS Limiter
+FPS Limitierung
 
 [LamppostShadows]
-Lamppost Shadows
+Straßenlampenschatten
 
 [DUMMY_l11]
 Dummy label.
