@@ -5,23 +5,35 @@ module;
 
 #include <common.h>
 #include <StringContainer.h>
+#include <Hash_Jenkins.h>
 
 export module gxtloader;
 
 import common;
 import comvars;
 
-export cStringContainer gxtEntries(KEYTYPE_JENKINS, true, false);
+export uint32_t GetHash(const char* str)
+{
+    return Jenkins::GetHash(str);
+}
+
+export std::unordered_map<uint32_t, std::wstring> gxtEntries;
 
 void LoadCustomGXT(std::filesystem::path& path)
 {
-    __try
+    cStringContainer container(KEYTYPE_JENKINS, true, false);
+    [&]()
     {
-        gxtEntries.ReadGXT(path, false);
-    }
-    __except ((GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION) ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
-    {
-    }
+        __try
+        {
+            container.ReadGXT(path, false);
+            container.m_mainTable->GetMap(gxtEntries);
+        }
+        __except ((GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION) ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
+        {
+            gxtEntries.clear();
+        }
+    }();
 }
 
 SafetyHookInline shsub_8C5D70{};
@@ -29,7 +41,7 @@ char* __fastcall sub_8C5D70(void* _this, void* edx, int a2, char* a3, char a4)
 {
     auto ret = shsub_8C5D70.fastcall<char*>(_this, edx, a2, a3, a4);
 
-    gxtEntries.Clear();
+    gxtEntries.clear();
     for (auto i = 0; i < 10; i++)
     {
         std::string t = ret;

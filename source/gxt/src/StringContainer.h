@@ -91,6 +91,14 @@ class cStringContainer
 			return false;
 		}
 
+		void GetMap(std::unordered_map<uint32_t, std::wstring>& dst)
+		{
+			for (size_t i = pKeys->GetNumberOfKeys(); i > 0; i--) {
+				auto key = pKeys->GetKeyAsInt(i - 1);
+				dst[key.first] = pData->GetString(key.second);
+			}
+		}
+
 		void FindUnreachableStrings()
 		{
 			auto set = pData->GetAllStringsOffsets();

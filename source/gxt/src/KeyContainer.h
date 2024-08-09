@@ -8,6 +8,7 @@ class cKeyContainerBase : public cContainerBase
 public:
 	virtual void AddKey(const std::wstring& key, uint32_t offset) = 0;
 	virtual std::pair<std::wstring, uint32_t> GetKey(size_t i) const = 0;
+	virtual std::pair<uint32_t, uint32_t> GetKeyAsInt(size_t i) const = 0;
 	virtual void RemoveKey(size_t i) = 0;
 	virtual uint32_t GetKeyOffset(const std::wstring& key) const = 0;
 	virtual uint32_t GetKeyOffset(const std::string_view key) const = 0;
@@ -97,6 +98,13 @@ public:
 		assert(i < keys.size());
 		const TableEntry<key_type>& entry = keys[i];
 		return std::pair<std::wstring, uint32_t>(std::move(to_wstring(entry.key)), entry.offset);
+	}
+
+	virtual std::pair<uint32_t, uint32_t> GetKeyAsInt(size_t i) const
+	{
+		assert(i < keys.size());
+		const TableEntry<key_type>& entry = keys[i];
+		return std::pair<uint32_t, uint32_t>((uint32_t)entry.key.value, entry.offset);
 	}
 
 	virtual size_t GetNumberOfKeys() const
