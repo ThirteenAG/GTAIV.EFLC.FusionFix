@@ -1,0 +1,80 @@
+﻿[Skip Intro]
+イントロをスキップ
+
+[Skip Menu]
+メニューをスキップ
+
+[Windowed]
+ウィンドウ表示
+
+[Borderless]
+ウィンドウ表示(フチなし)
+
+[Focus Loss]
+フォーカスの喪失時にゲームをポーズ
+
+[LightSyncRGB]
+Logitech LightSync RGB
+
+[FPS Counter]
+FPSカウンター
+
+[Letterbox]
+カットシーン レターボックス
+
+[Pillarbox]
+カットシーン ピラーボックス
+
+[Alt. Dialogues]
+代替対話
+
+[Check Updates]
+Fusion Fixアップデートを確認する
+
+[Raw Input]
+Raw Input
+
+[Always Run]
+常に実行
+
+[Cover Centering]
+カバーのセンタリング
+
+[Centering Delay]
+センタリング遅延
+
+[Gamepad Icons]
+コントローラーアイコン
+
+[Motion Blur]
+モーションブラー
+
+[Bloom]
+ライトブルーム
+
+[Console Gamma]
+コンソールガンマ
+
+[Screen Filter]
+スクリーンフィルター
+
+[Depth of Field]
+背景ぼかし
+
+[TreeFX]
+ツリーライティング
+
+[Sun Shafts]
+サンシャフト
+
+[Antialiasing]
+アンチエイリアシング
+
+[FPS Limiter]
+FPSリミッター
+
+[LamppostShadows]
+街灯の影
+
+[DUMMY_l11]
+Dummy label.
