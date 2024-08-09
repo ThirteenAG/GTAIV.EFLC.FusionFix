@@ -1,14 +1,14 @@
 ﻿[Skip Intro]
-Skip Intro
+Пропуск начальных роликов
 
 [Skip Menu]
-Skip Menu
+Пропуск меню при запуске
 
 [Windowed]
-Оконный
+Оконный режим
 
 [Borderless]
-Оконный без рамки
+Оконный режим без рамки
 
 [Focus Loss]
 Автоматически ставить игру на паузу в фоне
@@ -17,64 +17,64 @@ Skip Menu
 Logitech LightSync RGB
 
 [FPS Counter]
-FPS Counter
+Счетчик кадров
 
 [Letterbox]
-Cutscene Letterbox
+Формат Леттербоксинг в катсценах
 
 [Pillarbox]
-Cutscene Pillarbox
+Формат Пилларбоксинг в катсценах
 
 [Alt. Dialogues]
-Alternate Dialogues
+Альтернативные диалоги
 
 [Check Updates]
-Check For Fusion Fix Updates
+Fusion Fix: Проверять Обновления
 
 [Raw Input]
-Raw Input
+Непосредственный ввод (мышь)
 
 [Always Run]
-Always Run
+Постоянный Бег
 
 [Cover Centering]
-Cover Centering
+Центровка камеры в укрытии
 
 [Centering Delay]
-Centering Delay
+Задержка центровки камеры
 
 [Gamepad Icons]
-Gamepad Icons
+Стиль кнопок управления
 
 [Motion Blur]
 Размытие при движении
 
 [Bloom]
-Bloom
+Свечение
 
 [Console Gamma]
-Console Gamma
+Консольная Гамма
 
 [Screen Filter]
-Screen Filter
+Фильтр Экрана
 
 [Depth of Field]
 Глубина резкости
 
 [TreeFX]
-Tree Lighting
+Освещение Деревьев
 
 [Sun Shafts]
-Sun Shafts
+Солнечные лучи
 
 [Antialiasing]
-Anti-aliasing
+Сглаживание
 
 [FPS Limiter]
-FPS Limiter
+Ограничитель кадров
 
 [LamppostShadows]
-Lamppost Shadows
+Тени от фонарей
 
 [DUMMY_l11]
 Dummy label.
