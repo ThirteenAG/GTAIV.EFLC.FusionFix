@@ -42,11 +42,17 @@ char* __fastcall sub_8C5D70(void* _this, void* edx, int a2, char* a3, char a4)
     auto ret = shsub_8C5D70.fastcall<char*>(_this, edx, a2, a3, a4);
 
     gxtEntries.clear();
-    for (auto i = 0; i < 10; i++)
+
+    std::vector<std::string> suffixes = { "RR", "CV", "FF" };
+
+    for (auto i = 1; i < 10; i++)
+        suffixes.push_back(std::to_string(i));
+
+    for (auto& it : suffixes)
     {
         std::string t = ret;
         t = t.substr(t.find_last_of("/\\") + 1);
-        t.insert(t.find_last_of('.'), i == 0 ? "FF" : std::to_string(i));
+        t.insert(t.find_last_of('.'), it);
         auto filePath = GetModulePath(GetModuleHandleW(NULL)).parent_path() / "common" / "text" / t;
         LoadCustomGXT(filePath);
     }
