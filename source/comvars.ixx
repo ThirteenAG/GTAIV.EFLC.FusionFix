@@ -9,6 +9,17 @@ import common;
 
 #define VALIDATE_SIZE(struc, size) static_assert(sizeof(struc) == size, "Invalid structure size of " #struc)
 
+enum GameLanguage
+{
+    eLANG_AMERICAN,
+    eLANG_FRENCH,
+    eLANG_GERMAN,
+    eLANG_ITALIAN,
+    eLANG_SPANISH,
+    eLANG_RUSSIAN,
+    eLANG_JAPANESE,
+};
+
 export unsigned int hashStringLowercaseFromSeed(const char* str, unsigned int seed)
 {
     auto hash = seed;

@@ -11,6 +11,44 @@ import common;
 import comvars;
 import d3dx9_43;
 import fusiondxhook;
+import gxtloader;
+
+namespace CText
+{
+    static bool gxtEntriesContains = false;
+
+    SafetyHookInline shGetText{};
+    const wchar_t* __fastcall getText(void* g_text, void* edx, const char* key)
+    {
+        if (gxtEntriesContains)
+            return (const wchar_t*)gxtEntries.m_mainTable->GetStringPtr(key);
+
+        return shGetText.fastcall<const wchar_t*>(g_text, edx, key);
+    }
+
+    SafetyHookInline shDoesTextLabelExist{};
+    char __fastcall doesTextLabelExist(void* g_text, void* edx, const char* key)
+    {
+        if (gxtEntries.m_mainTable->Contains(key))
+        {
+            gxtEntriesContains = true;
+            return 1;
+        }
+        else
+            gxtEntriesContains = false;
+
+        return shDoesTextLabelExist.fastcall<char>(g_text, edx, key);
+    }
+
+    void Hook()
+    {
+        auto pattern = find_pattern("83 EC 44 A1 ? ? ? ? 33 C4 89 44 24 40 8B 44 24 48 56 8B F1", "83 EC 44 A1 ? ? ? ? 33 C4 89 44 24 40 8B 44 24 48 85 C0");
+        CText::shGetText = safetyhook::create_inline(pattern.get_first(), CText::getText);
+
+        pattern = find_pattern("51 8B 44 24 08 53 8B D9 C6 44 24", "51 8B 44 24 08 85 C0 53 8B D9");
+        CText::shDoesTextLabelExist = safetyhook::create_inline(pattern.get_first(), CText::doesTextLabelExist);
+    }
+}
 
 export class CSettings
 {
@@ -564,6 +602,9 @@ public:
             }
             pattern = find_pattern("8D 46 F0 66 0F 6E C0", "83 C7 F0 89 7C");
             injector::WriteMemory<uint8_t>(pattern.get_first(2), 0xE0, true);
+
+            //Text
+            CText::Hook();
         };
 
         // FPS Counter
