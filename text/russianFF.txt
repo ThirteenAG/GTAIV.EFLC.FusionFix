@@ -1,0 +1,80 @@
+﻿[Skip Intro]
+Skip Intro
+
+[Skip Menu]
+Skip Menu
+
+[Windowed]
+Оконный
+
+[Borderless]
+Оконный без рамки
+
+[Focus Loss]
+Автоматически ставить игру на паузу в фоне
+
+[LightSyncRGB]
+Logitech LightSync RGB
+
+[FPS Counter]
+FPS Counter
+
+[Letterbox]
+Cutscene Letterbox
+
+[Pillarbox]
+Cutscene Pillarbox
+
+[Alt. Dialogues]
+Alternate Dialogues
+
+[Check Updates]
+Check For Fusion Fix Updates
+
+[Raw Input]
+Raw Input
+
+[Always Run]
+Always Run
+
+[Cover Centering]
+Cover Centering
+
+[Centering Delay]
+Centering Delay
+
+[Gamepad Icons]
+Gamepad Icons
+
+[Motion Blur]
+Размытие при движении
+
+[Bloom]
+Bloom
+
+[Console Gamma]
+Console Gamma
+
+[Screen Filter]
+Screen Filter
+
+[Depth of Field]
+Глубина резкости
+
+[TreeFX]
+Tree Lighting
+
+[Sun Shafts]
+Sun Shafts
+
+[Antialiasing]
+Anti-aliasing
+
+[FPS Limiter]
+FPS Limiter
+
+[LamppostShadows]
+Lamppost Shadows
+
+[DUMMY_l11]
+Dummy label.
