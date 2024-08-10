@@ -7,9 +7,9 @@
 
 # GTAIV.EFLC.FusionFix
 
-This projects aims to fix some issues in Grand Theft Auto IV: The Complete Edition. Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionFix#readme).
+This projects aims to fix some issues in Grand Theft Auto IV: The Complete Edition. Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionFix#readme) and [other games](https://thirteenag.github.io/wfp).
 
-![Grand Theft Auto 4 2024 08 08 - 17 12 23 05](https://github.com/user-attachments/assets/529bc6bd-6598-4794-987b-ca20f7d3e4b6)
+![](https://github.com/user-attachments/assets/f9c6c978-3b19-422a-b561-4cf31716620b)
 
 ## Installation:
 
