@@ -616,109 +616,106 @@ public:
         // FPS Counter
         if (GetD3DX9_43DLL())
         {
-            if (pMenuTab)
+            static ID3DXFont* pFPSFont = nullptr;
+            
+            FusionFix::onBeforeReset() += []()
             {
-                static ID3DXFont* pFPSFont = nullptr;
-
-                FusionFix::onBeforeReset() += []()
+                if (pFPSFont)
+                    pFPSFont->Release();
+                pFPSFont = nullptr;
+            };
+            
+            FusionFix::onEndScene() += []()
+            {
+                static auto fpsc = FusionFixSettings.GetRef("PREF_FPSCOUNTER");
+                if (pMenuTab && *pMenuTab == 8 || *pMenuTab == 49 || fpsc->get())
                 {
-                    if (pFPSFont)
-                        pFPSFont->Release();
-                    pFPSFont = nullptr;
-                };
-
-                FusionFix::onEndScene() += []()
-                {
-                    static auto fpsc = FusionFixSettings.GetRef("PREF_FPSCOUNTER");
-                    if (*pMenuTab == 8 || *pMenuTab == 49 || fpsc->get())
+                    static std::list<int> m_times;
+            
+                    auto pDevice = *RageDirect3DDevice9::m_pRealDevice;
+            
+                    LARGE_INTEGER frequency;
+                    LARGE_INTEGER time;
+                    QueryPerformanceFrequency(&frequency);
+                    QueryPerformanceCounter(&time);
+            
+                    if (m_times.size() == 50)
+                        m_times.pop_front();
+                    m_times.push_back(static_cast<int>(time.QuadPart));
+            
+                    uint32_t fps = 0;
+                    if (m_times.size() >= 2)
+                        fps = static_cast<uint32_t>(0.5f + (static_cast<double>(m_times.size() - 1) * static_cast<double>(frequency.QuadPart)) / static_cast<double>(m_times.back() - m_times.front()));
+            
+                    if (!pFPSFont)
                     {
-                        static std::list<int> m_times;
-
-                        auto pDevice = *RageDirect3DDevice9::m_pRealDevice;
-
-                        LARGE_INTEGER frequency;
-                        LARGE_INTEGER time;
-                        QueryPerformanceFrequency(&frequency);
-                        QueryPerformanceCounter(&time);
-
-                        if (m_times.size() == 50)
-                            m_times.pop_front();
-                        m_times.push_back(static_cast<int>(time.QuadPart));
-
-                        uint32_t fps = 0;
-                        if (m_times.size() >= 2)
-                            fps = static_cast<uint32_t>(0.5f + (static_cast<double>(m_times.size() - 1) * static_cast<double>(frequency.QuadPart)) / static_cast<double>(m_times.back() - m_times.front()));
-
-                        if (!pFPSFont)
-                        {
-                            D3DDEVICE_CREATION_PARAMETERS cparams;
-                            RECT rect;
-                            pDevice->GetCreationParameters(&cparams);
-                            GetClientRect(cparams.hFocusWindow, &rect);
-
-                            D3DXFONT_DESC fps_font;
-                            ZeroMemory(&fps_font, sizeof(D3DXFONT_DESC));
-                            fps_font.Height = rect.bottom / 20;
-                            fps_font.Width = 0;
-                            fps_font.Weight = 400;
-                            fps_font.MipLevels = 0;
-                            fps_font.Italic = 0;
-                            fps_font.CharSet = DEFAULT_CHARSET;
-                            fps_font.OutputPrecision = OUT_DEFAULT_PRECIS;
-                            fps_font.Quality = ANTIALIASED_QUALITY;
-                            fps_font.PitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
-                            wchar_t FaceName[] = L"Arial";
-                            memcpy(&fps_font.FaceName, &FaceName, sizeof(FaceName));
-
-                            if (D3DXCreateFontIndirectW(pDevice, &fps_font, &pFPSFont) != D3D_OK)
-                                return;
-                        }
-                        else
-                        {
-                            auto DrawTextOutline = [](ID3DXFont* pFont, FLOAT X, FLOAT Y, D3DXCOLOR dColor, CONST PCHAR cString, ...)
-                            {
-                                const D3DXCOLOR BLACK(D3DCOLOR_XRGB(0, 0, 0));
-                                CHAR cBuffer[101] = "";
-
-                                va_list oArgs;
-                                va_start(oArgs, cString);
-                                _vsnprintf((cBuffer + strlen(cBuffer)), (sizeof(cBuffer) - strlen(cBuffer)), cString, oArgs);
-                                va_end(oArgs);
-
-                                RECT Rect[5] =
-                                {
-                                    { LONG(X - 1), LONG(Y), LONG(X + 500.0f), LONG(Y + 50.0f) },
-                                    { LONG(X), LONG(Y - 1), LONG(X + 500.0f), LONG(Y + 50.0f) },
-                                    { LONG(X + 1), LONG(Y), LONG(X + 500.0f), LONG(Y + 50.0f) },
-                                    { LONG(X), LONG(Y + 1), LONG(X + 500.0f), LONG(Y + 50.0f) },
-                                    { LONG(X), LONG(Y), LONG(X + 500.0f), LONG(Y + 50.0f)},
-                                };
-
-                                if (dColor != BLACK)
-                                {
-                                    for (auto i = 0; i < 4; i++)
-                                        pFont->DrawTextA(NULL, cBuffer, -1, &Rect[i], DT_NOCLIP, BLACK);
-                                }
-
-                                pFont->DrawTextA(NULL, cBuffer, -1, &Rect[4], DT_NOCLIP, dColor);
-                            };
-                            auto curEp = _dwCurrentEpisode ? *_dwCurrentEpisode : 0;
-                            static char str_format_fps[] = "%02d";
-                            static const D3DXCOLOR TBOGT(D3DCOLOR_XRGB(0xD7, 0x11, 0x6E));
-                            static const D3DXCOLOR TLAD(D3DCOLOR_XRGB(0x6F, 0x0D, 0x0F));
-                            static const D3DXCOLOR IV(D3DCOLOR_XRGB(0xF0, 0xA0, 0x00));
-                            DrawTextOutline(pFPSFont, 10, 10, (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), str_format_fps, fps);
-                        }
+                        D3DDEVICE_CREATION_PARAMETERS cparams;
+                        RECT rect;
+                        pDevice->GetCreationParameters(&cparams);
+                        GetClientRect(cparams.hFocusWindow, &rect);
+            
+                        D3DXFONT_DESC fps_font;
+                        ZeroMemory(&fps_font, sizeof(D3DXFONT_DESC));
+                        fps_font.Height = rect.bottom / 20;
+                        fps_font.Width = 0;
+                        fps_font.Weight = 400;
+                        fps_font.MipLevels = 0;
+                        fps_font.Italic = 0;
+                        fps_font.CharSet = DEFAULT_CHARSET;
+                        fps_font.OutputPrecision = OUT_DEFAULT_PRECIS;
+                        fps_font.Quality = ANTIALIASED_QUALITY;
+                        fps_font.PitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
+                        wchar_t FaceName[] = L"Arial";
+                        memcpy(&fps_font.FaceName, &FaceName, sizeof(FaceName));
+            
+                        if (D3DXCreateFontIndirectW(pDevice, &fps_font, &pFPSFont) != D3D_OK)
+                            return;
                     }
-                };
-
-                FusionFix::onShutdownEvent() += []()
-                {
-                    if (pFPSFont)
-                        pFPSFont->Release();
-                    pFPSFont = nullptr;
-                };
-            }
+                    else
+                    {
+                        auto DrawTextOutline = [](ID3DXFont* pFont, FLOAT X, FLOAT Y, D3DXCOLOR dColor, CONST PCHAR cString, ...)
+                        {
+                            const D3DXCOLOR BLACK(D3DCOLOR_XRGB(0, 0, 0));
+                            CHAR cBuffer[101] = "";
+            
+                            va_list oArgs;
+                            va_start(oArgs, cString);
+                            _vsnprintf((cBuffer + strlen(cBuffer)), (sizeof(cBuffer) - strlen(cBuffer)), cString, oArgs);
+                            va_end(oArgs);
+            
+                            RECT Rect[5] =
+                            {
+                                { LONG(X - 1), LONG(Y), LONG(X + 500.0f), LONG(Y + 50.0f) },
+                                { LONG(X), LONG(Y - 1), LONG(X + 500.0f), LONG(Y + 50.0f) },
+                                { LONG(X + 1), LONG(Y), LONG(X + 500.0f), LONG(Y + 50.0f) },
+                                { LONG(X), LONG(Y + 1), LONG(X + 500.0f), LONG(Y + 50.0f) },
+                                { LONG(X), LONG(Y), LONG(X + 500.0f), LONG(Y + 50.0f)},
+                            };
+            
+                            if (dColor != BLACK)
+                            {
+                                for (auto i = 0; i < 4; i++)
+                                    pFont->DrawTextA(NULL, cBuffer, -1, &Rect[i], DT_NOCLIP, BLACK);
+                            }
+            
+                            pFont->DrawTextA(NULL, cBuffer, -1, &Rect[4], DT_NOCLIP, dColor);
+                        };
+                        auto curEp = _dwCurrentEpisode ? *_dwCurrentEpisode : 0;
+                        static char str_format_fps[] = "%02d";
+                        static const D3DXCOLOR TBOGT(D3DCOLOR_XRGB(0xD7, 0x11, 0x6E));
+                        static const D3DXCOLOR TLAD(D3DCOLOR_XRGB(0x6F, 0x0D, 0x0F));
+                        static const D3DXCOLOR IV(D3DCOLOR_XRGB(0xF0, 0xA0, 0x00));
+                        DrawTextOutline(pFPSFont, 10, 10, (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), str_format_fps, fps);
+                    }
+                }
+            };
+            
+            FusionFix::onShutdownEvent() += []()
+            {
+                if (pFPSFont)
+                    pFPSFont->Release();
+                pFPSFont = nullptr;
+            };
         }
     }
 } Settings;
