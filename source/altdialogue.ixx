@@ -228,9 +228,9 @@ std::vector<std::vector<std::tuple<std::string_view, uint32_t>>> gAltDialogueVar
         { "tonym6", 43689 },
         { "tonym7", 43690 },
         { "tonym8", 43691 },
-        { "yusuf2", 42910 },
-        { "yusuf3", 43668 },
-        { "yusuf4", 42911 },
+        //{ "yusuf2", 42910 },
+        //{ "yusuf3", 43668 },
+        //{ "yusuf4", 42911 },
     }
 };
 
