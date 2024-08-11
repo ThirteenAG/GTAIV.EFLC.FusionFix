@@ -71,8 +71,8 @@ public:
     rage::grcRenderTargetPC* FullScreenTex_temp1 = nullptr; // main temp texture
     rage::grcRenderTargetPC* FullScreenTex_temp2 = nullptr; // main temp texture
 
-    rage::grcRenderTargetPC* pShadowBlurTex1 = nullptr; // main shadow temp texture
-    rage::grcRenderTargetPC* pShadowBlurTex2 = nullptr; // main shadow temp texture
+    //rage::grcRenderTargetPC* pShadowBlurTex1 = nullptr; // main shadow temp texture
+    //rage::grcRenderTargetPC* pShadowBlurTex2 = nullptr; // main shadow temp texture
 
     // smaa textures
     rage::grcRenderTargetPC* edgesTex = nullptr; // smaa gen
@@ -123,8 +123,8 @@ public:
     IDirect3DSurface9* blendSurf = nullptr;
     IDirect3DSurface9* ppZStencilSurface = nullptr; // game depth buffer, get with GetDepthStencilSurface
     IDirect3DSurface9* halfZStencilSurface = nullptr; // half screen temp depth buffer
-    IDirect3DSurface9* pShadowBlurSurf1 = nullptr;
-    IDirect3DSurface9* pShadowBlurSurf2 = nullptr;
+    //IDirect3DSurface9* pShadowBlurSurf1 = nullptr;
+    //IDirect3DSurface9* pShadowBlurSurf2 = nullptr;
 
     IDirect3DSurface9* stencilDownsampledSurf = nullptr;
 
@@ -158,10 +158,10 @@ public:
     IDirect3DVertexShader9* SMAA_BlendingWeightsCalculationVS = nullptr;
     IDirect3DVertexShader9* SMAA_NeighborhoodBlendingVS = nullptr;
 
-    IDirect3DPixelShader9* DeferredShadowGen_ps = nullptr;
-    IDirect3DPixelShader9* DeferredShadowBlurH_ps = nullptr;
-    IDirect3DPixelShader9* DeferredShadowBlurV_ps = nullptr;
-    IDirect3DPixelShader9* DeferredShadowBlurCircle_ps = nullptr;
+    //IDirect3DPixelShader9* DeferredShadowGen_ps = nullptr;
+    //IDirect3DPixelShader9* DeferredShadowBlurH_ps = nullptr;
+    //IDirect3DPixelShader9* DeferredShadowBlurV_ps = nullptr;
+    //IDirect3DPixelShader9* DeferredShadowBlurCircle_ps = nullptr;
     IDirect3DPixelShader9* deferred_lighting_PS1 = nullptr;
     IDirect3DPixelShader9* deferred_lighting_PS2 = nullptr;
 
@@ -181,7 +181,7 @@ public:
     float ResSSAA = 1.0f;
 
     // 0 off, 1 horizontal, 2 vertical, 3 horizontal e vertical.
-    int useScreenSpaceShadowsBlur = 3;
+    //int useScreenSpaceShadowsBlur = 3;
     int UseSunShafts = 2;
     int useDepthOfField = 3;
     int UseDebugTextures = 0;
@@ -207,7 +207,7 @@ public:
         if(!dof_coc_ps && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_dof_coc_ps), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                                                   if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &dof_coc_ps) != S_OK || !dof_coc_ps) SAFE_RELEASE(dof_coc_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
         if(!depth_of_field_tent_ps && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_depth_of_field_tent_ps), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                           if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &depth_of_field_tent_ps) != S_OK || !depth_of_field_tent_ps) SAFE_RELEASE(depth_of_field_tent_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
         if(!stipple_filter_ps && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_stipple_filter_ps), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                                     if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &stipple_filter_ps) != S_OK || !stipple_filter_ps) SAFE_RELEASE(stipple_filter_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
-        if(!DeferredShadowGen_ps && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_DeferredShadowGen_ps), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                               if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &DeferredShadowGen_ps) != S_OK || !DeferredShadowGen_ps) SAFE_RELEASE(DeferredShadowGen_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
+        //if(!DeferredShadowGen_ps && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_DeferredShadowGen_ps), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                               if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &DeferredShadowGen_ps) != S_OK || !DeferredShadowGen_ps) SAFE_RELEASE(DeferredShadowGen_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
         if(!deferred_lighting_PS1 && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_deferred_lighting_PS1), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                             if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &deferred_lighting_PS1) != S_OK || !deferred_lighting_PS1) SAFE_RELEASE(deferred_lighting_PS1); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
         if(!deferred_lighting_PS2 && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_deferred_lighting_PS2), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                             if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &deferred_lighting_PS2) != S_OK || !deferred_lighting_PS2) SAFE_RELEASE(deferred_lighting_PS2); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
         if(!SSAO_gen_ps && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SSAO_gen_ps), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                                                 if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SSAO_gen_ps) != S_OK || !SSAO_gen_ps) SAFE_RELEASE(SSAO_gen_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
@@ -224,9 +224,9 @@ public:
         if(!SSDownsampler2_PS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SunShafts_PS), NULL, NULL, "SSDownsampler2", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                             if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SSDownsampler2_PS) != S_OK || !SSDownsampler2_PS) SAFE_RELEASE(SSDownsampler2_PS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
 
         if(!SSAdd_PS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SunShafts_PS), NULL, NULL, "SSAdd", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                                               if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SSAdd_PS) != S_OK || !SSAdd_PS) SAFE_RELEASE(SSAdd_PS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
-        if(!DeferredShadowBlurH_ps && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_DeferredShadowBlur), NULL, NULL, "BlurHorizontal", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                  if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &DeferredShadowBlurH_ps) != S_OK || !DeferredShadowBlurH_ps) SAFE_RELEASE(DeferredShadowBlurH_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
-        if(!DeferredShadowBlurV_ps && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_DeferredShadowBlur), NULL, NULL, "BlurVertical", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                    if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &DeferredShadowBlurV_ps) != S_OK || !DeferredShadowBlurV_ps) SAFE_RELEASE(DeferredShadowBlurV_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
-        if(!DeferredShadowBlurCircle_ps && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_DeferredShadowBlur), NULL, NULL, "BlurCircular", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {               if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &DeferredShadowBlurCircle_ps) != S_OK || !DeferredShadowBlurCircle_ps) SAFE_RELEASE(DeferredShadowBlurCircle_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
+        //if(!DeferredShadowBlurH_ps && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_DeferredShadowBlur), NULL, NULL, "BlurHorizontal", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                  if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &DeferredShadowBlurH_ps) != S_OK || !DeferredShadowBlurH_ps) SAFE_RELEASE(DeferredShadowBlurH_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
+        //if(!DeferredShadowBlurV_ps && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_DeferredShadowBlur), NULL, NULL, "BlurVertical", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                    if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &DeferredShadowBlurV_ps) != S_OK || !DeferredShadowBlurV_ps) SAFE_RELEASE(DeferredShadowBlurV_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
+        //if(!DeferredShadowBlurCircle_ps && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_DeferredShadowBlur), NULL, NULL, "BlurCircular", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {               if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &DeferredShadowBlurCircle_ps) != S_OK || !DeferredShadowBlurCircle_ps) SAFE_RELEASE(DeferredShadowBlurCircle_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
 
         if(!SMAA_EdgeDetection && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "SMAAColorEdgeDetectionPS", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                          if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SMAA_EdgeDetection) != S_OK || !SMAA_EdgeDetection) SAFE_RELEASE(SMAA_EdgeDetection); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
         if(!SMAA_BlendingWeightsCalculation && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "SMAABlendingWeightCalculationPS", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {      if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SMAA_BlendingWeightsCalculation) != S_OK || !SMAA_BlendingWeightsCalculation) SAFE_RELEASE(SMAA_BlendingWeightsCalculation); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
@@ -318,25 +318,26 @@ public:
             HalfDepthStenciltex = nullptr;
         }
 
-        if (pShadowBlurTex1)
-        {
-            pShadowBlurTex1->Destroy();
-            pShadowBlurTex1 = nullptr;
-        }
-
-        if (pShadowBlurTex2)
-        {
-            pShadowBlurTex2->Destroy();
-            pShadowBlurTex2 = nullptr;
-        }
+        //if (pShadowBlurTex1)
+        //{
+        //    pShadowBlurTex1->Destroy();
+        //    pShadowBlurTex1 = nullptr;
+        //}
+        //
+        //if (pShadowBlurTex2)
+        //{
+        //    pShadowBlurTex2->Destroy();
+        //    pShadowBlurTex2 = nullptr;
+        //}
     }
 
     bool ShadersFinishedLoading() {
         if(FxaaPS && dof_blur_ps && dof_coc_ps && depth_of_field_tent_ps && stipple_filter_ps &&
-           DeferredShadowGen_ps && deferred_lighting_PS1 && deferred_lighting_PS2 && SSAO_gen_ps &&
+           //DeferredShadowGen_ps && 
+           deferred_lighting_PS1 && deferred_lighting_PS2 && SSAO_gen_ps &&
            SSAO_blend_ps && SunShafts_PS && SunShafts2_PS && SunShafts3_PS && SunShafts4_PS &&
-           SSDownsampler_PS && SSDownsampler2_PS && SSAdd_PS && DeferredShadowBlurH_ps &&
-           DeferredShadowBlurV_ps && DeferredShadowBlurCircle_ps
+           SSDownsampler_PS && SSDownsampler2_PS && SSAdd_PS //&& DeferredShadowBlurH_ps &&
+           //DeferredShadowBlurV_ps && DeferredShadowBlurCircle_ps
            && SMAA_EdgeDetection && SMAA_BlendingWeightsCalculation && SMAA_NeighborhoodBlending
            && SMAA_EdgeDetectionVS && SMAA_BlendingWeightsCalculationVS && SMAA_NeighborhoodBlendingVS)
             return true;
@@ -401,10 +402,10 @@ public:
         FullScreenTex_temp1 = CreateEmptyRT("FullScreenTex_temp1", 3, Width, Height, 32, &desc);
         FullScreenTex_temp2 = CreateEmptyRT("FullScreenTex_temp2", 3, Width, Height, 32, &desc);
 
-        desc.mFormat = rage::GRCFMT_G16R16F;
-
-        pShadowBlurTex1 = CreateEmptyRT("pShadowBlurTex1", 3, Width, Height, 32, &desc);
-        pShadowBlurTex2 = CreateEmptyRT("pShadowBlurTex2", 3, Width, Height, 32, &desc);
+        //desc.mFormat = rage::GRCFMT_G16R16F;
+        // 
+        //pShadowBlurTex1 = CreateEmptyRT("pShadowBlurTex1", 3, Width, Height, 32, &desc);
+        //pShadowBlurTex2 = CreateEmptyRT("pShadowBlurTex2", 3, Width, Height, 32, &desc);
 
         desc.mFormat = rage::GRCFMT_X8R8G8B8;
 
@@ -612,8 +613,8 @@ private:
 
         if (PostFxResources.CascadeAtlasTex)
             PostFxResources.CascadeAtlasTex->GetSurfaceLevel(0, &PostFxResources.CascadeAtlasSurf);
-        PostFxResources.pShadowBlurTex1->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.pShadowBlurSurf1);
-        PostFxResources.pShadowBlurTex2->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.pShadowBlurSurf2);
+        //PostFxResources.pShadowBlurTex1->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.pShadowBlurSurf1);
+        //PostFxResources.pShadowBlurTex2->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.pShadowBlurSurf2);
 
         //PostFxResources.stencilDownsampled->GetSurfaceLevel(0, &stencilDownsampledSurf       );
 
@@ -660,8 +661,8 @@ private:
         SAFE_RELEASE(PostFxResources.ppZStencilSurface);
 
         SAFE_RELEASE(PostFxResources.halfZStencilSurface);
-        SAFE_RELEASE(PostFxResources.pShadowBlurSurf1);
-        SAFE_RELEASE(PostFxResources.pShadowBlurSurf2);
+        //SAFE_RELEASE(PostFxResources.pShadowBlurSurf1);
+        //SAFE_RELEASE(PostFxResources.pShadowBlurSurf2);
 
         SAFE_RELEASE(PostFxResources.stencilDownsampledSurf);
 
@@ -677,7 +678,7 @@ private:
         auto currGrcViewport = rage::GetCurrentViewport();
         auto SunColor = rage::grmShaderInfo::getParam("gta_atmoscatt_clouds.fxc", "SunColor");
         auto SunDirection = rage::grmShaderInfo::getParam("gta_atmoscatt_clouds.fxc", "SunDirection");
-        auto gShadowMatrix = rage::grmShaderInfo::getGlobalParam("gShadowMatrix");
+        //auto gShadowMatrix = rage::grmShaderInfo::getGlobalParam("gShadowMatrix");
 
         HRESULT hr = S_FALSE;
 
@@ -739,7 +740,7 @@ private:
         pDevice->SetPixelShaderConstantF(104, currGrcViewport->mWorldViewMatrix[0], 4);
         pDevice->SetPixelShaderConstantF(108, currGrcViewport->mWorldViewProjMatrix[0], 4);
         pDevice->SetPixelShaderConstantF(112, currGrcViewport->mViewInverseMatrix[0], 4);
-        pDevice->SetPixelShaderConstantF(116, gShadowMatrix, 4);
+        //pDevice->SetPixelShaderConstantF(116, gShadowMatrix, 4);
         pDevice->SetPixelShaderConstantF(120, SunShaftsSamples2, 1);
         pDevice->SetPixelShaderConstantF(140, PostFxResources.BilateralDepthTreshold, 1);
         pDevice->SetPixelShaderConstantF(144, PostFxResources.NoiseSale, 1);
@@ -763,35 +764,35 @@ private:
 
                 // ready for new post processing?
                 if(PostFxResources.backBuffer && PostFxResources.renderTargetSurf && PostFxResources.surfaceRead) {
-                    if(PostFxResources.UseSSAO && PostFxResources.SSAO_gen_ps && PostFxResources.SSAO_blend_ps && PostFxResources.pShadowBlurSurf1 && PostFxResources.pShadowBlurSurf2) {
-
-                        pDevice->SetPixelShader(PostFxResources.SSAO_gen_ps);
-                        vec4[1] = PostFxResources.AoDistance;
-                        pDevice->SetPixelShaderConstantF(211, vec4, 1);
-
-                        //pDevice->SetTexture(2, 0);
-                        pDevice->SetRenderTarget(0, PostFxResources.pShadowBlurSurf1);
-                        //pDevice->SetTexture(2, PostFxResources.textureRead);
-                        pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-                        pDevice->SetTexture(3, 0);
-
-                        pDevice->SetPixelShader(PostFxResources.DeferredShadowBlurCircle_ps);
-                        pDevice->SetRenderTarget(0, PostFxResources.pShadowBlurSurf2);
-                        pDevice->SetTexture(11, PostFxResources.pShadowBlurTex1->mD3DTexture);
-                        pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-
-                        pDevice->SetTexture(11, 0);
-
-                        pDevice->SetPixelShader(PostFxResources.SSAO_blend_ps);
-                        pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
-                        pDevice->SetTexture(2, PostFxResources.textureRead);
-                        pDevice->SetTexture(3, PostFxResources.pShadowBlurTex2->mD3DTexture);
-                        pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-                        PostFxResources.swapbuffers();
-                        pDevice->SetTexture(2, PostFxResources.textureRead);
-                        pDevice->SetTexture(3, PostFxResources.prePostFx[3]);
-                        pDevice->SetPixelShader(pShader);
-                    }
+                    //if(PostFxResources.UseSSAO && PostFxResources.SSAO_gen_ps && PostFxResources.SSAO_blend_ps && PostFxResources.pShadowBlurSurf1 && PostFxResources.pShadowBlurSurf2) {
+                    //
+                    //    pDevice->SetPixelShader(PostFxResources.SSAO_gen_ps);
+                    //    vec4[1] = PostFxResources.AoDistance;
+                    //    pDevice->SetPixelShaderConstantF(211, vec4, 1);
+                    //
+                    //    //pDevice->SetTexture(2, 0);
+                    //    pDevice->SetRenderTarget(0, PostFxResources.pShadowBlurSurf1);
+                    //    //pDevice->SetTexture(2, PostFxResources.textureRead);
+                    //    pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
+                    //    pDevice->SetTexture(3, 0);
+                    //
+                    //    pDevice->SetPixelShader(PostFxResources.DeferredShadowBlurCircle_ps);
+                    //    pDevice->SetRenderTarget(0, PostFxResources.pShadowBlurSurf2);
+                    //    pDevice->SetTexture(11, PostFxResources.pShadowBlurTex1->mD3DTexture);
+                    //    pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
+                    //
+                    //    pDevice->SetTexture(11, 0);
+                    //
+                    //    pDevice->SetPixelShader(PostFxResources.SSAO_blend_ps);
+                    //    pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
+                    //    pDevice->SetTexture(2, PostFxResources.textureRead);
+                    //    pDevice->SetTexture(3, PostFxResources.pShadowBlurTex2->mD3DTexture);
+                    //    pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
+                    //    PostFxResources.swapbuffers();
+                    //    pDevice->SetTexture(2, PostFxResources.textureRead);
+                    //    pDevice->SetTexture(3, PostFxResources.prePostFx[3]);
+                    //    pDevice->SetPixelShader(pShader);
+                    //}
 
                     if(PostFxResources.useStippleFilter && PostFxResources.stipple_filter_ps) {
                         pDevice->SetPixelShader(PostFxResources.stipple_filter_ps);
