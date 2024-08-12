@@ -29,13 +29,13 @@ Pillarbox-Balken in Zwischensequenzen
 Alternative Dialoge
 
 [Check Updates]
-Nach Updates für den Fusion Fix suchen
+Auf Fusion-Fix-Updates prüfen
 
 [Raw Input]
 Raw Input
 
 [Always Run]
-Standardmäßig rennen
+Immer rennen
 
 [Cover Centering]
 Deckungszentrierung
