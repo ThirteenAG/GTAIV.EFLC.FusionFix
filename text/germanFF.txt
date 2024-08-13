@@ -17,19 +17,19 @@ Bei Fokusverlust Spielpause einlegen
 Logitech LightSync RGB
 
 [FPS Counter]
-FPS Anzeige
+FPS-Anzeige
 
 [Letterbox]
-Cutscene Letterbox
+Letterbox-Balken in Zwischensequenzen
 
 [Pillarbox]
-Cutscene Pillarbox
+Pillarbox-Balken in Zwischensequenzen
 
 [Alt. Dialogues]
-Alternativer Dialog
+Alternative Dialoge
 
 [Check Updates]
-Nach Fusion Fix Updates prüfen
+Auf Fusion-Fix-Updates prüfen
 
 [Raw Input]
 Raw Input
@@ -44,7 +44,7 @@ Deckungszentrierung
 Zentrierungsverzögerung
 
 [Gamepad Icons]
-Controllerikonen
+Controllersymbole
 
 [Motion Blur]
 Bewegungsunschärfe
@@ -68,13 +68,13 @@ Baumbeleuchtung
 Sonnenstrahlen
 
 [Antialiasing]
-Antialiasing
+Kantenglättung
 
 [FPS Limiter]
-FPS Limitierung
+FPS-Begrenzung
 
 [LamppostShadows]
-Straßenlampenschatten
+Schatten für Straßenlaternen
 
 [DUMMY_l11]
 Dummy label.
