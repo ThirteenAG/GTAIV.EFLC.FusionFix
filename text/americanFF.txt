@@ -76,5 +76,26 @@ FPS Limiter
 [LamppostShadows]
 Lamppost Shadows
 
+[Tree Alpha]
+Tree Alpha
+
+[Shadow Filter]
+Shadow Filter
+
+[FF_WARN1]
+~r~WARNING: 255 IMG limit exceeded, will cause streaming issues.
+
+[FF_WARN2]
+~r~WARNING: Lamppost shadows may cause visual artifacts and performance issues.
+
+[FF_WARN3]
+~r~WARNING: View Distance slider above 25 and Detail Distance slider above 31 may cause object pop-in.
+
+[FF_WARN4]
+~r~WARNING: View Distance slider above 25 may cause object pop-in.
+
+[FF_WARN5]
+~r~WARNING: Detail Distance slider above 31 may cause object pop-in.
+
 [DUMMY_l11]
 Dummy label.

@@ -192,12 +192,12 @@ public:
             { 0, "PREF_TIMECYC",           "MISC",       "ScreenFilter",                    "MENU_DISPLAY_TIMECYC",       5, nullptr, TimecycText.eMO_DEF, std::distance(std::begin(TimecycText.data), std::end(TimecycText.data)) - 1 },
             { 0, "PREF_WINDOWED",          "MAIN",       "Windowed",                        "",                           0, nullptr, 0, 1 },
             { 0, "PREF_DEFINITION",        "MAIN",       "Definition",                      "",                           1, nullptr, 0, 1 },
-  /*UNUSED*/{ 0, "PREF_UNUSED2",           "Unused",     "Unused2",                         "MENU_DISPLAY_BLOOM",         3, nullptr, BloomText.eOff, std::distance(std::begin(BloomText.data), std::end(BloomText.data)) - 1 },
+            { 0, "PREF_SHADOWFILTER",      "SHADOWS",    "ShadowFilter",                    "MENU_DISPLAY_SHADOWFILTER",  5, nullptr, ShadowFilterText.eSoft, std::distance(std::begin(ShadowFilterText.data), std::end(ShadowFilterText.data)) - 1 },
             { 0, "PREF_TREE_LIGHTING",     "MISC",       "TreeLighting",                    "MENU_DISPLAY_TREE_LIGHTING", 7, nullptr, TreeFxText.ePC, std::distance(std::begin(TreeFxText.data), std::end(TreeFxText.data)) - 1 },
             { 0, "PREF_TCYC_DOF",          "MISC",       "DepthOfField",                    "MENU_DISPLAY_DOF",           7, nullptr, DofText.eOff, std::distance(std::begin(DofText.data), std::end(DofText.data)) - 1 },
             { 0, "PREF_MOTIONBLUR",        "MAIN",       "MotionBlur",                      "",                           0, nullptr, 0, 1 },
             { 0, "PREF_LEDILLUMINATION",   "MISC",       "LightSyncRGB",                    "",                           0, nullptr, 0, 1 },
-  /*UNUSED*/{ 0, "PREF_UNUSED",            "Unused",     "Unused",                          "MENU_DISPLAY_DEFINITION",    6, nullptr, DefinitionText.eClassic, std::distance(std::begin(DefinitionText.data), std::end(DefinitionText.data)) - 1 },
+            { 0, "PREF_TREEALPHA",         "MISC",       "TreeAlpha",                       "MENU_DISPLAY_TREEALPHA",     4, nullptr, TreeAlphaText.ePC, std::distance(std::begin(TreeAlphaText.data), std::end(TreeAlphaText.data)) - 1 },
             { 0, "PREF_SUNSHAFTS",         "MISC",       "SunShafts",                       "",                           1, nullptr, 0, 1 },
             { 0, "PREF_FPSCOUNTER",        "FRAMELIMIT", "DisplayFpsCounter",               "",                           0, nullptr, 0, 1 },
             { 0, "PREF_ALWAYSRUN",         "MISC",       "AlwaysRun",                       "",                           0, nullptr, 0, 1 },
@@ -409,11 +409,11 @@ public:
 
     struct
     {
-        enum eBloomText {
-            eRadio, eSequential, eShuffle, eOff, eCross, eCircle
+        enum eShadowFilterText {
+            eRadio, eSequential, eShuffle, eSoft, eSharp
         };
-        std::vector<const char*> data = { "Radio", "Sequential", "Shuffle", "Off", "Cross", "Circle" };
-    } BloomText;
+        std::vector<const char*> data = { "Radio", "Sequential", "Shuffle", "Soft", "Sharp", };
+    } ShadowFilterText;
 
     struct
     {
@@ -433,9 +433,9 @@ public:
 
     struct
     {
-        enum eDefinitionText { eLow, eMedium, eHigh, eVeryHigh, eClassic, eImproved, eExtra };
-        std::vector<const char*> data = { "Low", "Medium", "High", "Very High", "Classic", "Improved", "Extra" };
-    } DefinitionText;
+        enum eTreeAlphaText { eLow, eMedium, eHigh, eVeryHigh, ePC, eConsole };
+        std::vector<const char*> data = { "Low", "Medium", "High", "Very High", "PC", "Console" };
+    } TreeAlphaText;
 
     struct
     {
