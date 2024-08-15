@@ -42,15 +42,22 @@ public:
                             extra = s;
                             extra += L"~n~";
                             extra += L"                         ";
-                            extra += L"~p~IMG Files: " + std::to_wstring(imgNum) + L" / " + std::to_wstring(imgArrSize);
-                            if (imgNum >= imgArrSize) extra += L"; ~r~WARNING: 255 IMG limit exceeded, will cause streaming issues.";
+
+                            auto FF_WARN0 = CText::getText("FF_WARN0");
+                            extra += FF_WARN0[0] ? FF_WARN0 : L"~p~IMG Files: " + std::to_wstring(imgNum) + L" / " + std::to_wstring(imgArrSize);
+                            auto FF_WARN1 = CText::getText("FF_WARN1");
+                            if (imgNum >= imgArrSize) extra += FF_WARN1[0] ? FF_WARN1 : L"; ~r~WARNING: 255 IMG limit exceeded, will cause streaming issues.";
                         
                             static auto LamppostShadows = FusionFixSettings.GetRef("PREF_LAMPPOSTSHADOWS");
                             if (LamppostShadows->get())
                             {
                                 extra += L"~n~";
                                 extra += L"                         ";
-                                extra += L"~r~WARNING: Lamppost shadows may cause visual artifacts and performance issues.";
+                                auto FF_WARN2 = CText::getText("FF_WARN2");
+                                if (FF_WARN2[0])
+                                    extra += FF_WARN2;
+                                else
+                                    extra += L"~r~WARNING: Lamppost shadows may cause visual artifacts and performance issues.";
                             }
 
                             static auto ViewDistance = FusionFixSettings.GetRef("PREF_VIEW_DISTANCE");
@@ -59,12 +66,15 @@ public:
                             {
                                 extra += L"~n~";
                                 extra += L"                         ";
+                                auto FF_WARN3 = CText::getText("FF_WARN3");
+                                auto FF_WARN4 = CText::getText("FF_WARN4");
+                                auto FF_WARN5 = CText::getText("FF_WARN5");
                                 if (ViewDistance->get() > 24 && DetailQuality->get() > 30)
-                                    extra += L"~r~WARNING: View Distance slider above 25 and Detail Distance slider above 31 may cause object pop-in.";
+                                    extra += FF_WARN3[0] ? FF_WARN3 : L"~r~WARNING: View Distance slider above 25 and Detail Distance slider above 31 may cause object pop-in.";
                                 else if (ViewDistance->get() > 24)
-                                    extra += L"~r~WARNING: View Distance slider above 25 may cause object pop-in.";
+                                    extra += FF_WARN4[0] ? FF_WARN4 : L"~r~WARNING: View Distance slider above 25 may cause object pop-in.";
                                 else if (DetailQuality->get() > 30)
-                                    extra += L"~r~WARNING: Detail Distance slider above 31 may cause object pop-in.";
+                                    extra += FF_WARN5[0] ? FF_WARN5 : L"~r~WARNING: Detail Distance slider above 31 may cause object pop-in.";
                             }
 
                             regs.eax = (uintptr_t)extra.c_str();

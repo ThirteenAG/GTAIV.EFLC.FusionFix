@@ -15,44 +15,58 @@ import gxtloader;
 
 namespace CText
 {
+    using CText = void;
+    CText* g_text = nullptr;
+
+    const wchar_t* (__fastcall* Get)(CText* text, void* edx, const char* key);
+
     SafetyHookInline shGetText{};
-    const wchar_t* __fastcall getText(void* g_text, void* edx, const char* key)
+    const wchar_t* __fastcall getText(CText* text, void* edx, const char* key)
     {
         auto hash = GetHash(key);
         if (gxtEntries.contains(hash))
             return gxtEntries[hash].c_str();
 
-        return shGetText.fastcall<const wchar_t*>(g_text, edx, key);
+        return shGetText.fastcall<const wchar_t*>(text, edx, key);
     }
 
     SafetyHookInline shGetTextByKey{};
-    const wchar_t* __fastcall getTextByKey(void* g_text, void* edx, uint32_t hash, int a3)
+    const wchar_t* __fastcall getTextByKey(CText* text, void* edx, uint32_t hash, int a3)
     {
         if (gxtEntries.contains(hash))
             return gxtEntries[hash].c_str();
 
-        return shGetTextByKey.fastcall<const wchar_t*>(g_text, edx, hash, a3);
+        return shGetTextByKey.fastcall<const wchar_t*>(text, edx, hash, a3);
     }
 
     SafetyHookInline shDoesTextLabelExist{};
-    char __fastcall doesTextLabelExist(void* g_text, void* edx, const char* key)
+    char __fastcall doesTextLabelExist(CText* text, void* edx, const char* key)
     {
         if (gxtEntries.contains(GetHash(key)))
             return 1;
 
-        return shDoesTextLabelExist.fastcall<char>(g_text, edx, key);
+        return shDoesTextLabelExist.fastcall<char>(text, edx, key);
+    }
+
+    export const wchar_t* getText(const char* key)
+    {
+        return Get(g_text, nullptr, key);
     }
 
     void Hook()
     {
-        //auto pattern = find_pattern("83 EC 44 A1 ? ? ? ? 33 C4 89 44 24 40 8B 44 24 48 56 8B F1", "83 EC 44 A1 ? ? ? ? 33 C4 89 44 24 40 8B 44 24 48 85 C0");
-        //CText::shGetText = safetyhook::create_inline(pattern.get_first(), CText::getText);
+        auto pattern = find_pattern("B9 ? ? ? ? E8 ? ? ? ? 50 8D 84 24 ? ? ? ? 50 E8 ? ? ? ? 83 C4 0C", "B9 ? ? ? ? E8 ? ? ? ? 50 8D 84 24 ? ? ? ? 68 ? ? ? ? 50 BA ? ? ? ? E8 ? ? ? ? 83 C4 14");
+        g_text = *pattern.get_first<CText*>(1);
 
-        auto pattern = find_pattern("83 EC 48 A1 ? ? ? ? 33 C4 89 44 24 44 53 55", "83 EC 48 A1 ? ? ? ? 33 C4 89 44 24 44 53 55");
-        shGetTextByKey = safetyhook::create_inline(pattern.get_first(), CText::getTextByKey);
+        pattern = find_pattern("83 EC 44 A1 ? ? ? ? 33 C4 89 44 24 40 8B 44 24 48 56 8B F1", "83 EC 44 A1 ? ? ? ? 33 C4 89 44 24 40 8B 44 24 48 85 C0");
+        Get = *pattern.get_first<const wchar_t* (__fastcall)(void*, void*, const char*)>(0);
+        //shGetText = safetyhook::create_inline(pattern.get_first(), getText);
+
+        pattern = find_pattern("83 EC 48 A1 ? ? ? ? 33 C4 89 44 24 44 53 55", "83 EC 48 A1 ? ? ? ? 33 C4 89 44 24 44 53 55");
+        shGetTextByKey = safetyhook::create_inline(pattern.get_first(), getTextByKey);
 
         pattern = find_pattern("51 8B 44 24 08 53 8B D9 C6 44 24", "51 8B 44 24 08 85 C0 53 8B D9");
-        CText::shDoesTextLabelExist = safetyhook::create_inline(pattern.get_first(), CText::doesTextLabelExist);
+        shDoesTextLabelExist = safetyhook::create_inline(pattern.get_first(), doesTextLabelExist);
     }
 }
 
