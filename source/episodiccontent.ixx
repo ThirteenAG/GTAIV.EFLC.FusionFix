@@ -215,6 +215,7 @@ public:
                 else {
                     pattern = hook::pattern("83 3D ?? ?? ?? ?? ?? 75 0A F3 0F 10 05 ?? ?? ?? ?? EB 03");
                     injector::MakeNOP(pattern.get_first(7), 2, true);
+                }
                     
                 pattern = hook::pattern("83 3D ? ? ? ? ? 75 0C 80 3D ? ? ? ? ? 74 03"); // Check if player had a parachute
                     if (!pattern.empty())
@@ -234,7 +235,7 @@ public:
             }
             
             if (bExplosiveAnnihilator)
-                {
+            {
                 auto pattern = hook::pattern("83 3D ? ? ? ? ? 7C 7F");  // annihilator explosive shots
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 2, true);
@@ -304,6 +305,7 @@ public:
                 else {
                     pattern = hook::pattern("BD ? ? ? ? 75 05");
                     injector::MakeNOP(pattern.get_first(5), 2, true);
+                }
 
                 pattern = hook::pattern("83 3D ? ? ? ? ? BB ? ? ? ? B8");  // E2_landing marker
                 if (!pattern.empty())
