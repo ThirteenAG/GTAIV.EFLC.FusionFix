@@ -76,5 +76,29 @@ FPS-Begrenzung
 [LamppostShadows]
 Schatten für Straßenlaternen
 
+[Tree Alpha]
+Baumtransparenz
+
+[Shadow Filter]
+Schattenfilterung
+
+[FF_WARN0]
+~p~IMG Dateien:
+
+[FF_WARN1]
+~r~WARNUNG: Das Limit von 255 IMG-Dateien wurde überschritten. Dies kann zu Streaming-Problemen führen.
+
+[FF_WARN2]
+~r~WARNUNG: Schatten für Straßenlaternen kann zu visuellen Artefakten und Leistungsproblemen führen.
+
+[FF_WARN3]
+~r~WARNUNG: Sichtdistanzregler über 25 und Detaildistanzregler über 31 kann zu Objekt Pop-In führen.
+
+[FF_WARN4]
+~r~WARNUNG: Sichtdistanzregler über 25 kann zu Objekt Pop-In führen.
+
+[FF_WARN5]
+~r~WARNUNG: Detaildistanzregler über 31 kann zu Objekt Pop-In führen.
+
 [DUMMY_l11]
 Dummy label.
