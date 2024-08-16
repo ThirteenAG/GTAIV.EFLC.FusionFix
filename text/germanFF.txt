@@ -50,7 +50,7 @@ Controllersymbole
 Bewegungsunschärfe
 
 [Bloom]
-Bloom
+Bloom-Effekt
 
 [Console Gamma]
 Konsolengamma
@@ -76,5 +76,29 @@ FPS-Begrenzung
 [LamppostShadows]
 Schatten für Straßenlaternen
 
+[Tree Alpha]
+Baum-Alpha
+
+[Shadow Filter]
+Schattenfilter
+
+[FF_WARN0]
+~p~IMG-Dateien: 
+
+[FF_WARN1]
+; ~r~ACHTUNG: Obergrenze von 255 IMG-Dateien überschritten, was zu Streaming-Problemen führt.
+
+[FF_WARN2]
+~r~ACHTUNG: Schatten für Straßenlaternen können zu Artefakten und Performance-Problemen führen.
+
+[FF_WARN3]
+~r~ACHTUNG: Bei Werten von über 25 für die Sichtdistanz und über 31 für die Detaildistanz kann es zu Pop-in von Objekten kommen.
+
+[FF_WARN4]
+~r~ACHTUNG: Bei Werten von über 25 für die Sichtdistanz kann es zu Pop-in von Objekten kommen.
+
+[FF_WARN5]
+~r~ACHTUNG: Bei Werten von über 31 für die Detaildistanz kann es zu Pop-in von Objekten kommen.
+
 [DUMMY_l11]
-Dummy label.
+Dummy label
