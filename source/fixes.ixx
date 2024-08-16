@@ -508,6 +508,18 @@ public:
                     });
                 }
             }
+            
+            // Render LOD lights during cutscenes (console behavior)
+            {
+                auto pattern = hook::pattern("E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? A1 ? ? ? ? 83 F8 02 0F 84");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(0), 13, true);
+                else
+                {
+                    pattern = hook::pattern("E8 ? ? ? ? 84 C0 75 7A A1 ? ? ? ? 83 F8 02 74 70 83 F8 03");
+                    injector::MakeNOP(pattern.get_first(0), 9, true);
+                }
+            }
         };
     }
 } Fixes;
