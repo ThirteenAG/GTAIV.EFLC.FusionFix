@@ -193,7 +193,7 @@ public:
                     injector::MakeNOP(pattern.get_first(6), 2, true);
                 }
 
-                pattern = hook::pattern("83 3D ? ? ? ? ? 7C 21 83 F8 23 75 1C 6A 02 FF 35"); // parachute anims
+                pattern = hook::pattern("83 3D ? ? ? ? ? 75 14 E8 ? ? ? ? 85 C0 74 0B"); // parachute anims
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 2, true);
                 else {
