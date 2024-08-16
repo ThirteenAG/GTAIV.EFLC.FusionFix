@@ -803,98 +803,6 @@ private:
                         pDevice->SetPixelShader(pShader);
                     }
 
-                    // This implementation has some problems with cuts in some 
-                    // places (when smoothing some diagonal lines there are pixels that break the smoothing), 
-                    // I didn't find the reason, but using antialiasing.ixx it works almost perfectly despite being 
-                    // the same implementation. Maybe it's the rendering order, IDK.
-                    if(UsePostFxAA && UsePostFxAA->get() > FusionFixSettings.AntialiasingText.eMO_OFF) {
-
-                        // FXAA
-                        if((UsePostFxAA->get() == FusionFixSettings.AntialiasingText.eFXAA) && PostFxResources.FxaaPS) {
-                            pDevice->GetRenderState(D3DRS_SRGBWRITEENABLE, &OldSRGB); // save srgb state
-                            pDevice->SetPixelShader(PostFxResources.FxaaPS);
-
-                            pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
-
-                            pDevice->SetTexture(2, PostFxResources.textureRead);
-                            hr = pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-                            PostFxResources.swapbuffers();
-                            pDevice->SetSamplerState(2, D3DSAMP_SRGBTEXTURE, 0);
-                            //pDevice->SetTexture(2, 0);
-                            pDevice->SetPixelShader(pShader);
-                            pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, OldSRGB);// restore srgb state
-                        }
-
-                        // SMAA
-                        if(UsePostFxAA->get() >= FusionFixSettings.AntialiasingText.eSMAA &&
-                           PostFxResources.SMAA_EdgeDetection && PostFxResources.SMAA_BlendingWeightsCalculation && PostFxResources.SMAA_NeighborhoodBlending &&
-                           PostFxResources.SMAA_EdgeDetectionVS && PostFxResources.SMAA_BlendingWeightsCalculationVS && PostFxResources.SMAA_NeighborhoodBlendingVS &&
-                           PostFxResources.SMAA_areaTex && PostFxResources.SMAA_searchTex && PostFxResources.edgesTex && PostFxResources.blendTex
-                           ) {
-                            DWORD oldSample = 0;
-
-                            // SMAA_EdgeDetection
-                            pDevice->GetRenderState(D3DRS_SRGBWRITEENABLE, &OldSRGB); // save srgb state
-                            pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, 0);
-                            pDevice->SetPixelShader(PostFxResources.SMAA_EdgeDetection);
-                            pDevice->SetVertexShader(PostFxResources.SMAA_EdgeDetectionVS);
-                            pDevice->SetRenderTarget(0, PostFxResources.edgesSurf);
-                            //pDevice->SetTexture(2, 0);
-                            pDevice->SetTexture(0, PostFxResources.textureRead);
-                            pDevice->GetSamplerState(3, D3DSAMP_MAGFILTER, &oldSample);
-                            pDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                            pDevice->SetSamplerState(1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                            pDevice->SetSamplerState(2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                            pDevice->SetSamplerState(3, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
-                            pDevice->SetSamplerState(4, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                            pDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 0, 0);
-                            pDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, 1);
-                            pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-                            pDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, 0);
-                            pDevice->SetTexture(0, 0);
-
-                            // SMAA_BlendingWeightsCalculation
-                            pDevice->SetPixelShader(PostFxResources.SMAA_BlendingWeightsCalculation);
-                            pDevice->SetVertexShader(PostFxResources.SMAA_BlendingWeightsCalculationVS);
-                            pDevice->SetRenderTarget(0, PostFxResources.blendSurf);
-                            pDevice->SetTexture(1, PostFxResources.edgesTex->mD3DTexture);
-                            pDevice->SetTexture(2, PostFxResources.SMAA_areaTex);
-                            pDevice->SetTexture(3, PostFxResources.SMAA_searchTex);
-                            pDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 0, 0);
-                            pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-
-                            pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, OldSRGB);// restore srgb state
-
-                            // SMAA_NeighborhoodBlending
-                            pDevice->SetPixelShader(PostFxResources.SMAA_NeighborhoodBlending);
-                            pDevice->SetVertexShader(PostFxResources.SMAA_NeighborhoodBlendingVS);
-                            vec4[0] = static_cast<float>(UsePostFxAA->get());
-                            vec4[1] = 1.0f;
-                            vec4[2] = 3.0f;
-                            vec4[3] = 4.0f;
-                            pDevice->SetPixelShaderConstantF(5, vec4, 1);
-
-                            pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
-                            pDevice->SetSamplerState(2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-
-                            //pDevice->SetTexture(2,  textureRead);
-                            pDevice->SetTexture(0, PostFxResources.textureRead);
-                            pDevice->SetTexture(1, PostFxResources.edgesTex->mD3DTexture);
-                            pDevice->SetTexture(4, PostFxResources.blendTex->mD3DTexture);
-                            pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, 0);
-                            pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-                            PostFxResources.swapbuffers();
-                            pDevice->SetTexture(0, PostFxResources.prePostFx[0]);
-                            pDevice->SetTexture(1, PostFxResources.prePostFx[1]);
-                            pDevice->SetTexture(2, PostFxResources.textureRead);
-                            pDevice->SetTexture(3, PostFxResources.prePostFx[3]);
-                            pDevice->SetTexture(4, PostFxResources.prePostFx[4]);
-                            pDevice->SetSamplerState(3, D3DSAMP_MAGFILTER, oldSample);
-                            pDevice->SetPixelShader(pShader);
-                            pDevice->SetVertexShader(vShader);
-                        }
-                    }
-
                     static auto dof = FusionFixSettings.GetRef("PREF_TCYC_DOF");
                     if(dof->get() > FusionFixSettings.DofText.eCutscenesOnly || (dof->get() == FusionFixSettings.DofText.eCutscenesOnly && Natives::HasCutsceneFinished())) {
                         if(PostFxResources.useDepthOfField > 0 && PostFxResources.dof_blur_ps && PostFxResources.dof_coc_ps) {
@@ -1155,7 +1063,10 @@ private:
                             pDevice->SetSamplerState(i, D3DSAMP_MAGFILTER, PostFxResources.Samplers[i]);
                         }
 
-                        pDevice->SetRenderTarget(0, PostFxResources.backBuffer);
+                        if(UsePostFxAA->get() > FusionFixSettings.AntialiasingText.eMO_OFF)
+                            pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
+                        else
+                            pDevice->SetRenderTarget(0, PostFxResources.backBuffer);
                         pDevice->SetTexture(9, PostFxResources.blueNoiseVolume);
                         pDevice->SetTexture(2, PostFxResources.textureRead);
                         pDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 0, 0);
@@ -1164,7 +1075,102 @@ private:
                         pDevice->SetVertexShader(vShader);
                         //hr = pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
                         hbDrawPrimitivePostFX.fun();
+                        if(UsePostFxAA->get() > FusionFixSettings.AntialiasingText.eMO_OFF)
+                            PostFxResources.swapbuffers();
+
                         pDevice->SetTexture(9, 0);
+                    }
+                    // This implementation has some problems with cuts in some 
+                    // places (when smoothing some diagonal lines there are pixels that break the smoothing), 
+                    // I didn't find the reason, but using antialiasing.ixx it works almost perfectly despite being 
+                    // the same implementation. Maybe it's the rendering order, IDK.
+                    if(UsePostFxAA && UsePostFxAA->get() > FusionFixSettings.AntialiasingText.eMO_OFF) {
+                        // FXAA
+                        if((UsePostFxAA->get() == FusionFixSettings.AntialiasingText.eFXAA) && PostFxResources.FxaaPS) {
+                            pDevice->GetRenderState(D3DRS_SRGBWRITEENABLE, &OldSRGB); // save srgb state
+                            pDevice->SetPixelShader(PostFxResources.FxaaPS);
+
+                            //pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
+                            pDevice->SetRenderTarget(0, PostFxResources.backBuffer);
+
+                            pDevice->SetTexture(2, PostFxResources.textureRead);
+                            hr = pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
+                            //PostFxResources.swapbuffers();
+                            pDevice->SetSamplerState(2, D3DSAMP_SRGBTEXTURE, 0);
+                            //pDevice->SetTexture(2, 0);
+                            pDevice->SetPixelShader(pShader);
+                            pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, OldSRGB);// restore srgb state
+                        }
+
+                        // SMAA
+                        if(UsePostFxAA->get() >= FusionFixSettings.AntialiasingText.eSMAA &&
+                           PostFxResources.SMAA_EdgeDetection && PostFxResources.SMAA_BlendingWeightsCalculation && PostFxResources.SMAA_NeighborhoodBlending &&
+                           PostFxResources.SMAA_EdgeDetectionVS && PostFxResources.SMAA_BlendingWeightsCalculationVS && PostFxResources.SMAA_NeighborhoodBlendingVS &&
+                           PostFxResources.SMAA_areaTex && PostFxResources.SMAA_searchTex && PostFxResources.edgesTex && PostFxResources.blendTex
+                           ) {
+                            DWORD oldSample = 0;
+
+                            // SMAA_EdgeDetection
+                            pDevice->GetRenderState(D3DRS_SRGBWRITEENABLE, &OldSRGB); // save srgb state
+                            pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, 0);
+                            pDevice->SetPixelShader(PostFxResources.SMAA_EdgeDetection);
+                            pDevice->SetVertexShader(PostFxResources.SMAA_EdgeDetectionVS);
+                            pDevice->SetRenderTarget(0, PostFxResources.edgesSurf);
+                            //pDevice->SetTexture(2, 0);
+                            pDevice->SetTexture(0, PostFxResources.textureRead);
+                            pDevice->GetSamplerState(3, D3DSAMP_MAGFILTER, &oldSample);
+                            pDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+                            pDevice->SetSamplerState(1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+                            pDevice->SetSamplerState(2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+                            pDevice->SetSamplerState(3, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+                            pDevice->SetSamplerState(4, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+                            pDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 0, 0);
+                            pDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, 1);
+                            pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
+                            pDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, 0);
+                            pDevice->SetTexture(0, 0);
+
+                            // SMAA_BlendingWeightsCalculation
+                            pDevice->SetPixelShader(PostFxResources.SMAA_BlendingWeightsCalculation);
+                            pDevice->SetVertexShader(PostFxResources.SMAA_BlendingWeightsCalculationVS);
+                            pDevice->SetRenderTarget(0, PostFxResources.blendSurf);
+                            pDevice->SetTexture(1, PostFxResources.edgesTex->mD3DTexture);
+                            pDevice->SetTexture(2, PostFxResources.SMAA_areaTex);
+                            pDevice->SetTexture(3, PostFxResources.SMAA_searchTex);
+                            pDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 0, 0);
+                            pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
+
+                            pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, OldSRGB);// restore srgb state
+
+                            // SMAA_NeighborhoodBlending
+                            pDevice->SetPixelShader(PostFxResources.SMAA_NeighborhoodBlending);
+                            pDevice->SetVertexShader(PostFxResources.SMAA_NeighborhoodBlendingVS);
+                            vec4[0] = static_cast<float>(UsePostFxAA->get());
+                            vec4[1] = 1.0f;
+                            vec4[2] = 3.0f;
+                            vec4[3] = 4.0f;
+                            pDevice->SetPixelShaderConstantF(5, vec4, 1);
+
+                            //pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
+                            pDevice->SetRenderTarget(0, PostFxResources.backBuffer);
+                            pDevice->SetSamplerState(2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+
+                            //pDevice->SetTexture(2,  textureRead);
+                            pDevice->SetTexture(0, PostFxResources.textureRead);
+                            pDevice->SetTexture(1, PostFxResources.edgesTex->mD3DTexture);
+                            pDevice->SetTexture(4, PostFxResources.blendTex->mD3DTexture);
+                            pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, 0);
+                            pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
+                            //PostFxResources.swapbuffers();
+                            pDevice->SetTexture(0, PostFxResources.prePostFx[0]);
+                            pDevice->SetTexture(1, PostFxResources.prePostFx[1]);
+                            pDevice->SetTexture(2, PostFxResources.textureRead);
+                            pDevice->SetTexture(3, PostFxResources.prePostFx[3]);
+                            pDevice->SetTexture(4, PostFxResources.prePostFx[4]);
+                            pDevice->SetSamplerState(3, D3DSAMP_MAGFILTER, oldSample);
+                            pDevice->SetPixelShader(pShader);
+                            pDevice->SetVertexShader(vShader);
+                        }
                     }
 
                     for(int i = 0; i < PostfxTextureCount; i++) {
