@@ -230,7 +230,6 @@ public:
                     else {
                         pattern = hook::pattern("83 3D ? ? ? ? ? 75 0D 80 7E 7D 00");
                         injector::MakeNOP(pattern.get_first(7), 2, true);
-                    }
                 }
             }
             
