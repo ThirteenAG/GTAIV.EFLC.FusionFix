@@ -1,0 +1,80 @@
+﻿[Skip Intro]
+Пропуск начальных роликов
+
+[Skip Menu]
+Пропуск меню при запуске
+
+[Windowed]
+Оконный режим
+
+[Borderless]
+Оконный режим без рамки
+
+[Focus Loss]
+Автоматически ставить игру на паузу в фоне
+
+[LightSyncRGB]
+Logitech LightSync RGB
+
+[FPS Counter]
+Счетчик кадров
+
+[Letterbox]
+Формат Леттербоксинг в катсценах
+
+[Pillarbox]
+Формат Пилларбоксинг в катсценах
+
+[Alt. Dialogues]
+Альтернативные диалоги
+
+[Check Updates]
+Fusion Fix: Проверять Обновления
+
+[Raw Input]
+Непосредственный ввод (мышь)
+
+[Always Run]
+Постоянный Бег
+
+[Cover Centering]
+Центровка камеры в укрытии
+
+[Centering Delay]
+Задержка центровки камеры
+
+[Gamepad Icons]
+Стиль кнопок управления
+
+[Motion Blur]
+Размытие при движении
+
+[Bloom]
+Свечение
+
+[Console Gamma]
+Консольная Гамма
+
+[Screen Filter]
+Фильтр Экрана
+
+[Depth of Field]
+Глубина резкости
+
+[TreeFX]
+Освещение Деревьев
+
+[Sun Shafts]
+Солнечные лучи
+
+[Antialiasing]
+Сглаживание
+
+[FPS Limiter]
+Ограничитель кадров
+
+[LamppostShadows]
+Тени от фонарей
+
+[DUMMY_l11]
+Dummy label.

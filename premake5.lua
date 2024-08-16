@@ -66,10 +66,12 @@ workspace "GTAIV.EFLC.FusionFix"
    includedirs { "external/injector/include" }
    includedirs { "external/inireader" }
    includedirs { "external/modupdater/dist" }
+   includedirs { "source/gxt/src" }
    libdirs { "external/modupdater/dist" }
    files { "external/hooking/Hooking.Patterns.h", "external/hooking/Hooking.Patterns.cpp" }
    files { "external/injector/safetyhook/include/**.hpp", "external/injector/safetyhook/src/**.cpp" }
    files { "external/injector/zydis/**.h", "external/injector/zydis/**.c" }
+   files { "source/gxt/src/**.h", "source/gxt/src/**.cpp" }
 
     prebuildcommands {
         "for /R \"../source/snow/\" %%f in (*.ps) do (\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E main /Fo \"../source/snow/%%~nfps.cso\" %%f)",

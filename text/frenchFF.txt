@@ -1,0 +1,80 @@
+﻿[Skip Intro]
+Sauter l'intro
+
+[Skip Menu]
+Sauter menu
+
+[Windowed]
+Fenêtre
+
+[Borderless]
+Fenêtre sans bordures
+
+[Focus Loss]
+Mettre jeu en pause en cas de changement de fenêtre
+
+[LightSyncRGB]
+Logitech LightSync RGB
+
+[FPS Counter]
+Compteur de FPS
+
+[Letterbox]
+Letterbox de la cinématique
+
+[Pillarbox]
+Pillarbox de la cinématique
+
+[Alt. Dialogues]
+Dialogues alternatifs
+
+[Check Updates]
+Vérifier les mises à jour de FusionFix
+
+[Raw Input]
+Raw Input
+
+[Always Run]
+Courez toujours
+
+[Cover Centering]
+Centrage du couvert
+
+[Centering Delay]
+Retard de centrage
+
+[Gamepad Icons]
+Icônes du manette de jeu
+
+[Motion Blur]
+Flou de mouvement
+
+[Bloom]
+Effet Bloom 
+
+[Console Gamma]
+Gamme de consoles
+
+[Screen Filter]
+Filtre à écran
+
+[Depth of Field]
+Profondeur de champ
+
+[TreeFX]
+Illumination des arbres
+
+[Sun Shafts]
+Puits de soleil
+
+[Antialiasing]
+Anticrénelage
+
+[FPS Limiter]
+Limiteur de FPS
+
+[LamppostShadows]
+Ombres de réverbères
+
+[DUMMY_l11]
+Dummy label.

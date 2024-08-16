@@ -341,6 +341,7 @@ data/update/common/shaders/db/gta_wire.sps
 data/update/common/shaders/preload.list
 data/update/pc/textures/*.wtd
 data/update/TBoGT/pc/textures/*.wtd
+data/update/common/text/*.gxt
 data/update/TLAD/pc/textures/*.wtd
 data/plugins/GTAIV.EFLC.FusionFix.asi
 GTAIV.EFLC.FusionFix.zip

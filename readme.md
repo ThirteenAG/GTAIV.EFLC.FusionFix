@@ -7,9 +7,11 @@
 
 # GTAIV.EFLC.FusionFix
 
-This projects aims to fix some issues in Grand Theft Auto IV: The Complete Edition. Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionFix#readme).
+This projects aims to fix some issues in Grand Theft Auto IV: The Complete Edition.
 
-![](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/assets/4904157/ba388163-c26a-41ae-8378-bef4037c4fd7)
+Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionFix#readme) and [other games](https://thirteenag.github.io/wfp).
+
+![](https://github.com/user-attachments/assets/f9c6c978-3b19-422a-b561-4cf31716620b)
 
 ## Installation:
 
@@ -47,12 +49,9 @@ This projects aims to fix some issues in Grand Theft Auto IV: The Complete Editi
 - **Borderless**, added an option to switch between windowed and borderless modes
 - **Motion Blur**, separate toggle for motion blur
 - **Bloom**, separate toggle for bloom
-- **Definition**, now expanded with more options, "Classic", "Improved" and "Extra", more details below
-- **Shadow Filter**, offering a variety of choices such as "Sharp", "Soft", "Softer", "Softest", and "PCSS"
-- **Console Shadows**, disables headlights shadows in exchange for vehicle shadows from non-sun light sources
 - **FPS Limit**, set a custom FPS limit, select from a list of predefined values, or turn it off
 - **Antialiasing**, a toggle for FXAA or SMAA ([comparison](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/assets/4904157/6104ec1f-9e5a-46c4-891a-6a5e37d85f86))
-- **SSAA**, a toggle to enable supersampling, requires restart, affects performance
+- **Sun Shafts**, a godrays implementation faithful to the original art style
 - **Console Gamma**, emulates consoles' contrasted look
 - **Screen Filter**, an option to change color filters in main game and episodes
 - **Distant Blur**, controls how intense the distant blur is during gameplay
@@ -86,6 +85,9 @@ This projects aims to fix some issues in Grand Theft Auto IV: The Complete Editi
 - Added IMG Loader (from update folder)
 - Increased corona limit to avoid heavy flickering of game's lights
 - Improved ultrawidescreen support
+- Added sun shafts
+- Added various fixed animations and vehicle models and lamppost coronas
+- Fixed glass shards lacking colors
 
 ### Scripts
 
@@ -107,20 +109,39 @@ This projects aims to fix some issues in Grand Theft Auto IV: The Complete Editi
 
 ### Shadows
 
-- Added an option to fix flickering shadows
+- Added options to customize shadow blur, bias, cascade blending and filter quality
+- Added options to toggle lamppost and headlight shadows
+- Added an option to toggle vehicle night shadows
 - Added an option to enable extra dynamic shadows
 - Added an option to enable dynamic shadow for trees
-- Added an option to fix cascaded shadowmap resolution
+- Increased shadow render distance to pre 1.0.6.0 levels
+- Fixed cascaded shadowmap resolution
+
+### Episodic content
+
+Note: most of this content requires additional modifications by the end user to the game, in order to fully use these features.
+- Added an option to enable support for APC and buzzard and all their abilities in IV and TLaD
+- Added an DSR1, pipe bomb, sticky bomb, AA12 explosive shells, P90 vehicle check, partially parachute in IV, TLaD and TBoGT
+- Added an option to enable explosive rounds on annihilator
+- Added an option to enable camera bobbing in clubs, cell phone switching, altimeter in helicopters and parachute, explosive sniper and fists cheats
+- Added an option to raise height limit for helicopters in base game and TLad to match TBoGT
+- Added an option to give P90 and AA12 to SWAT and FIB and M249 to police in helicopters
+- Added an option to disable SCO signature check
 
 ### Misc
 
+- Added an option to customize tree alpha
+- Added an option to customize corona reflection intensity
+- Added an option to fix autoexposure
+- Fixed grass height
+- Fixed camera stuttering while sprinting and turning with a controller
+- Fixed rifle firing delay
 - Added an option to fix rain droplets rendering
-- Added an option to customize rain droplets blur intensity
+- Improved phone screen resolution
 - Various other fixes, like LOD lights appear at the appropriate time like on the console version
+- Restored auto exposure from consoles
 
 ### Details
-
-- **Definition** - controls the behavior of the game's stippled transparency filter. "Classic" is less blurry than PC and provides console parity. "Improved" applies the filter only to stippled objects instead of the whole screen, [like in GTA V](http://www.adriancourreges.com/blog/2015/11/02/gta-v-graphics-study/#gtav_dithering). "Extra" is the same as "Improved" but stippled transparency is removed from vegetation and fences, making them sharper.
 
 - **AimingZoomFix** - set to **1** for proper fix, so it behaves like on xbox, set to **2** to have this fixed feature enabled in IV and TLAD, set to **-1** to disable this feature. **0** disables the fix, as usual.
 
@@ -142,70 +163,86 @@ This projects aims to fix some issues in Grand Theft Auto IV: The Complete Editi
 
 - **LightSyncRGB** - custom ambient lighting for IV, TLAD and TBOGT, health indication on G-Keys, police lights, ammo counter.
 
-### Graphics Changelog
+### Shaders Changelog
 
 **Special thanks to [Parallellines0451](https://github.com/Parallellines0451) [AssaultKifle47](https://github.com/akifle47), [RaphaelK12](https://github.com/RaphaelK12), [robi29](https://github.com/robi29) and [\_CP_](https://github.com/cpmodding) for directly contributing with fixes, to [Shvab](https://github.com/d3g0n-byte) for making RAGE Shader Editor.**
 
 **Fusion Fix uses dx hook to implement some features. It causes certain 3rd party software to crash/hang the game. To avoid this, Fusion Fix prevents [certain dlls from injecting into the game's process](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/blob/master/source/dllblacklist.ixx#L15).**
 
 ### General
-- Fixed z-fighting by implementing a logarithmic depth buffer
-- Fixed LOD pop-in
-- Removed unnecessary stippled transparency from hundreds of shaders
-- Added 256 tile stipple for smoother transparency and LOD transitions
+- Fixed z-fighting
+- Fixed object pop-in caused by version 1.0.6.0
+- Improved screen door transparency
 ### Lighting
-- Fixed volumetric light shafts occlusion
-- Ported console foliage translucency
-- Fixed orange glow under trees
-- Added tree vertex AO toggle
-- Fixed light dimming/pop-in
+- Fixed volumetric lights occlusion
+- Restored console foliage translucency
+- Added an improved tree lighting mode based on PC
+- Fixed mismatched intensity of shadow casting lights causing visible pop-in
+- Fixed lights that were made invisible with version 1.0.6.0
+- Fixed black normal map halos on several surfaces such as asphalt, sidewalks and rocks
 ### Shadows
-- Ported 1.0.4.0 shadow filter and improved its sample count
-- Improved night shadow filter
-- Fixed broken shadows following the player at high altitudes
-- Fixed broken shadows cast by finely detailed objects like fences
-- Added percentage closer soft shadows
-- Fixed disconnected shadows/peter panning and implemented slope scale depth bias
-- Reduced shadow cascade disparity
-- Slightly improved shadow fadeout
-- Fixed excessively strong vertex AO and static vehicle shadows
-- Added wind sway for tree shadows
-- Fixed improper water shadow stretching
-- Added experimental support for simultaneous headlight and vehicle shadows
+- Restored shadow filter from versions prior to 1.0.6.0 and also added an improved one based on it
+- Fixed large shadow artifacts visible from high altitudes
+- Fixed shadowmap being erroneously blurred before the lighting pass
+- Fixed shadows stretching at certain camera angles
+- Fixed shadow view distance being lower than the actual rendered distance
+- Fixed cutoff penumbras of distant shadows
+- Restored normal offset bias from versions prior to 1.0.6.0
+- Fixed disconnected night shadows
+- Fixed blur artifacts between shadow cascades under some conditions
+- Added "pseudo" shadow cascade blending to reduce the disparity between cascades
+- Fixed pitch black static vehicle shadows
+- Added wind sway for dynamic tree shadows
+- Fixed incorrectly offset shadows on water
+- Fixed flickering when shadows of transparent objects overlap
+- Added parameters to control shadow softness and bias
 ### Post processing
-- Added a mask for the dithering filter to only smooth out stippled objects instead of the whole screen
-- Fixed depth of field and bloom resolution scaling
-- Fixed excessively blurred screen compared to consoles
-- Added native anti aliasing
-- Ported console bloom and auto exposure
-- Fixed motion blur framerate scaling
-- Increased motion blur quality (reduced noisiness)
-- Split depth of field and motion blur into dedicated settings
-- Restored console TLAD noise effect
-- Restored console gamma
+- Split depth of field, motion blur and stippling filter into separate passes to prevent overlap
+- Fixed color banding, most noticeably in the sky
+- Added a mask to selectively filter screen door transparency
+- Fixed depth of field and bloom not scaling correctly at resolutions higher than 720p
+- Fixed excessively blurry screen compared to consoles caused by leftover anti aliasing code
+- Restored console bloom and auto exposure
+- Restored console timecyc gamma bump
+- Fixed flickering auto exposure
+- Fixed motion blur losing intensity at high framerates
+- Fixed incorrect TLAD noise tiling on water quality levels other than medium
+- Fixed TLAD noise aspect ratio
+- Added a console-like gamma toggle
 ### Reflections
-- Fixed excessive wetness/specularity of various surfaces
-- Fixed blocky vehicle reflections
-- Reduced corona reflection intensity
-- Fixed anisotropic filtering affecting reflection intensity
-- Removed influence of vehicle.ide on vehicle reflection intensity
-- Increased global reflection intensity to match consoles
+- Restored console behavior for tree and terrain reflections
+- Fixed excessive specularity of several meshes in Alderney
+- Fixed distorted vehicle reflections
+- Restored corona depth test in water reflections
+- Added a parameter to control corona reflection intensity
+- Fixed anisotropic filtering affecting vehicle reflection intensity
+- Restored console vehicle reflection behavior relative to dirt level
+- Restored console environment reflection intensity
 - Fixed distorted mirror reflections at certain camera angles
-- Restored console mirror filter
+- Restored console mirror blur
 ### Particles
-- Fixed particle seams/restored soft particles
-- Improved rain visibility
-- Fixed rain framerate scaling
+- Fixed soft particles
+- Fixed stuttery particle animations caused by version 1.0.5.0
+- Fixed rain being almost invisible, especially at night
+- Fixed rain streaks becoming shorter at high framerates
 ### Water
-- Fixed water texture tiling
-- Fixed textureless water on AMD graphics cards
+- Fixed incorrect water texture tiling on quality levels other than medium
+- Fixed flat, mirror-like water surface on AMD graphics cards
+- Removed broken shore foam effect
 ### Misc
-- Improved mirror depth/placement
-- Fixed invisible gta_emissivestrong lights like in the Rotterdam Tower
-- Improved window crossfade
-- Added lamppost on/off toggle support
-- Added optional opaque wires and bridge cables
-- Added a new shader exclusively for trees
+- Fixed outlines around objects when using DXVK
+- Partially restored console object fade speed
+- Fixed terrain pop-in
+- Reduced procobj pop-in for the default view and detail distance values
+- Partially fixed building windows visible near the far plane if emissive depth write is disabled
+- Adjusted tree mipmap bias
+- Restored fence mipmap bias from versions prior to 1.0.6.0
+- Fixed incorrect texture filtering used in several shaders
+- Added a parameter to control the alpha threshold of tree leaves
+- Added support to control vehicle dirt color, rain streak length and textures
+- Added AO to gta_normal_spec_reflect_emissive if emissivity is 0 so it can be used to disable night shadows for certain objects
+- Partially fixed mirror depth
+- Added support to instantaneously turn lamppost bulbs on or off
 
 # Contributing
 

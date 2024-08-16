@@ -3,6 +3,7 @@ copy bin\GTAIV.EFLC.FusionFix.asi data\plugins\GTAIV.EFLC.FusionFix.asi
 call buildimg.bat
 call buildwtd.bat
 call buildshaders.bat
+call buildgxt.bat
 
 7z a "GTAIV.EFLC.FusionFix.zip" ".\data\*" ^
 -x!update\GTAIV.EFLC.FusionFix\GTAIV.EFLC.FusionFix ^

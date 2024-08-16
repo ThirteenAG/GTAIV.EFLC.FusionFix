@@ -47,11 +47,16 @@ public:
     Shaders()
     {
         static IDirect3DTexture9* pHDRTexQuarter = nullptr;
-        static float fTreeAlphaMultiplier = 1.0f;
+        static float fTreeAlphaPC = 0.625f;
+        static float fTreeAlphaConsole = 4.0f;
         static float fCoronaReflectionIntensity = 1.0f;
 
-        static float fShadowSoftness = 3.0f;
-        static float fShadowBias = 8.0f;
+        static float fSHADOWFILTERSHARPShadowSoftness = 1.5f;
+        static float fSHADOWFILTERSHARPShadowBias = 5.0f;
+
+        static float fSHADOWFILTERSOFTShadowSoftness = 3.0f;
+        static float fSHADOWFILTERSOFTShadowBias = 8.0f;
+
         static float fShadowBlendRange = 0.3f;
 
         static int nForceShadowFilter = 0;
@@ -60,10 +65,13 @@ public:
         {
             CIniReader iniReader("");
             bFixAutoExposure = iniReader.ReadInteger("MISC", "FixAutoExposure", 1) != 0;
-            fTreeAlphaMultiplier = std::clamp(iniReader.ReadFloat("MISC", "TreeAlphaMultiplier", 1.0f), 1.0f, 255.0f);
+            fTreeAlphaPC = std::clamp(iniReader.ReadFloat("MISC", "TreeAlphaPC", 0.625f), 0.0f, 10.0f);
+            fTreeAlphaConsole = std::clamp(iniReader.ReadFloat("MISC", "TreeAlphaConsole", 4.0f), 0.0f, 10.0f);
             fCoronaReflectionIntensity = iniReader.ReadFloat("MISC", "CoronaReflectionIntensity", 1.0f);
-            fShadowSoftness = iniReader.ReadFloat("SHADOWS", "ShadowSoftness", 3.0f);
-            fShadowBias = iniReader.ReadFloat("SHADOWS", "ShadowBias", 8.0f);
+            fSHADOWFILTERSHARPShadowSoftness = iniReader.ReadFloat("SHADOWFILTERSHARP", "ShadowSoftness", 1.5f);
+            fSHADOWFILTERSHARPShadowBias = iniReader.ReadFloat("SHADOWFILTERSHARP", "ShadowBias", 5.0f);
+            fSHADOWFILTERSOFTShadowSoftness = iniReader.ReadFloat("SHADOWFILTERSOFT", "ShadowSoftness", 3.0f);
+            fSHADOWFILTERSOFTShadowBias = iniReader.ReadFloat("SHADOWFILTERSOFT", "ShadowBias", 8.0f);
             fShadowBlendRange = std::clamp(iniReader.ReadFloat("SHADOWS", "ShadowBlendRange", 0.3f), 0.0f, 1.0f);
             nForceShadowFilter = std::clamp(iniReader.ReadInteger("SHADOWS", "ForceShadowFilter", 0), 0, 2);
 
@@ -141,9 +149,19 @@ public:
                     // Shadow Ini Settings
                     {
                         static float arr7[4];
+                        static auto shadowFilter = FusionFixSettings.GetRef("PREF_SHADOWFILTER");
 
-                        arr7[0] = fShadowSoftness;
-                        arr7[1] = fShadowBias;
+                        if (shadowFilter->get() == FusionFixSettings.ShadowFilterText.eSoft)
+                        {
+                            arr7[0] = fSHADOWFILTERSOFTShadowSoftness;
+                            arr7[1] = fSHADOWFILTERSOFTShadowBias;
+                        }
+                        else
+                        {
+                            arr7[0] = fSHADOWFILTERSHARPShadowSoftness;
+                            arr7[1] = fSHADOWFILTERSHARPShadowBias;
+                        }
+
                         arr7[2] = fShadowBlendRange;
                         arr7[3] = bEnableSnow ? 1.0f : 0.0f;
 
@@ -195,6 +213,7 @@ public:
                     // Current Settings
                     {
                         static float arr5[4];
+                        static auto treealpha = FusionFixSettings.GetRef("PREF_TREEALPHA");
 
                         if (nForceShadowFilter == 0)
                         {
@@ -212,7 +231,7 @@ public:
 
                         arr5[1] = 0.0f;
                         arr5[2] = 1.0f / (30.0f * Natives::Timestep());
-                        arr5[3] = fTreeAlphaMultiplier;
+                        arr5[3] = treealpha->get() == FusionFixSettings.TreeAlphaText.eConsole ? fTreeAlphaConsole : fTreeAlphaPC;
                         pDevice->SetPixelShaderConstantF(221, &arr5[0], 1);
                     }
 

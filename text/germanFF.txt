@@ -1,0 +1,80 @@
+﻿[Skip Intro]
+Intro überspringen
+
+[Skip Menu]
+Menü überspringen
+
+[Windowed]
+Fenstermodus
+
+[Borderless]
+Fenstermodus ohne Rahmen
+
+[Focus Loss]
+Bei Fokusverlust Spielpause einlegen
+
+[LightSyncRGB]
+Logitech LightSync RGB
+
+[FPS Counter]
+FPS-Anzeige
+
+[Letterbox]
+Letterbox-Balken in Zwischensequenzen
+
+[Pillarbox]
+Pillarbox-Balken in Zwischensequenzen
+
+[Alt. Dialogues]
+Alternative Dialoge
+
+[Check Updates]
+Auf Fusion-Fix-Updates prüfen
+
+[Raw Input]
+Raw Input
+
+[Always Run]
+Immer rennen
+
+[Cover Centering]
+Deckungszentrierung
+
+[Centering Delay]
+Zentrierungsverzögerung
+
+[Gamepad Icons]
+Controllersymbole
+
+[Motion Blur]
+Bewegungsunschärfe
+
+[Bloom]
+Bloom
+
+[Console Gamma]
+Konsolengamma
+
+[Screen Filter]
+Bildschirmfilter
+
+[Depth of Field]
+Schärfentiefe
+
+[TreeFX]
+Baumbeleuchtung
+
+[Sun Shafts]
+Sonnenstrahlen
+
+[Antialiasing]
+Kantenglättung
+
+[FPS Limiter]
+FPS-Begrenzung
+
+[LamppostShadows]
+Schatten für Straßenlaternen
+
+[DUMMY_l11]
+Dummy label.
