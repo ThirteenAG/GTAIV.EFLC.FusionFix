@@ -108,6 +108,18 @@ void Init()
         }; injector::MakeInline<AuxEndSceneHook>(pattern.get_first(0));
     }
 
+    pattern = find_pattern("C6 05 ? ? ? ? ? 85 C0 74 02 FF D0 E8", "C6 05 ? ? ? ? ? 74 02 FF D0 E8");
+    static auto ActivateAppHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+    {
+        FusionFix::onActivateApp().executeAll(true);
+    });
+
+    pattern = find_pattern("C6 05 ? ? ? ? ? 85 C0 74 02 FF D0 80 3D", "C6 05 ? ? ? ? ? 74 02 FF D0 8B 54 24 10", "C6 05 ? ? ? ? ? 74 02 FF D0 80 3D");
+    static auto DeactivateAppHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+    {
+        FusionFix::onActivateApp().executeAll(false);
+    });
+
     static auto futures = FusionFix::onInitEventAsync().executeAllAsync();
 
     FusionFix::onGameInitEvent() += []()

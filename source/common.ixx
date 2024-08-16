@@ -86,6 +86,10 @@ public:
         static Event<> MenuExitEvent;
         return MenuExitEvent;
     }
+    static Event<bool>& onActivateApp() {
+        static Event<bool> ActivateApp;
+        return ActivateApp;
+    }
     static Event<>& onBeforeReset() {
         static Event<> BeforeReset;
         return BeforeReset;

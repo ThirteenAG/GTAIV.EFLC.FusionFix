@@ -269,6 +269,19 @@ public:
             }; injector::MakeInline<CCamFollowVehicleHook>(pattern.get_first(0), pattern.get_first(8));
         };
 
+        FusionFix::onActivateApp() += [](bool wParam)
+        {
+            if (!wParam)
+            {
+                static auto ri = FusionFixSettings.GetRef("PREF_RAWINPUT");
+
+                if (ri->get())
+                {
+                    ClipCursor(NULL);
+                }
+            }
+        };
+
         FusionFix::onInitEvent() += []()
         {
             // Script
