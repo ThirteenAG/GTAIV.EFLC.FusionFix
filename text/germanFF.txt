@@ -1,4 +1,4 @@
-﻿[Skip Intro]
+[Skip Intro]
 Intro überspringen
 
 [Skip Menu]
@@ -50,7 +50,7 @@ Controllersymbole
 Bewegungsunschärfe
 
 [Bloom]
-Bloom
+Bloom-Effekt
 
 [Console Gamma]
 Konsolengamma
@@ -80,25 +80,25 @@ Schatten für Straßenlaternen
 Baumtransparenz
 
 [Shadow Filter]
-Schattenfilterung
+Schattenfilter
 
 [FF_WARN0]
-~p~IMG Dateien:
+~p~IMG-Dateien: 
 
 [FF_WARN1]
-~r~WARNUNG: Das Limit von 255 IMG-Dateien wurde überschritten. Dies kann zu Streaming-Problemen führen.
+; ~r~ACHTUNG: Obergrenze von 255 IMG-Dateien überschritten, was zu Streaming-Problemen führt.
 
 [FF_WARN2]
-~r~WARNUNG: Schatten für Straßenlaternen kann zu visuellen Artefakten und Leistungsproblemen führen.
+~r~ACHTUNG: "Schatten für Straßenlaternen" kann zu Artefakten und Performance-Problemen führen.
 
 [FF_WARN3]
-~r~WARNUNG: Sichtdistanzregler über 25 und Detaildistanzregler über 31 kann zu Objekt Pop-In führen.
+~r~ACHTUNG: Bei Werten von über 25 für die Sichtdistanz und über 31 für die Detaildistanz kann es zu Pop-in von Objekten kommen.
 
 [FF_WARN4]
-~r~WARNUNG: Sichtdistanzregler über 25 kann zu Objekt Pop-In führen.
+~r~ACHTUNG: Bei Werten von über 25 für die Sichtdistanz kann es zu Pop-in von Objekten kommen.
 
 [FF_WARN5]
-~r~WARNUNG: Detaildistanzregler über 31 kann zu Objekt Pop-In führen.
+~r~ACHTUNG: Bei Werten von über 31 für die Detaildistanz kann es zu Pop-in von Objekten kommen.
 
 [DUMMY_l11]
 Dummy label.
