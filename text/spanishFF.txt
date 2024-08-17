@@ -77,7 +77,7 @@ Limitador de FPS
 Sombras de farolas
 
 [Tree Alpha]
-Alpha de los arboles
+Transparencia de los árboles
 
 [Shadow Filter]
 Filtro de sombras
@@ -86,19 +86,19 @@ Filtro de sombras
 ~p~Archivos IMG: 
 
 [FF_WARN1]
-; ~r~ATENCIÓN: Limite de 255 IMG ha excedido y va a causar problemas de streaming.
+; ~r~ATENCIÓN: Se ha sobrepasado el límite de 255 archivos IMG y causará problemas de carga ("streaming"). 
 
 [FF_WARN2]
-~r~ATENCIÓN: Las sombras de farolas pueden causar artefactos visuales y problemas de desarollo.
+~r~ATENCIÓN: Las sombras de farolas pueden causar errores visuales y problemas de rendimiento.
 
 [FF_WARN3]
-~r~ATENCIÓN: El slider de Distancia de vista después del 25 de mayo y el slider de Detalles de distancia después del 31 de mayo resulta en objetos emergentes.
+~r~ATENCIÓN: El valor de Distancia visible superior a 25 y el de Detalle de distancia superior a 31 pueden causar "pop-in" en los objetos.
 
 [FF_WARN4]
-~r~ATENCIÓN: El slider de Distancia de vista después del 25 de mayo resulta en objetos emergentes.
+~r~ATENCIÓN: El valor de Distancia visible superior a 25 puede causar "pop-in" en los objetos.
 
 [FF_WARN5]
-~r~ATENCIÓN: El slider de Detalles de distancia después del 31 de mayo resulta en objetos emergentes.
+~r~ATENCIÓN: El valor de Detalle de distancia superior a 31 puede causar "pop-in" en los objetos.
 
 [DUMMY_l11]
 Dummy label.

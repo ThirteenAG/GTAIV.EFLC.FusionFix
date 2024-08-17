@@ -325,6 +325,14 @@ public:
                     injector::MakeNOP(pattern.get_first(7), 2, true);
                 }
 
+                pattern = hook::pattern("83 3D ? ? ? ? ? F3 0F 10 0D ? ? ? ? F3 0F 11 4C 24 ? 75 14"); // APC_EXPLOSION
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(21), 2, true);
+                else {
+                    pattern = hook::pattern("83 3D ? ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 11 44 24 ? 75 4C");
+                    injector::MakeNOP(pattern.get_first(21), 2, true);
+                }
+
                 pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? 8B 3D ? ? ? ? F3 0F 11 4C 24"); // GRENADE_EXPLOSION 
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 6, true);
