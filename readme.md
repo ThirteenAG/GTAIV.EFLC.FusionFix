@@ -56,7 +56,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **Screen Filter**, an option to change color filters in main game and episodes
 - **Distant Blur**, controls how intense the distant blur is during gameplay
 - **Depth Of Field**, toggles the effect globally
-- **Tree Lighting**, offers "PC", "PC" with vertex AO ("PC+") and "Console" style tree lighting
+- **Tree Lighting**, offers "PC", "PC" with fixed orange glow ("PC+") and "Console" style tree lighting
 - **Always Run**, allows to run by default, like in classic GTA games
 - **LightSyncRGB**, only Logitech hardware is supported, requires Logitech G HUB app
 
