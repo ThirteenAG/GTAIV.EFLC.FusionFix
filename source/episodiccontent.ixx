@@ -110,6 +110,14 @@ public:
                     injector::MakeNOP(pattern.get_first(7), 2, true);
                 }
 
+                pattern = hook::pattern("83 3D ? ? ? ? ? 7C 10 FF 76 18 E8 ? ? ? ? 83 C4 04 83 38 27 74 07"); // BUZZARD rubble effects
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                else {
+                    pattern = hook::pattern("83 3D ? ? ? ? ? 7C 11 8B 4F 18");
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                }
+
                 pattern = hook::pattern("83 3D ? ? ? ? ? 89 44 24 38"); // buzzard rockets sound and minigun sounds
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(11), 6, true);
@@ -283,6 +291,22 @@ public:
                 else {
                     pattern = hook::pattern("83 3D ? ? ? ? ? 7C 69");
                     injector::MakeNOP(pattern.get_first(7), 2, true);
+                }
+
+                pattern = hook::pattern("0F 8C ? ? ? ? 8B 44 24 14 83 78 18 24"); // Sticky bomb faster throw in vehicle
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(0), 6, true);
+                else {
+                    pattern = hook::pattern("0F 8C ? ? ? ? 83 7B 18 24");
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                }
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 75 2D 83 7E 14 19"); // Grenade launcher explode on impact from E2
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                else {
+                    pattern = hook::pattern("83 3D ? ? ? ? ? 75 30 83 7E 14 19");
+                    injector::MakeNOP(pattern.get_first(27), 2, true);
                 }
 
                 pattern = hook::pattern("83 3D ? ? ? ? ? 8B 3D ? ? ? ? F3 0F 10 05"); // Weapon sounds slow motion? 
