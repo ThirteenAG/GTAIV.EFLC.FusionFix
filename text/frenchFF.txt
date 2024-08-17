@@ -76,5 +76,29 @@ Limiteur de FPS
 [LamppostShadows]
 Ombres de réverbères
 
+[Tree Alpha]
+Alpha des arbres
+
+[Shadow Filter]
+Filtre d'ombre
+
+[FF_WARN0]
+~p~Fichiers IMG: 
+
+[FF_WARN1]
+; ~r~AVERTISSEMENT: la limite de 255 IMG est dépassée, des problèmes de streaming peuvent survenir
+
+[FF_WARN2]
+~r~AVERTISSEMENT: Les ombres des lampadaires peuvent provoquer des artefacts visuels et des problèmes de performance. 
+
+[FF_WARN3]
+~r~AVERTISSEMENT : Une valeur de barre de distance de dessin supérieure à 25 et une valeur de barre de distance de détail supérieure à 31 peuvent entraîner l'apparition d'objets.
+
+[FF_WARN4]
+~r~AVERTISSEMENT : Une valeur de barre de distance de dessin supérieure à 25 pourrait entraîner l'apparition d'objets.
+
+[FF_WARN5]
+~r~AVERTISSEMENT : Une valeur de barre de distance de détail supérieure à 31 pourrait entraîner l'apparition d'objets. 
+
 [DUMMY_l11]
 Dummy label.

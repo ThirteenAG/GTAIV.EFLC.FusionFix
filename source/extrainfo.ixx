@@ -41,7 +41,7 @@ public:
                             }
                             extra = s;
                             extra += L"~n~";
-                            extra += L"                         ";
+                            extra += L"                        ";
 
                             auto FF_WARN0 = CText::getText("FF_WARN0");
                             extra += FF_WARN0[0] ? FF_WARN0 : L"~p~IMG Files: " + std::to_wstring(imgNum) + L" / " + std::to_wstring(imgArrSize);
@@ -52,7 +52,7 @@ public:
                             if (LamppostShadows->get())
                             {
                                 extra += L"~n~";
-                                extra += L"                         ";
+                                extra += L"                        ";
                                 auto FF_WARN2 = CText::getText("FF_WARN2");
                                 if (FF_WARN2[0])
                                     extra += FF_WARN2;
@@ -65,7 +65,7 @@ public:
                             if (ViewDistance->get() > 24 || DetailQuality->get() > 30)
                             {
                                 extra += L"~n~";
-                                extra += L"                         ";
+                                extra += L"                        ";
                                 auto FF_WARN3 = CText::getText("FF_WARN3");
                                 auto FF_WARN4 = CText::getText("FF_WARN4");
                                 auto FF_WARN5 = CText::getText("FF_WARN5");

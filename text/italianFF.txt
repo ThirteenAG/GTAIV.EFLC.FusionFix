@@ -76,5 +76,29 @@ Limitatore degli FPS
 [LamppostShadows]
 Ombre dei lampioni
 
+[Tree Alpha]
+Alfa degli alberi
+
+[Shadow Filter]
+Filtro delle ombre
+
+[FF_WARN0]
+~p~IMG Files: 
+
+[FF_WARN1]
+; ~r~ATTENZIONE: è stato superato il limite di 255 img, potrebbero verificarsi problemi di streaming.
+
+[FF_WARN2]
+~r~ATTENZIONE: le ombre dei lampioni possono causare artefatti visivi e problemi di prestazioni.
+
+[FF_WARN3]
+~r~ATTENZIONE: un valore della barra Distanza visiva superiore a 25 e un valore della barra Distanza dettaglio superiore a 31 potrebbero causare l'effetto pop-in degli oggetti.
+
+[FF_WARN4]
+~r~ATTENZIONE: un valore della barra Distanza visiva superiore a 25 potrebbe causare l'effetto pop-in degli oggetti.
+
+[FF_WARN5]
+~r~ATTENZIONE: un valore della barra Distanza dettaglio superiore a 31 potrebbe causare l'effetto pop-in degli oggetti.
+
 [DUMMY_l11]
 Dummy label.

@@ -1,4 +1,4 @@
-﻿[Skip Intro]
+[Skip Intro]
 Intro überspringen
 
 [Skip Menu]
@@ -77,7 +77,7 @@ FPS-Begrenzung
 Schatten für Straßenlaternen
 
 [Tree Alpha]
-Baum-Alpha
+Baumtransparenz
 
 [Shadow Filter]
 Schattenfilter
@@ -89,7 +89,7 @@ Schattenfilter
 ; ~r~ACHTUNG: Obergrenze von 255 IMG-Dateien überschritten, was zu Streaming-Problemen führt.
 
 [FF_WARN2]
-~r~ACHTUNG: Schatten für Straßenlaternen können zu Artefakten und Performance-Problemen führen.
+~r~ACHTUNG: "Schatten für Straßenlaternen" kann zu Artefakten und Performance-Problemen führen.
 
 [FF_WARN3]
 ~r~ACHTUNG: Bei Werten von über 25 für die Sichtdistanz und über 31 für die Detaildistanz kann es zu Pop-in von Objekten kommen.
@@ -101,4 +101,4 @@ Schattenfilter
 ~r~ACHTUNG: Bei Werten von über 31 für die Detaildistanz kann es zu Pop-in von Objekten kommen.
 
 [DUMMY_l11]
-Dummy label
+Dummy label.

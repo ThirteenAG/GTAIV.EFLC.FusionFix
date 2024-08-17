@@ -2,7 +2,7 @@
 Saltar intro
 
 [Skip Menu]
-Saltar menu
+Saltar menú
 
 [Windowed]
 Ventana
@@ -11,7 +11,7 @@ Ventana
 Ventana sin bordes
 
 [Focus Loss]
-Juego en pausa al cambiar la ventana
+Juego en pausa al cambiar de ventana
 
 [LightSyncRGB]
 Logitech LightSync RGB
@@ -20,16 +20,16 @@ Logitech LightSync RGB
 Contador de FPS
 
 [Letterbox]
-Caja de texto de cutscenes
+Caja de texto en escenas
 
 [Pillarbox]
-Caja de pilar de cutscenes
+Caja de pilar en escenas
 
 [Alt. Dialogues]
 Diálogos alternativos
 
 [Check Updates]
-Buscar updates de Fusion Fix
+Buscar actualizaciones de Fusion Fix
 
 [Raw Input]
 Entrada simple
@@ -38,31 +38,31 @@ Entrada simple
 Correr siempre
 
 [Cover Centering]
-Cubrir centralización
+Centrar cámara al cubrirse
 
 [Centering Delay]
-Posponer centralización
+Posponer centralización cámara
 
 [Gamepad Icons]
-Iconos del gamepad
+Iconos del mando
 
 [Motion Blur]
 Desenfoque de movimiento
 
 [Bloom]
-Bloom
+Efecto bloom
 
 [Console Gamma]
 Gamma de consola
 
 [Screen Filter]
-Filtro del Ecrán
+Filtro de pantalla
 
 [Depth of Field]
 Profundidad de campo
 
 [TreeFX]
-Iluminación de arboles
+Iluminación de árboles
 
 [Sun Shafts]
 Rayos solares
@@ -75,6 +75,30 @@ Limitador de FPS
 
 [LamppostShadows]
 Sombras de farolas
+
+[Tree Alpha]
+Alpha de los arboles
+
+[Shadow Filter]
+Filtro de sombras
+
+[FF_WARN0]
+~p~Archivos IMG: 
+
+[FF_WARN1]
+; ~r~ATENCIÓN: Limite de 255 IMG ha excedido y va a causar problemas de streaming.
+
+[FF_WARN2]
+~r~ATENCIÓN: Las sombras de farolas pueden causar artefactos visuales y problemas de desarollo.
+
+[FF_WARN3]
+~r~ATENCIÓN: El slider de Distancia de vista después del 25 de mayo y el slider de Detalles de distancia después del 31 de mayo resulta en objetos emergentes.
+
+[FF_WARN4]
+~r~ATENCIÓN: El slider de Distancia de vista después del 25 de mayo resulta en objetos emergentes.
+
+[FF_WARN5]
+~r~ATENCIÓN: El slider de Detalles de distancia después del 31 de mayo resulta en objetos emergentes.
 
 [DUMMY_l11]
 Dummy label.
