@@ -70,6 +70,22 @@ public:
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 2, true);
 
+                pattern = hook::pattern("83 3D ? ? ? ? ? 75 59 83 F8 02"); // CExplosions__addExplosion
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                else {
+                    pattern = hook::pattern("83 3D ? ? ? ? ? 75 57 83 F8 02");
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                }
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 75 1B 8B 46 40"); // CExplosions__addExplosion disable ped rolling on any explosive from aa12/apc shots
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                else {
+                    pattern = hook::pattern("83 3D ? ? ? ? ? 75 1B 8B 56 40");
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                }
+
                 pattern = hook::pattern("8B 1D ? ? ? ? 83 C4 04 83 FB 02"); // buzzard rocket particles
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(12), 2, true);
@@ -97,6 +113,82 @@ public:
                 pattern = hook::pattern("83 3D ? ? ? ? ? 89 44 24 38"); // buzzard rockets sound and minigun sounds
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(11), 6, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 7C 64"); // EpisodicVehicleSupport (BUZZARD & SWIFT) smoke effects
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 7C 10 FF 76 18 E8 ? ? ? ? 83 C4 04 83 38 27 74 0A"); // BUZZARD BULLET_IMPACT_WATER
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                else {
+                    pattern = hook::pattern("83 3D ? ? ? ? ? 7C 11 8B 46 18");
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                }
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 75 48 3B 05"); // smuggler, floater, blade support
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                else {
+                    pattern = hook::pattern("83 3D ? ? ? ? ? 75 5A 3B 05");
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                }
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 75 54 3B 05 ? ? ? ? 75 19 8B CF"); // smuggler, floater, blade support
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                else {
+                    pattern = hook::pattern("83 3D ? ? ? ? ? 75 2C 3B 05");
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                }
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 75 3B 3B 05 ? ? ? ? 75 19"); // smuggler, floater, blade support
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                else {
+                    pattern = hook::pattern("83 3D ? ? ? ? ? 75 28 3B 05 ? ? ? ? 74 C3");
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                }
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 75 3B 3B 05 ? ? ? ? 74 08"); // smuggler, floater, blade support
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                else {
+                    pattern = hook::pattern("83 3D ? ? ? ? ? 75 30 3B 05");
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                }
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 75 54 3B 05 ? ? ? ? 75 19 8B CE"); // smuggler, floater, blade support
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                else {
+                    pattern = hook::pattern("83 3D ? ? ? ? ? 75 28 3B 05 ? ? ? ? 74 82");
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                }
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 75 2E 3B 05"); // smuggler
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                else {
+                    pattern = hook::pattern("83 3D ? ? ? ? ? 75 32 3B 05");
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                }
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 75 3A 3B 05 ? ? ? ? 75 0C C7 86 ? ? ? ? ? ? ? ? EB 26 3B 05 ? ? ? ? 75 0C C7 86 ? ? ? ? ? ? ? ? EB 12 3B 05 ? ? ? ? 75 0A C7 86 ? ? ? ? ? ? ? ? 8B CE E8 ? ? ? ? 83 3D ? ? ? ? ? 8B 45 1C"); // smuggler
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                else {
+                    pattern = hook::pattern("83 3D ? ? ? ? ? 75 3C 3B 05 ? ? ? ? 75 0A F3 0F 10 05 ? ? ? ? EB 22 3B 05 ? ? ? ? 75 0A F3 0F 10 05 ? ? ? ? EB 10 3B 05 ? ? ? ? 75 10 F3 0F 10 05 ? ? ? ? F3 0F 11 86 ? ? ? ? 8B CE E8 ? ? ? ? 83 3D ? ? ? ? ? D9 44 24 10");
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                }
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 75 3A 3B 05 ? ? ? ? 75 0C C7 86 ? ? ? ? ? ? ? ? EB 26 3B 05 ? ? ? ? 75 0C C7 86 ? ? ? ? ? ? ? ? EB 12 3B 05 ? ? ? ? 75 0A C7 86 ? ? ? ? ? ? ? ? 8B CE E8 ? ? ? ? 83 3D ? ? ? ? ? 8B 45 10"); // smuggler
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                else {
+                    pattern = hook::pattern("83 3D ? ? ? ? ? 75 3C 3B 05 ? ? ? ? 75 0A F3 0F 10 05 ? ? ? ? EB 22 3B 05 ? ? ? ? 75 0A F3 0F 10 05 ? ? ? ? EB 10 3B 05 ? ? ? ? 75 10 F3 0F 10 05 ? ? ? ? F3 0F 11 86 ? ? ? ? 8B CE E8 ? ? ? ? 83 3D ? ? ? ? ? D9 EE");
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                }
             }
             
             if (bEpisodicWeapons)
@@ -177,6 +269,46 @@ public:
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 2, true);
 
+                pattern = hook::pattern("83 3D ? ? ? ? ? 0F 8C ? ? ? ? 8D 8E"); // Sticky bomb faster throw in vehicle
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 6, true);
+                else {
+                    pattern = hook::pattern("83 3D ? ? ? ? ? 7C 69");
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                }
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 8B 3D ? ? ? ? F3 0F 10 05"); // Weapon sounds slow motion? 
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(31), 2, true);
+                else {
+                    pattern = hook::pattern("83 3D ? ? ? ? ? F3 0F 10 15");
+                    injector::MakeNOP(pattern.get_first(27), 2, true);
+                }
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? 8B 3D ? ? ? ? F3 0F 10 05"); // SHOTGUN_EXPLOSION
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 6, true);
+                else {
+                    pattern = hook::pattern("83 3D ? ? ? ? ? 75 7C");
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                }
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? F3 0F 10 0D ? ? ? ? F3 0F 11 4C 24 ? 75 14"); // APC_EXPLOSION
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(21), 2, true);
+                else {
+                    pattern = hook::pattern("83 3D ? ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 11 44 24 ? 75 4C");
+                    injector::MakeNOP(pattern.get_first(21), 2, true);
+                }
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? 8B 3D ? ? ? ? F3 0F 11 4C 24"); // GRENADE_EXPLOSION 
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 6, true);
+                else {
+                    pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? 84 C0");
+                    injector::MakeNOP(pattern.get_first(7), 6, true);
+                }
+
                 pattern = hook::pattern("83 3D ? ? ? ? ? 0F 8C ? ? ? ? 83 7F 54 20"); // P90 scroll block
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 6, true);
@@ -231,7 +363,31 @@ public:
                     else {
                         pattern = hook::pattern("83 3D ? ? ? ? ? 75 0D 80 7E 7D 00");
                         injector::MakeNOP(pattern.get_first(7), 2, true);
-                }
+                    }
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 5D 75 1E"); // Give parachute during load save
+                    if (!pattern.empty())
+                        injector::MakeNOP(pattern.get_first(8), 2, true);
+                    else {
+                        pattern = hook::pattern("83 3D ? ? ? ? ? 75 1E E8");
+                        injector::MakeNOP(pattern.get_first(7), 2, true);
+                    }
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 53 57 8B 7C 24 20"); // TBoGT counter anims fix
+                    if (!pattern.empty())
+                        injector::MakeNOP(pattern.get_first(15), 2, true);
+                    else {
+                        pattern = hook::pattern("83 3D ? ? ? ? ? 53 55 8B 6C 24 20");
+                        injector::MakeNOP(pattern.get_first(21), 2, true);
+                    }
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 75 36 80 7B 28 00"); // TBoGT counter anims fix
+                    if (!pattern.empty())
+                        injector::MakeNOP(pattern.get_first(7), 2, true);
+                    else {
+                        pattern = hook::pattern("39 1D ? ? ? ? 75 2A 80 7F 28 00");
+                        injector::MakeNOP(pattern.get_first(7), 2, true);
+                    }
             }
             
             if (bExplosiveAnnihilator)
@@ -309,10 +465,18 @@ public:
 
                 pattern = hook::pattern("83 3D ? ? ? ? ? BB ? ? ? ? B8");  // E2_landing marker
                 if (!pattern.empty())
-                    injector::MakeNOP(pattern.get_first(24), 3, true);
+                    injector::MakeNOP(pattern.get_first(17), 3, true);
                 else {
                     pattern = hook::pattern("83 3D ? ? ? ? ? BB ? ? ? ? 75 05");
                     injector::MakeNOP(pattern.get_first(12), 2, true);
+                }
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? 66 83 3E 09");  // E2_landing marker
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 6, true);
+                else {
+                    pattern = hook::pattern("39 3D ? ? ? ? 0F 85 ? ? ? ? 66 83 7E");
+                    injector::MakeNOP(pattern.get_first(6), 6, true);
                 }
             }
 
