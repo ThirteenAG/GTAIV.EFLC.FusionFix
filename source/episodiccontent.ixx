@@ -189,6 +189,14 @@ public:
                     pattern = hook::pattern("83 3D ? ? ? ? ? 75 3C 3B 05 ? ? ? ? 75 0A F3 0F 10 05 ? ? ? ? EB 22 3B 05 ? ? ? ? 75 0A F3 0F 10 05 ? ? ? ? EB 10 3B 05 ? ? ? ? 75 10 F3 0F 10 05 ? ? ? ? F3 0F 11 86 ? ? ? ? 8B CE E8 ? ? ? ? 83 3D ? ? ? ? ? D9 EE");
                     injector::MakeNOP(pattern.get_first(7), 2, true);
                 }
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 75 20 0F BF 46 2E"); // floater camera height
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                else {
+                    pattern = hook::pattern("83 3D ? ? ? ? ? 75 20 0F BF 56 2E");
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                }
             }
             
             if (bEpisodicWeapons)
