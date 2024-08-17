@@ -2,7 +2,7 @@
 Saltar intro
 
 [Skip Menu]
-Saltar menu
+Saltar menú
 
 [Windowed]
 Ventana
@@ -11,7 +11,7 @@ Ventana
 Ventana sin bordes
 
 [Focus Loss]
-Juego en pausa al cambiar la ventana
+Juego en pausa al cambiar de ventana
 
 [LightSyncRGB]
 Logitech LightSync RGB
@@ -20,16 +20,16 @@ Logitech LightSync RGB
 Contador de FPS
 
 [Letterbox]
-Caja de texto de cutscenes
+Caja de texto en escenas
 
 [Pillarbox]
-Caja de pilar de cutscenes
+Caja de pilar en escenas
 
 [Alt. Dialogues]
 Diálogos alternativos
 
 [Check Updates]
-Buscar updates de Fusion Fix
+Buscar actualizaciones de Fusion Fix
 
 [Raw Input]
 Entrada simple
@@ -38,31 +38,31 @@ Entrada simple
 Correr siempre
 
 [Cover Centering]
-Cubrir centralización
+Centrar cámara al cubrirse
 
 [Centering Delay]
-Posponer centralización
+Posponer centralización cámara
 
 [Gamepad Icons]
-Iconos del gamepad
+Iconos del mando
 
 [Motion Blur]
 Desenfoque de movimiento
 
 [Bloom]
-Bloom
+Efecto bloom
 
 [Console Gamma]
 Gamma de consola
 
 [Screen Filter]
-Filtro del Ecrán
+Filtro de pantalla
 
 [Depth of Field]
 Profundidad de campo
 
 [TreeFX]
-Iluminación de arboles
+Iluminación de árboles
 
 [Sun Shafts]
 Rayos solares
