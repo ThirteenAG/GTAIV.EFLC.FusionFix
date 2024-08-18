@@ -325,14 +325,6 @@ public:
                     injector::MakeNOP(pattern.get_first(7), 2, true);
                 }
 
-                pattern = hook::pattern("83 3D ? ? ? ? ? F3 0F 10 0D ? ? ? ? F3 0F 11 4C 24 ? 75 14"); // APC_EXPLOSION
-                if (!pattern.empty())
-                    injector::MakeNOP(pattern.get_first(21), 2, true);
-                else {
-                    pattern = hook::pattern("83 3D ? ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 11 44 24 ? 75 4C");
-                    injector::MakeNOP(pattern.get_first(21), 2, true);
-                }
-
                 pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? 8B 3D ? ? ? ? F3 0F 11 4C 24"); // GRENADE_EXPLOSION 
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 6, true);
@@ -369,7 +361,7 @@ public:
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 6, true);
                 else {
-                    pattern = hook::pattern("83 3D ?? ?? ?? ?? ?? 0F 85 ?? ?? ?? ?? 56 8B 74 24 0C");
+                    pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? 8B 54 24 0C");
                     injector::MakeNOP(pattern.get_first(7), 6, true);
                 }
 
@@ -377,7 +369,7 @@ public:
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(10), 2, true);
                 else {
-                    pattern = hook::pattern("83 3D ?? ?? ?? ?? ?? 75 0A F3 0F 10 05 ?? ?? ?? ?? EB 03");
+                    pattern = hook::pattern("83 3D ? ? ? ? ? 75 0A F3 0F 10 05 ? ? ? ? EB 03");
                     injector::MakeNOP(pattern.get_first(7), 2, true);
                 }
                     
@@ -484,7 +476,7 @@ public:
                     injector::MakeNOP(pattern.get_first(3), 2, true);
                 else {
                     pattern = hook::pattern("88 8C 24 ? ? ? ? 75 2F");
-                    injector::MakeNOP(pattern.get_first(8), 6, true);
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
                 }
 
                 pattern = hook::pattern("B8 ? ? ? ? 0F 44 E8 57");  // E2_landing marker
