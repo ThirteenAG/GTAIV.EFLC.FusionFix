@@ -1,4 +1,4 @@
-[Skip Intro]
+﻿[Skip Intro]
 Intro überspringen
 
 [Skip Menu]
