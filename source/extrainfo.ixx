@@ -44,7 +44,7 @@ public:
                             extra += L"                        ";
 
                             auto FF_WARN0 = CText::getText("FF_WARN0");
-                            extra += FF_WARN0[0] ? FF_WARN0 : L"~p~IMG Files: " + std::to_wstring(imgNum) + L" / " + std::to_wstring(imgArrSize);
+                            extra += (FF_WARN0[0] ? FF_WARN0 : L"~p~IMG Files:") + std::wstring(L" ") + std::to_wstring(imgNum) + L" / " + std::to_wstring(imgArrSize);
                             auto FF_WARN1 = CText::getText("FF_WARN1");
                             if (imgNum >= imgArrSize) extra += FF_WARN1[0] ? FF_WARN1 : L"; ~r~WARNING: 255 IMG limit exceeded, will cause streaming issues.";
                         

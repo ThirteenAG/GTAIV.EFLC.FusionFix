@@ -1,4 +1,4 @@
-[Skip Intro]
+﻿[Skip Intro]
 Intro überspringen
 
 [Skip Menu]
@@ -83,7 +83,7 @@ Baumtransparenz
 Schattenfilter
 
 [FF_WARN0]
-~p~IMG-Dateien: 
+~p~IMG-Dateien:
 
 [FF_WARN1]
 ; ~r~ACHTUNG: Obergrenze von 255 IMG-Dateien überschritten, was zu Streaming-Problemen führt.

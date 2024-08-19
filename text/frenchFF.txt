@@ -83,7 +83,7 @@ Alpha des arbres
 Filtre d'ombre
 
 [FF_WARN0]
-~p~Fichiers IMG: 
+~p~Fichiers IMG:
 
 [FF_WARN1]
 ; ~r~AVERTISSEMENT: la limite de 255 IMG est dépassée, des problèmes de streaming peuvent survenir
