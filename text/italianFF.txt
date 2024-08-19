@@ -83,7 +83,7 @@ Alfa degli alberi
 Filtro delle ombre
 
 [FF_WARN0]
-~p~IMG Files: 
+~p~IMG Files:
 
 [FF_WARN1]
 ; ~r~ATTENZIONE: è stato superato il limite di 255 img, potrebbero verificarsi problemi di streaming.

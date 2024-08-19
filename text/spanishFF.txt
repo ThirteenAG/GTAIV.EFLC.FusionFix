@@ -83,7 +83,7 @@ Transparencia de los árboles
 Filtro de sombras
 
 [FF_WARN0]
-~p~Archivos IMG: 
+~p~Archivos IMG:
 
 [FF_WARN1]
 ; ~r~ATENCIÓN: Se ha sobrepasado el límite de 255 archivos IMG y causará problemas de carga ("streaming"). 
