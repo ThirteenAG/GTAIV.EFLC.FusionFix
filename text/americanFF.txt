@@ -83,7 +83,7 @@ Tree Alpha
 Shadow Filter
 
 [FF_WARN0]
-~p~IMG Files: 
+~p~IMG Files:
 
 [FF_WARN1]
 ; ~r~WARNING: 255 IMG limit exceeded, will cause streaming issues.
