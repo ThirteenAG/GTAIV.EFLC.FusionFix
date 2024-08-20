@@ -306,8 +306,6 @@ public:
 
                     for (size_t i = CModelInfoStore::ms_baseModels; i < CModelInfoStore::amount; i++)
                     {
-                        if (i == CModelInfoStore::ms_weaponModels) // bugs out buzzard rockets
-                            continue;
                         CModelInfoStore__ms_baseModels[i].nSize *= 2;
                     }
 
@@ -326,23 +324,23 @@ public:
                     auto ms_iBikeLines = 40;
                     auto ms_iFlyingLines = 40;
                     auto ms_iBoatLines = 40;
-                
+
                     auto ms_iStandardLinesLimit = ms_iStandardLines * increaseby;
                     auto ms_iBikeLinesLimit = ms_iBikeLines * increaseby;
                     auto ms_iFlyingLinesLimit = ms_iFlyingLines * increaseby;
                     auto ms_iBoatLinesLimit = ms_iBoatLines * increaseby;
-                
+
                     static std::vector<uint8_t> handling((0x110 * ms_iStandardLinesLimit) + (0x40 * ms_iBikeLinesLimit) + (0x60 * ms_iFlyingLinesLimit) + (0xE0 * ms_iBoatLinesLimit), 0);
                     auto aHandlingLines = *hook::get_pattern<uintptr_t>("8D B0 ? ? ? ? 57 8B CE E8 ? ? ? ? 8B CE E8", 2);
                     auto aBikeHandlingLines = aHandlingLines + (0x110 * ms_iStandardLines);
                     auto aFlyingHandlingLines = aHandlingLines + (0x110 * ms_iStandardLines) + (0x40 * ms_iBikeLines);
                     auto aBoatHandlingLines = aHandlingLines + (0x110 * ms_iStandardLines) + (0x40 * ms_iBikeLines) + (0x60 * ms_iFlyingLines);
-                
+
                     auto HandlingLines = LimitAdjuster(aHandlingLines, 0x110, ms_iStandardLines, 26).IncreaseBy(increaseby).InsertNewArrayPointer(handling.data()).ReplaceXrefs(0x0, 0xF8, 0xFC, 0x100, 0x5F60, 0xAA00, 0xAAFC);
                     //auto BikeHandlingLines = LimitAdjuster(aBikeHandlingLines, 0x40, ms_iBikeLines, 7).IncreaseBy(increaseby).InsertNewArrayPointer(handling.data() + (0x110 * ms_iStandardLinesLimit)).ReplaceXrefs(0);
                     auto FlyingHandlingLines = LimitAdjuster(aFlyingHandlingLines, 0x40, ms_iFlyingLines, 5).IncreaseBy(increaseby).InsertNewArrayPointer(handling.data() + (0x110 * ms_iStandardLinesLimit) + (0x40 * ms_iBikeLinesLimit)).ReplaceXrefs(0);
                     auto BoatHandlingLines = LimitAdjuster(aBoatHandlingLines, 0x40, ms_iBoatLines, 5).IncreaseBy(increaseby).InsertNewArrayPointer(handling.data() + (0x110 * ms_iStandardLinesLimit) + (0x40 * ms_iBikeLinesLimit) + (0x60 * ms_iFlyingLinesLimit)).ReplaceXrefs(0);
-                
+
                     auto pattern = hook::pattern("BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 81 C6 ? ? ? ? 4F 79 F0 5F 5E C3 CC CC CC CC CC CC CC CC CC CC CC CC CC 56 57 BE ? ? ? ? BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 83 C6 20");
                     injector::WriteMemory(pattern.get_first(1), ms_iStandardLinesLimit - 1, true);
                     pattern = hook::pattern("BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 83 C6 40 4F 79 F3 5F 5E C3 56 57 BE ? ? ? ? BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 81 C6 ? ? ? ? 4F 79 F0 5F");
@@ -351,17 +349,17 @@ public:
                     injector::WriteMemory(pattern.get_first(1), ms_iFlyingLinesLimit - 1, true);
                     pattern = hook::pattern("BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 81 C6 ? ? ? ? 4F 79 F0 5F 5E C3 CC CC CC CC CC CC CC CC CC CC CC CC CC 56 57 BE ? ? ? ? BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 83 C6 60");
                     injector::WriteMemory(pattern.get_first(1), ms_iBoatLinesLimit - 1, true);
-                
+
                     pattern = hook::pattern("7D 1B 8B C2");    //bikeHandlingCount
                     injector::MakeNOP(pattern.get_first(), 2);
-                
+
                     pattern = hook::pattern("7D 1C 8D 04 52"); //flyingHandlingCount
                     injector::MakeNOP(pattern.get_first(), 2);
-                
+
                     pattern = hook::pattern("7D 1E 8B C2");    //boatHandlingCount
                     injector::MakeNOP(pattern.get_first(), 2);
                 }
-                
+
                 //carcols
                 {
                     auto pattern = hook::pattern("8B 87 ? ? ? ? 25 ? ? ? ? 0B C8 89 8F");
@@ -374,14 +372,15 @@ public:
                     auto adwPoliceScannerCarColors = LimitAdjuster(*pattern.get_first<uintptr_t>(3), 4, 196, 3).ReplaceXrefs(0);
                 }
 
-                {
-                    auto pattern = hook::pattern("81 C3 ? ? ? ? 89 03");
-                    auto ref1 = (intptr_t)hook::get_pattern("BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 81 C6 ? ? ? ? 4F 79 F0 68 ? ? ? ? E8 ? ? ? ? 83 C4 04 5F 5E C3 56", 1);
-                    auto WeaponInfo = LimitAdjuster(*pattern.get_first<uintptr_t>(2), 0x110, 60, 4).ReplaceXrefs(0).ReplaceNumericRefs(ref1);
-                    pattern = hook::pattern("7D 0C 69 C0");
-                    injector::MakeNOP(pattern.get_first(), 2);
-                }
-                
+                //{         //breaks buzzard rockets
+                //    auto pattern = hook::pattern("81 C3 ? ? ? ? 89 03");
+                //    auto ref1 = (intptr_t)hook::get_pattern("BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 81 C6 ? ? ? ? 4F 79 F0 68 ? ? ? ? E8 ? ? ? ? 83 C4 04 5F 5E C3 56", 1);
+                //    auto ref2 = (intptr_t)hook::get_pattern("83 F8 3C 7C F1", 2);
+                //    auto WeaponInfo = LimitAdjuster(*pattern.get_first<uintptr_t>(2), 0x110, 60, 4).ReplaceXrefs(0).ReplaceNumericRefs(ref1, ref2);
+                //    pattern = hook::pattern("7D 0C 69 C0");
+                //    injector::MakeNOP(pattern.get_first(), 2);
+                //}
+
                 {
                     auto pattern = hook::pattern("81 C7 ? ? ? ? 83 BB");
                     auto VehOff = LimitAdjuster(*pattern.get_first<uintptr_t>(2), 640, 205, 4).ReplaceXrefs(0);
