@@ -532,6 +532,19 @@ public:
                     injector::MakeNOP(pattern.get_first(6), 6, true);
                 }
             }
+
+            if (true)
+            {
+                auto pattern = find_pattern("8B 0D ? ? ? ? 8D 54 24 0C 52 6A 20 FF 35 ? ? ? ? A3");
+                static auto dword_11A1B84 = *pattern.get_first<uint32_t*>(15);
+                static auto dword_11A1B80 = *pattern.get_first<uint32_t*>(26);
+
+                static auto FixCascadedShadowMapResolution = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    *dword_11A1B84 *= 2;
+                    *dword_11A1B80 *= 2;
+                });
+            }
         };
     }
 } Fixes;
