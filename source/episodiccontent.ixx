@@ -512,16 +512,20 @@ public:
                 }
 
                 pattern = hook::pattern("B8 ? ? ? ? 0F 44 E8 57");  // E2_landing marker
-                if (!pattern.empty())
+                if (!pattern.empty()) {
+                    injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xBD, true);
                     injector::MakeNOP(pattern.get_first(5), 3, true);
+                }
                 else {
                     pattern = hook::pattern("BD ? ? ? ? 75 05");
                     injector::MakeNOP(pattern.get_first(5), 2, true);
                 }
 
                 pattern = hook::pattern("83 3D ? ? ? ? ? BB ? ? ? ? B8");  // E2_landing marker
-                if (!pattern.empty())
+                if (!pattern.empty()) {
+                    injector::WriteMemory<uint8_t>(pattern.get_first(12), 0xBB, true);
                     injector::MakeNOP(pattern.get_first(17), 3, true);
+                }
                 else {
                     pattern = hook::pattern("83 3D ? ? ? ? ? BB ? ? ? ? 75 05");
                     injector::MakeNOP(pattern.get_first(12), 2, true);
