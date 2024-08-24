@@ -610,22 +610,21 @@ export namespace rage
         static grcRenderTargetPC* __stdcall CreateRT(const char* name, int32_t a2, uint32_t width, uint32_t height, uint32_t bitsPerPixel, grcRenderTargetDesc* desc)
         {
             // Scale phone screen/phone camera rendertarget resolution with game resolution.
-            if(std::string_view(name) == "PHONE_SCREEN" || std::string_view(name) == "PHOTO")
+            if (std::string_view(name) == "PHONE_SCREEN" || std::string_view(name) == "PHOTO")
             {
                 auto res = (int32_t)(std::ceil((float)*rage::grcDevice::ms_nActiveHeight / 720.0f) * 256.0f);
                 width  = res;
                 height = res;
             }
-
-            // Force water surface rendertarget resolution to always be 256x256. This matches the water tiling on the console version.
-            if(std::string_view(name) == "WATER_SURFACE0_COLOUR" || std::string_view(name) == "WATER_SURFACE1_COLOUR")
+            else if (std::string_view(name) == "WATER_SURFACE0_COLOUR" || std::string_view(name) == "WATER_SURFACE1_COLOUR")
             {
+                // Force water surface rendertarget resolution to always be 256x256. This matches the water tiling on the console version.
                 width  = 256;
                 height = 256;
             }
 
             auto ret = shCreateRT.stdcall<grcRenderTargetPC*>(name, a2, width, height, bitsPerPixel, desc);
-            
+
             //     if(strcmp("WATER_REFLECTION_COLOUR", name) == 0) { ret->mMultisampleCount=1; }
             //else if(strcmp("WATER_REFLECTION_DEPTH" , name) == 0) { ret->mMultisampleCount=1; }
             //else if(strcmp("REFLECTION_MAP_COLOUR"  , name) == 0) { ret->mMultisampleCount=1; }
