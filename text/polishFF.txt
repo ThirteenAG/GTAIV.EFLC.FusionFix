@@ -1,0 +1,104 @@
+﻿[Skip Intro]
+Pomiń intro
+
+[Skip Menu]
+Pomiń menu
+
+[Windowed]
+W oknie
+
+[Borderless]
+Okno bez ramki
+
+[Focus Loss]
+Zatrzymaj grę przy zminimalizowaniu
+
+[LightSyncRGB]
+Logitech LightSync RGB
+
+[FPS Counter]
+Licznik FPS
+
+[Letterbox]
+Poziome kadrowanie w przerywnikach filmowych
+
+[Pillarbox]
+Pionowe kadrowanie w przerywnikach filmowych
+
+[Alt. Dialogues]
+Alternatywne dialogi
+
+[Check Updates]
+Sprawdź dostępność aktualizacji do Fusion Fix
+
+[Raw Input]
+Bezpośredni odczyt
+
+[Always Run]
+Ciągły bieg
+
+[Cover Centering]
+Centrowanie kamery za osłoną
+
+[Centering Delay]
+Opóźnienie centrowania kamery
+
+[Gamepad Icons]
+Ikony kontrolera
+
+[Motion Blur]
+Rozmycie w ruchu
+
+[Bloom]
+Poświata
+
+[Console Gamma]
+Konsolowa Gamma
+
+[Screen Filter]
+Filtr ekranowy
+
+[Depth of Field]
+Głębia ostrości
+
+[TreeFX]
+Oświetlenie drzew
+
+[Sun Shafts]
+Promienie słoneczne
+
+[Antialiasing]
+Wygładzanie krawędzi
+
+[FPS Limiter]
+Limit FPS
+
+[LamppostShadows]
+Cienie latarni
+
+[Tree Alpha]
+Przezroczystość liści
+
+[Shadow Filter]
+Filtr cieni
+
+[FF_WARN0]
+~p~Pliki IMG:
+
+[FF_WARN1]
+; ~r~UWAGA: Przekroczono limit 255 plików IMG, możliwe problemy ze strumieniowaniem.
+
+[FF_WARN2]
+~r~UWAGA: Cienie latarni mogą wywołać błędy graficzne oraz obniżoną wydajność.
+
+[FF_WARN3]
+~r~UWAGA: Zasięg widzenia ponad 25 i Ilość detali ponad 31 mogą wywołać problemy z wyświetlaniem obiektów.
+
+[FF_WARN4]
+~r~UWAGA: Zasięg widzenia ponad 25 może wywołać problemy z wyświetlaniem obiektów.
+
+[FF_WARN5]
+~r~UWAGA: Ilość detali ponad 31 może wywołać problemy z wyświetlaniem obiektów.
+
+[DUMMY_l11]
+Dummy label.
