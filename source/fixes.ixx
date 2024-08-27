@@ -405,7 +405,7 @@ public:
             {
                 // Force water surface rendertarget resolution to always be 256x256. This matches the water tiling on the console version.
                 static uint32_t dwWaterQuality = 1;
-                pattern = find_pattern("8B 0D ? ? ? ? 53 BB ? ? ? ? D3 E3 85 D2 0F 85", "8B 0D ? ? ? ? BF ? ? ? ? D3 E7 85 C0 0F 85");
+                auto pattern = find_pattern("8B 0D ? ? ? ? 53 BB ? ? ? ? D3 E3 85 D2 0F 85", "8B 0D ? ? ? ? BF ? ? ? ? D3 E7 85 C0 0F 85");
                 if (!pattern.empty())
                 {
                     injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true);
@@ -468,17 +468,6 @@ public:
                     // Remove code that doubled shadow cascade resolution.
                     pattern = find_pattern("03 F6 E8 ? ? ? ? 8B 0D ? ? ? ? 8D 54 24 0C", "03 F6 E8 ? ? ? ? 8B 0D ? ? ? ? 8D 44 24 0C");
                     injector::MakeNOP(pattern.get_first(0), 2, true);
-
-                    // Clamp night shadow resolution to 512x512 @ Very High (was 1024x1024)
-                    auto pattern = hook::pattern("83 3D ? ? ? ? ? 7E 12 B8 ? ? ? ? D3 E0 B9 ? ? ? ? 3B C1 0F 4F C1 C3");
-                    if (!pattern.empty())
-                        injector::WriteMemory(pattern.get_first(17), 0x200, true);
-                    else
-                    {
-                        pattern = hook::pattern("3D ? ? ? ? 7E 05 B8 ? ? ? ? C3");
-                        injector::WriteMemory(pattern.count(2).get(0).get<void*>(1), 0x200, true);
-                        injector::WriteMemory(pattern.count(2).get(0).get<void*>(8), 0x200, true);
-                    }
                 }
             }
 
