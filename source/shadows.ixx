@@ -77,6 +77,28 @@ void __cdecl CBaseModelInfo__setFlagsHook(void* pModel, int dwFlags, int a3)
     return injector::cstd<void(void*, int, int)>::call(CBaseModelInfo__setFlags, pModel, dwFlags, a3);
 }
 
+int GetNightShadowQuality()
+{
+    switch (FusionFixSettings.Get("PREF_SHADOW_DENSITY"))
+    {
+    case 0: //MO_OFF
+        return 0;
+        break;
+    case 1: //MO_MED
+        return 256;
+        break;
+    case 2: //MO_HIGH
+        return 512;
+        break;
+    case 3: //MO_VHIGH
+        return 1024;
+        break;
+    default:
+        return 0;
+        break;
+    }
+}
+
 class Shadows
 {
 public:
@@ -90,6 +112,7 @@ public:
             bExtraDynamicShadows = iniReader.ReadInteger("SHADOWS", "ExtraDynamicShadows", 1);
             bDynamicShadowForTrees = iniReader.ReadInteger("SHADOWS", "DynamicShadowForTrees", 1) != 0;
             bool bOverrideCascadeRanges = iniReader.ReadInteger("SHADOWS", "OverrideCascadeRanges", 1) != 0;
+            bool bHighResolutionShadows = iniReader.ReadInteger("SHADOWS", "HighResolutionShadows", 0) != 0;
 
             if (bExtraDynamicShadows || bDynamicShadowForTrees)
             {
@@ -145,6 +168,80 @@ public:
                     pCascadeRange2[i].CascadeRange3 = 85.0f;
                     pCascadeRange2[i].CascadeRange4 = 256.0f;
                 }
+            }
+
+            // Fix Cascaded Shadow Map Resolution
+            {
+                // Force water surface rendertarget resolution to always be 256x256. This matches the water tiling on the console version.
+                static uint32_t dwWaterQuality = 1;
+                auto pattern = find_pattern("8B 0D ? ? ? ? 53 BB ? ? ? ? D3 E3 85 D2 0F 85", "8B 0D ? ? ? ? BF ? ? ? ? D3 E7 85 C0 0F 85");
+                if (!pattern.empty())
+                {
+                    injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true);
+                    pattern = find_pattern("8B 0D ? ? ? ? F3 0F 10 0D ? ? ? ? B8 ? ? ? ? D3 E0 8B 0D", "8B 0D ? ? ? ? F3 0F 10 05 ? ? ? ? 6A 02 6A 01 BA");
+                    injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true);
+                    pattern = find_pattern("8B 0D ? ? ? ? BE ? ? ? ? D3 E6 83 3D", "8B 0D ? ? ? ? F3 0F 11 0D ? ? ? ? F3 0F 10 0D");
+                    injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true);
+                }
+
+                // Switch texture formats
+                // CASCADE_ATLAS
+                static constexpr auto NewCascadeAtlasFormat = D3DFMT_R32F;
+
+                pattern = find_pattern("C7 05 ? ? ? ? ? ? ? ? C7 05 ? ? ? ? ? ? ? ? 8B 08 50 FF 51 08 5E 59 C3 8B 44 24 04 6A 72", "C7 05 ? ? ? ? ? ? ? ? C7 05 ? ? ? ? ? ? ? ? 8B 08");
+                injector::WriteMemory(pattern.get_first(6), rage::getEngineTextureFormat(NewCascadeAtlasFormat), true);
+
+                // _DEFERRED_GBUFFER_0_ / _DEFERRED_GBUFFER_1_ / _DEFERRED_GBUFFER_2_
+                pattern = find_pattern("BA ? ? ? ? 84 C0 0F 45 CA 8B 15", "40 05 00 00 00 8B 0D ? ? ? ? 8B 11 8B 52 38 8D 74 24 14 56 50 A1");
+                injector::WriteMemory(pattern.get_first(1), rage::getEngineTextureFormat(D3DFMT_A8R8G8B8), true);
+
+                if (bHighResolutionShadows)
+                {
+                    auto pattern = hook::pattern("8D 7D 40 8B 01 57 FF 75 10 FF 75 24 FF 75 0C FF 75 20 FF 75 18");
+                    if (!pattern.empty())
+                    {
+                        static auto FixCascadedShadowMapResolution = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            auto& Width = *(uint32_t*)(regs.ebp + 0x14);
+                            auto& Height = *(uint32_t*)(regs.ebp + 0x18);
+                            auto& Levels = *(uint32_t*)(regs.ebp + 0x20);
+                            auto& Format = *(uint32_t*)(regs.ebp + 0x24);
+
+                            if (D3DFORMAT(Format) == NewCascadeAtlasFormat && Height >= 256 && Width == Height * 4 && Levels == 1)
+                            {
+                                Width *= 2;
+                                Height *= 2;
+                            }
+                        });
+                    }
+                    else
+                    {
+                        pattern = hook::pattern("8D 4F 40 51 89 4C 24 24 8B 4F 10 51 8B 4F 24 51 8B 4F 0C 51 8B 4F 20 E9");
+                        static auto FixCascadedShadowMapResolution = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            auto& Width = *(uint32_t*)(regs.edi + 0x14);
+                            auto& Height = *(uint32_t*)(regs.edi + 0x18);
+                            auto& Levels = *(uint32_t*)(regs.edi + 0x20);
+                            auto& Format = *(uint32_t*)(regs.edi + 0x24);
+
+                            if (D3DFORMAT(Format) == NewCascadeAtlasFormat && Height >= 256 && Width == Height * 4 && Levels == 1)
+                            {
+                                Width *= 2;
+                                Height *= 2;
+                            }
+                        });
+                    }
+                }
+                else
+                {
+                    // Remove code that doubled shadow cascade resolution.
+                    pattern = find_pattern("03 F6 E8 ? ? ? ? 8B 0D ? ? ? ? 8D 54 24 0C", "03 F6 E8 ? ? ? ? 8B 0D ? ? ? ? 8D 44 24 0C");
+                    injector::MakeNOP(pattern.get_first(0), 2, true);
+                }
+
+                // Fix night shadow resolution
+                pattern = find_pattern("8B 0D ? ? ? ? 85 C9 7E 1B", "8B 0D ? ? ? ? 33 C0 85 C9 7E 1B");
+                static auto shsub_925E70 = safetyhook::create_inline(pattern.get_first(0), GetNightShadowQuality);
             }
         };
     }
