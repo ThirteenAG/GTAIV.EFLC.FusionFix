@@ -403,20 +403,9 @@ public:
 
             // Fix Cascaded Shadow Map Resolution
             {
-                // Clamp night shadow resolution to 512x512 @ Very High (was 1024x1024)
-                auto pattern = hook::pattern("83 3D ? ? ? ? ? 7E 12 B8 ? ? ? ? D3 E0 B9 ? ? ? ? 3B C1 0F 4F C1 C3");
-                if (!pattern.empty())
-                    injector::WriteMemory(pattern.get_first(17), 0x200, true);
-                else
-                {
-                    pattern = hook::pattern("3D ? ? ? ? 7E 05 B8 ? ? ? ? C3");
-                    injector::WriteMemory(pattern.count(2).get(0).get<void*>(1), 0x200, true);
-                    injector::WriteMemory(pattern.count(2).get(0).get<void*>(8), 0x200, true);
-                }
-
                 // Force water surface rendertarget resolution to always be 256x256. This matches the water tiling on the console version.
                 static uint32_t dwWaterQuality = 1;
-                pattern = find_pattern("8B 0D ? ? ? ? 53 BB ? ? ? ? D3 E3 85 D2 0F 85", "8B 0D ? ? ? ? BF ? ? ? ? D3 E7 85 C0 0F 85");
+                auto pattern = find_pattern("8B 0D ? ? ? ? 53 BB ? ? ? ? D3 E3 85 D2 0F 85", "8B 0D ? ? ? ? BF ? ? ? ? D3 E7 85 C0 0F 85");
                 if (!pattern.empty())
                 {
                     injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true);
@@ -428,7 +417,7 @@ public:
 
                 // Switch texture formats
                 // CASCADE_ATLAS
-                constexpr auto NewCascadeAtlasFormat = D3DFMT_R32F;
+                static constexpr auto NewCascadeAtlasFormat = D3DFMT_R32F;
 
                 pattern = find_pattern("C7 05 ? ? ? ? ? ? ? ? C7 05 ? ? ? ? ? ? ? ? 8B 08 50 FF 51 08 5E 59 C3 8B 44 24 04 6A 72", "C7 05 ? ? ? ? ? ? ? ? C7 05 ? ? ? ? ? ? ? ? 8B 08");
                 injector::WriteMemory(pattern.get_first(6), rage::getEngineTextureFormat(NewCascadeAtlasFormat), true);
@@ -448,6 +437,23 @@ public:
                             auto& Height = *(uint32_t*)(regs.ebp + 0x18);
                             auto& Levels = *(uint32_t*)(regs.ebp + 0x20);
                             auto& Format = *(uint32_t*)(regs.ebp + 0x24);
+
+                            if (D3DFORMAT(Format) == NewCascadeAtlasFormat && Height >= 256 && Width == Height * 4 && Levels == 1)
+                            {
+                                Width *= 2;
+                                Height *= 2;
+                            }
+                        });
+                    }
+                    else
+                    {
+                        pattern = hook::pattern("8D 4F 40 51 89 4C 24 24 8B 4F 10 51 8B 4F 24 51 8B 4F 0C 51 8B 4F 20 E9");
+                        static auto FixCascadedShadowMapResolution = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            auto& Width = *(uint32_t*)(regs.edi + 0x14);
+                            auto& Height = *(uint32_t*)(regs.edi + 0x18);
+                            auto& Levels = *(uint32_t*)(regs.edi + 0x20);
+                            auto& Format = *(uint32_t*)(regs.edi + 0x24);
 
                             if (D3DFORMAT(Format) == NewCascadeAtlasFormat && Height >= 256 && Width == Height * 4 && Levels == 1)
                             {
