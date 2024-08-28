@@ -82,6 +82,9 @@ Tree Alpha
 [Shadow Filter]
 Shadow Filter
 
+[HeadlightShadow]
+Headlight Shadows
+
 [FF_WARN0]
 ~p~IMG Files:
 

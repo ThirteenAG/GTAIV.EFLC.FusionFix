@@ -77,6 +77,7 @@ void __cdecl CBaseModelInfo__setFlagsHook(void* pModel, int dwFlags, int a3)
     return injector::cstd<void(void*, int, int)>::call(CBaseModelInfo__setFlags, pModel, dwFlags, a3);
 }
 
+bool bHighResolutionNightShadows = false;
 int GetNightShadowQuality()
 {
     switch (FusionFixSettings.Get("PREF_SHADOW_DENSITY"))
@@ -85,13 +86,13 @@ int GetNightShadowQuality()
         return 0;
         break;
     case 1: //MO_MED
-        return 256;
+        return 256 * (bHighResolutionNightShadows ? 2 : 1);
         break;
     case 2: //MO_HIGH
-        return 512;
+        return 512 * (bHighResolutionNightShadows ? 2 : 1);
         break;
     case 3: //MO_VHIGH
-        return 1024;
+        return 1024 * (bHighResolutionNightShadows ? 4 : 1);
         break;
     default:
         return 0;
@@ -113,6 +114,7 @@ public:
             bDynamicShadowForTrees = iniReader.ReadInteger("SHADOWS", "DynamicShadowForTrees", 1) != 0;
             bool bOverrideCascadeRanges = iniReader.ReadInteger("SHADOWS", "OverrideCascadeRanges", 1) != 0;
             bool bHighResolutionShadows = iniReader.ReadInteger("SHADOWS", "HighResolutionShadows", 0) != 0;
+            bHighResolutionNightShadows = iniReader.ReadInteger("SHADOWS", "HighResolutionNightShadows", 0) != 0;
 
             if (bExtraDynamicShadows || bDynamicShadowForTrees)
             {

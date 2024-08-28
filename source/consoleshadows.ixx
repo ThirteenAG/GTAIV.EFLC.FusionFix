@@ -10,7 +10,7 @@ import comvars;
 
 void* fnAE3DE0 = nullptr;
 void* fnAE3310 = nullptr;
-bool bHeadlightShadows = true;
+bool bHeadlightShadows = false;
 bool bVehicleNightShadows = false;
 int __cdecl sub_AE3DE0(int a1, int a2)
 {
@@ -29,6 +29,29 @@ void __stdcall grcSetRenderStateHook()
     }
 }
 
+namespace CShadows
+{
+    injector::hook_back<void(__cdecl*)(int, int, int, int, int, int, int, int, int, int, int, int, int, int, int)> hbStoreStaticShadow;
+
+    void __cdecl StoreStaticShadowPlayerDriving(int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8, int a9, int a10, int a11, int a12, int a13, int a14, int a15)
+    {
+        if (!bHeadlightShadows)
+        {
+            a3 &= ~3;
+            a3 &= ~4;
+        }
+
+        return hbStoreStaticShadow.fun(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15);
+    }
+
+    void __cdecl StoreStaticShadowNPC(int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8, int a9, int a10, int a11, int a12, int a13, int a14, int a15)
+    {
+        a3 &= ~3;
+        a3 &= ~4;
+
+        return hbStoreStaticShadow.fun(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15);
+    }
+}
 class ConsoleShadows
 {
 public:
@@ -37,7 +60,6 @@ public:
         FusionFix::onInitEventAsync() += []()
         {
             CIniReader iniReader("");
-            bHeadlightShadows = iniReader.ReadInteger("NIGHTSHADOWS", "HeadlightShadows", 1) != 0;
             bVehicleNightShadows = iniReader.ReadInteger("NIGHTSHADOWS", "VehicleNightShadows", 0) != 0;
 
             // Render dynamic shadows casted by vehicles from point lights.
@@ -58,7 +80,7 @@ public:
             }
 
             // Enable player/ped shadows while in vehicles
-            if (bVehicleNightShadows && !bHeadlightShadows)
+            if (bVehicleNightShadows)
             {
                 auto pattern = hook::pattern("75 14 F6 86 ? ? ? ? ? 74 0B 80 7C 24 ? ? 0F 84 ? ? ? ? C6 44 24");
                 if (!pattern.empty())
@@ -74,30 +96,30 @@ public:
                     pattern = hook::pattern("75 0F 8B 86 ? ? ? ? C1 E8 0B 24 01 88 44 24 0E");
                     injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
                 }
-
+            
             }
 
-            // Disable headlight shadows to avoid flickering/self-shadowing.
-            if (!bHeadlightShadows)
+            // Headlight shadows
             {
-                auto pattern = hook::pattern("74 76 FF 75 30 FF 75 2C FF 75 28 83 EC 0C 80 7D 38 00");
-                if (!pattern.empty())
+                auto pattern = hook::pattern("68 04 05 00 00 6A 02 6A 00");
+                if (!pattern.count(2).empty())
                 {
-                    injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
-                    pattern = hook::pattern("68 ? ? ? ? 6A 02 6A 00 E8 ? ? ? ? 83 C4 40 8B E5 5D C3 68");
-                    injector::WriteMemory(pattern.count(2).get(1).get<void*>(1), 0x100, true);
-                    pattern = hook::pattern("8B E5 5D C3 68 ? ? ? ? 6A 02 6A 00 E8 ? ? ? ? 83 C4 40 8B E5 5D C3");
-                    injector::WriteMemory(pattern.count(2).get(1).get<void*>(5), 0x100, true);
+                    CShadows::hbStoreStaticShadow.fun = injector::MakeCALL(pattern.count(2).get(0).get<void*>(9), CShadows::StoreStaticShadowPlayerDriving).get();
+                    CShadows::hbStoreStaticShadow.fun = injector::MakeCALL(pattern.count(2).get(1).get<void*>(9), CShadows::StoreStaticShadowPlayerDriving).get();
                 }
-                else
+
+                pattern = hook::pattern("68 04 01 00 00 6A 02 6A 00");
+                if (!pattern.count(2).empty())
                 {
-                    pattern = hook::pattern("0F 84 ? ? ? ? 80 7D 28 00 74 4C 8B 45 20 8B 0D");
-                    injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true);
-                    pattern = hook::pattern("68 ? ? ? ? 6A 02 6A 00 E8 ? ? ? ? 83 C4 40 5B 8B E5 5D C3 8B 15");
-                    injector::WriteMemory(pattern.get_first(1), 0x100, true);
-                    pattern = hook::pattern("8D 44 24 50 50 68 ? ? ? ? 6A 02 6A 00 E8 ? ? ? ? 83 C4 40 5B 8B E5 5D C3");
-                    injector::WriteMemory(pattern.get_first(6), 0x100, true);
+                    CShadows::hbStoreStaticShadow.fun = injector::MakeCALL(pattern.count(2).get(0).get<void*>(9), CShadows::StoreStaticShadowNPC).get();
+                    CShadows::hbStoreStaticShadow.fun = injector::MakeCALL(pattern.count(2).get(1).get<void*>(9), CShadows::StoreStaticShadowNPC).get();
                 }
+
+                FusionFixSettings.SetCallback("PREF_HEADLIGHTSHADOWS", [](int32_t value)
+                {
+                    bHeadlightShadows = value;
+                });
+                bHeadlightShadows = FusionFixSettings("PREF_HEADLIGHTSHADOWS");
             }
         };
     }

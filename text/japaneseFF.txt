@@ -82,6 +82,9 @@ FPSリミッター
 [Shadow Filter]
 シャドウフィルター
 
+[HeadlightShadow]
+ヘッドライトの影
+
 [FF_WARN0]
 ~p~IMG ファイル:
 

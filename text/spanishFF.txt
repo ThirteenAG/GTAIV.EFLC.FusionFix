@@ -82,6 +82,9 @@ Transparencia de los árboles
 [Shadow Filter]
 Filtro de sombras
 
+[HeadlightShadow]
+Sombras de los faros
+
 [FF_WARN0]
 ~p~Archivos IMG:
 

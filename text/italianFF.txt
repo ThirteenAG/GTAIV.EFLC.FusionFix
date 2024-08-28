@@ -82,6 +82,9 @@ Alfa degli alberi
 [Shadow Filter]
 Filtro delle ombre
 
+[HeadlightShadow]
+Ombre dei fari
+
 [FF_WARN0]
 ~p~IMG Files:
 
