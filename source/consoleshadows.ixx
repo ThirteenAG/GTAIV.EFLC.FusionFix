@@ -14,7 +14,7 @@ bool bHeadlightShadows = false;
 bool bVehicleNightShadows = false;
 int __cdecl sub_AE3DE0(int a1, int a2)
 {
-    if (bVehicleNightShadows && !bHeadlightShadows)
+    if (bVehicleNightShadows || bHeadlightShadows)
         injector::cstd<void(int, int, int, int, int)>::call(fnAE3310, a1, 0, 0, 0, a2);
     return injector::cstd<int(int, int)>::call(fnAE3DE0, a1, a2);
 }
@@ -80,24 +80,24 @@ public:
             }
 
             // Enable player/ped shadows while in vehicles
-            if (bVehicleNightShadows)
-            {
-                auto pattern = hook::pattern("75 14 F6 86 ? ? ? ? ? 74 0B 80 7C 24 ? ? 0F 84 ? ? ? ? C6 44 24");
-                if (!pattern.empty())
-                {
-                    injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
-                    pattern = hook::pattern("75 12 8B 86 ? ? ? ? C1 E8 0B 25 ? ? ? ? 89 44 24 0C 85 D2");
-                    injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
-                }
-                else
-                {
-                    pattern = hook::pattern("75 17 F6 86 ? ? ? ? ? 74 0E 80 7C 24 ? ? 0F 84");
-                    injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
-                    pattern = hook::pattern("75 0F 8B 86 ? ? ? ? C1 E8 0B 24 01 88 44 24 0E");
-                    injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
-                }
-            
-            }
+            //if (bVehicleNightShadows)
+            //{
+            //    auto pattern = hook::pattern("75 14 F6 86 ? ? ? ? ? 74 0B 80 7C 24 ? ? 0F 84 ? ? ? ? C6 44 24");
+            //    if (!pattern.empty())
+            //    {
+            //        injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
+            //        pattern = hook::pattern("75 12 8B 86 ? ? ? ? C1 E8 0B 25 ? ? ? ? 89 44 24 0C 85 D2");
+            //        injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
+            //    }
+            //    else
+            //    {
+            //        pattern = hook::pattern("75 17 F6 86 ? ? ? ? ? 74 0E 80 7C 24 ? ? 0F 84");
+            //        injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
+            //        pattern = hook::pattern("75 0F 8B 86 ? ? ? ? C1 E8 0B 24 01 88 44 24 0E");
+            //        injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
+            //    }
+            //
+            //}
 
             // Headlight shadows
             {
@@ -107,19 +107,48 @@ public:
                     CShadows::hbStoreStaticShadow.fun = injector::MakeCALL(pattern.count(2).get(0).get<void*>(9), CShadows::StoreStaticShadowPlayerDriving).get();
                     CShadows::hbStoreStaticShadow.fun = injector::MakeCALL(pattern.count(2).get(1).get<void*>(9), CShadows::StoreStaticShadowPlayerDriving).get();
                 }
-
+            
                 pattern = hook::pattern("68 04 01 00 00 6A 02 6A 00");
                 if (!pattern.count(2).empty())
                 {
                     CShadows::hbStoreStaticShadow.fun = injector::MakeCALL(pattern.count(2).get(0).get<void*>(9), CShadows::StoreStaticShadowNPC).get();
                     CShadows::hbStoreStaticShadow.fun = injector::MakeCALL(pattern.count(2).get(1).get<void*>(9), CShadows::StoreStaticShadowNPC).get();
                 }
-
+            
                 FusionFixSettings.SetCallback("PREF_HEADLIGHTSHADOWS", [](int32_t value)
                 {
                     bHeadlightShadows = value;
                 });
                 bHeadlightShadows = FusionFixSettings("PREF_HEADLIGHTSHADOWS");
+
+                struct test
+                {
+                    void operator()(injector::reg_pack& regs)
+                    {
+                        auto FindPlayerCar = (int (*)())0x93F1C0;
+
+                        if (bHeadlightShadows && regs.esi == FindPlayerCar())
+                        {
+                            *(uintptr_t*)(regs.esp - 4) = 0xAE3867;
+                            return;
+                        }
+                
+                        if ((bVehicleNightShadows && !bHeadlightShadows) && (regs.eax == 3 || regs.eax == 4))
+                        {
+                            *(uintptr_t*)(regs.esp - 4) = 0xAE376B;
+                            return;
+                        }
+                
+                        if ((*(BYTE*)(regs.esi + 620) & 4) != 0)
+                        {
+                            
+                        }
+                        else
+                        {
+                            *(uintptr_t*)(regs.esp - 4) = 0xAE374F;
+                        }
+                    }
+                }; injector::MakeInline<test>(0xAE3736, 0xAE3744);
             }
         };
     }

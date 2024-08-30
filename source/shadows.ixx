@@ -92,7 +92,7 @@ int GetNightShadowQuality()
         return 512 * (bHighResolutionNightShadows ? 2 : 1);
         break;
     case 3: //MO_VHIGH
-        return 1024 * (bHighResolutionNightShadows ? 4 : 1);
+        return 1024 * (bHighResolutionNightShadows ? 2 : 1);
         break;
     default:
         return 0;
