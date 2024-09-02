@@ -126,11 +126,17 @@ public:
                     void operator()(injector::reg_pack& regs)
                     {
                         auto FindPlayerCar = (int (*)())0x93F1C0;
+                        auto getLocalPlayerPed = (int (*)())0x93F050;
 
-                        if (bHeadlightShadows && regs.esi == FindPlayerCar())
+                        if (bHeadlightShadows)
                         {
-                            *(uintptr_t*)(regs.esp - 4) = 0xAE3867;
-                            return;
+                            auto car = FindPlayerCar();
+
+                            if (regs.esi && (regs.esi == car || (regs.esi == getLocalPlayerPed() && car && *(BYTE*)(car + 0xFA0))))
+                            {
+                                *(uintptr_t*)(regs.esp - 4) = 0xAE3867;
+                                return;
+                            }
                         }
                 
                         if ((bVehicleNightShadows && !bHeadlightShadows) && (regs.eax == 3 || regs.eax == 4))
