@@ -1095,6 +1095,7 @@ private:
 
                             pDevice->SetTexture(2, PostFxResources.textureRead);
                             hr = pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
+                            pDevice->SetTexture(2, PostFxResources.renderTargetTex);
                             //PostFxResources.swapbuffers();
                             pDevice->SetSamplerState(2, D3DSAMP_SRGBTEXTURE, 0);
                             //pDevice->SetTexture(2, 0);
