@@ -1042,6 +1042,7 @@ export int bMenuNeedsUpdate2 = 0;
 export bool bEnableSnow = false;
 export bool bEnableHall = false;
 export bool bFixAutoExposure = true;
+export bool bHeadlightShadows = false;
 
 export inline LONG getWindowWidth()
 {

@@ -49,11 +49,21 @@ public:
                             if (imgNum >= imgArrSize) extra += FF_WARN1[0] ? FF_WARN1 : L"; ~r~WARNING: 255 IMG limit exceeded, will cause streaming issues.";
                         
                             static auto LamppostShadows = FusionFixSettings.GetRef("PREF_LAMPPOSTSHADOWS");
-                            if (LamppostShadows->get())
+                            if (LamppostShadows->get() || bHeadlightShadows)
                             {
                                 extra += L"~n~";
                                 extra += L"                        ";
-                                auto FF_WARN2 = CText::getText("FF_WARN2");
+                                auto FF_WARN2 = std::wstring(CText::getText("FF_WARN2"));
+                                auto HeadlightShadow = CText::getText("HeadlightShadow");
+
+                                if (bHeadlightShadows)
+                                {
+                                    auto pos = FF_WARN2.find(L": ");
+                                    if (pos != std::wstring::npos) {
+                                        FF_WARN2.replace(pos, 2, L": " + std::wstring(HeadlightShadow) + L" / ");
+                                    }
+                                }
+
                                 if (FF_WARN2[0])
                                     extra += FF_WARN2;
                                 else

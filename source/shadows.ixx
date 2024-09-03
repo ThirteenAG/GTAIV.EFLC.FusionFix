@@ -8,6 +8,7 @@ import <bitset>;
 import common;
 import comvars;
 import settings;
+import natives;
 
 int32_t bExtraDynamicShadows;
 std::string curModelName;
@@ -102,6 +103,32 @@ int GetNightShadowQuality()
 
 class Shadows
 {
+    static inline SafetyHookInline shsub_925DB0{};
+    static int __cdecl sub_925DB0(int a1, int a2, int flags)
+    {
+        static auto LamppostShadows = FusionFixSettings.GetRef("PREF_LAMPPOSTSHADOWS");
+        if (!LamppostShadows->get() && !bHeadlightShadows)
+        {
+            if (!Natives::IsInteriorScene())
+                return -1;
+        }
+
+        return shsub_925DB0.ccall<int>(a1, a2, flags);
+    }
+
+    static inline SafetyHookInline shsub_D77A00{};
+    static void __fastcall sub_D77A00(void* _this, void* edx)
+    {
+        static auto LamppostShadows = FusionFixSettings.GetRef("PREF_LAMPPOSTSHADOWS");
+        if (!LamppostShadows->get())
+        {
+            if (!Natives::IsInteriorScene())
+                return;
+        }
+
+        return shsub_D77A00.fastcall(_this, edx);
+    }
+
 public:
     Shadows()
     {
@@ -244,6 +271,36 @@ public:
                 // Fix night shadow resolution
                 pattern = find_pattern("8B 0D ? ? ? ? 85 C9 7E 1B", "8B 0D ? ? ? ? 33 C0 85 C9 7E 1B");
                 static auto shsub_925E70 = safetyhook::create_inline(pattern.get_first(0), GetNightShadowQuality);
+
+                // Lampposts shadows workaround
+                {
+                    auto pattern = hook::pattern("80 3D ? ? ? ? ? 75 04 83 C8 FF");
+                    shsub_925DB0 = safetyhook::create_inline(pattern.get_first(), sub_925DB0);
+
+                    pattern = find_pattern("83 EC 3C 80 3D ? ? ? ? ? 56 8B F1", "83 EC 3C 53 33 DB");
+                    shsub_D77A00 = safetyhook::create_inline(pattern.get_first(0), sub_D77A00);
+
+                    pattern = find_pattern("8B 55 20 F6 C1 06");
+                    if (!pattern.empty())
+                    {
+                        static auto ShadowsHook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            static auto LamppostShadows = FusionFixSettings.GetRef("PREF_LAMPPOSTSHADOWS");
+                            if (!LamppostShadows->get())
+                            {
+                                if (Natives::IsInteriorScene())
+                                {
+                                    if ((*(uint32_t*)(regs.edi + 0x4C) & 0x8000000) != 0) // new flag to detect affected lampposts
+                                    {
+                                        regs.ecx &= ~3;
+                                        regs.ecx &= ~4;
+                                        *(uint32_t*)(regs.esp + 0x18) = regs.ecx;
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
             }
         };
     }

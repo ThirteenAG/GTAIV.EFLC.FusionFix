@@ -10,11 +10,10 @@ import comvars;
 
 void* fnAE3DE0 = nullptr;
 void* fnAE3310 = nullptr;
-bool bHeadlightShadows = false;
 bool bVehicleNightShadows = false;
 int __cdecl sub_AE3DE0(int a1, int a2)
 {
-    if (bVehicleNightShadows || bHeadlightShadows)
+    if (bVehicleNightShadows)
         injector::cstd<void(int, int, int, int, int)>::call(fnAE3310, a1, 0, 0, 0, a2);
     return injector::cstd<int(int, int)>::call(fnAE3DE0, a1, a2);
 }
@@ -79,26 +78,6 @@ public:
                 sh_grcSetRendersState = safetyhook::create_inline(pattern.get_first(0), grcSetRenderStateHook);
             }
 
-            // Enable player/ped shadows while in vehicles
-            //if (bVehicleNightShadows)
-            //{
-            //    auto pattern = hook::pattern("75 14 F6 86 ? ? ? ? ? 74 0B 80 7C 24 ? ? 0F 84 ? ? ? ? C6 44 24");
-            //    if (!pattern.empty())
-            //    {
-            //        injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
-            //        pattern = hook::pattern("75 12 8B 86 ? ? ? ? C1 E8 0B 25 ? ? ? ? 89 44 24 0C 85 D2");
-            //        injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
-            //    }
-            //    else
-            //    {
-            //        pattern = hook::pattern("75 17 F6 86 ? ? ? ? ? 74 0E 80 7C 24 ? ? 0F 84");
-            //        injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
-            //        pattern = hook::pattern("75 0F 8B 86 ? ? ? ? C1 E8 0B 24 01 88 44 24 0E");
-            //        injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
-            //    }
-            //
-            //}
-
             // Headlight shadows
             {
                 auto pattern = hook::pattern("68 04 05 00 00 6A 02 6A 00");
@@ -121,40 +100,47 @@ public:
                 });
                 bHeadlightShadows = FusionFixSettings("PREF_HEADLIGHTSHADOWS");
 
-                struct test
+                pattern = hook::pattern("E8 ? ? ? ? 85 C0 74 29 6A 00");
+                if (!pattern.empty())
                 {
-                    void operator()(injector::reg_pack& regs)
+                    static auto getLocalPlayerPed = (int (*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
+                    static auto FindPlayerCar = (int (*)())injector::GetBranchDestination(pattern.get_first(11)).as_int();
+
+                    static auto loc_AE3867 = (uintptr_t)hook::get_pattern("8B 74 24 14 FF 44 24 10");
+                    static auto loc_AE376B = (uintptr_t)hook::get_pattern("85 D2 75 4C 0F B6 46 62 50");
+                    static auto loc_AE374F = (uintptr_t)hook::get_pattern("C6 44 24 ? ? 83 F8 04 75 12");
+
+                    pattern = hook::pattern("83 F8 03 75 14 F6 86");
+                    struct ShadowsHook
                     {
-                        auto FindPlayerCar = (int (*)())0x93F1C0;
-                        auto getLocalPlayerPed = (int (*)())0x93F050;
-
-                        if (bHeadlightShadows)
+                        void operator()(injector::reg_pack& regs)
                         {
-                            auto car = FindPlayerCar();
-
-                            if (regs.esi && (regs.esi == car || (regs.esi == getLocalPlayerPed() && car && *(BYTE*)(car + 0xFA0))))
+                            if (bHeadlightShadows && bVehicleNightShadows)
                             {
-                                *(uintptr_t*)(regs.esp - 4) = 0xAE3867;
+                                auto car = FindPlayerCar();
+
+                                // Disable player/car shadows
+                                if (regs.esi && (regs.esi == car || (regs.esi == getLocalPlayerPed() && car && *(uint32_t*)(car + 0xFA0) == regs.esi)))
+                                {
+                                    *(uintptr_t*)(regs.esp - 4) = loc_AE3867;
+                                    return;
+                                }
+                            }
+
+                            // Enable player/ped shadows while in vehicles
+                            if (bHeadlightShadows && bVehicleNightShadows && (regs.eax == 3 || regs.eax == 4))
+                            {
+                                *(uintptr_t*)(regs.esp - 4) = loc_AE376B;
                                 return;
                             }
+
+                            if ((*(uint8_t*)(regs.esi + 620) & 4) == 0)
+                            {
+                                *(uintptr_t*)(regs.esp - 4) = loc_AE374F;
+                            }
                         }
-                
-                        if ((bVehicleNightShadows && !bHeadlightShadows) && (regs.eax == 3 || regs.eax == 4))
-                        {
-                            *(uintptr_t*)(regs.esp - 4) = 0xAE376B;
-                            return;
-                        }
-                
-                        if ((*(BYTE*)(regs.esi + 620) & 4) != 0)
-                        {
-                            
-                        }
-                        else
-                        {
-                            *(uintptr_t*)(regs.esp - 4) = 0xAE374F;
-                        }
-                    }
-                }; injector::MakeInline<test>(0xAE3736, 0xAE3744);
+                    }; injector::MakeInline<ShadowsHook>(pattern.get_first(0), pattern.get_first(14));
+                }
             }
         };
     }
