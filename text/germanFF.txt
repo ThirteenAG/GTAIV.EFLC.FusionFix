@@ -82,6 +82,9 @@ Baumtransparenz
 [Shadow Filter]
 Schattenfilter
 
+[HeadlightShadow]
+Scheinwerfer-Schatten
+
 [FF_WARN0]
 ~p~IMG-Dateien:
 

@@ -82,6 +82,9 @@ Alpha des arbres
 [Shadow Filter]
 Filtre d'ombre
 
+[HeadlightShadow]
+Ombres des phares
+
 [FF_WARN0]
 ~p~Fichiers IMG:
 

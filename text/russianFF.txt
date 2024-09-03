@@ -82,6 +82,9 @@ Fusion Fix: Проверять Обновления
 [Shadow Filter]
 Фильтрация Теней
 
+[HeadlightShadow]
+Тени от фар
+
 [FF_WARN0]
 ~p~IMG Архивы:
 
