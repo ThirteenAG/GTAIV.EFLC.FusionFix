@@ -120,7 +120,7 @@ public:
                                 auto car = FindPlayerCar();
 
                                 // Disable player/car shadows
-                                if (regs.esi && (regs.esi == car || (regs.esi == getLocalPlayerPed() && car && *(uint32_t*)(car + 0xFA0) == regs.esi)))
+                                if (regs.esi && (regs.esi == car || (regs.esi == getLocalPlayerPed() && car && *(uint32_t*)(car + 0xFA0))))
                                 {
                                     *(uintptr_t*)(regs.esp - 4) = loc_AE3867;
                                     return;
