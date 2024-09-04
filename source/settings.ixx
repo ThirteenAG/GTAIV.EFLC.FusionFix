@@ -58,12 +58,12 @@ namespace CText
         auto pattern = find_pattern("B9 ? ? ? ? E8 ? ? ? ? 50 8D 84 24 ? ? ? ? 50 E8 ? ? ? ? 83 C4 0C", "B9 ? ? ? ? E8 ? ? ? ? 50 8D 84 24 ? ? ? ? 68 ? ? ? ? 50 BA ? ? ? ? E8 ? ? ? ? 83 C4 14");
         g_text = *pattern.get_first<CText*>(1);
 
-        pattern = find_pattern("83 EC 44 A1 ? ? ? ? 33 C4 89 44 24 40 8B 44 24 48 56 8B F1", "83 EC 44 A1 ? ? ? ? 33 C4 89 44 24 40 8B 44 24 48 85 C0");
-        Get = *pattern.get_first<const wchar_t* (__fastcall)(void*, void*, const char*)>(0);
-        //shGetText = safetyhook::create_inline(pattern.get_first(), getText);
+        pattern = find_pattern("E8 ? ? ? ? 50 68 ? ? ? ? 8D 84 24 ? ? ? ? 68 ? ? ? ? 50 E8 ? ? ? ? 83 C4 18", "E8 ? ? ? ? 50 8D 84 24 ? ? ? ? 68 ? ? ? ? 50 BA ? ? ? ? E8 ? ? ? ? 83 C4 14");
+        Get = (const wchar_t* (__fastcall*)(void*, void*, const char*))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+        //shGetText = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first()).as_int(), getText);
 
-        pattern = find_pattern("83 EC 48 A1 ? ? ? ? 33 C4 89 44 24 44 53 55", "83 EC 48 A1 ? ? ? ? 33 C4 89 44 24 44 53 55");
-        shGetTextByKey = safetyhook::create_inline(pattern.get_first(), getTextByKey);
+        pattern = find_pattern("E8 ? ? ? ? 50 8D 86 ? ? ? ? 50 E8 ? ? ? ? 83 C4 0C EB 27", "E8 ? ? ? ? 50 8D 8F ? ? ? ? 51");
+        shGetTextByKey = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first()).as_int(), getTextByKey);
 
         pattern = find_pattern("51 8B 44 24 08 53 8B D9 C6 44 24", "51 8B 44 24 08 85 C0 53 8B D9");
         shDoesTextLabelExist = safetyhook::create_inline(pattern.get_first(), doesTextLabelExist);
