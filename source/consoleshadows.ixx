@@ -7,6 +7,7 @@ export module consoleshadows;
 import common;
 import settings;
 import comvars;
+import natives;
 
 void* fnAE3DE0 = nullptr;
 void* fnAE3310 = nullptr;
@@ -94,11 +95,17 @@ public:
                     CShadows::hbStoreStaticShadow.fun = injector::MakeCALL(pattern.count(2).get(1).get<void*>(9), CShadows::StoreStaticShadowNPC).get();
                 }
             
-                FusionFixSettings.SetCallback("PREF_HEADLIGHTSHADOWS", [](int32_t value)
-                {
-                    bHeadlightShadows = value;
-                });
+                //FusionFixSettings.SetCallback("PREF_HEADLIGHTSHADOWS", [](int32_t value)
+                //{
+                //    bHeadlightShadows = value;
+                //});
                 bHeadlightShadows = FusionFixSettings("PREF_HEADLIGHTSHADOWS");
+
+                NativeOverride::RegisterPhoneCheat("1111111111", []
+                {
+                    bHeadlightShadows = !bHeadlightShadows;
+                    FusionFixSettings.Set("PREF_HEADLIGHTSHADOWS", bHeadlightShadows);
+                });
 
                 pattern = hook::pattern("E8 ? ? ? ? 85 C0 74 29 6A 00");
                 if (!pattern.empty())

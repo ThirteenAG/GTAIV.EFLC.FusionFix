@@ -107,7 +107,7 @@ class Shadows
     static int __cdecl sub_925DB0(int a1, int a2, int flags)
     {
         static auto LamppostShadows = FusionFixSettings.GetRef("PREF_LAMPPOSTSHADOWS");
-        if (!LamppostShadows->get() && !bHeadlightShadows)
+        if (!LamppostShadows->get())
         {
             if (!Natives::IsInteriorScene())
                 return -1;
