@@ -52,6 +52,7 @@ namespace CShadows
         return hbStoreStaticShadow.fun(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15);
     }
 }
+
 class ConsoleShadows
 {
 public:
@@ -135,7 +136,7 @@ public:
                             }
 
                             // Enable player/ped shadows while in vehicles
-                            if (bHeadlightShadows && bVehicleNightShadows && (regs.eax == 3 || regs.eax == 4))
+                            if ((bHeadlightShadows || bVehicleNightShadows) && (regs.eax == 3 || regs.eax == 4))
                             {
                                 *(uintptr_t*)(regs.esp - 4) = loc_AE376B;
                                 return;
