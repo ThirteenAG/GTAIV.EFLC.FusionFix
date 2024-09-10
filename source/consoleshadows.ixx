@@ -136,13 +136,13 @@ public:
                             }
 
                             // Enable player/ped shadows while in vehicles
-                            if ((bHeadlightShadows || bVehicleNightShadows) && (regs.eax == 3 || regs.eax == 4))
+                            if ((bHeadlightShadows || bVehicleNightShadows) && (((*(uint8_t*)(regs.esi + 620) & 4) != 0) && (regs.eax == 3 || regs.eax == 4)))
                             {
                                 *(uintptr_t*)(regs.esp - 4) = loc_AE376B;
                                 return;
                             }
 
-                            if ((*(uint8_t*)(regs.esi + 620) & 4) == 0)
+                            if (regs.eax != 3 || (*(uint8_t*)(regs.esi + 620) & 4) == 0)
                             {
                                 *(uintptr_t*)(regs.esp - 4) = loc_AE374F;
                             }
