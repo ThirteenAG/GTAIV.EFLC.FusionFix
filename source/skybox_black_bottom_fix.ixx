@@ -13,6 +13,11 @@ public:
     {
         FusionFix::onInitEvent() += []()
         {
+        	injector::game_version_manager ver;
+        	ver.Detect();
+        	hook::pattern p4;
+        	size_t addr;
+
             // preCE
           	if ((ver.GetMajorVersion() <= 1 && ver.GetMinorVersion() <= 0 && ver.GetMinorRevisionVersion() <= 8 && ver.GetMajorRevisionVersion() <= 0) ||
           		(ver.GetMajorVersion() <= 1 && ver.GetMinorVersion() <= 1 && ver.GetMinorRevisionVersion() <= 3 && ver.GetMajorRevisionVersion() <= 0)) {
