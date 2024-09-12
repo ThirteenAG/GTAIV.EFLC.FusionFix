@@ -74,7 +74,7 @@ Kantenglättung
 FPS-Begrenzung
 
 [LamppostShadows]
-Schatten für Straßenlaternen
+Straßenlaternen-Schatten
 
 [Tree Alpha]
 Baumtransparenz
@@ -92,7 +92,7 @@ Scheinwerfer-Schatten
 ; ~r~ACHTUNG: Obergrenze von 255 IMG-Dateien überschritten, was zu Streaming-Problemen führt.
 
 [FF_WARN2]
-~r~ACHTUNG: "Schatten für Straßenlaternen" kann zu Artefakten und Performance-Problemen führen.
+~r~ACHTUNG: Straßenlaternen-Schatten können zu Artefakten und Performance-Problemen führen.
 
 [FF_WARN3]
 ~r~ACHTUNG: Bei Werten von über 25 für die Sichtdistanz und über 31 für die Detaildistanz kann es zu Pop-in von Objekten kommen.
