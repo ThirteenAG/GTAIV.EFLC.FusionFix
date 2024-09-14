@@ -206,6 +206,22 @@ public:
                 auto sub_477300 = injector::GetBranchDestination(pattern.get_first(0));
                 pattern = find_pattern("E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? 83 C4 2C C3", "E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? 8B 35 ? ? ? ? E8 ? ? ? ? 25 FF FF 00 00");
                 injector::MakeCALL(pattern.get_first(0), sub_477300, true);
+
+                // related to the same issue
+                if (bForceNoMemRestrict)
+                {
+                    pattern = find_pattern("0F 85 ? ? ? ? A1 ? ? ? ? 85 C0 74 5C", "0F 85 ? ? ? ? A1 ? ? ? ? 85 C0 74 5A");
+                    if (!pattern.empty())
+                    {
+                        injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jnz -> jmp
+                    }
+                    else
+                    {
+                        pattern = find_pattern("75 7E A1 ? ? ? ? 85 C0");
+                        if (!pattern.empty())
+                            injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz -> jmp
+                    }
+                }
             }
 
             // Make LOD lights appear at the appropriate time like on the console version (consoles: 7 PM, pc: 10 PM)
@@ -472,21 +488,6 @@ public:
                         auto addr = pattern.get_first<float*>(3);
                         PatchVertices(*addr);
                     }
-                }
-            }
-
-            if (bForceNoMemRestrict)
-            {
-                auto pattern = find_pattern("0F 85 ? ? ? ? A1 ? ? ? ? 85 C0 74 5C", "0F 85 ? ? ? ? A1 ? ? ? ? 85 C0 74 5A");
-                if (!pattern.empty())
-                {
-                    injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jnz -> jmp
-                }
-                else
-                {
-                    pattern = find_pattern("75 7E A1 ? ? ? ? 85 C0");
-                    if (!pattern.empty())
-                        injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz -> jmp
                 }
             }
         };
