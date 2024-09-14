@@ -1,6 +1,7 @@
 module;
 
 #include <common.hxx>
+#include <psapi.h>
 
 export module extrainfo;
 
@@ -24,6 +25,8 @@ public:
                 auto pattern = hook::pattern("F3 0F 10 44 24 ? 6A FF 6A FF 50 83 EC 08 F3 0F 11 44 24 ? F3 0F 10 44 24 ? F3 0F 11 04 24 E8 ? ? ? ? 83 C4 14");
                 if (!pattern.empty())
                 {
+                    static auto dword_1BB5538 = *hook::get_pattern<uint32_t*>("89 1D ? ? ? ? 89 2D ? ? ? ? 85 FF", 2);
+
                     static auto PauseHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         static std::wstring extra = L"";
@@ -45,6 +48,13 @@ public:
 
                             auto FF_WARN0 = CText::getText("FF_WARN0");
                             extra += (FF_WARN0[0] ? FF_WARN0 : L"~p~IMG Files:") + std::wstring(L" ") + std::to_wstring(imgNum) + L" / " + std::to_wstring(imgArrSize);
+
+                            ::PROCESS_MEMORY_COUNTERS pmc;
+                            if (::GetProcessMemoryInfo(::GetCurrentProcess(), &pmc, sizeof(pmc)))
+                            {
+                                extra += L"; RAM: " + std::to_wstring(pmc.WorkingSetSize / 1000 / 1000) + L" / " + std::to_wstring(*dword_1BB5538 / 1000 / 1000) + L" MB";
+                            }
+
                             auto FF_WARN1 = CText::getText("FF_WARN1");
                             if (imgNum >= imgArrSize) extra += FF_WARN1[0] ? FF_WARN1 : L"; ~r~WARNING: 255 IMG limit exceeded, will cause streaming issues.";
                         

@@ -64,6 +64,7 @@ public:
 
             int32_t nAimingZoomFix = iniReader.ReadInteger("MAIN", "AimingZoomFix", 1);
             bool bRecoilFix = iniReader.ReadInteger("MAIN", "RecoilFix", 1) != 0;
+            bool bForceNoMemRestrict = iniReader.ReadInteger("MAIN", "ForceNoMemRestrict", 1) != 0;
 
             //[MISC]
             bool bDefaultCameraAngleInTLAD = iniReader.ReadInteger("MISC", "DefaultCameraAngleInTLAD", 0) != 0;
@@ -471,6 +472,21 @@ public:
                         auto addr = pattern.get_first<float*>(3);
                         PatchVertices(*addr);
                     }
+                }
+            }
+
+            if (bForceNoMemRestrict)
+            {
+                auto pattern = find_pattern("0F 85 ? ? ? ? A1 ? ? ? ? 85 C0 74 5C", "0F 85 ? ? ? ? A1 ? ? ? ? 85 C0 74 5A");
+                if (!pattern.empty())
+                {
+                    injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jnz -> jmp
+                }
+                else
+                {
+                    pattern = find_pattern("75 7E A1 ? ? ? ? 85 C0");
+                    if (!pattern.empty())
+                        injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz -> jmp
                 }
             }
         };
