@@ -130,8 +130,6 @@ FrameLimiter CutsceneFpsLimiter;
 FrameLimiter ScriptCutsceneFpsLimiter;
 FrameLimiter LoadingFpsLimiter;
 FrameLimiter LoadingFpsLimiter2;
-bool(*CCutscenes__hasCutsceneFinished)();
-bool(*CCamera__isWidescreenBordersActive)();
 bool bUnlockFramerateDuringLoadscreens = true;
 void __cdecl sub_855640()
 {
@@ -145,9 +143,9 @@ void __cdecl sub_855640()
         }
     }
 
-    if (CCamera__isWidescreenBordersActive())
+    if (CCamera::isWidescreenBordersActive())
     {
-        if (CCutscenes__hasCutsceneFinished())
+        if (CCutscenes::hasCutsceneFinished())
         {
             if (fCutsceneFpsLimit)
                 CutsceneFpsLimiter.Sync();
@@ -205,12 +203,7 @@ public:
                 LoadingFpsLimiter.Init(mode, std::clamp(fLoadingFpsLimit, 30.0f, FLT_MAX));
                 LoadingFpsLimiter2.Init(mode, 240.0f);
 
-                auto pattern = find_pattern("E8 ? ? ? ? 84 C0 75 89", "E8 ? ? ? ? 84 C0 75 15 38 05");
-                CCutscenes__hasCutsceneFinished = (bool(*)()) injector::GetBranchDestination(pattern.get_first(0)).get();
-                pattern = find_pattern("E8 ? ? ? ? 84 C0 75 44 38 05 ? ? ? ? 74 26", "E8 ? ? ? ? 84 C0 75 42 38 05");
-                CCamera__isWidescreenBordersActive = (bool(*)()) injector::GetBranchDestination(pattern.get_first(0)).get();
-
-                pattern = find_pattern("8B 35 ? ? ? ? 8B 0D ? ? ? ? 8B 15 ? ? ? ? A1", "A1 ? ? ? ? 83 F8 01 8B 0D");
+                auto pattern = find_pattern("8B 35 ? ? ? ? 8B 0D ? ? ? ? 8B 15 ? ? ? ? A1", "A1 ? ? ? ? 83 F8 01 8B 0D");
                 injector::WriteMemory(pattern.get_first(0), 0x901CC483, true); //nop + add esp,1C
                 injector::MakeJMP(pattern.get_first(4), sub_855640, true); // + jmp
 

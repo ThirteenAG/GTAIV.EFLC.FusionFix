@@ -914,6 +914,13 @@ export namespace CMenuManager
 export namespace CCutscenes
 {
     uint32_t* m_dwCutsceneState;
+
+    bool(*hasCutsceneFinished)();
+}
+
+export namespace CCamera
+{
+    bool(*isWidescreenBordersActive)();
 }
 
 export namespace CTimer
@@ -1227,5 +1234,10 @@ public:
 
         pattern = find_pattern("A1 ? ? ? ? 83 F8 08 74 17", "A1 ? ? ? ? 83 F8 08 74 0C");
         pMenuTab = *pattern.get_first<int32_t*>(1);
+
+        pattern = find_pattern("E8 ? ? ? ? 84 C0 75 89", "E8 ? ? ? ? 84 C0 75 15 38 05");
+        CCutscenes::hasCutsceneFinished = (bool(*)())injector::GetBranchDestination(pattern.get_first(0)).get();
+        pattern = find_pattern("E8 ? ? ? ? 84 C0 75 44 38 05 ? ? ? ? 74 26", "E8 ? ? ? ? 84 C0 75 42 38 05");
+        CCamera::isWidescreenBordersActive = (bool(*)())injector::GetBranchDestination(pattern.get_first(0)).get();
     }
 } Common;
