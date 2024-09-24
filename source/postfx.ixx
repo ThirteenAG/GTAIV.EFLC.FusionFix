@@ -1056,30 +1056,6 @@ private:
                         }
                     }
 
-                    // game postfx
-                    {
-                        for(int i = 0; i < 4; i++) {
-                            pDevice->SetTexture(i, PostFxResources.prePostFx[i]);
-                            pDevice->SetSamplerState(i, D3DSAMP_MAGFILTER, PostFxResources.Samplers[i]);
-                        }
-
-                        if(UsePostFxAA->get() > FusionFixSettings.AntialiasingText.eMO_OFF)
-                            pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
-                        else
-                            pDevice->SetRenderTarget(0, PostFxResources.backBuffer);
-                        pDevice->SetTexture(9, PostFxResources.blueNoiseVolume);
-                        pDevice->SetTexture(2, PostFxResources.textureRead);
-                        pDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 0, 0);
-
-                        pDevice->SetPixelShader(pShader);
-                        pDevice->SetVertexShader(vShader);
-                        //hr = pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-                        hbDrawPrimitivePostFX.fun();
-                        if(UsePostFxAA->get() > FusionFixSettings.AntialiasingText.eMO_OFF)
-                            PostFxResources.swapbuffers();
-
-                        pDevice->SetTexture(9, 0);
-                    }
                     // This implementation has some problems with cuts in some 
                     // places (when smoothing some diagonal lines there are pixels that break the smoothing), 
                     // I didn't find the reason, but using antialiasing.ixx it works almost perfectly despite being 
@@ -1090,13 +1066,13 @@ private:
                             pDevice->GetRenderState(D3DRS_SRGBWRITEENABLE, &OldSRGB); // save srgb state
                             pDevice->SetPixelShader(PostFxResources.FxaaPS);
 
-                            //pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
-                            pDevice->SetRenderTarget(0, PostFxResources.backBuffer);
+                            pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
+                                // pDevice->SetRenderTarget(0, PostFxResources.backBuffer);
 
                             pDevice->SetTexture(2, PostFxResources.textureRead);
                             hr = pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-                            pDevice->SetTexture(2, PostFxResources.renderTargetTex);
-                            //PostFxResources.swapbuffers();
+                                // pDevice->SetTexture(2, PostFxResources.renderTargetTex);
+                            PostFxResources.swapbuffers();
                             pDevice->SetSamplerState(2, D3DSAMP_SRGBTEXTURE, 0);
                             //pDevice->SetTexture(2, 0);
                             pDevice->SetPixelShader(pShader);
@@ -1152,8 +1128,8 @@ private:
                             vec4[3] = 4.0f;
                             pDevice->SetPixelShaderConstantF(5, vec4, 1);
 
-                            //pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
-                            pDevice->SetRenderTarget(0, PostFxResources.backBuffer);
+                            pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
+                                // pDevice->SetRenderTarget(0, PostFxResources.backBuffer);
                             pDevice->SetSamplerState(2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
 
                             //pDevice->SetTexture(2,  textureRead);
@@ -1162,7 +1138,7 @@ private:
                             pDevice->SetTexture(4, PostFxResources.blendTex->mD3DTexture);
                             pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, 0);
                             pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-                            //PostFxResources.swapbuffers();
+                            PostFxResources.swapbuffers();
                             pDevice->SetTexture(0, PostFxResources.prePostFx[0]);
                             pDevice->SetTexture(1, PostFxResources.prePostFx[1]);
                             pDevice->SetTexture(2, PostFxResources.textureRead);
@@ -1174,6 +1150,30 @@ private:
                         }
                     }
 
+                    // game postfx
+                    {
+                        for(int i = 0; i < 4; i++) {
+                            pDevice->SetTexture(i, PostFxResources.prePostFx[i]);
+                            pDevice->SetSamplerState(i, D3DSAMP_MAGFILTER, PostFxResources.Samplers[i]);
+                        }
+
+                            // if(UsePostFxAA->get() > FusionFixSettings.AntialiasingText.eMO_OFF)
+                            //     pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
+                            // else
+                            pDevice->SetRenderTarget(0, PostFxResources.backBuffer);
+                        pDevice->SetTexture(9, PostFxResources.blueNoiseVolume);
+                        pDevice->SetTexture(2, PostFxResources.textureRead);
+                        pDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 0, 0);
+
+                        pDevice->SetPixelShader(pShader);
+                        pDevice->SetVertexShader(vShader);
+                        //hr = pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
+                        hbDrawPrimitivePostFX.fun();
+                            // if(UsePostFxAA->get() > FusionFixSettings.AntialiasingText.eMO_OFF)
+                            //     PostFxResources.swapbuffers();
+
+                        pDevice->SetTexture(9, 0);
+                    }
                     for(int i = 0; i < PostfxTextureCount; i++) {
                         pDevice->SetTexture(i, PostFxResources.prePostFx[i]);
                         pDevice->SetSamplerState(i, D3DSAMP_MAGFILTER, PostFxResources.Samplers[i]);
