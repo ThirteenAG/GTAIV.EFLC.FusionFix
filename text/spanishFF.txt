@@ -11,7 +11,7 @@ Ventana
 Ventana sin bordes
 
 [Focus Loss]
-Juego en pausa al cambiar de ventana
+Pausar en segundo plano
 
 [LightSyncRGB]
 Logitech LightSync RGB
@@ -20,10 +20,10 @@ Logitech LightSync RGB
 Contador de FPS
 
 [Letterbox]
-Caja de texto en escenas
+Barras horizontales en escenas
 
 [Pillarbox]
-Caja de pilar en escenas
+Barras laterales en escenas
 
 [Alt. Dialogues]
 Diálogos alternativos
@@ -32,7 +32,7 @@ Diálogos alternativos
 Buscar actualizaciones de Fusion Fix
 
 [Raw Input]
-Entrada simple
+Entrada directa
 
 [Always Run]
 Correr siempre
@@ -41,7 +41,7 @@ Correr siempre
 Centrar cámara al cubrirse
 
 [Centering Delay]
-Posponer centralización cámara
+Demora al centrar cámara
 
 [Gamepad Icons]
 Iconos del mando
@@ -50,7 +50,7 @@ Iconos del mando
 Desenfoque de movimiento
 
 [Bloom]
-Efecto bloom
+Resplandor
 
 [Console Gamma]
 Gamma de consola
@@ -68,7 +68,7 @@ Iluminación de árboles
 Rayos solares
 
 [Antialiasing]
-Anti-aliasing
+Suavizado de líneas
 
 [FPS Limiter]
 Limitador de FPS
@@ -77,13 +77,13 @@ Limitador de FPS
 Sombras de farolas
 
 [Tree Alpha]
-Transparencia de los árboles
+Transparencia de árboles
 
 [Shadow Filter]
 Filtro de sombras
 
 [HeadlightShadow]
-Sombras de los faros
+Sombras de faros
 
 [FF_WARN0]
 ~p~Archivos IMG:
@@ -95,13 +95,13 @@ Sombras de los faros
 ~r~ATENCIÓN: Las sombras de farolas pueden causar errores visuales y problemas de rendimiento.
 
 [FF_WARN3]
-~r~ATENCIÓN: El valor de Distancia visible superior a 25 y el de Detalle de distancia superior a 31 pueden causar "pop-in" en los objetos.
+~r~ATENCIÓN: Los valores de distancia visible superiores a 25 y los valores de detalle de distancia superiores a 31 pueden causar que los objetos se dibujen bruscamente ("pop-in").
 
 [FF_WARN4]
-~r~ATENCIÓN: El valor de Distancia visible superior a 25 puede causar "pop-in" en los objetos.
+~r~ATENCIÓN: Los valores de distancia visible superiores a 25 pueden causar que los objetos se dibujen bruscamente ("pop-in").
 
 [FF_WARN5]
-~r~ATENCIÓN: El valor de Detalle de distancia superior a 31 puede causar "pop-in" en los objetos.
+~r~ATENCIÓN: Los valores de detalle de distancia superiores a 31 pueden causar que los objetos se dibujen bruscamente ("pop-in").
 
 [DUMMY_l11]
 Dummy label.
