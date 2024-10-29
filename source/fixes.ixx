@@ -501,6 +501,18 @@ public:
                     injector::MakeNOP(pattern.get_first(6), 23, true);
                 }
             }
+
+            // Enable the "first person" reticle (Annihilator, Buzzard) on gamepads as well, this used to be a keyboard & mouse feature only.
+            {
+                auto pattern = hook::pattern("85 F6 0F 84 ? ? ? ? 80 BE ? ? ? ? ? 0F 84 ? ? ? ? 85 C9 0F 84");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(0), 21, true);
+                else
+                {
+                    pattern = hook::pattern("8B 4C 24 24 85 C9 0F 84 ? ? ? ? 80 B9 ? ? ? ? ? 0F 84");
+                    injector::MakeNOP(pattern.get_first(0), 25, true);
+                }
+            }
         };
     }
 } Fixes;
