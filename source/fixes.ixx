@@ -490,6 +490,17 @@ public:
             //         }
             //     }
             // }
+
+            // HACK: Visually hide the mouse cursor when using a gamepad, doesn't actually disable the cursor so it might still interact with UI, also still shows in the start menu because...??
+            {
+                auto pattern = hook::pattern("75 1B 83 3D ? ? ? ? ? 75 12 6A 00 E8");
+                if (!pattern.empty())
+                {
+                    injector::WriteMemory<uint16_t>(pattern.get_first(0), 0x840F, true); // jnz short -> jz long
+                    injector::WriteMemory(pattern.get_first(2), (uintptr_t)hook::get_pattern("C6 05 ? ? ? ? ? 5F 5E 5D 5B 83 C4 2C C3", 7) - (uintptr_t)pattern.get_first(6), true);
+                    injector::MakeNOP(pattern.get_first(6), 23, true);
+                }
+            }
         };
     }
 } Fixes;
