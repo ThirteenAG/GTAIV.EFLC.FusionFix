@@ -464,6 +464,7 @@
     <menupc enum="MENU_DISPLAY_SHADOWFILTER">
       <options text="Soft" action="ACTION_NONE" value="1" />
       <options text="Sharp" action="ACTION_NONE" value="2" />
+      <options text="CHSS" action="ACTION_NONE" value="3" />
     </menupc>
     <menupc enum="MENU_DISPLAY_DOF">
       <options text="MO_OFF" action="ACTION_NONE" value="1" />
@@ -1183,7 +1184,7 @@
       <!--optionspc action="MENUOPT_ADJUST" label="MO_DOF" value="PREF_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" /-->
       <optionspc action="MENUOPT_ADJUST" label="MO_VSYNC" value="PREF_VSYNC" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-      <optionspc action="MENUOPT_ADJUST" label="Shadow Filter" value="PREF_SHADOWFILTER" scaler="5" displayValue="MENU_DISPLAY_SHADOWFILTER" />
+      <optionspc action="MENUOPT_ADJUST" label="Shadow Filter" value="PREF_SHADOWFILTER" scaler="6" displayValue="MENU_DISPLAY_SHADOWFILTER" />
       <optionspc action="MENUOPT_ADJUST" label="Sun Shafts" value="PREF_SUNSHAFTS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="MENUOPT_ADJUST" label="Antialiasing" value="PREF_ANTIALIASING" scaler="8" displayValue="MENU_DISPLAY_ANTIALIASING" />
       <optionspc action="MENUOPT_ADJUST" label="FPS Limiter" value="PREF_FPS_LIMIT_PRESET" scaler="15" displayValue="MENU_DISPLAY_FRAMELIMIT" />
@@ -1210,7 +1211,7 @@
       <!--optionspc action="MENUOPT_ADJUST" label="MO_DOF" value="PREF_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" /-->
       <optionspc action="MENUOPT_ADJUST" label="MO_VSYNC" value="PREF_VSYNC" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-      <optionspc action="MENUOPT_ADJUST" label="Shadow Filter" value="PREF_SHADOWFILTER" scaler="5" displayValue="MENU_DISPLAY_SHADOWFILTER" />
+      <optionspc action="MENUOPT_ADJUST" label="Shadow Filter" value="PREF_SHADOWFILTER" scaler="6" displayValue="MENU_DISPLAY_SHADOWFILTER" />
       <optionspc action="MENUOPT_ADJUST" label="Sun Shafts" value="PREF_SUNSHAFTS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="MENUOPT_ADJUST" label="Antialiasing" value="PREF_ANTIALIASING" scaler="8" displayValue="MENU_DISPLAY_ANTIALIASING" />
       <optionspc action="MENUOPT_ADJUST" label="FPS Limiter" value="PREF_FPS_LIMIT_PRESET" scaler="15" displayValue="MENU_DISPLAY_FRAMELIMIT" />

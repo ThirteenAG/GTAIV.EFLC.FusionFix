@@ -425,9 +425,9 @@ public:
     struct
     {
         enum eShadowFilterText {
-            eRadio, eSequential, eShuffle, eSoft, eSharp
+            eRadio, eSequential, eShuffle, eSoft, eSharp, eCHSS
         };
-        std::vector<const char*> data = { "Radio", "Sequential", "Shuffle", "Soft", "Sharp", };
+        std::vector<const char*> data = { "Radio", "Sequential", "Shuffle", "Soft", "Sharp", "CHSS",};
     } ShadowFilterText;
 
     struct

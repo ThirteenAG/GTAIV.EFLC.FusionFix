@@ -103,5 +103,8 @@ Headlight Shadows
 [FF_WARN5]
 ~r~WARNING: Detail Distance slider above 31 may cause object pop-in.
 
+[FF_WARN6]
+~r~WARNING: CHSS only takes effect with Shadow Quality set to Very High.
+
 [DUMMY_l11]
 Dummy label.

@@ -59,32 +59,10 @@ public:
                 {
                     void operator()(injector::reg_pack& regs)
                     {
-                        regs.xmm0.f32[0] = (*f1032790) / 10.0f;
+                        regs.xmm0.f32[0] = *f1032790 * *CTimer::fTimeStep;
+                        regs.xmm0.f32[0] += regs.xmm1.f32[0];
                     }
-                }; injector::MakeInline<LoadingTextSpeed>(pattern.get_first(0), pattern.get_first(8));
-            }
-
-            pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 05 ? ? ? ? F3 0F 11 05");
-            if (!pattern.empty())
-            {
-                struct LoadingTextSpeed2
-                {
-                    void operator()(injector::reg_pack& regs)
-                    {
-                        regs.xmm0.f32[0] *= (1000.0f) / 10.0f;
-                    }
-                }; injector::MakeInline<LoadingTextSpeed2>(pattern.get_first(0), pattern.get_first(8));
-            }
-            else
-            {
-                pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 05 ? ? ? ? F3 0F 11 05");
-                struct LoadingTextSpeed2
-                {
-                    void operator()(injector::reg_pack& regs)
-                    {
-                        regs.xmm0.f32[0] *= (1000.0f) / 10.0f;
-                    }
-                }; injector::MakeInline<LoadingTextSpeed2>(pattern.get_first(0), pattern.get_first(8));
+                }; injector::MakeInline<LoadingTextSpeed>(pattern.get_first(0), pattern.get_first(12));
             }
 
             pattern = hook::pattern("F3 0F 58 0D ? ? ? ? 0F 5B C0 F3 0F 11 0D");
@@ -94,7 +72,7 @@ public:
                 {
                     void operator()(injector::reg_pack& regs)
                     {
-                        regs.xmm1.f32[0] += (0.085f) / 10.0f;
+                        regs.xmm1.f32[0] += 0.085f * *CTimer::fTimeStep;
                     }
                 }; injector::MakeInline<LoadingTextSparks>(pattern.get_first(0), pattern.get_first(8));
             }
@@ -105,27 +83,42 @@ public:
                 {
                     void operator()(injector::reg_pack& regs)
                     {
-                        regs.xmm0.f32[0] += (0.085f) / 5.0f;
+                        regs.xmm0.f32[0] += 0.085f * *CTimer::fTimeStep;
                     }
                 }; injector::MakeInline<LoadingTextSparks>(pattern.get_first(0), pattern.get_first(8));
             }
 
-            // Slow down the "CD/busy spinner" at 60 FPS, will be slower below or faster above this framerate
-            pattern = find_pattern("F3 0F 58 05 ? ? ? ? 33 C0 A3 ? ? ? ? F3 0F 11 05", "F3 0F 58 15 ? ? ? ? 33 C0 F3 0F 11 15 ? ? ? ? A3 ? ? ? ? 8B 0D");
+            // CD/busy spinner
+            pattern = find_pattern("F3 0F 58 05 ? ? ? ? 33 C0 A3 ? ? ? ? F3 0F 11 05");
             if (!pattern.empty())
             {
                 struct CDSpinnerHook
                 {
                     void operator()(injector::reg_pack& regs)
                     {
-                        regs.xmm2.f32[0] += (0.17453294f) / 3.0f;
+                        regs.xmm0.f32[0] += *CTimer::fTimeStep * 5.0f;
                     }
                 }; injector::MakeInline<CDSpinnerHook>(pattern.get_first(0), pattern.get_first(8));
             }
             
-            // Slow down the cop blips at 60 FPS, will be slower below or faster above this framerate
-            pattern = find_pattern("6B C0 15 53 8B DA B9 ? ? ? ? 33 D2 F7 F1", "6B C0 15 C1 EA 05 53 8B DA 33 D2 B9");
-            injector::WriteMemory<uint8_t>(pattern.get_first(2), 7, true);
+            // Cop blips
+            static int CustomFrameCounter = 0;
+            pattern = hook::pattern("A1 ? ? ? ? 6B C0 15");
+            if (!pattern.empty())
+                injector::WriteMemory(pattern.get_first(1), &CustomFrameCounter, true);
+
+            pattern = hook::pattern("FF 05 ? ? ? ? F3 0F 2C C0");
+            if (!pattern.empty())
+            {
+                static auto CounterHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                {
+                    static float accumulator = 0.0f;
+                    accumulator += (*CTimer::fTimeStep / (1.0f / 30.0f));
+                    int increment = static_cast<int>(accumulator);
+                    CustomFrameCounter += increment;
+                    accumulator -= increment;
+                });
+            }
         };
     }
 } FramerateVigilante;

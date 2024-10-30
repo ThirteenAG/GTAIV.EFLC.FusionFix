@@ -95,6 +95,17 @@ public:
                                     extra += FF_WARN5[0] ? FF_WARN5 : L"~r~WARNING: Detail Distance slider above 31 may cause object pop-in.";
                             }
 
+                            if (FusionFixSettings.Get("PREF_SHADOWFILTER") == FusionFixSettings.ShadowFilterText.eCHSS)
+                            {
+                                if (FusionFixSettings.Get("PREF_SHADOW_QUALITY") < 4) // Very High
+                                {
+                                    extra += L"~n~";
+                                    extra += L"                        ";
+                                    auto FF_WARN6 = CText::getText("FF_WARN6");
+                                    extra += FF_WARN6[0] ? FF_WARN6 : L"~r~WARNING: CHSS only takes effect with Shadow Quality set to Very High.";
+                                }
+                            }
+
                             regs.eax = (uintptr_t)extra.c_str();
                         }
                     });

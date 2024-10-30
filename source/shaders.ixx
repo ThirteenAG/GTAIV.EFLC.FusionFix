@@ -57,6 +57,12 @@ public:
         static float fSHADOWFILTERSOFTShadowSoftness = 3.0f;
         static float fSHADOWFILTERSOFTShadowBias = 8.0f;
 
+        static float fSHADOWFILTERCHSSShadowSoftness = 1.5f;
+        static float fSHADOWFILTERCHSSShadowBias = 5.0f;
+        static float fSHADOWFILTERCHSSMaxSoftness = 10.0f;
+        static float fSHADOWFILTERCHSSLightSize = 500.0f;
+        static float fSHADOWFILTERCHSSExtraBias = 2.0f;
+
         static float fShadowBlendRange = 0.3f;
 
         static int nForceShadowFilter = 0;
@@ -72,6 +78,13 @@ public:
             fSHADOWFILTERSHARPShadowBias = iniReader.ReadFloat("SHADOWFILTERSHARP", "ShadowBias", 5.0f);
             fSHADOWFILTERSOFTShadowSoftness = iniReader.ReadFloat("SHADOWFILTERSOFT", "ShadowSoftness", 3.0f);
             fSHADOWFILTERSOFTShadowBias = iniReader.ReadFloat("SHADOWFILTERSOFT", "ShadowBias", 8.0f);
+
+            fSHADOWFILTERCHSSShadowSoftness = iniReader.ReadFloat("SHADOWFILTERCHSS", "ShadowSoftness", 1.5f);
+            fSHADOWFILTERCHSSShadowBias = iniReader.ReadFloat("SHADOWFILTERCHSS", "ShadowBias", 5.0f);
+            fSHADOWFILTERCHSSMaxSoftness = iniReader.ReadFloat("SHADOWFILTERCHSS", "MaxSoftness", 10.0f);
+            fSHADOWFILTERCHSSLightSize = iniReader.ReadFloat("SHADOWFILTERCHSS", "LightSize", 500.0f);
+            fSHADOWFILTERCHSSExtraBias = iniReader.ReadFloat("SHADOWFILTERCHSS", "ExtraBias", 2.0f);
+
             fShadowBlendRange = std::clamp(iniReader.ReadFloat("SHADOWS", "ShadowBlendRange", 0.3f), 0.0f, 1.0f);
             nForceShadowFilter = std::clamp(iniReader.ReadInteger("SHADOWS", "ForceShadowFilter", 0), 0, 2);
             bool bConsoleCarReflectionsAndDirt = iniReader.ReadInteger("MISC", "ConsoleCarReflectionsAndDirt", 1) != 0;
@@ -172,6 +185,7 @@ public:
                     // Shadow Ini Settings
                     {
                         static float arr7[4];
+                        static float arr9[4];
                         static auto shadowFilter = FusionFixSettings.GetRef("PREF_SHADOWFILTER");
 
                         if (shadowFilter->get() == FusionFixSettings.ShadowFilterText.eSoft)
@@ -179,16 +193,31 @@ public:
                             arr7[0] = fSHADOWFILTERSOFTShadowSoftness;
                             arr7[1] = fSHADOWFILTERSOFTShadowBias;
                         }
-                        else
+                        else if (shadowFilter->get() == FusionFixSettings.ShadowFilterText.eSharp)
                         {
                             arr7[0] = fSHADOWFILTERSHARPShadowSoftness;
                             arr7[1] = fSHADOWFILTERSHARPShadowBias;
+                        }
+                        else //eCHSS
+                        {
+                            arr7[0] = fSHADOWFILTERCHSSShadowSoftness;
+                            arr7[1] = fSHADOWFILTERCHSSShadowBias;
                         }
 
                         arr7[2] = fShadowBlendRange;
                         arr7[3] = bEnableSnow ? 1.0f : 0.0f;
 
                         pDevice->SetPixelShaderConstantF(218, &arr7[0], 1);
+
+                        arr9[0] = bHighResolutionShadows ? fSHADOWFILTERCHSSMaxSoftness * 2.0f : fSHADOWFILTERCHSSMaxSoftness;
+                        arr9[1] = bHighResolutionShadows ? fSHADOWFILTERCHSSLightSize * 2.0f : fSHADOWFILTERCHSSLightSize;
+                        arr9[2] = fSHADOWFILTERCHSSExtraBias;
+                        if (FusionFixSettings.Get("PREF_SHADOW_QUALITY") >= 4) // Very High
+                            arr9[3] = shadowFilter->get() == FusionFixSettings.ShadowFilterText.eCHSS ? 1.0f : 0.0f;
+                        else
+                            arr9[3] = 0.0f;
+
+                        pDevice->SetPixelShaderConstantF(217, &arr9[0], 1);
                     }
 
                     // Shadow Quality

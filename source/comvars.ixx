@@ -1050,6 +1050,7 @@ export bool bEnableSnow = false;
 export bool bEnableHall = false;
 export bool bFixAutoExposure = true;
 export bool bHeadlightShadows = false;
+export bool bHighResolutionShadows = false;
 
 export inline LONG getWindowWidth()
 {

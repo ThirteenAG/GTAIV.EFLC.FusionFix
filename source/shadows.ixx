@@ -140,7 +140,7 @@ public:
             bExtraDynamicShadows = iniReader.ReadInteger("SHADOWS", "ExtraDynamicShadows", 1);
             bDynamicShadowForTrees = iniReader.ReadInteger("SHADOWS", "DynamicShadowForTrees", 1) != 0;
             bool bOverrideCascadeRanges = iniReader.ReadInteger("SHADOWS", "OverrideCascadeRanges", 1) != 0;
-            bool bHighResolutionShadows = iniReader.ReadInteger("SHADOWS", "HighResolutionShadows", 0) != 0;
+            bHighResolutionShadows = iniReader.ReadInteger("SHADOWS", "HighResolutionShadows", 0) != 0;
             bHighResolutionNightShadows = iniReader.ReadInteger("SHADOWS", "HighResolutionNightShadows", 0) != 0;
             bool bOverrideShadowMatrix = iniReader.ReadInteger("SHADOWS", "OverrideShadowMatrix", 1) != 0;
 
@@ -321,7 +321,7 @@ public:
 
                 for (size_t i = 0; i < 4; i++) // low medium high veryhigh
                 {
-                    injector::scoped_unprotect(&pShadowMatrix[i], sizeof(pShadowMatrix));
+                    injector::scoped_unprotect(&pShadowMatrix[i], sizeof(ShadowMatrix));
 
                     pShadowMatrix[i].ShadowMatrix0 = 0.0f;
                     pShadowMatrix[i].ShadowMatrix1 = 0.0f;
