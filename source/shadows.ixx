@@ -142,6 +142,7 @@ public:
             bool bOverrideCascadeRanges = iniReader.ReadInteger("SHADOWS", "OverrideCascadeRanges", 1) != 0;
             bool bHighResolutionShadows = iniReader.ReadInteger("SHADOWS", "HighResolutionShadows", 0) != 0;
             bHighResolutionNightShadows = iniReader.ReadInteger("SHADOWS", "HighResolutionNightShadows", 0) != 0;
+            bool bOverrideShadowMatrix = iniReader.ReadInteger("SHADOWS", "OverrideShadowMatrix", 1) != 0;
 
             if (bExtraDynamicShadows || bDynamicShadowForTrees)
             {
@@ -300,6 +301,32 @@ public:
                             }
                         });
                     }
+                }
+            }
+
+            // Subtract shadow static bias directly in game code. Should this have an ini option...?
+            if (bOverrideShadowMatrix)
+            {
+                struct ShadowMatrix
+                {
+                    float ShadowMatrix0;
+                    float ShadowMatrix1;
+                    float ShadowMatrix2;
+                    float ShadowMatrix3;
+                };
+
+                auto pattern = find_pattern("F3 0F 10 14 85 ? ? ? ? F3 0F 10 0C 85 ? ? ? ? F3 0F 5C CA F3 0F 59 C8 F3 0F 58 CA F3 0F 11 0C B5",
+                                            "F3 0F 10 94 00 ? ? ? ? F3 0F 10 9C 00 ? ? ? ? 03 C0 F3 0F 5C DA F3 0F 5E D9 F3 0F 59 D8 F3 0F 58 DA F3 0F 11 1C BD");
+                auto pShadowMatrix = *pattern.get_first<ShadowMatrix*>(5);
+
+                for (size_t i = 0; i < 4; i++) // low medium high veryhigh
+                {
+                    injector::scoped_unprotect(&pShadowMatrix[i], sizeof(pShadowMatrix));
+
+                    pShadowMatrix[i].ShadowMatrix0 = 0.0f;
+                    pShadowMatrix[i].ShadowMatrix1 = 0.0f;
+                    pShadowMatrix[i].ShadowMatrix2 = 0.0f;
+                    pShadowMatrix[i].ShadowMatrix3 = 0.0f;
                 }
             }
         };

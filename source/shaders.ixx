@@ -74,6 +74,7 @@ public:
             fSHADOWFILTERSOFTShadowBias = iniReader.ReadFloat("SHADOWFILTERSOFT", "ShadowBias", 8.0f);
             fShadowBlendRange = std::clamp(iniReader.ReadFloat("SHADOWS", "ShadowBlendRange", 0.3f), 0.0f, 1.0f);
             nForceShadowFilter = std::clamp(iniReader.ReadInteger("SHADOWS", "ForceShadowFilter", 0), 0, 2);
+            bool bConsoleCarReflectionsAndDirt = iniReader.ReadInteger("MISC", "ConsoleCarReflectionsAndDirt", 1) != 0;
 
             // Redirect path to one unified folder
             auto pattern = hook::pattern("8B 04 8D ? ? ? ? A3 ? ? ? ? 8B 44 24 04");
@@ -101,6 +102,28 @@ public:
                         *(const char**)&regs.edx = *off_1045520;
                     }
                 }; injector::MakeInline<ShaderPathHook>(pattern.get_first(0), pattern.get_first(7));
+            }
+
+            // Pass the correct value for gAmbientAmount to the rain shader (gta_rmptfx_gpurender).
+            // The Game reads the rain.* values in visualsettings.dat properly but then overrides them with custom values.
+            // This makes rain drops more visible, this was done in shader before but moved here instead.
+            {
+                auto pattern = find_pattern("F3 0F 10 05 ? ? ? ? 6A 10 8B D9 8B 4F 18 F3 0F 11 44 24 ? F3 0F 10 05", "F3 0F 10 05 ? ? ? ? 68 ? ? ? ? F3 0F 11 44 24 ? F3 0F 10 05 ? ? ? ? 50 F3 0F 11 44 24");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(0), 8, true); // rain.ambient (gAmbientAmount): 0.1 -> 0.4
+                    pattern = find_pattern("F3 0F 11 44 24 ? F3 0F 10 05 ? ? ? ? 68 ? ? ? ? FF 73 14 F3 0F 11 44 24", "F3 0F 11 44 24 ? F3 0F 10 05 ? ? ? ? 50 F3 0F 11 44 24 ? F3 0F 10 05 ? ? ? ? 8D 5F 14 53 F3 0F 11 44 24");
+                    injector::MakeNOP(pattern.get_first(0), 6, true); 
+                }
+            }
+
+            // Restore console car reflections and dirt level settings. Any car on console could have dirt when they would spawn while on PC some cars _always_ spawn fully cleaned.
+            if (bConsoleCarReflectionsAndDirt)
+            {
+                auto pattern = find_pattern("75 0C C7 87 ? ? ? ? ? ? ? ? EB 20 66 0F 6E C2 F3 0F E6 C0 C1 EA 1F F2 0F 58 04 D5", "75 0D 0F 57 C0 F3 0F 11 86 ? ? ? ? EB 18 85 D2 89 54 24 10 DB 44 24 10 7D 06 D8 05");
+                injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
+                pattern = find_pattern("75 37 C7 47 ? ? ? ? ? C7 87 ? ? ? ? ? ? ? ? C7 87", "75 3A F3 0F 10 05 ? ? ? ? F3 0F 11 46 ? F3 0F 11 86");
+                injector::MakeNOP(pattern.get_first(0), 2, true);
             }
         };
 

@@ -490,6 +490,29 @@ public:
             //         }
             //     }
             // }
+
+            // HACK: Visually hide the mouse cursor when using a gamepad, doesn't actually disable the cursor so it might still interact with UI, also still shows in the start menu because...??
+            {
+                auto pattern = hook::pattern("75 1B 83 3D ? ? ? ? ? 75 12 6A 00 E8");
+                if (!pattern.empty())
+                {
+                    injector::WriteMemory<uint16_t>(pattern.get_first(0), 0x840F, true); // jnz short -> jz long
+                    injector::WriteMemory(pattern.get_first(2), (uintptr_t)hook::get_pattern("C6 05 ? ? ? ? ? 5F 5E 5D 5B 83 C4 2C C3", 7) - (uintptr_t)pattern.get_first(6), true);
+                    injector::MakeNOP(pattern.get_first(6), 23, true);
+                }
+            }
+
+            // Enable the "first person" reticle (Annihilator, Buzzard) on gamepads as well, this used to be a keyboard & mouse feature only.
+            {
+                auto pattern = hook::pattern("85 F6 0F 84 ? ? ? ? 80 BE ? ? ? ? ? 0F 84 ? ? ? ? 85 C9 0F 84");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(0), 21, true);
+                else
+                {
+                    pattern = hook::pattern("8B 4C 24 24 85 C9 0F 84 ? ? ? ? 80 B9 ? ? ? ? ? 0F 84");
+                    injector::MakeNOP(pattern.get_first(0), 25, true);
+                }
+            }
         };
     }
 } Fixes;
