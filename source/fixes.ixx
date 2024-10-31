@@ -70,6 +70,8 @@ public:
             bool bDefaultCameraAngleInTLAD = iniReader.ReadInteger("MISC", "DefaultCameraAngleInTLAD", 0) != 0;
             bool bPedDeathAnimFixFromTBOGT = iniReader.ReadInteger("MISC", "PedDeathAnimFixFromTBOGT", 1) != 0;
 
+            bool bAlwaysDisplayHealthOnReticle = iniReader.ReadInteger("MISC", "AlwaysDisplayHealthOnReticle", 0) != 0;
+
             //fix for zoom flag in tbogt
             if (nAimingZoomFix)
             {
@@ -512,6 +514,46 @@ public:
                 {
                     pattern = hook::pattern("8B 4C 24 24 85 C9 0F 84 ? ? ? ? 80 B9 ? ? ? ? ? 0F 84");
                     injector::MakeNOP(pattern.get_first(0), 25, true);
+                }
+            }
+
+            // Always display the ped health on the reticle with free-aim while on foot, used to be a gamepad + multiplayer only feature (PC is always free-aim unless it's melee combat).
+            if (bAlwaysDisplayHealthOnReticle)
+            {
+                auto pattern = hook::pattern("80 3D ? ? ? ? ? 75 64 A1 ? ? ? ? 8B 0C 85");
+                if (!pattern.empty())
+                {
+                    static auto loc_5C8E93 = (uintptr_t)pattern.get_first(0);
+                    
+                    pattern = hook::pattern("80 BB ? ? ? ? ? 74 61 56 57 E8");
+                    struct ReticleHealthHook
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            if (!(*(uint8_t*)(regs.ebx + 12941)) || !(*(uint8_t*)(regs.ebx + 12940)))
+                                *(uintptr_t*)(regs.esp - 4) = loc_5C8E93;
+                        }
+                    }; injector::MakeInline<ReticleHealthHook>(pattern.get_first(0), pattern.get_first(9));
+
+                    pattern = hook::pattern("75 0C 38 83 ? ? ? ? 0F 84");
+                    injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
+                }
+                else
+                {
+                    static auto loc_5C8E93 = (uintptr_t)hook::get_pattern("80 3D ? ? ? ? ? 75 6A A1 ? ? ? ? 8B 04 85");
+
+                    pattern = hook::pattern("80 B9 ? ? ? ? ? 74 6D 56 57 E8");
+                    struct ReticleHealthHook
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            if (!(*(uint8_t*)(regs.ecx + 12941)) || !(*(uint8_t*)(regs.ecx + 12940)))
+                                *(uintptr_t*)(regs.esp - 4) = loc_5C8E93;
+                        }
+                    }; injector::MakeInline<ReticleHealthHook>(pattern.get_first(0), pattern.get_first(9));
+
+                    pattern = hook::pattern("75 0C 38 86 ? ? ? ? 0F 84");
+                    injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
                 }
             }
         };
