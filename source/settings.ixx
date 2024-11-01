@@ -206,7 +206,7 @@ public:
             { 0, "PREF_TIMECYC",           "MISC",       "ScreenFilter",                    "MENU_DISPLAY_TIMECYC",       5, nullptr, TimecycText.eMO_DEF, std::distance(std::begin(TimecycText.data), std::end(TimecycText.data)) - 1 },
             { 0, "PREF_WINDOWED",          "MAIN",       "Windowed",                        "",                           0, nullptr, 0, 1 },
             { 0, "PREF_DEFINITION",        "MAIN",       "Definition",                      "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_SHADOWFILTER",      "SHADOWS",    "ShadowFilter",                    "MENU_DISPLAY_SHADOWFILTER",  5, nullptr, ShadowFilterText.eSoft, std::distance(std::begin(ShadowFilterText.data), std::end(ShadowFilterText.data)) - 1 },
+            { 0, "PREF_SHADOWFILTER",      "SHADOWS",    "ShadowFilter",                    "MENU_DISPLAY_SHADOWFILTER",  3, nullptr, ShadowFilterText.eSharp, std::distance(std::begin(ShadowFilterText.data), std::end(ShadowFilterText.data)) - 1 },
             { 0, "PREF_TREE_LIGHTING",     "MISC",       "TreeLighting",                    "MENU_DISPLAY_TREE_LIGHTING", 7, nullptr, TreeFxText.ePC, std::distance(std::begin(TreeFxText.data), std::end(TreeFxText.data)) - 1 },
             { 0, "PREF_TCYC_DOF",          "MISC",       "DepthOfField",                    "MENU_DISPLAY_DOF",           7, nullptr, DofText.eOff, std::distance(std::begin(DofText.data), std::end(DofText.data)) - 1 },
             { 0, "PREF_MOTIONBLUR",        "MAIN",       "MotionBlur",                      "",                           0, nullptr, 0, 1 },
@@ -425,9 +425,9 @@ public:
     struct
     {
         enum eShadowFilterText {
-            eRadio, eSequential, eShuffle, eSoft, eSharp, eCHSS
+            eRadio, eSequential, eShuffle, eSharp, eSoft, eCHSS
         };
-        std::vector<const char*> data = { "Radio", "Sequential", "Shuffle", "Soft", "Sharp", "CHSS",};
+        std::vector<const char*> data = { "Radio", "Sequential", "Shuffle", "Sharp", "Soft", "CHSS",};
     } ShadowFilterText;
 
     struct

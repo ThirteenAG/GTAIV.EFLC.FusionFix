@@ -462,8 +462,8 @@
       <options text="360" action="ACTION_NONE" value="12" />
     </menupc>
     <menupc enum="MENU_DISPLAY_SHADOWFILTER">
-      <options text="Soft" action="ACTION_NONE" value="1" />
-      <options text="Sharp" action="ACTION_NONE" value="2" />
+      <options text="Sharp" action="ACTION_NONE" value="1" />
+      <options text="Soft" action="ACTION_NONE" value="2" />
       <options text="CHSS" action="ACTION_NONE" value="3" />
     </menupc>
     <menupc enum="MENU_DISPLAY_DOF">

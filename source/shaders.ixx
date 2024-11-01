@@ -63,7 +63,8 @@ public:
         static float fSHADOWFILTERCHSSLightSize = 500.0f;
         static float fSHADOWFILTERCHSSExtraBias = 2.0f;
 
-        static float fShadowBlendRange = 0.3f;
+        static float fShadowSoftnessBlendRange = 0.3f;
+        static float fShadowBiasBlendRange = 0.3f;
 
         static int nForceShadowFilter = 0;
 
@@ -85,7 +86,8 @@ public:
             fSHADOWFILTERCHSSLightSize = iniReader.ReadFloat("SHADOWFILTERCHSS", "LightSize", 500.0f);
             fSHADOWFILTERCHSSExtraBias = iniReader.ReadFloat("SHADOWFILTERCHSS", "ExtraBias", 2.0f);
 
-            fShadowBlendRange = std::clamp(iniReader.ReadFloat("SHADOWS", "ShadowBlendRange", 0.3f), 0.0f, 1.0f);
+            fShadowSoftnessBlendRange = std::clamp(iniReader.ReadFloat("SHADOWS", "ShadowSoftnessBlendRange", 0.3f), 0.0f, 1.0f);
+            fShadowBiasBlendRange = std::clamp(iniReader.ReadFloat("SHADOWS", "ShadowBiasBlendRange", 0.3f), 0.0f, 1.0f);
             nForceShadowFilter = std::clamp(iniReader.ReadInteger("SHADOWS", "ForceShadowFilter", 0), 0, 2);
             bool bConsoleCarReflectionsAndDirt = iniReader.ReadInteger("MISC", "ConsoleCarReflectionsAndDirt", 1) != 0;
 
@@ -219,8 +221,8 @@ public:
                             arr7[1] = fSHADOWFILTERCHSSShadowBias;
                         }
 
-                        arr7[2] = fShadowBlendRange;
-                        arr7[3] = bEnableSnow ? 1.0f : 0.0f;
+                        arr7[2] = (fShadowBiasBlendRange < fShadowSoftnessBlendRange) ? fShadowSoftnessBlendRange : fShadowBiasBlendRange;
+                        arr7[3] = fShadowSoftnessBlendRange;
 
                         pDevice->SetPixelShaderConstantF(218, &arr7[0], 1);
 
@@ -296,7 +298,7 @@ public:
                             arr5[0] = 1.0f;
                         }
 
-                        arr5[1] = 0.0f;
+                        arr5[1] = bEnableSnow ? 1.0f : 0.0f;
                         arr5[2] = 1.0f / (30.0f * Natives::Timestep());
                         arr5[3] = treealpha->get() == FusionFixSettings.TreeAlphaText.eConsole ? fTreeAlphaConsole : fTreeAlphaPC;
                         pDevice->SetPixelShaderConstantF(221, &arr5[0], 1);

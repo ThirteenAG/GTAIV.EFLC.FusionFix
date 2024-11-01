@@ -316,8 +316,8 @@
         </menupc>
 
         <menupc enum="MENU_DISPLAY_SHADOWFILTER">
-            <options text="Soft" action="ACTION_NONE" value="1" />
-            <options text="Sharp" action="ACTION_NONE" value="2" />
+            <options text="Sharp" action="ACTION_NONE" value="1" />
+            <options text="Soft" action="ACTION_NONE" value="2" />
             <options text="CHSS" action="ACTION_NONE" value="3" />
         </menupc>
 
