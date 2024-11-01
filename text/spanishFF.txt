@@ -103,5 +103,8 @@ Sombras de faros
 [FF_WARN5]
 ~r~ATENCIÓN: Los valores de detalle de distancia superiores a 31 pueden causar que los objetos se dibujen bruscamente ("pop-in").
 
+[FF_WARN6]
+~r~ATENCIÓN: CHSS se activa solamente con la calidad de las sombras puesta en "Muy alta".
+
 [DUMMY_l11]
 Dummy label.
