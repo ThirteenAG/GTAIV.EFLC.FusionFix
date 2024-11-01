@@ -117,16 +117,31 @@ public:
                 }; injector::MakeInline<ShaderPathHook>(pattern.get_first(0), pattern.get_first(7));
             }
 
-            // Pass the correct value for gAmbientAmount to the rain shader (gta_rmptfx_gpurender).
-            // The Game reads the rain.* values in visualsettings.dat properly but then overrides them with custom values.
-            // This makes rain drops more visible, this was done in shader before but moved here instead.
+            // Actually read the rain lighting settings in the visualsettings.dat
             {
-                auto pattern = find_pattern("F3 0F 10 05 ? ? ? ? 6A 10 8B D9 8B 4F 18 F3 0F 11 44 24 ? F3 0F 10 05", "F3 0F 10 05 ? ? ? ? 68 ? ? ? ? F3 0F 11 44 24 ? F3 0F 10 05 ? ? ? ? 50 F3 0F 11 44 24");
+                auto pattern = hook::pattern("8D 44 24 2C 50 FF 33 F3 0F 11 44 24 ? 56 E8");
                 if (!pattern.empty())
                 {
-                    injector::MakeNOP(pattern.get_first(0), 8, true); // rain.ambient (gAmbientAmount): 0.1 -> 0.4
-                    pattern = find_pattern("F3 0F 11 44 24 ? F3 0F 10 05 ? ? ? ? 68 ? ? ? ? FF 73 14 F3 0F 11 44 24", "F3 0F 11 44 24 ? F3 0F 10 05 ? ? ? ? 50 F3 0F 11 44 24 ? F3 0F 10 05 ? ? ? ? 8D 5F 14 53 F3 0F 11 44 24");
-                    injector::MakeNOP(pattern.get_first(0), 6, true); 
+                    injector::WriteMemory<uint8_t>(pattern.get_first(3), 0x34, true);
+                    pattern = hook::pattern("8D 44 24 2C 50 FF 73 04 F3 0F 11 44 24 ? 56 E8");
+                    injector::WriteMemory<uint8_t>(pattern.get_first(3), 0x30, true);
+                    pattern = hook::pattern("8D 44 24 2C 50 FF 73 08 F3 0F 11 44 24 ? 56 E8");
+                    injector::WriteMemory<uint8_t>(pattern.get_first(3), 0x38, true);
+                    pattern = hook::pattern("8D 44 24 2C 50 FF 73 0C F3 0F 11 44 24 ? 56 E8");
+                    injector::WriteMemory<uint8_t>(pattern.get_first(3), 0x3C, true);
+                }
+                else
+                {
+                    pattern = hook::pattern("F3 0F 10 05 ? ? ? ? 53 56 57 8B 7C 24 10 6A 05");
+                    injector::MakeNOP(pattern.get_first(0), 8, true);
+                    pattern = hook::pattern("F3 0F 11 44 24 ? F3 0F 10 05 ? ? ? ? 68 ? ? ? ? F3 0F 11 44 24 ? F3 0F 10 05 ? ? ? ? 50");
+                    injector::MakeNOP(pattern.get_first(0), 14, true);
+                    pattern = hook::pattern("F3 0F 11 44 24 ? F3 0F 10 05 ? ? ? ? 50 F3 0F 11 44 24 ? F3 0F 10 05 ? ? ? ? 8D 5F 14");
+                    injector::MakeNOP(pattern.get_first(0), 14, true);
+                    pattern = hook::pattern("F3 0F 11 44 24 ? F3 0F 10 05 ? ? ? ? 8D 5F 14 53 F3 0F 11 44 24");
+                    injector::MakeNOP(pattern.get_first(0), 14, true);
+                    pattern = hook::pattern("F3 0F 11 44 24 ? E8 ? ? ? ? 8B 0D ? ? ? ? 8B 56 10");
+                    injector::MakeNOP(pattern.get_first(0), 6, true);
                 }
             }
 
