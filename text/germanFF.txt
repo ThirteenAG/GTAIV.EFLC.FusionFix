@@ -103,5 +103,8 @@ Scheinwerfer-Schatten
 [FF_WARN5]
 ~r~ACHTUNG: Bei Werten von über 31 für die Detaildistanz kann es zu Pop-in von Objekten kommen.
 
+[FF_WARN6]
+~r~ACHTUNG: CHSS bewirkt nur etwas, wenn die Schattenqualität auf "Sehr hoch" eingestellt ist.
+
 [DUMMY_l11]
 Dummy label.
