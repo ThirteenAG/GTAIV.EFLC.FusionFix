@@ -556,6 +556,13 @@ public:
                     injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
                 }
             }
+
+            // Radio reset fix
+            {
+                auto pattern = hook::pattern("74 ? 85 C9 75 ? 32 C0 50");
+                if (!pattern.empty())
+                    injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jz -> jmp
+            }
         };
     }
 } Fixes;
