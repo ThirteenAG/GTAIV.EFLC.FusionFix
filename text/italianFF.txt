@@ -103,5 +103,8 @@ Ombre dei fari
 [FF_WARN5]
 ~r~ATTENZIONE: un valore della barra Distanza dettaglio superiore a 31 potrebbe causare l'effetto pop-in degli oggetti.
 
+[FF_WARN6]
+~r~ATTENZIONE: CHSS ha effetto solo con la Qualità delle Ombre impostata su Molto Alta.
+
 [DUMMY_l11]
 Dummy label.

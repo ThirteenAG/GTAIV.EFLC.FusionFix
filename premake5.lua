@@ -14,7 +14,7 @@ workspace "GTAIV.EFLC.FusionFix"
    language "C++"
    targetdir "bin/%{cfg.buildcfg}"
    targetextension ".asi"
-   buildoptions { "/dxifcInlineFunctions-" }
+   buildoptions { "/dxifcInlineFunctions- /Zc:__cplusplus /utf-8" }
    staticruntime "On"
    characterset ("Unicode")
 

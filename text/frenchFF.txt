@@ -103,5 +103,8 @@ Ombres des phares
 [FF_WARN5]
 ~r~AVERTISSEMENT : Une valeur de barre de distance de détail supérieure à 31 pourrait entraîner l'apparition d'objets. 
 
+[FF_WARN6]
+~r~AVERTISSEMENT : CHSS ne fonctionne qu'avec la Qualité des Ombres réglée sur Très Élevée.
+
 [DUMMY_l11]
 Dummy label.
