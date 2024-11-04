@@ -51,7 +51,7 @@ public:
                 }; injector::MakeInline<FramerateVigilanteHook1>(pattern.get_first(0), pattern.get_first(6));
             }
 
-            pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 C1 F3 0F 11 05 ? ? ? ? EB 36", "F3 0F 10 05 ? ? ? ? F3 0F 58 05 ? ? ? ? F3 0F 11 05 ? ? ? ? EB 30");
+            pattern = hook::pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 C1 F3 0F 11 05 ? ? ? ? EB 36");
             if (!pattern.empty())
             {
                 static auto f1032790 = *pattern.get_first<float*>(4);
@@ -89,7 +89,7 @@ public:
             }
 
             // CD/busy spinner
-            pattern = find_pattern("F3 0F 58 05 ? ? ? ? 33 C0 A3 ? ? ? ? F3 0F 11 05");
+            pattern = hook::pattern("F3 0F 58 05 ? ? ? ? 33 C0 A3 ? ? ? ? F3 0F 11 05");
             if (!pattern.empty())
             {
                 struct CDSpinnerHook
@@ -102,14 +102,11 @@ public:
             }
             
             // Cop blips
-            static int CustomFrameCounter = 0;
-            pattern = hook::pattern("A1 ? ? ? ? 6B C0 15");
-            if (!pattern.empty())
-                injector::WriteMemory(pattern.get_first(1), &CustomFrameCounter, true);
-
-            pattern = hook::pattern("FF 05 ? ? ? ? F3 0F 2C C0");
+            pattern = hook::pattern("F3 0F 10 4C 24 ? 0F 28 C1 F3 0F 59 C2");
             if (!pattern.empty())
             {
+                static int CustomFrameCounter = 0;
+
                 static auto CounterHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                 {
                     static float accumulator = 0.0f;
@@ -118,6 +115,10 @@ public:
                     CustomFrameCounter += increment;
                     accumulator -= increment;
                 });
+
+                pattern = hook::pattern("A1 ? ? ? ? 6B C0 15");
+                if (!pattern.empty())
+                    injector::WriteMemory(pattern.get_first(1), &CustomFrameCounter, true);
             }
         };
     }
