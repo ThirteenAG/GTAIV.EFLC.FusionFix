@@ -68,6 +68,8 @@ public:
 
         static int nForceShadowFilter = 0;
 
+        static bool bSmoothShorelines = true;
+
         FusionFix::onInitEvent() += []()
         {
             CIniReader iniReader("");
@@ -90,6 +92,7 @@ public:
             fShadowBiasBlendRange = std::clamp(iniReader.ReadFloat("SHADOWS", "ShadowBiasBlendRange", 0.3f), 0.0f, 1.0f);
             nForceShadowFilter = std::clamp(iniReader.ReadInteger("SHADOWS", "ForceShadowFilter", 0), 0, 2);
             bool bConsoleCarReflectionsAndDirt = iniReader.ReadInteger("MISC", "ConsoleCarReflectionsAndDirt", 1) != 0;
+            bSmoothShorelines = iniReader.ReadInteger("MISC", "SmoothShorelines", 1) != 0;
 
             // Redirect path to one unified folder
             auto pattern = hook::pattern("8B 04 8D ? ? ? ? A3 ? ? ? ? 8B 44 24 04");
@@ -310,7 +313,7 @@ public:
                         static auto mblur = FusionFixSettings.GetRef("PREF_MOTIONBLUR");
                         static float arr3[4];
                         arr3[0] = (bFixAutoExposure ? 1.0f : 0.0f);
-                        arr3[1] = 0.0f;
+                        arr3[1] = (bSmoothShorelines ? 1.0f : 0.0f);
                         arr3[2] = static_cast<float>(gamma->get());
                         arr3[3] = static_cast<float>(mblur->get());
                         pDevice->SetPixelShaderConstantF(222, &arr3[0], 1);

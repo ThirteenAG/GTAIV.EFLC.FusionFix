@@ -424,11 +424,11 @@ public:
             }
 
             // Water Foam Height Weirdness
-            {
-                auto pattern = hook::pattern("F3 0F 58 0D ? ? ? ? 83 EC 08 F3 0F 59 05");
-                if (!pattern.empty())
-                    injector::MakeNOP(pattern.get_first(0), 8, true);
-            }
+            //{
+            //    auto pattern = hook::pattern("F3 0F 58 0D ? ? ? ? 83 EC 08 F3 0F 59 05");
+            //    if (!pattern.empty())
+            //        injector::MakeNOP(pattern.get_first(0), 8, true);
+            //}
             
             // Render LOD lights during cutscenes (console behavior)
             {

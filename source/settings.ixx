@@ -427,7 +427,7 @@ public:
         enum eShadowFilterText {
             eRadio, eSequential, eShuffle, eSharp, eSoft, eCHSS
         };
-        std::vector<const char*> data = { "Radio", "Sequential", "Shuffle", "Sharp", "Soft", "CHSS",};
+        std::vector<const char*> data = { "Radio", "Sequential", "Shuffle", "Sharp", "Soft", "CHSS" };
     } ShadowFilterText;
 
     struct
@@ -435,7 +435,7 @@ public:
         enum eDofText {
             eAuto, e43, e54, e159, e169, eOff, eCutscenesOnly, eLow, eMedium, eHigh, eVeryHigh
         };
-        std::vector<const char*> data = { "Auto", "4:3", "5:4", "15:9", "16:9", "Off", "Cutscenes Only", "Low", "Medium", "High", "Very High"};
+        std::vector<const char*> data = { "Auto", "4:3", "5:4", "15:9", "16:9", "Off", "Cutscenes Only", "Low", "Medium", "High", "Very High" };
     } DofText;
 
     struct
