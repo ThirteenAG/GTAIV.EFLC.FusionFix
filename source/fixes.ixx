@@ -505,18 +505,6 @@ public:
                 }
             }
 
-            // Enable the "first person" reticle (Annihilator, Buzzard) on gamepads as well, this used to be a keyboard & mouse feature only.
-            {
-                auto pattern = hook::pattern("85 F6 0F 84 ? ? ? ? 80 BE ? ? ? ? ? 0F 84 ? ? ? ? 85 C9 0F 84");
-                if (!pattern.empty())
-                    injector::MakeNOP(pattern.get_first(0), 21, true);
-                else
-                {
-                    pattern = hook::pattern("8B 4C 24 24 85 C9 0F 84 ? ? ? ? 80 B9 ? ? ? ? ? 0F 84");
-                    injector::MakeNOP(pattern.get_first(0), 25, true);
-                }
-            }
-
             // Always display the ped health on the reticle with free-aim while on foot, used to be a gamepad + multiplayer only feature (PC is always free-aim unless it's melee combat).
             if (bAlwaysDisplayHealthOnReticle)
             {
