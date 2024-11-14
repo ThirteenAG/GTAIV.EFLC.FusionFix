@@ -150,6 +150,13 @@ public:
                 }
             }
 
+            // Override reflection multiplier that resulted in weaker reflections on PC, a fix/workaround used to be in place on the shader side, move it in here instead.
+            {
+                static float dw103F984 = 1.0f; // 0.6f -> 1.0f
+                auto pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 C1 51 F3 0F 11 04 24 E8", "F3 0F 10 0D ? ? ? ? 51 F3 0F 59 C8 F3 0F 11 0C 24 E8");
+                injector::WriteMemory(pattern.get_first(4), &dw103F984, true);
+            }
+
             // Restore console car reflections and dirt level settings. Any car on console could have dirt when they would spawn while on PC some cars _always_ spawn fully cleaned.
             if (bConsoleCarReflectionsAndDirt)
             {
