@@ -29,7 +29,7 @@ Pillarbox del filmato
 Dialoghi alternativi
 
 [Check Updates]
-Controlla aggiornamenti per Fusion Fix
+Controlla aggiornamenti per FusionFix
 
 [Raw Input]
 Raw Input
@@ -73,6 +73,9 @@ Antialiasing
 [FPS Limiter]
 Limitatore degli FPS
 
+[MO_FOV]
+
+
 [LamppostShadows]
 Ombre dei lampioni
 
@@ -84,6 +87,9 @@ Filtro delle ombre
 
 [HeadlightShadow]
 Ombre dei fari
+
+[MO_SHADOWDEN]
+
 
 [FF_WARN0]
 ~p~IMG Files:
@@ -105,6 +111,30 @@ Ombre dei fari
 
 [FF_WARN6]
 ~r~ATTENZIONE: CHSS ha effetto solo con la Qualità delle Ombre impostata su Molto Alta.
+
+[Custom]
+
+
+[Sharp]
+
+
+[Soft]
+
+
+[Cutscenes Only]
+
+
+[PC]
+
+
+[PC+]
+
+
+[Console]
+
+
+[SteamController]
+Steam Controller
 
 [DUMMY_l11]
 Dummy label.
