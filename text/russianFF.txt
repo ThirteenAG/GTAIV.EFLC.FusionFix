@@ -29,7 +29,7 @@ Logitech LightSync RGB
 Альтернативные диалоги
 
 [Check Updates]
-Fusion Fix: Проверять Обновления
+FusionFix: Проверять Обновления
 
 [Raw Input]
 Непосредственный ввод (мышь)
@@ -73,6 +73,9 @@ Fusion Fix: Проверять Обновления
 [FPS Limiter]
 Ограничитель кадров
 
+[MO_FOV]
+
+
 [LamppostShadows]
 Тени от фонарей
 
@@ -84,6 +87,9 @@ Fusion Fix: Проверять Обновления
 
 [HeadlightShadow]
 Тени от фар
+
+[MO_SHADOWDEN]
+
 
 [FF_WARN0]
 ~p~IMG Архивы:
@@ -105,6 +111,30 @@ Fusion Fix: Проверять Обновления
 
 [FF_WARN6]
 ~r~ПРЕДУПРЕЖДЕНИЕ: CHSS работает только при настройке качества теней на «Очень высоко».
+
+[Custom]
+
+
+[Sharp]
+
+
+[Soft]
+
+
+[Cutscenes Only]
+
+
+[PC]
+
+
+[PC+]
+
+
+[Console]
+
+
+[SteamController]
+Steam Controller
 
 [DUMMY_l11]
 Dummy label.

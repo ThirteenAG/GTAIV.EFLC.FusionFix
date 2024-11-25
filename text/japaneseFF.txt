@@ -29,7 +29,7 @@ FPSカウンター
 代替対話
 
 [Check Updates]
-Fusion Fixアップデートを確認する
+FusionFixアップデートを確認する
 
 [Raw Input]
 Raw Input
@@ -73,6 +73,9 @@ Raw Input
 [FPS Limiter]
 FPSリミッター
 
+[MO_FOV]
+
+
 [LamppostShadows]
 街灯の影
 
@@ -84,6 +87,9 @@ FPSリミッター
 
 [HeadlightShadow]
 ヘッドライトの影
+
+[MO_SHADOWDEN]
+
 
 [FF_WARN0]
 ~p~IMG ファイル:
@@ -105,6 +111,30 @@ FPSリミッター
 
 [FF_WARN6]
 ~r~警告: CHSS は影の品質を「最高」に設定した場合のみ有効になります。
+
+[Custom]
+
+
+[Sharp]
+
+
+[Soft]
+
+
+[Cutscenes Only]
+
+
+[PC]
+
+
+[PC+]
+
+
+[Console]
+
+
+[SteamController]
+Steam Controller
 
 [DUMMY_l11]
 Dummy label.

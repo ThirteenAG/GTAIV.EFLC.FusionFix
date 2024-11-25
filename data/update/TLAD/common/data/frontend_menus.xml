@@ -443,8 +443,8 @@
       <options text="MO_DEF" action="ACTION_NONE" value="1" />
       <options text="MO_OFF" action="ACTION_NONE" value="2" />
       <options text="IV" action="ACTION_NONE" value="3" />
-      <options text="TLAD" action="ACTION_NONE" value="4" />
-      <options text="TBOGT" action="ACTION_NONE" value="5" />
+      <options text="TLaD" action="ACTION_NONE" value="4" />
+      <options text="TBoGT" action="ACTION_NONE" value="5" />
     </menupc>
     <menupc enum="MENU_DISPLAY_FRAMELIMIT">
       <options text="MO_OFF" action="ACTION_NONE" value="0" />
@@ -469,10 +469,10 @@
     <menupc enum="MENU_DISPLAY_DOF">
       <options text="MO_OFF" action="ACTION_NONE" value="1" />
       <options text="Cutscenes Only" action="ACTION_NONE" value="2" />
-      <options text="Low" action="ACTION_NONE" value="3" />
-      <options text="Medium" action="ACTION_NONE" value="4" />
-      <options text="High" action="ACTION_NONE" value="5" />
-      <options text="Very High" action="ACTION_NONE" value="6" />
+      <options text="MO_LOW" action="ACTION_NONE" value="3" />
+      <options text="MO_MED" action="ACTION_NONE" value="4" />
+      <options text="MO_HIGH" action="ACTION_NONE" value="5" />
+      <options text="MO_VHIGH" action="ACTION_NONE" value="6" />
     </menupc>
     <menupc enum="MENU_DISPLAY_TREE_LIGHTING">
       <options text="PC" action="ACTION_NONE" value="1" />
@@ -486,9 +486,9 @@
     <menupc enum="MENU_DISPLAY_BUTTONS">
       <options text="Xbox 360" action="ACTION_NONE" value="1" />
       <options text="Xbox One" action="ACTION_NONE" value="2" />
-      <options text="Playstation 3" action="ACTION_NONE" value="3" />
-      <options text="Playstation 4" action="ACTION_NONE" value="4" />
-      <options text="Playstation 5" action="ACTION_NONE" value="5" />
+      <options text="PlayStation 3" action="ACTION_NONE" value="3" />
+      <options text="PlayStation 4" action="ACTION_NONE" value="4" />
+      <options text="PlayStation 5" action="ACTION_NONE" value="5" />
       <options text="Nintendo Switch" action="ACTION_NONE" value="6" />
       <options text="Steam Deck" action="ACTION_NONE" value="7" />
       <options text="SteamController" action="ACTION_NONE" value="8" />
@@ -498,6 +498,7 @@
       <options text="FXAA" action="ACTION_NONE" value="2" />
       <options text="SMAA" action="ACTION_NONE" value="3" />
     </menupc>
+
   </sMenuDisplayValue>
   <sMenuScreen>
     <menu HeaderText="MH_GAM" enum="SCR_GAME">

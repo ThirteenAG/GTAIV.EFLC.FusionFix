@@ -29,7 +29,7 @@ Pillarbox-Balken in Zwischensequenzen
 Alternative Dialoge
 
 [Check Updates]
-Auf Fusion-Fix-Updates prüfen
+Auf FusionFix-Updates prüfen
 
 [Raw Input]
 Raw Input
@@ -73,6 +73,9 @@ Kantenglättung
 [FPS Limiter]
 FPS-Begrenzung
 
+[MO_FOV]
+
+
 [LamppostShadows]
 Straßenlaternen-Schatten
 
@@ -84,6 +87,9 @@ Schattenfilter
 
 [HeadlightShadow]
 Scheinwerfer-Schatten
+
+[MO_SHADOWDEN]
+
 
 [FF_WARN0]
 ~p~IMG-Dateien:
@@ -105,6 +111,30 @@ Scheinwerfer-Schatten
 
 [FF_WARN6]
 ~r~ACHTUNG: CHSS bewirkt nur etwas, wenn die Schattenqualität auf "Sehr hoch" eingestellt ist.
+
+[Custom]
+
+
+[Sharp]
+
+
+[Soft]
+
+
+[Cutscenes Only]
+
+
+[PC]
+
+
+[PC+]
+
+
+[Console]
+
+
+[SteamController]
+Steam Controller
 
 [DUMMY_l11]
 Dummy label.
