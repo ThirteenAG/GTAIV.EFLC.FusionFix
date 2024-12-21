@@ -469,10 +469,10 @@
     <menupc enum="MENU_DISPLAY_DOF">
       <options text="MO_OFF" action="ACTION_NONE" value="1" />
       <options text="Cutscenes Only" action="ACTION_NONE" value="2" />
-      <options text="Low" action="ACTION_NONE" value="3" />
-      <options text="Medium" action="ACTION_NONE" value="4" />
-      <options text="High" action="ACTION_NONE" value="5" />
-      <options text="Very High" action="ACTION_NONE" value="6" />
+      <options text="MO_LOW" action="ACTION_NONE" value="3" />
+      <options text="MO_MED" action="ACTION_NONE" value="4" />
+      <options text="MO_HIGH" action="ACTION_NONE" value="5" />
+      <options text="MO_VHIGH" action="ACTION_NONE" value="6" />
     </menupc>
     <menupc enum="MENU_DISPLAY_TREE_LIGHTING">
       <options text="PC" action="ACTION_NONE" value="1" />
