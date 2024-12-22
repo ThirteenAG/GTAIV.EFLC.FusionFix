@@ -43,8 +43,7 @@ public:
                 bool Hookster(float a2)
                 {
 #if 1
-                    //idk what's going on here, but seems better than with timestep check
-                    //incrementalTimeStep += *fTimeStep;
+                    incrementalTimeStep += *CTimer::fTimeStep;
 
                     CutsceneCamJitterWorkaround temp = *this;
 
@@ -53,8 +52,8 @@ public:
 
                     CutsceneCamJitterWorkaround temp2 = *this;
 
-                    ///if (incrementalTimeStep < 0.3333)
-                    //    return result;
+                    if (incrementalTimeStep < 0.3333)
+                        return result;
 
                     *this = temp;
 
@@ -70,7 +69,7 @@ public:
                         || fabs(temp.data[17] - temp2.data[17]) > 0.3333f
                         || fabs(temp.data[18] - temp2.data[18]) > 0.3333f)
                     {
-                        //incrementalTimeStep = 0.0;
+                        incrementalTimeStep = 0.0;
                         *this = temp2;
                         return result;
                     }
@@ -97,6 +96,11 @@ public:
                 pattern = hook::pattern("F3 0F 11 86 ? ? ? ? 5F 5E B8 ? ? ? ? 5B 8B 4C 24 30 33 CC E8 ? ? ? ? 83 C4 34 C2 04 00");
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(), 8, true);
+
+                // timing?
+                pattern = find_pattern("83 3D ? ? ? ? ? 75 ? 83 F8 FF");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(), 7, true);
             }
         };
     }
