@@ -167,27 +167,28 @@ Note: most of this content requires additional modifications by the end user to 
 
 **Special thanks to [Parallellines0451](https://github.com/Parallellines0451) [AssaultKifle47](https://github.com/akifle47), [RaphaelK12](https://github.com/RaphaelK12), [robi29](https://github.com/robi29) and [\_CP_](https://github.com/cpmodding) for directly contributing with fixes, to [Shvab](https://github.com/d3g0n-byte) for making RAGE Shader Editor.**
 
-**Fusion Fix uses dx hook to implement some features. It causes certain 3rd party software to crash/hang the game. To avoid this, Fusion Fix prevents [certain dlls from injecting into the game's process](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/blob/master/source/dllblacklist.ixx#L15).**
+**Fusion Fix prevents [certain dlls from injecting into the game's process, to avoid issues](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/blob/master/source/dllblacklist.ixx#L15).**
 
-### General
+#### General
 - Fixed z-fighting
 - Fixed object pop-in caused by version 1.0.6.0
 - Improved screen door transparency
-### Lighting
+#### Lighting
 - Fixed volumetric lights occlusion
 - Restored console foliage translucency
-- Added an improved tree lighting mode based on PC
+- Fixed orange glow under trees
 - Fixed mismatched intensity of shadow casting lights causing visible pop-in
 - Fixed lights that were made invisible with version 1.0.6.0
 - Fixed black normal map halos on several surfaces such as asphalt, sidewalks and rocks
-### Shadows
-- Restored shadow filter from versions prior to 1.0.6.0 and also added an improved one based on it
+#### Shadows
+- Restored rotated disk filter from versions prior to 1.0.6.0
 - Fixed large shadow artifacts visible from high altitudes
 - Fixed shadowmap being erroneously blurred before the lighting pass
 - Fixed shadows stretching at certain camera angles
 - Fixed shadow view distance being lower than the actual rendered distance
 - Fixed cutoff penumbras of distant shadows
 - Restored normal offset bias from versions prior to 1.0.6.0
+- Added contact hardening shadows
 - Fixed disconnected night shadows
 - Fixed blur artifacts between shadow cascades under some conditions
 - Added "pseudo" shadow cascade blending to reduce the disparity between cascades
@@ -196,20 +197,20 @@ Note: most of this content requires additional modifications by the end user to 
 - Fixed incorrectly offset shadows on water
 - Fixed flickering when shadows of transparent objects overlap
 - Added parameters to control shadow softness and bias
-### Post processing
+#### Post processing
 - Split depth of field, motion blur and stippling filter into separate passes to prevent overlap
 - Fixed color banding, most noticeably in the sky
 - Added a mask to selectively filter screen door transparency
 - Fixed depth of field and bloom not scaling correctly at resolutions higher than 720p
+- Improved bloom weights and stability in motion
 - Fixed excessively blurry screen compared to consoles caused by leftover anti aliasing code
 - Restored console bloom and auto exposure
-- Restored console timecyc gamma bump
 - Fixed flickering auto exposure
 - Fixed motion blur losing intensity at high framerates
 - Fixed incorrect TLAD noise tiling on water quality levels other than medium
 - Fixed TLAD noise aspect ratio
 - Added a console-like gamma toggle
-### Reflections
+#### Reflections
 - Restored console behavior for tree and terrain reflections
 - Fixed excessive specularity of several meshes in Alderney
 - Fixed distorted vehicle reflections
@@ -220,22 +221,23 @@ Note: most of this content requires additional modifications by the end user to 
 - Restored console environment reflection intensity
 - Fixed distorted mirror reflections at certain camera angles
 - Restored console mirror blur
-### Particles
+#### Particles
 - Fixed soft particles
 - Fixed stuttery particle animations caused by version 1.0.5.0
 - Fixed rain being almost invisible, especially at night
 - Fixed rain streaks becoming shorter at high framerates
-### Water
+#### Water
+- Fixed flickering outlines around shores and thin objects
+- Fixed invisible water foam
+- Improved shallow water transparency and improved foam texture
 - Fixed incorrect water texture tiling on quality levels other than medium
 - Fixed flat, mirror-like water surface on AMD graphics cards
-- Removed broken shore foam effect
-### Misc
+#### Misc
 - Fixed outlines around objects when using DXVK
 - Partially restored console object fade speed
 - Fixed terrain pop-in
 - Reduced procobj pop-in for the default view and detail distance values
 - Partially fixed building windows visible near the far plane if emissive depth write is disabled
-- Adjusted tree mipmap bias
 - Restored fence mipmap bias from versions prior to 1.0.6.0
 - Fixed incorrect texture filtering used in several shaders
 - Added a parameter to control the alpha threshold of tree leaves
