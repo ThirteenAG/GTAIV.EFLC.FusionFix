@@ -628,7 +628,7 @@ public:
                             if (bEnableSnow)
                             {
                                 auto light = (rage::CLightSource*)(regs.esi + regs.eax * 1);
-                                *(float*)(regs.esp + 0xEC) = LightVolumeIntensity[std::make_tuple(static_cast<int>(light->mPosition.x), static_cast<int>(light->mPosition.y), static_cast<int>(light->mPosition.z))];
+                                *(float*)(regs.esp + 0x68) = LightVolumeIntensity[std::make_tuple(static_cast<int>(light->mPosition.x), static_cast<int>(light->mPosition.y), static_cast<int>(light->mPosition.z))];
                             }
                             else
                                 *(float*)(regs.esp + 0x68) = 1.0f;
