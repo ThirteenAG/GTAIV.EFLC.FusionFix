@@ -239,7 +239,7 @@ public:
                 injector::MakeNOP(pattern.get_first(0), 2, true);
             }
 
-            // Adjust mirror plane offset, fixes the graffiti decals not appearing on the mirror in the Middle Park public toilet.
+            // Adjust mirror plane offset, fixes stuff like the graffiti decals not appearing on the mirror in the Middle Park public toilet.
             {
                 static float dwMirrorOffset = 0.0125f; // 0.035 (PC) -> 0.0125 (Xbox)
                 auto pattern = find_pattern("F3 0F 10 15 ? ? ? ? 0F 28 CC F3 0F 59 CB", "F3 0F 10 0D ? ? ? ? 8B 0D ? ? ? ? 0F 28 D0 F3 0F 59 D3");
@@ -327,43 +327,37 @@ public:
                         pDevice->SetPixelShaderConstantF(217, &arr9[0], 1);
                     }
 
-                    // Shadow Quality
+                    // Water reflection half-pixel offset
                     {
                         static float arr6[4];
 
-                        switch (FusionFixSettings.Get("PREF_SHADOW_QUALITY"))
+                        switch (FusionFixSettings.Get("PREF_WATER_QUALITY"))
                         {
-                        case 0:
-                            arr6[0] = 0.0f;
-                            arr6[1] = 0.0f;
-                            arr6[2] = 0.0f;
-                            arr6[3] = 0.0f;
-                            break;
-                        case 1:
-                            arr6[0] = 0.0f;
-                            arr6[1] = 0.0f;
-                            arr6[2] = 0.0f;
-                            arr6[3] = 1.0f;
-                            break;
-                        case 2:
-                            arr6[0] = 0.0f;
-                            arr6[1] = 0.0f;
-                            arr6[2] = 1.0f;
-                            arr6[3] = 0.0f;
-                            break;
-                        case 3:
-                            arr6[0] = 0.0f;
-                            arr6[1] = 1.0f;
-                            arr6[2] = 0.0f;
-                            arr6[3] = 0.0f;
-                            break;
-                        case 4:
-                        default:
-                            arr6[0] = 1.0f;
-                            arr6[1] = 0.0f;
-                            arr6[2] = 0.0f;
-                            arr6[3] = 0.0f;
-                            break;
+                            case 0:
+                                arr[0] = (0.5f / 160.0f);
+                                arr[1] = (0.5f / 64.0f);
+                                arr[2] = 0.0f;
+                                arr[3] = 0.0f;
+                                break;
+                            case 1:
+                                arr[0] = (0.5f / 320.0f);
+                                arr[1] = (0.5f / 128.0f);
+                                arr[2] = 0.0f;
+                                arr[3] = 0.0f;
+                                break;
+                            case 2:
+                                arr[0] = (0.5f / 640);
+                                arr[1] = (0.5f / 256.0f);
+                                arr[2] = 0.0f;
+                                arr[3] = 0.0f;
+                                break;
+                            case 3:
+                            default:
+                                arr[0] = (0.5f / 1280.0f);
+                                arr[1] = (0.5f / 512.0f);
+                                arr[2] = 0.0f;
+                                arr[3] = 0.0f;
+                                break;
                         }
 
                         pDevice->SetPixelShaderConstantF(220, &arr6[0], 1);

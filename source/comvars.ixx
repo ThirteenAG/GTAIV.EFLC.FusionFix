@@ -622,13 +622,19 @@ export namespace rage
                 width  = 256;
                 height = 256;
             }
+            else if (std::string_view(name) == "MIRROR_RT" || std::string_view(name) == "MIRROR_DT")
+            {
+                // Adjust mirror rendertarget dimensions (PS3 dimensions)
+                height /= 2;
+            }
+            else if (std::string_view(name) == "WATER_REFLECTION_COLOUR" || std::string_view(name) == "WATER_REFLECTION_DEPTH")
+            {
+                // Adjust water reflection rendertarget dimensions (PS3 dimensions)
+                width = (width * 5) / 4;
+                height /= 2;
+            }
 
             auto ret = shCreateRT.stdcall<grcRenderTargetPC*>(name, a2, width, height, bitsPerPixel, desc);
-
-            //     if(strcmp("WATER_REFLECTION_COLOUR", name) == 0) { ret->mMultisampleCount=1; }
-            //else if(strcmp("WATER_REFLECTION_DEPTH" , name) == 0) { ret->mMultisampleCount=1; }
-            //else if(strcmp("REFLECTION_MAP_COLOUR"  , name) == 0) { ret->mMultisampleCount=1; }
-            //else if(strcmp("REFLECTION_MAP_DEPTH"   , name) == 0) { ret->mMultisampleCount=1; }
 
             RTCache[name] = ret;
             return ret;
