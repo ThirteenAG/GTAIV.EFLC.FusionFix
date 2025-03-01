@@ -429,8 +429,10 @@ public:
             CIniReader iniReader("");
             static auto bFixRainDrops = iniReader.ReadInteger("MISC", "FixRainDrops", 1) != 0;
 
-            //SetRenderState D3DRS_ADAPTIVETESS_X
-            auto pattern = hook::pattern("74 ? 68 4E 56 44 42 68");
+            //Skip SetRenderState D3DRS_ADAPTIVETESS_* entirely (silences warnings in DXVK logs)
+            auto pattern = find_pattern("74 24 F3 0F 10 44 24 ? 51 8D 44 24 44", "74 1C D9 44 24 14 51 8D 4C 24 44");
+            injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
+            pattern = find_pattern("74 0A 6A 00 E8 ? ? ? ? 83 C4 04 8B 7C 24 1C 83 EF 80", "74 0A 6A 00 E8 ? ? ? ? 83 C4 04 8B 5C 24 20 81 C6");
             injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
 
             pattern = find_pattern<2>("89 3C B5 ? ? ? ? 8B 82 ? ? ? ? 57 8B 08 56 50 FF 91 ? ? ? ? 5F 5E C2 0C 00", "89 14 8D ? ? ? ? 8B 80 ? ? ? ? 8B 30 52 8B 96 ? ? ? ? 51 50 FF D2 5E C2 0C 00");
