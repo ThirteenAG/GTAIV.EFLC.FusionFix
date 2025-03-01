@@ -93,10 +93,6 @@ int timecyc_scanf(const char* i, const char* fmt, int* mAmbient0ColorR, int* mAm
         break;
     }
 
-    if (bFixAutoExposure)
-        if (*mLumDelay < 0.1f)
-            *mLumDelay = 0.1f;
-
     {
         static int IV2TLAD[3][100] =
         {
