@@ -10,6 +10,7 @@ import comvars;
 import settings;
 import natives;
 import shadows;
+import d3dx9_43;
 
 template<typename T, typename ... U>
 concept IsAnyOf = (std::same_as<T, U> || ...);
@@ -358,7 +359,7 @@ public:
                                 break;
                         }
 
-                        pDevice->SetPixelShaderConstantF(220, &arr6[0], 1);
+                        pDevice->SetPixelShaderConstantF(220, &arr[0], 1);
                     }
 
                     // Current Settings
