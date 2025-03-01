@@ -238,6 +238,13 @@ public:
                 pattern = find_pattern("75 37 C7 47 ? ? ? ? ? C7 87 ? ? ? ? ? ? ? ? C7 87", "75 3A F3 0F 10 05 ? ? ? ? F3 0F 11 46 ? F3 0F 11 86");
                 injector::MakeNOP(pattern.get_first(0), 2, true);
             }
+
+            // Adjust mirror plane offset, fixes the graffiti decals not appearing on the mirror in the Middle Park public toilet.
+            {
+                static float dwMirrorOffset = 0.0125f; // 0.035 (PC) -> 0.0125 (Xbox)
+                auto pattern = find_pattern("F3 0F 10 15 ? ? ? ? 0F 28 CC F3 0F 59 CB", "F3 0F 10 0D ? ? ? ? 8B 0D ? ? ? ? 0F 28 D0 F3 0F 59 D3");
+                injector::WriteMemory(pattern.get_first(4), &dwMirrorOffset, true);
+            }
         };
 
         FusionFix::onGameInitEvent() += []()
