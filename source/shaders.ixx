@@ -327,7 +327,7 @@ public:
 
                     // Water reflection half-pixel offset
                     {
-                        static float arr6[4];
+                        static float arr[4];
 
                         switch (FusionFixSettings.Get("PREF_WATER_QUALITY"))
                         {
