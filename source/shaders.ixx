@@ -134,7 +134,6 @@ public:
         static float fSHADOWFILTERCHSSShadowBias = 5.0f;
         static float fSHADOWFILTERCHSSMaxSoftness = 10.0f;
         static float fSHADOWFILTERCHSSLightSize = 500.0f;
-        static float fSHADOWFILTERCHSSExtraBias = 2.0f;
 
         static float fShadowSoftnessBlendRange = 0.3f;
         static float fShadowBiasBlendRange = 0.3f;
@@ -159,7 +158,6 @@ public:
             fSHADOWFILTERCHSSShadowBias = iniReader.ReadFloat("SHADOWFILTERCHSS", "ShadowBias", 5.0f);
             fSHADOWFILTERCHSSMaxSoftness = iniReader.ReadFloat("SHADOWFILTERCHSS", "MaxSoftness", 10.0f);
             fSHADOWFILTERCHSSLightSize = iniReader.ReadFloat("SHADOWFILTERCHSS", "LightSize", 500.0f);
-            fSHADOWFILTERCHSSExtraBias = iniReader.ReadFloat("SHADOWFILTERCHSS", "ExtraBias", 2.0f);
 
             fShadowSoftnessBlendRange = std::clamp(iniReader.ReadFloat("SHADOWS", "ShadowSoftnessBlendRange", 0.3f), 0.0f, 1.0f);
             fShadowBiasBlendRange = std::clamp(iniReader.ReadFloat("SHADOWS", "ShadowBiasBlendRange", 0.3f), 0.0f, 1.0f);
@@ -318,7 +316,7 @@ public:
 
                         arr9[0] = bHighResolutionShadows ? fSHADOWFILTERCHSSMaxSoftness * 2.0f : fSHADOWFILTERCHSSMaxSoftness;
                         arr9[1] = bHighResolutionShadows ? fSHADOWFILTERCHSSLightSize * 2.0f : fSHADOWFILTERCHSSLightSize;
-                        arr9[2] = fSHADOWFILTERCHSSExtraBias;
+                        arr9[2] = 0.0f;
                         if (FusionFixSettings.Get("PREF_SHADOW_QUALITY") >= 4) // Very High
                             arr9[3] = shadowFilter->get() == FusionFixSettings.ShadowFilterText.eCHSS ? 1.0f : 0.0f;
                         else
