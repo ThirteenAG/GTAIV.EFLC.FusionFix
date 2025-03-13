@@ -85,6 +85,15 @@ Shadow Filter
 [HeadlightShadow]
 Headlight Shadows
 
+[Timed Events]
+Timed Events
+
+[Tone Mapping]
+Tone Mapping
+
+[Volumetric Fog]
+Volumetric Fog
+
 [FF_WARN0]
 ~p~IMG Files:
 

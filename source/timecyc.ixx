@@ -13,6 +13,7 @@ import natives;
 #define IDR_HALLTC 206
 std::vector<std::string> snowTC;
 std::vector<std::string> hallTC;
+float fVolFogFarClip = 4500.0f;
 
 int scanfCount = 0;
 int timecyc_scanf(const char* i, const char* fmt, int* mAmbient0ColorR, int* mAmbient0ColorG, int* mAmbient0ColorB, int* mAmbient1ColorR, int* mAmbient1ColorG, int* mAmbient1ColorB,
@@ -37,6 +38,9 @@ int timecyc_scanf(const char* i, const char* fmt, int* mAmbient0ColorR, int* mAm
     float* mCoronaSize, float* mSkyBrightness, float* mAOStrength, float* mRimLightingMultiplier, float* mDistantCoronaBrightness, float* mDistantCoronaSize,
     float* mPedAOStrength)
 {
+    if (!i)
+        return 0;
+
     if (bEnableSnow)
     {
         if (snowTC.size() == 99)
@@ -67,6 +71,9 @@ int timecyc_scanf(const char* i, const char* fmt, int* mAmbient0ColorR, int* mAm
 
     if (!FusionFixSettings("PREF_BLOOM"))
         *mBloomIntensity = 0.0f;
+
+    if (FusionFixSettings("PREF_VOLUMETRICFOG"))
+        *mFarClip = fVolFogFarClip;
 
     switch (FusionFixSettings("PREF_TCYC_DOF"))
     {
@@ -288,6 +295,9 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
+            CIniReader iniReader("");
+            fVolFogFarClip = iniReader.ReadFloat("FOG", "VolFogFarClip", 4500.0f);
+
             FusionFixSettings.SetCallback("PREF_TIMECYC", [](int32_t value) {
                 CTimeCycle::Initialise();
                 bMenuNeedsUpdate = 200;
@@ -350,14 +360,19 @@ public:
                 bMenuNeedsUpdate = 200;
             });
 
-            // z-fighting fix helpers
-            {
-                auto pattern = hook::pattern("E8 ? ? ? ? 6A 0C E8 ? ? ? ? 8B 0D");
-                injector::MakeCALL(pattern.get_first(0), cutsc_scanf, true);
+            FusionFixSettings.SetCallback("PREF_VOLUMETRICFOG", [](int32_t value) {
+                CTimeCycle::Initialise();
+                bMenuNeedsUpdate = 200;
+            });
 
-                pattern = hook::pattern("E8 ? ? ? ? 69 F6 ? ? ? ? 8D 84 24");
-                injector::MakeCALL(pattern.get_first(0), timecyclemodifiers_scanf, true);
-            }
+            // z-fighting fix helpers
+            //{
+            //    auto pattern = hook::pattern("E8 ? ? ? ? 6A 0C E8 ? ? ? ? 8B 0D");
+            //    injector::MakeCALL(pattern.get_first(0), cutsc_scanf, true);
+            //
+            //    pattern = hook::pattern("E8 ? ? ? ? 69 F6 ? ? ? ? 8D 84 24");
+            //    injector::MakeCALL(pattern.get_first(0), timecyclemodifiers_scanf, true);
+            //}
 
             {
                 HMODULE hm = NULL;

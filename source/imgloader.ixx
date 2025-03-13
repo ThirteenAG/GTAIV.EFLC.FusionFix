@@ -15,6 +15,27 @@ public:
     {
         FusionFix::onInitEvent() += []()
         {
+            static bool (WINAPI* GetOverloadPathW)(wchar_t* out, size_t out_size) = nullptr;
+            static bool (WINAPI* GetOverloadedFilePathW)(const wchar_t* lpFilename, wchar_t* out, size_t out_size) = nullptr;
+
+            ModuleList dlls;
+            dlls.Enumerate(ModuleList::SearchLocation::LocalOnly);
+            for (auto& e : dlls.m_moduleList)
+            {
+                auto m = std::get<HMODULE>(e);
+                if (IsModuleUAL(m)) {
+                    GetOverloadPathW = (decltype(GetOverloadPathW))GetProcAddress(m, "GetOverloadPathW");
+                    GetOverloadedFilePathW = (decltype(GetOverloadedFilePathW))GetProcAddress(m, "GetOverloadedFilePathW");
+                    break;
+                }
+            }
+
+            std::wstring s(MAX_PATH, L'\0');
+            if (!GetOverloadPathW || !GetOverloadPathW(s.data(), s.size()))
+                s = GetExeModulePath() / L"update";
+
+            static auto updatePath = std::filesystem::path(s.data());
+
             //IMG Loader
             auto pattern = find_pattern("E8 ? ? ? ? 6A 00 E8 ? ? ? ? 83 C4 14 6A 00 B9 ? ? ? ? E8 ? ? ? ? 83 3D", "E8 ? ? ? ? 6A 00 E8 ? ? ? ? 83 C4 14 6A 00 B9");
             static auto CImgManager__addImgFile = (void(__cdecl*)(const char*, char, int)) injector::GetBranchDestination(pattern.get_first(0)).get();
@@ -34,7 +55,6 @@ public:
                     }
 
                     auto gamePath = GetExeModulePath();
-                    auto updatePath = gamePath / L"update";
 
                     if (std::filesystem::exists(updatePath))
                     {
@@ -110,16 +130,17 @@ public:
                                 };
 
                                 auto relativePath = lexicallyRelativeCaseIns(filePath, gamePath);
+                                auto relativeToUpdatePath = lexicallyRelativeCaseIns(filePath, updatePath);
                                 auto imgPath = relativePath.native();
                                 std::replace(std::begin(imgPath), std::end(imgPath), L'\\', L'/');
                                 auto pos = imgPath.find(L'/');
 
+                                if (GetOverloadedFilePathW && GetOverloadedFilePathW(relativeToUpdatePath.wstring().data(), nullptr, 0))
+                                    continue;
+
                                 if (pos != imgPath.npos)
                                 {
                                     imgPath.replace(pos, 1, L":/");
-
-                                    if (iequals(imgPath, L"update:/update.img"))
-                                        continue;
 
                                     if (std::any_of(std::begin(episodicPaths), std::end(episodicPaths), [&](auto& it) { return contains_subfolder(relativePath, it); }))
                                     {

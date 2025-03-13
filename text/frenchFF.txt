@@ -85,6 +85,15 @@ Filtre d'ombre
 [HeadlightShadow]
 Ombres des phares
 
+[Timed Events]
+Événements saisonniers
+
+[Tone Mapping]
+Mappage Tonal
+
+[Volumetric Fog]
+Brouillard Volumétrique
+
 [FF_WARN0]
 ~p~Fichiers IMG:
 

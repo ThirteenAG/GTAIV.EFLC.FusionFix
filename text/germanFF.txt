@@ -85,6 +85,15 @@ Schattenfilter
 [HeadlightShadow]
 Scheinwerfer-Schatten
 
+[Timed Events]
+Saisonale Ereignisse
+
+[Tone Mapping]
+Tonwertumsetzung
+
+[Volumetric Fog]
+Volumetrischer Nebel
+
 [FF_WARN0]
 ~p~IMG-Dateien:
 

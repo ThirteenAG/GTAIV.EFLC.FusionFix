@@ -10,6 +10,7 @@ import comvars;
 import settings;
 import natives;
 import shadows;
+import timecycext;
 import d3dx9_43;
 
 template<typename T, typename ... U>
@@ -117,6 +118,26 @@ class Shaders
             pDevice->SetVertexShaderConstantF(232, &arr[0], 1);
         }
     }
+
+    static void OnBeforeGBuffer()
+    {
+        // z-fighting fix helpers
+        {
+            auto viewport = rage::GetCurrentViewport();
+            if (viewport)
+            {
+                auto pDevice = rage::grcDevice::GetD3DDevice();
+
+                static float arr[4];
+                arr[0] = viewport->mNearClip;
+                arr[1] = viewport->mFarClip;
+                arr[2] = 0.0f;
+                arr[3] = 0.0f;
+                pDevice->SetVertexShaderConstantF(227, &arr[0], 1);
+                pDevice->SetPixelShaderConstantF(209, &arr[0], 1);
+            }
+        }
+    }
 public:
     Shaders()
     {
@@ -143,6 +164,8 @@ public:
 
         static bool bSmoothShorelines = true;
 
+        static int nToneMappingOperator = 0;
+
         FusionFix::onInitEvent() += []()
         {
             CIniReader iniReader("");
@@ -165,6 +188,8 @@ public:
             nForceShadowFilter = std::clamp(iniReader.ReadInteger("SHADOWS", "ForceShadowFilter", 0), 0, 2);
             bool bConsoleCarReflectionsAndDirt = iniReader.ReadInteger("MISC", "ConsoleCarReflectionsAndDirt", 1) != 0;
             bSmoothShorelines = iniReader.ReadInteger("MISC", "SmoothShorelines", 1) != 0;
+
+            nToneMappingOperator = std::clamp(iniReader.ReadInteger("MISC", "ToneMappingOperator", 0), 0, 1) + 1;
 
             // Redirect path to one unified folder
             auto pattern = hook::pattern("8B 04 8D ? ? ? ? A3 ? ? ? ? 8B 44 24 04");
@@ -260,23 +285,23 @@ public:
 
                 if (*dw103E49C && !bLoadscreenActive)
                 {
-                    static Cam cam = 0;
-                    Natives::GetRootCam(&cam);
-                    if (cam)
-                    {
-                        static float farclip;
-                        static float nearclip;
-
-                        Natives::GetCamFarClip(cam, &farclip);
-                        Natives::GetCamNearClip(cam, &nearclip);
-
-                        static float arr[4];
-                        arr[0] = nearclip;
-                        arr[1] = farclip;
-                        arr[2] = 0.0f;
-                        arr[3] = 0.0f;
-                        pDevice->SetVertexShaderConstantF(227, &arr[0], 1);
-                    }
+                    //static Cam cam = 0;
+                    //Natives::GetRootCam(&cam);
+                    //if (cam)
+                    //{
+                    //    static float farclip;
+                    //    static float nearclip;
+                    //
+                    //    Natives::GetCamFarClip(cam, &farclip);
+                    //    Natives::GetCamNearClip(cam, &nearclip);
+                    //
+                    //    static float arr[4];
+                    //    arr[0] = nearclip;
+                    //    arr[1] = farclip;
+                    //    arr[2] = 0.0f;
+                    //    arr[3] = 0.0f;
+                    //    pDevice->SetVertexShaderConstantF(227, &arr[0], 1);
+                    //}
 
                     // DynamicShadowForTrees Wind Sway
                     {
@@ -359,6 +384,13 @@ public:
                                 break;
                         }
 
+                        //off / modified reinhard / aces
+                        static auto tm = FusionFixSettings.GetRef("PREF_TONEMAPPING");
+                        if (tm->get())
+                        {
+                            arr[2] = static_cast<float>(nToneMappingOperator);
+                        }
+
                         pDevice->SetPixelShaderConstantF(220, &arr[0], 1);
                     }
 
@@ -421,6 +453,30 @@ public:
                             pDevice->SetPixelShaderConstantF(223, &arr4[0], 1);
                         }
                     }
+
+                    {
+                        static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
+
+                        static float arr10[4];
+                        arr10[0] = CTimeCycleExt::GetVolFogDensity();
+                        arr10[1] = CTimeCycleExt::GetVolFogHeightFalloff();
+                        arr10[2] = CTimeCycleExt::GetVolFogPower();
+                        arr10[3] = CTimeCycleExt::GetVolFogColorFactor();
+                        pDevice->SetPixelShaderConstantF(211, &arr10[0], 1);
+                        pDevice->SetVertexShaderConstantF(235, &arr10[0], 1);
+
+                        static float arr11[4];
+                        arr11[0] = CTimeCycleExt::GetVolFogAltitudeTweak();
+                        arr11[1] = static_cast<float>(fog->get());
+                        arr11[2] = 0.0f;
+                        arr11[3] = 0.0f;
+
+                        if (!CTimeCycleExt::IsInitialized() || !CTimeCycleModifiersExt::IsInitialized())
+                            arr11[1] = 0.0f;
+
+                        pDevice->SetPixelShaderConstantF(210, &arr11[0], 1);
+                        pDevice->SetVertexShaderConstantF(236, &arr11[0], 1);
+                    }
                 }
             });
         };
@@ -471,6 +527,13 @@ public:
                     auto mBeforeLightingCB = new T_CB_Generic_NoArgs(OnBeforeLighting);
                     if (mBeforeLightingCB)
                         mBeforeLightingCB->Append();
+                };
+
+                CRenderPhaseDeferredLighting_SceneToGBuffer::OnBuildRenderList() += []()
+                {
+                    auto mBeforeGBuffer = new T_CB_Generic_NoArgs(OnBeforeGBuffer);
+                    if (mBeforeGBuffer)
+                        mBeforeGBuffer->Append();
                 };
             }
         };

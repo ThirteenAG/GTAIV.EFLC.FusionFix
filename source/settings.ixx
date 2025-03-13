@@ -12,6 +12,7 @@ import comvars;
 import d3dx9_43;
 import fusiondxhook;
 import gxtloader;
+import timecycext;
 
 namespace CText
 {
@@ -229,6 +230,9 @@ public:
             { 0, "PREF_BLOCKONLOSTFOCUS",  "MAIN",       "BlockOnLostFocus",                "",                           0, nullptr, 0, 1 },
             { 0, "PREF_LAMPPOSTSHADOWS",   "SHADOWS",    "LamppostShadows",                 "",                           0, nullptr, 0, 1 },
             { 0, "PREF_HEADLIGHTSHADOWS",  "SHADOWS",    "HeadlightShadows",                "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_TIMEDEVENTS",       "MISC",       "TimedEvents",                     "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_VOLUMETRICFOG",     "FOG",        "VolumetricFog",                   "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_TONEMAPPING",       "MISC",       "ToneMapping",                     "",                           0, nullptr, 0, 1 },
             // Enums are at capacity, to use more enums, replace multiplayer ones. On/Off toggles should still be possible to add.
         };
 
@@ -626,11 +630,76 @@ public:
 
             //Text
             CText::Hook();
+
+            // FOG
+            pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 5C C1 F3 0F 59 C2 F3 0F 58 C1 F3 0F 11 05 ? ? ? ? F3 0F 10 05");
+            static float* farClipMultiplier = *pattern.get_first<float*>(4);
+            injector::MakeNOP(pattern.get_first(), 8);
+            static auto farClipMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+            {
+                static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
+                if (fog->get() && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
+                    regs.xmm0.f32[0] = 1.0f;
+                else
+                    regs.xmm0.f32[0] = *farClipMultiplier;
+            });
+
+            pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 5C C1 F3 0F 59 C2 F3 0F 58 C1 F3 0F 11 05 ? ? ? ? 8B E5");
+            static float* nearFogMultiplier = *pattern.get_first<float*>(4);
+            injector::MakeNOP(pattern.get_first(), 8);
+            static auto nearFogMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+            {
+                static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
+                if (fog->get() && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
+                    regs.xmm0.f32[0] = 1.0f;
+                else
+                    regs.xmm0.f32[0] = *nearFogMultiplier;
+            });
+
+            // radio saving disable
+            {
+                static SafetyHookInline shRadioSaveHandler{};
+                static auto RadioSaveHandler = []()
+                {
+                    auto COL4_17 = CText::doesTextLabelExist(CText::g_text, 0, "COL4_17");
+                    auto ROK3_1 = CText::doesTextLabelExist(CText::g_text, 0, "ROK3_1");
+                
+                    if (COL4_17 && ROK3_1)
+                        return;
+                
+                    return shRadioSaveHandler.stdcall();
+                };
+            
+                static SafetyHookInline shRadioLoadHandler{};
+                static auto RadioLoadHandler = []()
+                {
+                    auto COL4_17 = CText::doesTextLabelExist(CText::g_text, 0, "COL4_17");
+                    auto ROK3_1 = CText::doesTextLabelExist(CText::g_text, 0, "ROK3_1");
+                
+                    if (COL4_17 && ROK3_1)
+                        return;
+                
+                    return shRadioLoadHandler.stdcall();
+                };
+                
+                auto pattern = hook::pattern("81 EC 74 0E 00 00");
+                if (!pattern.empty())
+                {
+                    shRadioSaveHandler = safetyhook::create_inline(pattern.get_first(0), static_cast<void(__stdcall*)()>(RadioSaveHandler));
+            
+                    pattern = hook::pattern("A0 ? ? ? ? 53 8A 1D");
+                    if (!pattern.empty())
+                        shRadioLoadHandler = safetyhook::create_inline(pattern.get_first(0), static_cast<void(__stdcall*)()>(RadioLoadHandler));
+                }
+            }
         };
 
         // FPS Counter
         if (GetD3DX9_43DLL())
         {
+            CIniReader iniReader("");
+            static bool bExtendedTimecycEditing = iniReader.ReadInteger("FOG", "ExtendedTimecycEditing", 0) != 0;
+
             static ID3DXFont* pFPSFont = nullptr;
             
             FusionFix::onBeforeReset() += []()
@@ -646,6 +715,7 @@ public:
                 if (pMenuTab && *pMenuTab == 8 || *pMenuTab == 49 || fpsc->get())
                 {
                     static std::list<int> m_times;
+                    static int fontSize = 0;
             
                     auto pDevice = *RageDirect3DDevice9::m_pRealDevice;
             
@@ -668,10 +738,12 @@ public:
                         RECT rect;
                         pDevice->GetCreationParameters(&cparams);
                         GetClientRect(cparams.hFocusWindow, &rect);
+
+                        fontSize = rect.bottom / 20;
             
                         D3DXFONT_DESC fps_font;
                         ZeroMemory(&fps_font, sizeof(D3DXFONT_DESC));
-                        fps_font.Height = rect.bottom / 20;
+                        fps_font.Height = fontSize;
                         fps_font.Width = 0;
                         fps_font.Weight = 400;
                         fps_font.MipLevels = 0;
@@ -721,6 +793,53 @@ public:
                         static const D3DXCOLOR TLAD(D3DCOLOR_XRGB(0x6F, 0x0D, 0x0F));
                         static const D3DXCOLOR IV(D3DCOLOR_XRGB(0xF0, 0xA0, 0x00));
                         DrawTextOutline(pFPSFont, 10, 10, (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), str_format_fps, fps);
+
+                        if (bExtendedTimecycEditing)
+                        {
+                            {
+                                static auto oldState = GetAsyncKeyState(VK_F3);
+                                auto curState = GetAsyncKeyState(VK_F3);
+                                if ((oldState & 0x8000) == 0 && (curState & 0x8000))
+                                {
+                                    static std::vector<std::filesystem::path> episodicPaths = {
+                                         std::filesystem::path(""),
+                                         std::filesystem::path("TLAD"),
+                                         std::filesystem::path("TBoGT"),
+                                    };
+
+                                    auto filePath1 = GetModulePath(GetModuleHandleW(NULL)).parent_path() / episodicPaths[*_dwCurrentEpisode] / "pc" / "data";
+                                    auto filePath2 = GetModulePath(GetModuleHandleW(NULL)).parent_path() / "pc" / "data";
+                                    CTimeCycleExt::Initialise(filePath1 / "timecycext.dat");
+                                    CTimeCycleModifiersExt::Initialise(filePath2 / "timecyclemodifiersext.dat");
+
+                                    CTimeCycle::Initialise();
+                                }
+                                oldState = curState;
+                            }
+
+                            auto i = 0;
+
+                            static char sVolFogDensity[] = "VolFogDensity: %f";
+                            DrawTextOutline(pFPSFont, 10, fontSize * ++i, (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogDensity, CTimeCycleExt::GetVolFogDensity());
+
+                            static char sVolFogHeightFalloff[] = "VolFogHeightFalloff: %f";
+                            DrawTextOutline(pFPSFont, 10, fontSize * ++i, (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogHeightFalloff, CTimeCycleExt::GetVolFogHeightFalloff());
+
+                            static char sVolFogAltitudeTweak[] = "VolFogAltitudeTweak: %f";
+                            DrawTextOutline(pFPSFont, 10, fontSize * ++i, (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogAltitudeTweak, CTimeCycleExt::GetVolFogAltitudeTweak());
+
+                            static char sVolFogPower[] = "VolFogPower: %f";
+                            DrawTextOutline(pFPSFont, 10, fontSize * ++i, (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogPower, CTimeCycleExt::GetVolFogPower());
+
+                            static char sVolFogColorFactor[] = "VolFogColorFactor: %f";
+                            DrawTextOutline(pFPSFont, 10, fontSize * ++i, (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogColorFactor, CTimeCycleExt::GetVolFogColorFactor());
+
+                            static char sModifiers[] = "%d %f";
+                            for (const auto& it : currentTimecycleModifiers)
+                            {
+                                DrawTextOutline(pFPSFont, 10, fontSize * ++i, (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sModifiers, it.first, it.second);
+                            }
+                        }
                     }
                 }
             };

@@ -11,6 +11,7 @@ export module snow;
 import common;
 import comvars;
 import natives;
+import settings;
 import d3dx9_43;
 import fusiondxhook;
 
@@ -35,7 +36,7 @@ rage::grcTexturePC* vehicle_genericmud_truck_snow;
 static SafetyHookInline shsub_41B920{};
 rage::grcTexturePC* __fastcall sub_41B920(rage::grcTextureReference* tex, void* edx)
 {
-    if (bEnableSnow && *CWeather::CurrentWeather != CWeather::LIGHTNING)
+    if (bEnableSnow && *CWeather::OldWeatherType != CWeather::LIGHTNING)
     {
         if (!vehicle_generic_glasswindows2)
         {
@@ -254,8 +255,8 @@ private:
         static CWeather::eWeatherType currWeather;
 
         auto prevWeather = currWeather;
-        currWeather = *CWeather::CurrentWeather;
-        auto nextWeather = *CWeather::NextWeather;
+        currWeather = *CWeather::OldWeatherType;
+        auto nextWeather = *CWeather::NewWeatherType;
 
         if (HasSnow(prevWeather) || HasSnow(currWeather) || HasSnow(nextWeather))
         {
@@ -317,9 +318,9 @@ private:
 
             rage::Vector4 threshold;
             if (!HasSnow(currWeather) && HasSnow(nextWeather))
-                threshold.y = *CWeather::NextWeatherPercentage;
+                threshold.y = *CWeather::InterpolationValue;
             else if (HasSnow(currWeather) && !HasSnow(nextWeather))
-                threshold.y = 0.9999f - *CWeather::NextWeatherPercentage;
+                threshold.y = 0.9999f - *CWeather::InterpolationValue;
             else if (!HasSnow(currWeather) && !HasSnow(nextWeather))
                 threshold.y = 0.0f;
             else
@@ -525,26 +526,63 @@ public:
                 {
                     FusionFix::onGameProcessEvent() += []()
                     {
-                        auto now = std::chrono::system_clock::now();
-                        auto now_c = std::chrono::system_clock::to_time_t(now);
-                        auto date = std::localtime(&now_c);
-
-                        if ((date->tm_mon == 0 && date->tm_mday <= 2) || (date->tm_mon == 11 && date->tm_mday >= 30))
+                        if (FusionFixSettings("PREF_TIMEDEVENTS"))
                         {
-                            static bool bOnce = false;
-                            if (!bOnce)
+                            auto now = std::chrono::system_clock::now();
+                            auto now_c = std::chrono::system_clock::to_time_t(now);
+                            auto date = std::localtime(&now_c);
+                        
+                            if ((date->tm_mon == 0 && date->tm_mday <= 2) || (date->tm_mon == 11 && date->tm_mday >= 30))
                             {
-                                bOnce = true;
-                                ToggleSnow(true);
+                                static bool bOnce = false;
+                                if (!bOnce)
+                                {
+                                    bOnce = true;
+                                    ToggleSnow(true);
+                                }
+                            }
+                            else if (bEnableSnow)
+                            {
+                                static bool bOnce = false;
+                                if (!bOnce)
+                                {
+                                    bOnce = true;
+                                    ToggleSnow(false);
+                                }
                             }
                         }
-                        else if (bEnableSnow)
+                    };
+                }
+
+                if (date->tm_mon == 9 && date->tm_mday == 31)
+                {
+                    FusionFix::onGameProcessEvent() += []()
+                    {
+                        if (FusionFixSettings("PREF_TIMEDEVENTS"))
                         {
-                            static bool bOnce = false;
-                            if (!bOnce)
+                            auto now = std::chrono::system_clock::now();
+                            auto now_c = std::chrono::system_clock::to_time_t(now);
+                            auto date = std::localtime(&now_c);
+                        
+                            if ((date->tm_mon == 10 && date->tm_mday <= 1) || (date->tm_mon == 9 && date->tm_mday >= 30))
                             {
-                                bOnce = true;
-                                ToggleSnow(false);
+                                static bool bOnce = false;
+                                if (!bOnce)
+                                {
+                                    bOnce = true;
+                                    bEnableHall = !bEnableHall;
+                                    ToggleSnow(false);
+                                }
+                            }
+                            else if (bEnableHall)
+                            {
+                                static bool bOnce = false;
+                                if (!bOnce)
+                                {
+                                    bOnce = true;
+                                    bEnableHall = !bEnableHall;
+                                    ToggleSnow(false);
+                                }
                             }
                         }
                     };
@@ -697,7 +735,7 @@ extern "C"
 
     bool __declspec(dllexport) IsWeatherSnow()
     {
-        return CWeather::CurrentWeather && *CWeather::CurrentWeather != CWeather::LIGHTNING;
+        return CWeather::OldWeatherType && *CWeather::OldWeatherType != CWeather::LIGHTNING;
     }
 
     void __declspec(dllexport) ToggleSnow()

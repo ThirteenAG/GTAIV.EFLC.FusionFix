@@ -85,6 +85,15 @@ Filtro delle ombre
 [HeadlightShadow]
 Ombre dei fari
 
+[Timed Events]
+Eventi stagionali
+
+[Tone Mapping]
+Mappatura tonale
+
+[Volumetric Fog]
+Nebbia volumetrica
+
 [FF_WARN0]
 ~p~IMG Files:
 

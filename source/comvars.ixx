@@ -957,9 +957,20 @@ export namespace CWeather
     };
 
     float* Rain = nullptr;
-    eWeatherType* CurrentWeather = nullptr;
-    eWeatherType* NextWeather = nullptr;
-    float* NextWeatherPercentage = nullptr;
+    eWeatherType* OldWeatherType = nullptr;
+    eWeatherType* NewWeatherType = nullptr;
+    float* InterpolationValue = nullptr;
+}
+
+export namespace CClock
+{
+    uint8_t* ms_nGameClockHours;
+    uint8_t* ms_nGameClockMinutes;
+    uint16_t* ms_nGameClockSeconds;
+
+    uint8_t GetHours() { return *ms_nGameClockHours; }
+    uint8_t GetMinutes() { return *ms_nGameClockMinutes; }
+    int16_t GetSeconds() { return *ms_nGameClockSeconds; }
 }
 
 export namespace RageDirect3DDevice9
@@ -982,6 +993,22 @@ export namespace RageDirect3DDevice9
         return nullptr;
     }
 }
+
+export class CRenderPhaseDeferredLighting_SceneToGBuffer
+{
+public:
+    static FusionFix::Event<>& OnBuildRenderList() {
+        static FusionFix::Event<> BuildRenderListEvent;
+        return BuildRenderListEvent;
+    }
+
+    static inline SafetyHookInline shBuildRenderList{};
+    static void __fastcall BuildRenderList(CBaseDC* _this, void* edx)
+    {
+        OnBuildRenderList().executeAll();
+        shBuildRenderList.fastcall<void*>(_this, edx);
+    }
+};
 
 export class CRenderPhaseDeferredLighting_LightsToScreen
 {
@@ -1213,13 +1240,13 @@ public:
         CWeather::Rain = *pattern.get_first<float*>(4);
 
         pattern = find_pattern("A1 ? ? ? ? 83 C4 08 8B CF", "A1 ? ? ? ? 80 3F 04");
-        CWeather::CurrentWeather = *pattern.get_first<CWeather::eWeatherType*>(1);
+        CWeather::OldWeatherType = *pattern.get_first<CWeather::eWeatherType*>(1);
         
         pattern = find_pattern("A1 ? ? ? ? 89 46 4C A1", "A1 ? ? ? ? 77 05 A1 ? ? ? ? 80 3F 04");
-        CWeather::NextWeather = *pattern.get_first<CWeather::eWeatherType*>(1);
+        CWeather::NewWeatherType = *pattern.get_first<CWeather::eWeatherType*>(1);
         
         pattern = hook::pattern("F3 0F 10 05 ? ? ? ? 8B 44 24 0C 8B 4C 24 04");
-        CWeather::NextWeatherPercentage = *pattern.get_first<float*>(4);
+        CWeather::InterpolationValue = *pattern.get_first<float*>(4);
 
         pattern = find_pattern("BF ? ? ? ? F3 AB B8", "BF ? ? ? ? F3 AB B8 ? ? ? ? B9");
         RageDirect3DDevice9::g_TexturesBySampler = *pattern.get_first<IDirect3DTexture9**>(1);
@@ -1246,5 +1273,23 @@ public:
         CCutscenes::hasCutsceneFinished = (bool(*)())injector::GetBranchDestination(pattern.get_first(0)).get();
         pattern = find_pattern("E8 ? ? ? ? 84 C0 75 44 38 05 ? ? ? ? 74 26", "E8 ? ? ? ? 84 C0 75 42 38 05");
         CCamera::isWidescreenBordersActive = (bool(*)())injector::GetBranchDestination(pattern.get_first(0)).get();
+
+        pattern = hook::pattern("A3 ? ? ? ? 8B 44 24 ? A3 ? ? ? ? 8B 44 24 ? A3 ? ? ? ? A1");
+        if (!pattern.empty())
+        {
+            CClock::ms_nGameClockHours = *pattern.get_first<uint8_t*>(1);
+            CClock::ms_nGameClockMinutes = *pattern.get_first<uint8_t*>(10);
+            CClock::ms_nGameClockSeconds = *pattern.get_first<uint16_t*>(19);
+        }
+        else
+        {
+            pattern = hook::pattern("A3 ? ? ? ? 8B 44 24 ? 89 0D ? ? ? ? 8B 0D");
+            CClock::ms_nGameClockHours = *pattern.get_first<uint8_t*>(11);
+            CClock::ms_nGameClockMinutes = *pattern.get_first<uint8_t*>(23);
+            CClock::ms_nGameClockSeconds = *pattern.get_first<uint16_t*>(28);
+        }
+
+        pattern = hook::pattern("51 56 8B F1 83 BE ? ? ? ? ? 0F 84 ? ? ? ? 68");
+        CRenderPhaseDeferredLighting_SceneToGBuffer::shBuildRenderList = safetyhook::create_inline(pattern.get_first(0), CRenderPhaseDeferredLighting_SceneToGBuffer::BuildRenderList);
     }
 } Common;

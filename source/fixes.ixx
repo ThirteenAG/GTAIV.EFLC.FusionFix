@@ -563,6 +563,13 @@ public:
                     });
                 }
             }
+
+            // Disable sniper slot check
+            {
+                auto pattern = hook::pattern("0F 85 ? ? ? ? 84 DB 0F 85 ? ? ? ? 8B CE");
+                if (!pattern.empty())
+                    injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jz -> jmp
+            }
         };
     }
 } Fixes;

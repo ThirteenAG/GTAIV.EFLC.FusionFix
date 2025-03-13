@@ -85,6 +85,15 @@ Fusion Fix: Проверять Обновления
 [HeadlightShadow]
 Тени от фар
 
+[Timed Events]
+Сезонные события
+
+[Tone Mapping]
+Тональное отображение
+
+[Volumetric Fog]
+Объёмный туман
+
 [FF_WARN0]
 ~p~IMG Архивы:
 

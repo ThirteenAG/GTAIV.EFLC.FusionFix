@@ -85,6 +85,15 @@ Filtro de sombras
 [HeadlightShadow]
 Sombras de faros
 
+[Timed Events]
+Eventos estacionales
+
+[Tone Mapping]
+Mapeo tonal
+
+[Volumetric Fog]
+Niebla volumétrica
+
 [FF_WARN0]
 ~p~Archivos IMG:
 

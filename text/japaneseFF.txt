@@ -85,6 +85,15 @@ FPSリミッター
 [HeadlightShadow]
 ヘッドライトの影
 
+[Timed Events]
+季節イベント
+
+[Tone Mapping]
+トーンマッピング
+
+[Volumetric Fog]
+ボリュメトリックフォグ
+
 [FF_WARN0]
 ~p~IMG ファイル:
 
