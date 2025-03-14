@@ -8,6 +8,7 @@ import common;
 import settings;
 import comvars;
 import natives;
+import timecycext;
 
 #define IDR_SNOWTC 205
 #define IDR_HALLTC 206
@@ -72,7 +73,7 @@ int timecyc_scanf(const char* i, const char* fmt, int* mAmbient0ColorR, int* mAm
     if (!FusionFixSettings("PREF_BLOOM"))
         *mBloomIntensity = 0.0f;
 
-    if (FusionFixSettings("PREF_VOLUMETRICFOG"))
+    if (FusionFixSettings("PREF_VOLUMETRICFOG") && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
         *mFarClip = fVolFogFarClip;
 
     switch (FusionFixSettings("PREF_TCYC_DOF"))
@@ -253,8 +254,11 @@ int cutsc_scanf(const char* i, const char* fmt, int* keyframe, float* farclip, f
 {
     auto res = sscanf(i, fmt, keyframe, farclip, nearclip);
 
-    *farclip = 0.0f;
-    *nearclip = -1.0f;
+    if (FusionFixSettings("PREF_VOLUMETRICFOG") && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
+    {
+        *farclip = 0.0f;
+        //*nearclip = -1.0f;
+    }
 
     return res;
 }
@@ -282,8 +286,11 @@ int timecyclemodifiers_scanf(const char* i, const char* fmt, char* Name, float* 
     if (std::string_view(Name) == "Police" || std::string_view(Name) == "intro")
         return res;
 
-    *MinFarClip = -1.0f;
-    *MaxFarClip = -1.0f;
+    if (FusionFixSettings("PREF_VOLUMETRICFOG") && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
+    {
+        *MinFarClip = -1.0f;
+        *MaxFarClip = -1.0f;
+    }
 
     return res;
 }
@@ -366,13 +373,13 @@ public:
             });
 
             // z-fighting fix helpers
-            //{
-            //    auto pattern = hook::pattern("E8 ? ? ? ? 6A 0C E8 ? ? ? ? 8B 0D");
-            //    injector::MakeCALL(pattern.get_first(0), cutsc_scanf, true);
-            //
-            //    pattern = hook::pattern("E8 ? ? ? ? 69 F6 ? ? ? ? 8D 84 24");
-            //    injector::MakeCALL(pattern.get_first(0), timecyclemodifiers_scanf, true);
-            //}
+            {
+                auto pattern = hook::pattern("E8 ? ? ? ? 6A 0C E8 ? ? ? ? 8B 0D");
+                injector::MakeCALL(pattern.get_first(0), cutsc_scanf, true);
+            
+                pattern = hook::pattern("E8 ? ? ? ? 69 F6 ? ? ? ? 8D 84 24");
+                injector::MakeCALL(pattern.get_first(0), timecyclemodifiers_scanf, true);
+            }
 
             {
                 HMODULE hm = NULL;

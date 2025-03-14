@@ -642,6 +642,12 @@ public:
                     regs.xmm0.f32[0] = 1.0f;
                 else
                     regs.xmm0.f32[0] = *farClipMultiplier;
+
+                if (bIsQUB3D)
+                {
+                    regs.xmm0.f32[0] = 0.1f;
+                    bIsQUB3D = false;
+                }
             });
 
             pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 5C C1 F3 0F 59 C2 F3 0F 58 C1 F3 0F 11 05 ? ? ? ? 8B E5");
@@ -834,10 +840,31 @@ public:
                             static char sVolFogColorFactor[] = "VolFogColorFactor: %f";
                             DrawTextOutline(pFPSFont, 10, fontSize * ++i, (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogColorFactor, CTimeCycleExt::GetVolFogColorFactor());
 
-                            static char sModifiers[] = "%d %f";
+                            static std::string_view modNames[] = {
+                                "noambient", "NoAmbientmult", "qwnomoon", "qw2nomoon", "Brook_S2_TC", "MH_NOMOON", "KsS1nomoon1", "KsS1nomoon2", "KsS1nomoon3", "Brook_N_gden", "Buildsite_MH1",
+                                "MH3carpark", "bkn2_Nomoon1", "bkn2_Nomoon2", "bks3norain", "MHNoMoon", "erosware", "QM_Nomoon", "NJ2nomoon", "bxwnomoon", "star_junc", "raytest",
+                                "raytest2", "NJ02TUNNEL", "Internaldim", "SoosTunnel", "Nikwarehouse", "clam", "vlads", "generic", "jamcafe", "ten_str", "playboyx", "browner",
+                                "limo", "STEVETUNNEL", "SUBWAY", "SUBWAY_STATION", "CARPARK", "RomansFl", "rscafe", "bernies", "Factorytest", "Factory", "bens2", "Hospital",
+                                "Museum2", "Bada", "Badamine", "DrugDen", "Bank3", "Chase", "sexshop", "Diner", "hospitallobby", "Trespass", "ritz", "ritzf3", "ritzpen",
+                                "intcafe", "firedept", "deal", "korrest", "korbar", "korkitch", "apart", "parktoilet", "HarlemProjects", "HarlemDrug", "JerSave", "burgershot",
+                                "burgershotold", "HarlemTopFloor", "Irishbar", "boatcabs", "corplobby", "binco", "gazwarehouse", "bruciechopshop", "playboyxlobby", "statuestair",
+                                "waste", "Bowl", "GunShop", "chinagun", "harlem_ten", "sw_har_decor", "sw_har_psh", "ten_standard", "ten_ornate", "ten_modern", "cluckinbell",
+                                "Casino", "limooffice", "DrugDenStair", "project", "DwayneApart", "stair1", "stair2", "MH8_carpark", "MH8_Savehouse", "MH8_Showroom", "STUDIO_APART01",
+                                "projectStair", "lightning", "playersettings", "playersettings2", "sniper", "sniper_ini", "binocular", "injured", "fast", "death", "death2", "death3",
+                                "train_int", "busted", "cabaret", "lobby2office", "lobby2", "Police", "SUBWAYSERV", "SUBWAYENT", "SUBWAY_N", "SUBWAY_E", "SUBWAY_S", "SUBWAY_W",
+                                "NIGHTSHADE", "PIZZAREST", "PIZZAREST2", "BRUCIE_STUDIO", "church", "Faustins", "Faustinsbase", "LittleJacobs", "Prison", "BernieCrane",
+                                "McRearyHouse", "CopshopOffice", "Michelles", "sopranos", "Manny", "CIAoffice", "portacabin", "comclub", "elizabetas", "Bada", "fau3_a",
+                                "imbhst", "em_4b", "g_1", "g_2", "g_3", "em_4", "df_2", "df_3", "lilj1_a", "imfau6", "imfau2", "wedint", "gm_2", "br_1", "br_4", "px_2",
+                                "pxdf", "rb_4b", "vla1_a", "vla2_a", "vla4_a", "rom8_b", "pm_3", "em_1", "em_2", "em_3", "em_5", "em_7", "fau4_a", "show_1", "show_2",
+                                "show_3", "show_4", "show_5", "show_6", "show_7", "show_8", "rb_4", "j_1", "rp_13", "rom2_a", "rom3_a", "rom5_a", "rom6_a", "rom8_a",
+                                "r_9", "Classic", "Tweaked", "Cinema", "Verte", "Hot", "Steel", "Psyche", "Romantic", "Sepia", "Muddy", "Neon", "Rouge", "Bronze",
+                                "Ulraviolet", "Eclipse", "Noire", "colors", "Vintage", "Fire", "Sketch", "em_1", "em_2", "em_5", 
+                            };
+
+                            static char sModifiers[] = "%s %f";
                             for (const auto& it : currentTimecycleModifiers)
                             {
-                                DrawTextOutline(pFPSFont, 10, fontSize * ++i, (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sModifiers, it.first, it.second);
+                                DrawTextOutline(pFPSFont, 10, fontSize * ++i, (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sModifiers, modNames[it.first], it.second);
                             }
                         }
                     }

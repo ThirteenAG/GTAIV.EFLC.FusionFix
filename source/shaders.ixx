@@ -471,7 +471,7 @@ public:
                         arr11[2] = 0.0f;
                         arr11[3] = 0.0f;
 
-                        if (!CTimeCycleExt::IsInitialized() || !CTimeCycleModifiersExt::IsInitialized())
+                        if (!CTimeCycleExt::IsInitialized() || !CTimeCycleModifiersExt::IsInitialized() || bIsQUB3D)
                             arr11[1] = 0.0f;
 
                         pDevice->SetPixelShaderConstantF(210, &arr11[0], 1);

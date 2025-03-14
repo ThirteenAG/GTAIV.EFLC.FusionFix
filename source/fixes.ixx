@@ -414,6 +414,11 @@ public:
                         }
                         else
                         {
+                            if ((regs.edi == 5 || regs.edi == 4) && *(float*)(*dwEFB1B8 + 296) >= 3000.0f)
+                            {
+                                bIsQUB3D = true;
+                            }
+
                             *(uintptr_t*)(regs.esp - 4) = loc_6E39F3;
                         }
                     }
