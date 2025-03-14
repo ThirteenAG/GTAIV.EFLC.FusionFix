@@ -626,7 +626,7 @@ private:
 
         saveRenderState();
 
-        pDevice->SetPixelShaderConstantF(214, PostFxResources.AAparameters, 1);
+        // pDevice->SetPixelShaderConstantF(214, PostFxResources.AAparameters, 1);
         pDevice->SetSamplerState(2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
 
         // new 
@@ -744,7 +744,7 @@ private:
         pDevice->SetPixelShaderConstantF(120, SunShaftsSamples2, 1);
         pDevice->SetPixelShaderConstantF(140, PostFxResources.BilateralDepthTreshold, 1);
         pDevice->SetPixelShaderConstantF(144, PostFxResources.NoiseSale, 1);
-        pDevice->SetPixelShaderConstantF(214, PostFxResources.AAparameters, 1);
+        // pDevice->SetPixelShaderConstantF(214, PostFxResources.AAparameters, 1);
         pDevice->SetPixelShaderConstantF(218, blueTimerVec4, 1);
 
         pDevice->SetTexture(8, PostFxResources.HalfScreenTex);
