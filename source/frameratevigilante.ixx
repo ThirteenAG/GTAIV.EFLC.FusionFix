@@ -101,7 +101,7 @@ public:
             }
 
             // CD/busy spinner
-            pattern = find_pattern("F3 0F 58 05 ? ? ? ? 33 C0 A3 ? ? ? ? F3 0F 11 05");
+            pattern = hook::pattern("F3 0F 58 05 ? ? ? ? 33 C0 A3 ? ? ? ? F3 0F 11 05");
             if (!pattern.empty())
             {
                 struct CDSpinnerHook
