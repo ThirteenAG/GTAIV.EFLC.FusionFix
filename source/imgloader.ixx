@@ -16,7 +16,6 @@ public:
         FusionFix::onInitEvent() += []()
         {
             static bool (WINAPI* GetOverloadPathW)(wchar_t* out, size_t out_size) = nullptr;
-            static bool (WINAPI* GetOverloadedFilePathW)(const wchar_t* lpFilename, wchar_t* out, size_t out_size) = nullptr;
 
             ModuleList dlls;
             dlls.Enumerate(ModuleList::SearchLocation::LocalOnly);
@@ -25,12 +24,12 @@ public:
                 auto m = std::get<HMODULE>(e);
                 if (IsModuleUAL(m)) {
                     GetOverloadPathW = (decltype(GetOverloadPathW))GetProcAddress(m, "GetOverloadPathW");
-                    GetOverloadedFilePathW = (decltype(GetOverloadedFilePathW))GetProcAddress(m, "GetOverloadedFilePathW");
                     break;
                 }
             }
 
-            std::wstring s(MAX_PATH, L'\0');
+            std::wstring s;
+            s.resize(MAX_PATH, L'\0');
             if (!GetOverloadPathW || !GetOverloadPathW(s.data(), s.size()))
                 s = GetExeModulePath() / L"update";
 
@@ -55,15 +54,16 @@ public:
                     }
 
                     auto gamePath = GetExeModulePath();
+                    std::error_code ec;
 
-                    if (std::filesystem::exists(updatePath))
+                    if (std::filesystem::exists(updatePath, ec))
                     {
                         constexpr auto perms = std::filesystem::directory_options::skip_permission_denied | std::filesystem::directory_options::follow_directory_symlink;
-                        for (const auto& file : std::filesystem::recursive_directory_iterator(updatePath, perms))
+                        for (const auto& file : std::filesystem::recursive_directory_iterator(updatePath, perms, ec))
                         {
                             auto filePath = std::filesystem::path(file.path());
 
-                            if (!std::filesystem::is_directory(file) && iequals(filePath.extension().native(), L".img"))
+                            if (!std::filesystem::is_directory(file, ec) && iequals(filePath.extension().native(), L".img"))
                             {
                                 static std::vector<std::filesystem::path> episodicPaths = {
                                     std::filesystem::path("IV"),
@@ -130,17 +130,16 @@ public:
                                 };
 
                                 auto relativePath = lexicallyRelativeCaseIns(filePath, gamePath);
-                                auto relativeToUpdatePath = lexicallyRelativeCaseIns(filePath, updatePath);
                                 auto imgPath = relativePath.native();
                                 std::replace(std::begin(imgPath), std::end(imgPath), L'\\', L'/');
                                 auto pos = imgPath.find(L'/');
 
-                                if (GetOverloadedFilePathW && GetOverloadedFilePathW(relativeToUpdatePath.wstring().data(), nullptr, 0))
-                                    continue;
-
                                 if (pos != imgPath.npos)
                                 {
                                     imgPath.replace(pos, 1, L":/");
+
+                                    if (iequals(imgPath, L"update:/update.img"))
+                                        continue;
 
                                     if (std::any_of(std::begin(episodicPaths), std::end(episodicPaths), [&](auto& it) { return contains_subfolder(relativePath, it); }))
                                     {
