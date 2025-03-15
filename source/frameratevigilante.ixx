@@ -64,6 +64,18 @@ public:
                     }
                 }; injector::MakeInline<LoadingTextSpeed>(pattern.get_first(0), pattern.get_first(12));
             }
+                else
+                {
+                    pattern = hook::pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 05 ? ? ? ? F3 0F 11 05 ? ? ? ? EB 30");
+                    static auto f1738420 = *pattern.get_first<float*>(4);
+                    struct LoadingTextSpeed
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            regs.xmm0.f32[0] = *f1738420 * *CTimer::fTimeStep;
+                        }
+                    }; injector::MakeInline<LoadingTextSpeed>(pattern.get_first(0), pattern.get_first(8));
+                }
 
             pattern = hook::pattern("F3 0F 58 0D ? ? ? ? 0F 5B C0 F3 0F 11 0D");
             if (!pattern.empty())
@@ -89,7 +101,7 @@ public:
             }
 
             // CD/busy spinner
-            pattern = hook::pattern("F3 0F 58 05 ? ? ? ? 33 C0 A3 ? ? ? ? F3 0F 11 05");
+            pattern = find_pattern("F3 0F 58 05 ? ? ? ? 33 C0 A3 ? ? ? ? F3 0F 11 05", "F3 0F 58 15 ? ? ? ? 33 C0 F3 0F 11 15 ? ? ? ? A3 ? ? ? ?");
             if (!pattern.empty())
             {
                 struct CDSpinnerHook
@@ -102,7 +114,7 @@ public:
             }
             
             // Cop blips
-            pattern = hook::pattern("F3 0F 10 4C 24 ? 0F 28 C1 F3 0F 59 C2");
+            pattern = find_pattern("F3 0F 10 4C 24 ? 0F 28 C1 F3 0F 59 C2", "D9 44 24 04 8B 0D ? ? ? ? D8 0D ? ? ? ?");
             if (!pattern.empty())
             {
                 static int CustomFrameCounter = 0;
