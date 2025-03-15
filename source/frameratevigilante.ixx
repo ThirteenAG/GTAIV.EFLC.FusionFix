@@ -101,7 +101,7 @@ public:
             }
 
             // CD/busy spinner
-            pattern = find_pattern("F3 0F 58 05 ? ? ? ? 33 C0 A3 ? ? ? ? F3 0F 11 05", "F3 0F 58 15 ? ? ? ? 33 C0 F3 0F 11 15 ? ? ? ? A3 ? ? ? ?");
+            pattern = find_pattern("F3 0F 58 05 ? ? ? ? 33 C0 A3 ? ? ? ? F3 0F 11 05");
             if (!pattern.empty())
             {
                 struct CDSpinnerHook
@@ -112,7 +112,18 @@ public:
                     }
                 }; injector::MakeInline<CDSpinnerHook>(pattern.get_first(0), pattern.get_first(8));
             }
-            
+             else
+            {
+                    pattern = hook::pattern("F3 0F 58 15 ? ? ? ? 33 C0 F3 0F 11 15 ? ? ? ? A3 ? ? ? ?");
+                    struct CDSpinnerHook
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            regs.xmm2.f32[0] += *CTimer::fTimeStep * 5.0f;
+                        }
+                    }; injector::MakeInline<CDSpinnerHook>(pattern.get_first(0), pattern.get_first(8));
+                }
+
             // Cop blips
             pattern = find_pattern("F3 0F 10 4C 24 ? 0F 28 C1 F3 0F 59 C2", "D9 44 24 04 8B 0D ? ? ? ? D8 0D ? ? ? ?");
             if (!pattern.empty())
