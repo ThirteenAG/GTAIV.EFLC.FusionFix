@@ -382,11 +382,11 @@ public:
                 static auto veh_glass_red = "veh_glass_red";
                 static auto veh_glass_amber = "veh_glass_amber";
 
-                auto pattern = hook::pattern("68 ? ? ? ? EB E2 6A 00 68");
+                auto pattern = find_pattern("68 ? ? ? ? EB E2 6A 00 68", "68 ? ? ? ? EB 07 6A 00 68 ? ? ? ? E8 ? ? ? ? 83 C4 08");
                 if (!pattern.empty())
                     injector::WriteMemory(pattern.get_first(1), &veh_glass_red[0], true);
 
-                pattern = hook::pattern("68 ? ? ? ? E8 ? ? ? ? 83 C4 08 89 44 24 0C 6A 00 6A 00");
+                pattern = find_pattern("68 ? ? ? ? E8 ? ? ? ? 83 C4 08 89 44 24 0C 6A 00 6A 00", "68 ? ? ? ? E8 ? ? ? ? 83 C4 08 6A 00 6A 00 50 B9 ? ? ? ? 89 44 24 18 E8 ? ? ? ? 8B F0 85 F6 0F 84");
                 if (!pattern.empty())
                     injector::WriteMemory(pattern.get_first(1), &veh_glass_amber[0], true);
             }
@@ -547,7 +547,7 @@ public:
 
             // Radio reset fix
             {
-                auto pattern = hook::pattern("74 ? 85 C9 75 ? 32 C0 50");
+                 auto pattern = find_pattern("74 ? 85 C9 75 ? 32 C0 50", "74 16 85 C0 75 12 D9 EE");
                 if (!pattern.empty())
                     injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jz -> jmp
             }
