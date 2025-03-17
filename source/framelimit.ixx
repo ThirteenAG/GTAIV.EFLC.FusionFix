@@ -221,7 +221,7 @@ public:
 
                 //unlimit loadscreens fps
                 static float f0 = 0.0f;
-                pattern = hook::pattern("F3 0F 10 05 ? ? ? ? 2B C1 1B D6 89 44 24 18 89 54 24 1C DF 6C 24 18 D9 5C 24 18 F3 0F 10 4C 24 ? F3 0F 59 0D ? ? ? ? 0F 2F C1");
+                pattern = find_pattern("F3 0F 10 05 ? ? ? ? 2B C1 1B D6 89 44 24 18 89 54 24 1C DF 6C 24 18 D9 5C 24 18 F3 0F 10 4C 24 ? F3 0F 59 0D ? ? ? ? 0F 2F C1", "8B 35 ? ? ? ? 2B C1 1B D6 89 44 24 18 89 54 24 1C DF 6C 24 18 D8 0D ? ? ? ? D9 05 ? ? ? ? DF F1 DD D8 0F 87 ? ? ? ?");
                 if (!pattern.empty())
                     injector::WriteMemory(pattern.get_first(4), &f0, true);
             }
@@ -247,7 +247,7 @@ public:
             if (!pattern.empty())
                 hbsub_C64CB0.fun = injector::MakeCALL(pattern.get_first(0), sub_C64CB0).get();
 
-            pattern = hook::pattern("83 EC 28 83 3D ? ? ? ? ? 56 8B F1");
+            pattern = find_pattern("83 EC 28 83 3D ? ? ? ? ? 56 8B F1", "83 EC 28 B8 ? ? ? ? 39 05 ? ? ? ? 56 8B F1");
             if (!pattern.empty())
             {
                 static auto InfiniteLoadingWorkaround2 = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
