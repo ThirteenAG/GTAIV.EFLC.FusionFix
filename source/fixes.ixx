@@ -547,7 +547,7 @@ public:
 
             // Radio reset fix
             {
-                 auto pattern = find_pattern("74 ? 85 C9 75 ? 32 C0 50", "74 16 85 C0 75 12 D9 EE");
+                auto pattern = find_pattern("74 ? 85 C9 75 ? 32 C0 50", "74 16 85 C0 75 12 D9 EE");
                 if (!pattern.empty())
                     injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jz -> jmp
             }
