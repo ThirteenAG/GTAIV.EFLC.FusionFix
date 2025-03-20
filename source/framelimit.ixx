@@ -226,13 +226,15 @@ public:
                     {
                         injector::WriteMemory(pattern.get_first(4), &f0, true);
                     }
-                    else
+                      else 
                     {
                         pattern = hook::pattern("8B 35 ? ? ? ? 2B C1 1B D6 89 44 24 18 89 54 24 1C DF 6C 24 18 D8 0D ? ? ? ? D9 05 ? ? ? ? DF F1 DD D8 0F 87 ? ? ? ?");
+                        if (!pattern.empty())
+                        {
                         injector::WriteMemory(pattern.get_first(2), &f0, true);
+                        }
                     }
                 }
-
 
             if (fScriptCutsceneFovLimit)
             {
