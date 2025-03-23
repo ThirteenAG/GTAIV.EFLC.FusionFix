@@ -269,6 +269,16 @@ public:
                 auto pattern = find_pattern("F3 0F 10 15 ? ? ? ? 0F 28 CC F3 0F 59 CB", "F3 0F 10 0D ? ? ? ? 8B 0D ? ? ? ? 0F 28 D0 F3 0F 59 D3");
                 injector::WriteMemory(pattern.get_first(4), &dwMirrorOffset, true);
             }
+
+            // Contrast slider value is actually one tick lower internally on the Xbox 360 version (n ticks visually, actually n-1 in game code). Implement this behavior to get proper console gamma w/ FusionShaders
+            {
+                auto pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 C6 F3 0F 11 4C 24", "F3 0F 10 05 ? ? ? ? F3 0F 59 C6 F3 0F 11 44 24 ? F3 0F 10 05");
+                static auto PostFXContrastHook = safetyhook::create_mid(pattern.get_first(8), [](SafetyHookContext& regs)
+                {
+                    static auto consolegamma = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA");
+                    regs.xmm0.f32[0] += regs.xmm0.f32[0] >= 1.3f ? 0.0f : (consolegamma->get() ? 0.06f : 0.0f);
+                });
+            }
         };
 
         FusionFix::onGameInitEvent() += []()
