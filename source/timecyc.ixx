@@ -301,6 +301,15 @@ int timecyclemodifiers_scanf(const char* i, const char* fmt, char* Name, float* 
         *MinFarClip = -1.0f;
         *MaxFarClip = -1.0f;
     }
+    else
+    {
+        // Workaround for phone screen depth issues.
+        if (*MinFarClip != -1.0f && *MinFarClip < 205.0f)
+            *MinFarClip = 205.0f;
+
+        if (*MaxFarClip != -1.0f && *MaxFarClip < 205.0f)
+            *MaxFarClip = 205.0f;
+    }
 
     return res;
 }
