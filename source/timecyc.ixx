@@ -242,6 +242,16 @@ int timecyc_scanf(const char* i, const char* fmt, int* mAmbient0ColorR, int* mAm
         }
     }
 
+    {
+        int h = scanfCount % NUMHOURS;
+        int w = scanfCount / NUMHOURS;
+
+        CTimeCycleExt::tmp_fDirLightColorR[h][w] = (float)(*mDirLightColorR) / 255.0f;
+        CTimeCycleExt::tmp_fDirLightColorG[h][w] = (float)(*mDirLightColorG) / 255.0f;
+        CTimeCycleExt::tmp_fDirLightColorB[h][w] = (float)(*mDirLightColorB) / 255.0f;
+        CTimeCycleExt::tmp_fDirLightMultiplier[h][w] = *mDirLightMultiplier;
+    }
+
     scanfCount++;
 
     if (scanfCount >= 99)

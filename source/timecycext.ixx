@@ -7,9 +7,10 @@ export module timecycext;
 import common;
 import comvars;
 
-constexpr auto NUMWEATHERS = 8;
-constexpr auto NUMHOURS = 11;
+export constexpr auto NUMWEATHERS = 9;
+export constexpr auto NUMHOURS = 11;
 constexpr int ACTUAL_HOURS[NUMHOURS] = { 0, 5, 6, 7, 9, 12, 18, 19, 20, 21, 22 };
+float (*RainDefaultLight)[4] = nullptr;
 
 export std::vector<std::pair<int, float>> currentTimecycleModifiers;
 
@@ -17,17 +18,19 @@ namespace CTimeCycleModifier
 {
     constexpr auto STRIDE = 47;
     constexpr auto ARRAY_SIZE = 900;
-    int (*dword_15DE3A8)[ARRAY_SIZE];
+    int (*msTimeCycleModifiers)[ARRAY_SIZE];
+    bool bOverwrite = false;
 
     SafetyHookInline shApplyTimecycModifier = {};
     void __fastcall ApplyTimecycModifier(float* _this, void* edx, uintptr_t a2, float a3, char a4)
     {
         auto hash = *(uint32_t*)a2;
-        if (hash && (a2 >= (uintptr_t)CTimeCycleModifier::dword_15DE3A8))
+        if (hash && (a2 >= (uintptr_t)CTimeCycleModifier::msTimeCycleModifiers))
         {
-            auto diff = a2 - (uintptr_t)CTimeCycleModifier::dword_15DE3A8;
+            auto diff = a2 - (uintptr_t)CTimeCycleModifier::msTimeCycleModifiers;
             auto index = (diff / 47) / 4;
             currentTimecycleModifiers.emplace_back(index, a3);
+            bOverwrite = false;
         }
 
         shApplyTimecycModifier.unsafe_fastcall(_this, edx, a2, a3, a4);
@@ -36,7 +39,7 @@ namespace CTimeCycleModifier
     injector::hook_back<void(__fastcall*)(void*, void*, int, float)> hbBlendWithModifier;
     void __fastcall BlendWithModifier(void* _this, void* edx, int a2, float a3)
     {
-        auto diff = a2 - (uintptr_t)dword_15DE3A8;
+        auto diff = a2 - (uintptr_t)msTimeCycleModifiers;
         auto index = (diff / 47) / 4;
         currentTimecycleModifiers.emplace_back(index, a3);
 
@@ -46,6 +49,8 @@ namespace CTimeCycleModifier
     void __fastcall BlendWithModifier2(void* _this, void* edx, int a2, float a3)
     {
         currentTimecycleModifiers.back().second = a3;
+        bOverwrite = true;
+
         return hbBlendWithModifier.fun(_this, edx, a2, a3);
     }
 
@@ -53,7 +58,7 @@ namespace CTimeCycleModifier
     {
         for (auto index = 0; index < ARRAY_SIZE; index++)
         {
-            if ((*dword_15DE3A8)[index * STRIDE] == hashValue)
+            if ((*msTimeCycleModifiers)[index * STRIDE] == hashValue)
             {
                 return index;
             }
@@ -66,7 +71,7 @@ namespace CTimeCycleModifier
     {
         if (index >= 0 && index < ARRAY_SIZE)
         {
-            return (*dword_15DE3A8)[index * STRIDE];
+            return (*msTimeCycleModifiers)[index * STRIDE];
         }
 
         return 0;
@@ -195,11 +200,21 @@ export class CTimeCycleExt
     static inline float m_fVolFogPower[NUMHOURS][NUMWEATHERS];         // control fog start distance
     static inline float m_fVolFogColorFactor[NUMHOURS][NUMWEATHERS];   // control blending between the near and far color
 
+    static inline float m_fDirLightColorR[NUMHOURS][NUMWEATHERS];
+    static inline float m_fDirLightColorG[NUMHOURS][NUMWEATHERS];
+    static inline float m_fDirLightColorB[NUMHOURS][NUMWEATHERS];
+    static inline float m_fDirLightMultiplier[NUMHOURS][NUMWEATHERS];
+
     static inline float m_fCurrentVolFogDensity;
     static inline float m_fCurrentVolFogHeightFalloff;
     static inline float m_fCurrentVolFogAltitudeTweak;
     static inline float m_fCurrentVolFogPower;
     static inline float m_fCurrentVolFogColorFactor;
+
+    static inline float m_fCurrentDirLightColorR;
+    static inline float m_fCurrentDirLightColorG;
+    static inline float m_fCurrentDirLightColorB;
+    static inline float m_fCurrentDirLightMultiplier;
 
     static inline float tmp_fVolFogDensity[NUMHOURS][NUMWEATHERS];
     static inline float tmp_fVolFogHeightFalloff[NUMHOURS][NUMWEATHERS];
@@ -207,6 +222,13 @@ export class CTimeCycleExt
     static inline float tmp_fVolFogPower[NUMHOURS][NUMWEATHERS];
     static inline float tmp_fVolFogColorFactor[NUMHOURS][NUMWEATHERS];
 
+public:
+    static inline float tmp_fDirLightColorR[NUMHOURS][NUMWEATHERS];
+    static inline float tmp_fDirLightColorG[NUMHOURS][NUMWEATHERS];
+    static inline float tmp_fDirLightColorB[NUMHOURS][NUMWEATHERS];
+    static inline float tmp_fDirLightMultiplier[NUMHOURS][NUMWEATHERS];
+
+private:
     static inline float interp_c0, interp_c1, interp_c2, interp_c3;
 
     static inline bool initialized = false;
@@ -218,6 +240,11 @@ public:
     static float GetVolFogAltitudeTweak() { return m_fCurrentVolFogAltitudeTweak; }
     static float GetVolFogPower() { return m_fCurrentVolFogPower; }
     static float GetVolFogColorFactor() { return m_fCurrentVolFogColorFactor; }
+
+    static float GetDirLightColorR() { return m_fCurrentDirLightColorR; }
+    static float GetDirLightColorG() { return m_fCurrentDirLightColorG; }
+    static float GetDirLightColorB() { return m_fCurrentDirLightColorB; }
+    static float GetDirLightMultiplier() { return m_fCurrentDirLightMultiplier; }
 
     static void Initialise(std::filesystem::path path)
     {
@@ -266,6 +293,27 @@ public:
             }
         }
 
+        {
+            for (int w = 0; w < NUMWEATHERS; ++w)
+            {
+                for (int h = 0; h < NUMHOURS; ++h)
+                {
+                    auto& DirLightColorR = CTimeCycleExt::tmp_fDirLightColorR[h][w];
+                    auto& DirLightColorG = CTimeCycleExt::tmp_fDirLightColorG[h][w];
+                    auto& DirLightColorB = CTimeCycleExt::tmp_fDirLightColorB[h][w];
+                    auto& DirLightMultip = CTimeCycleExt::tmp_fDirLightMultiplier[h][w];
+
+                    if (DirLightColorR == 0.0f && DirLightColorG == 0.0f && DirLightColorB == 0.0f && DirLightMultip < 1.0f)
+                    {
+                        DirLightColorR = (*RainDefaultLight)[0] * (1.0f - DirLightMultip);
+                        DirLightColorG = (*RainDefaultLight)[1] * (1.0f - DirLightMultip);
+                        DirLightColorB = (*RainDefaultLight)[2] * (1.0f - DirLightMultip);
+                        DirLightMultip = (*RainDefaultLight)[3] * (1.0f - DirLightMultip);
+                    }
+                }
+            }
+        }
+
         UpdateArrays();
     }
 
@@ -276,6 +324,11 @@ public:
         FillGaps(m_fVolFogAltitudeTweak, tmp_fVolFogAltitudeTweak);
         FillGaps(m_fVolFogPower, tmp_fVolFogPower);
         FillGaps(m_fVolFogColorFactor, tmp_fVolFogColorFactor);
+
+        FillGaps(m_fDirLightColorR, tmp_fDirLightColorR);
+        FillGaps(m_fDirLightColorG, tmp_fDirLightColorG);
+        FillGaps(m_fDirLightColorB, tmp_fDirLightColorB);
+        FillGaps(m_fDirLightMultiplier, tmp_fDirLightMultiplier);
     }
 
     static float Interpolate(float* a, float* b)
@@ -358,6 +411,11 @@ public:
         m_fCurrentVolFogPower = baseVolFogPower;
         m_fCurrentVolFogColorFactor = baseVolFogColorFactor;
 
+        m_fCurrentDirLightColorR = INTERP(m_fDirLightColorR);
+        m_fCurrentDirLightColorG = INTERP(m_fDirLightColorG);
+        m_fCurrentDirLightColorB = INTERP(m_fDirLightColorB);
+        m_fCurrentDirLightMultiplier = INTERP(m_fDirLightMultiplier);
+
         currentTimecycleModifiers.clear();
     }
 };
@@ -369,8 +427,11 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            auto pattern = find_pattern("68 50 79 EA 00", "68 20 74 D7 00");
-            static auto CTimeCycleInitialiseHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+            auto pattern = find_pattern("D9 1D ? ? ? ? 6A ? 68 ? ? ? ? E8 ? ? ? ? 83 C4 ? B9", "D9 1D ? ? ? ? 6A 00 68 38 6E DC 00");
+            RainDefaultLight = *pattern.get_first<decltype(RainDefaultLight)>(2);
+
+            pattern = find_pattern("56 E8 ? ? ? ? 83 C4 ? E8 ? ? ? ? 5F 5E 5B", "53 E8 ? ? ? ? 83 C4 04 E8 ? ? ? ? 8B 8C 24");
+            static auto CTimeCycleInitialiseHook = safetyhook::create_mid(pattern.get_first(14), [](SafetyHookContext& regs)
             {
                 static std::vector<std::filesystem::path> episodicPaths = {
                     std::filesystem::path(""),
@@ -384,9 +445,9 @@ public:
                 CTimeCycleModifiersExt::Initialise(filePath2 / "timecyclemodifiersext.dat");
             });
 
-            pattern = find_pattern("E8 ? ? ? ? B9 B8 CE 6D 01 E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8", 
-                "E8 ? ? ? ? B9 48 97 18 01 E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8",
-                "E8 ? ? ? ? B9 60 0D 00 01 E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8");
+            pattern = find_pattern("E8 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? B9", 
+                "E8 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8",
+                "E8 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8");
             static auto CClockUpdateHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
             {
                 CTimeCycleExt::Update();
@@ -397,8 +458,9 @@ public:
             {
                 static auto OverwriteCurBlendHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                 {
-                    if (!currentTimecycleModifiers.empty())
+                    if (CTimeCycleModifier::bOverwrite && !currentTimecycleModifiers.empty())
                     {
+                        CTimeCycleModifier::bOverwrite = false;
                         auto& back = currentTimecycleModifiers.back().second;
                         if (back == 1.0f)
                             back = regs.xmm2.f32[0];
@@ -420,7 +482,7 @@ public:
             }
 
             pattern = find_pattern("8D B0 ? ? ? ? 6A ? 51", "8D 8E ? ? ? ? D9 1C 24 51 8D 4C 24");
-            CTimeCycleModifier::dword_15DE3A8 = *pattern.get_first<decltype(CTimeCycleModifier::dword_15DE3A8)>(2);
+            CTimeCycleModifier::msTimeCycleModifiers = *pattern.get_first<decltype(CTimeCycleModifier::msTimeCycleModifiers)>(2);
 
             pattern = find_pattern("51 F3 0F 10 64 24 ? 0F 57 F6", "F3 0F 10 4C 24 ? 0F 57 F6 0F 2F CE");
             CTimeCycleModifier::shApplyTimecycModifier = safetyhook::create_inline(pattern.get_first(), CTimeCycleModifier::ApplyTimecycModifier);

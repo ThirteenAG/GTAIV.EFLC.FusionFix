@@ -484,8 +484,15 @@ public:
                         if (!CTimeCycleExt::IsInitialized() || !CTimeCycleModifiersExt::IsInitialized() || bIsQUB3D)
                             arr11[1] = 0.0f;
 
+                        static float arr12[4];
+                        arr12[0] = CTimeCycleExt::GetDirLightColorR();
+                        arr12[1] = CTimeCycleExt::GetDirLightColorG();
+                        arr12[2] = CTimeCycleExt::GetDirLightColorB();
+                        arr12[3] = CTimeCycleExt::GetDirLightMultiplier();
+
                         pDevice->SetPixelShaderConstantF(210, &arr11[0], 1);
                         pDevice->SetVertexShaderConstantF(236, &arr11[0], 1);
+                        pDevice->SetVertexShaderConstantF(237, &arr12[0], 1);
                     }
                 }
             });
