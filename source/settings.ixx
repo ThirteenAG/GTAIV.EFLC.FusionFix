@@ -826,19 +826,19 @@ public:
                             auto i = 0;
 
                             static char sVolFogDensity[] = "VolFogDensity: %f";
-                            DrawTextOutline(pFPSFont, 10, fontSize * ++i, (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogDensity, CTimeCycleExt::GetVolFogDensity());
+                            DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogDensity, CTimeCycleExt::GetVolFogDensity());
 
                             static char sVolFogHeightFalloff[] = "VolFogHeightFalloff: %f";
-                            DrawTextOutline(pFPSFont, 10, fontSize * ++i, (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogHeightFalloff, CTimeCycleExt::GetVolFogHeightFalloff());
+                            DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogHeightFalloff, CTimeCycleExt::GetVolFogHeightFalloff());
 
                             static char sVolFogAltitudeTweak[] = "VolFogAltitudeTweak: %f";
-                            DrawTextOutline(pFPSFont, 10, fontSize * ++i, (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogAltitudeTweak, CTimeCycleExt::GetVolFogAltitudeTweak());
+                            DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogAltitudeTweak, CTimeCycleExt::GetVolFogAltitudeTweak());
 
                             static char sVolFogPower[] = "VolFogPower: %f";
-                            DrawTextOutline(pFPSFont, 10, fontSize * ++i, (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogPower, CTimeCycleExt::GetVolFogPower());
+                            DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogPower, CTimeCycleExt::GetVolFogPower());
 
                             static char sVolFogColorFactor[] = "VolFogColorFactor: %f";
-                            DrawTextOutline(pFPSFont, 10, fontSize * ++i, (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogColorFactor, CTimeCycleExt::GetVolFogColorFactor());
+                            DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogColorFactor, CTimeCycleExt::GetVolFogColorFactor());
 
                             static std::string_view modNames[] = {
                                 "noambient", "NoAmbientmult", "qwnomoon", "qw2nomoon", "Brook_S2_TC", "MH_NOMOON", "KsS1nomoon1", "KsS1nomoon2", "KsS1nomoon3", "Brook_N_gden", "Buildsite_MH1",
@@ -864,7 +864,7 @@ public:
                             static char sModifiers[] = "%s %f";
                             for (const auto& it : currentTimecycleModifiers)
                             {
-                                DrawTextOutline(pFPSFont, 10, fontSize * ++i, (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sModifiers, modNames[it.first].data(), it.second);
+                                DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sModifiers, modNames[it.first].data(), it.second);
                             }
                         }
                     }

@@ -392,6 +392,33 @@ public:
                 CTimeCycleExt::Update();
             });
 
+            pattern = hook::pattern("F3 0F 11 15 ? ? ? ? 76");
+            if (!pattern.empty())
+            {
+                static auto OverwriteCurBlendHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                {
+                    if (!currentTimecycleModifiers.empty())
+                    {
+                        auto& back = currentTimecycleModifiers.back().second;
+                        if (back == 1.0f)
+                            back = regs.xmm2.f32[0];
+                    }
+                });
+            }
+            else
+            {
+                pattern = hook::pattern("F3 0F 11 05 ? ? ? ? 76 ? F3 0F 10 53");
+                static auto OverwriteCurBlendHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                {
+                    if (!currentTimecycleModifiers.empty())
+                    {
+                        auto& back = currentTimecycleModifiers.back().second;
+                        if (back == 1.0f)
+                            back = regs.xmm0.f32[0];
+                    }
+                });
+            }
+
             pattern = find_pattern("8D B0 ? ? ? ? 6A ? 51", "8D 8E ? ? ? ? D9 1C 24 51 8D 4C 24");
             CTimeCycleModifier::dword_15DE3A8 = *pattern.get_first<decltype(CTimeCycleModifier::dword_15DE3A8)>(2);
 
