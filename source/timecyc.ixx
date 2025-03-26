@@ -73,7 +73,7 @@ int timecyc_scanf(const char* i, const char* fmt, int* mAmbient0ColorR, int* mAm
     if (!FusionFixSettings("PREF_BLOOM"))
         *mBloomIntensity = 0.0f;
 
-    if (FusionFixSettings("PREF_VOLUMETRICFOG") && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
+    if (FusionFixSettings("PREF_VOLUMETRICFOG")/* && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized()*/)
         *mFarClip = fVolFogFarClip;
 
     switch (FusionFixSettings("PREF_TCYC_DOF"))
