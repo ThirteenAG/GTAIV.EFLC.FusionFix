@@ -144,7 +144,6 @@ public:
         static IDirect3DTexture9* pHDRTexQuarter = nullptr;
         static float fTreeAlphaPC = 0.625f;
         static float fTreeAlphaConsole = 4.0f;
-        static float fCoronaReflectionIntensity = 1.0f;
 
         static float fSHADOWFILTERSHARPShadowSoftness = 1.5f;
         static float fSHADOWFILTERSHARPShadowBias = 5.0f;
@@ -172,7 +171,6 @@ public:
             bFixAutoExposure = iniReader.ReadInteger("MISC", "FixAutoExposure", 1) != 0;
             fTreeAlphaPC = std::clamp(iniReader.ReadFloat("MISC", "TreeAlphaPC", 0.625f), 0.0f, 10.0f);
             fTreeAlphaConsole = std::clamp(iniReader.ReadFloat("MISC", "TreeAlphaConsole", 4.0f), 0.0f, 10.0f);
-            fCoronaReflectionIntensity = iniReader.ReadFloat("MISC", "CoronaReflectionIntensity", 1.0f);
             fSHADOWFILTERSHARPShadowSoftness = iniReader.ReadFloat("SHADOWFILTERSHARP", "ShadowSoftness", 1.5f);
             fSHADOWFILTERSHARPShadowBias = iniReader.ReadFloat("SHADOWFILTERSHARP", "ShadowBias", 5.0f);
             fSHADOWFILTERSOFTShadowSoftness = iniReader.ReadFloat("SHADOWFILTERSOFT", "ShadowSoftness", 3.0f);
@@ -318,7 +316,7 @@ public:
                         static float arr2[4];
                         arr2[0] = Natives::IsInteriorScene() ? 0.0f : *dw11A2948;
                         arr2[1] = bEnableSnow ? 0.005f : 0.015f;
-                        arr2[2] = fCoronaReflectionIntensity;
+                        arr2[2] = 0.0f;
                         arr2[3] = 0.0f;
                         pDevice->SetVertexShaderConstantF(233, &arr2[0], 1);
                     }
