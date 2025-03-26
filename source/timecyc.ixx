@@ -73,7 +73,7 @@ int timecyc_scanf(const char* i, const char* fmt, int* mAmbient0ColorR, int* mAm
     if (!FusionFixSettings("PREF_BLOOM"))
         *mBloomIntensity = 0.0f;
 
-    if (FusionFixSettings("PREF_VOLUMETRICFOG") && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
+    if (FusionFixSettings("PREF_VOLUMETRICFOG")/* && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized()*/)
         *mFarClip = fVolFogFarClip;
 
     switch (FusionFixSettings("PREF_TCYC_DOF"))
@@ -242,6 +242,16 @@ int timecyc_scanf(const char* i, const char* fmt, int* mAmbient0ColorR, int* mAm
         }
     }
 
+    {
+        int h = scanfCount % NUMHOURS;
+        int w = scanfCount / NUMHOURS;
+
+        CTimeCycleExt::tmp_fDirLightColorR[h][w] = (float)(*mDirLightColorR) / 255.0f;
+        CTimeCycleExt::tmp_fDirLightColorG[h][w] = (float)(*mDirLightColorG) / 255.0f;
+        CTimeCycleExt::tmp_fDirLightColorB[h][w] = (float)(*mDirLightColorB) / 255.0f;
+        CTimeCycleExt::tmp_fDirLightMultiplier[h][w] = *mDirLightMultiplier;
+    }
+
     scanfCount++;
 
     if (scanfCount >= 99)
@@ -290,6 +300,15 @@ int timecyclemodifiers_scanf(const char* i, const char* fmt, char* Name, float* 
     {
         *MinFarClip = -1.0f;
         *MaxFarClip = -1.0f;
+    }
+    else
+    {
+        // Workaround for phone screen depth issues.
+        if (*MinFarClip != -1.0f && *MinFarClip < 205.0f)
+            *MinFarClip = 205.0f;
+
+        if (*MaxFarClip != -1.0f && *MaxFarClip < 205.0f)
+            *MaxFarClip = 205.0f;
     }
 
     return res;
