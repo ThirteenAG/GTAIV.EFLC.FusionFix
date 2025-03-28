@@ -67,10 +67,10 @@ jobs:
 
     - name: Build
       run: |
-        pushd external/modupdater
-        premake5.bat
-        builddist.bat
-        popd
+        Push-Location external\modupdater
+        & .\premake5.bat
+        & .\builddist.bat
+        Pop-Location
         msbuild -m build/GTAIV.EFLC.FusionFix.sln /property:Configuration=Release /property:Platform=Win32
 
     - name: Download Ultimate ASI Loader x86
