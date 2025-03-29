@@ -169,6 +169,13 @@ void __cdecl sub_C64CB0(void* a1)
     return hbsub_C64CB0.fun(a1);
 }
 
+injector::hook_back<void(__cdecl*)(void*)> hbsub_8036A0;
+void __cdecl sub_8036A0(void* a1)
+{
+    LoadingFpsLimiter.Sync();
+    return hbsub_8036A0.fun(a1);
+}
+
 class Framelimit
 {
 public:
@@ -255,7 +262,14 @@ public:
             // Off Route infinite loading (CCutsceneObject method causes CRenderer::removeAllTexturesFromDictionary to softlock for unidentified reason)
             auto pattern = hook::pattern("E8 ? ? ? ? 83 C4 0C C7 04 B5 ? ? ? ? ? ? ? ? 4E");
             if (!pattern.empty())
-                hbsub_C64CB0.fun = injector::MakeCALL(pattern.get_first(0), sub_C64CB0).get();
+               {
+                    hbsub_C64CB0.fun = injector::MakeCALL(pattern.get_first(0), sub_C64CB0).get();
+               }
+            else
+               {
+             auto pattern = hook::pattern("E8 ? ? ? ? 83 C4 0C 89 3C B5 ? ? ? ? 83 C6 01");
+                   hbsub_8036A0.fun = injector::MakeCALL(pattern.get_first(0), sub_8036A0).get();
+               }
 
             pattern = find_pattern("83 EC 28 83 3D ? ? ? ? ? 56 8B F1", "83 EC 28 B8 ? ? ? ? 39 05 ? ? ? ? 56 8B F1");
             if (!pattern.empty())
