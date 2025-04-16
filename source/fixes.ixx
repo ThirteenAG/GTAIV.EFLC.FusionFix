@@ -558,16 +558,16 @@ public:
             }
 
             // Subtract Contrast slider value by 1 internally, same as on Xbox 360
-            {
-                auto pattern = find_pattern("F3 0F 59 C7 0F 2F C8 76 05 0F 28 C1 EB 05 0F 2F E0 76 16", "F3 0F 59 C6 0F 2F E8 76 05 0F 28 C5 EB 05 0F 2F D8 76 16");
-                if (!pattern.empty())
-                {
-                    static auto ContrastSliderHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                    {
-                        regs.xmm0.f32[0] -= 1.0f;
-                    });
-                }
-            }
+            // {
+            //     auto pattern = find_pattern("F3 0F 59 C7 0F 2F C8 76 05 0F 28 C1 EB 05 0F 2F E0 76 16", "F3 0F 59 C6 0F 2F E8 76 05 0F 28 C5 EB 05 0F 2F D8 76 16");
+            //     if (!pattern.empty())
+            //     {
+            //         static auto ContrastSliderHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+            //         {
+            //             regs.xmm0.f32[0] -= 1.0f;
+            //         });
+            //     }
+            // }
 
             // Disable sniper slot check
             {
