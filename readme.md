@@ -1,3 +1,37 @@
+> [!IMPORTANT]
+> Want to help release the next version of Fusion Fix? Past few months a lot of work was done by @Parallellines0451 and other contributors to bring volumetric fog feature to Fusion Fix, along with other things, and I (@ThirteenAG) am having troubles finishing my remaining tasks(due to some irl circumstances) to complete the next major build. I decided to start a crowdfunding campaign to help me make this release faster. The end goal of 1500$ would allow me to literally "drop everything" and focus on finishing up of what we started implementing in the beginning of 2025.
+>
+> Current changelog:
+>- Added volumetric fog
+>- Added radial depth of field
+>- Added smoother light volumes
+>- Added tone mapping
+>- Fixed night shadow bias and restored console softness
+>- Fixed water reflection offset
+>- Fixed water artifacts visible from high altitudes
+>- Adjusted corona view distance in paraboloid reflections
+>- Improved "PC+" tree lighting
+>- Improved sun shafts mask
+>- Improved console gamma curve
+>- Restored visualsettings rain.defaultlight functionality
+>- Restored console rain density
+>- Reduced procobj pop-in at higher settings
+>- Added a PC style tree lod atlas
+>- Added a timed events toggle
+>- Fixed a crash in the TLAD benchmark sequence
+>
+> There might be other additions to this later, because it's unclear at the moment what's possible to implement (e.g. moving during sniper zoom).
+>
+> If there's no interest in helping me out, the release will still happen at some point, I just can't tell exactly when at the moment.
+> Thank you!
+>
+>  Make a donation: <a target="_blank" href="https://github.com/sponsors/ThirteenAG">GitHub Sponsors</a> | <a
+        target="_blank" href="https://ko-fi.com/thirteenag">Ko-Fi</a> | <a target="_blank"
+        href="https://paypal.me/SergeyP13">PayPal</a> | <a target="_blank"
+        href="https://www.patreon.com/ThirteenAG">Patreon</a> | <a target="_blank"
+        href="https://boosty.to/thirteenag/donate">Boosty</a>
+> Progress: 0 / 1500$
+
 [![Actions Status: Release](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/actions/workflows/msvc_x86.yml/badge.svg)](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/actions)
 [![AppVeyor](https://img.shields.io/appveyor/build/ThirteenAG/GTAIV-EFLC-FusionFix?label=AppVeyor%20Build&logo=Appveyor&logoColor=white)](https://ci.appveyor.com/project/ThirteenAG/gtaiv-eflc-fusionfix)
 
