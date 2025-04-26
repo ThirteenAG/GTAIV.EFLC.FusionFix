@@ -30,6 +30,7 @@
         href="https://paypal.me/SergeyP13">PayPal</a> | <a target="_blank"
         href="https://www.patreon.com/ThirteenAG">Patreon</a> | <a target="_blank"
         href="https://boosty.to/thirteenag/donate">Boosty</a>
+>
 > Progress: 15 / 1500$
 
 [![Actions Status: Release](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/actions/workflows/msvc_x86.yml/badge.svg)](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/actions)
