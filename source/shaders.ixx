@@ -161,6 +161,8 @@ public:
         static int nForceShadowFilter = 0;
 
         static bool bSmoothShorelines = true;
+        
+        static bool bUnclampLighting = false;
 
         static int nToneMappingOperator = 0;
 
@@ -184,8 +186,9 @@ public:
             nForceShadowFilter = std::clamp(iniReader.ReadInteger("SHADOWS", "ForceShadowFilter", 0), 0, 2);
             bool bConsoleCarReflectionsAndDirt = iniReader.ReadInteger("MISC", "ConsoleCarReflectionsAndDirt", 1) != 0;
             bSmoothShorelines = iniReader.ReadInteger("MISC", "SmoothShorelines", 1) != 0;
+            bUnclampLighting = iniReader.ReadInteger("MISC", "UnclampLighting", 0) != 0;
 
-            nToneMappingOperator = std::clamp(iniReader.ReadInteger("MISC", "ToneMappingOperator", 0), 0, 1) + 1;
+            nToneMappingOperator = std::clamp(iniReader.ReadInteger("MISC", "ToneMappingOperator", 0), 0, 1);
 
             // Redirect path to one unified folder
             auto pattern = hook::pattern("8B 04 8D ? ? ? ? A3 ? ? ? ? 8B 44 24 04");
@@ -348,7 +351,14 @@ public:
 
                         arr9[0] = bHighResolutionShadows ? fSHADOWFILTERCHSSMaxSoftness * 2.0f : fSHADOWFILTERCHSSMaxSoftness;
                         arr9[1] = bHighResolutionShadows ? fSHADOWFILTERCHSSLightSize * 2.0f : fSHADOWFILTERCHSSLightSize;
-                        arr9[2] = 0.0f;
+                        
+                        //off / vanilla style / filmic
+                        static auto tm = FusionFixSettings.GetRef("PREF_TONEMAPPING");
+                        if (tm->get())
+                            arr9[2] = static_cast<float>(nToneMappingOperator * 2 - 1);
+                        else
+                            arr9[2] = 0.0f;
+                        
                         if (FusionFixSettings.Get("PREF_SHADOW_QUALITY") >= 4) // Very High
                             arr9[3] = shadowFilter->get() == FusionFixSettings.ShadowFilterText.eCHSS ? 1.0f : 0.0f;
                         else
@@ -366,36 +376,24 @@ public:
                             case 0:
                                 arr[0] = (0.5f / 160.0f);
                                 arr[1] = (0.5f / 64.0f);
-                                arr[2] = 0.0f;
-                                arr[3] = 0.0f;
                                 break;
                             case 1:
                                 arr[0] = (0.5f / 320.0f);
                                 arr[1] = (0.5f / 128.0f);
-                                arr[2] = 0.0f;
-                                arr[3] = 0.0f;
                                 break;
                             case 2:
                                 arr[0] = (0.5f / 640);
                                 arr[1] = (0.5f / 256.0f);
-                                arr[2] = 0.0f;
-                                arr[3] = 0.0f;
                                 break;
                             case 3:
                             default:
                                 arr[0] = (0.5f / 1280.0f);
                                 arr[1] = (0.5f / 512.0f);
-                                arr[2] = 0.0f;
-                                arr[3] = 0.0f;
                                 break;
                         }
-
-                        //off / vanilla style / filmic
-                        static auto tm = FusionFixSettings.GetRef("PREF_TONEMAPPING");
-                        if (tm->get())
-                        {
-                            arr[2] = static_cast<float>(nToneMappingOperator);
-                        }
+                        
+                        arr[2] = bUnclampLighting ? 1.0f : 4.0f / 3.0f;
+                        arr[3] = bUnclampLighting ? 0.0f : -1.0f / 3.0f;
 
                         pDevice->SetPixelShaderConstantF(220, &arr[0], 1);
                     }
