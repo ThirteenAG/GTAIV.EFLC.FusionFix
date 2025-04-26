@@ -89,7 +89,7 @@ Scheinwerfer-Schatten
 Saisonale Ereignisse
 
 [Tone Mapping]
-Tonwertumsetzung
+Tone Mapping
 
 [Volumetric Fog]
 Volumetrischer Nebel
