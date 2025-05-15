@@ -7,6 +7,9 @@ export module timecycext;
 import common;
 import comvars;
 
+export std::vector<std::string> snowTC;
+export std::vector<std::string> hallTC;
+
 export constexpr auto NUMWEATHERS = 9;
 export constexpr auto NUMHOURS = 11;
 constexpr int ACTUAL_HOURS[NUMHOURS] = { 0, 5, 6, 7, 9, 12, 18, 19, 20, 21, 22 };
@@ -441,8 +444,18 @@ public:
 
                 auto filePath1 = GetModulePath(GetModuleHandleW(NULL)).parent_path() / episodicPaths[*_dwCurrentEpisode] / "pc" / "data";
                 auto filePath2 = GetModulePath(GetModuleHandleW(NULL)).parent_path() / "pc" / "data";
+
                 CTimeCycleExt::Initialise(filePath1 / "timecycext.dat");
                 CTimeCycleModifiersExt::Initialise(filePath2 / "timecyclemodifiersext.dat");
+
+                if (bEnableSnow)
+                {
+                    CTimeCycleExt::Initialise(filePath1 / "snowext.dat");
+                }
+                else if (bEnableHall)
+                {
+                    CTimeCycleExt::Initialise(filePath1 / "halloweenext.dat");
+                }
             });
 
             pattern = find_pattern("E8 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? B9", 
