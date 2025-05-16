@@ -2,7 +2,7 @@
 
 import common;
 import comvars;
-import dllblacklist;
+import compat;
 import fusiondxhook;
 
 injector::hook_back<void(*)()> hbCGameProcess;

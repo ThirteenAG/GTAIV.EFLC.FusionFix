@@ -6,44 +6,10 @@ module;
 #pragma comment(lib,"Comctl32.lib")
 #pragma comment(linker,"\"/manifestdependency:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
-export module dllblacklist;
+export module compat;
 
 import common;
 import comvars;
-
-std::vector<std::wstring> dlllist = {
-    // These A-Volute DLLs shipped with various audio driver packages improperly handle
-    // D3D9 exclusive fullscreen in a way that causes CreateDeviceEx() to deadlock.
-    // https://github.com/moonlight-stream/moonlight-qt/issues/102
-    L"NahimicOSD.dll", // ASUS Sonic Radar 3
-    L"SSAudioOSD.dll", // SteelSeries headsets
-    L"SS2OSD.dll", // ASUS Sonic Studio 2
-    L"Nahimic2OSD.dll",
-    L"NahimicMSIOSD.dll",
-    L"nhAsusPhoebusOSD.dll", // ASUS Phoebus
-    L"MirillisActionVulkanLayer.dll",
-};
-
-typedef void(WINAPI* LdrLoadDllFunc) (IN PWCHAR PathToFile OPTIONAL, IN PULONG Flags OPTIONAL, IN PUNICODE_STRING ModuleFileName, OUT HMODULE* ModuleHandle);
-static SafetyHookInline realLdrLoadDll = {};
-static void WINAPI LdrLoadDllHook(IN PWCHAR PathToFile OPTIONAL, IN PULONG Flags OPTIONAL, IN PUNICODE_STRING ModuleFileName, OUT HMODULE* ModuleHandle)
-{
-    if (ModuleFileName->Buffer)
-    {
-        std::wstring fileName(ModuleFileName->Buffer, ModuleFileName->Length / sizeof(WCHAR));
-        if (std::any_of(std::begin(dlllist), std::end(dlllist), [&fileName](auto& i) {
-            std::wstring str1(fileName); std::wstring str2(i);
-            std::transform(str1.begin(), str1.end(), str1.begin(), ::tolower);
-            std::transform(str2.begin(), str2.end(), str2.begin(), ::tolower);
-            return str1.ends_with(str2);
-        }))
-        {
-            return SetLastError(ERROR_DLL_INIT_FAILED);
-        }
-    }
-
-    return realLdrLoadDll.unsafe_stdcall(PathToFile, Flags, ModuleFileName, ModuleHandle);
-}
 
 HRESULT CALLBACK TaskDialogCallbackProc(HWND hwnd, UINT uNotification, WPARAM wParam, LPARAM lParam, LONG_PTR dwRefData)
 {
@@ -61,15 +27,11 @@ export void CompatibilityWarnings()
 {
     auto bUAL = IsUALPresent();
     std::filesystem::path dllName;
-    auto it = std::find_if(std::begin(dlllist), std::end(dlllist), [](auto& i) { return GetModuleHandleW(i.c_str()); });
 
-    if (it == std::end(dlllist))
-        if (GetModuleHandleW(L"xlive"))
-            dllName = L"xlive";
-        else
-            return;
+    if (GetModuleHandleW(L"xlive"))
+        dllName = L"xlive";
     else
-        dllName = *it;
+        return;
 
     TASKDIALOGCONFIG tdc = { sizeof(TASKDIALOGCONFIG) };
     int nClickedBtn;
@@ -97,14 +59,7 @@ export void CompatibilityWarnings()
             L" as xlive.dll and " \
             L"<a href=\"https://github.com/GTAmodding/XLivelessAddon/releases/tag/latest\">XLivelessAddon</a>.";
     }
-    else
-    {
-        static auto warning = std::wstring(dllName) + L" is injected into " + GetExeModuleName().wstring() + L" process." \
-        L" It is likely the game will hang or crash on startup with Fusion Fix installed.";
-        szTitle = L"GTAIV.EFLC.FusionFix",
-        szHeader = L"External software injected faulty modules into GTA IV The Complete Edition.",
-        szContent = warning.c_str();
-    }
+
     tdc.hwndParent = gWnd;
     tdc.dwFlags = TDF_USE_COMMAND_LINKS | TDF_ENABLE_HYPERLINKS | TDF_SIZE_TO_CONTENT | TDF_CAN_BE_MINIMIZED;
     tdc.pButtons = aCustomButtons;
@@ -120,16 +75,3 @@ export void CompatibilityWarnings()
     if (nClickedBtn != aCustomButtons[1].nButtonID)
         TerminateProcess(GetCurrentProcess(), 0);
 }
-
-class DLLBlacklist
-{
-public:
-    DLLBlacklist()
-    {
-        LdrLoadDllFunc baseLdrLoadDll = (LdrLoadDllFunc)GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "LdrLoadDll");
-        if (baseLdrLoadDll == NULL)
-            return;
-
-        realLdrLoadDll = safetyhook::create_inline(baseLdrLoadDll, LdrLoadDllHook);
-    }
-} DLLBlacklist;
