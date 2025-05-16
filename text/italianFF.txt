@@ -94,6 +94,9 @@ Mappatura tonale
 [Volumetric Fog]
 Nebbia volumetrica
 
+[Zoomed Movement]
+Consenti movimento con lo zoom
+
 [FF_WARN0]
 ~p~IMG Files:
 

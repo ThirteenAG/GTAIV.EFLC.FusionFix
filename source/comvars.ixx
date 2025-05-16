@@ -1119,6 +1119,8 @@ export namespace CGameConfigReader
     CImgFile(*ms_imgFiles)[255];
 }
 
+export int* dwSniperInverted = nullptr;
+
 class Common
 {
 public:
@@ -1292,5 +1294,8 @@ public:
 
         pattern = hook::pattern("51 56 8B F1 83 BE ? ? ? ? ? 0F 84 ? ? ? ? 68");
         CRenderPhaseDeferredLighting_SceneToGBuffer::shBuildRenderList = safetyhook::create_inline(pattern.get_first(0), CRenderPhaseDeferredLighting_SceneToGBuffer::BuildRenderList);
+    
+        pattern = find_pattern("83 3D ? ? ? ? ? 8D 81 ? ? ? ? 75 ? 8D 81 ? ? ? ? 50", "83 3D ? ? ? ? ? 74 ? 8D 8B");
+        dwSniperInverted = *pattern.get_first<int*>(2);
     }
 } Common;

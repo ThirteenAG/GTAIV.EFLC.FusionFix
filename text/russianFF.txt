@@ -94,6 +94,9 @@ Fusion Fix: Проверять Обновления
 [Volumetric Fog]
 Объёмный туман
 
+[Zoomed Movement]
+Разрешить движение при прицеливании
+
 [FF_WARN0]
 ~p~IMG Архивы:
 

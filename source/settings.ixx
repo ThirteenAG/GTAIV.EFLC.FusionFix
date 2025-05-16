@@ -233,6 +233,7 @@ public:
             { 0, "PREF_TIMEDEVENTS",       "MISC",       "TimedEvents",                     "",                           1, nullptr, 0, 1 },
             { 0, "PREF_VOLUMETRICFOG",     "FOG",        "VolumetricFog",                   "",                           0, nullptr, 0, 1 },
             { 0, "PREF_TONEMAPPING",       "MISC",       "ToneMapping",                     "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_ZOOMEDMOVEMENT",    "MISC",       "ZoomedMovement",                  "",                           1, nullptr, 0, 1 },
             // Enums are at capacity, to use more enums, replace multiplayer ones. On/Off toggles should still be possible to add.
         };
 

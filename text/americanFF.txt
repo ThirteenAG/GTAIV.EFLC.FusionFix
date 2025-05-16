@@ -94,6 +94,9 @@ Tone Mapping
 [Volumetric Fog]
 Volumetric Fog
 
+[Zoomed Movement]
+Allow Movement When Zoomed
+
 [FF_WARN0]
 ~p~IMG Files:
 

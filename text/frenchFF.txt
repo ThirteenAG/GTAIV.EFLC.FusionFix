@@ -94,6 +94,9 @@ Mappage Tonal
 [Volumetric Fog]
 Brouillard Volumétrique
 
+[Zoomed Movement]
+Permettre le mouvement en zoomant
+
 [FF_WARN0]
 ~p~Fichiers IMG:
 
