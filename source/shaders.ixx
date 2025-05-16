@@ -526,6 +526,12 @@ public:
                 }
             });
 
+            FusionFix::onGameInitEvent() += []()
+            {
+                if (CText::hasViceCityStrings())
+                    bFixRainDrops = false;
+            };
+
             FusionFix::onBeforeReset() += []()
             {
                 pHDRTexQuarter = nullptr;

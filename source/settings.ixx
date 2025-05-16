@@ -54,6 +54,17 @@ namespace CText
         return Get(g_text, nullptr, key);
     }
 
+    export bool hasViceCityStrings()
+    {
+        auto COL4_17 = doesTextLabelExist(g_text, 0, "COL4_17");
+        auto ROK3_1 = doesTextLabelExist(g_text, 0, "ROK3_1");
+
+        if (COL4_17 && ROK3_1)
+            return true;
+
+        return false;
+    }
+
     void Hook()
     {
         auto pattern = find_pattern("B9 ? ? ? ? E8 ? ? ? ? 50 8D 84 24 ? ? ? ? 50 E8 ? ? ? ? 83 C4 0C", "B9 ? ? ? ? E8 ? ? ? ? 50 8D 84 24 ? ? ? ? 68 ? ? ? ? 50 BA ? ? ? ? E8 ? ? ? ? 83 C4 14");
@@ -668,10 +679,7 @@ public:
                 static SafetyHookInline shRadioSaveHandler{};
                 static auto RadioSaveHandler = []()
                 {
-                    auto COL4_17 = CText::doesTextLabelExist(CText::g_text, 0, "COL4_17");
-                    auto ROK3_1 = CText::doesTextLabelExist(CText::g_text, 0, "ROK3_1");
-                
-                    if (COL4_17 && ROK3_1)
+                    if (CText::hasViceCityStrings())
                         return;
                 
                     return shRadioSaveHandler.stdcall();
@@ -680,10 +688,7 @@ public:
                 static SafetyHookInline shRadioLoadHandler{};
                 static auto RadioLoadHandler = []()
                 {
-                    auto COL4_17 = CText::doesTextLabelExist(CText::g_text, 0, "COL4_17");
-                    auto ROK3_1 = CText::doesTextLabelExist(CText::g_text, 0, "ROK3_1");
-                
-                    if (COL4_17 && ROK3_1)
+                    if (CText::hasViceCityStrings())
                         return;
                 
                     return shRadioLoadHandler.stdcall();
