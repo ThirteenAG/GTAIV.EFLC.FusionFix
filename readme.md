@@ -31,7 +31,9 @@
         href="https://www.patreon.com/ThirteenAG">Patreon</a> | <a target="_blank"
         href="https://boosty.to/thirteenag/donate">Boosty</a>
 >
-> Progress: 114 / 1500$
+> Progress: 214 / 1500$
+>
+> Thanks to all who've donated so far, it's been a great help and we're making progress!
 
 [![Actions Status: Release](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/actions/workflows/msvc_x86.yml/badge.svg)](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/actions)
 [![AppVeyor](https://img.shields.io/appveyor/build/ThirteenAG/GTAIV-EFLC-FusionFix?label=AppVeyor%20Build&logo=Appveyor&logoColor=white)](https://ci.appveyor.com/project/ThirteenAG/gtaiv-eflc-fusionfix)
