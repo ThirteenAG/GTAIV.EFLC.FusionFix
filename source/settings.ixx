@@ -645,34 +645,74 @@ public:
 
             // FOG
             pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 5C C1 F3 0F 59 C2 F3 0F 58 C1 F3 0F 11 05 ? ? ? ? F3 0F 10 05");
-            static float* farClipMultiplier = *pattern.get_first<float*>(4);
-            injector::MakeNOP(pattern.get_first(), 8);
-            static auto farClipMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+            if (!pattern.empty())
             {
-                static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
-                if (fog->get() && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
-                    regs.xmm0.f32[0] = 1.0f;
-                else
-                    regs.xmm0.f32[0] = *farClipMultiplier;
-
-                if (bIsQUB3D)
+                static float* farClipMultiplier = *pattern.get_first<float*>(4);
+                injector::MakeNOP(pattern.get_first(), 8);
+                static auto farClipMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                 {
-                    regs.xmm0.f32[0] = 0.1f;
-                    bIsQUB3D = false;
-                }
-            });
+                    static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
+                    if (fog->get() && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
+                        regs.xmm0.f32[0] = 1.0f;
+                    else
+                        regs.xmm0.f32[0] = *farClipMultiplier;
+
+                    if (bIsQUB3D)
+                    {
+                        regs.xmm0.f32[0] = 0.1f;
+                        bIsQUB3D = false;
+                    }
+                });
+            }
+            else
+            {
+                pattern = find_pattern("F3 0F 10 15 ? ? ? ? F3 0F 5C D1 F3 0F 59 D0 F3 0F 58 D1 F3 0F 11 15 ? ? ? ? F3 0F 10 15");
+                static float* farClipMultiplier = *pattern.get_first<float*>(4);
+                injector::MakeNOP(pattern.get_first(), 8);
+                static auto farClipMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                {
+                    static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
+                    if (fog->get() && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
+                        regs.xmm2.f32[0] = 1.0f;
+                    else
+                        regs.xmm2.f32[0] = *farClipMultiplier;
+
+                    if (bIsQUB3D)
+                    {
+                        regs.xmm2.f32[0] = 0.1f;
+                        bIsQUB3D = false;
+                    }
+                });
+            }
 
             pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 5C C1 F3 0F 59 C2 F3 0F 58 C1 F3 0F 11 05 ? ? ? ? 8B E5");
-            static float* nearFogMultiplier = *pattern.get_first<float*>(4);
-            injector::MakeNOP(pattern.get_first(), 8);
-            static auto nearFogMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+            if (!pattern.empty())
             {
-                static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
-                if (fog->get() && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
-                    regs.xmm0.f32[0] = 1.0f;
-                else
-                    regs.xmm0.f32[0] = *nearFogMultiplier;
-            });
+                static float* nearFogMultiplier = *pattern.get_first<float*>(4);
+                injector::MakeNOP(pattern.get_first(), 8);
+                static auto nearFogMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                {
+                    static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
+                    if (fog->get() && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
+                        regs.xmm0.f32[0] = 1.0f;
+                    else
+                        regs.xmm0.f32[0] = *nearFogMultiplier;
+                });
+            }
+            else
+            {
+                pattern = find_pattern("F3 0F 10 15 ? ? ? ? F3 0F 5C D1 F3 0F 59 D0 F3 0F 58 D1 F3 0F 11 15 ? ? ? ? 8B E5");
+                static float* nearFogMultiplier = *pattern.get_first<float*>(4);
+                injector::MakeNOP(pattern.get_first(), 8);
+                static auto nearFogMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                {
+                    static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
+                    if (fog->get() && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
+                        regs.xmm2.f32[0] = 1.0f;
+                    else
+                        regs.xmm2.f32[0] = *nearFogMultiplier;
+                });
+            }
 
             // radio saving disable
             {
