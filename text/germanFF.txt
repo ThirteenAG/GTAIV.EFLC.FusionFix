@@ -94,6 +94,9 @@ Tone Mapping
 [Volumetric Fog]
 Volumetrischer Nebel
 
+[Zoomed Movement]
+Bewegung beim Zoomen erlauben
+
 [FF_WARN0]
 ~p~IMG-Dateien:
 

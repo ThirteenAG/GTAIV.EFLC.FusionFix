@@ -94,6 +94,9 @@ FPSリミッター
 [Volumetric Fog]
 ボリュメトリックフォグ
 
+[Zoomed Movement]
+ズーム中の移動を許可
+
 [FF_WARN0]
 ~p~IMG ファイル:
 

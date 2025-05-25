@@ -10,10 +10,6 @@ import comvars;
 import natives;
 import timecycext;
 
-#define IDR_SNOWTC 205
-#define IDR_HALLTC 206
-std::vector<std::string> snowTC;
-std::vector<std::string> hallTC;
 float fVolFogFarClip = 4500.0f;
 
 int scanfCount = 0;
@@ -401,63 +397,23 @@ public:
             }
 
             {
-                HMODULE hm = NULL;
-                GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)&timecyc_scanf, &hm);
-                auto hResource = FindResource(hm, MAKEINTRESOURCE(IDR_SNOWTC), RT_RCDATA);
-
-                if (hResource)
+                auto filePath = GetModulePath(GetModuleHandleW(NULL)).parent_path() / "pc" / "data";
+                std::string line;
+                std::ifstream istr_snow(filePath / "snow.dat");
+                while (std::getline(istr_snow, line))
                 {
-                    auto hLoadedResource = LoadResource(hm, hResource);
-                    if (hLoadedResource)
-                    {
-                        auto pLockedResource = LockResource(hLoadedResource);
-                        if (pLockedResource)
-                        {
-                            auto dwResourceSize = SizeofResource(hm, hResource);
-                            if (dwResourceSize)
-                            {
-                                std::string line;
-                                std::istringstream str((char*)pLockedResource, dwResourceSize);
-                                while (getline(str, line))
-                                {
-                                    if (*line.begin() != '\r' && !line.empty() && !line.contains("/"))
-                                        snowTC.emplace_back(line);
-                                }
-                                assert(snowTC.size() == 99);
-                            }
-                        }
-                    }
+                    if (!line.empty() && *line.begin() != '\r' && !line.contains("/"))
+                        snowTC.emplace_back(line);
                 }
-            }
+                assert(snowTC.size() == 99);
 
-            {
-                HMODULE hm = NULL;
-                GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)&timecyc_scanf, &hm);
-                auto hResource = FindResource(hm, MAKEINTRESOURCE(IDR_HALLTC), RT_RCDATA);
-
-                if (hResource)
+                std::ifstream istr_hall(filePath / "halloween.dat");
+                while (std::getline(istr_hall, line))
                 {
-                    auto hLoadedResource = LoadResource(hm, hResource);
-                    if (hLoadedResource)
-                    {
-                        auto pLockedResource = LockResource(hLoadedResource);
-                        if (pLockedResource)
-                        {
-                            auto dwResourceSize = SizeofResource(hm, hResource);
-                            if (dwResourceSize)
-                            {
-                                std::string line;
-                                std::istringstream str((char*)pLockedResource, dwResourceSize);
-                                while (getline(str, line))
-                                {
-                                    if (*line.begin() != '\r' && !line.empty() && !line.contains("/"))
-                                        hallTC.emplace_back(line);
-                                }
-                                assert(hallTC.size() == 99);
-                            }
-                        }
-                    }
+                    if (!line.empty() && *line.begin() != '\r' && !line.contains("/"))
+                        hallTC.emplace_back(line);
                 }
+                assert(hallTC.size() == 99);
             }
         };
     }

@@ -54,6 +54,17 @@ namespace CText
         return Get(g_text, nullptr, key);
     }
 
+    export bool hasViceCityStrings()
+    {
+        auto COL4_17 = doesTextLabelExist(g_text, 0, "COL4_17");
+        auto ROK3_1 = doesTextLabelExist(g_text, 0, "ROK3_1");
+
+        if (COL4_17 && ROK3_1)
+            return true;
+
+        return false;
+    }
+
     void Hook()
     {
         auto pattern = find_pattern("B9 ? ? ? ? E8 ? ? ? ? 50 8D 84 24 ? ? ? ? 50 E8 ? ? ? ? 83 C4 0C", "B9 ? ? ? ? E8 ? ? ? ? 50 8D 84 24 ? ? ? ? 68 ? ? ? ? 50 BA ? ? ? ? E8 ? ? ? ? 83 C4 14");
@@ -233,6 +244,7 @@ public:
             { 0, "PREF_TIMEDEVENTS",       "MISC",       "TimedEvents",                     "",                           1, nullptr, 0, 1 },
             { 0, "PREF_VOLUMETRICFOG",     "FOG",        "VolumetricFog",                   "",                           0, nullptr, 0, 1 },
             { 0, "PREF_TONEMAPPING",       "MISC",       "ToneMapping",                     "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_ZOOMEDMOVEMENT",    "MISC",       "ZoomedMovement",                  "",                           1, nullptr, 0, 1 },
             // Enums are at capacity, to use more enums, replace multiplayer ones. On/Off toggles should still be possible to add.
         };
 
@@ -633,44 +645,81 @@ public:
 
             // FOG
             pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 5C C1 F3 0F 59 C2 F3 0F 58 C1 F3 0F 11 05 ? ? ? ? F3 0F 10 05");
-            static float* farClipMultiplier = *pattern.get_first<float*>(4);
-            injector::MakeNOP(pattern.get_first(), 8);
-            static auto farClipMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+            if (!pattern.empty())
             {
-                static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
-                if (fog->get() && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
-                    regs.xmm0.f32[0] = 1.0f;
-                else
-                    regs.xmm0.f32[0] = *farClipMultiplier;
-
-                if (bIsQUB3D)
+                static float* farClipMultiplier = *pattern.get_first<float*>(4);
+                injector::MakeNOP(pattern.get_first(), 8);
+                static auto farClipMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                 {
-                    regs.xmm0.f32[0] = 0.1f;
-                    bIsQUB3D = false;
-                }
-            });
+                    static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
+                    if (fog->get() && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
+                        regs.xmm0.f32[0] = 1.0f;
+                    else
+                        regs.xmm0.f32[0] = *farClipMultiplier;
+
+                    if (bIsQUB3D)
+                    {
+                        regs.xmm0.f32[0] = 0.1f;
+                        bIsQUB3D = false;
+                    }
+                });
+            }
+            else
+            {
+                pattern = find_pattern("F3 0F 10 15 ? ? ? ? F3 0F 5C D1 F3 0F 59 D0 F3 0F 58 D1 F3 0F 11 15 ? ? ? ? F3 0F 10 15");
+                static float* farClipMultiplier = *pattern.get_first<float*>(4);
+                injector::MakeNOP(pattern.get_first(), 8);
+                static auto farClipMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                {
+                    static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
+                    if (fog->get() && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
+                        regs.xmm2.f32[0] = 1.0f;
+                    else
+                        regs.xmm2.f32[0] = *farClipMultiplier;
+
+                    if (bIsQUB3D)
+                    {
+                        regs.xmm2.f32[0] = 0.1f;
+                        bIsQUB3D = false;
+                    }
+                });
+            }
 
             pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 5C C1 F3 0F 59 C2 F3 0F 58 C1 F3 0F 11 05 ? ? ? ? 8B E5");
-            static float* nearFogMultiplier = *pattern.get_first<float*>(4);
-            injector::MakeNOP(pattern.get_first(), 8);
-            static auto nearFogMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+            if (!pattern.empty())
             {
-                static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
-                if (fog->get() && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
-                    regs.xmm0.f32[0] = 1.0f;
-                else
-                    regs.xmm0.f32[0] = *nearFogMultiplier;
-            });
+                static float* nearFogMultiplier = *pattern.get_first<float*>(4);
+                injector::MakeNOP(pattern.get_first(), 8);
+                static auto nearFogMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                {
+                    static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
+                    if (fog->get() && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
+                        regs.xmm0.f32[0] = 1.0f;
+                    else
+                        regs.xmm0.f32[0] = *nearFogMultiplier;
+                });
+            }
+            else
+            {
+                pattern = find_pattern("F3 0F 10 15 ? ? ? ? F3 0F 5C D1 F3 0F 59 D0 F3 0F 58 D1 F3 0F 11 15 ? ? ? ? 8B E5");
+                static float* nearFogMultiplier = *pattern.get_first<float*>(4);
+                injector::MakeNOP(pattern.get_first(), 8);
+                static auto nearFogMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                {
+                    static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
+                    if (fog->get() && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
+                        regs.xmm2.f32[0] = 1.0f;
+                    else
+                        regs.xmm2.f32[0] = *nearFogMultiplier;
+                });
+            }
 
             // radio saving disable
             {
                 static SafetyHookInline shRadioSaveHandler{};
                 static auto RadioSaveHandler = []()
                 {
-                    auto COL4_17 = CText::doesTextLabelExist(CText::g_text, 0, "COL4_17");
-                    auto ROK3_1 = CText::doesTextLabelExist(CText::g_text, 0, "ROK3_1");
-                
-                    if (COL4_17 && ROK3_1)
+                    if (CText::hasViceCityStrings())
                         return;
                 
                     return shRadioSaveHandler.stdcall();
@@ -679,10 +728,7 @@ public:
                 static SafetyHookInline shRadioLoadHandler{};
                 static auto RadioLoadHandler = []()
                 {
-                    auto COL4_17 = CText::doesTextLabelExist(CText::g_text, 0, "COL4_17");
-                    auto ROK3_1 = CText::doesTextLabelExist(CText::g_text, 0, "ROK3_1");
-                
-                    if (COL4_17 && ROK3_1)
+                    if (CText::hasViceCityStrings())
                         return;
                 
                     return shRadioLoadHandler.stdcall();

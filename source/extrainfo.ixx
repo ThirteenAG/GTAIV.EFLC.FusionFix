@@ -78,22 +78,6 @@ public:
                                     extra += L"~r~WARNING: Lamppost shadows may cause visual artifacts and performance issues.";
                             }
 
-                            static auto ViewDistance = FusionFixSettings.GetRef("PREF_VIEW_DISTANCE");
-                            static auto DetailQuality = FusionFixSettings.GetRef("PREF_DETAIL_QUALITY");
-                            if (ViewDistance->get() > 24 || DetailQuality->get() > 30)
-                            {
-                                extra += L"~n~";
-                                extra += L"                        ";
-                                auto FF_WARN3 = CText::getText("FF_WARN3");
-                                auto FF_WARN4 = CText::getText("FF_WARN4");
-                                auto FF_WARN5 = CText::getText("FF_WARN5");
-                                if (ViewDistance->get() > 24 && DetailQuality->get() > 30)
-                                    extra += FF_WARN3[0] ? FF_WARN3 : L"~r~WARNING: View Distance slider above 25 and Detail Distance slider above 31 may cause object pop-in.";
-                                else if (ViewDistance->get() > 24)
-                                    extra += FF_WARN4[0] ? FF_WARN4 : L"~r~WARNING: View Distance slider above 25 may cause object pop-in.";
-                                else if (DetailQuality->get() > 30)
-                                    extra += FF_WARN5[0] ? FF_WARN5 : L"~r~WARNING: Detail Distance slider above 31 may cause object pop-in.";
-                            }
 
                             if (FusionFixSettings.Get("PREF_SHADOWFILTER") == FusionFixSettings.ShadowFilterText.eCHSS)
                             {

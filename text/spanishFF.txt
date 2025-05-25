@@ -94,6 +94,9 @@ Mapeo tonal
 [Volumetric Fog]
 Niebla volumétrica
 
+[Zoomed Movement]
+Permitir movimiento con zoom
+
 [FF_WARN0]
 ~p~Archivos IMG:
 

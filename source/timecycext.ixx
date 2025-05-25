@@ -7,6 +7,9 @@ export module timecycext;
 import common;
 import comvars;
 
+export std::vector<std::string> snowTC;
+export std::vector<std::string> hallTC;
+
 export constexpr auto NUMWEATHERS = 9;
 export constexpr auto NUMHOURS = 11;
 constexpr int ACTUAL_HOURS[NUMHOURS] = { 0, 5, 6, 7, 9, 12, 18, 19, 20, 21, 22 };
@@ -135,12 +138,6 @@ export class CTimeCycleModifiersExt
         float fVolFogAltitudeTweak;
         float fVolFogPower;
         float fVolFogColorFactor;
-
-        float fVolFogDensityInterp;
-        float fVolFogHeightFalloffInterp;
-        float fVolFogAltitudeTweakInterp;
-        float fVolFogPowerInterp;
-        float fVolFogColorFactorInterp;
     };
 
     static std::string_view trim(std::string_view sv)
@@ -427,10 +424,10 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            auto pattern = find_pattern("D9 1D ? ? ? ? 6A ? 68 ? ? ? ? E8 ? ? ? ? 83 C4 ? B9", "D9 1D ? ? ? ? 6A 00 68 38 6E DC 00");
+            auto pattern = find_pattern("D9 1D ? ? ? ? 6A ? 68 ? ? ? ? E8 ? ? ? ? 83 C4 ? B9", "D9 1D ? ? ? ? 6A 00 68 38 6E DC 00", "D9 1D ? ? ? ? 6A ? 68 ? ? ? ? E8 ? ? ? ? D9 05");
             RainDefaultLight = *pattern.get_first<decltype(RainDefaultLight)>(2);
 
-            pattern = find_pattern("56 E8 ? ? ? ? 83 C4 ? E8 ? ? ? ? 5F 5E 5B", "53 E8 ? ? ? ? 83 C4 04 E8 ? ? ? ? 8B 8C 24");
+            pattern = find_pattern("56 E8 ? ? ? ? 83 C4 ? E8 ? ? ? ? 5F 5E 5B 8B E5 5D C3", "53 E8 ? ? ? ? 83 C4 04 E8 ? ? ? ? 8B 8C 24");
             static auto CTimeCycleInitialiseHook = safetyhook::create_mid(pattern.get_first(14), [](SafetyHookContext& regs)
             {
                 static std::vector<std::filesystem::path> episodicPaths = {
@@ -441,19 +438,24 @@ public:
 
                 auto filePath1 = GetModulePath(GetModuleHandleW(NULL)).parent_path() / episodicPaths[*_dwCurrentEpisode] / "pc" / "data";
                 auto filePath2 = GetModulePath(GetModuleHandleW(NULL)).parent_path() / "pc" / "data";
+
                 CTimeCycleExt::Initialise(filePath1 / "timecycext.dat");
                 CTimeCycleModifiersExt::Initialise(filePath2 / "timecyclemodifiersext.dat");
+
+                if (bEnableSnow)
+                    CTimeCycleExt::Initialise(filePath1 / "snowext.dat");
+                else if (bEnableHall)
+                    CTimeCycleExt::Initialise(filePath1 / "halloweenext.dat");
             });
 
-            pattern = find_pattern("E8 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? B9", 
-                "E8 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8",
-                "E8 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8");
+            pattern = find_pattern("FF 35 ? ? ? ? FF 15 ? ? ? ? 85 C0 75 ? 38 05 ? ? ? ? 74 ? 38 05 ? ? ? ? 75 ? 33 C0 EB ? B8 ? ? ? ? 0A 05 ? ? ? ? 0A 05 ? ? ? ? 0F 85 ? ? ? ? E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? 8B 0D ? ? ? ? 8B 15", 
+                "51 E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? E8");
             static auto CClockUpdateHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
             {
                 CTimeCycleExt::Update();
             });
 
-            pattern = hook::pattern("F3 0F 11 15 ? ? ? ? 76");
+            pattern = hook::pattern("F3 0F 11 15 ? ? ? ? 76 ? F3 0F 10 44 24 ? 0F 2F 47 ? 76 ? F3 0F 5C 15 ? ? ? ? 0F 57 C0 F3 0F 59 15 ? ? ? ? 0F 2F C2 77");
             if (!pattern.empty())
             {
                 static auto OverwriteCurBlendHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
@@ -472,8 +474,9 @@ public:
                 pattern = hook::pattern("F3 0F 11 05 ? ? ? ? 76 ? F3 0F 10 53");
                 static auto OverwriteCurBlendHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                 {
-                    if (!currentTimecycleModifiers.empty())
+                    if (CTimeCycleModifier::bOverwrite && !currentTimecycleModifiers.empty())
                     {
+                        CTimeCycleModifier::bOverwrite = false;
                         auto& back = currentTimecycleModifiers.back().second;
                         if (back == 1.0f)
                             back = regs.xmm0.f32[0];
@@ -481,16 +484,16 @@ public:
                 });
             }
 
-            pattern = find_pattern("8D B0 ? ? ? ? 6A ? 51", "8D 8E ? ? ? ? D9 1C 24 51 8D 4C 24");
+            pattern = find_pattern("8D B0 ? ? ? ? 6A ? 51", "8D B8 ? ? ? ? B9 ? ? ? ? D9 1C 24");
             CTimeCycleModifier::msTimeCycleModifiers = *pattern.get_first<decltype(CTimeCycleModifier::msTimeCycleModifiers)>(2);
 
             pattern = find_pattern("51 F3 0F 10 64 24 ? 0F 57 F6", "F3 0F 10 4C 24 ? 0F 57 F6 0F 2F CE");
             CTimeCycleModifier::shApplyTimecycModifier = safetyhook::create_inline(pattern.get_first(), CTimeCycleModifier::ApplyTimecycModifier);
-            
+
             pattern = find_pattern("E8 ? ? ? ? F3 0F 10 84 B4 ? ? ? ? 51", "E8 ? ? ? ? D9 44 24 ? 51 8B D1");
             CTimeCycleModifier::hbBlendWithModifier.fun = injector::MakeCALL(pattern.get_first(), CTimeCycleModifier::BlendWithModifier).get();
-
-            pattern = find_pattern("E8 ? ? ? ? 8B 4C 24 ? 8B 54 24 ? 0F 57 C0", "E8 ? ? ? ? 0F 57 C0 0F 2F 86 ? ? ? ? 72");
+            
+            pattern = find_pattern("E8 ? ? ? ? 8B 4C 24 ? 8B 54 24 ? 0F 57 C0 0F 2F 81 ? ? ? ? 0F B6 D2 B8", "E8 ? ? ? ? 0F 57 C0 0F 2F 86 ? ? ? ? 72");
             CTimeCycleModifier::hbBlendWithModifier.fun = injector::MakeCALL(pattern.get_first(), CTimeCycleModifier::BlendWithModifier2).get();
         };
     }
