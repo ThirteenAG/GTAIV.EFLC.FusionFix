@@ -31,7 +31,7 @@
         href="https://www.patreon.com/ThirteenAG">Patreon</a> | <a target="_blank"
         href="https://boosty.to/thirteenag/donate">Boosty</a>
 >
-> Progress: 236 / 1500$
+> Progress: 246 / 1500$
 >
 > Thanks to all who've donated so far, it's been a great help and we're making progress!
 
