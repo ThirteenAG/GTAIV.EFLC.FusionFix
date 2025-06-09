@@ -508,15 +508,15 @@ private:
             pStormRender->motionBlurAmt = 0.01f;
             pStormRender->radius = 0.042f;
             pStormRender->radius2 = 0.0f;
-            pStormRender->tintColorX = 5.0f;
-            pStormRender->tintColorY = 5.0f;
-            pStormRender->tintColorZ = 5.0f;
+            pStormRender->tintColorX = 30.0f;
+            pStormRender->tintColorY = 30.0f;
+            pStormRender->tintColorZ = 30.0f;
             pStormRender->tintColorW = 0.15f;
-            pStormRender->tintColorPhase2X = 0.5f;
-            pStormRender->tintColorPhase2Y = 0.5f;
-            pStormRender->tintColorPhase2Z = 0.5f;
+            pStormRender->tintColorPhase2X = 1.0f;
+            pStormRender->tintColorPhase2Y = 1.0f;
+            pStormRender->tintColorPhase2Z = 1.0f;
             pStormRender->tintColorPhase2W = 1.0f;
-            
+
             pStormEmitter->velX = -10.0f;
             pStormEmitter->velY = -10.0f;
             pStormEmitter->velZ = -5.0f;
@@ -714,7 +714,7 @@ public:
                 pattern = find_pattern("88 41 61 F3 0F 10 0D", "48 60 8A 15 ? ? ? ? 88 50 61");
                 pRainEmitter = *pattern.get_first<gtaRainEmitter*>(15);
 
-                pStormRender = reinterpret_cast<gtaRainRender*>((uintptr_t)pRainRender + 0x64);
+                pStormRender = reinterpret_cast<gtaRainRender*>((uintptr_t)pRainRender + 0x60);
                 pStormEmitter = reinterpret_cast<gtaRainEmitter*>((uintptr_t)pRainEmitter + 0xD0);
 
                 NativeOverride::RegisterPhoneCheat("7665550100", []
