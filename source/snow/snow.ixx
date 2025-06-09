@@ -488,9 +488,9 @@ private:
             pRainRender->motionBlurAmt = 0.01f;
             pRainRender->radius = 0.042f;
             pRainRender->radius2 = 0.0f;
-            pRainRender->tintColorX = 30.0f;
-            pRainRender->tintColorY = 30.0f;
-            pRainRender->tintColorZ = 30.0f;
+            pRainRender->tintColorX = 10.0f;
+            pRainRender->tintColorY = 10.0f;
+            pRainRender->tintColorZ = 10.0f;
             pRainRender->tintColorW = 0.15f;
             pRainRender->tintColorPhase2X = 1.0f;
             pRainRender->tintColorPhase2Y = 1.0f;
