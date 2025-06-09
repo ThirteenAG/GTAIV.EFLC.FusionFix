@@ -14,16 +14,13 @@ double __fastcall sub_A18510(void* _this, void* edx, void* a2, void* a3)
 }
 
 SafetyHookInline NATIVE_SLIDE_OBJECT_C_T{};
-DWORD* __cdecl NATIVE_SLIDE_OBJECT_C(DWORD* a1) {
-    DWORD* v1 = (DWORD*)a1[2];
-    float* v2 = (float*)v1;
-    rage::Vector3* delta = (rage::Vector3*)&v2[4];
+bool __cdecl NATIVE_SLIDE_OBJECT_C(int object, float x, float y, float z, float dx, float dy, float dz, char a8) {
 
-    delta->x *= (*CTimer::fTimeStep / (1.0f / 30.0f));
-    delta->y *= (*CTimer::fTimeStep / (1.0f / 30.0f));
-    delta->z *= (*CTimer::fTimeStep / (1.0f / 30.0f));
+    dx *= (*CTimer::fTimeStep / (1.0f / 30.0f));
+    dy *= (*CTimer::fTimeStep / (1.0f / 30.0f));
+    dz *= (*CTimer::fTimeStep / (1.0f / 30.0f));
 
-    return NATIVE_SLIDE_OBJECT_C_T.ccall<DWORD*>(a1);
+    return NATIVE_SLIDE_OBJECT_C_T.ccall<bool>(object,x,y,z,dx,dy,dz,a8);
 }
 class FramerateVigilante
 {
@@ -136,7 +133,7 @@ public:
             // NATIVE_SLIDE_OBJECT speed-up fix
             // fixes Windows Cleaning platforms and sliding gates
             // Acceleration/Deacceleration is still broken for Window Cleaning Platforms
-            pattern = hook::pattern("56 8B 74 24 ? 8B 46 ? 83 78 ? ? F3 0F 10 40 ? F3 0F 10 48 ? F3 0F 10 50 ? F3 0F 10 58 ? F3 0F 10 60 ? F3 0F 10 68 ? 0F 95 44 24 ? FF 74 24 ? 83 EC ? F3 0F 11 44 24 ? F3 0F 11 4C 24 ? F3 0F 11 54 24 ? F3 0F 11 5C 24 ? F3 0F 11 64 24 ? F3 0F 11 2C 24 FF 30 E8 ? ? ? ? 0F B6 C8 8B 06 83 C4 ? 89 08 5E C3 CC CC CC CC 56 8B 74 24 ? 51");
+            pattern = hook::pattern("55 8B EC 83 E4 ? 8B 0D ? ? ? ? 81 EC ? ? ? ? 56 FF 75");
             if (!pattern.empty()) {
                 NATIVE_SLIDE_OBJECT_C_T = safetyhook::create_inline(pattern.get_first(), &NATIVE_SLIDE_OBJECT_C);
             }
