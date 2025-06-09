@@ -508,9 +508,9 @@ private:
             pStormRender->motionBlurAmt = 0.01f;
             pStormRender->radius = 0.042f;
             pStormRender->radius2 = 0.0f;
-            pStormRender->tintColorX = 30.0f;
-            pStormRender->tintColorY = 30.0f;
-            pStormRender->tintColorZ = 30.0f;
+            pStormRender->tintColorX = 10.0f;
+            pStormRender->tintColorY = 10.0f;
+            pStormRender->tintColorZ = 10.0f;
             pStormRender->tintColorW = 0.15f;
             pStormRender->tintColorPhase2X = 1.0f;
             pStormRender->tintColorPhase2Y = 1.0f;
