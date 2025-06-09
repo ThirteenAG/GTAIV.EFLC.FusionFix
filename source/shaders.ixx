@@ -119,22 +119,20 @@ class Shaders
         }
     }
 
+    static inline float mNearClipCached;
+    static inline float mFarClipCached;
     static void OnBeforeGBuffer()
     {
         // z-fighting fix helpers
         {
+            mNearClipCached = 0.0f;
+            mFarClipCached = 0.0f;
+
             auto viewport = rage::GetCurrentViewport();
             if (viewport)
             {
-                auto pDevice = rage::grcDevice::GetD3DDevice();
-
-                static float arr[4];
-                arr[0] = viewport->mNearClip;
-                arr[1] = viewport->mFarClip;
-                arr[2] = 0.0f;
-                arr[3] = 0.0f;
-                pDevice->SetVertexShaderConstantF(227, &arr[0], 1);
-                pDevice->SetPixelShaderConstantF(209, &arr[0], 1);
+                mNearClipCached = viewport->mNearClip;
+                mFarClipCached = viewport->mFarClip;
             }
         }
     }
@@ -276,6 +274,30 @@ public:
                 {
                     static auto consolegamma = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA");
                     regs.xmm0.f32[0] += regs.xmm0.f32[0] >= 1.3f ? 0.0f : (consolegamma->get() ? 0.06f : 0.0f);
+                });
+            }
+
+            // z-fighting fix helpers
+            {
+                auto pattern = find_pattern("75 ? 8B CE E8 ? ? ? ? 5E 8B E5 5D C3", "? 75 ? 56 E8 ? ? ? ? 8B E5");
+                static auto grcViewPortUpdateTransformHook = safetyhook::create_mid(pattern.get_first(4), [](SafetyHookContext& regs)
+                {
+                    auto pDevice = rage::grcDevice::GetD3DDevice();
+
+                    if (pDevice)
+                    {
+                        auto viewport = rage::GetCurrentViewport();
+                        if (viewport)
+                        {
+                            static float arr[4];
+                            arr[0] = viewport->mNearClip;
+                            arr[1] = viewport->mFarClip;
+                            arr[2] = mNearClipCached;
+                            arr[3] = mFarClipCached;
+                            pDevice->SetVertexShaderConstantF(227, &arr[0], 1);
+                            pDevice->SetPixelShaderConstantF(209, &arr[0], 1);
+                        }
+                    }
                 });
             }
         };

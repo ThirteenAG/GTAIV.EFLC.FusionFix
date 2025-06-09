@@ -495,6 +495,13 @@ public:
             
             pattern = find_pattern("E8 ? ? ? ? 8B 4C 24 ? 8B 54 24 ? 0F 57 C0 0F 2F 81 ? ? ? ? 0F B6 D2 B8", "E8 ? ? ? ? 0F 57 C0 0F 2F 86 ? ? ? ? 72");
             CTimeCycleModifier::hbBlendWithModifier.fun = injector::MakeCALL(pattern.get_first(), CTimeCycleModifier::BlendWithModifier2).get();
+
+            // need to reinit timecyc because of CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized() check in timecyc hooks
+            FusionFix::onGameInitEvent() += []()
+            {
+                CTimeCycle::Initialise();
+                CTimeCycle::InitialiseModifiers();
+            };
         };
     }
 } TimecycExt;

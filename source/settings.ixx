@@ -865,6 +865,7 @@ public:
                                     CTimeCycleModifiersExt::Initialise(filePath2 / "timecyclemodifiersext.dat");
 
                                     CTimeCycle::Initialise();
+                                    CTimeCycle::InitialiseModifiers();
                                 }
                                 oldState = curState;
                             }

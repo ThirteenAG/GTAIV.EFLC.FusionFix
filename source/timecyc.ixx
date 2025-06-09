@@ -69,7 +69,7 @@ int timecyc_scanf(const char* i, const char* fmt, int* mAmbient0ColorR, int* mAm
     if (!FusionFixSettings("PREF_BLOOM"))
         *mBloomIntensity = 0.0f;
 
-    if (FusionFixSettings("PREF_VOLUMETRICFOG")/* && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized()*/)
+    if (FusionFixSettings("PREF_VOLUMETRICFOG") && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
         *mFarClip = fVolFogFarClip;
 
     switch (FusionFixSettings("PREF_TCYC_DOF"))
@@ -297,15 +297,15 @@ int timecyclemodifiers_scanf(const char* i, const char* fmt, char* Name, float* 
         *MinFarClip = -1.0f;
         *MaxFarClip = -1.0f;
     }
-    else
-    {
-        // Workaround for phone screen depth issues.
-        if (*MinFarClip != -1.0f && *MinFarClip < 205.0f)
-            *MinFarClip = 205.0f;
-
-        if (*MaxFarClip != -1.0f && *MaxFarClip < 205.0f)
-            *MaxFarClip = 205.0f;
-    }
+    //else // handled in shaders module now
+    //{
+    //    // Workaround for phone screen depth issues.
+    //    //if (*MinFarClip != -1.0f && *MinFarClip < 205.0f)
+    //    //    *MinFarClip = 205.0f;
+    //    //
+    //    //if (*MaxFarClip != -1.0f && *MaxFarClip < 205.0f)
+    //    //    *MaxFarClip = 205.0f;
+    //}
 
     return res;
 }
@@ -384,6 +384,7 @@ public:
 
             FusionFixSettings.SetCallback("PREF_VOLUMETRICFOG", [](int32_t value) {
                 CTimeCycle::Initialise();
+                CTimeCycle::InitialiseModifiers();
                 bMenuNeedsUpdate = 200;
             });
 

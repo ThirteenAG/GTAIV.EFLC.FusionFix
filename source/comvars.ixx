@@ -940,6 +940,7 @@ export namespace CTimer
 export namespace CTimeCycle
 {
     void(__cdecl* Initialise)() = nullptr;
+    void(__cdecl* InitialiseModifiers)() = nullptr;
 }
 
 export namespace CWeather
@@ -1209,6 +1210,9 @@ public:
 
         pattern = find_pattern("55 8B EC 83 E4 F0 81 EC ? ? ? ? 8B 0D ? ? ? ? 53 0F B7 41 04", "55 8B EC 83 E4 F0 81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 8B 0D ? ? ? ? 0F B7 41 04");
         CTimeCycle::Initialise = pattern.get_first<void(__cdecl)()>(0);
+
+        pattern = find_pattern("68 ? ? ? ? E8 ? ? ? ? 68 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 68");
+        CTimeCycle::InitialiseModifiers = pattern.get_first<void(__cdecl)()>(0);
 
         pattern = find_pattern("56 57 6A 00 FF 74 24 10 8B F9 E8 ? ? ? ? 0F B7 77 0C", "8B 44 24 04 56 57 6A 00 50 8B F9");
         rage::grmShaderInfo::pfngetParamIndex = pattern.get_first<void*>(0);

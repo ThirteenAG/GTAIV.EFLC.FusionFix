@@ -36,7 +36,7 @@ rage::grcTexturePC* vehicle_genericmud_truck_snow;
 static SafetyHookInline shsub_41B920{};
 rage::grcTexturePC* __fastcall sub_41B920(rage::grcTextureReference* tex, void* edx)
 {
-    if (bEnableSnow && *CWeather::OldWeatherType != CWeather::LIGHTNING)
+    if (bEnableSnow)
     {
         if (!vehicle_generic_glasswindows2)
         {
@@ -243,12 +243,12 @@ private:
 
         auto HasSnow = [](CWeather::eWeatherType type) -> bool
         {
-            if (type == CWeather::LIGHTNING)
-                return false;
+            //if (type == CWeather::LIGHTNING)
+            //    return false;
             return true;
         };
 
-        IDirect3DDevice9* device = rage::grcDevice::GetD3DDevice();
+        auto device = rage::grcDevice::GetD3DDevice();
 
         mVolumeIntensity = 1.0f;
 
@@ -470,12 +470,20 @@ private:
     static inline gtaRainRender RainRenderCopy;
     static inline gtaRainEmitter RainEmitterCopy;
 
+    static inline gtaRainRender* pStormRender = nullptr;
+    static inline gtaRainEmitter* pStormEmitter = nullptr;
+    static inline gtaRainRender StormRenderCopy;
+    static inline gtaRainEmitter StormEmitterCopy;
+
     static void SetRainRenderParams()
     {
         if (bEnableSnow)
         {
             RainRenderCopy = *pRainRender;
             RainEmitterCopy = *pRainEmitter;
+
+            StormRenderCopy = *pStormRender;
+            StormEmitterCopy = *pStormEmitter;
 
             pRainRender->motionBlurAmt = 0.01f;
             pRainRender->radius = 0.042f;
@@ -496,11 +504,34 @@ private:
             pRainEmitter->velRangeY = 4.0f;
             pRainEmitter->velRangeZ = -2.2f;
             pRainEmitter->probablityPhase2 = 0.1f;
+
+            pStormRender->motionBlurAmt = 0.01f;
+            pStormRender->radius = 0.042f;
+            pStormRender->radius2 = 0.0f;
+            pStormRender->tintColorX = 5.0f;
+            pStormRender->tintColorY = 5.0f;
+            pStormRender->tintColorZ = 5.0f;
+            pStormRender->tintColorW = 0.15f;
+            pStormRender->tintColorPhase2X = 0.5f;
+            pStormRender->tintColorPhase2Y = 0.5f;
+            pStormRender->tintColorPhase2Z = 0.5f;
+            pStormRender->tintColorPhase2W = 1.0f;
+            
+            pStormEmitter->velX = -10.0f;
+            pStormEmitter->velY = -10.0f;
+            pStormEmitter->velZ = -5.0f;
+            pStormEmitter->velRangeX = 4.0f;
+            pStormEmitter->velRangeY = 4.0f;
+            pStormEmitter->velRangeZ = -2.2f;
+            pStormEmitter->probablityPhase2 = 0.1f;
         }
         else
         {
              *pRainRender = RainRenderCopy;
              *pRainEmitter = RainEmitterCopy;
+
+             *pStormRender = StormRenderCopy;
+             *pStormEmitter = StormEmitterCopy;
         }
     }
 
@@ -683,6 +714,9 @@ public:
                 pattern = find_pattern("88 41 61 F3 0F 10 0D", "48 60 8A 15 ? ? ? ? 88 50 61");
                 pRainEmitter = *pattern.get_first<gtaRainEmitter*>(15);
 
+                pStormRender = reinterpret_cast<gtaRainRender*>((uintptr_t)pRainRender + 0x64);
+                pStormEmitter = reinterpret_cast<gtaRainEmitter*>((uintptr_t)pRainEmitter + 0xD0);
+
                 NativeOverride::RegisterPhoneCheat("7665550100", []
                 {
                     ToggleSnow(!bEnableSnow);
@@ -735,7 +769,7 @@ extern "C"
 
     bool __declspec(dllexport) IsWeatherSnow()
     {
-        return CWeather::OldWeatherType && *CWeather::OldWeatherType != CWeather::LIGHTNING;
+        return true; //CWeather::OldWeatherType && *CWeather::OldWeatherType != CWeather::LIGHTNING;
     }
 
     void __declspec(dllexport) ToggleSnow()
