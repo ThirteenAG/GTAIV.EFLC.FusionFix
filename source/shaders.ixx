@@ -216,6 +216,33 @@ public:
                 }; injector::MakeInline<ShaderPathHook>(pattern.get_first(0), pattern.get_first(7));
             }
 
+            // Redirect common\shaders\win32_30\rage_perlinnoise.fxc
+            {
+                std::ifstream is(GetModulePath(GetModuleHandleW(NULL)).parent_path() / "common" / "shaders" / "win32_30" / "rage_perlinnoise.fxc", std::ios::binary);
+                if (is)
+                {
+                    static std::string rage_perlinnoise((std::istreambuf_iterator<char>(is)), std::istreambuf_iterator<char>());
+
+                    auto pattern = hook::pattern("A1 ? ? ? ? A3 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? C3");
+                    for (size_t i = 0; i < pattern.size(); ++i)
+                    {
+                        auto off_110ECB0 = *pattern.get(i).get<void***>(16);
+                        if (!IsBadReadPtr(off_110ECB0, sizeof(uint32_t)))
+                        {
+                            if (!IsBadReadPtr(off_110ECB0[0], strlen("win32_30/rage_perlinnoise.fxc")))
+                            {
+                                auto str = std::string_view((const char*)off_110ECB0[0]);
+                                if (str == "win32_30/rage_perlinnoise.fxc")
+                                {
+                                    injector::WriteMemory(&off_110ECB0[1], rage_perlinnoise.data(), true);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             // Actually read the rain lighting settings in the visualsettings.dat
             {
                 auto pattern = hook::pattern("8D 44 24 2C 50 FF 33 F3 0F 11 44 24 ? 56 E8");
