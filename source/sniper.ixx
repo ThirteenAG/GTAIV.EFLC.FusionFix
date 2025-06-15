@@ -77,7 +77,7 @@ public:
                 void operator()(injector::reg_pack& regs)
                 {
                     static auto zm = FusionFixSettings.GetRef("PREF_ZOOMEDMOVEMENT");
-                    if (zm->get())
+                    if (zm->get() || (!zm->get() && *(uint32_t*)(regs.eax + 4) != 6))
                     {
                         *(uintptr_t*)(regs.esp - 4) = loc_A75BB0;
                     }
