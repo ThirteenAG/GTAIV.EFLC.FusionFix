@@ -394,7 +394,7 @@ public:
                             arr7[1] = fSHADOWFILTERCHSSShadowBias;
                         }
 
-                        arr7[2] = static_cast<float>(bloom->get());
+                        arr7[2] = static_cast<float>(bloom->get() - 1);
                         arr7[3] = fCascadeBlendSize;
 
                         pDevice->SetPixelShaderConstantF(218, &arr7[0], 1);
