@@ -376,6 +376,7 @@ public:
                         static float arr7[4];
                         static float arr9[4];
                         static auto shadowFilter = FusionFixSettings.GetRef("PREF_SHADOWFILTER");
+                        static auto bloom = FusionFixSettings.GetRef("PREF_BLOOM");
 
                         if (shadowFilter->get() == FusionFixSettings.ShadowFilterText.eSoft)
                         {
@@ -393,7 +394,7 @@ public:
                             arr7[1] = fSHADOWFILTERCHSSShadowBias;
                         }
 
-                        arr7[2] = 0.0f;
+                        arr7[2] = static_cast<float>(bloom->get());
                         arr7[3] = fCascadeBlendSize;
 
                         pDevice->SetPixelShaderConstantF(218, &arr7[0], 1);

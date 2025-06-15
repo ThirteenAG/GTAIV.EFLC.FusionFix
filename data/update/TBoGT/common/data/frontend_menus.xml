@@ -130,9 +130,9 @@
       <optionspc text="LB_RANKED" action="ACTION_NONE" value="0" />
     </menupc>
     <menu enum="MENU_DISPLAY_NETSTATS_SCORES">
-      <options text="NET_OV" action="ACTION_NONE" value="0" />
-      <options text="NET_BYS" action="ACTION_NONE" value="0" />
-      <options text="NET_BYT" action="ACTION_NONE" value="0" />
+      <options text="MO_OFF" action="ACTION_NONE" value="0" />
+      <options text="Star" action="ACTION_NONE" value="1" />
+      <options text="Circle" action="ACTION_NONE" value="2" />
     </menu>
     <menu enum="MENU_DISPLAY_NETSTATS_COMP_TEAM">
       <options text="NET_NO" action="ACTION_NONE" value="0" />
@@ -609,7 +609,7 @@
         displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
       <optionspc action="MENUOPT_ADJUST" label="Motion Blur" value="PREF_MOTIONBLUR" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-      <optionspc action="MENUOPT_ADJUST" label="Bloom" value="PREF_BLOOM" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="Bloom" value="PREF_BLOOM" scaler="3" displayValue="MENU_DISPLAY_NETSTATS_SCORES" />
       <optionspc action="MENUOPT_ADJUST" label="Console Gamma" value="PREF_CONSOLE_GAMMA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="MENUOPT_ADJUST" label="Tone Mapping" value="PREF_TONEMAPPING" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="MENUOPT_ADJUST" label="Screen Filter" value="PREF_TIMECYC" scaler="10" displayValue="MENU_DISPLAY_TIMECYC" />
