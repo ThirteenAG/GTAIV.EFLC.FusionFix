@@ -394,7 +394,11 @@ public:
                             arr7[1] = fSHADOWFILTERCHSSShadowBias;
                         }
 
-                        arr7[2] = static_cast<float>(bloom->get() - 1);
+                        if (FusionFixSettings.Get("PREF_SHADOW_QUALITY") >= 4) // Very High
+                            arr7[2] = shadowFilter->get() == FusionFixSettings.ShadowFilterText.eCHSS ? 1.0f : 0.0f;
+                        else
+                            arr7[2] = 0.0f;
+
                         arr7[3] = fCascadeBlendSize;
 
                         pDevice->SetPixelShaderConstantF(218, &arr7[0], 1);
@@ -408,11 +412,10 @@ public:
                             arr9[2] = static_cast<float>(nToneMappingOperator * 2 - 1);
                         else
                             arr9[2] = 0.0f;
+
+                        arr9[3] = static_cast<float>(bloom->get() - 1);
                         
-                        if (FusionFixSettings.Get("PREF_SHADOW_QUALITY") >= 4) // Very High
-                            arr9[3] = shadowFilter->get() == FusionFixSettings.ShadowFilterText.eCHSS ? 1.0f : 0.0f;
-                        else
-                            arr9[3] = 0.0f;
+
 
                         pDevice->SetPixelShaderConstantF(217, &arr9[0], 1);
                     }
