@@ -119,21 +119,11 @@ class Shaders
         }
     }
 
-    static inline float mNearClipCached;
-    static inline float mFarClipCached;
     static void OnBeforeGBuffer()
     {
         // z-fighting fix helpers
         {
-            mNearClipCached = 0.0f;
-            mFarClipCached = 0.0f;
-
             auto viewport = rage::GetCurrentViewport();
-            if (viewport)
-            {
-                mNearClipCached = viewport->mNearClip;
-                mFarClipCached = viewport->mFarClip;
-            }
         }
     }
 public:
@@ -317,10 +307,10 @@ public:
                         if (viewport)
                         {
                             static float arr[4];
-                            arr[0] = viewport->mNearClip;
-                            arr[1] = viewport->mFarClip;
-                            arr[2] = mNearClipCached;
-                            arr[3] = mFarClipCached;
+                            arr[0] = 1.0f / viewport->mNearClip;
+                            arr[1] = 1.0f / log2(viewport->mFarClip / viewport->mNearClip);
+                            arr[2] = viewport->mFarClip / viewport->mNearClip;
+                            arr[3] = viewport->mNearClip;
                             pDevice->SetVertexShaderConstantF(227, &arr[0], 1);
                             pDevice->SetPixelShaderConstantF(209, &arr[0], 1);
                         }
