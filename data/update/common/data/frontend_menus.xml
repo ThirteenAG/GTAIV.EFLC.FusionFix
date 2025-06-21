@@ -149,8 +149,8 @@
 
         <menu enum="MENU_DISPLAY_NETSTATS_SCORES">
             <options text="MO_OFF" action="ACTION_NONE" value="0" />
-            <options text="Default" action="ACTION_NONE" value="1" />
-            <options text="Alternative" action="ACTION_NONE" value="2" />
+            <options text="MO_DEF" action="ACTION_NONE" value="1" />
+            <options text="MO_C_TYPEC" action="ACTION_NONE" value="2" />
         </menu>
 
         <menu enum="MENU_DISPLAY_NETSTATS_COMP_TEAM">
