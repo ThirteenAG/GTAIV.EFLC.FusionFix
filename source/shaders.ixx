@@ -119,21 +119,11 @@ class Shaders
         }
     }
 
-    static inline float mNearClipCached;
-    static inline float mFarClipCached;
     static void OnBeforeGBuffer()
     {
         // z-fighting fix helpers
         {
-            mNearClipCached = 0.0f;
-            mFarClipCached = 0.0f;
-
             auto viewport = rage::GetCurrentViewport();
-            if (viewport)
-            {
-                mNearClipCached = viewport->mNearClip;
-                mFarClipCached = viewport->mFarClip;
-            }
         }
     }
 public:
@@ -317,10 +307,10 @@ public:
                         if (viewport)
                         {
                             static float arr[4];
-                            arr[0] = viewport->mNearClip;
-                            arr[1] = viewport->mFarClip;
-                            arr[2] = mNearClipCached;
-                            arr[3] = mFarClipCached;
+                            arr[0] = 1.0f / viewport->mNearClip;
+                            arr[1] = 1.0f / log2(viewport->mFarClip / viewport->mNearClip);
+                            arr[2] = viewport->mFarClip / viewport->mNearClip;
+                            arr[3] = viewport->mNearClip;
                             pDevice->SetVertexShaderConstantF(227, &arr[0], 1);
                             pDevice->SetPixelShaderConstantF(209, &arr[0], 1);
                         }
@@ -515,15 +505,15 @@ public:
                         static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
 
                         static float arr10[4];
-                        arr10[0] = CTimeCycleExt::GetVolFogDensity();
-                        arr10[1] = CTimeCycleExt::GetVolFogHeightFalloff();
-                        arr10[2] = CTimeCycleExt::GetVolFogPower();
-                        arr10[3] = CTimeCycleExt::GetVolFogColorFactor();
+                        arr10[0] = max(CTimeCycleExt::GetVolFogDensity(), 0.0f);
+                        arr10[1] = max(CTimeCycleExt::GetVolFogHeightFalloff(), 0.0000001f);
+                        arr10[2] = max(CTimeCycleExt::GetVolFogPower(), 0.0f);
+                        arr10[3] = std::clamp(CTimeCycleExt::GetVolFogColorFactor(), 0.0f, 1.0f);
                         pDevice->SetPixelShaderConstantF(211, &arr10[0], 1);
                         pDevice->SetVertexShaderConstantF(235, &arr10[0], 1);
 
                         static float arr11[4];
-                        arr11[0] = CTimeCycleExt::GetVolFogAltitudeTweak();
+                        arr11[0] = std::clamp(CTimeCycleExt::GetVolFogAltitudeTweak(), 0.0f, 1.0f);
                         arr11[1] = static_cast<float>(fog->get());
                         arr11[2] = 0.0f;
                         arr11[3] = 0.0f;

@@ -9,7 +9,7 @@ uniform sampler2D SnowSampler : register(s4);
 uniform float4 Threshold : register(c0);
 uniform float4 DeferredProjParams : register(c1);
 uniform row_major float4x4 ViewInverse : register(c2);
-uniform float4 NearFarPlane : register(c128);
+uniform float4 LogDepthParams : register(c209);
 
 struct PSIn
 {
@@ -36,11 +36,11 @@ PSOut main(PSIn psIn)
     float depth;
     if(LOG_DEPTH)
     {
-        depth = DecodeLogDepth(tex2D(GBufferDepthSampler, psIn.TexCoord).x) * DeferredProjParams.z - DeferredProjParams.w;
+        depth = DecodeLogDepth(tex2D(GBufferDepthSampler, psIn.TexCoord).x);
     }
     else
     {
-        depth = tex2D(GBufferDepthSampler, psIn.TexCoord).x * DeferredProjParams.z - DeferredProjParams.w;
+        depth = 1.0 / (tex2D(GBufferDepthSampler, psIn.TexCoord).x * DeferredProjParams.z - DeferredProjParams.w);
     }
     
     float3 normalWS = tex2D(GBufferNormalSampler, psIn.TexCoord).xyz;
@@ -54,7 +54,7 @@ PSOut main(PSIn psIn)
         objectMask = 1.0;
     }
     
-    float3 posWS = psIn.TexCoord1.xyz / -depth + ViewInverse[3].xyz;
+    float3 posWS = psIn.TexCoord1.xyz * -depth + ViewInverse[3].xyz;
     const float3 snowDir = float3(0.001425, -0.00771, 0.996);
     
     float3 snowNormal = tex2D(SnowSampler, posWS.xy * 0.7).xyz * 2.0 - 1.0;
@@ -130,13 +130,5 @@ float3 BlendOverlay(float3 layer1, float3 layer2)
 
 float DecodeLogDepth(float logDepth)
 {
-    if(logDepth != 0.99999)
-    {
-        float w = pow(abs(NearFarPlane.y / NearFarPlane.x), logDepth) * NearFarPlane.x;
-        return ((w - NearFarPlane.x) * NearFarPlane.y) / ((NearFarPlane.y - NearFarPlane.x) * w);
-    }
-    else
-    {
-        return logDepth;
-    }
+    return pow(abs(LogDepthParams.z), logDepth) * LogDepthParams.w;
 }
