@@ -505,15 +505,15 @@ public:
                         static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
 
                         static float arr10[4];
-                        arr10[0] = CTimeCycleExt::GetVolFogDensity();
-                        arr10[1] = CTimeCycleExt::GetVolFogHeightFalloff();
-                        arr10[2] = CTimeCycleExt::GetVolFogPower();
-                        arr10[3] = CTimeCycleExt::GetVolFogColorFactor();
+                        arr10[0] = max(CTimeCycleExt::GetVolFogDensity(), 0.0f);
+                        arr10[1] = max(CTimeCycleExt::GetVolFogHeightFalloff(), 0.0000001f);
+                        arr10[2] = max(CTimeCycleExt::GetVolFogPower(), 0.0f);
+                        arr10[3] = std::clamp(CTimeCycleExt::GetVolFogColorFactor(), 0.0f, 1.0f);
                         pDevice->SetPixelShaderConstantF(211, &arr10[0], 1);
                         pDevice->SetVertexShaderConstantF(235, &arr10[0], 1);
 
                         static float arr11[4];
-                        arr11[0] = CTimeCycleExt::GetVolFogAltitudeTweak();
+                        arr11[0] = std::clamp(CTimeCycleExt::GetVolFogAltitudeTweak(), 0.0f, 1.0f);
                         arr11[1] = static_cast<float>(fog->get());
                         arr11[2] = 0.0f;
                         arr11[3] = 0.0f;
