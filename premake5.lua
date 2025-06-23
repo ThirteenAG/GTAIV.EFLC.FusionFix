@@ -117,3 +117,24 @@ workspace "GTAIV.EFLC.FusionFix"
       
 project "GTAIV.EFLC.FusionFix"
    setpaths("H:/SteamLibrary/steamapps/common/Grand Theft Auto IV/GTAIV/", "GTAIV.exe", "plugins/")
+
+project "GTAIV.EFLC.FusionFixInstaller"
+   kind "WindowedApp"
+   language "C++"
+   targetdir "bin/%{cfg.buildcfg}"
+   targetextension ".exe"
+   staticruntime "On"
+
+   files { "installer/*.rc" }
+   files { "installer/main.cpp" }
+   removefiles { "source/**" }
+   removefiles { "external/**" }
+   files { "source/resources/Versioninfo.rc" }
+
+   filter "configurations:Debug"
+      defines { "DEBUG" }
+      symbols "On"
+
+   filter "configurations:Release"
+      defines { "NDEBUG" }
+      optimize "On"

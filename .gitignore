@@ -345,3 +345,5 @@ data/update/common/text/*.gxt
 data/update/TLAD/pc/textures/*.wtd
 data/plugins/GTAIV.EFLC.FusionFix.asi
 GTAIV.EFLC.FusionFix.zip
+GTAIV.EFLC.FusionFixOfflineInstaller.exe
+GTAIV.EFLC.FusionFixWebInstaller.exe

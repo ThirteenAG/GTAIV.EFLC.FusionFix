@@ -118,5 +118,5 @@ jobs:
         name: GTAIV.EFLC.FusionFix v${{ steps.versioning.outputs.version }}
         body: "[README](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix#readme)"
         tag: v${{ steps.versioning.outputs.version }}
-        artifacts: GTAIV.EFLC.FusionFix.zip
+        artifacts: GTAIV.EFLC.FusionFix.zip, GTAIV.EFLC.FusionFixWebInstaller.exe, GTAIV.EFLC.FusionFixOfflineInstaller.exe
 

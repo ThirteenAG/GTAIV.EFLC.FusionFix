@@ -14,3 +14,13 @@ call buildgxt.bat
 -x!update\GTAIV.EFLC.FusionFix\FusionLights ^
 -x!update\GTAIV.EFLC.FusionFix\cdimagemake.ims ^
 -xr!*\.gitkeep
+
+copy /Y bin\Release\GTAIV.EFLC.FusionFixInstaller.exe GTAIV.EFLC.FusionFixWebInstaller.exe
+start /B /WAIT GTAIV.EFLC.FusionFixWebInstaller.exe GTAIV.EFLC.FusionFix.zip
+:RETRY
+move /Y GTAIV.EFLC.FusionFixWebInstaller_with_GTAIV.EFLC.FusionFix.exe GTAIV.EFLC.FusionFixOfflineInstaller.exe
+if ERRORLEVEL 1 (
+    echo File locked, retrying...
+    timeout /t 2 > nul
+    goto RETRY
+)
