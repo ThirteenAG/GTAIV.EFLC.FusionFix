@@ -151,6 +151,8 @@ public:
         static bool bSmoothShorelines = true;
         
         static bool bUnclampLighting = false;
+        
+        static bool bSmoothLightVolumes = true;
 
         static float fMotionBlurScale = 1.0f;
 
@@ -176,6 +178,7 @@ public:
             nForceShadowFilter = std::clamp(iniReader.ReadInteger("SHADOWS", "ForceShadowFilter", 0), 0, 2);
             bool bConsoleCarReflectionsAndDirt = iniReader.ReadInteger("MISC", "ConsoleCarReflectionsAndDirt", 1) != 0;
             bSmoothShorelines = iniReader.ReadInteger("MISC", "SmoothShorelines", 1) != 0;
+            bSmoothLightVolumes = iniReader.ReadInteger("MISC", "SmoothLightVolumes", 1) != 0;
             bUnclampLighting = iniReader.ReadInteger("MISC", "UnclampLighting", 0) != 0;
             fMotionBlurScale = std::clamp(iniReader.ReadFloat("MISC", "MotionBlurScale", 1.0f), 0.0f, 1.0f);
 
@@ -518,7 +521,7 @@ public:
                         static float arr11[4];
                         arr11[0] = std::clamp(CTimeCycleExt::GetVolFogAltitudeTweak(), 0.0f, 1.0f);
                         arr11[1] = static_cast<float>(fog->get());
-                        arr11[2] = 0.0f;
+                        arr11[2] = bSmoothLightVolumes ? 1.0f : 0.0f;
                         arr11[3] = 0.0f;
 
                         if (!CTimeCycleExt::IsInitialized() || !CTimeCycleModifiersExt::IsInitialized() || bIsQUB3D)
