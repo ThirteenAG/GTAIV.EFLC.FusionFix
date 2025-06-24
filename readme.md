@@ -2,7 +2,7 @@
 [![AppVeyor](https://img.shields.io/appveyor/build/ThirteenAG/GTAIV-EFLC-FusionFix?label=AppVeyor%20Build&logo=Appveyor&logoColor=white)](https://ci.appveyor.com/project/ThirteenAG/gtaiv-eflc-fusionfix)
 
 <p align="center">
-  <img width="600" src="https://raw.githubusercontent.com/ThirteenAG/GTAIV.EFLC.FusionFix/refs/heads/fog/installer/logo.png">
+  <img width="600" src="https://raw.githubusercontent.com/ThirteenAG/GTAIV.EFLC.FusionFix/refs/heads/fog/installer/logo_outline.png">
 </p>
 
 # GTAIV.EFLC.FusionFix
