@@ -152,6 +152,8 @@ public:
         
         static bool bUnclampLighting = false;
 
+        static float fMotionBlurScale = 1.0f;
+
         static int nToneMappingOperator = 0;
 
         FusionFix::onInitEvent() += []()
@@ -175,6 +177,7 @@ public:
             bool bConsoleCarReflectionsAndDirt = iniReader.ReadInteger("MISC", "ConsoleCarReflectionsAndDirt", 1) != 0;
             bSmoothShorelines = iniReader.ReadInteger("MISC", "SmoothShorelines", 1) != 0;
             bUnclampLighting = iniReader.ReadInteger("MISC", "UnclampLighting", 0) != 0;
+            fMotionBlurScale = std::clamp(iniReader.ReadFloat("MISC", "MotionBlurScale", 1.0f), 0.0f, 1.0f);
 
             nToneMappingOperator = std::clamp(iniReader.ReadInteger("MISC", "ToneMappingOperator", 0), 0, 1);
 
@@ -461,7 +464,7 @@ public:
                         }
 
                         arr5[1] = bEnableSnow ? 1.0f : 0.0f;
-                        arr5[2] = 1.0f / (30.0f * Natives::Timestep());
+                        arr5[2] = fMotionBlurScale / (30.0f * Natives::Timestep());
                         arr5[3] = treealpha->get() == FusionFixSettings.TreeAlphaText.eConsole ? fTreeAlphaConsole : fTreeAlphaPC;
                         pDevice->SetPixelShaderConstantF(221, &arr5[0], 1);
                     }
