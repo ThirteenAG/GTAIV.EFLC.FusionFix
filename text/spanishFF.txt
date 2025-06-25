@@ -80,7 +80,7 @@ Sombras de farolas
 Transparencia de árboles
 
 [UnclampLighting]
-Iluminación Desbloqueada
+Mayor alcance de la luz solar
 
 [Shadow Filter]
 Filtro de sombras
@@ -99,6 +99,9 @@ Niebla volumétrica
 
 [Zoomed Movement]
 Permitir movimiento con zoom
+
+[LODLights]
+Luces lejanas
 
 [FF_WARN0]
 ~p~Archivos IMG:

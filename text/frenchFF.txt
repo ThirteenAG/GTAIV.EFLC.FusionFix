@@ -80,7 +80,7 @@ Ombres de réverbères
 Alpha des arbres
 
 [UnclampLighting]
-Éclairage Débloqué
+Portée étendue de la lumière du soleil
 
 [Shadow Filter]
 Filtre d'ombre
@@ -99,6 +99,9 @@ Brouillard Volumétrique
 
 [Zoomed Movement]
 Permettre le mouvement en zoomant
+
+[LODLights]
+Lumières lointaines
 
 [FF_WARN0]
 ~p~Fichiers IMG:

@@ -18,3 +18,4 @@
 #include <array>
 #include <future>
 #include <d3d9.h>
+#include <maths.hxx>

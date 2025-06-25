@@ -80,7 +80,7 @@ Lamppost Shadows
 Tree Alpha
 
 [UnclampLighting]
-Unclamped Lighting
+Extended Sunlight Reach
 
 [Shadow Filter]
 Shadow Filter
@@ -99,6 +99,9 @@ Volumetric Fog
 
 [Zoomed Movement]
 Allow Movement When Zoomed
+
+[LODLights]
+Distant Lights
 
 [FF_WARN0]
 ~p~IMG Files:

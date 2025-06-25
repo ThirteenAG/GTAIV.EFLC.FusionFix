@@ -80,7 +80,7 @@ FPSリミッター
 ツリー アルファ
 
 [UnclampLighting]
-照明のロック解除
+日照範囲の拡大
 
 [Shadow Filter]
 シャドウフィルター
@@ -99,6 +99,9 @@ FPSリミッター
 
 [Zoomed Movement]
 ズーム中の移動を許可
+
+[LODLights]
+遠い光
 
 [FF_WARN0]
 ~p~IMG ファイル:

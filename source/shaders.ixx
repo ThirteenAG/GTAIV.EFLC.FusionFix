@@ -119,13 +119,10 @@ class Shaders
         }
     }
 
-    static void OnBeforeGBuffer()
-    {
-        // z-fighting fix helpers
-        {
-            auto viewport = rage::GetCurrentViewport();
-        }
-    }
+    //static void OnBeforeGBuffer()
+    //{
+    //
+    //}
 public:
     Shaders()
     {
@@ -600,12 +597,12 @@ public:
                         mBeforeLightingCB->Append();
                 };
 
-                CRenderPhaseDeferredLighting_SceneToGBuffer::OnBuildRenderList() += []()
-                {
-                    auto mBeforeGBuffer = new T_CB_Generic_NoArgs(OnBeforeGBuffer);
-                    if (mBeforeGBuffer)
-                        mBeforeGBuffer->Append();
-                };
+                //CRenderPhaseDeferredLighting_SceneToGBuffer::OnBuildRenderList() += []()
+                //{
+                //    auto mBeforeGBuffer = new T_CB_Generic_NoArgs(OnBeforeGBuffer);
+                //    if (mBeforeGBuffer)
+                //        mBeforeGBuffer->Append();
+                //};
             }
         };
     };

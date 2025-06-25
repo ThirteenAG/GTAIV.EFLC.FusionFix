@@ -80,7 +80,7 @@ Ombre dei lampioni
 Alfa degli alberi
 
 [UnclampLighting]
-Illuminazione Sbloccata
+Estensione della portata della luce solare
 
 [Shadow Filter]
 Filtro delle ombre
@@ -99,6 +99,9 @@ Nebbia volumetrica
 
 [Zoomed Movement]
 Consenti movimento con lo zoom
+
+[LODLights]
+Luci lontane
 
 [FF_WARN0]
 ~p~IMG Files:

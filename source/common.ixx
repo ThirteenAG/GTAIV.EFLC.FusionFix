@@ -58,10 +58,6 @@ public:
         static Event<> InitEventAsync;
         return InitEventAsync;
     }
-    static Event<>& onAfterUALRestoredIATEvent() {
-        static Event<> AfterUALRestoredIATEvent;
-        return AfterUALRestoredIATEvent;
-    }
     static Event<>& onShutdownEvent() {
         static Event<> ShutdownEvent;
         return ShutdownEvent;

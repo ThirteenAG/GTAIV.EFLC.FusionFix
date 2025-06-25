@@ -80,7 +80,7 @@ Straßenlaternen-Schatten
 Baumtransparenz
 
 [UnclampLighting]
-Ungeklemmte Beleuchtung
+Erweiterte Sonnenlicht-Reichweite
 
 [Shadow Filter]
 Schattenfilter
@@ -99,6 +99,9 @@ Volumetrischer Nebel
 
 [Zoomed Movement]
 Bewegung beim Zoomen erlauben
+
+[LODLights]
+Ferne Lichter
 
 [FF_WARN0]
 ~p~IMG-Dateien:

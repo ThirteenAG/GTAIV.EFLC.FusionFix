@@ -238,8 +238,8 @@
         </menu>
 
         <menu360 enum="MENU_DISPLAY_NETSTATS_TRUESKILLNAME">
-            <options text="FNTGT_COMP_0" action="ACTION_NONE" value="0" />
-            <options text="FNTGT_COMP_1" action="ACTION_NONE" value="1" />
+            <options text="MO_DEF" action="ACTION_NONE" value="0" />
+            <options text="Project2DFX" action="ACTION_NONE" value="1" />
             <options text="FNTGT_COMP_2" action="ACTION_NONE" value="2" />
             <options text="FNTGT_RACE_0" action="ACTION_NONE" value="3" />
             <options text="FNTGT_RACE_1" action="ACTION_NONE" value="4" />
@@ -524,6 +524,7 @@
             <optionspc action="MENUOPT_ADJUST" label="Tree Alpha" value="PREF_TREEALPHA" scaler="6" displayValue="MENU_DISPLAY_TREEALPHA" />
             <optionspc action="MENUOPT_ADJUST" label="MO_DOF" value="PREF_DEFINITION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="UnclampLighting" value="PREF_UNCLAMPLIGHTING" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="Distant Lights" value="PREF_DISTANTLIGHTS" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_TRUESKILLNAME" />
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <options action="MENUOPT_SET" label="MO_DEF" value="SET_DEFAULT_DISPLAY" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
