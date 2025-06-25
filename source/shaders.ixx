@@ -152,8 +152,6 @@ public:
         
         static bool bSmoothLightVolumes = true;
 
-        static float fMotionBlurScale = 1.0f;
-
         static int nToneMappingOperator = 0;
 
         FusionFix::onInitEvent() += []()
@@ -177,7 +175,6 @@ public:
             bool bConsoleCarReflectionsAndDirt = iniReader.ReadInteger("MISC", "ConsoleCarReflectionsAndDirt", 1) != 0;
             bSmoothShorelines = iniReader.ReadInteger("MISC", "SmoothShorelines", 1) != 0;
             bSmoothLightVolumes = iniReader.ReadInteger("MISC", "SmoothLightVolumes", 1) != 0;
-            fMotionBlurScale = std::clamp(iniReader.ReadFloat("MISC", "MotionBlurScale", 1.0f), 0.0f, 1.0f);
 
             nToneMappingOperator = std::clamp(iniReader.ReadInteger("MISC", "ToneMappingOperator", 0), 0, 1);
 
@@ -466,7 +463,7 @@ public:
                         }
 
                         arr5[1] = bEnableSnow ? 1.0f : 0.0f;
-                        arr5[2] = fMotionBlurScale / (30.0f * Natives::Timestep());
+                        arr5[2] = 0.0f;
                         arr5[3] = treealpha->get() == FusionFixSettings.TreeAlphaText.eConsole ? fTreeAlphaConsole : fTreeAlphaPC;
                         pDevice->SetPixelShaderConstantF(221, &arr5[0], 1);
                     }
@@ -479,7 +476,16 @@ public:
                         arr3[0] = (bFixAutoExposure ? 1.0f : 0.0f);
                         arr3[1] = (bSmoothShorelines ? 1.0f : 0.0f);
                         arr3[2] = static_cast<float>(gamma->get());
-                        arr3[3] = static_cast<float>(mblur->get());
+                        static float mblurscale = 1.0f;
+                        switch(mblur->get())
+                        {
+                            case 0: mblurscale = 0.0f; break;
+                            case 1: mblurscale = 0.125f; break;
+                            case 2: mblurscale = 0.25f; break;
+                            case 3: mblurscale = 0.5f; break;
+                            default: mblurscale = 1.0f; break;
+                        }
+                        arr3[3] = mblurscale / (30.0f * Natives::Timestep());
                         pDevice->SetPixelShaderConstantF(222, &arr3[0], 1);
                     }
 
