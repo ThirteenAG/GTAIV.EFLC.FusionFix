@@ -376,8 +376,8 @@
       <options text="GAMEC_E1_2" action="ACTION_NONE" value="2" />
     </menu>
     <menu360 enum="MENU_DISPLAY_NETSTATS_TRUESKILLNAME">
-      <options text="MO_DEF" action="ACTION_NONE" value="0" />
-      <options text="Project2DFX" action="ACTION_NONE" value="1" />
+      <options text="FNTGT_COMP_0" action="ACTION_NONE" value="0" />
+      <options text="FNTGT_COMP_1" action="ACTION_NONE" value="1" />
       <options text="FNTGT_COMP_2" action="ACTION_NONE" value="2" />
       <options text="FNTGT_RACE_0" action="ACTION_NONE" value="3" />
       <options text="FNTGT_RACE_1" action="ACTION_NONE" value="4" />
@@ -399,8 +399,8 @@
       <options text="MP_LB_03" action="ACTION_NONE" value="16" />
     </menu360>
     <menupc enum="MENU_DISPLAY_NETSTATS_TRUESKILLNAME">
-      <options text="FNTGT_COMP_0" action="ACTION_NONE" value="0" />
-      <options text="FNTGT_COMP_1" action="ACTION_NONE" value="1" />
+      <options text="MO_DEF" action="ACTION_NONE" value="0" />
+      <options text="Project2DFX" action="ACTION_NONE" value="1" />
       <options text="FNTGT_COMP_2" action="ACTION_NONE" value="2" />
       <options text="FNTGT_RACE_0" action="ACTION_NONE" value="3" />
       <options text="FNTGT_RACE_1" action="ACTION_NONE" value="4" />
