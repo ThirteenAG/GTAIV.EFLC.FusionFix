@@ -79,6 +79,9 @@ Lamppost Shadows
 [Tree Alpha]
 Tree Alpha
 
+[UnclampLighting]
+Unclamped Lighting
+
 [Shadow Filter]
 Shadow Filter
 

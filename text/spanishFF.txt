@@ -79,6 +79,9 @@ Sombras de farolas
 [Tree Alpha]
 Transparencia de árboles
 
+[UnclampLighting]
+Iluminación Desbloqueada
+
 [Shadow Filter]
 Filtro de sombras
 

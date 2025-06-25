@@ -79,6 +79,9 @@ Ombre dei lampioni
 [Tree Alpha]
 Alfa degli alberi
 
+[UnclampLighting]
+Illuminazione Sbloccata
+
 [Shadow Filter]
 Filtro delle ombre
 

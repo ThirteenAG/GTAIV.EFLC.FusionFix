@@ -79,6 +79,9 @@ Ombres de réverbères
 [Tree Alpha]
 Alpha des arbres
 
+[UnclampLighting]
+Éclairage Débloqué
+
 [Shadow Filter]
 Filtre d'ombre
 

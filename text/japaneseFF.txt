@@ -79,6 +79,9 @@ FPSリミッター
 [Tree Alpha]
 ツリー アルファ
 
+[UnclampLighting]
+照明のロック解除
+
 [Shadow Filter]
 シャドウフィルター
 

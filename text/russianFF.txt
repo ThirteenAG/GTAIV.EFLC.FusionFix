@@ -79,6 +79,9 @@ Fusion Fix: Проверять Обновления
 [Tree Alpha]
 Прозрачность деревьев
 
+[UnclampLighting]
+Разблокированное освещение
+
 [Shadow Filter]
 Фильтрация Теней
 
