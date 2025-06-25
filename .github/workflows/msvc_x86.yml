@@ -93,7 +93,7 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: GTAIV.EFLC.FusionFix.zip
+        name: GTAIV.EFLC.FusionFix
         path: |
           data/*
           !data/update/GTAIV.EFLC.FusionFix/GTAIV.EFLC.FusionFix
@@ -108,13 +108,13 @@ jobs:
     - name: Upload Web Installer
       uses: actions/upload-artifact@v4
       with:
-        name: GTAIV.EFLC.FusionFixWebInstaller.exe.zip
+        name: GTAIV.EFLC.FusionFixWebInstaller.exe
         path: GTAIV.EFLC.FusionFixWebInstaller.exe
 
     - name: Upload Offline Installer
       uses: actions/upload-artifact@v4
       with:
-        name: GTAIV.EFLC.FusionFixOfflineInstaller.exe.zip
+        name: GTAIV.EFLC.FusionFixOfflineInstaller.exe
         path: GTAIV.EFLC.FusionFixOfflineInstaller.exe
 
     - name: Upload Release
