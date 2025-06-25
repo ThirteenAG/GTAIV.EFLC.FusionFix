@@ -11,6 +11,7 @@ import natives;
 import settings;
 
 #define IDR_LODLIGHTS 777
+#define IDR_LODLIGHTSVC 778
 
 float fCoronaRadiusMultiplier = 1.0f;
 float fCoronaAlphaMultiplier = 1.0f;
@@ -131,7 +132,7 @@ void LoadDatFile()
 {
     HMODULE hm = NULL;
     GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)&LoadDatFile, &hm);
-    auto hResource = FindResource(hm, MAKEINTRESOURCE(IDR_LODLIGHTS), RT_RCDATA);
+    auto hResource = FindResource(hm, CText::hasViceCityStrings() ? MAKEINTRESOURCE(IDR_LODLIGHTSVC) : MAKEINTRESOURCE(IDR_LODLIGHTS), RT_RCDATA);
 
     if (hResource)
     {
@@ -609,9 +610,6 @@ public:
             bSlightlyIncreaseRadiusWithDistance = iniReader.ReadInteger("PROJECT2DFX", "SlightlyIncreaseRadiusWithDistance", 1) != 0;
             bDisableDefaultLodLights = iniReader.ReadInteger("PROJECT2DFX", "DisableDefaultLodLights", 1) != 0;
 
-            LoadDatFile();
-            RegisterCustomCoronas();
-
             auto pattern = hook::pattern("05 ? ? ? ? 50 8D 4C 24 60");
 
             if (pattern.empty())
@@ -632,6 +630,14 @@ public:
             {
                 void operator()(injector::reg_pack& regs)
                 {
+                    static bool bOnce = false;
+                    if (!bOnce)
+                    {
+                        LoadDatFile();
+                        RegisterCustomCoronas();
+                        bOnce = true;
+                    }
+
                     regs.esi = *(uintptr_t*)(regs.ebp + 0x8);
                     regs.eax = (regs.esp + 0x1C);
 
