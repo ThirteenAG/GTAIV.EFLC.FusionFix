@@ -150,8 +150,6 @@ public:
 
         static bool bSmoothShorelines = true;
         
-        static bool bUnclampLighting = false;
-        
         static bool bSmoothLightVolumes = true;
 
         static float fMotionBlurScale = 1.0f;
@@ -179,7 +177,6 @@ public:
             bool bConsoleCarReflectionsAndDirt = iniReader.ReadInteger("MISC", "ConsoleCarReflectionsAndDirt", 1) != 0;
             bSmoothShorelines = iniReader.ReadInteger("MISC", "SmoothShorelines", 1) != 0;
             bSmoothLightVolumes = iniReader.ReadInteger("MISC", "SmoothLightVolumes", 1) != 0;
-            bUnclampLighting = iniReader.ReadInteger("MISC", "UnclampLighting", 0) != 0;
             fMotionBlurScale = std::clamp(iniReader.ReadFloat("MISC", "MotionBlurScale", 1.0f), 0.0f, 1.0f);
 
             nToneMappingOperator = std::clamp(iniReader.ReadInteger("MISC", "ToneMappingOperator", 0), 0, 1);
@@ -441,8 +438,10 @@ public:
                                 break;
                         }
                         
-                        arr[2] = bUnclampLighting ? 1.0f : 4.0f / 3.0f;
-                        arr[3] = bUnclampLighting ? 0.0f : -1.0f / 3.0f;
+                        static auto unclamplighting = FusionFixSettings.GetRef("PREF_UNCLAMPLIGHTING");
+                        
+                        arr[2] = unclamplighting->get() ? 1.0f : 4.0f / 3.0f;
+                        arr[3] = unclamplighting->get() ? 0.0f : -1.0f / 3.0f;
 
                         pDevice->SetPixelShaderConstantF(220, &arr[0], 1);
                     }
