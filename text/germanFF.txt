@@ -79,6 +79,9 @@ Straßenlaternen-Schatten
 [Tree Alpha]
 Baumtransparenz
 
+[UnclampLighting]
+Ungeklemmte Beleuchtung
+
 [Shadow Filter]
 Schattenfilter
 
