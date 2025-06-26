@@ -57,6 +57,7 @@ workspace "GTAIV.EFLC.FusionFix"
    files { "source/*.h", "source/*.hpp", "source/*.cpp", "source/*.hxx", "source/*.ixx", "source/snow/*.ixx" }
    files { "source/resources/Versioninfo.rc" }
    files { "source/resources/Shaders.rc" }
+   files { "source/resources/LODLights.rc" }
    files { "source/snow/*.rc" }
    links { "LogitechLEDLib.lib" }
 
