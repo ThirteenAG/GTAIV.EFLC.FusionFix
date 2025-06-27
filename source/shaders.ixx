@@ -363,7 +363,6 @@ public:
                         static float arr7[4];
                         static float arr9[4];
                         static auto shadowFilter = FusionFixSettings.GetRef("PREF_SHADOWFILTER");
-                        static auto bloom = FusionFixSettings.GetRef("PREF_BLOOM");
 
                         if (shadowFilter->get() == FusionFixSettings.ShadowFilterText.eSoft)
                         {
@@ -400,7 +399,7 @@ public:
                         else
                             arr9[2] = 0.0f;
 
-                        arr9[3] = static_cast<float>(bloom->get() - 1);
+                        arr9[3] = 0.0f;
                         
 
 
