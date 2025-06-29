@@ -1,4 +1,3 @@
-
 [![Actions Status: Release](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/actions/workflows/msvc_x86.yml/badge.svg)](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/actions)
 [![AppVeyor](https://img.shields.io/appveyor/build/ThirteenAG/GTAIV-EFLC-FusionFix?label=AppVeyor%20Build&logo=Appveyor&logoColor=white)](https://ci.appveyor.com/project/ThirteenAG/gtaiv-eflc-fusionfix)
 
@@ -33,7 +32,6 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 > [!IMPORTANT]
 > This fix was tested only with latest official update and latest [ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/latest/download/Ultimate-ASI-Loader.zip) (included in the archive).
-> Fusion Fix prevents [certain dlls from injecting into the game's process, to avoid issues](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/blob/master/source/dllblacklist.ixx#L15).
 
 ## Donation links
 
