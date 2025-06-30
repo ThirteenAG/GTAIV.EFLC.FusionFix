@@ -497,7 +497,6 @@ void RegisterLODLights()
         float dy = camPos.y - lamppost.vecPos.y;
         float dz = camPos.z - lamppost.vecPos.z;
         float fDistSqr = dx * dx + dy * dy + dz * dz;
-        float distance = std::sqrt(fDistSqr);
 
         float fCoronaDist = lamppost.fObjectDrawDistance - 30.0f;
 
@@ -506,17 +505,26 @@ void RegisterLODLights()
             (fDistSqr <= fCoronaDist * fCoronaDist || fDistSqr >= fCoronaFarClip * fCoronaFarClip))
             continue;
 
+        float distance = std::sqrt(fDistSqr);
+
         // Calculate radius
         float fRadius = lamppost.nNoDistance ? 3.5f :
             SolveEqSys(fCoronaDist, 0.0f, lamppost.fObjectDrawDistance, 3.5f, distance);
 
         if (bSlightlyIncreaseRadiusWithDistance)
-            fRadius *= min(SolveEqSys(fCoronaDist, 1.0f, fCoronaFarClip, 4.0f, distance), 3.0f);
+            fRadius *= min(SolveEqSys(fCoronaDist, 1.0f, 9000.0, 4.0f, distance), 3.0f);
 
         float fAlphaDistMult = 110.0f - SolveEqSys(fCoronaDist / 4.0f, 10.0f, lamppost.fObjectDrawDistance * 4.0f, 100.0f, distance);
 
         // Calculate base alpha
         float baseAlpha = fCoronaAlphaMultiplier * ((bAlpha * (lamppost.colour.a / 255.0f)) / fAlphaDistMult);
+
+        if (!lamppost.nNoDistance)
+        {
+            // Fade in alpha as camera moves away, similar to how radius is handled
+            float alphaFade = SolveEqSys(fCoronaDist, 0.0f, lamppost.fObjectDrawDistance, 1.0f, distance);
+            baseAlpha *= alphaFade;
+        }
 
         if (lamppost.fCustomSizeMult != 0.45f)
         {
@@ -668,6 +676,10 @@ public:
                     }
                 }; injector::MakeInline<DisableDefaultLodLights>(pattern.get_first(0), pattern.get_first(9));
             }
+
+            static float f0 = 0.0f;
+            pattern = hook::pattern("F3 0F 5C 0D ? ? ? ? F3 0F 11 84 24 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 0D ? ? ? ? 0F 2F C8 F3 0F 11 4C 24");
+            injector::WriteMemory(pattern.get_first(4), &f0, true);
 
             auto InitIVLodLights = []()
             {
