@@ -193,7 +193,7 @@ public:
                     }; injector::MakeInline<ShadowsHook>(pattern.get_first(0), pattern.get_first(12));
                     }
                 }
-            };
-        }
+            }
+        };
     }
 } ConsoleShadows;
