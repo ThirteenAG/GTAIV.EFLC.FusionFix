@@ -89,13 +89,13 @@ public:
             if (bExtraCutsceneFix)
             {
                 // ???
-                pattern = hook::pattern("F3 0F 11 86 ? ? ? ? 5E 5B 8B 4C 24 30 33 CC E8 ? ? ? ? 83 C4 34 C2 04 00");
-                if (!pattern.empty())
-                    injector::MakeNOP(pattern.get_first(), 8, true);
+                //pattern = find_pattern("F3 0F 11 86 ? ? ? ? 5E 5B 8B 4C 24 30 33 CC E8 ? ? ? ? 83 C4 34 C2 04 00", "F3 0F 11 8F ? ? ? ? 5F 5E B8 ? ? ? ? 5D 83 C4 2C C2 04 00");
+                //if (!pattern.empty())
+                //    injector::MakeNOP(pattern.get_first(), 8, true);
 
-                pattern = hook::pattern("F3 0F 11 86 ? ? ? ? 5F 5E B8 ? ? ? ? 5B 8B 4C 24 30 33 CC E8 ? ? ? ? 83 C4 34 C2 04 00");
-                if (!pattern.empty())
-                    injector::MakeNOP(pattern.get_first(), 8, true);
+                //pattern = find_pattern("F3 0F 11 86 ? ? ? ? 5F 5E B8 ? ? ? ? 5B 8B 4C 24 30 33 CC E8 ? ? ? ? 83 C4 34 C2 04 00", "F3 0F 11 8F ? ? ? ? C6 87 ? ? ? ? ? 5F 5E B8 ? ? ? ? 5D 83 C4 2C C2 04 00");
+                //if (!pattern.empty())
+                //    injector::MakeNOP(pattern.get_first(), 8, true);
 
                 // timing?
                 pattern = find_pattern("83 3D ? ? ? ? ? 75 ? 83 F8 FF");
