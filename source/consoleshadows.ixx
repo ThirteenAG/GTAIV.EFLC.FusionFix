@@ -195,4 +195,5 @@ public:
                 }
             };
         }
-    } ConsoleShadows;
+    }
+} ConsoleShadows;
