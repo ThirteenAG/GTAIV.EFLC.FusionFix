@@ -317,26 +317,50 @@ public:
             // Fix mouse cursor scale
             {
                 auto pattern = hook::pattern("F3 0F 11 44 24 ? E8 ? ? ? ? D9 5C 24 20 80 3D");
-                struct MouseHeightHook 
-                {
-                    void operator()(injector::reg_pack& regs) 
-                    {
-                        *(float*)(regs.esp + 0x40 - 0x24) = 30.0f * (1.0f / 768.0f);
-                    }
-                };
                 if (!pattern.empty())
-                    injector::MakeInline<MouseHeightHook>(pattern.get_first(0), pattern.get_first(6));
+                {
+                    struct MouseHeightHook 
+                    {
+                        void operator()(injector::reg_pack& regs) 
+                        {
+                            *(float*)(regs.esp + 0x40 - 0x24) = 30.0f * (1.0f / 768.0f);
+                        }
+                    }; injector::MakeInline<MouseHeightHook>(pattern.get_first(0), pattern.get_first(6));
+                } 
+                else
+                {
+                    auto pattern = hook::pattern("F3 0F 11 44 24 ? E8 ? ? ? ? D9 5C 24 1C 80 3D");
+                    struct MouseHeightHook
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            *(float*)(regs.esp + 0x40 - 0x18) = 30.0f * (1.0f / 768.0f);
+                        }
+                    }; injector::MakeInline<MouseHeightHook>(pattern.get_first(0), pattern.get_first(6));
+                }
 
                 pattern = hook::pattern("F3 0F 11 44 24 ? FF 50 24 66 0F 6E C0 0F 5B C0 6A 01");
-                struct MouseWidthHook 
-                {
-                    void operator()(injector::reg_pack& regs) 
-                    {
-                        *(float*)(regs.esp + 0x10) = 30.0f * (1.0f / 1024.0f);
-                    }
-                };
                 if (!pattern.empty())
-                    injector::MakeInline<MouseWidthHook>(pattern.get_first(0), pattern.get_first(6));
+                {
+                    struct MouseWidthHook
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            *(float*)(regs.esp + 0x10) = 30.0f * (1.0f / 1024.0f);
+                        }
+                    }; injector::MakeInline<MouseWidthHook>(pattern.get_first(0), pattern.get_first(6));
+                }
+                else
+                {
+                    pattern = hook::pattern("F3 0F 11 44 24 ? FF D2 F3 0F 2A C0 F3 0F 59 05 ? ? ? ? 6A 01");
+                    struct MouseWidthHook
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            *(float*)(regs.esp + 0x20) = 30.0f * (1.0f / 1024.0f);
+                        }
+                    }; injector::MakeInline<MouseWidthHook>(pattern.get_first(0), pattern.get_first(6));
+                }
             }
 
             // Restored a small detail regarding pedprops from the console versions that was changed on PC. Regular cops & fat cops will now spawn with their hat prop disabled when in a vehicle.
@@ -382,11 +406,11 @@ public:
                 static auto veh_glass_red = "veh_glass_red";
                 static auto veh_glass_amber = "veh_glass_amber";
 
-                auto pattern = hook::pattern("68 ? ? ? ? EB E2 6A 00 68");
+                auto pattern = find_pattern("68 ? ? ? ? EB E2 6A 00 68", "68 ? ? ? ? EB 07 6A 00 68 ? ? ? ? E8 ? ? ? ? 83 C4 08");
                 if (!pattern.empty())
                     injector::WriteMemory(pattern.get_first(1), &veh_glass_red[0], true);
 
-                pattern = hook::pattern("68 ? ? ? ? E8 ? ? ? ? 83 C4 08 89 44 24 0C 6A 00 6A 00");
+                pattern = find_pattern("68 ? ? ? ? E8 ? ? ? ? 83 C4 08 89 44 24 0C 6A 00 6A 00", "68 ? ? ? ? E8 ? ? ? ? 83 C4 08 6A 00 6A 00 50 B9 ? ? ? ? 89 44 24 18 E8 ? ? ? ? 8B F0 85 F6 0F 84");
                 if (!pattern.empty())
                     injector::WriteMemory(pattern.get_first(1), &veh_glass_amber[0], true);
             }
@@ -547,7 +571,7 @@ public:
 
             // Radio reset fix
             {
-                auto pattern = hook::pattern("74 ? 85 C9 75 ? 32 C0 50");
+                auto pattern = find_pattern("74 ? 85 C9 75 ? 32 C0 50", "74 16 85 C0 75 12 D9 EE");
                 if (!pattern.empty())
                     injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jz -> jmp
             }
