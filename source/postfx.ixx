@@ -805,7 +805,7 @@ private:
 
                     static auto dof = FusionFixSettings.GetRef("PREF_TCYC_DOF");
                     if(dof->get() > FusionFixSettings.DofText.eCutscenesOnly || (dof->get() == FusionFixSettings.DofText.eCutscenesOnly && CCutscenes::hasCutsceneFinished())) {
-                        if(PostFxResources.useDepthOfField > 0 && PostFxResources.dof_blur_ps && PostFxResources.dof_coc_ps) {
+                        if(PostFxResources.useDepthOfField > 0 && PostFxResources.dof_blur_ps && PostFxResources.depth_of_field_tent_ps && PostFxResources.dof_coc_ps) {
                             if(PostFxResources.ppZStencilSurface && PostFxResources.halfZStencilSurface && PostFxResources.FullScreenDownsampleSurf && PostFxResources.FullScreenDownsampleSurf2) {
                                 pDevice->SetSamplerState(8, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
                                 pDevice->SetSamplerState(8, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
@@ -819,12 +819,17 @@ private:
                                 pDevice->SetTexture(2, PostFxResources.textureRead);
                                 pDevice->SetTexture(8, PostFxResources.HalfScreenTex);
                                 pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
+                                
+                                pDevice->SetPixelShader(PostFxResources.depth_of_field_tent_ps);
+                                pDevice->SetRenderTarget(0, PostFxResources.FullScreenDownsampleSurf2);
+                                pDevice->SetTexture(8, PostFxResources.FullScreenDownsampleTex->mD3DTexture);
+                                pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
 
                                 pDevice->SetPixelShader(PostFxResources.dof_coc_ps);
                                 pDevice->SetDepthStencilSurface(PostFxResources.ppZStencilSurface);
                                 pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
                                 pDevice->SetTexture(2, PostFxResources.textureRead);
-                                pDevice->SetTexture(8, PostFxResources.FullScreenDownsampleTex->mD3DTexture);
+                                pDevice->SetTexture(8, PostFxResources.FullScreenDownsampleTex2->mD3DTexture);
                                 pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
                                 PostFxResources.swapbuffers();
                                 pDevice->SetTexture(8, PostFxResources.HalfScreenTex);
@@ -863,16 +868,16 @@ private:
 
                                 // crop arround sun position and save into a smaller texture
                                 pDevice->SetPixelShader(PostFxResources.SSDownsampler_PS);
-                                pDevice->SetRenderTarget(0, PostFxResources.FullScreenDownsampleSurf2);
+                                pDevice->SetRenderTarget(0, PostFxResources.FullScreenDownsampleSurf);
                                 pDevice->SetTexture(2, PostFxResources.textureRead);
                                 pDevice->SetTexture(13, PostFxResources.DiffuseTex);
                                 pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
 
                                 // litle blur
-                                pDevice->SetPixelShader(PostFxResources.depth_of_field_tent_ps);
-                                pDevice->SetRenderTarget(0, PostFxResources.FullScreenDownsampleSurf);
-                                pDevice->SetTexture(8, PostFxResources.FullScreenDownsampleTex2->mD3DTexture);
-                                pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
+                                // pDevice->SetPixelShader(PostFxResources.depth_of_field_tent_ps);
+                                // pDevice->SetRenderTarget(0, PostFxResources.FullScreenDownsampleSurf);
+                                // pDevice->SetTexture(8, PostFxResources.FullScreenDownsampleTex2->mD3DTexture);
+                                // pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
 
                                 // sample sun shafts
                                 pDevice->SetPixelShader(PostFxResources.SunShafts_PS);
@@ -930,16 +935,16 @@ private:
 
                                 // crop arround sun position
                                 pDevice->SetPixelShader(PostFxResources.SSDownsampler_PS);
-                                pDevice->SetRenderTarget(0, PostFxResources.FullScreenDownsampleSurf2);
+                                pDevice->SetRenderTarget(0, PostFxResources.FullScreenDownsampleSurf);
                                 pDevice->SetTexture(2, PostFxResources.textureRead);
                                 pDevice->SetTexture(13, PostFxResources.DiffuseTex);
                                 pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
 
                                 // litle blur
-                                pDevice->SetPixelShader(PostFxResources.depth_of_field_tent_ps);
-                                pDevice->SetRenderTarget(0, PostFxResources.FullScreenDownsampleSurf);
-                                pDevice->SetTexture(8, PostFxResources.FullScreenDownsampleTex2->mD3DTexture);
-                                pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
+                                // pDevice->SetPixelShader(PostFxResources.depth_of_field_tent_ps);
+                                // pDevice->SetRenderTarget(0, PostFxResources.FullScreenDownsampleSurf);
+                                // pDevice->SetTexture(8, PostFxResources.FullScreenDownsampleTex2->mD3DTexture);
+                                // pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
 
                                 // sample sunshafts from a croped texture
                                 pDevice->SetPixelShader(PostFxResources.SunShafts_PS);
