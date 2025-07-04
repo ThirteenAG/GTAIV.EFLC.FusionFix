@@ -137,7 +137,7 @@ export class CTimeCycleModifiersExt
         float fVolFogHeightFalloff;
         float fVolFogAltitudeTweak;
         float fVolFogPower;
-        float fVolFogColorFactor;
+        float fSSIntensity;
     };
 
     static std::string_view trim(std::string_view sv)
@@ -172,12 +172,12 @@ public:
                 continue;
 
             char keyBuffer[256] = { 0 };
-            float fVolFogDensity, fVolFogHeightFalloff, fVolFogAltitudeTweak, fVolFogPower, fVolFogColorFactor;
+            float fVolFogDensity, fVolFogHeightFalloff, fVolFogAltitudeTweak, fVolFogPower, fSSIntensity;
             if (sscanf(svLine.data(), "%255s %f %f %f %f %f",
                 keyBuffer, &fVolFogDensity, &fVolFogHeightFalloff,
-                &fVolFogAltitudeTweak, &fVolFogPower, &fVolFogColorFactor) == 6)
+                &fVolFogAltitudeTweak, &fVolFogPower, &fSSIntensity) == 6)
             {
-                m_TimecycleModifiers[CTimeCycleModifier::GetIndexFromHash(hashStringLowercaseFromSeed(keyBuffer, 0))] = { fVolFogDensity, fVolFogHeightFalloff, fVolFogAltitudeTweak, fVolFogPower, fVolFogColorFactor };
+                m_TimecycleModifiers[CTimeCycleModifier::GetIndexFromHash(hashStringLowercaseFromSeed(keyBuffer, 0))] = { fVolFogDensity, fVolFogHeightFalloff, fVolFogAltitudeTweak, fVolFogPower, fSSIntensity };
                 initialized = true;
             }
         }
@@ -195,7 +195,7 @@ export class CTimeCycleExt
     static inline float m_fVolFogHeightFalloff[NUMHOURS][NUMWEATHERS]; // how much the fog accumulates at low altitudes
     static inline float m_fVolFogAltitudeTweak[NUMHOURS][NUMWEATHERS]; // control fog density at very high altitudes
     static inline float m_fVolFogPower[NUMHOURS][NUMWEATHERS];         // control fog start distance
-    static inline float m_fVolFogColorFactor[NUMHOURS][NUMWEATHERS];   // control blending between the near and far color
+    static inline float m_fSSIntensity[NUMHOURS][NUMWEATHERS];         // control sun shafts intensity
 
     static inline float m_fDirLightColorR[NUMHOURS][NUMWEATHERS];
     static inline float m_fDirLightColorG[NUMHOURS][NUMWEATHERS];
@@ -206,7 +206,7 @@ export class CTimeCycleExt
     static inline float m_fCurrentVolFogHeightFalloff;
     static inline float m_fCurrentVolFogAltitudeTweak;
     static inline float m_fCurrentVolFogPower;
-    static inline float m_fCurrentVolFogColorFactor;
+    static inline float m_fCurrentSSIntensity;
 
     static inline float m_fCurrentDirLightColorR;
     static inline float m_fCurrentDirLightColorG;
@@ -217,7 +217,7 @@ export class CTimeCycleExt
     static inline float tmp_fVolFogHeightFalloff[NUMHOURS][NUMWEATHERS];
     static inline float tmp_fVolFogAltitudeTweak[NUMHOURS][NUMWEATHERS];
     static inline float tmp_fVolFogPower[NUMHOURS][NUMWEATHERS];
-    static inline float tmp_fVolFogColorFactor[NUMHOURS][NUMWEATHERS];
+    static inline float tmp_fSSIntensity[NUMHOURS][NUMWEATHERS];
 
 public:
     static inline float tmp_fDirLightColorR[NUMHOURS][NUMWEATHERS];
@@ -236,7 +236,7 @@ public:
     static float GetVolFogHeightFalloff() { return m_fCurrentVolFogHeightFalloff; }
     static float GetVolFogAltitudeTweak() { return m_fCurrentVolFogAltitudeTweak; }
     static float GetVolFogPower() { return m_fCurrentVolFogPower; }
-    static float GetVolFogColorFactor() { return m_fCurrentVolFogColorFactor; }
+    static float GetSSIntensity() { return m_fCurrentSSIntensity; }
 
     static float GetDirLightColorR() { return m_fCurrentDirLightColorR; }
     static float GetDirLightColorG() { return m_fCurrentDirLightColorG; }
@@ -271,17 +271,17 @@ public:
 
                     if (!line.empty() && line.front() != '/' && line.front() != '#')
                     {
-                        float fVolFogDensity, fVolFogHeightFalloff, fVolFogAltitudeTweak, fVolFogPower, fVolFogColorFactor;
+                        float fVolFogDensity, fVolFogHeightFalloff, fVolFogAltitudeTweak, fVolFogPower, fSSIntensity;
                         if (sscanf(line.data(), "%f %f %f %f %f",
                             &fVolFogDensity, &fVolFogHeightFalloff,
                             &fVolFogAltitudeTweak, &fVolFogPower,
-                            &fVolFogColorFactor) == 5)
+                            &fSSIntensity) == 5)
                         {
                             tmp_fVolFogDensity[h][w] = fVolFogDensity;
                             tmp_fVolFogHeightFalloff[h][w] = fVolFogHeightFalloff;
                             tmp_fVolFogAltitudeTweak[h][w] = fVolFogAltitudeTweak;
                             tmp_fVolFogPower[h][w] = fVolFogPower;
-                            tmp_fVolFogColorFactor[h][w] = fVolFogColorFactor;
+                            tmp_fSSIntensity[h][w] = fSSIntensity;
                             initialized = true;
                         }
                         break;
@@ -320,7 +320,7 @@ public:
         FillGaps(m_fVolFogHeightFalloff, tmp_fVolFogHeightFalloff);
         FillGaps(m_fVolFogAltitudeTweak, tmp_fVolFogAltitudeTweak);
         FillGaps(m_fVolFogPower, tmp_fVolFogPower);
-        FillGaps(m_fVolFogColorFactor, tmp_fVolFogColorFactor);
+        FillGaps(m_fSSIntensity, tmp_fSSIntensity);
 
         FillGaps(m_fDirLightColorR, tmp_fDirLightColorR);
         FillGaps(m_fDirLightColorG, tmp_fDirLightColorG);
@@ -385,7 +385,7 @@ public:
         float baseVolFogHeightFalloff = INTERP(m_fVolFogHeightFalloff);
         float baseVolFogAltitudeTweak = INTERP(m_fVolFogAltitudeTweak);
         float baseVolFogPower = INTERP(m_fVolFogPower);
-        float baseVolFogColorFactor = INTERP(m_fVolFogColorFactor);
+        float baseSSIntensity = INTERP(m_fSSIntensity);
 
         for (const auto& it : currentTimecycleModifiers)
         {
@@ -398,15 +398,15 @@ public:
                 baseVolFogAltitudeTweak = baseVolFogAltitudeTweak * (1.0f - it.second) + modifier.fVolFogAltitudeTweak * it.second;
             if (modifier.fVolFogPower != -1.0f)
                 baseVolFogPower = baseVolFogPower * (1.0f - it.second) + modifier.fVolFogPower * it.second;
-            if (modifier.fVolFogColorFactor != -1.0f)
-                baseVolFogColorFactor = baseVolFogColorFactor * (1.0f - it.second) + modifier.fVolFogColorFactor * it.second;
+            if (modifier.fSSIntensity != -1.0f)
+                baseSSIntensity = baseSSIntensity * (1.0f - it.second) + modifier.fSSIntensity * it.second;
         }
 
         m_fCurrentVolFogDensity = baseVolFogDensity;
         m_fCurrentVolFogHeightFalloff = baseVolFogHeightFalloff;
         m_fCurrentVolFogAltitudeTweak = baseVolFogAltitudeTweak;
         m_fCurrentVolFogPower = baseVolFogPower;
-        m_fCurrentVolFogColorFactor = baseVolFogColorFactor;
+        m_fCurrentSSIntensity = baseSSIntensity;
 
         m_fCurrentDirLightColorR = INTERP(m_fDirLightColorR);
         m_fCurrentDirLightColorG = INTERP(m_fDirLightColorG);

@@ -864,8 +864,8 @@ public:
                             static char sVolFogPower[] = "VolFogPower: %f";
                             DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogPower, CTimeCycleExt::GetVolFogPower());
 
-                            static char sVolFogColorFactor[] = "VolFogColorFactor: %f";
-                            DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogColorFactor, CTimeCycleExt::GetVolFogColorFactor());
+                            static char sSSIntensity[] = "SSIntensity: %f";
+                            DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sSSIntensity, CTimeCycleExt::GetSSIntensity());
 
                             static std::string_view modNames[] = {
                                 "noambient", "NoAmbientmult", "qwnomoon", "qw2nomoon", "Brook_S2_TC", "MH_NOMOON", "KsS1nomoon1", "KsS1nomoon2", "KsS1nomoon3", "Brook_N_gden", "Buildsite_MH1",

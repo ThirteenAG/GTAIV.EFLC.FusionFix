@@ -132,13 +132,9 @@ public:
     // shaders
     IDirect3DPixelShader9* FxaaPS = nullptr;
 
-    IDirect3DPixelShader9* SunShafts_PS = nullptr;
-    IDirect3DPixelShader9* SunShafts2_PS = nullptr;
-    IDirect3DPixelShader9* SunShafts3_PS = nullptr;
-    IDirect3DPixelShader9* SunShafts4_PS = nullptr;
+    IDirect3DPixelShader9* SSDraw_PS = nullptr;
     IDirect3DPixelShader9* SSAdd_PS = nullptr;
-    IDirect3DPixelShader9* SSDownsampler_PS = nullptr;
-    IDirect3DPixelShader9* SSDownsampler2_PS = nullptr;
+    IDirect3DPixelShader9* SSPrepass_PS = nullptr;
     IDirect3DPixelShader9* SSDiffuseCloudsGen_PS = nullptr;
     IDirect3DPixelShader9* SSAO_gen_ps = nullptr;
     IDirect3DPixelShader9* SSAO_blend_ps = nullptr;
@@ -175,21 +171,17 @@ public:
     float AOFocusPoint[4] = { 350, 0, 0, 0 };
     float AOFocusScale[4] = { 300, 0, 0, 0 };
     float AAparameters[4] = { 0.25f , 0.125f , 0.0f, 0.0f };
-    float SunShafts_params1[4] = { 1.5f, 0.95f, 0.01f, 0.975f };
-    float SunShafts_params2[4] = { 0.5f, 1.f, 2.f, 1.5f };
 
     float ResSSAA = 1.0f;
 
     // 0 off, 1 horizontal, 2 vertical, 3 horizontal e vertical.
     //int useScreenSpaceShadowsBlur = 3;
-    int UseSunShafts = 2;
     int useDepthOfField = 3;
     int UseDebugTextures = 0;
     bool UseSSAO = false;
     bool useStippleFilter = true;
     bool useHardwareBilinearSampling = false;
 
-    int SunShaftsSamples[4] = { 20, 20, 20, 20 };
     int DofSamples[4] = { 20 , 20, 20 ,20 };
     float NoiseSale[4] = { 1.f / 256, 0.3f, -0.5f, 0 };
     float BilateralDepthTreshold[4] = { 0.003f, 0.002f, 0.004f, 0.005f };
@@ -216,12 +208,8 @@ public:
         if(!SSDiffuseCloudsGen_PS && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SSDiffuseCloudsGen), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                                if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SSDiffuseCloudsGen_PS) != S_OK || !SSDiffuseCloudsGen_PS) SAFE_RELEASE(SSDiffuseCloudsGen_PS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
 
         //hlsl
-        if(!SunShafts_PS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SunShafts_PS), NULL, NULL, "SunShafts1", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                                      if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SunShafts_PS) != S_OK || !SunShafts_PS) SAFE_RELEASE(SunShafts_PS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
-        if(!SunShafts2_PS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SunShafts_PS), NULL, NULL, "SunShafts2", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                                     if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SunShafts2_PS) != S_OK || !SunShafts2_PS) SAFE_RELEASE(SunShafts2_PS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
-        if(!SunShafts3_PS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SunShafts_PS), NULL, NULL, "SunShafts3", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                                     if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SunShafts3_PS) != S_OK || !SunShafts3_PS) SAFE_RELEASE(SunShafts3_PS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
-        if(!SunShafts4_PS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SunShafts_PS), NULL, NULL, "SunShafts4", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                                     if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SunShafts4_PS) != S_OK || !SunShafts4_PS) SAFE_RELEASE(SunShafts4_PS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
-        if(!SSDownsampler_PS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SunShafts_PS), NULL, NULL, "SSDownsampler", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                               if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SSDownsampler_PS) != S_OK || !SSDownsampler_PS) SAFE_RELEASE(SSDownsampler_PS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
-        if(!SSDownsampler2_PS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SunShafts_PS), NULL, NULL, "SSDownsampler2", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                             if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SSDownsampler2_PS) != S_OK || !SSDownsampler2_PS) SAFE_RELEASE(SSDownsampler2_PS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
+        if(!SSDraw_PS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SunShafts_PS), NULL, NULL, "SSDraw", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                                             if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SSDraw_PS) != S_OK || !SSDraw_PS) SAFE_RELEASE(SSDraw_PS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
+        if(!SSPrepass_PS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SunShafts_PS), NULL, NULL, "SSPrepass", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                                       if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SSPrepass_PS) != S_OK || !SSPrepass_PS) SAFE_RELEASE(SSPrepass_PS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
 
         if(!SSAdd_PS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SunShafts_PS), NULL, NULL, "SSAdd", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                                               if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SSAdd_PS) != S_OK || !SSAdd_PS) SAFE_RELEASE(SSAdd_PS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
         //if(!DeferredShadowBlurH_ps && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_DeferredShadowBlur), NULL, NULL, "BlurHorizontal", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                  if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &DeferredShadowBlurH_ps) != S_OK || !DeferredShadowBlurH_ps) SAFE_RELEASE(DeferredShadowBlurH_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
@@ -335,8 +323,7 @@ public:
         if(FxaaPS && dof_blur_ps && dof_coc_ps && depth_of_field_tent_ps && stipple_filter_ps &&
            //DeferredShadowGen_ps && 
            deferred_lighting_PS1 && deferred_lighting_PS2 && SSAO_gen_ps &&
-           SSAO_blend_ps && SunShafts_PS && SunShafts2_PS && SunShafts3_PS && SunShafts4_PS &&
-           SSDownsampler_PS && SSDownsampler2_PS && SSAdd_PS //&& DeferredShadowBlurH_ps &&
+           SSAO_blend_ps && SSDraw_PS && SSPrepass_PS && SSAdd_PS //&& DeferredShadowBlurH_ps &&
            //DeferredShadowBlurV_ps && DeferredShadowBlurCircle_ps
            && SMAA_EdgeDetection && SMAA_BlendingWeightsCalculation && SMAA_NeighborhoodBlending
            && SMAA_EdgeDetectionVS && SMAA_BlendingWeightsCalculationVS && SMAA_NeighborhoodBlendingVS)
@@ -348,18 +335,6 @@ public:
     void Readini() {
         CIniReader iniReader("");
         EnablePostfx = iniReader.ReadInteger("SRF", "EnablePostfx", 1);
-        UseSunShafts = iniReader.ReadInteger("SUNSHAFTS", "SSType", 2);
-        SunShaftsSamples[0] = iniReader.ReadInteger("SUNSHAFTS", "SSamples", 20);
-
-        SunShafts_params1[0] = iniReader.ReadFloat("SUNSHAFTS", "SSWeight", 1.5f);
-        SunShafts_params1[1] = iniReader.ReadFloat("SUNSHAFTS", "SSDensity", 0.95f);
-        SunShafts_params1[2] = iniReader.ReadFloat("SUNSHAFTS", "SSExposure", 0.01f);
-        SunShafts_params1[3] = iniReader.ReadFloat("SUNSHAFTS", "SSDecay", 0.975f);
-
-        SunShafts_params2[0] = iniReader.ReadFloat("SUNSHAFTS", "SSSunSize", 0.5f);
-        SunShafts_params2[1] = iniReader.ReadFloat("SUNSHAFTS", "SSPow", 1.f);
-        SunShafts_params2[2] = iniReader.ReadFloat("SUNSHAFTS", "SSDepth", 2.f);
-        SunShafts_params2[3] = iniReader.ReadFloat("SUNSHAFTS", "SSPower", 1.5f);
 
         // downscaled simple, downscaled two passes, full screen simple, fullscreen 2 passes
         useDepthOfField = iniReader.ReadInteger("SRF", "DepthOfFieldType", 3);
@@ -689,18 +664,6 @@ private:
         static float blueTimerVec4[4] = { 0.f };
         static int blueTimer = 0;
 
-        // SetPixelShaderConstantI only set the first value, so I need 4 int4 to set 1 int4
-        int SunShaftsSamplesa[4] = { PostFxResources.SunShaftsSamples[0], 0, 1, 0 };
-        int SunShaftsSamplesb[4] = { PostFxResources.SunShaftsSamples[1], 0, 1, 0 };
-        int SunShaftsSamplesc[4] = { PostFxResources.SunShaftsSamples[2], 0, 1, 0 };
-        int SunShaftsSamplesd[4] = { PostFxResources.SunShaftsSamples[3], 0, 1, 0 };
-
-        static float SunShaftsSamples2[4] = { 0.f };
-        SunShaftsSamples2[0] = static_cast<float>(PostFxResources.SunShaftsSamples[0]);
-        SunShaftsSamples2[1] = static_cast<float>(PostFxResources.SunShaftsSamples[1]);
-        SunShaftsSamples2[2] = static_cast<float>(PostFxResources.SunShaftsSamples[2]);
-        SunShaftsSamples2[3] = static_cast<float>(PostFxResources.SunShaftsSamples[3]);
-
         // save render state between post processing steps, 
         // in general each step expects the environment as the game 
         // leaves it at the time post processing is used, 
@@ -726,26 +689,17 @@ private:
         vec4[3] = static_cast<float>(getWindowHeight());
 
 
-        pDevice->SetPixelShaderConstantI(5, SunShaftsSamplesa, 1);
-        pDevice->SetPixelShaderConstantI(6, SunShaftsSamplesb, 1);
-        pDevice->SetPixelShaderConstantI(7, SunShaftsSamplesc, 1);
-        pDevice->SetPixelShaderConstantI(8, SunShaftsSamplesd, 1);
         pDevice->SetVertexShaderConstantF(24, vec4, 1);
         pDevice->SetPixelShaderConstantF(24, vec4, 1);
-        pDevice->SetPixelShaderConstantF(96, PostFxResources.SunShafts_params1, 1);
-        pDevice->SetPixelShaderConstantF(97, SunDirection, 1);
-        pDevice->SetPixelShaderConstantF(98, SunColor, 1);
-        pDevice->SetPixelShaderConstantF(99, PostFxResources.SunShafts_params2, 1);
         pDevice->SetPixelShaderConstantF(100, currGrcViewport->mWorldMatrix[0], 4);
         pDevice->SetPixelShaderConstantF(104, currGrcViewport->mWorldViewMatrix[0], 4);
         pDevice->SetPixelShaderConstantF(108, currGrcViewport->mWorldViewProjMatrix[0], 4);
         pDevice->SetPixelShaderConstantF(112, currGrcViewport->mViewInverseMatrix[0], 4);
         //pDevice->SetPixelShaderConstantF(116, gShadowMatrix, 4);
-        pDevice->SetPixelShaderConstantF(120, SunShaftsSamples2, 1);
         pDevice->SetPixelShaderConstantF(140, PostFxResources.BilateralDepthTreshold, 1);
-        pDevice->SetPixelShaderConstantF(144, PostFxResources.NoiseSale, 1);
+        // pDevice->SetPixelShaderConstantF(144, PostFxResources.NoiseSale, 1);
         // pDevice->SetPixelShaderConstantF(214, PostFxResources.AAparameters, 1);
-        pDevice->SetPixelShaderConstantF(218, blueTimerVec4, 1);
+        // pDevice->SetPixelShaderConstantF(218, blueTimerVec4, 1);
 
         pDevice->SetTexture(8, PostFxResources.HalfScreenTex);
         if(PostFxResources.blueNoiseVolume)
@@ -841,77 +795,8 @@ private:
 
                     static auto refSunShafts = FusionFixSettings.GetRef("PREF_SUNSHAFTS");
                     if(refSunShafts->get()) {
-                        // one pass half res
-                        if(PostFxResources.UseSunShafts == 1 && PostFxResources.SSDownsampler_PS && PostFxResources.depth_of_field_tent_ps && PostFxResources.SunShafts_PS) {
-                            if(PostFxResources.ppZStencilSurface && PostFxResources.halfZStencilSurface && PostFxResources.FullScreenDownsampleSurf && PostFxResources.FullScreenDownsampleSurf2) {
-                                {
-                                    pDevice->SetSamplerState(2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                                    pDevice->SetSamplerState(8, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                                    pDevice->SetSamplerState(8, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-                                    pDevice->SetSamplerState(8, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-                                    pDevice->SetSamplerState(9, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                                    pDevice->SetSamplerState(9, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-                                    pDevice->SetSamplerState(9, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-                                    pDevice->SetSamplerState(11, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                                    pDevice->SetSamplerState(11, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-                                    pDevice->SetSamplerState(11, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-                                    pDevice->SetSamplerState(13, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                                    pDevice->SetSamplerState(13, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-                                    pDevice->SetSamplerState(13, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-                                }
-
-                                pDevice->SetDepthStencilSurface(PostFxResources.halfZStencilSurface);
-
-                                pDevice->SetTexture(13, 0);
-                                pDevice->SetTexture(11, 0);
-                                pDevice->SetTexture(8, 0);
-
-                                // crop arround sun position and save into a smaller texture
-                                pDevice->SetPixelShader(PostFxResources.SSDownsampler_PS);
-                                pDevice->SetRenderTarget(0, PostFxResources.FullScreenDownsampleSurf);
-                                pDevice->SetTexture(2, PostFxResources.textureRead);
-                                pDevice->SetTexture(13, PostFxResources.DiffuseTex);
-                                pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-
-                                // litle blur
-                                // pDevice->SetPixelShader(PostFxResources.depth_of_field_tent_ps);
-                                // pDevice->SetRenderTarget(0, PostFxResources.FullScreenDownsampleSurf);
-                                // pDevice->SetTexture(8, PostFxResources.FullScreenDownsampleTex2->mD3DTexture);
-                                // pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-
-                                // sample sun shafts
-                                pDevice->SetPixelShader(PostFxResources.SunShafts_PS);
-                                pDevice->SetRenderTarget(0, PostFxResources.FullScreenDownsampleSurf2);
-                                pDevice->SetTexture(8, 0);
-                                pDevice->SetTexture(11, PostFxResources.FullScreenDownsampleTex->mD3DTexture);
-                                pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-
-                                pDevice->SetTexture(8, 0);
-                                pDevice->SetTexture(11, 0);
-                                pDevice->SetTexture(13, 0);
-
-                                // blendadd sunshafts with screen
-                                pDevice->SetPixelShader(PostFxResources.SSAdd_PS);
-                                pDevice->SetDepthStencilSurface(PostFxResources.ppZStencilSurface);
-                                pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
-                                pDevice->SetTexture(2, PostFxResources.textureRead);
-                                pDevice->SetTexture(8, PostFxResources.HalfScreenTex);
-                                pDevice->SetTexture(11, PostFxResources.FullScreenDownsampleTex2->mD3DTexture);
-                                if(PostFxResources.blueNoiseVolume)
-                                    pDevice->SetTexture(9, PostFxResources.blueNoiseVolume);
-
-                                pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-                                PostFxResources.swapbuffers();
-                                pDevice->SetTexture(13, 0);
-                                pDevice->SetTexture(11, 0);
-                                pDevice->SetTexture(8, 0);
-
-                                pDevice->SetPixelShader(pShader);
-                            }
-                        }
-
-                        // 2 passes half res
-                        if(PostFxResources.UseSunShafts == 2 && PostFxResources.SSDownsampler_PS && PostFxResources.depth_of_field_tent_ps && PostFxResources.SunShafts_PS && PostFxResources.SunShafts2_PS) {
+                        // 2 passes at half res
+                        if(PostFxResources.SSPrepass_PS && PostFxResources.SSDraw_PS) {
                             if(PostFxResources.ppZStencilSurface && PostFxResources.halfZStencilSurface && PostFxResources.FullScreenDownsampleSurf && PostFxResources.FullScreenDownsampleSurf2) {
                                 pDevice->SetSamplerState(2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
                                 pDevice->SetSamplerState(8, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
@@ -933,28 +818,22 @@ private:
                                 pDevice->SetTexture(11, 0);
                                 pDevice->SetTexture(8, 0);
 
-                                // crop arround sun position
-                                pDevice->SetPixelShader(PostFxResources.SSDownsampler_PS);
+                                // crop around sun position
+                                pDevice->SetPixelShader(PostFxResources.SSPrepass_PS);
                                 pDevice->SetRenderTarget(0, PostFxResources.FullScreenDownsampleSurf);
                                 pDevice->SetTexture(2, PostFxResources.textureRead);
                                 pDevice->SetTexture(13, PostFxResources.DiffuseTex);
                                 pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
 
-                                // litle blur
-                                // pDevice->SetPixelShader(PostFxResources.depth_of_field_tent_ps);
-                                // pDevice->SetRenderTarget(0, PostFxResources.FullScreenDownsampleSurf);
-                                // pDevice->SetTexture(8, PostFxResources.FullScreenDownsampleTex2->mD3DTexture);
-                                // pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-
-                                // sample sunshafts from a croped texture
-                                pDevice->SetPixelShader(PostFxResources.SunShafts_PS);
+                                // sample sunshafts from a cropped texture
+                                pDevice->SetPixelShader(PostFxResources.SSDraw_PS);
                                 pDevice->SetRenderTarget(0, PostFxResources.FullScreenDownsampleSurf2);
                                 pDevice->SetTexture(8, 0);
                                 pDevice->SetTexture(11, PostFxResources.FullScreenDownsampleTex->mD3DTexture);
                                 pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
 
                                 // second sunshafts pass
-                                pDevice->SetPixelShader(PostFxResources.SunShafts2_PS);
+                                pDevice->SetPixelShader(PostFxResources.SSDraw_PS);
                                 pDevice->SetRenderTarget(0, PostFxResources.FullScreenDownsampleSurf);
                                 pDevice->SetTexture(11, PostFxResources.FullScreenDownsampleTex2->mD3DTexture);
                                 pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
@@ -963,7 +842,7 @@ private:
                                 pDevice->SetTexture(11, 0);
                                 pDevice->SetTexture(13, 0);
 
-                                // add sunshafts on screen
+                                // add sunshafts to screen
                                 pDevice->SetPixelShader(PostFxResources.SSAdd_PS);
                                 pDevice->SetDepthStencilSurface(PostFxResources.ppZStencilSurface);
                                 pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
@@ -978,83 +857,6 @@ private:
                                 pDevice->SetTexture(13, 0);
                                 pDevice->SetTexture(11, 0);
                                 pDevice->SetTexture(8, 0);
-
-                                pDevice->SetPixelShader(pShader);
-                            }
-                        }
-
-                        // full screen
-                        if(PostFxResources.UseSunShafts == 3 && PostFxResources.depth_of_field_tent_ps && PostFxResources.SunShafts3_PS) {
-                            if(PostFxResources.ppZStencilSurface && PostFxResources.halfZStencilSurface && PostFxResources.FullScreenDownsampleSurf && PostFxResources.FullScreenDownsampleSurf2 && PostFxResources.FullScreenSurface_temp2) {
-                                pDevice->SetSamplerState(2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                                pDevice->SetSamplerState(8, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                                pDevice->SetSamplerState(8, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-                                pDevice->SetSamplerState(8, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-                                pDevice->SetSamplerState(9, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                                pDevice->SetSamplerState(9, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-                                pDevice->SetSamplerState(9, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-                                pDevice->SetSamplerState(11, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                                pDevice->SetSamplerState(11, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-                                pDevice->SetSamplerState(11, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-                                pDevice->SetSamplerState(13, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                                pDevice->SetSamplerState(13, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-                                pDevice->SetSamplerState(13, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-
-                                // premultiply textures 
-                                pDevice->SetPixelShader(PostFxResources.SSDownsampler2_PS);
-                                pDevice->SetRenderTarget(0, PostFxResources.FullScreenSurface_temp2);
-                                pDevice->SetTexture(2, PostFxResources.textureRead);
-                                pDevice->SetTexture(13, PostFxResources.DiffuseTex);
-                                pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-
-                                // sunshafts at full screen and add to screen
-                                pDevice->SetPixelShader(PostFxResources.SunShafts3_PS);
-                                pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
-
-                                //pDevice->SetTexture(8,  HalfScreenTex);
-                                pDevice->SetTexture(11, PostFxResources.FullScreenTex_temp2->mD3DTexture);
-                                if(PostFxResources.blueNoiseVolume)
-                                    pDevice->SetTexture(9, PostFxResources.blueNoiseVolume);
-
-                                //pDevice->SetTexture(11,  FullScreenDownsampleTex);
-                                pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-                                PostFxResources.swapbuffers();
-
-                                pDevice->SetPixelShader(pShader);
-                            }
-                        }
-
-                        // full screen 2 passes
-                        if(PostFxResources.UseSunShafts == 4 && PostFxResources.depth_of_field_tent_ps && PostFxResources.SunShafts4_PS) {
-                            if(PostFxResources.ppZStencilSurface && PostFxResources.halfZStencilSurface && PostFxResources.FullScreenDownsampleSurf && PostFxResources.FullScreenDownsampleSurf2) {
-                                pDevice->SetSamplerState(2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                                pDevice->SetSamplerState(8, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                                pDevice->SetSamplerState(8, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-                                pDevice->SetSamplerState(8, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-                                pDevice->SetSamplerState(9, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                                pDevice->SetSamplerState(9, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-                                pDevice->SetSamplerState(9, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-                                pDevice->SetSamplerState(11, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                                pDevice->SetSamplerState(11, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-                                pDevice->SetSamplerState(11, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-                                pDevice->SetSamplerState(13, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                                pDevice->SetSamplerState(13, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-                                pDevice->SetSamplerState(13, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-
-                                pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
-                                pDevice->SetTexture(2, PostFxResources.textureRead);
-
-                                // sunshafts full screen
-                                pDevice->SetPixelShader(PostFxResources.SunShafts4_PS);
-
-                                pDevice->SetTexture(8, PostFxResources.HalfScreenTex);
-                                if(PostFxResources.blueNoiseVolume)
-                                    pDevice->SetTexture(9, PostFxResources.blueNoiseVolume);
-
-                                pDevice->SetTexture(11, PostFxResources.FullScreenDownsampleTex->mD3DTexture);
-                                pDevice->SetTexture(13, PostFxResources.DiffuseTex);
-                                pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-                                PostFxResources.swapbuffers();
 
                                 pDevice->SetPixelShader(pShader);
                             }
