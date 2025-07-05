@@ -14,6 +14,7 @@ double __fastcall sub_A18510(void* _this, void* edx, void* a2, void* a3)
     return hbsub_A18510.fun(_this, edx, a2, a3) * (*CTimer::fTimeStep / (1.0f / 30.0f));
 }
 
+int (*__cdecl game_rand)() = nullptr;
 uint32_t* dword_11F7060 = nullptr;
 uint32_t* dword_12088B4 = nullptr;
 uint32_t* dword_1037720 = nullptr;
@@ -79,9 +80,9 @@ void __fastcall CameraShake(float* shakeData, void* edx, float multiplier)
         rangeZ *= dampZ;
 
     // Generate 3 random factors
-    float randX = rand() * (1.0f / 32768.0f);
-    float randY = rand() * (1.0f / 32768.0f);
-    float randZ = rand() * (1.0f / 32768.0f);
+    float randX = game_rand() * (1.0f / 32768.0f);
+    float randY = game_rand() * (1.0f / 32768.0f);
+    float randZ = game_rand() * (1.0f / 32768.0f);
 
     // Calculate shake forces (these are impulses, so they should not be scaled by time here)
     float forceX = randX * intensityX * rangeX;
@@ -102,14 +103,14 @@ void __fastcall CameraShake(float* shakeData, void* edx, float multiplier)
     // The original code's logic was flawed for different frame rates.
     // A time-based probability is much more reliable.
     float impulseChance = deltaTime * impulseFreq;
-    float randVal = (rand() & 0xFFFF) * (1.0f / 32768.0f);
+    float randVal = (game_rand() & 0xFFFF) * (1.0f / 32768.0f);
 
     // If random check passes, add impulse. Scale the impulse by timeScale as well.
     if (randVal < impulseChance)
     {
-        float randImpulseX = ((rand() * (1.0f / 32768.0f) * 2.0f) - 1.0f) * impulseAmplitude;
-        float randImpulseY = ((rand() * (1.0f / 32768.0f) * 2.0f) - 1.0f) * impulseAmplitude;
-        float randImpulseZ = ((rand() * (1.0f / 32768.0f) * 2.0f) - 1.0f) * impulseAmplitude;
+        float randImpulseX = ((game_rand() * (1.0f / 32768.0f) * 2.0f) - 1.0f) * impulseAmplitude;
+        float randImpulseY = ((game_rand() * (1.0f / 32768.0f) * 2.0f) - 1.0f) * impulseAmplitude;
+        float randImpulseZ = ((game_rand() * (1.0f / 32768.0f) * 2.0f) - 1.0f) * impulseAmplitude;
 
         velX += randImpulseX * timeScale;
         velY += randImpulseY * timeScale;
@@ -249,6 +250,7 @@ public:
             }
 
             // Camera Shake
+            game_rand = (decltype(game_rand))injector::GetBranchDestination(find_pattern("E8 ? ? ? ? F3 0F 10 4C 24 ? F3 0F 5C 4C 24 ? F3 0F 10 5C 24", "E8 ? ? ? ? F3 0F 10 4C 24 ? F3 0F 59 4C 24 ? F3 0F 59 4C 24").get_first()).as_int();
             dword_11F7060 = *find_pattern("83 3D ? ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 C1", "83 3D ? ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 05").get_first<uint32_t*>(2);
             dword_12088B4 = *find_pattern("A1 ? ? ? ? 3B 05 ? ? ? ? 75 ? 83 3D ? ? ? ? ? 75 ? A1", "A1 ? ? ? ? 3B 05 ? ? ? ? 75 ? 83 3D ? ? ? ? ? 75 ? 8B 0D ? ? ? ? DB 05").get_first<uint32_t*>(1);
             dword_1037720 = *find_pattern("83 3D ? ? ? ? ? 75 ? A1 ? ? ? ? 66 0F 6E C0", "83 3D ? ? ? ? ? 75 ? 8B 0D ? ? ? ? DB 05").get_first<uint32_t*>(2);
