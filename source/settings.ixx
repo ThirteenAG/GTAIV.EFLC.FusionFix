@@ -891,7 +891,8 @@ public:
                             static char sModifiers[] = "%s %f";
                             for (const auto& it : currentTimecycleModifiers)
                             {
-                                DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sModifiers, modNames[it.first].data(), it.second);
+                                if (it.first >= 0 && it.first < CTimeCycleModifier::ARRAY_SIZE)
+                                    DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sModifiers, modNames[it.first].data(), it.second);
                             }
                         }
                     }
