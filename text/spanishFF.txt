@@ -103,6 +103,12 @@ Permitir movimiento con zoom
 [LODLights]
 Luces lejanas
 
+[Centered Camera]
+Cámara de Vehículo Centrada
+
+[Camera Shake]
+Temblor de Cámara
+
 [FF_WARN0]
 ~p~Archivos IMG:
 

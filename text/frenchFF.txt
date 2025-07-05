@@ -103,6 +103,12 @@ Permettre le mouvement en zoomant
 [LODLights]
 Lumières lointaines
 
+[Centered Camera]
+Caméra Véhicule Centrée
+
+[Camera Shake]
+Tremblement de Caméra
+
 [FF_WARN0]
 ~p~Fichiers IMG:
 

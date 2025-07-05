@@ -103,6 +103,12 @@ Consenti movimento con lo zoom
 [LODLights]
 Luci lontane
 
+[Centered Camera]
+Camera Veicolo Centrata
+
+[Camera Shake]
+Vibrazione della Camera
+
 [FF_WARN0]
 ~p~IMG Files:
 

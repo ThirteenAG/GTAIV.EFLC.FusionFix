@@ -103,6 +103,12 @@ Bewegung beim Zoomen erlauben
 [LODLights]
 Ferne Lichter
 
+[Centered Camera]
+Zentrierte Fahrzeugkamera
+
+[Camera Shake]
+Kamerawackeln
+
 [FF_WARN0]
 ~p~IMG-Dateien:
 

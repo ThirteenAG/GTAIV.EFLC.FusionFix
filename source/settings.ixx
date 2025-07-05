@@ -247,6 +247,8 @@ public:
             { 0, "PREF_ZOOMEDMOVEMENT",    "MISC",       "ZoomedMovement",                  "",                           1, nullptr, 0, 1 },
             { 0, "PREF_UNCLAMPLIGHTING",   "MISC",       "UnclampLighting",                 "",                           0, nullptr, 0, 1 },
             { 0, "PREF_DISTANTLIGHTS",     "MISC",       "DistantLights",                   "",                           0, nullptr, 0, 1 }, //MENU_DISPLAY_NETSTATS_TRUESKILLNAME
+            { 0, "PREF_CENTEREDCAMERA",    "MISC",       "CenteredCamera",                  "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_CAMERASHAKE",       "MAIN",       "CameraShake",                     "",                           1, nullptr, 0, 1 },
             // Enums are at capacity, to use more enums, replace multiplayer ones. On/Off toggles should still be possible to add.
         };
 

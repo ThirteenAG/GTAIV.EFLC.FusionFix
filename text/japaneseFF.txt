@@ -103,6 +103,12 @@ FPSリミッター
 [LODLights]
 遠い光
 
+[Centered Camera]
+センタリングされた車両カメラ
+
+[Camera Shake]
+カメラシェイク
+
 [FF_WARN0]
 ~p~IMG ファイル:
 

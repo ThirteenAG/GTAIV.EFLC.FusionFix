@@ -103,6 +103,12 @@ Fusion Fix: Проверять Обновления
 [LODLights]
 Свет от фонарей
 
+[Centered Camera]
+Камера транспорта по центру
+
+[Camera Shake]
+Тряска камеры
+
 [FF_WARN0]
 ~p~IMG Архивы:
 

@@ -487,6 +487,8 @@
       <optionspc action="MENUOPT_ADJUST" label="Always Run" value="PREF_ALWAYSRUN" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="MENUOPT_ADJUST" label="Cover Centering" value="PREF_COVERCENTERING" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <optionspc action="MENUOPT_ADJUST" label="Zoomed Movement" value="PREF_ZOOMEDMOVEMENT" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="Centered Camera" value="PREF_CENTEREDCAMERA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <optionspc action="MENUOPT_ADJUST" label="Camera Shake" value="PREF_CAMERASHAKE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
     </menu>
     <menu HeaderText="MH_CON" enum="SCR_KEYBOARD_OPTIONS">

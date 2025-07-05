@@ -1070,6 +1070,11 @@ export namespace CTxdStore
     int* (__cdecl* at)(int);
 }
 
+export namespace Matrix34
+{
+    void (__fastcall* fromEulersXYZ)(float* _this, void* edx, float* a2);
+}
+
 export int32_t* pMenuTab;
 export int32_t* _dwCurrentEpisode;
 export void* (__stdcall* getNativeAddress)(uint32_t);
@@ -1266,7 +1271,10 @@ public:
 
         pattern = find_pattern("53 55 56 57 8B F9 85 FF 74 3F", "53 55 8B 6C 24 0C 56 57 EB 06 8D 9B 00 00 00 00 0F B7 51 14 33 FF 83 EA 01 78 26 8B 59 10", "85 C9 53 55 56 57 74 40 8B 6C 24 14 8D 64 24 00");
         CTxdStore::getEntryByKey = pattern.get_first<rage::grcTexturePC*(__fastcall)(int*, void*, unsigned int)>(0);
-
+        
+        pattern = find_pattern("55 8B EC 83 E4 ? 83 EC ? F3 0F 10 05 ? ? ? ? 56 8B 75 ? 0F 57 DB F3 0F 10 0E 0F 2E CB 57 9F 8B F9 F3 0F 11 44 24 ? F6 C4 ? 7A ? 0F 28 CB F3 0F 11 44 24", "55 8B EC 83 E4 ? 0F 57 D2 83 EC ? 56 57");
+        Matrix34::fromEulersXYZ = pattern.get_first<void(__fastcall)(float*, void*, float*)>(0);
+        
         pattern = hook::pattern("68 ? ? ? ? 68 ? ? ? ? 68 ? ? ? ? 68 ? ? ? ? E8 ? ? ? ? 8B C8 E8 ? ? ? ? A3 ? ? ? ? 5E");
         CTxdStore::at = (int* (__cdecl*)(int))injector::ReadMemory<uint32_t>(pattern.get_first(1), true);
 

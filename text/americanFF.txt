@@ -103,6 +103,12 @@ Allow Movement When Zoomed
 [LODLights]
 Distant Lights
 
+[Centered Camera]
+Centered Vehicle Camera
+
+[Camera Shake]
+Camera Shake
+
 [FF_WARN0]
 ~p~IMG Files:
 
