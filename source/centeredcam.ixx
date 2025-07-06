@@ -77,6 +77,7 @@ namespace rage
 class CenteredCam
 {
 public:
+    static inline bool bLoadedCenteredVehicleCamIVasi = false;
     static inline float fRightMult = 0.5f;
     static inline float fForwardMult = 0.2f;
     static inline float fUpMult = 0.2f;
@@ -111,7 +112,7 @@ public:
         hbCopyMatFront.fun(mat, 0, arg2);
 
         static auto cc = FusionFixSettings.GetRef("PREF_CENTEREDCAMERA");
-        if (cc->get())
+        if (cc->get() && !bLoadedCenteredVehicleCamIVasi)
         {
             auto playa = FindPlayerPed(0);
             auto vehicle = FindPlayerVehicle(0);
@@ -134,7 +135,7 @@ public:
         hbCopyMatBehind.fun(mat, 0, arg2);
 
         static auto cc = FusionFixSettings.GetRef("PREF_CENTEREDCAMERA");
-        if (cc->get())
+        if (cc->get() && !bLoadedCenteredVehicleCamIVasi)
         {
             auto playa = FindPlayerPed(0);
             auto vehicle = FindPlayerVehicle(0);
@@ -167,6 +168,13 @@ public:
 
             pattern = find_pattern("F3 0F 11 44 24 ? E8 ? ? ? ? 5F B0", "F3 0F 11 44 24 ? E8 ? ? ? ? 5F 5E B0 ? 5B 8B E5 5D C2");
             hbCopyMatBehind.fun = injector::MakeCALL(pattern.get_first(6), CopyMatBehind, true).get();
+
+            auto HandleCenteredVehicleCamIVasi = []()
+            {
+                bLoadedCenteredVehicleCamIVasi = true;
+            };
+
+            CallbackHandler::RegisterCallback(L"CenteredVehicleCamIV.asi", HandleCenteredVehicleCamIVasi);
         };
     }
 } CenteredCam;
