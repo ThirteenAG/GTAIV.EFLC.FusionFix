@@ -15,7 +15,7 @@ double __fastcall sub_A18510(void* _this, void* edx, void* a2, void* a3)
     return hbsub_A18510.fun(_this, edx, a2, a3) * (*CTimer::fTimeStep / (1.0f / 30.0f));
 }
 
-int (*__cdecl game_rand)() = nullptr;
+int (__cdecl *game_rand)() = nullptr;
 uint32_t* dword_11F7060 = nullptr;
 uint32_t* dword_12088B4 = nullptr;
 uint32_t* dword_1037720 = nullptr;
@@ -159,15 +159,30 @@ void __cdecl NATIVE_SET_CAM_FOV(int cam, float targetFOV)
     // Calculate how much the original code wanted to increment
     float desired_increment = targetFOV - last_fov_values[cam];
 
-    // Apply time-based scaling to the increment
-    float time_scaled_increment = desired_increment * (*CTimer::fTimeStep * 30.0f);
+    // Define a threshold for what constitutes a "small increment" vs a "jump"
+    constexpr float SMALL_INCREMENT_THRESHOLD = 0.06f; // Adjust this value as needed
 
-    // Apply the scaled increment to current FOV
-    float current_fov = fov;
-    float new_fov = current_fov + time_scaled_increment;
+    float new_fov;
 
-    // Update cache and set camera
-    last_fov_values[cam] = targetFOV;
+    if (fabsf(desired_increment) <= SMALL_INCREMENT_THRESHOLD)
+    {
+        // Small increment - apply time-based scaling
+        float time_scaled_increment = desired_increment * (*CTimer::fTimeStep * 30.0f);
+        new_fov = fov + time_scaled_increment;
+    }
+    else
+    {
+        // Large jump - apply immediately without time scaling
+        new_fov = targetFOV;
+        // Reset the cache since we're jumping to a new value
+        last_fov_values[cam] = targetFOV;
+    }
+
+    // Update cache only for small increments
+    if (fabsf(desired_increment) <= SMALL_INCREMENT_THRESHOLD)
+    {
+        last_fov_values[cam] = targetFOV;
+    }
 
     return hbSET_CAM_FOV.fun(cam, new_fov);
 }
