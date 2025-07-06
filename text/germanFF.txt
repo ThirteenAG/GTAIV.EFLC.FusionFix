@@ -109,6 +109,9 @@ Zentrierte Fahrzeugkamera
 [Camera Shake]
 Kamerawackeln
 
+[CutscAudioSync]
+Zwischensequenz-Audiosynchronisierung
+
 [FF_WARN0]
 ~p~IMG-Dateien:
 

@@ -109,6 +109,9 @@ FPSリミッター
 [Camera Shake]
 カメラシェイク
 
+[CutscAudioSync]
+カットシーンオーディオ同期
+
 [FF_WARN0]
 ~p~IMG ファイル:
 

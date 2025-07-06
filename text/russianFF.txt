@@ -109,6 +109,9 @@ Fusion Fix: Проверять Обновления
 [Camera Shake]
 Тряска камеры
 
+[CutscAudioSync]
+Синхронизация Аудио Катсцен
+
 [FF_WARN0]
 ~p~IMG Архивы:
 

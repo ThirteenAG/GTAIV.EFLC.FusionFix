@@ -2,7 +2,7 @@ newoption {
     trigger     = "with-version",
     value       = "STRING",
     description = "Current version",
-    default     = "2.0",
+    default     = "4.0",
 }
 
 workspace "GTAIV.EFLC.FusionFix"

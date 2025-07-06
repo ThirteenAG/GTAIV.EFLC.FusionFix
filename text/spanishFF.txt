@@ -109,6 +109,9 @@ Cámara de Vehículo Centrada
 [Camera Shake]
 Temblor de Cámara
 
+[CutscAudioSync]
+Sincronización de Audio en Cinemáticas
+
 [FF_WARN0]
 ~p~Archivos IMG:
 

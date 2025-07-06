@@ -109,6 +109,9 @@ Camera Veicolo Centrata
 [Camera Shake]
 Vibrazione della Camera
 
+[CutscAudioSync]
+Sincronizzazione Audio Filmati
+
 [FF_WARN0]
 ~p~IMG Files:
 
