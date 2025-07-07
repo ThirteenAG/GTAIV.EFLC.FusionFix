@@ -103,14 +103,20 @@ Permettre le mouvement en zoomant
 [LODLights]
 Lumières lointaines
 
-[Centered Camera]
+[CenteredVehCam]
 Caméra Véhicule Centrée
+
+[CenteredFootCam]
+Caméra à Pied Centrée
 
 [Camera Shake]
 Tremblement de Caméra
 
 [CutscAudioSync]
 Synchronisation Audio des Cinématiques
+
+[Turn Indicators]
+Clignotants
 
 [FF_WARN0]
 ~p~Fichiers IMG:

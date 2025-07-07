@@ -103,14 +103,20 @@ FPSリミッター
 [LODLights]
 遠い光
 
-[Centered Camera]
-センタリングされた車両カメラ
+[CenteredVehCam]
+中央車両カメラ
+
+[CenteredFootCam]
+中央徒歩カメラ
 
 [Camera Shake]
 カメラシェイク
 
 [CutscAudioSync]
 カットシーンオーディオ同期
+
+[Turn Indicators]
+ウィンカー
 
 [FF_WARN0]
 ~p~IMG ファイル:

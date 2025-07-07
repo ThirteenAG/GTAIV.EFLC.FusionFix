@@ -5,74 +5,8 @@ module;
 export module centeredcam;
 
 import common;
+import comvars;
 import settings;
-
-namespace rage
-{
-    class Vector3
-    {
-    public:
-        float x, y, z;
-    };
-
-    class Vector4
-    {
-    public:
-        float x, y, z, w;
-
-        Vector4 operator+(const Vector4& other) const
-        {
-            return Vector4(x + other.x, y + other.y, z + other.z, w + other.w);
-        }
-
-        Vector4 operator-(const Vector4& other) const
-        {
-            return Vector4(x - other.x, y - other.y, z - other.z, w - other.w);
-        }
-
-        Vector4 operator*(float scalar) const
-        {
-            return Vector4(x * scalar, y * scalar, z * scalar, w * scalar);
-        }
-
-        Vector4 operator+(float scalar) const
-        {
-            return Vector4(x + scalar, y + scalar, z + scalar, w + scalar);
-        }
-
-        Vector4 operator-(float scalar) const
-        {
-            return Vector4(x - scalar, y - scalar, z - scalar, w - scalar);
-        }
-
-        Vector4& operator+=(const Vector4& other)
-        {
-            x += other.x;
-            y += other.y;
-            z += other.z;
-            w += other.w;
-            return *this;
-        }
-
-        Vector4& operator-=(const Vector4& other)
-        {
-            x -= other.x;
-            y -= other.y;
-            z -= other.z;
-            w -= other.w;
-            return *this;
-        }
-    };
-
-    class Matrix44
-    {
-    public:
-        Vector4 right;
-        Vector4 up;
-        Vector4 at;
-        Vector4 pos;
-    };
-}
 
 class CenteredCam
 {
@@ -86,8 +20,6 @@ public:
     using CPed = void;
     using CPlayerPed = void;
 
-    static inline CPlayerPed* (*FindPlayerPed)(int32_t id) = nullptr;
-    static inline CVehicle* (*FindPlayerVehicle)(int32_t id) = nullptr;
     static inline CVehicle* (*GetVehiclePedWouldEnter)(CPed* ped, rage::Vector3* pos, bool arg2) = nullptr;
 
     static bool IsVehicleTypeOffCenter(CVehicle const* veh)
@@ -154,13 +86,7 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            auto pattern = find_pattern("8B 44 24 04 85 C0 75 18 A1", "8B 44 24 ? 85 C0 75 ? A1 ? ? ? ? 83 F8 ? 74");
-            FindPlayerPed = (decltype(FindPlayerPed))pattern.get_first();
-
-            pattern = hook::pattern("8B 44 24 04 85 C0 75 15");
-            FindPlayerVehicle = (decltype(FindPlayerVehicle))pattern.get_first();
-
-            pattern = find_pattern("55 8B EC 83 E4 F0 83 EC 78 56 8B 75 08 57 F7 86", "55 8B EC 83 E4 ? 83 EC ? 56 8B 75 ? F7 86");
+            auto pattern = find_pattern("55 8B EC 83 E4 F0 83 EC 78 56 8B 75 08 57 F7 86", "55 8B EC 83 E4 ? 83 EC ? 56 8B 75 ? F7 86");
             GetVehiclePedWouldEnter = (decltype(GetVehiclePedWouldEnter))pattern.get_first();
 
             pattern = find_pattern("E8 ? ? ? ? 80 A7 ? ? ? ? ? 80 A7 ? ? ? ? ? 80 7C 24", "E8 ? ? ? ? 80 A6 ? ? ? ? ? 80 A6 ? ? ? ? ? 80 BC 24");

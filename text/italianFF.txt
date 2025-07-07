@@ -103,14 +103,20 @@ Consenti movimento con lo zoom
 [LODLights]
 Luci lontane
 
-[Centered Camera]
-Camera Veicolo Centrata
+[CenteredVehCam]
+Telecamera Veicolo Centrata
+
+[CenteredFootCam]
+Telecamera a Piedi Centrata
 
 [Camera Shake]
 Vibrazione della Camera
 
 [CutscAudioSync]
 Sincronizzazione Audio Filmati
+
+[Turn Indicators]
+Indicatori di Direzione
 
 [FF_WARN0]
 ~p~IMG Files:

@@ -99,14 +99,68 @@ public:
 
 export namespace rage
 {
-    struct Vector3
+    class Vector3
     {
+    public:
         float x, y, z;
     };
 
-    struct Vector4
+    class Vector4
     {
+    public:
         float x, y, z, w;
+
+        Vector4 operator+(const Vector4& other) const
+        {
+            return Vector4(x + other.x, y + other.y, z + other.z, w + other.w);
+        }
+
+        Vector4 operator-(const Vector4& other) const
+        {
+            return Vector4(x - other.x, y - other.y, z - other.z, w - other.w);
+        }
+
+        Vector4 operator*(float scalar) const
+        {
+            return Vector4(x * scalar, y * scalar, z * scalar, w * scalar);
+        }
+
+        Vector4 operator+(float scalar) const
+        {
+            return Vector4(x + scalar, y + scalar, z + scalar, w + scalar);
+        }
+
+        Vector4 operator-(float scalar) const
+        {
+            return Vector4(x - scalar, y - scalar, z - scalar, w - scalar);
+        }
+
+        Vector4& operator+=(const Vector4& other)
+        {
+            x += other.x;
+            y += other.y;
+            z += other.z;
+            w += other.w;
+            return *this;
+        }
+
+        Vector4& operator-=(const Vector4& other)
+        {
+            x -= other.x;
+            y -= other.y;
+            z -= other.z;
+            w -= other.w;
+            return *this;
+        }
+    };
+
+    class Matrix44
+    {
+    public:
+        Vector4 right;
+        Vector4 up;
+        Vector4 at;
+        Vector4 pos;
     };
 
     enum grcTextureFormat : uint8_t
@@ -1075,6 +1129,9 @@ export namespace Matrix34
     void (__fastcall* fromEulersXYZ)(float* _this, void* edx, float* a2);
 }
 
+export void* (*FindPlayerPed)(int32_t id);
+export void* (*FindPlayerVehicle)(int32_t id);
+
 export int32_t* pMenuTab;
 export int32_t* _dwCurrentEpisode;
 export void* (__stdcall* getNativeAddress)(uint32_t);
@@ -1309,5 +1366,11 @@ public:
     
         pattern = find_pattern("83 3D ? ? ? ? ? 8D 81 ? ? ? ? 75 ? 8D 81 ? ? ? ? 50", "83 3D ? ? ? ? ? 74 ? 8D 8B");
         dwSniperInverted = *pattern.get_first<int*>(2);
+
+        pattern = find_pattern("8B 44 24 04 85 C0 75 18 A1", "8B 44 24 ? 85 C0 75 ? A1 ? ? ? ? 83 F8 ? 74");
+        FindPlayerPed = (decltype(FindPlayerPed))pattern.get_first();
+
+        pattern = hook::pattern("8B 44 24 04 85 C0 75 15");
+        FindPlayerVehicle = (decltype(FindPlayerVehicle))pattern.get_first();
     }
 } Common;
