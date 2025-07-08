@@ -11,8 +11,8 @@ import natives;
 import settings;
 
 // Configuration
-float STEER_THRESHOLD = 0.10f;    // Minimum steering to trigger blinkers
-float ACTIVATION_DELAY = 250.0f;  // ms delay before activation
+float STEER_THRESHOLD = 0.50f;    // Minimum steering to trigger blinkers
+float ACTIVATION_DELAY = 200.0f;  // ms delay before activation
 float BLINK_INTERVAL = 400.0f;    // ms blink interval (on/off cycle)
 
 // Struct to hold all vehicle state data
@@ -140,18 +140,32 @@ public:
             {
                 sh_sub_A3FF30 = safetyhook::create_inline(pattern.get_first(0), sub_A3FF30);
 
-                pattern = hook::pattern("F3 0F 11 82 ? ? ? ? 8A 44 24");
+                static Vehicle prev_player_car = 0;
+                pattern = hook::pattern("F3 0F 11 82 ? ? ? ? 8A 44 24"); //breaks npc paths for some reason
                 if (!pattern.empty())
                 {
                     injector::MakeNOP(pattern.get_first(), 8, true);
                     static auto WheelResetHook1 = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                     {
-                        static auto ti = FusionFixSettings.GetRef("PREF_TURNINDICATORS");
-                        if (!ti->get())
-                            *(float*)(regs.edx + 0x1088) = regs.xmm0.f32[0];
+                        Ped PlayerPed = 0;
+                        Vehicle PlayerCar = 0;
+                        Natives::GetPlayerChar(Natives::ConvertIntToPlayerindex(Natives::GetPlayerId()), &PlayerPed);
+                        if (PlayerPed)
+                        {
+                            Natives::GetCarCharIsUsing(PlayerPed, &PlayerCar);
+
+                            static auto ti = FusionFixSettings.GetRef("PREF_TURNINDICATORS");
+                            if (ti->get() && PlayerCar == CVehicle::GetVehiclePool()->GetIndex((void*)regs.edx))
+                            {
+                                prev_player_car = PlayerCar;
+                                return;
+                            }
+                        }
+
+                        *(float*)(regs.edx + 0x1088) = regs.xmm0.f32[0];
                     });
                 }
-
+                
                 pattern = hook::pattern("C7 86 ? ? ? ? ? ? ? ? C7 86 ? ? ? ? ? ? ? ? E8 ? ? ? ? 84 C0 75 ? C7 86 ? ? ? ? ? ? ? ? F6 86");
                 if (!pattern.empty())
                 {
@@ -159,8 +173,10 @@ public:
                     static auto WheelResetHook2 = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                     {
                         static auto ti = FusionFixSettings.GetRef("PREF_TURNINDICATORS");
-                        if (!ti->get())
-                            *(float*)(regs.esi + 0x1088) = 0.0f;
+                        if (ti->get() && prev_player_car == CVehicle::GetVehiclePool()->GetIndex((void*)regs.esi))
+                            return;
+
+                        *(float*)(regs.esi + 0x1088) = 0.0f;
                     });
                 }
 
