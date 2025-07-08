@@ -12,7 +12,7 @@ import settings;
 
 // Configuration
 float STEER_THRESHOLD = 0.50f;    // Minimum steering to trigger blinkers
-float ACTIVATION_DELAY = 200.0f;  // ms delay before activation
+float ACTIVATION_DELAY = 400.0f;  // ms delay before activation
 float BLINK_INTERVAL = 400.0f;    // ms blink interval (on/off cycle)
 
 // Struct to hold all vehicle state data
@@ -337,6 +337,7 @@ public:
                                     state.blinkers_active = true;
                                     state.blink_timer = 0.0f;
                                     state.blink_state = true;
+                                    Natives::SetVehIndicatorlights(veh, true);
                                 }
                             }
 
