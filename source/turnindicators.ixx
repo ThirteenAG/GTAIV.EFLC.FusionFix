@@ -11,10 +11,9 @@ import natives;
 import settings;
 
 // Configuration
-float STEER_THRESHOLD = 0.15f;    // Minimum steering to trigger blinkers
-float ACTIVATION_DELAY = 600.0f;  // 600ms delay before activation
-float TURN_OFF_DELAY = 200.0f;    // 200ms delay before turning off after steering stops
-float BLINK_INTERVAL = 400.0f;    // 400ms blink interval (on/off cycle)
+float STEER_THRESHOLD = 0.10f;    // Minimum steering to trigger blinkers
+float ACTIVATION_DELAY = 250.0f;  // ms delay before activation
+float BLINK_INTERVAL = 400.0f;    // ms blink interval (on/off cycle)
 
 // Struct to hold all vehicle state data
 struct VehicleState
