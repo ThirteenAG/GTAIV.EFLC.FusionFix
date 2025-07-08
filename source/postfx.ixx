@@ -70,6 +70,7 @@ public:
     // postfx textures created
     rage::grcRenderTargetPC* FullScreenTex_temp1 = nullptr; // main temp texture
     rage::grcRenderTargetPC* FullScreenTex_temp2 = nullptr; // main temp texture
+    rage::grcRenderTargetPC* FullScreenTex_temp3 = nullptr; // main temp texture
 
     //rage::grcRenderTargetPC* pShadowBlurTex1 = nullptr; // main shadow temp texture
     //rage::grcRenderTargetPC* pShadowBlurTex2 = nullptr; // main shadow temp texture
@@ -116,6 +117,7 @@ public:
     IDirect3DSurface9* FullScreenSurface2 = nullptr;
     IDirect3DSurface9* FullScreenSurface_temp1 = nullptr;
     IDirect3DSurface9* FullScreenSurface_temp2 = nullptr;
+    IDirect3DSurface9* FullScreenSurface_temp3 = nullptr;
     IDirect3DSurface9* FullScreenDownsampleSurf = nullptr;
     IDirect3DSurface9* FullScreenDownsampleSurf2 = nullptr;
     IDirect3DSurface9* backBuffer = nullptr;
@@ -194,7 +196,6 @@ public:
         ID3DXConstantTable* ppConstantTable = nullptr;
 
         //asm
-        if(!FxaaPS && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_FXAA), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                                                             if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &FxaaPS) != S_OK || !FxaaPS) SAFE_RELEASE(FxaaPS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
         if(!dof_blur_ps && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_dof_blur_ps), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                                                 if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &dof_blur_ps) != S_OK || !dof_blur_ps) SAFE_RELEASE(dof_blur_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
         if(!dof_coc_ps && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_dof_coc_ps), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                                                   if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &dof_coc_ps) != S_OK || !dof_coc_ps) SAFE_RELEASE(dof_coc_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
         if(!depth_of_field_tent_ps && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_depth_of_field_tent_ps), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                           if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &depth_of_field_tent_ps) != S_OK || !depth_of_field_tent_ps) SAFE_RELEASE(depth_of_field_tent_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
@@ -216,12 +217,14 @@ public:
         //if(!DeferredShadowBlurV_ps && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_DeferredShadowBlur), NULL, NULL, "BlurVertical", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                    if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &DeferredShadowBlurV_ps) != S_OK || !DeferredShadowBlurV_ps) SAFE_RELEASE(DeferredShadowBlurV_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
         //if(!DeferredShadowBlurCircle_ps && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_DeferredShadowBlur), NULL, NULL, "BlurCircular", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {               if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &DeferredShadowBlurCircle_ps) != S_OK || !DeferredShadowBlurCircle_ps) SAFE_RELEASE(DeferredShadowBlurCircle_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
 
-        if(!SMAA_EdgeDetection && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "SMAAColorEdgeDetectionPS", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                          if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SMAA_EdgeDetection) != S_OK || !SMAA_EdgeDetection) SAFE_RELEASE(SMAA_EdgeDetection); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
-        if(!SMAA_BlendingWeightsCalculation && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "SMAABlendingWeightCalculationPS", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {      if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SMAA_BlendingWeightsCalculation) != S_OK || !SMAA_BlendingWeightsCalculation) SAFE_RELEASE(SMAA_BlendingWeightsCalculation); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
-        if(!SMAA_NeighborhoodBlending && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "SMAANeighborhoodBlendingPS", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                 if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SMAA_NeighborhoodBlending) != S_OK || !SMAA_NeighborhoodBlending) SAFE_RELEASE(SMAA_NeighborhoodBlending); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
-        if(!SMAA_EdgeDetectionVS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "SMAAEdgeDetectionVS", "vs_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                             if(pDevice->CreateVertexShader((DWORD*) bf1->GetBufferPointer(), &SMAA_EdgeDetectionVS) != S_OK || !SMAA_EdgeDetectionVS) SAFE_RELEASE(SMAA_EdgeDetectionVS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
-        if(!SMAA_BlendingWeightsCalculationVS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "SMAABlendingWeightCalculationVS", "vs_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {    if(pDevice->CreateVertexShader((DWORD*) bf1->GetBufferPointer(), &SMAA_BlendingWeightsCalculationVS) != S_OK || !SMAA_BlendingWeightsCalculationVS) SAFE_RELEASE(SMAA_BlendingWeightsCalculationVS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
-        if(!SMAA_NeighborhoodBlendingVS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "SMAANeighborhoodBlendingVS", "vs_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {               if(pDevice->CreateVertexShader((DWORD*) bf1->GetBufferPointer(), &SMAA_NeighborhoodBlendingVS) != S_OK || !SMAA_NeighborhoodBlendingVS) SAFE_RELEASE(SMAA_NeighborhoodBlendingVS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
+        if(!FxaaPS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_FXAA), NULL, NULL, "ApplyFXAA", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                                                     if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &FxaaPS) != S_OK || !FxaaPS) SAFE_RELEASE(FxaaPS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
+
+        if(!SMAA_EdgeDetection && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "DX9_SMAALumaEdgeDetectionPS", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                          if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SMAA_EdgeDetection) != S_OK || !SMAA_EdgeDetection) SAFE_RELEASE(SMAA_EdgeDetection); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
+        if(!SMAA_BlendingWeightsCalculation && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "DX9_SMAABlendingWeightCalculationPS", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {      if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SMAA_BlendingWeightsCalculation) != S_OK || !SMAA_BlendingWeightsCalculation) SAFE_RELEASE(SMAA_BlendingWeightsCalculation); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
+        if(!SMAA_NeighborhoodBlending && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "DX9_SMAANeighborhoodBlendingPS", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                 if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SMAA_NeighborhoodBlending) != S_OK || !SMAA_NeighborhoodBlending) SAFE_RELEASE(SMAA_NeighborhoodBlending); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
+        if(!SMAA_EdgeDetectionVS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "DX9_SMAAEdgeDetectionVS", "vs_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                             if(pDevice->CreateVertexShader((DWORD*) bf1->GetBufferPointer(), &SMAA_EdgeDetectionVS) != S_OK || !SMAA_EdgeDetectionVS) SAFE_RELEASE(SMAA_EdgeDetectionVS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
+        if(!SMAA_BlendingWeightsCalculationVS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "DX9_SMAABlendingWeightCalculationVS", "vs_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {    if(pDevice->CreateVertexShader((DWORD*) bf1->GetBufferPointer(), &SMAA_BlendingWeightsCalculationVS) != S_OK || !SMAA_BlendingWeightsCalculationVS) SAFE_RELEASE(SMAA_BlendingWeightsCalculationVS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
+        if(!SMAA_NeighborhoodBlendingVS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "DX9_SMAANeighborhoodBlendingVS", "vs_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {               if(pDevice->CreateVertexShader((DWORD*) bf1->GetBufferPointer(), &SMAA_NeighborhoodBlendingVS) != S_OK || !SMAA_NeighborhoodBlendingVS) SAFE_RELEASE(SMAA_NeighborhoodBlendingVS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
         return ShadersFinishedLoading();
     }
 
@@ -270,6 +273,12 @@ public:
         {
             FullScreenTex_temp2->Destroy();
             FullScreenTex_temp2 = nullptr;
+        }
+        
+        if (FullScreenTex_temp3)
+        {
+            FullScreenTex_temp3->Destroy();
+            FullScreenTex_temp3 = nullptr;
         }
 
         if (edgesTex)
@@ -376,6 +385,9 @@ public:
 
         FullScreenTex_temp1 = CreateEmptyRT("FullScreenTex_temp1", 3, Width, Height, 32, &desc);
         FullScreenTex_temp2 = CreateEmptyRT("FullScreenTex_temp2", 3, Width, Height, 32, &desc);
+        
+        desc.mFormat = rage::GRCFMT_A8R8G8B8;
+        FullScreenTex_temp3 = CreateEmptyRT("FullScreenTex_temp3", 3, Width, Height, 32, &desc);
 
         //desc.mFormat = rage::GRCFMT_G16R16F;
         // 
@@ -402,9 +414,9 @@ public:
         HalfDepthStenciltex = CreateEmptyRT("HalfDepthStenciltex", 3, Width / 2, Height / 2, 32, &desc);
 
         if (!SMAA_areaTex)
-            D3DXCreateTextureFromResourceExW(pDevice, hm, MAKEINTRESOURCEW(IDR_AreaTex), 0, 0, 0, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_LINEAR, D3DX_FILTER_LINEAR, D3DCOLOR_ARGB(150, 100, 100, 100), NULL, NULL, &SMAA_areaTex);
+            D3DXCreateTextureFromResourceExW(pDevice, hm, MAKEINTRESOURCEW(IDR_AreaTex), 160, 560, 1, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_LINEAR, D3DX_FILTER_LINEAR, 0, NULL, NULL, &SMAA_areaTex);
         if (!SMAA_searchTex)
-            D3DXCreateTextureFromResourceExW(pDevice, hm, MAKEINTRESOURCEW(IDR_SearchTex), 0, 0, 0, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_LINEAR, D3DX_FILTER_LINEAR, D3DCOLOR_ARGB(150, 100, 100, 100), NULL, NULL, &SMAA_searchTex);
+            D3DXCreateTextureFromResourceExW(pDevice, hm, MAKEINTRESOURCEW(IDR_SearchTex), 64, 16, 1, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_LINEAR, D3DX_FILTER_LINEAR, 0, NULL, NULL, &SMAA_searchTex);
         if (!blueNoiseVolume)
             D3DXCreateVolumeTextureFromResourceExW(pDevice, hm, MAKEINTRESOURCEW(IDR_bluenoisevolume), 0, 0, 0, 0, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_LINEAR, D3DX_FILTER_LINEAR, D3DCOLOR_ARGB(150, 100, 100, 100), NULL, NULL, &blueNoiseVolume);
     }
@@ -579,6 +591,7 @@ private:
 
         PostFxResources.FullScreenTex_temp1->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.FullScreenSurface_temp1);
         PostFxResources.FullScreenTex_temp2->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.FullScreenSurface_temp2);
+        PostFxResources.FullScreenTex_temp3->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.FullScreenSurface_temp3);
         PostFxResources.edgesTex->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.edgesSurf);
         PostFxResources.blendTex->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.blendSurf);
 
@@ -601,7 +614,6 @@ private:
 
         saveRenderState();
 
-        // pDevice->SetPixelShaderConstantF(214, PostFxResources.AAparameters, 1);
         pDevice->SetSamplerState(2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
 
         // new 
@@ -624,6 +636,7 @@ private:
         SAFE_RELEASE(PostFxResources.backBuffer);
         SAFE_RELEASE(PostFxResources.FullScreenSurface_temp1);
         SAFE_RELEASE(PostFxResources.FullScreenSurface_temp2);
+        SAFE_RELEASE(PostFxResources.FullScreenSurface_temp3);
         SAFE_RELEASE(PostFxResources.FullScreenDownsampleSurf);
         SAFE_RELEASE(PostFxResources.FullScreenDownsampleSurf2);
         SAFE_RELEASE(PostFxResources.edgesSurf);
@@ -660,7 +673,6 @@ private:
         DWORD OldSRGB = 0;
         DWORD OldSampler = 0;
 
-        static float vec4[4] = { 0.f };
         static float blueTimerVec4[4] = { 0.f };
         static int blueTimer = 0;
 
@@ -683,14 +695,7 @@ private:
             blueTimerVec4[2] = static_cast<float>(blueTimer) / float(volumeDescription.Depth);
             blueTimerVec4[3] = static_cast<float>(blueTimer);
         }
-        vec4[0] = 1.f / static_cast<float>(getWindowWidth());
-        vec4[1] = 1.f / static_cast<float>(getWindowHeight());
-        vec4[2] = static_cast<float>(getWindowWidth());
-        vec4[3] = static_cast<float>(getWindowHeight());
 
-
-        pDevice->SetVertexShaderConstantF(24, vec4, 1);
-        pDevice->SetPixelShaderConstantF(24, vec4, 1);
         pDevice->SetPixelShaderConstantF(100, currGrcViewport->mWorldMatrix[0], 4);
         pDevice->SetPixelShaderConstantF(104, currGrcViewport->mWorldViewMatrix[0], 4);
         pDevice->SetPixelShaderConstantF(108, currGrcViewport->mWorldViewProjMatrix[0], 4);
@@ -698,7 +703,6 @@ private:
         //pDevice->SetPixelShaderConstantF(116, gShadowMatrix, 4);
         pDevice->SetPixelShaderConstantF(140, PostFxResources.BilateralDepthTreshold, 1);
         // pDevice->SetPixelShaderConstantF(144, PostFxResources.NoiseSale, 1);
-        // pDevice->SetPixelShaderConstantF(214, PostFxResources.AAparameters, 1);
         // pDevice->SetPixelShaderConstantF(218, blueTimerVec4, 1);
 
         pDevice->SetTexture(8, PostFxResources.HalfScreenTex);
@@ -863,100 +867,6 @@ private:
                         }
                     }
 
-                    // This implementation has some problems with cuts in some 
-                    // places (when smoothing some diagonal lines there are pixels that break the smoothing), 
-                    // I didn't find the reason, but using antialiasing.ixx it works almost perfectly despite being 
-                    // the same implementation. Maybe it's the rendering order, IDK.
-                    if(UsePostFxAA && UsePostFxAA->get() > FusionFixSettings.AntialiasingText.eMO_OFF) {
-                        // FXAA
-                        if((UsePostFxAA->get() == FusionFixSettings.AntialiasingText.eFXAA) && PostFxResources.FxaaPS) {
-                            pDevice->GetRenderState(D3DRS_SRGBWRITEENABLE, &OldSRGB); // save srgb state
-                            pDevice->SetPixelShader(PostFxResources.FxaaPS);
-
-                            pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
-                                // pDevice->SetRenderTarget(0, PostFxResources.backBuffer);
-
-                            pDevice->SetTexture(2, PostFxResources.textureRead);
-                            hr = pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-                                // pDevice->SetTexture(2, PostFxResources.renderTargetTex);
-                            PostFxResources.swapbuffers();
-                            pDevice->SetSamplerState(2, D3DSAMP_SRGBTEXTURE, 0);
-                            //pDevice->SetTexture(2, 0);
-                            pDevice->SetPixelShader(pShader);
-                            pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, OldSRGB);// restore srgb state
-                        }
-
-                        // SMAA
-                        if(UsePostFxAA->get() >= FusionFixSettings.AntialiasingText.eSMAA &&
-                           PostFxResources.SMAA_EdgeDetection && PostFxResources.SMAA_BlendingWeightsCalculation && PostFxResources.SMAA_NeighborhoodBlending &&
-                           PostFxResources.SMAA_EdgeDetectionVS && PostFxResources.SMAA_BlendingWeightsCalculationVS && PostFxResources.SMAA_NeighborhoodBlendingVS &&
-                           PostFxResources.SMAA_areaTex && PostFxResources.SMAA_searchTex && PostFxResources.edgesTex && PostFxResources.blendTex
-                           ) {
-                            DWORD oldSample = 0;
-
-                            // SMAA_EdgeDetection
-                            pDevice->GetRenderState(D3DRS_SRGBWRITEENABLE, &OldSRGB); // save srgb state
-                            pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, 0);
-                            pDevice->SetPixelShader(PostFxResources.SMAA_EdgeDetection);
-                            pDevice->SetVertexShader(PostFxResources.SMAA_EdgeDetectionVS);
-                            pDevice->SetRenderTarget(0, PostFxResources.edgesSurf);
-                            //pDevice->SetTexture(2, 0);
-                            pDevice->SetTexture(0, PostFxResources.textureRead);
-                            pDevice->GetSamplerState(3, D3DSAMP_MAGFILTER, &oldSample);
-                            pDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                            pDevice->SetSamplerState(1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                            pDevice->SetSamplerState(2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                            pDevice->SetSamplerState(3, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
-                            pDevice->SetSamplerState(4, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                            pDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 0, 0);
-                            pDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, 1);
-                            pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-                            pDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, 0);
-                            pDevice->SetTexture(0, 0);
-
-                            // SMAA_BlendingWeightsCalculation
-                            pDevice->SetPixelShader(PostFxResources.SMAA_BlendingWeightsCalculation);
-                            pDevice->SetVertexShader(PostFxResources.SMAA_BlendingWeightsCalculationVS);
-                            pDevice->SetRenderTarget(0, PostFxResources.blendSurf);
-                            pDevice->SetTexture(1, PostFxResources.edgesTex->mD3DTexture);
-                            pDevice->SetTexture(2, PostFxResources.SMAA_areaTex);
-                            pDevice->SetTexture(3, PostFxResources.SMAA_searchTex);
-                            pDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 0, 0);
-                            pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-
-                            pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, OldSRGB);// restore srgb state
-
-                            // SMAA_NeighborhoodBlending
-                            pDevice->SetPixelShader(PostFxResources.SMAA_NeighborhoodBlending);
-                            pDevice->SetVertexShader(PostFxResources.SMAA_NeighborhoodBlendingVS);
-                            vec4[0] = static_cast<float>(UsePostFxAA->get());
-                            vec4[1] = 1.0f;
-                            vec4[2] = 3.0f;
-                            vec4[3] = 4.0f;
-                            pDevice->SetPixelShaderConstantF(5, vec4, 1);
-
-                            pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
-                                // pDevice->SetRenderTarget(0, PostFxResources.backBuffer);
-                            pDevice->SetSamplerState(2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-
-                            //pDevice->SetTexture(2,  textureRead);
-                            pDevice->SetTexture(0, PostFxResources.textureRead);
-                            pDevice->SetTexture(1, PostFxResources.edgesTex->mD3DTexture);
-                            pDevice->SetTexture(4, PostFxResources.blendTex->mD3DTexture);
-                            pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, 0);
-                            pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-                            PostFxResources.swapbuffers();
-                            pDevice->SetTexture(0, PostFxResources.prePostFx[0]);
-                            pDevice->SetTexture(1, PostFxResources.prePostFx[1]);
-                            pDevice->SetTexture(2, PostFxResources.textureRead);
-                            pDevice->SetTexture(3, PostFxResources.prePostFx[3]);
-                            pDevice->SetTexture(4, PostFxResources.prePostFx[4]);
-                            pDevice->SetSamplerState(3, D3DSAMP_MAGFILTER, oldSample);
-                            pDevice->SetPixelShader(pShader);
-                            pDevice->SetVertexShader(vShader);
-                        }
-                    }
-
                     // game postfx
                     {
                         for(int i = 0; i < 4; i++) {
@@ -964,10 +874,11 @@ private:
                             pDevice->SetSamplerState(i, D3DSAMP_MAGFILTER, PostFxResources.Samplers[i]);
                         }
 
-                            // if(UsePostFxAA->get() > FusionFixSettings.AntialiasingText.eMO_OFF)
-                            //     pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
-                            // else
+                        if(UsePostFxAA->get() > FusionFixSettings.AntialiasingText.eMO_OFF)
+                            pDevice->SetRenderTarget(0, PostFxResources.FullScreenSurface_temp3);
+                        else
                             pDevice->SetRenderTarget(0, PostFxResources.backBuffer);
+
                         pDevice->SetTexture(9, PostFxResources.blueNoiseVolume);
                         pDevice->SetTexture(2, PostFxResources.textureRead);
                         pDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 0, 0);
@@ -981,6 +892,96 @@ private:
 
                         pDevice->SetTexture(9, 0);
                     }
+                    
+                    // Anti aliasing
+                    if(UsePostFxAA && UsePostFxAA->get() > FusionFixSettings.AntialiasingText.eMO_OFF) {
+                        // FXAA
+                        if((UsePostFxAA->get() == FusionFixSettings.AntialiasingText.eFXAA) && PostFxResources.FxaaPS) {
+                            pDevice->SetPixelShader(PostFxResources.FxaaPS);
+
+                            // pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
+                            pDevice->SetRenderTarget(0, PostFxResources.backBuffer);
+
+                            pDevice->SetTexture(2, PostFxResources.FullScreenTex_temp3->mD3DTexture);
+                            // pDevice->SetTexture(2, PostFxResources.textureRead);
+
+                            hr = pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
+                            PostFxResources.swapbuffers();
+                            //pDevice->SetTexture(2, 0);
+                            pDevice->SetPixelShader(pShader);
+                        }
+
+                        // SMAA
+                        if(UsePostFxAA->get() >= FusionFixSettings.AntialiasingText.eSMAA &&
+                           PostFxResources.SMAA_EdgeDetection && PostFxResources.SMAA_BlendingWeightsCalculation && PostFxResources.SMAA_NeighborhoodBlending &&
+                           PostFxResources.SMAA_EdgeDetectionVS && PostFxResources.SMAA_BlendingWeightsCalculationVS && PostFxResources.SMAA_NeighborhoodBlendingVS &&
+                           PostFxResources.SMAA_areaTex && PostFxResources.SMAA_searchTex && PostFxResources.edgesTex && PostFxResources.blendTex
+                           ) {
+                            DWORD oldSample = 0;
+
+                            // SMAA_EdgeDetection
+                            pDevice->SetPixelShader(PostFxResources.SMAA_EdgeDetection);
+                            pDevice->SetVertexShader(PostFxResources.SMAA_EdgeDetectionVS);
+                            pDevice->SetRenderTarget(0, PostFxResources.edgesSurf);
+                            //pDevice->SetTexture(2, 0);
+                            pDevice->SetTexture(0, PostFxResources.FullScreenTex_temp3->mD3DTexture);
+                            pDevice->GetSamplerState(3, D3DSAMP_MAGFILTER, &oldSample);
+                            pDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+                            pDevice->SetSamplerState(1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+                            pDevice->SetSamplerState(2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+                            pDevice->SetSamplerState(3, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+                            pDevice->SetSamplerState(4, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+                            pDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 0, 0);
+                            pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
+                            pDevice->SetTexture(0, 0);
+
+                            // SMAA_BlendingWeightsCalculation
+                            pDevice->SetPixelShader(PostFxResources.SMAA_BlendingWeightsCalculation);
+                            pDevice->SetVertexShader(PostFxResources.SMAA_BlendingWeightsCalculationVS);
+                            pDevice->SetRenderTarget(0, PostFxResources.blendSurf);
+                            pDevice->SetTexture(1, PostFxResources.edgesTex->mD3DTexture);
+                            pDevice->SetTexture(2, PostFxResources.SMAA_areaTex);
+                            pDevice->SetTexture(3, PostFxResources.SMAA_searchTex);
+                            pDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 0, 0);
+                            pDevice->GetSamplerState(3, D3DSAMP_ADDRESSU, &oldSample);
+                            pDevice->GetSamplerState(3, D3DSAMP_ADDRESSV, &oldSample);
+                            pDevice->SetSamplerState(3, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+                            pDevice->SetSamplerState(3, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+                            pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
+                            pDevice->SetSamplerState(3, D3DSAMP_ADDRESSU, oldSample);
+                            pDevice->SetSamplerState(3, D3DSAMP_ADDRESSV, oldSample);
+
+                            // SMAA_NeighborhoodBlending
+                            pDevice->SetPixelShader(PostFxResources.SMAA_NeighborhoodBlending);
+                            pDevice->SetVertexShader(PostFxResources.SMAA_NeighborhoodBlendingVS);
+
+                            // pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
+                            pDevice->SetRenderTarget(0, PostFxResources.backBuffer);
+                            pDevice->SetSamplerState(2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+
+                            //pDevice->SetTexture(2,  textureRead);
+                            pDevice->SetTexture(0, PostFxResources.FullScreenTex_temp3->mD3DTexture);
+                            pDevice->SetTexture(1, PostFxResources.edgesTex->mD3DTexture);
+                            pDevice->SetTexture(4, PostFxResources.blendTex->mD3DTexture);
+                            pDevice->GetSamplerState(0, D3DSAMP_SRGBTEXTURE, &oldSample);
+                            pDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, 1);
+                            pDevice->GetRenderState(D3DRS_SRGBWRITEENABLE, &OldSRGB); // save srgb state
+                            pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, 1);
+                            pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
+                            pDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, oldSample);
+                            pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, OldSRGB); // restore srgb state
+                            PostFxResources.swapbuffers();
+                            pDevice->SetTexture(0, PostFxResources.prePostFx[0]);
+                            pDevice->SetTexture(1, PostFxResources.prePostFx[1]);
+                            pDevice->SetTexture(2, PostFxResources.FullScreenTex_temp3->mD3DTexture);
+                            pDevice->SetTexture(3, PostFxResources.prePostFx[3]);
+                            pDevice->SetTexture(4, PostFxResources.prePostFx[4]);
+                            pDevice->SetSamplerState(3, D3DSAMP_MAGFILTER, oldSample);
+                            pDevice->SetPixelShader(pShader);
+                            pDevice->SetVertexShader(vShader);
+                        }
+                    }
+
                     for(int i = 0; i < PostfxTextureCount; i++) {
                         pDevice->SetTexture(i, PostFxResources.prePostFx[i]);
                         pDevice->SetSamplerState(i, D3DSAMP_MAGFILTER, PostFxResources.Samplers[i]);
