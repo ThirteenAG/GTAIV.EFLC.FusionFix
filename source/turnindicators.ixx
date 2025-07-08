@@ -1,6 +1,7 @@
 module;
 
 #include <common.hxx>
+#include <deque>
 
 export module turnindicators;
 
@@ -10,24 +11,88 @@ import natives;
 import settings;
 
 // Configuration
-constexpr float STEER_THRESHOLD = 0.15f;    // Minimum steering to trigger blinkers
-constexpr float ACTIVATION_DELAY = 600.0f;  // 600ms delay before activation
-constexpr float TURN_OFF_DELAY = 200.0f;    // 200ms delay before turning off after steering stops
-constexpr float BLINK_INTERVAL = 400.0f;    // 500ms blink interval (on/off cycle)
+float STEER_THRESHOLD = 0.15f;    // Minimum steering to trigger blinkers
+float ACTIVATION_DELAY = 600.0f;  // 600ms delay before activation
+float TURN_OFF_DELAY = 200.0f;    // 200ms delay before turning off after steering stops
+float BLINK_INTERVAL = 400.0f;    // 400ms blink interval (on/off cycle)
 
-// Control variables
-static float turn_start_timer = 0.0f;
-static float turn_stop_timer = 0.0f;
-static int current_blinker = 0; // 0 = off, 1 = left, 2 = right
-static int last_turn_direction = 0; // Track last turn direction
-static bool is_turning = false;
-static bool blinkers_active = false;
+// Struct to hold all vehicle state data
+struct VehicleState
+{
+    enum CrashState
+    {
+        NO_CRASH = 0,
+        JUST_CRASHED_STILL_IN_CAR = 1,
+        CRASHED_AND_EXITED = 2
+    };
 
-// Blinking logic variables
-static float blink_timer = 0.0f;
-static bool blink_state = false; // true = lights on, false = lights off
-static bool should_stop_blinking = false;
-static float final_blink_timer = 0.0f;
+    CrashState crash_state = NO_CRASH;
+    int current_blinker = 0;
+    float turn_start_timer = 0.0f;
+    float turn_stop_timer = 0.0f;
+    int last_turn_direction = 0;
+    bool is_turning = false;
+    bool blinkers_active = false;
+    bool should_stop_blinking = false;
+    bool blink_state = false;
+    float blink_timer = 0.0f;
+    float final_blink_timer = 0.0f;
+};
+
+// Queue to store last 5 player vehicles with their states
+static std::deque<std::pair<Vehicle, VehicleState>> recent_vehicles;
+static const size_t MAX_RECENT_VEHICLES = 5;
+
+// Helper function to find vehicle in queue
+VehicleState* findVehicle(Vehicle veh)
+{
+    for (auto& pair : recent_vehicles)
+    {
+        if (pair.first == veh)
+        {
+            return &pair.second;
+        }
+    }
+    return nullptr;
+}
+
+VehicleState* addOrUpdateVehicle(Vehicle veh, const VehicleState& state = VehicleState{})
+{
+    // Check if vehicle already exists
+    for (auto it = recent_vehicles.begin(); it != recent_vehicles.end(); ++it)
+    {
+        if (it->first == veh)
+        {
+            // Move to front and keep existing state
+            VehicleState existing_state = it->second;
+            recent_vehicles.erase(it);
+            recent_vehicles.push_front({ veh, existing_state });
+            return &recent_vehicles.front().second;
+        }
+    }
+
+    // Add new vehicle to front
+    recent_vehicles.push_front({ veh, state });
+
+    // Remove oldest if we exceed max size
+    if (recent_vehicles.size() > MAX_RECENT_VEHICLES)
+    {
+        // Turn off any active lights on the vehicle being removed
+        Vehicle old_veh = recent_vehicles.back().first;
+        VehicleState& old_state = recent_vehicles.back().second;
+        if (old_state.blinkers_active || old_state.current_blinker != 0)
+        {
+            Natives::SetVehIndicatorlights(old_veh, false);
+        }
+        if (old_state.crash_state != VehicleState::NO_CRASH)
+        {
+            Natives::SetVehHazardlights(old_veh, false);
+        }
+        recent_vehicles.pop_back();
+    }
+
+    return &recent_vehicles.front().second;
+};
 
 enum Lights
 {
@@ -38,20 +103,30 @@ enum Lights
 };
 
 SafetyHookInline sh_sub_A3FF30{};
-void __fastcall sub_A3FF30(void* _this, void* edx, int light, float a3, int a4, int a5)
+void __fastcall sub_A3FF30(void* pVehicleStruct, void* edx, int light, float a3, int a4, int a5)
 {
-    if (current_blinker == 1) // Left
+    // Find the current player vehicle in our queue
+    for (auto& pair : recent_vehicles)
     {
-        if (light == LIGHT_FRONT_RIGHT || light == LIGHT_REAR_RIGHT)
-            return;
-    }
-    else if (current_blinker == 2) // Right
-    {
-        if (light == LIGHT_FRONT_LEFT || light == LIGHT_REAR_LEFT)
-            return;
+        if (pair.first == CVehicle::GetVehiclePool()->GetIndex(pVehicleStruct))
+        {
+            int current_blinker = pair.second.current_blinker;
+    
+            if (current_blinker == 1) // Left
+            {
+                if (light == LIGHT_FRONT_RIGHT || light == LIGHT_REAR_RIGHT)
+                    return;
+            }
+            else if (current_blinker == 2) // Right
+            {
+                if (light == LIGHT_FRONT_LEFT || light == LIGHT_REAR_LEFT)
+                    return;
+            }
+            break;
+        }
     }
 
-    return sh_sub_A3FF30.unsafe_fastcall(_this, edx, light, a3, a4, a5);
+    return sh_sub_A3FF30.unsafe_fastcall(pVehicleStruct, edx, light, a3, a4, a5);
 }
 
 class TurnIndicators
@@ -66,181 +141,319 @@ public:
             {
                 sh_sub_A3FF30 = safetyhook::create_inline(pattern.get_first(0), sub_A3FF30);
 
-                FusionFix::onGameProcessEvent() += []()
+                pattern = hook::pattern("F3 0F 11 82 ? ? ? ? 8A 44 24");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(), 8, true);
+                    static auto WheelResetHook1 = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                    {
+                        static auto ti = FusionFixSettings.GetRef("PREF_TURNINDICATORS");
+                        if (!ti->get())
+                            *(float*)(regs.edx + 0x1088) = regs.xmm0.f32[0];
+                    });
+                }
+
+                pattern = hook::pattern("C7 86 ? ? ? ? ? ? ? ? C7 86 ? ? ? ? ? ? ? ? E8 ? ? ? ? 84 C0 75 ? C7 86 ? ? ? ? ? ? ? ? F6 86");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(), 10, true);
+                    static auto WheelResetHook2 = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                    {
+                        static auto ti = FusionFixSettings.GetRef("PREF_TURNINDICATORS");
+                        if (!ti->get())
+                            *(float*)(regs.esi + 0x1088) = 0.0f;
+                    });
+                }
+
+                pattern = hook::pattern("E8 ? ? ? ? 6A ? FF 35 ? ? ? ? 8D 4C 24 ? 56");
+                if (!pattern.empty())
+                {
+                    static auto FlyThroughWindscreenHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                    {
+                        static auto ti = FusionFixSettings.GetRef("PREF_TURNINDICATORS");
+                        if (ti->get())
+                        {
+                            Ped PlayerPed = 0;
+                            Vehicle PlayerCar = 0;
+                            Natives::GetPlayerChar(Natives::ConvertIntToPlayerindex(Natives::GetPlayerId()), &PlayerPed);
+                            if (PlayerPed)
+                            {
+                                Natives::GetCarCharIsUsing(PlayerPed, &PlayerCar);
+                                if (PlayerCar)
+                                {
+                                    VehicleState* state = addOrUpdateVehicle(PlayerCar);
+                                    state->crash_state = VehicleState::JUST_CRASHED_STILL_IN_CAR;
+                                    state->current_blinker = 0;
+                                    Natives::SetVehHazardlights(PlayerCar, true);
+                                }
+                            }
+                        }
+                    });
+                }
+
+                FusionFix::onGameProcessEvent() += [&]()
                 {
                     static auto ti = FusionFixSettings.GetRef("PREF_TURNINDICATORS");
-                    if (!ti->get() && current_blinker == 0)
-                        return;
+                    static Vehicle last_player_car = 0;
 
+                    // Get current player vehicle
                     Ped PlayerPed = 0;
                     Vehicle PlayerCar = 0;
                     Natives::GetPlayerChar(Natives::ConvertIntToPlayerindex(Natives::GetPlayerId()), &PlayerPed);
                     if (PlayerPed)
                     {
                         Natives::GetCarCharIsUsing(PlayerPed, &PlayerCar);
-                        if (PlayerCar)
+                    }
+
+                    // Check if player has fully entered the vehicle (can actually drive)
+                    auto pVehicleStruct = FindPlayerVehicle(0);
+                    bool player_fully_in_vehicle = (PlayerCar != 0 && pVehicleStruct != nullptr);
+
+                    // If player is in a vehicle, add/update it in our queue
+                    if (PlayerCar != 0)
+                    {
+                        addOrUpdateVehicle(PlayerCar);
+                    }
+
+                    // Handle crash state transitions when player exits/enters vehicles
+                    if (PlayerCar != last_player_car)
+                    {
+                        // Player changed vehicles or exited
+                        if (last_player_car != 0)
                         {
-                            auto pVehicleStruct = FindPlayerVehicle(0);
-                            if (pVehicleStruct)
+                            // Player exited a vehicle - check if it was crashed
+                            VehicleState* last_state = findVehicle(last_player_car);
+                            if (last_state && last_state->crash_state == VehicleState::JUST_CRASHED_STILL_IN_CAR)
                             {
-                                auto m_fSteerAngle = *reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(pVehicleStruct) + 0x1088);
+                                last_state->crash_state = VehicleState::CRASHED_AND_EXITED;
+                            }
+                        }
 
-                                // Determine current turn direction
-                                int current_turn_direction = 0;
-                                if (m_fSteerAngle > STEER_THRESHOLD)
-                                    current_turn_direction = 1; // Left (positive values = left turn)
-                                else if (m_fSteerAngle < -STEER_THRESHOLD)
-                                    current_turn_direction = 2; // Right (negative values = right turn)
-                                // else = 0 (straight)
+                        last_player_car = PlayerCar;
+                    }
 
-                                bool currently_turning = (current_turn_direction != 0);
-                                bool direction_changed = (current_turn_direction != last_turn_direction &&
-                                    current_turn_direction != 0); // Any change TO a direction
+                    // Handle hazard light turn-off when player fully enters a previously crashed vehicle
+                    if (player_fully_in_vehicle)
+                    {
+                        VehicleState* current_state = findVehicle(PlayerCar);
+                        if (current_state && current_state->crash_state == VehicleState::CRASHED_AND_EXITED)
+                        {
+                            current_state->crash_state = VehicleState::NO_CRASH;
+                            Natives::SetVehHazardlights(PlayerCar, false);
+                        }
+                    }
 
-                                // Handle direction change (including from straight to turning)
-                                if (direction_changed)
+                    // Process all vehicles in our queue
+                    for (auto& pair : recent_vehicles)
+                    {
+                        Vehicle veh = pair.first;
+                        VehicleState& state = pair.second;
+
+                        bool is_player_vehicle = (veh == PlayerCar);
+                        bool player_in_vehicle = is_player_vehicle && player_fully_in_vehicle;
+
+                        // Skip processing if feature is disabled and no active blinkers
+                        if (!ti->get() && state.current_blinker == 0)
+                        {
+                            continue;
+                        }
+
+                        // Get vehicle structure (we already have it for player vehicle)
+                        auto vehicleStruct = (is_player_vehicle) ? pVehicleStruct : nullptr;
+
+                        if (player_in_vehicle && vehicleStruct)
+                        {
+                            // Process player vehicle with turn indicators
+                            auto m_fSteerAngle = *reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(vehicleStruct) + 0x1088);
+
+                            // Determine current turn direction
+                            int current_turn_direction = 0;
+                            if (m_fSteerAngle > STEER_THRESHOLD)
+                                current_turn_direction = 1; // Left
+                            else if (m_fSteerAngle < -STEER_THRESHOLD)
+                                current_turn_direction = 2; // Right
+
+                            bool currently_turning = (current_turn_direction != 0);
+                            bool direction_changed = (current_turn_direction != state.last_turn_direction &&
+                                current_turn_direction != 0);
+
+                            // Handle direction change
+                            if (direction_changed)
+                            {
+                                if (state.blinkers_active)
                                 {
-                                    // Turn off current blinkers immediately when direction changes
-                                    if (blinkers_active)
+                                    Natives::SetVehIndicatorlights(veh, false);
+                                    state.blinkers_active = false;
+                                    state.current_blinker = 0;
+                                    state.should_stop_blinking = false;
+                                    state.blink_state = false;
+                                    state.blink_timer = 0.0f;
+                                }
+
+                                state.turn_start_timer = 0.0f;
+                                state.turn_stop_timer = 0.0f;
+                                state.is_turning = true;
+                            }
+                            else if (currently_turning && !state.is_turning)
+                            {
+                                state.turn_start_timer = 0.0f;
+                                state.turn_stop_timer = 0.0f;
+                                state.is_turning = true;
+                            }
+                            else if (!currently_turning && state.is_turning)
+                            {
+                                state.turn_stop_timer = 0.0f;
+                                state.is_turning = false;
+                                if (state.blinkers_active)
+                                {
+                                    state.should_stop_blinking = true;
+                                    state.final_blink_timer = 0.0f;
+                                }
+                            }
+
+                            // Update timers
+                            if (state.is_turning && current_turn_direction != 0 && !state.should_stop_blinking)
+                            {
+                                state.turn_start_timer += 1000.0f * Natives::Timestep();
+
+                                if (state.turn_start_timer >= ACTIVATION_DELAY && !state.blinkers_active)
+                                {
+                                    state.current_blinker = current_turn_direction;
+                                    state.blinkers_active = true;
+                                    state.blink_timer = 0.0f;
+                                    state.blink_state = true;
+                                }
+                            }
+
+                            // Handle blinking logic
+                            if (state.blinkers_active && !state.should_stop_blinking)
+                            {
+                                state.blink_timer += 1000.0f * Natives::Timestep();
+
+                                if (state.blink_timer >= BLINK_INTERVAL)
+                                {
+                                    state.blink_state = !state.blink_state;
+                                    state.blink_timer = 0.0f;
+
+                                    if (state.blink_state)
                                     {
-                                        Natives::SetVehIndicatorlights(PlayerCar, false);
-                                        blinkers_active = false;
-                                        current_blinker = 0;
-                                        should_stop_blinking = false;
-                                        blink_state = false;
-                                        blink_timer = 0.0f;
+                                        Natives::SetVehIndicatorlights(veh, true);
                                     }
-
-                                    // Start new turn timer for new direction
-                                    turn_start_timer = 0.0f;
-                                    turn_stop_timer = 0.0f;
-                                    is_turning = true;
-                                }
-                                // Handle turn start (from straight to turning - now handled above)
-                                else if (currently_turning && !is_turning)
-                                {
-                                    // This case is now covered by direction_changed
-                                    turn_start_timer = 0.0f;
-                                    turn_stop_timer = 0.0f;
-                                    is_turning = true;
-                                }
-                                // Handle turn end
-                                else if (!currently_turning && is_turning)
-                                {
-                                    // Stopped turning - reset timers and start graceful shutdown
-                                    turn_stop_timer = 0.0f;
-                                    is_turning = false;
-                                    if (blinkers_active)
+                                    else
                                     {
-                                        should_stop_blinking = true;
-                                        final_blink_timer = 0.0f;
+                                        Natives::SetVehIndicatorlights(veh, false);
                                     }
                                 }
+                            }
+                            else if (state.should_stop_blinking && state.blinkers_active)
+                            {
+                                state.final_blink_timer += 1000.0f * Natives::Timestep();
 
-                                // Update timers using Timestep
-                                if (is_turning && current_turn_direction != 0 && !should_stop_blinking)
+                                if (state.blink_state)
                                 {
-                                    turn_start_timer += 1000.0f * Natives::Timestep(); // Convert to milliseconds
+                                    state.blink_timer += 1000.0f * Natives::Timestep();
 
-                                    // Check if we should activate blinkers
-                                    if (turn_start_timer >= ACTIVATION_DELAY && !blinkers_active)
+                                    if (state.blink_timer >= BLINK_INTERVAL)
                                     {
-                                        current_blinker = current_turn_direction;
-                                        blinkers_active = true;
-                                        blink_timer = 0.0f;
-                                        blink_state = true; // Start with lights on
+                                        Natives::SetVehIndicatorlights(veh, false);
+
+                                        state.blinkers_active = false;
+                                        state.current_blinker = 0;
+                                        state.should_stop_blinking = false;
+                                        state.blink_state = false;
+                                        state.turn_start_timer = 0.0f;
+                                        state.turn_stop_timer = 0.0f;
+                                        state.blink_timer = 0.0f;
                                     }
                                 }
-
-                                // Handle blinking logic
-                                if (blinkers_active && !should_stop_blinking)
+                                else
                                 {
-                                    blink_timer += 1000.0f * Natives::Timestep();
+                                    state.blinkers_active = false;
+                                    state.current_blinker = 0;
+                                    state.should_stop_blinking = false;
+                                    state.turn_start_timer = 0.0f;
+                                    state.turn_stop_timer = 0.0f;
+                                    state.blink_timer = 0.0f;
+                                }
 
-                                    if (blink_timer >= BLINK_INTERVAL)
+                                // Safety timeout
+                                if (state.final_blink_timer >= BLINK_INTERVAL * 2)
+                                {
+                                    Natives::SetVehIndicatorlights(veh, false);
+
+                                    state.blinkers_active = false;
+                                    state.current_blinker = 0;
+                                    state.should_stop_blinking = false;
+                                    state.blink_state = false;
+                                    state.turn_start_timer = 0.0f;
+                                    state.turn_stop_timer = 0.0f;
+                                    state.blink_timer = 0.0f;
+                                }
+                            }
+
+                            state.last_turn_direction = current_turn_direction;
+                        }
+                        else
+                        {
+                            // Vehicle is not occupied by player - continue processing blinkers
+                            if (state.current_blinker != 0)
+                            {
+                                // Continue blinking process
+                                if (state.blinkers_active && !state.should_stop_blinking)
+                                {
+                                    state.blink_timer += 1000.0f * Natives::Timestep();
+
+                                    if (state.blink_timer >= BLINK_INTERVAL)
                                     {
-                                        blink_state = !blink_state; // Toggle blink state
-                                        blink_timer = 0.0f;
+                                        state.blink_state = !state.blink_state;
+                                        state.blink_timer = 0.0f;
 
-                                        if (blink_state)
+                                        if (state.blink_state)
                                         {
-                                            // Turn lights on
-                                            Natives::SetVehIndicatorlights(PlayerCar, true);
+                                            Natives::SetVehIndicatorlights(veh, true);
                                         }
                                         else
                                         {
-                                            // Turn lights off
-                                            Natives::SetVehIndicatorlights(PlayerCar, false);
+                                            Natives::SetVehIndicatorlights(veh, false);
                                         }
                                     }
                                 }
-                                // Handle graceful shutdown (finish current blink cycle)
-                                else if (should_stop_blinking && blinkers_active)
+                                else if (state.should_stop_blinking && state.blinkers_active)
                                 {
-                                    final_blink_timer += 1000.0f * Natives::Timestep();
+                                    state.final_blink_timer += 1000.0f * Natives::Timestep();
 
-                                    // If lights are currently on, wait for the blink cycle to complete
-                                    if (blink_state)
+                                    if (state.blink_state)
                                     {
-                                        blink_timer += 1000.0f * Natives::Timestep();
+                                        state.blink_timer += 1000.0f * Natives::Timestep();
 
-                                        if (blink_timer >= BLINK_INTERVAL)
+                                        if (state.blink_timer >= BLINK_INTERVAL)
                                         {
-                                            // Complete the blink cycle by turning lights off
-                                            Natives::SetVehIndicatorlights(PlayerCar, false);
+                                            Natives::SetVehIndicatorlights(veh, false);
 
-                                            // Completely turn off blinkers
-                                            blinkers_active = false;
-                                            current_blinker = 0;
-                                            should_stop_blinking = false;
-                                            blink_state = false;
-                                            turn_start_timer = 0.0f;
-                                            turn_stop_timer = 0.0f;
-                                            blink_timer = 0.0f;
+                                            state.current_blinker = 0;
+                                            state.blinkers_active = false;
+                                            state.should_stop_blinking = false;
+                                            state.blink_state = false;
                                         }
                                     }
                                     else
                                     {
-                                        // Lights are already off, we can stop immediately
-                                        blinkers_active = false;
-                                        current_blinker = 0;
-                                        should_stop_blinking = false;
-                                        turn_start_timer = 0.0f;
-                                        turn_stop_timer = 0.0f;
-                                        blink_timer = 0.0f;
+                                        state.current_blinker = 0;
+                                        state.blinkers_active = false;
+                                        state.should_stop_blinking = false;
                                     }
 
-                                    // Safety timeout - force stop after reasonable time
-                                    if (final_blink_timer >= BLINK_INTERVAL * 2)
+                                    // Safety timeout
+                                    if (state.final_blink_timer >= BLINK_INTERVAL * 2)
                                     {
-                                        Natives::SetVehIndicatorlights(PlayerCar, false);
+                                        Natives::SetVehIndicatorlights(veh, false);
 
-                                        blinkers_active = false;
-                                        current_blinker = 0;
-                                        should_stop_blinking = false;
-                                        blink_state = false;
-                                        turn_start_timer = 0.0f;
-                                        turn_stop_timer = 0.0f;
-                                        blink_timer = 0.0f;
+                                        state.current_blinker = 0;
+                                        state.blinkers_active = false;
+                                        state.should_stop_blinking = false;
+                                        state.blink_state = false;
                                     }
                                 }
-
-                                // Update last turn direction
-                                last_turn_direction = current_turn_direction;
-                            }
-                            else
-                            {
-                                // Reset state when not in vehicle
-                                turn_start_timer = 0.0f;
-                                turn_stop_timer = 0.0f;
-                                current_blinker = 0;
-                                last_turn_direction = 0;
-                                is_turning = false;
-                                blinkers_active = false;
-                                should_stop_blinking = false;
-                                blink_state = false;
-                                blink_timer = 0.0f;
-                                final_blink_timer = 0.0f;
                             }
                         }
                     }
