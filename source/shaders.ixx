@@ -141,6 +141,10 @@ public:
         static float fSHADOWFILTERCHSSMaxSoftness = 10.0f;
         static float fSHADOWFILTERCHSSLightSize = 500.0f;
 
+        static float fSSDensity = 0.85f;
+        static float fSSDecay = 0.975f;
+        static float fSSSunSize = 0.33f;
+
         static float fCascadeBlendSize = 0.1f;
 
         static int nForceShadowFilter = 0;
@@ -166,6 +170,10 @@ public:
             fSHADOWFILTERCHSSShadowBias = iniReader.ReadFloat("SHADOWFILTERCHSS", "ShadowBias", 5.0f);
             fSHADOWFILTERCHSSMaxSoftness = iniReader.ReadFloat("SHADOWFILTERCHSS", "MaxSoftness", 10.0f);
             fSHADOWFILTERCHSSLightSize = iniReader.ReadFloat("SHADOWFILTERCHSS", "LightSize", 500.0f);
+
+            fSSDensity = std::clamp(iniReader.ReadFloat("SUNSHAFTS", "SSDensity", 0.9f), 0.0f, 1.0f);
+            fSSDecay = std::clamp(iniReader.ReadFloat("SUNSHAFTS", "SSDecay", 0.95f), 0.0f, 1.0f);
+            fSSSunSize = 1.0f / std::clamp(iniReader.ReadFloat("SUNSHAFTS", "SSSunSize", 0.075f), 0.0000001f, 1.0f);
 
             fCascadeBlendSize = std::clamp(iniReader.ReadFloat("SHADOWS", "CascadeBlendSize", 0.1f), 0.0f, 1.0f);
             nForceShadowFilter = std::clamp(iniReader.ReadInteger("SHADOWS", "ForceShadowFilter", 0), 0, 2);
@@ -459,7 +467,28 @@ public:
                         }
 
                         arr5[1] = bEnableSnow ? 1.0f : 0.0f;
-                        arr5[2] = 0.0f;
+                        
+                        static auto dof = FusionFixSettings.GetRef("PREF_TCYC_DOF");
+                        static float dofscale = 1.0f;
+                        if(!CCutscenes::hasCutsceneFinished())
+                        {
+                            switch(dof->get())
+                            {
+                                case FusionFixSettings.DofText.eOff: dofscale = 0.0f; break;
+                                case FusionFixSettings.DofText.eCutscenesOnly: dofscale = 0.0f; break;
+                                case FusionFixSettings.DofText.eLow: dofscale = 0.25f; break;
+                                case FusionFixSettings.DofText.eMedium: dofscale = 0.5f; break;
+                                case FusionFixSettings.DofText.eHigh: dofscale = 0.75f; break;
+                                case FusionFixSettings.DofText.eVeryHigh: dofscale = 1.0f; break;
+                                default: dofscale = 1.0f; break;
+                            }
+                        }
+                        else
+                        {
+                            dofscale = 1.0f;
+                        }
+                        
+                        arr5[2] = dofscale;
                         arr5[3] = treealpha->get() == FusionFixSettings.TreeAlphaText.eConsole ? fTreeAlphaConsole : fTreeAlphaPC;
                         pDevice->SetPixelShaderConstantF(221, &arr5[0], 1);
                     }
@@ -479,6 +508,7 @@ public:
                             case 1: mblurscale = 0.125f; break;
                             case 2: mblurscale = 0.25f; break;
                             case 3: mblurscale = 0.5f; break;
+                            case 4: mblurscale = 1.0f; break;
                             default: mblurscale = 1.0f; break;
                         }
                         arr3[3] = mblurscale / (30.0f * Natives::Timestep());
@@ -515,12 +545,12 @@ public:
                         arr10[0] = max(CTimeCycleExt::GetVolFogDensity(), 0.0f);
                         arr10[1] = max(CTimeCycleExt::GetVolFogHeightFalloff(), 0.0000001f);
                         arr10[2] = max(CTimeCycleExt::GetVolFogPower(), 0.0f);
-                        arr10[3] = std::clamp(CTimeCycleExt::GetVolFogColorFactor(), 0.0f, 1.0f);
+                        arr10[3] = std::clamp(CTimeCycleExt::GetVolFogAltitudeTweak(), 0.0f, 1.0f);
                         pDevice->SetPixelShaderConstantF(211, &arr10[0], 1);
                         pDevice->SetVertexShaderConstantF(235, &arr10[0], 1);
 
                         static float arr11[4];
-                        arr11[0] = std::clamp(CTimeCycleExt::GetVolFogAltitudeTweak(), 0.0f, 1.0f);
+                        arr11[0] = 0.0f;
                         arr11[1] = static_cast<float>(fog->get());
                         arr11[2] = bSmoothLightVolumes ? 1.0f : 0.0f;
                         arr11[3] = 0.0f;
@@ -537,6 +567,14 @@ public:
                         pDevice->SetPixelShaderConstantF(210, &arr11[0], 1);
                         pDevice->SetVertexShaderConstantF(236, &arr11[0], 1);
                         pDevice->SetVertexShaderConstantF(237, &arr12[0], 1);
+
+                        static float arr13[4];
+                        arr13[0] = max(CTimeCycleExt::GetSSIntensity(), 0.0f);
+                        arr13[1] = fSSDensity;
+                        arr13[2] = fSSDecay;
+                        arr13[3] = fSSSunSize;
+
+                        pDevice->SetPixelShaderConstantF(208, &arr13[0], 1);
                     }
                 }
             });

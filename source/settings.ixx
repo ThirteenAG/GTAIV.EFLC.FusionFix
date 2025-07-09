@@ -220,7 +220,7 @@ public:
             { 0, "PREF_DEFINITION",        "MAIN",       "Definition",                      "",                           1, nullptr, 0, 1 },
             { 0, "PREF_SHADOWFILTER",      "SHADOWS",    "ShadowFilter",                    "MENU_DISPLAY_SHADOWFILTER",  3, nullptr, ShadowFilterText.eSharp, std::distance(std::begin(ShadowFilterText.data), std::end(ShadowFilterText.data)) - 1 },
             { 0, "PREF_TREE_LIGHTING",     "MISC",       "TreeLighting",                    "MENU_DISPLAY_TREE_LIGHTING", 7, nullptr, TreeFxText.ePC, std::distance(std::begin(TreeFxText.data), std::end(TreeFxText.data)) - 1 },
-            { 0, "PREF_TCYC_DOF",          "MISC",       "DepthOfField",                    "MENU_DISPLAY_DOF",           6, nullptr, DofText.eOff, std::distance(std::begin(DofText.data), std::end(DofText.data)) - 1 },
+            { 0, "PREF_TCYC_DOF",          "MISC",       "DepthOfField",                    "MENU_DISPLAY_DOF",           7, nullptr, DofText.eOff, std::distance(std::begin(DofText.data), std::end(DofText.data)) - 1 },
             { 0, "PREF_MOTIONBLUR",        "MAIN",       "MotionBlur",                      "",                           2, nullptr, 0, 4 },
             { 0, "PREF_LEDILLUMINATION",   "MISC",       "LightSyncRGB",                    "",                           0, nullptr, 0, 1 },
             { 0, "PREF_TREEALPHA",         "MISC",       "TreeAlpha",                       "MENU_DISPLAY_TREEALPHA",     4, nullptr, TreeAlphaText.ePC, std::distance(std::begin(TreeAlphaText.data), std::end(TreeAlphaText.data)) - 1 },
@@ -869,8 +869,8 @@ public:
                             static char sVolFogPower[] = "VolFogPower: %f";
                             DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogPower, CTimeCycleExt::GetVolFogPower());
 
-                            static char sVolFogColorFactor[] = "VolFogColorFactor: %f";
-                            DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogColorFactor, CTimeCycleExt::GetVolFogColorFactor());
+                            static char sSSIntensity[] = "SSIntensity: %f";
+                            DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sSSIntensity, CTimeCycleExt::GetSSIntensity());
 
                             static std::string_view modNames[] = {
                                 "noambient", "NoAmbientmult", "qwnomoon", "qw2nomoon", "Brook_S2_TC", "MH_NOMOON", "KsS1nomoon1", "KsS1nomoon2", "KsS1nomoon3", "Brook_N_gden", "Buildsite_MH1",
