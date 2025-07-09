@@ -103,6 +103,21 @@ Bewegung beim Zoomen erlauben
 [LODLights]
 Ferne Lichter
 
+[CenteredVehCam]
+Zentrierte Fahrzeugkamera
+
+[CenteredFootCam]
+Zentrierte Zu-Fuß-Kamera
+
+[Camera Shake]
+Kamerawackeln
+
+[CutscAudioSync]
+Zwischensequenz-Audiosynchronisierung
+
+[Turn Indicators]
+Blinker
+
 [FF_WARN0]
 ~p~IMG-Dateien:
 

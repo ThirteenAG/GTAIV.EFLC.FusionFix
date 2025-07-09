@@ -373,7 +373,7 @@ public:
                 std::ifstream istr_snow(filePath / "snow.dat");
                 while (std::getline(istr_snow, line))
                 {
-                    if (!line.empty() && *line.begin() != '\r' && !line.contains("/"))
+                    if (line.find_first_not_of(" \t\r\n") != std::string::npos && !line.contains('/'))
                         snowTC.emplace_back(line);
                 }
                 assert(snowTC.size() == 99);
@@ -381,7 +381,7 @@ public:
                 std::ifstream istr_hall(filePath / "halloween.dat");
                 while (std::getline(istr_hall, line))
                 {
-                    if (!line.empty() && *line.begin() != '\r' && !line.contains("/"))
+                    if (line.find_first_not_of(" \t\r\n") != std::string::npos && !line.contains('/'))
                         hallTC.emplace_back(line);
                 }
                 assert(hallTC.size() == 99);

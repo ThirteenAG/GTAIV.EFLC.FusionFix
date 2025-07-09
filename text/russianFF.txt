@@ -103,6 +103,21 @@ Fusion Fix: Проверять Обновления
 [LODLights]
 Свет от фонарей
 
+[CenteredVehCam]
+Центрированная камера в транспорте
+
+[CenteredFootCam]
+Центрированная камера пешком
+
+[Camera Shake]
+Тряска камеры
+
+[CutscAudioSync]
+Синхронизация аудио катсцен
+
+[Turn Indicators]
+Поворотники
+
 [FF_WARN0]
 ~p~IMG Архивы:
 

@@ -20,7 +20,7 @@ export std::vector<std::pair<int, float>> currentTimecycleModifiers;
 namespace CTimeCycleModifier
 {
     constexpr auto STRIDE = 47;
-    constexpr auto ARRAY_SIZE = 900;
+    export constexpr auto ARRAY_SIZE = 900;
     int (*msTimeCycleModifiers)[ARRAY_SIZE];
     bool bOverwrite = false;
 
@@ -28,9 +28,9 @@ namespace CTimeCycleModifier
     void __fastcall ApplyTimecycModifier(float* _this, void* edx, uintptr_t a2, float a3, char a4)
     {
         auto hash = *(uint32_t*)a2;
-        if (hash && (a2 >= (uintptr_t)CTimeCycleModifier::msTimeCycleModifiers))
+        if (hash && (a2 >= (uintptr_t)msTimeCycleModifiers))
         {
-            auto diff = a2 - (uintptr_t)CTimeCycleModifier::msTimeCycleModifiers;
+            auto diff = a2 - (uintptr_t)msTimeCycleModifiers;
             auto index = (diff / 47) / 4;
             currentTimecycleModifiers.emplace_back(index, a3);
             bOverwrite = false;

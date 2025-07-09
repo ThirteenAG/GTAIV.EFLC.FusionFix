@@ -103,6 +103,21 @@ Permitir movimiento con zoom
 [LODLights]
 Luces lejanas
 
+[CenteredVehCam]
+Cámara de Vehículo Centrada
+
+[CenteredFootCam]
+Cámara a Pie Centrada
+
+[Camera Shake]
+Temblor de Cámara
+
+[CutscAudioSync]
+Sincronización de Audio en Cinemáticas
+
+[Turn Indicators]
+Indicadores de Giro
+
 [FF_WARN0]
 ~p~Archivos IMG:
 

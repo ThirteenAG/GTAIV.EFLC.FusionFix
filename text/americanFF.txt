@@ -103,6 +103,21 @@ Allow Movement When Zoomed
 [LODLights]
 Distant Lights
 
+[CenteredVehCam]
+Centered Vehicle Camera
+
+[CenteredFootCam]
+Centered On Foot Camera
+
+[Camera Shake]
+Camera Shake
+
+[CutscAudioSync]
+Cutscene Audio Sync
+
+[Turn Indicators]
+Turn Indicators
+
 [FF_WARN0]
 ~p~IMG Files:
 

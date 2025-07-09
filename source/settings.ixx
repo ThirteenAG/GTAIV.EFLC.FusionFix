@@ -247,6 +247,11 @@ public:
             { 0, "PREF_ZOOMEDMOVEMENT",    "MISC",       "ZoomedMovement",                  "",                           1, nullptr, 0, 1 },
             { 0, "PREF_UNCLAMPLIGHTING",   "MISC",       "UnclampLighting",                 "",                           0, nullptr, 0, 1 },
             { 0, "PREF_DISTANTLIGHTS",     "MISC",       "DistantLights",                   "",                           0, nullptr, 0, 1 }, //MENU_DISPLAY_NETSTATS_TRUESKILLNAME
+            { 0, "PREF_CENTEREDCAMERA",    "MISC",       "CenteredVehCam",                  "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_CENTEREDCAMERAFOOT","MISC",       "CenteredFootCam",                 "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_CAMERASHAKE",       "MAIN",       "CameraShake",                     "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_CUTSCENEAUDIOSYNC", "MAIN",       "CutsceneAudioSync",               "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_TURNINDICATORS",    "MISC",       "TurnIndicators",                  "",                           0, nullptr, 0, 1 },
             // Enums are at capacity, to use more enums, replace multiplayer ones. On/Off toggles should still be possible to add.
         };
 
@@ -891,7 +896,8 @@ public:
                             static char sModifiers[] = "%s %f";
                             for (const auto& it : currentTimecycleModifiers)
                             {
-                                DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sModifiers, modNames[it.first].data(), it.second);
+                                if (it.first >= 0 && it.first < CTimeCycleModifier::ARRAY_SIZE)
+                                    DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sModifiers, modNames[it.first].data(), it.second);
                             }
                         }
                     }

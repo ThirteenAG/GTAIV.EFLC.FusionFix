@@ -2,7 +2,7 @@
 [![AppVeyor](https://img.shields.io/appveyor/build/ThirteenAG/GTAIV-EFLC-FusionFix?label=AppVeyor%20Build&logo=Appveyor&logoColor=white)](https://ci.appveyor.com/project/ThirteenAG/gtaiv-eflc-fusionfix)
 
 <p align="center">
-  <img width="600" src="https://raw.githubusercontent.com/ThirteenAG/GTAIV.EFLC.FusionFix/refs/heads/fog/installer/logo_outline.png">
+  <img width="600" src="https://raw.githubusercontent.com/ThirteenAG/GTAIV.EFLC.FusionFix/refs/heads/fog/installer/ff_iv_outline.svg">
 </p>
 
 # GTAIV.EFLC.FusionFix
@@ -98,8 +98,9 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **Cover Centering**, added an option to disable camera centering in cover
 - **Allow Movement When Zoomed**, allows movement when aiming with a sniper rifle
 - **Centering Delay**, controls the time until the camera auto centering kicks in after moving it
-- **Centering Delay**, sets the time before camera starts auto centering on foot
 - **Gamepad Icons**, allows to select various controller icon styles (Xbox 360, Xbox One, PS3, PS4, PS5, Nintendo Switch, Steam Deck)
+- **Centered Vehicle Camera**, makes vehicle camera centered, for more options install the [original mod](https://github.com/gennariarmando/iv-centered-vehicle-cam) separately
+- **Camera Shake**, shake effect has been fixed to work consistently at any frame rate and can be disabled with this option
 
 ## Main
 
