@@ -389,17 +389,20 @@ public:
 
         for (const auto& it : currentTimecycleModifiers)
         {
-            auto& modifier = CTimeCycleModifiersExt::m_TimecycleModifiers[it.first];
-            if (modifier.fVolFogDensity != -1.0f)
-                baseVolFogDensity = baseVolFogDensity * (1.0f - it.second) + modifier.fVolFogDensity * it.second;
-            if (modifier.fVolFogHeightFalloff != -1.0f)
-                baseVolFogHeightFalloff = baseVolFogHeightFalloff * (1.0f - it.second) + modifier.fVolFogHeightFalloff * it.second;
-            if (modifier.fVolFogAltitudeTweak != -1.0f)
-                baseVolFogAltitudeTweak = baseVolFogAltitudeTweak * (1.0f - it.second) + modifier.fVolFogAltitudeTweak * it.second;
-            if (modifier.fVolFogPower != -1.0f)
-                baseVolFogPower = baseVolFogPower * (1.0f - it.second) + modifier.fVolFogPower * it.second;
-            if (modifier.fSSIntensity != -1.0f)
-                baseSSIntensity = baseSSIntensity * (1.0f - it.second) + modifier.fSSIntensity * it.second;
+            if (it.first >= 0 && it.first < CTimeCycleModifier::ARRAY_SIZE)
+            {
+                auto& modifier = CTimeCycleModifiersExt::m_TimecycleModifiers[it.first];
+                if (modifier.fVolFogDensity != -1.0f)
+                    baseVolFogDensity = baseVolFogDensity * (1.0f - it.second) + modifier.fVolFogDensity * it.second;
+                if (modifier.fVolFogHeightFalloff != -1.0f)
+                    baseVolFogHeightFalloff = baseVolFogHeightFalloff * (1.0f - it.second) + modifier.fVolFogHeightFalloff * it.second;
+                if (modifier.fVolFogAltitudeTweak != -1.0f)
+                    baseVolFogAltitudeTweak = baseVolFogAltitudeTweak * (1.0f - it.second) + modifier.fVolFogAltitudeTweak * it.second;
+                if (modifier.fVolFogPower != -1.0f)
+                    baseVolFogPower = baseVolFogPower * (1.0f - it.second) + modifier.fVolFogPower * it.second;
+                if (modifier.fSSIntensity != -1.0f)
+                    baseSSIntensity = baseSSIntensity * (1.0f - it.second) + modifier.fSSIntensity * it.second;
+            }
         }
 
         m_fCurrentVolFogDensity = baseVolFogDensity;
