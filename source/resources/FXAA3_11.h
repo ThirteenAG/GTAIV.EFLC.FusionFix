@@ -1,10 +1,10 @@
 #define FXAA_PC 1
 #define FXAA_HLSL_3 1
-#define FXAA_QUALITY__PRESET 12
+#define FXAA_QUALITY__PRESET 15
 
-#define QUALITY_SUBPIX 0.75
-#define QUALITY_EDGE_THRESHOLD 0.166
-#define QUALITY_EDGE_THRESHOLD_MIN 0.0833
+#define QUALITY_SUBPIX 0.5
+#define QUALITY_EDGE_THRESHOLD 0.125
+#define QUALITY_EDGE_THRESHOLD_MIN 0.0312
 
 uniform float4 globalScreenSize : register(c44);
 sampler2D HDRSampler : register(ps, s2);

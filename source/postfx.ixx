@@ -919,18 +919,62 @@ private:
                            ) {
                             DWORD oldSample = 0;
 
+                            for (int i = 0; i <= 4; ++i)
+                            {
+                                pDevice->GetSamplerState(i, D3DSAMP_MINFILTER, &oldSample);
+                                pDevice->GetSamplerState(i, D3DSAMP_MAGFILTER, &oldSample);
+                                pDevice->GetSamplerState(i, D3DSAMP_MIPFILTER, &oldSample);
+                                pDevice->GetSamplerState(i, D3DSAMP_ADDRESSU, &oldSample);
+                                pDevice->GetSamplerState(i, D3DSAMP_ADDRESSV, &oldSample);
+                                pDevice->GetSamplerState(i, D3DSAMP_ADDRESSW, &oldSample);
+                            }
+
+                            // colorTex / colorGammaTex
+                            pDevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+                            pDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+                            pDevice->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_POINT);
+                            pDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+                            pDevice->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+                            pDevice->SetSamplerState(0, D3DSAMP_ADDRESSW, D3DTADDRESS_WRAP);
+
+                            // edgesTex
+                            pDevice->SetSamplerState(1, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+                            pDevice->SetSamplerState(1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+                            pDevice->SetSamplerState(1, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);
+                            pDevice->SetSamplerState(1, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+                            pDevice->SetSamplerState(1, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+                            pDevice->SetSamplerState(1, D3DSAMP_ADDRESSW, D3DTADDRESS_WRAP);
+
+                            // blendTex
+                            pDevice->SetSamplerState(4, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+                            pDevice->SetSamplerState(4, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+                            pDevice->SetSamplerState(4, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);
+                            pDevice->SetSamplerState(4, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+                            pDevice->SetSamplerState(4, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+                            pDevice->SetSamplerState(4, D3DSAMP_ADDRESSW, D3DTADDRESS_WRAP);
+
+                            // areaTex
+                            pDevice->SetSamplerState(2, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+                            pDevice->SetSamplerState(2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+                            pDevice->SetSamplerState(2, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);
+                            pDevice->SetSamplerState(2, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+                            pDevice->SetSamplerState(2, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+                            pDevice->SetSamplerState(2, D3DSAMP_ADDRESSW, D3DTADDRESS_CLAMP);
+
+                            // searchTex
+                            pDevice->SetSamplerState(3, D3DSAMP_MINFILTER, D3DTEXF_POINT);
+                            pDevice->SetSamplerState(3, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+                            pDevice->SetSamplerState(3, D3DSAMP_MIPFILTER, D3DTEXF_POINT);
+                            pDevice->SetSamplerState(3, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+                            pDevice->SetSamplerState(3, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+                            pDevice->SetSamplerState(3, D3DSAMP_ADDRESSW, D3DTADDRESS_CLAMP);
+
                             // SMAA_EdgeDetection
                             pDevice->SetPixelShader(PostFxResources.SMAA_EdgeDetection);
                             pDevice->SetVertexShader(PostFxResources.SMAA_EdgeDetectionVS);
                             pDevice->SetRenderTarget(0, PostFxResources.edgesSurf);
                             //pDevice->SetTexture(2, 0);
                             pDevice->SetTexture(0, PostFxResources.FullScreenTex_temp3->mD3DTexture);
-                            pDevice->GetSamplerState(3, D3DSAMP_MAGFILTER, &oldSample);
-                            pDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                            pDevice->SetSamplerState(1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                            pDevice->SetSamplerState(2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                            pDevice->SetSamplerState(3, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
-                            pDevice->SetSamplerState(4, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
                             pDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 0, 0);
                             pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
                             pDevice->SetTexture(0, 0);
@@ -943,13 +987,7 @@ private:
                             pDevice->SetTexture(2, PostFxResources.SMAA_areaTex);
                             pDevice->SetTexture(3, PostFxResources.SMAA_searchTex);
                             pDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 0, 0);
-                            pDevice->GetSamplerState(3, D3DSAMP_ADDRESSU, &oldSample);
-                            pDevice->GetSamplerState(3, D3DSAMP_ADDRESSV, &oldSample);
-                            pDevice->SetSamplerState(3, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-                            pDevice->SetSamplerState(3, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
                             pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-                            pDevice->SetSamplerState(3, D3DSAMP_ADDRESSU, oldSample);
-                            pDevice->SetSamplerState(3, D3DSAMP_ADDRESSV, oldSample);
 
                             // SMAA_NeighborhoodBlending
                             pDevice->SetPixelShader(PostFxResources.SMAA_NeighborhoodBlending);
@@ -957,26 +995,38 @@ private:
 
                             // pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
                             pDevice->SetRenderTarget(0, PostFxResources.backBuffer);
-                            pDevice->SetSamplerState(2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
 
                             //pDevice->SetTexture(2,  textureRead);
                             pDevice->SetTexture(0, PostFxResources.FullScreenTex_temp3->mD3DTexture);
                             pDevice->SetTexture(1, PostFxResources.edgesTex->mD3DTexture);
                             pDevice->SetTexture(4, PostFxResources.blendTex->mD3DTexture);
+
                             pDevice->GetSamplerState(0, D3DSAMP_SRGBTEXTURE, &oldSample);
-                            pDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, 1);
                             pDevice->GetRenderState(D3DRS_SRGBWRITEENABLE, &OldSRGB); // save srgb state
+                            pDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, 1);
                             pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, 1);
+
                             pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
+
                             pDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, oldSample);
                             pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, OldSRGB); // restore srgb state
+
+                            for (int i = 0; i <= 4; ++i)
+                            {
+                                pDevice->SetSamplerState(i, D3DSAMP_MINFILTER, oldSample);
+                                pDevice->SetSamplerState(i, D3DSAMP_MAGFILTER, oldSample);
+                                pDevice->SetSamplerState(i, D3DSAMP_MIPFILTER, oldSample);
+                                pDevice->SetSamplerState(i, D3DSAMP_ADDRESSU, oldSample);
+                                pDevice->SetSamplerState(i, D3DSAMP_ADDRESSV, oldSample);
+                                pDevice->SetSamplerState(i, D3DSAMP_ADDRESSW, oldSample);
+                            }
+
                             PostFxResources.swapbuffers();
                             pDevice->SetTexture(0, PostFxResources.prePostFx[0]);
                             pDevice->SetTexture(1, PostFxResources.prePostFx[1]);
                             pDevice->SetTexture(2, PostFxResources.FullScreenTex_temp3->mD3DTexture);
                             pDevice->SetTexture(3, PostFxResources.prePostFx[3]);
                             pDevice->SetTexture(4, PostFxResources.prePostFx[4]);
-                            pDevice->SetSamplerState(3, D3DSAMP_MAGFILTER, oldSample);
                             pDevice->SetPixelShader(pShader);
                             pDevice->SetVertexShader(vShader);
                         }

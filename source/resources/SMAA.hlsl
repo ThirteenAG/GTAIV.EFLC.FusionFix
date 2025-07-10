@@ -1,6 +1,10 @@
 #define SMAA_RT_METRICS globalScreenSize.zwxy
 #define SMAA_HLSL_3
-#define SMAA_PRESET_HIGH
+// #define SMAA_PRESET_HIGH
+#define SMAA_THRESHOLD 0.05
+#define SMAA_MAX_SEARCH_STEPS 16
+#define SMAA_MAX_SEARCH_STEPS_DIAG 8
+#define SMAA_CORNER_ROUNDING 25
 
 uniform float4 globalScreenSize : register(c44);
 sampler colorGammaTex : register(ps, s0); // HDRSampler
