@@ -13,6 +13,15 @@ double __fastcall sub_A18510(void* _this, void* edx, void* a2, void* a3)
     return hbsub_A18510.fun(_this, edx, a2, a3) * (*CTimer::fTimeStep / (1.0f / 30.0f));
 }
 
+SafetyHookInline NATIVE_SLIDE_OBJECT_C_T{};
+bool __cdecl NATIVE_SLIDE_OBJECT_C(int object, float x, float y, float z, float dx, float dy, float dz, char a8) {
+
+    dx *= (*CTimer::fTimeStep / (1.0f / 30.0f));
+    dy *= (*CTimer::fTimeStep / (1.0f / 30.0f));
+    dz *= (*CTimer::fTimeStep / (1.0f / 30.0f));
+
+    return NATIVE_SLIDE_OBJECT_C_T.ccall<bool>(object,x,y,z,dx,dy,dz,a8);
+}
 class FramerateVigilante
 {
 public:
@@ -120,6 +129,15 @@ public:
                 if (!pattern.empty())
                     injector::WriteMemory(pattern.get_first(1), &CustomFrameCounter, true);
             }
+
+            // NATIVE_SLIDE_OBJECT speed-up fix
+            // fixes Windows Cleaning platforms and sliding gates
+            // Acceleration/Deacceleration is still broken for Window Cleaning Platforms
+            pattern = hook::pattern("55 8B EC 83 E4 ? 8B 0D ? ? ? ? 81 EC ? ? ? ? 56 FF 75");
+            if (!pattern.empty()) {
+                NATIVE_SLIDE_OBJECT_C_T = safetyhook::create_inline(pattern.get_first(), &NATIVE_SLIDE_OBJECT_C);
+            }
+
         };
     }
 } FramerateVigilante;
