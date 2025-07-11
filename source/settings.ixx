@@ -432,6 +432,18 @@ public:
     auto operator()(int32_t i) { return Get(i); }
     auto operator()(std::string_view name) { return Get(name); }
 
+    void SaveLanguagePref(int32_t value)
+    {
+        CIniReader iniWriter(cfgPath);
+        iniWriter.WriteInteger("LANGUAGEOVERRIDE", "Language", value, true);
+    }
+
+    int32_t LoadLanguagePref()
+    {
+        CIniReader iniReader(cfgPath);
+        return iniReader.ReadInteger("LANGUAGEOVERRIDE", "Language", -1);
+    }
+
 public:
     struct
     {
@@ -525,6 +537,12 @@ public:
                     });
 
                     FusionFixSettings.Set(id, value);
+
+                    // custom handler for language switch
+                    if (FusionFixSettings.isSame(id, "PREF_CURRENT_LANGUAGE"))
+                    {
+                        FusionFixSettings.SaveLanguagePref(value);
+                    }
                 }
             }; injector::MakeInline<IniWriter>(pattern.get_first(0), pattern.get_first(7));
 
@@ -719,6 +737,21 @@ public:
                     else
                         regs.xmm2.f32[0] = *nearFogMultiplier;
                 });
+            }
+
+            {
+                static SafetyHookInline shGetUserLanguage{};
+                auto GetUserLanguage = []() -> int
+                {
+                    auto l = FusionFixSettings.LoadLanguagePref();
+                    if (l >= 0)
+                        return l;
+                    return shGetUserLanguage.call<int>();
+                };
+
+                auto pattern = hook::pattern("83 EC ? A1 ? ? ? ? 33 C4 89 44 24 ? A1 ? ? ? ? 8B 0D ? ? ? ? 53 55 56 33 ED 57 33 FF 85 C0 0F 45 E8");
+                if (!pattern.empty())
+                    shGetUserLanguage = safetyhook::create_inline(pattern.get_first(0), static_cast<int(*)()>(GetUserLanguage));
             }
 
             // radio saving disable
