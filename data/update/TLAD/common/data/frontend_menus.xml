@@ -641,6 +641,7 @@
       <options action="MENUOPT_ADJUST" label="MO_HUD_TARG" value="PREF_RETICULE" scaler="2" displayValue="MENU_DISPLAY_RETICULE_MODE" />
       <options action="MENUOPT_ADJUST" label="MO_DISPGPS" value="PREF_DISPLAY_GPS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_ADJUST" label="MO_HB_CAM" value="PREF_HANDBRAKE_CAM" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <options action="MENUOPT_NONE" label="" value="0" scaler="0" displayValue="0" />
       <options action="MENUOPT_ADJUST" label="MO_LAN" value="PREF_CURRENT_LANGUAGE" scaler="7" displayValue="MENU_DISPLAY_LANGUAGE" />
       <optionsps3 action="MENUOPT_ADJUST" label="MO_FLIC" value="PREF_FLICKER_FILTER" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
@@ -1284,6 +1285,7 @@
       <options action="MENUOPT_ADJUST" label="MO_HUD_TARG" value="PREF_RETICULE" scaler="2" displayValue="MENU_DISPLAY_RETICULE_MODE" />
       <options action="MENUOPT_ADJUST" label="MO_DISPGPS" value="PREF_DISPLAY_GPS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_ADJUST" label="MO_HB_CAM" value="PREF_HANDBRAKE_CAM" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <options action="MENUOPT_NONE" label="" value="0" scaler="0" displayValue="0" />
       <options action="MENUOPT_ADJUST" label="MO_LAN" value="PREF_CURRENT_LANGUAGE" scaler="7" displayValue="MENU_DISPLAY_LANGUAGE" />
       <optionsps3 action="MENUOPT_ADJUST" label="MO_FLIC" value="PREF_FLICKER_FILTER" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
