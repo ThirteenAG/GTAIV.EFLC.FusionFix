@@ -21,7 +21,7 @@ uint32_t* dword_12088B4 = nullptr;
 uint32_t* dword_1037720 = nullptr;
 uint32_t* dword_11F704C = nullptr;
 SafetyHookInline shCameraShake = {};
-void __fastcall CameraShake(float* CameraData, float Multiplier)
+void __fastcall CameraShake(float* CameraData, void* edx, float Multiplier)
 {
     static auto cs = FusionFixSettings.GetRef("PREF_CAMERASHAKE");
     if (!cs->get())
@@ -35,7 +35,7 @@ void __fastcall CameraShake(float* CameraData, float Multiplier)
     float TimeScale = DeltaTime * 30.0f;
     if (*dword_11F7060 == 1 || *dword_12088B4 != -1 || *dword_1037720 == 18)
     {
-        TimeScale = (unsigned int)dword_11F704C * 0.001f;
+        TimeScale = *dword_11F704C * 0.001f;
         TimeScale *= 30.0f;
     }
 
@@ -61,9 +61,9 @@ void __fastcall CameraShake(float* CameraData, float Multiplier)
         if (CameraData[18] > 0.0f && CameraData[30] > 0.0f || CameraData[18] < 0.0f && CameraData[30] < 0.0f)
             CamZ *= CameraData[34];
 
-        CamX *= rand() / 32767.0f * CameraData[24];
-        CamY *= rand() / 32767.0f * CameraData[25];
-        CamZ *= rand() / 32767.0f * CameraData[26];
+        CamX *= game_rand() / 32767.0f * CameraData[24];
+        CamY *= game_rand() / 32767.0f * CameraData[25];
+        CamZ *= game_rand() / 32767.0f * CameraData[26];
 
         if (CameraData[16] > 0.0f)
             CamX *= -1.0f;
@@ -72,11 +72,11 @@ void __fastcall CameraShake(float* CameraData, float Multiplier)
         if (CameraData[18] > 0.0f)
             CamZ *= -1.0f;
 
-        if ((int)(rand() / 32768.0f * ((int)CameraData[38] - 1)) == 1)
+        if ((int)(game_rand() / 32768.0f * ((int)CameraData[38] - 1)) == 1)
         {
-            CamX += CameraData[39] * (rand() / 32767.0f * 2.0f - 1.0f);
-            CamY += CameraData[39] * (rand() / 32767.0f * 2.0f - 1.0f);
-            CamZ += CameraData[39] * (rand() / 32767.0f * 2.0f - 1.0f);
+            CamX += CameraData[39] * (game_rand() / 32767.0f * 2.0f - 1.0f);
+            CamY += CameraData[39] * (game_rand() / 32767.0f * 2.0f - 1.0f);
+            CamZ += CameraData[39] * (game_rand() / 32767.0f * 2.0f - 1.0f);
         }
 
         CameraData[28] += CamX;
