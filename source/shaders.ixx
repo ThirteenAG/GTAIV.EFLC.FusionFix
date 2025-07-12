@@ -467,28 +467,7 @@ public:
                         }
 
                         arr5[1] = bEnableSnow ? 1.0f : 0.0f;
-                        
-                        static auto dof = FusionFixSettings.GetRef("PREF_TCYC_DOF");
-                        static float dofscale = 1.0f;
-                        if(!CCutscenes::hasCutsceneFinished())
-                        {
-                            switch(dof->get())
-                            {
-                                case FusionFixSettings.DofText.eOff: dofscale = 0.0f; break;
-                                case FusionFixSettings.DofText.eCutscenesOnly: dofscale = 0.0f; break;
-                                case FusionFixSettings.DofText.eLow: dofscale = 0.25f; break;
-                                case FusionFixSettings.DofText.eMedium: dofscale = 0.5f; break;
-                                case FusionFixSettings.DofText.eHigh: dofscale = 0.75f; break;
-                                case FusionFixSettings.DofText.eVeryHigh: dofscale = 1.0f; break;
-                                default: dofscale = 1.0f; break;
-                            }
-                        }
-                        else
-                        {
-                            dofscale = 1.0f;
-                        }
-                        
-                        arr5[2] = dofscale;
+                        arr5[2] = 0.0f;
                         arr5[3] = treealpha->get() == FusionFixSettings.TreeAlphaText.eConsole ? fTreeAlphaConsole : fTreeAlphaPC;
                         pDevice->SetPixelShaderConstantF(221, &arr5[0], 1);
                     }

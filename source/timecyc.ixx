@@ -72,6 +72,31 @@ int timecyc_scanf(const char* i, const char* fmt, int* mAmbient0ColorR, int* mAm
     if (FusionFixSettings("PREF_VOLUMETRICFOG") && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
         *mFarClip = fVolFogFarClip;
 
+    switch (FusionFixSettings("PREF_TCYC_DOF"))
+    {
+    case FusionFixSettings.DofText.eOff:
+    case FusionFixSettings.DofText.eCutscenesOnly:
+        *mNearDOFBlur *= 0.0f;
+        *mFarDOFBlur *= 0.0f;
+        break;
+    case FusionFixSettings.DofText.eLow:
+        *mNearDOFBlur *= 0.7f;
+        *mFarDOFBlur *= 0.7f;
+        break;
+    case FusionFixSettings.DofText.eMedium:
+        *mNearDOFBlur *= 0.8f;
+        *mFarDOFBlur *= 0.8f;
+        break;
+    case FusionFixSettings.DofText.eHigh:
+        *mNearDOFBlur *= 0.9f;
+        *mFarDOFBlur *= 0.9f;
+        break;
+    case FusionFixSettings.DofText.eVeryHigh:
+        [[fallthrough]];
+    default:
+        break;
+    }
+
     {
         static int IV2TLAD[3][100] =
         {
@@ -342,6 +367,11 @@ public:
 
             pattern = find_pattern("E8 ? ? ? ? 0F B6 8C 24 ? ? ? ? 0F B6 84 24", "E8 ? ? ? ? 0F B6 84 24 ? ? ? ? 0F B6 8C 24");
             injector::MakeCALL(pattern.get_first(0), timecyc_scanf, true);
+
+            FusionFixSettings.SetCallback("PREF_TCYC_DOF", [](int32_t value) {
+                CTimeCycle::Initialise();
+                bMenuNeedsUpdate = 200;
+            });
 
             FusionFixSettings.SetCallback("PREF_BLOOM", [](int32_t value) {
                 CTimeCycle::Initialise();
