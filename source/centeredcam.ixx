@@ -104,3 +104,59 @@ public:
         };
     }
 } CenteredCam;
+
+class CenteredCamOnFoot
+{
+public:
+    static inline bool bLoadedCenteredOnFootCamIVasi = false;
+    static inline float fRightMult = -0.1f;
+    static inline float fForwardMult = 0.0f;
+    static inline float fUpMult = 0.0f;
+
+    static inline injector::hook_back<void(__fastcall*)(rage::Matrix44*, void*, void*)> hbCopyMatFront;
+    static void __fastcall CopyMatFront(rage::Matrix44* mat, void*, void* arg2)
+    {
+        hbCopyMatFront.fun(mat, 0, arg2);
+
+        static auto cc = FusionFixSettings.GetRef("PREF_CENTEREDCAMERAFOOT");
+        if (cc->get() && !bLoadedCenteredOnFootCamIVasi)
+        {
+            mat->pos += mat->right * fRightMult;
+            mat->pos += mat->at * fUpMult;
+            mat->pos -= mat->up * fForwardMult;
+        }
+    }
+
+    static inline injector::hook_back<void(__fastcall*)(rage::Matrix44*, void*, void*)> hbCopyMatBehind;
+    static void __fastcall CopyMatBehind(rage::Matrix44* mat, void*, void* arg2)
+    {
+        hbCopyMatBehind.fun(mat, 0, arg2);
+
+        static auto cc = FusionFixSettings.GetRef("PREF_CENTEREDCAMERAFOOT");
+        if (cc->get() && !bLoadedCenteredOnFootCamIVasi)
+        {
+            mat->pos += mat->right * fRightMult;
+            mat->pos += mat->at * fUpMult;
+            mat->pos -= mat->up * fForwardMult;
+        }
+    }
+
+    CenteredCamOnFoot()
+    {
+        FusionFix::onInitEventAsync() += []()
+        {
+            auto pattern = find_pattern("E8 ? ? ? ? 8A 86 ? ? ? ? 80 A6 ? ? ? ? ? 80 A6", "E8 ? ? ? ? 8A 8E ? ? ? ? 80 A6");
+            hbCopyMatFront.fun = injector::MakeCALL(pattern.get_first(0), CopyMatFront, true).get();
+
+            pattern = find_pattern("E8 ? ? ? ? 8B 8E ? ? ? ? 56 8D 44 24 74", "E8 ? ? ? ? 8B 8E ? ? ? ? 56 8D 94 24");
+            hbCopyMatBehind.fun = injector::MakeCALL(pattern.get_first(0), CopyMatBehind, true).get();
+
+            auto HandleCenteredOnFootCamIVasi = []()
+            {
+                bLoadedCenteredOnFootCamIVasi = true;
+            };
+
+            CallbackHandler::RegisterCallback(L"CenteredOnFootCamIV.asi", HandleCenteredOnFootCamIVasi);
+        };
+    }
+} CenteredCamOnFoot;

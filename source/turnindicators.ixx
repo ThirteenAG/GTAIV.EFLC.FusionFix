@@ -180,7 +180,7 @@ public:
                     });
                 }
 
-                pattern = hook::pattern("E8 ? ? ? ? 6A ? FF 35 ? ? ? ? 8D 4C 24 ? 56");
+                pattern = hook::pattern("E8 ? ? ? ? 84 C0 0F 84 ? ? ? ? 8B 07 8B CF 8B 80 ? ? ? ? FF D0 D9 5C 24");
                 if (!pattern.empty())
                 {
                     static auto FlyThroughWindscreenHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
@@ -188,18 +188,30 @@ public:
                         static auto ti = FusionFixSettings.GetRef("PREF_TURNINDICATORS");
                         if (ti->get())
                         {
-                            Ped PlayerPed = 0;
-                            Vehicle PlayerCar = 0;
-                            Natives::GetPlayerChar(Natives::ConvertIntToPlayerindex(Natives::GetPlayerId()), &PlayerPed);
-                            if (PlayerPed)
+                            Ped CrashedPed = CPed::GetPedPool()->GetIndex((void*)regs.ecx);
+                            if (CrashedPed)
                             {
-                                Natives::GetCarCharIsUsing(PlayerPed, &PlayerCar);
-                                if (PlayerCar)
+                                Vehicle Car = 0;
+                                Natives::GetCarCharIsUsing(CrashedPed, &Car);
+                                if (Car)
                                 {
-                                    VehicleState* state = addOrUpdateVehicle(PlayerCar);
-                                    state->crash_state = VehicleState::JUST_CRASHED_STILL_IN_CAR;
+                                    VehicleState* state = addOrUpdateVehicle(Car);
+                                    Ped PlayerPed = 0;
+                                    Natives::GetPlayerChar(Natives::ConvertIntToPlayerindex(Natives::GetPlayerId()), &PlayerPed);
+
+                                    if (CrashedPed == PlayerPed)
+                                    {
+                                        // Player crash - use the normal state that requires exit/enter cycle
+                                        state->crash_state = VehicleState::JUST_CRASHED_STILL_IN_CAR;
+                                    }
+                                    else
+                                    {
+                                        // NPC crash - immediately set to "exited" state so player can clear it
+                                        state->crash_state = VehicleState::CRASHED_AND_EXITED;
+                                    }
+
                                     state->current_blinker = 0;
-                                    Natives::SetVehHazardlights(PlayerCar, true);
+                                    Natives::SetVehHazardlights(Car, true);
                                 }
                             }
                         }

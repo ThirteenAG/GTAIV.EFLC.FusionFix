@@ -7,6 +7,7 @@ module;
 export module userdata;
 
 import common;
+import settings;
 import <filesystem>;
 
 std::filesystem::path customUserProfilePath;
@@ -43,11 +44,23 @@ HRESULT WINAPI SHGetFolderPathW_Hook(HWND hwnd, int csidl, HANDLE hToken, DWORD 
     return SHGetFolderPathW(hwnd, csidl, hToken, dwFlags, pszPath);
 }
 
+SafetyHookInline sh_sub_8C9830{};
+const char* sub_8C9830()
+{
+    if (CText::hasViceCityStrings())
+        return "SGTAVC";
+    return "SGTA4";
+}
+
 class UserData
 {
 public:
     UserData()
     {
+        auto pattern = find_pattern("E8 ? ? ? ? 50 68 ? ? ? ? FF 74 24", "E8 ? ? ? ? 8B 4C 24 ? 50 68");
+        if (!pattern.empty())
+            sh_sub_8C9830 = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first(0)).as_int(), sub_8C9830);
+
         FusionFix::onInitEventAsync() += []()
         {
             CIniReader iniReader("");
