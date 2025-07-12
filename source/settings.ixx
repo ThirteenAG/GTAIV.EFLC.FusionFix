@@ -753,37 +753,6 @@ public:
                 if (!pattern.empty())
                     shGetUserLanguage = safetyhook::create_inline(pattern.get_first(0), static_cast<int(*)()>(GetUserLanguage));
             }
-
-            // radio saving disable
-            {
-                static SafetyHookInline shRadioSaveHandler{};
-                static auto RadioSaveHandler = []()
-                {
-                    if (CText::hasViceCityStrings())
-                        return;
-                
-                    return shRadioSaveHandler.stdcall();
-                };
-            
-                static SafetyHookInline shRadioLoadHandler{};
-                static auto RadioLoadHandler = []()
-                {
-                    if (CText::hasViceCityStrings())
-                        return;
-                
-                    return shRadioLoadHandler.stdcall();
-                };
-                
-                auto pattern = hook::pattern("81 EC 74 0E 00 00");
-                if (!pattern.empty())
-                {
-                    shRadioSaveHandler = safetyhook::create_inline(pattern.get_first(0), static_cast<void(__stdcall*)()>(RadioSaveHandler));
-            
-                    pattern = hook::pattern("A0 ? ? ? ? 53 8A 1D");
-                    if (!pattern.empty())
-                        shRadioLoadHandler = safetyhook::create_inline(pattern.get_first(0), static_cast<void(__stdcall*)()>(RadioLoadHandler));
-                }
-            }
         };
 
         // FPS Counter
