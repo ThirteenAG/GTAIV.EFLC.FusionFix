@@ -106,6 +106,11 @@ public:
                 {
                     bHeadlightShadows = !bHeadlightShadows;
                     FusionFixSettings.Set("PREF_HEADLIGHTSHADOWS", bHeadlightShadows);
+
+                    if (bHeadlightShadows)
+                        Natives::PrintHelp((char*)"CHEAT1");
+                    else
+                        Natives::PrintHelp((char*)"CHEAT2");
                 });
 
                 pattern = hook::pattern("E8 ? ? ? ? 85 C0 74 29 6A 00");
