@@ -1023,6 +1023,10 @@ export namespace rage
 
     namespace grcWindow
     {
+        int32_t* ms_nActiveWidth;
+        int32_t* ms_nActiveHeight;
+        int32_t* ms_nActiveRefreshrate;
+
         bool* ms_bWindowed;
         bool* ms_bOnTop;
         bool* ms_bFocusLost;
@@ -1485,6 +1489,13 @@ public:
 
         pattern = hook::pattern("A1 ? ? ? ? 83 F8 08 74 05");
         CCutscenes::m_dwCutsceneState = *pattern.get_first<uint32_t*>(1);
+
+        pattern = find_pattern("89 3D ? ? ? ? A3 ? ? ? ? C7 05", "89 1D ? ? ? ? A3 ? ? ? ? 89 35");
+        rage::grcWindow::ms_nActiveWidth = *pattern.get_first<int32_t*>(2);
+        rage::grcWindow::ms_nActiveHeight = *pattern.get_first<int32_t*>(7);
+
+        pattern = find_pattern("C7 05 ? ? ? ? ? ? ? ? A1 ? ? ? ? 85 C0 74 ? 80 38 ? 74 ? 6A ? 6A ? 50 E8 ? ? ? ? 83 C4 ? A3", "89 35 ? ? ? ? A1 ? ? ? ? 3B C6 74 ? 80 38");
+        rage::grcWindow::ms_nActiveRefreshrate = *pattern.get_first<int32_t*>(2);
 
         pattern = find_pattern("80 3D ? ? ? ? ? 74 0E 68 ? ? ? ? 53", "80 3D ? ? ? ? ? 74 13 68");
         rage::grcWindow::ms_bWindowed = *pattern.get_first<bool*>(2);
