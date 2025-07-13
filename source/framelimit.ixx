@@ -94,6 +94,9 @@ public:
     }
     void Sync()
     {
+        if (fFPSLimit <= 0.0f)
+            return;
+
         if (mFPSLimitMode == FPS_REALTIME)
             while (!Sync_RT());
         else if (mFPSLimitMode == FPS_ACCURATE)
