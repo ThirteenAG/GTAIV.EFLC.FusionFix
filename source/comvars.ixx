@@ -186,7 +186,7 @@ export namespace rage
 
         void* GetAt(int32_t index)
         {
-            return m_aFlags[index >> 8] == (index & 0xFF) ? &m_aStorage[index >> 8] : nullptr;
+            return m_aFlags[index >> 8] == (index & 0xFF) ? &m_aStorage[(index >> 8) * m_nStorageSize] : nullptr;
         }
 
         int32_t GetJustIndex_NoFreeAssert(const void* entry)
@@ -209,7 +209,7 @@ export namespace rage
 
         void* GetSlot(int32_t index)
         {
-            return GetIsFree(index) ? nullptr : &m_aStorage[index];
+            return GetIsFree(index) ? nullptr : &m_aStorage[index * m_nStorageSize];
         }
 
         void* New()
