@@ -196,16 +196,6 @@ public:
                 if (mode == FrameLimiter::FPSLimitMode::FPS_ACCURATE)
                     timeBeginPeriod(1);
 
-                auto preset = FusionFixSettings("PREF_FPS_LIMIT_PRESET");
-                if (preset > FusionFixSettings.FpsCaps.eCustom && preset < int32_t(FusionFixSettings.FpsCaps.data.size()))
-                    FpsLimiter.Init(mode, (float)FusionFixSettings.FpsCaps.data[preset]);
-                else
-                {
-                    if (fFpsLimit > 0.0f)
-                        FpsLimiter.Init(mode, fFpsLimit);
-                    else
-                        FpsLimiter.Init(mode, 0.0f);
-                }
                 CutsceneFpsLimiter.Init(mode, fCutsceneFpsLimit);
                 ScriptCutsceneFpsLimiter.Init(mode, fScriptCutsceneFpsLimit);
                 LoadingFpsLimiter.Init(mode, std::clamp(fLoadingFpsLimit, 30.0f, FLT_MAX));
@@ -217,14 +207,20 @@ public:
                     static auto SetRefreshRateHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                     {
                         auto mode = (nFrameLimitType == 2) ? FrameLimiter::FPSLimitMode::FPS_ACCURATE : FrameLimiter::FPSLimitMode::FPS_REALTIME;
-                        if (fFpsLimit > 0.0f)
-                            FpsLimiter.Init(mode, fFpsLimit);
+                        auto preset = FusionFixSettings("PREF_FPS_LIMIT_PRESET");
+                        if (preset > FusionFixSettings.FpsCaps.eCustom && preset < int32_t(FusionFixSettings.FpsCaps.data.size()))
+                            FpsLimiter.Init(mode, (float)FusionFixSettings.FpsCaps.data[preset]);
                         else
                         {
-                            if (regs.eax)
-                                FpsLimiter.Init(mode, float(regs.eax) + fFpsLimit);
+                            if (fFpsLimit > 0.0f)
+                                FpsLimiter.Init(mode, fFpsLimit);
                             else
-                                FpsLimiter.Init(mode, 0.0f);
+                            {
+                                if (regs.eax)
+                                    FpsLimiter.Init(mode, float(regs.eax) + fFpsLimit);
+                                else
+                                    FpsLimiter.Init(mode, 0.0f);
+                            }
                         }
                     });
                 }
@@ -234,14 +230,20 @@ public:
                     static auto SetRefreshRateHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                     {
                         auto mode = (nFrameLimitType == 2) ? FrameLimiter::FPSLimitMode::FPS_ACCURATE : FrameLimiter::FPSLimitMode::FPS_REALTIME;
-                        if (fFpsLimit > 0.0f)
-                            FpsLimiter.Init(mode, fFpsLimit);
+                        auto preset = FusionFixSettings("PREF_FPS_LIMIT_PRESET");
+                        if (preset > FusionFixSettings.FpsCaps.eCustom && preset < int32_t(FusionFixSettings.FpsCaps.data.size()))
+                            FpsLimiter.Init(mode, (float)FusionFixSettings.FpsCaps.data[preset]);
                         else
                         {
-                            if (regs.ecx)
-                                FpsLimiter.Init(mode, float(regs.ecx) + fFpsLimit);
+                            if (fFpsLimit > 0.0f)
+                                FpsLimiter.Init(mode, fFpsLimit);
                             else
-                                FpsLimiter.Init(mode, 0.0f);
+                            {
+                                if (regs.ecx)
+                                    FpsLimiter.Init(mode, float(regs.ecx) + fFpsLimit);
+                                else
+                                    FpsLimiter.Init(mode, 0.0f);
+                            }
                         }
                     });
                 }
