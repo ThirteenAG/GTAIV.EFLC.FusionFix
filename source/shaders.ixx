@@ -171,9 +171,9 @@ public:
             fSHADOWFILTERCHSSMaxSoftness = iniReader.ReadFloat("SHADOWFILTERCHSS", "MaxSoftness", 10.0f);
             fSHADOWFILTERCHSSLightSize = iniReader.ReadFloat("SHADOWFILTERCHSS", "LightSize", 500.0f);
 
-            fSSDensity = std::clamp(iniReader.ReadFloat("SUNSHAFTS", "SSDensity", 0.9f), 0.0f, 1.0f);
-            fSSDecay = std::clamp(iniReader.ReadFloat("SUNSHAFTS", "SSDecay", 0.95f), 0.0f, 1.0f);
-            fSSSunSize = 1.0f / std::clamp(iniReader.ReadFloat("SUNSHAFTS", "SSSunSize", 0.075f), 0.0000001f, 1.0f);
+            fSSDensity = std::clamp(iniReader.ReadFloat("SUNSHAFTS", "SunShaftsDensity", 0.9f), 0.0f, 1.0f);
+            fSSDecay = std::clamp(iniReader.ReadFloat("SUNSHAFTS", "SunShaftsDecay", 0.95f), 0.0f, 1.0f);
+            fSSSunSize = 1.0f / std::clamp(iniReader.ReadFloat("SUNSHAFTS", "SunShaftsSunSize", 0.075f), 0.0000001f, 1.0f);
 
             fCascadeBlendSize = std::clamp(iniReader.ReadFloat("SHADOWS", "CascadeBlendSize", 0.1f), 0.0f, 1.0f);
             nForceShadowFilter = std::clamp(iniReader.ReadInteger("SHADOWS", "ForceShadowFilter", 0), 0, 2);
