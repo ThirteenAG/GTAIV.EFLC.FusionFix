@@ -557,6 +557,13 @@ public:
                     injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jz -> jmp
             }
 
+            // Radar zoom (T hotkey) 30fps cap fix
+            {
+                auto pattern = hook::pattern("83 F9 ? 0F 86 ? ? ? ? F3 0F 10 15");
+                if (!pattern.empty())
+                    injector::WriteMemory<uint8_t>(pattern.get_first(2), 15, true);
+            }
+
             // Subtract Contrast slider value by 1 internally, same as on Xbox 360
             // {
             //     auto pattern = find_pattern("F3 0F 59 C7 0F 2F C8 76 05 0F 28 C1 EB 05 0F 2F E0 76 16", "F3 0F 59 C6 0F 2F E8 76 05 0F 28 C5 EB 05 0F 2F D8 76 16");
