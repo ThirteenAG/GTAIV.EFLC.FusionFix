@@ -220,7 +220,7 @@ public:
             { 0, "PREF_DEFINITION",        "MAIN",       "Definition",                      "",                           1, nullptr, 0, 1 },
             { 0, "PREF_SHADOWFILTER",      "SHADOWS",    "ShadowFilter",                    "MENU_DISPLAY_SHADOWFILTER",  3, nullptr, ShadowFilterText.eSharp, std::distance(std::begin(ShadowFilterText.data), std::end(ShadowFilterText.data)) - 1 },
             { 0, "PREF_TREE_LIGHTING",     "MISC",       "TreeLighting",                    "MENU_DISPLAY_TREE_LIGHTING", 7, nullptr, TreeFxText.ePC, std::distance(std::begin(TreeFxText.data), std::end(TreeFxText.data)) - 1 },
-            { 0, "PREF_TCYC_DOF",          "MISC",       "DepthOfField",                    "MENU_DISPLAY_DOF",           7, nullptr, DofText.eOff, std::distance(std::begin(DofText.data), std::end(DofText.data)) - 1 },
+            { 0, "PREF_TCYC_DOF",          "MISC",       "DepthOfField",                    "MENU_DISPLAY_DOF",           6, nullptr, DofText.eOff, std::distance(std::begin(DofText.data), std::end(DofText.data)) - 1 },
             { 0, "PREF_MOTIONBLUR",        "MAIN",       "MotionBlur",                      "",                           2, nullptr, 0, 4 },
             { 0, "PREF_LEDILLUMINATION",   "MISC",       "LightSyncRGB",                    "",                           0, nullptr, 0, 1 },
             { 0, "PREF_TREEALPHA",         "MISC",       "TreeAlpha",                       "MENU_DISPLAY_TREEALPHA",     4, nullptr, TreeAlphaText.ePC, std::distance(std::begin(TreeAlphaText.data), std::end(TreeAlphaText.data)) - 1 },
@@ -432,6 +432,18 @@ public:
     auto operator()(int32_t i) { return Get(i); }
     auto operator()(std::string_view name) { return Get(name); }
 
+    void SaveLanguagePref(int32_t value)
+    {
+        CIniReader iniWriter(cfgPath);
+        iniWriter.WriteInteger("LANGUAGEOVERRIDE", "Language", value, true);
+    }
+
+    int32_t LoadLanguagePref()
+    {
+        CIniReader iniReader(cfgPath);
+        return iniReader.ReadInteger("LANGUAGEOVERRIDE", "Language", -1);
+    }
+
 public:
     struct
     {
@@ -525,6 +537,12 @@ public:
                     });
 
                     FusionFixSettings.Set(id, value);
+
+                    // custom handler for language switch
+                    if (FusionFixSettings.isSame(id, "PREF_CURRENT_LANGUAGE"))
+                    {
+                        FusionFixSettings.SaveLanguagePref(value);
+                    }
                 }
             }; injector::MakeInline<IniWriter>(pattern.get_first(0), pattern.get_first(7));
 
@@ -721,35 +739,19 @@ public:
                 });
             }
 
-            // radio saving disable
             {
-                static SafetyHookInline shRadioSaveHandler{};
-                static auto RadioSaveHandler = []()
+                static SafetyHookInline shGetUserLanguage{};
+                auto GetUserLanguage = []() -> int
                 {
-                    if (CText::hasViceCityStrings())
-                        return;
-                
-                    return shRadioSaveHandler.stdcall();
+                    auto l = FusionFixSettings.LoadLanguagePref();
+                    if (l >= 0)
+                        return l;
+                    return shGetUserLanguage.call<int>();
                 };
-            
-                static SafetyHookInline shRadioLoadHandler{};
-                static auto RadioLoadHandler = []()
-                {
-                    if (CText::hasViceCityStrings())
-                        return;
-                
-                    return shRadioLoadHandler.stdcall();
-                };
-                
-                auto pattern = hook::pattern("81 EC 74 0E 00 00");
+
+                auto pattern = hook::pattern("83 EC ? A1 ? ? ? ? 33 C4 89 44 24 ? A1 ? ? ? ? 8B 0D ? ? ? ? 53 55 56 33 ED 57 33 FF 85 C0 0F 45 E8");
                 if (!pattern.empty())
-                {
-                    shRadioSaveHandler = safetyhook::create_inline(pattern.get_first(0), static_cast<void(__stdcall*)()>(RadioSaveHandler));
-            
-                    pattern = hook::pattern("A0 ? ? ? ? 53 8A 1D");
-                    if (!pattern.empty())
-                        shRadioLoadHandler = safetyhook::create_inline(pattern.get_first(0), static_cast<void(__stdcall*)()>(RadioLoadHandler));
-                }
+                    shGetUserLanguage = safetyhook::create_inline(pattern.get_first(0), static_cast<int(*)()>(GetUserLanguage));
             }
         };
 

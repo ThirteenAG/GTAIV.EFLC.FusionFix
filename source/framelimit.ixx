@@ -94,6 +94,9 @@ public:
     }
     void Sync()
     {
+        if (fFPSLimit <= 0.0f)
+            return;
+
         if (mFPSLimitMode == FPS_REALTIME)
             while (!Sync_RT());
         else if (mFPSLimitMode == FPS_ACCURATE)
@@ -138,7 +141,7 @@ void __cdecl sub_855640()
     if ((CMenuManager::bLoadscreenShown && !*CMenuManager::bLoadscreenShown && !bLoadingShown) || !bUnlockFramerateDuringLoadscreens)
     {
         if (preset && *preset >= FusionFixSettings.FpsCaps.eCustom) {
-            if (fFpsLimit > 0.0f || (*preset > FusionFixSettings.FpsCaps.eCustom && *preset < int32_t(FusionFixSettings.FpsCaps.data.size())))
+            if (fFpsLimit != 0.0f || (*preset > FusionFixSettings.FpsCaps.eCustom && *preset < int32_t(FusionFixSettings.FpsCaps.data.size())))
                 FpsLimiter.Sync();
         }
     }
@@ -180,7 +183,7 @@ public:
 
             //[FRAMELIMIT]
             nFrameLimitType = iniReader.ReadInteger("FRAMELIMIT", "FrameLimitType", 2);
-            fFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "FpsLimit", 0));
+            fFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "FpsLimit", -1));
             fCutsceneFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "CutsceneFpsLimit", 0));
             fScriptCutsceneFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "ScriptCutsceneFpsLimit", 0));
             fScriptCutsceneFovLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "ScriptCutsceneFovLimit", 0));
@@ -193,17 +196,59 @@ public:
                 if (mode == FrameLimiter::FPSLimitMode::FPS_ACCURATE)
                     timeBeginPeriod(1);
 
-                auto preset = FusionFixSettings("PREF_FPS_LIMIT_PRESET");
-                if (preset > FusionFixSettings.FpsCaps.eCustom && preset < int32_t(FusionFixSettings.FpsCaps.data.size()))
-                    FpsLimiter.Init(mode, (float)FusionFixSettings.FpsCaps.data[preset]);
-                else
-                    FpsLimiter.Init(mode, fFpsLimit);
                 CutsceneFpsLimiter.Init(mode, fCutsceneFpsLimit);
                 ScriptCutsceneFpsLimiter.Init(mode, fScriptCutsceneFpsLimit);
                 LoadingFpsLimiter.Init(mode, std::clamp(fLoadingFpsLimit, 30.0f, FLT_MAX));
                 LoadingFpsLimiter2.Init(mode, 240.0f);
 
-                auto pattern = find_pattern("8B 35 ? ? ? ? 8B 0D ? ? ? ? 8B 15 ? ? ? ? A1", "A1 ? ? ? ? 83 F8 01 8B 0D");
+                auto pattern = find_pattern("A3 ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 50 8B 08");
+                if (!pattern.empty())
+                {
+                    static auto SetRefreshRateHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                    {
+                        auto mode = (nFrameLimitType == 2) ? FrameLimiter::FPSLimitMode::FPS_ACCURATE : FrameLimiter::FPSLimitMode::FPS_REALTIME;
+                        auto preset = FusionFixSettings("PREF_FPS_LIMIT_PRESET");
+                        if (preset > FusionFixSettings.FpsCaps.eCustom && preset < int32_t(FusionFixSettings.FpsCaps.data.size()))
+                            FpsLimiter.Init(mode, (float)FusionFixSettings.FpsCaps.data[preset]);
+                        else
+                        {
+                            if (fFpsLimit > 0.0f)
+                                FpsLimiter.Init(mode, fFpsLimit);
+                            else
+                            {
+                                if (regs.eax)
+                                    FpsLimiter.Init(mode, float(regs.eax) + fFpsLimit);
+                                else
+                                    FpsLimiter.Init(mode, 0.0f);
+                            }
+                        }
+                    });
+                }
+                else
+                {
+                    pattern = find_pattern("89 0D ? ? ? ? F6 05");
+                    static auto SetRefreshRateHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                    {
+                        auto mode = (nFrameLimitType == 2) ? FrameLimiter::FPSLimitMode::FPS_ACCURATE : FrameLimiter::FPSLimitMode::FPS_REALTIME;
+                        auto preset = FusionFixSettings("PREF_FPS_LIMIT_PRESET");
+                        if (preset > FusionFixSettings.FpsCaps.eCustom && preset < int32_t(FusionFixSettings.FpsCaps.data.size()))
+                            FpsLimiter.Init(mode, (float)FusionFixSettings.FpsCaps.data[preset]);
+                        else
+                        {
+                            if (fFpsLimit > 0.0f)
+                                FpsLimiter.Init(mode, fFpsLimit);
+                            else
+                            {
+                                if (regs.ecx)
+                                    FpsLimiter.Init(mode, float(regs.ecx) + fFpsLimit);
+                                else
+                                    FpsLimiter.Init(mode, 0.0f);
+                            }
+                        }
+                    });
+                }
+
+                pattern = find_pattern("8B 35 ? ? ? ? 8B 0D ? ? ? ? 8B 15 ? ? ? ? A1", "A1 ? ? ? ? 83 F8 01 8B 0D");
                 injector::WriteMemory(pattern.get_first(0), 0x901CC483, true); //nop + add esp,1C
                 injector::MakeJMP(pattern.get_first(4), sub_855640, true); // + jmp
 
@@ -212,7 +257,17 @@ public:
                     if (value > FusionFixSettings.FpsCaps.eCustom && value < int32_t(FusionFixSettings.FpsCaps.data.size()))
                         FpsLimiter.Init(mode, (float)FusionFixSettings.FpsCaps.data[value]);
                     else
-                        FpsLimiter.Init(mode, fFpsLimit);
+                    {
+                        if (fFpsLimit > 0.0f)
+                            FpsLimiter.Init(mode, fFpsLimit);
+                        else
+                        {
+                            if (*rage::grcWindow::ms_nActiveRefreshrate)
+                                FpsLimiter.Init(mode, float(*rage::grcWindow::ms_nActiveRefreshrate) + fFpsLimit);
+                            else
+                                FpsLimiter.Init(mode, 0.0f);
+                        }
+                    }
                 });
 
                 pattern = find_pattern("8B 4C 24 04 8B 54 24 08 8B 41 08");

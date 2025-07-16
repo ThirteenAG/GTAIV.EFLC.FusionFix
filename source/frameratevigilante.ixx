@@ -21,126 +21,140 @@ uint32_t* dword_12088B4 = nullptr;
 uint32_t* dword_1037720 = nullptr;
 uint32_t* dword_11F704C = nullptr;
 SafetyHookInline shCameraShake = {};
-void __fastcall CameraShake(float* shakeData, void* edx, float multiplier)
+void __fastcall CameraShake(float* CameraData, void* edx, float Multiplier)
 {
     static auto cs = FusionFixSettings.GetRef("PREF_CAMERASHAKE");
     if (!cs->get())
     {
-        float finalRot[] = { 0.0f, 0.0f, 0.0f };
-        return Matrix34::fromEulersXYZ(shakeData, 0, finalRot);
+        float Output[] = { 0.0f, 0.0f, 0.0f };
+        return Matrix34::fromEulersXYZ(CameraData, 0, Output);
     }
 
-    float& rotX = shakeData[16];
-    float& rotY = shakeData[17];
-    float& rotZ = shakeData[18];
+    float DeltaTime = *CTimer::fTimeStep;
 
-    float maxX = shakeData[20];
-    float maxY = shakeData[21];
-    float maxZ = shakeData[22];
-
-    float intensityX = shakeData[24];
-    float intensityY = shakeData[25];
-    float intensityZ = shakeData[26];
-
-    float& velX = shakeData[28];
-    float& velY = shakeData[29];
-    float& velZ = shakeData[30];
-
-    float dampX = shakeData[32];
-    float dampY = shakeData[33];
-    float dampZ = shakeData[34];
-
-    float minShake = shakeData[36];
-    float maxShake = shakeData[37];
-
-    float impulseFreq = shakeData[38];
-    float impulseAmplitude = shakeData[39];
-
-    // Get the actual time passed since the last frame
-    float deltaTime = *CTimer::fTimeStep;
+    float TimeScale = DeltaTime * 30.0f;
     if (*dword_11F7060 == 1 || *dword_12088B4 != -1 || *dword_1037720 == 18)
     {
-        // Alternative timing path
-        deltaTime = (*dword_11F704C * 0.001f);
+        TimeScale = *dword_11F704C * 0.001f;
+        TimeScale *= 30.0f;
     }
 
-    // Create a frame-rate independent scaling factor.
-    float timeScale = deltaTime * 30.0f;
+    static float NoiseTimer = 0.0f;
+    static float CamX = 0.0f;
+    static float CamY = 0.0f;
+    static float CamZ = 0.0f;
 
-    // Compute per-axis shake range based on rotation
-    float rangeX = fabsf(rotX / maxX) * (maxShake - minShake) + minShake;
-    float rangeY = fabsf(rotY / maxY) * (maxShake - minShake) + minShake;
-    float rangeZ = fabsf(rotZ / maxZ) * (maxShake - minShake) + minShake;
+    NoiseTimer += DeltaTime;
 
-    // Apply damping if rotation & velocity have the same sign
-    if ((rotX > 0.0f && velX > 0.0f) || (rotX < 0.0f && velX < 0.0f))
-        rangeX *= dampX;
-    if ((rotY > 0.0f && velY > 0.0f) || (rotY < 0.0f && velY < 0.0f))
-        rangeY *= dampY;
-    if ((rotZ > 0.0f && velZ > 0.0f) || (rotZ < 0.0f && velZ < 0.0f))
-        rangeZ *= dampZ;
-
-    // Generate 3 random factors
-    float randX = game_rand() * (1.0f / 32768.0f);
-    float randY = game_rand() * (1.0f / 32768.0f);
-    float randZ = game_rand() * (1.0f / 32768.0f);
-
-    // Calculate shake forces (these are impulses, so they should not be scaled by time here)
-    float forceX = randX * intensityX * rangeX;
-    float forceY = randY * intensityY * rangeY;
-    float forceZ = randZ * intensityZ * rangeZ;
-
-    // Reverse direction if rotation is positive
-    if (rotX > 0.0f) forceX = -forceX;
-    if (rotY > 0.0f) forceY = -forceY;
-    if (rotZ > 0.0f) forceZ = -forceZ;
-
-    // Update velocities. Scale the applied force by timeScale.
-    velX += forceX * timeScale;
-    velY += forceY * timeScale;
-    velZ += forceZ * timeScale;
-
-    // Impulse probability
-    // The original code's logic was flawed for different frame rates.
-    // A time-based probability is much more reliable.
-    float impulseChance = deltaTime * impulseFreq;
-    float randVal = (game_rand() & 0xFFFF) * (1.0f / 32768.0f);
-
-    // If random check passes, add impulse. Scale the impulse by timeScale as well.
-    if (randVal < impulseChance)
+    if (NoiseTimer >= 1.0f / 30.0f)
     {
-        float randImpulseX = ((game_rand() * (1.0f / 32768.0f) * 2.0f) - 1.0f) * impulseAmplitude;
-        float randImpulseY = ((game_rand() * (1.0f / 32768.0f) * 2.0f) - 1.0f) * impulseAmplitude;
-        float randImpulseZ = ((game_rand() * (1.0f / 32768.0f) * 2.0f) - 1.0f) * impulseAmplitude;
+        NoiseTimer = 0.0f;
 
-        velX += randImpulseX * timeScale;
-        velY += randImpulseY * timeScale;
-        velZ += randImpulseZ * timeScale;
+        CamX = fabs(CameraData[16] / CameraData[20]) * (CameraData[37] - CameraData[36]) + CameraData[36];
+        CamY = fabs(CameraData[17] / CameraData[21]) * (CameraData[37] - CameraData[36]) + CameraData[36];
+        CamZ = fabs(CameraData[18] / CameraData[22]) * (CameraData[37] - CameraData[36]) + CameraData[36];
+
+        if (CameraData[16] > 0.0f && CameraData[28] > 0.0f || CameraData[16] < 0.0f && CameraData[28] < 0.0f)
+            CamX *= CameraData[32];
+        if (CameraData[17] > 0.0f && CameraData[29] > 0.0f || CameraData[17] < 0.0f && CameraData[29] < 0.0f)
+            CamY *= CameraData[33];
+        if (CameraData[18] > 0.0f && CameraData[30] > 0.0f || CameraData[18] < 0.0f && CameraData[30] < 0.0f)
+            CamZ *= CameraData[34];
+
+        CamX *= game_rand() / 32767.0f * CameraData[24];
+        CamY *= game_rand() / 32767.0f * CameraData[25];
+        CamZ *= game_rand() / 32767.0f * CameraData[26];
+
+        if (CameraData[16] > 0.0f)
+            CamX *= -1.0f;
+        if (CameraData[17] > 0.0f)
+            CamY *= -1.0f;
+        if (CameraData[18] > 0.0f)
+            CamZ *= -1.0f;
+
+        if ((int)(game_rand() / 32768.0f * ((int)CameraData[38] - 1)) == 1)
+        {
+            CamX += CameraData[39] * (game_rand() / 32767.0f * 2.0f - 1.0f);
+            CamY += CameraData[39] * (game_rand() / 32767.0f * 2.0f - 1.0f);
+            CamZ += CameraData[39] * (game_rand() / 32767.0f * 2.0f - 1.0f);
+        }
+
+        CameraData[28] += CamX;
+        CameraData[29] += CamY;
+        CameraData[30] += CamZ;
     }
 
-    // Integrate velocities into rotation. Also use timeScale.
-    rotX += velX * timeScale;
-    rotY += velY * timeScale;
-    rotZ += velZ * timeScale;
+    CameraData[16] = std::clamp(CameraData[28] * TimeScale + CameraData[16], -CameraData[20], CameraData[20]);
+    CameraData[17] = std::clamp(CameraData[29] * TimeScale + CameraData[17], -CameraData[21], CameraData[21]);
+    CameraData[18] = std::clamp(CameraData[30] * TimeScale + CameraData[18], -CameraData[22], CameraData[22]);
 
-    // Clamp rotations
-    if (rotX < -maxX) rotX = -maxX;
-    if (rotX > maxX) rotX = maxX;
-    if (rotY < -maxY) rotY = -maxY;
-    if (rotY > maxY) rotY = maxY;
-    if (rotZ < -maxZ) rotZ = -maxZ;
-    if (rotZ > maxZ) rotZ = maxZ;
+    float Output[] = { CameraData[16] * Multiplier, CameraData[17] * Multiplier, CameraData[18] * Multiplier };
 
-    // Apply final multiplier
-    float finalRot[] = {
-        rotX * multiplier,
-        rotY * multiplier,
-        rotZ * multiplier
-    };
-
-    // Update matrix
-    Matrix34::fromEulersXYZ(shakeData, 0, finalRot);
+    Matrix34::fromEulersXYZ(CameraData, 0, Output);
 }
+
+// Original code, for reference.
+/*
+void __fastcall CameraShake(float* CameraData, float Multiplier)
+{
+    static auto cs = FusionFixSettings.GetRef("PREF_CAMERASHAKE");
+    if (!cs->get())
+    {
+        float Output[] = { 0.0f, 0.0f, 0.0f };
+        return Matrix34::fromEulersXYZ(CameraData, 0, Output);
+    }
+
+    float DeltaTime = *CTimer::fTimeStep;
+
+    float TimeScale = DeltaTime * 30.0f;
+    if (*dword_11F7060 == 1 || *dword_12088B4 != -1 || *dword_1037720 == 18)
+    {
+        TimeScale = (unsigned int)dword_11F704C * 0.001f;
+        TimeScale *= 30.0f;
+    }
+
+    float CamX = fabs(CameraData[16] / CameraData[20]) * (CameraData[37] - CameraData[36]) + CameraData[36];
+    float CamY = fabs(CameraData[17] / CameraData[21]) * (CameraData[37] - CameraData[36]) + CameraData[36];
+    float CamZ = fabs(CameraData[18] / CameraData[22]) * (CameraData[37] - CameraData[36]) + CameraData[36];
+
+    if (CameraData[16] > 0.0f && CameraData[28] > 0.0f || CameraData[16] < 0.0f && CameraData[28] < 0.0f)
+        CamX *= CameraData[32];
+    if (CameraData[17] > 0.0f && CameraData[29] > 0.0f || CameraData[17] < 0.0f && CameraData[29] < 0.0f)
+        CamY *= CameraData[33];
+    if (CameraData[18] > 0.0f && CameraData[30] > 0.0f || CameraData[18] < 0.0f && CameraData[30] < 0.0f)
+        CamZ *= CameraData[34];
+
+    CamX *= rand() / 32767.0f * CameraData[24];
+    CamY *= rand() / 32767.0f * CameraData[25];
+    CamZ *= rand() / 32767.0f * CameraData[26];
+
+    if (CameraData[16] > 0.0f)
+        CamX *= -1.0f;
+    if (CameraData[17] > 0.0f)
+        CamY *= -1.0f;
+    if (CameraData[18] > 0.0f)
+        CamZ *= -1.0f;
+
+    if ((int)(rand() / 32768.0f * ((int)TimeScale * (int)CameraData[38] - 1)) == 1)
+    {
+        CamX += CameraData[39] * (rand() / 32767.0f * 2.0f - 1.0f);
+        CamY += CameraData[39] * (rand() / 32767.0f * 2.0f - 1.0f);
+        CamZ += CameraData[39] * (rand() / 32767.0f * 2.0f - 1.0f);
+    }
+
+    CameraData[28] += CamX;
+    CameraData[29] += CamY;
+    CameraData[30] += CamZ;
+
+    CameraData[16] = std::clamp(CameraData[28] * TimeScale + CameraData[16], -CameraData[20], CameraData[20]);
+    CameraData[17] = std::clamp(CameraData[29] * TimeScale + CameraData[17], -CameraData[21], CameraData[21]);
+    CameraData[18] = std::clamp(CameraData[30] * TimeScale + CameraData[18], -CameraData[22], CameraData[22]);
+
+    float Output[] = { CameraData[16] * Multiplier, CameraData[17] * Multiplier, CameraData[18] * Multiplier };
+
+    Matrix34::fromEulersXYZ(CameraData, 0, Output);
+}
+*/
 
 std::unordered_map<int, float> last_fov_values;
 std::unordered_map<int, bool> fov_cache_initialized;

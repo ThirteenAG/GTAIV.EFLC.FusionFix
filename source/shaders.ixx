@@ -171,9 +171,9 @@ public:
             fSHADOWFILTERCHSSMaxSoftness = iniReader.ReadFloat("SHADOWFILTERCHSS", "MaxSoftness", 10.0f);
             fSHADOWFILTERCHSSLightSize = iniReader.ReadFloat("SHADOWFILTERCHSS", "LightSize", 500.0f);
 
-            fSSDensity = std::clamp(iniReader.ReadFloat("SUNSHAFTS", "SSDensity", 0.9f), 0.0f, 1.0f);
-            fSSDecay = std::clamp(iniReader.ReadFloat("SUNSHAFTS", "SSDecay", 0.95f), 0.0f, 1.0f);
-            fSSSunSize = 1.0f / std::clamp(iniReader.ReadFloat("SUNSHAFTS", "SSSunSize", 0.075f), 0.0000001f, 1.0f);
+            fSSDensity = std::clamp(iniReader.ReadFloat("SUNSHAFTS", "SunShaftsDensity", 0.9f), 0.0f, 1.0f);
+            fSSDecay = std::clamp(iniReader.ReadFloat("SUNSHAFTS", "SunShaftsDecay", 0.95f), 0.0f, 1.0f);
+            fSSSunSize = 1.0f / std::clamp(iniReader.ReadFloat("SUNSHAFTS", "SunShaftsSunSize", 0.075f), 0.0000001f, 1.0f);
 
             fCascadeBlendSize = std::clamp(iniReader.ReadFloat("SHADOWS", "CascadeBlendSize", 0.1f), 0.0f, 1.0f);
             nForceShadowFilter = std::clamp(iniReader.ReadInteger("SHADOWS", "ForceShadowFilter", 0), 0, 2);
@@ -467,28 +467,7 @@ public:
                         }
 
                         arr5[1] = bEnableSnow ? 1.0f : 0.0f;
-                        
-                        static auto dof = FusionFixSettings.GetRef("PREF_TCYC_DOF");
-                        static float dofscale = 1.0f;
-                        if(!CCutscenes::hasCutsceneFinished())
-                        {
-                            switch(dof->get())
-                            {
-                                case FusionFixSettings.DofText.eOff: dofscale = 0.0f; break;
-                                case FusionFixSettings.DofText.eCutscenesOnly: dofscale = 0.0f; break;
-                                case FusionFixSettings.DofText.eLow: dofscale = 0.25f; break;
-                                case FusionFixSettings.DofText.eMedium: dofscale = 0.5f; break;
-                                case FusionFixSettings.DofText.eHigh: dofscale = 0.75f; break;
-                                case FusionFixSettings.DofText.eVeryHigh: dofscale = 1.0f; break;
-                                default: dofscale = 1.0f; break;
-                            }
-                        }
-                        else
-                        {
-                            dofscale = 1.0f;
-                        }
-                        
-                        arr5[2] = dofscale;
+                        arr5[2] = 0.0f;
                         arr5[3] = treealpha->get() == FusionFixSettings.TreeAlphaText.eConsole ? fTreeAlphaConsole : fTreeAlphaPC;
                         pDevice->SetPixelShaderConstantF(221, &arr5[0], 1);
                     }

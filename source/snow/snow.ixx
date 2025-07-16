@@ -719,13 +719,24 @@ public:
 
                 NativeOverride::RegisterPhoneCheat("7665550100", []
                 {
-                    ToggleSnow(!bEnableSnow);
+                    bEnableSnow = !bEnableSnow;
+                    ToggleSnow(bEnableSnow);
+
+                    if (bEnableSnow)
+                        Natives::PrintHelp((char*)"CHEAT1");
+                    else
+                        Natives::PrintHelp((char*)"CHEAT2");
                 });
 
                 NativeOverride::RegisterPhoneCheat("2665550100", []
                 {
                     bEnableHall = !bEnableHall;
                     ToggleSnow(false);
+
+                    if (bEnableHall)
+                        Natives::PrintHelp((char*)"CHEAT1");
+                    else
+                        Natives::PrintHelp((char*)"CHEAT2");
                 });
 
                 // Snow on vehicles: load textures
