@@ -115,8 +115,26 @@ Vibrazione della Camera
 [CutscAudioSync]
 Sincronizzazione Audio Filmati
 
+[CutscAudioSync0]
+Sincronizzazione Audio Filmati disattivata
+
+[CutscAudioSync1]
+Sincronizzazione Audio Filmati attivata
+
 [Turn Indicators]
-Indicatori di Direzione
+Indicatori di Svolta
+
+[WinterEvent0]
+Evento invernale disattivato
+
+[WinterEvent1]
+Evento invernale attivato
+
+[HalloweenEvent0]
+Evento di Halloween disattivato
+
+[HalloweenEvent1]
+Evento di Halloween attivato
 
 [FF_WARN0]
 ~p~IMG Files:

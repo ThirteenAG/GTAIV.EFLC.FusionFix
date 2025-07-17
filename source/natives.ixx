@@ -5123,7 +5123,7 @@ public:
     static inline auto PreloadStreamWithStartOffset(char* StreamName, int32_t StartOffset) { return NativeInvoke::Invoke<1766, std::to_underlying(NativeHashes::PRELOAD_STREAM_WITH_START_OFFSET), bool>(StreamName, StartOffset); }
     static inline auto PreviewRingtone(int32_t RingtoneId) { return NativeInvoke::Invoke<1767, std::to_underlying(NativeHashes::PREVIEW_RINGTONE), void>(RingtoneId); }
     static inline auto Print(char* gxtName, uint32_t timeMS, bool enable) { return NativeInvoke::Invoke<1768, std::to_underlying(NativeHashes::PRINT), void>(gxtName, timeMS, enable); }
-    static inline auto PrintBig(char* gxtName, uint32_t timeMS, bool enable) { return NativeInvoke::Invoke<1769, std::to_underlying(NativeHashes::PRINT_BIG), void>(gxtName, timeMS, enable); }
+    static inline auto PrintBig(char* gxtName, uint32_t timeMS, uint8_t style) { return NativeInvoke::Invoke<1769, std::to_underlying(NativeHashes::PRINT_BIG), void>(gxtName, timeMS, style); }
     static inline auto PrintBigQ(char* gxtentry, int32_t time, int32_t flag) { return NativeInvoke::Invoke<1770, std::to_underlying(NativeHashes::PRINT_BIG_Q), void>(gxtentry, time, flag); }
     static inline auto PrintHelp(char* gxtName) { return NativeInvoke::Invoke<1771, std::to_underlying(NativeHashes::PRINT_HELP), void>(gxtName); }
     static inline auto PrintHelpForever(char* gxtName) { return NativeInvoke::Invoke<1772, std::to_underlying(NativeHashes::PRINT_HELP_FOREVER), void>(gxtName); }

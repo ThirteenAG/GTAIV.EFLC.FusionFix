@@ -113,10 +113,28 @@ Zentrierte Zu-Fuß-Kamera
 Kamerawackeln
 
 [CutscAudioSync]
-Zwischensequenz-Audiosynchronisierung
+Zwischensequenz-Audio-Synchronisation
+
+[CutscAudioSync0]
+Zwischensequenz-Audio-Synchronisation deaktiviert
+
+[CutscAudioSync1]
+Zwischensequenz-Audio-Synchronisation aktiviert
 
 [Turn Indicators]
 Blinker
+
+[WinterEvent0]
+Winterevent deaktiviert
+
+[WinterEvent1]
+Winterevent aktiviert
+
+[HalloweenEvent0]
+Halloween-Event deaktiviert
+
+[HalloweenEvent1]
+Halloween-Event aktiviert
 
 [FF_WARN0]
 ~p~IMG-Dateien:

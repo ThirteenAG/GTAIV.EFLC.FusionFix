@@ -723,9 +723,9 @@ public:
                     ToggleSnow(bEnableSnow);
 
                     if (bEnableSnow)
-                        Natives::PrintHelp((char*)"CHEAT1");
+                        Natives::PrintHelp((char*)"WinterEvent1");
                     else
-                        Natives::PrintHelp((char*)"CHEAT2");
+                        Natives::PrintHelp((char*)"WinterEvent0");
                 });
 
                 NativeOverride::RegisterPhoneCheat("2665550100", []
@@ -734,9 +734,9 @@ public:
                     ToggleSnow(false);
 
                     if (bEnableHall)
-                        Natives::PrintHelp((char*)"CHEAT1");
+                        Natives::PrintHelp((char*)"HalloweenEvent1");
                     else
-                        Natives::PrintHelp((char*)"CHEAT2");
+                        Natives::PrintHelp((char*)"HalloweenEvent0");
                 });
 
                 // Snow on vehicles: load textures

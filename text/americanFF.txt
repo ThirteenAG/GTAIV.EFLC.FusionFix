@@ -115,8 +115,27 @@ Camera Shake
 [CutscAudioSync]
 Cutscene Audio Sync
 
+[CutscAudioSync0]
+Cutscene Audio Sync deactivated
+
+[CutscAudioSync1]
+Cutscene Audio Sync activated
+
 [Turn Indicators]
 Turn Indicators
+
+[WinterEvent0]
+Winter event deactivated
+
+[WinterEvent1]
+Winter event activated
+
+[HalloweenEvent0]
+Halloween event deactivated
+
+[HalloweenEvent1]
+Halloween event activated
+
 
 [FF_WARN0]
 ~p~IMG Files:

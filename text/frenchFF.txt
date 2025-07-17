@@ -115,8 +115,26 @@ Tremblement de Caméra
 [CutscAudioSync]
 Synchronisation Audio des Cinématiques
 
+[CutscAudioSync0]
+Synchronisation Audio des Cinématiques désactivée
+
+[CutscAudioSync1]
+Synchronisation Audio des Cinématiques activée
+
 [Turn Indicators]
 Clignotants
+
+[WinterEvent0]
+Événement d'hiver désactivé
+
+[WinterEvent1]
+Événement d'hiver activé
+
+[HalloweenEvent0]
+Événement d'Halloween désactivé
+
+[HalloweenEvent1]
+Événement d'Halloween
 
 [FF_WARN0]
 ~p~Fichiers IMG:

@@ -115,8 +115,26 @@ FPSリミッター
 [CutscAudioSync]
 カットシーンオーディオ同期
 
+[CutscAudioSync0]
+カットシーンオーディオ同期が無効化されました
+
+[CutscAudioSync1]
+カットシーンオーディオ同期が有効化されました
+
 [Turn Indicators]
-ウィンカー
+ターンインジケーター
+
+[WinterEvent0]
+ウィンターイベントが無効化されました
+
+[WinterEvent1]
+ウィンターイベントが有効化されました
+
+[HalloweenEvent0]
+ハロウィーンイベントが無効化されました
+
+[HalloweenEvent1]
+ハロウィーンイベントが有効化されました
 
 [FF_WARN0]
 ~p~IMG ファイル:

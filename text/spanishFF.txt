@@ -113,10 +113,28 @@ Cámara a Pie Centrada
 Temblor de Cámara
 
 [CutscAudioSync]
-Sincronización de Audio en Cinemáticas
+Sincronización de Audio de Escenas
+
+[CutscAudioSync0]
+Sincronización de Audio de Escenas desactivada
+
+[CutscAudioSync1]
+Sincronización de Audio de Escenas activada
 
 [Turn Indicators]
 Indicadores de Giro
+
+[WinterEvent0]
+Evento de invierno desactivado
+
+[WinterEvent1]
+Evento de invierno activado
+
+[HalloweenEvent0]
+Evento de Halloween desactivado
+
+[HalloweenEvent1]
+Evento de Halloween activado
 
 [FF_WARN0]
 ~p~Archivos IMG:
