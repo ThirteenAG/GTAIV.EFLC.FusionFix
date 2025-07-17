@@ -367,23 +367,23 @@
             <options action="MENUOPT_ADJUST" label="MO_AUTOSAV" value="PREF_AUTOSAVE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <options action="MENUOPT_ADJUST" label="MO_REPLAY" value="PREF_REPLAY_MODE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <options action="MENUOPT_JUMP_GUIDE" label="MO_GUIDE" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="Skip Intro" value="PREF_SKIP_INTRO" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Skip Menu" value="PREF_SKIP_MENU" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Windowed" value="PREF_WINDOWED" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Borderless" value="PREF_BORDERLESS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Focus Loss" value="PREF_BLOCKONLOSTFOCUS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-            <optionspc action="MENUOPT_ADJUST" label="LightSyncRGB" value="PREF_LEDILLUMINATION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-            <optionspc action="MENUOPT_ADJUST" label="FPS Counter" value="PREF_FPSCOUNTER" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Letterbox" value="PREF_LETTERBOX" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Pillarbox" value="PREF_PILLARBOX" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-            <optionspc action="MENUOPT_ADJUST" label="CutscAudioSync" value="PREF_CUTSCENEAUDIOSYNC" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="FPS Counter" value="PREF_FPSCOUNTER" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-            <optionspc action="MENUOPT_ADJUST" label="Alt. Dialogues" value="PREF_ALTDIALOGUE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="LightSyncRGB" value="PREF_LEDILLUMINATION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Timed Events" value="PREF_TIMEDEVENTS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="Check Updates" value="PREF_UPDATE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            
             <options action="MENUOPT_QUIT" label="MO_EXITGAM" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
         </menu>
@@ -423,16 +423,18 @@
         <menu HeaderText="MH_CON" enum="SCR_CONTROLS">
             <optionspc action="MENUOPT_KEYBOARD_OPTIONS" label="MO_KBOPT" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <options action="MENUOPT_CONTROLLER_OPTIONS" label="MO_CTRLOPT" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            
             <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-            <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-            <optionspc action="MENUOPT_ADJUST" label="Raw Input" value="PREF_RAWINPUT" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Always Run" value="PREF_ALWAYSRUN" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-            <optionspc action="MENUOPT_ADJUST" label="Cover Centering" value="PREF_COVERCENTERING" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Zoomed Movement" value="PREF_ZOOMEDMOVEMENT" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="Camera Shake" value="PREF_CAMERASHAKE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="Cover Centering" value="PREF_COVERCENTERING" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="CenteredVehCam" value="PREF_CENTEREDCAMERA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="CenteredFootCam" value="PREF_CENTEREDCAMERAFOOT" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-            <optionspc action="MENUOPT_ADJUST" label="Camera Shake" value="PREF_CAMERASHAKE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="Turn Indicators" value="PREF_TURNINDICATORS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            
             <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
         </menu>
 
@@ -445,7 +447,11 @@
             <optionspc action="MENUOPT_ADJUST" label="MO_MOUSE" value="PREF_MOUSE_SENSITIVITY" scaler="200" displayValue="MENU_DISPLAY_SLIDERBAR" />
             <optionspc action="MENUOPT_ADJUST" label="MO_MOWHEEL" value="PREF_MOUSE_WHEEL_SENSITIVITY" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
             <optionspc action="MENUOPT_ADJUST" label="MO_HELIKB" value="PREF_HELIKB" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            
+            <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="Centering Delay" value="PREF_EPISODIC_RACECLASS_RACE_4" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
+            <optionspc action="MENUOPT_ADJUST" label="Raw Input" value="PREF_RAWINPUT" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            
             <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_REMAP_KEYBOARD" label="MO_KBMAP" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
 
@@ -459,8 +465,11 @@
             <options action="MENUOPT_ADJUST" label="MO_INV" value="PREF_INVERT_LOOK" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <options action="MENUOPT_ADJUST" label="MO_SNI" value="PREF_SNIPER_CONTROL" scaler="2" displayValue="MENU_DISPLAY_SNIPER_TYPE" />
             <options action="MENUOPT_ADJUST" label="MO_SENS" value="PREF_CONTROLLER_SENSITIVITY" scaler="3" displayValue="MENU_DISPLAY_CONTROLLER_SENSITIVITY" />
+            
+            <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="Centering Delay" value="PREF_EPISODIC_RACECLASS_RACE_5" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
             <optionspc action="MENUOPT_ADJUST" label="Gamepad Icons" value="PREF_BUTTONS" scaler="13" displayValue="MENU_DISPLAY_BUTTONS" />
+            
             <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="MO_DINPUT" value="PREF_DINPUT" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
@@ -502,7 +511,11 @@
             <options action="MENUOPT_ADJUST" label="ME_IND_FM_02" value="PREF_AUTOSCAN" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <options action="MENUOPT_QUICKSCAN" label="ME_IND_FM_03" value="SET_SCAN" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <options action="MENUOPT_COMPLETESCAN" label="ME_IND_FM_04" value="SET_SCAN" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-
+            
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <optionspc action="MENUOPT_ADJUST" label="Alt. Dialogues" value="PREF_ALTDIALOGUE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="CutscAudioSync" value="PREF_CUTSCENEAUDIOSYNC" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            
             <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
         </menu>
 
@@ -519,19 +532,21 @@
             <options action="MENUOPT_NONE" label="" value="0" scaler="0" displayValue="0" />
             <options action="MENUOPT_ADJUST" label="MO_LAN" value="PREF_CURRENT_LANGUAGE" scaler="7" displayValue="MENU_DISPLAY_LANGUAGE" />
             <optionsps3 action="MENUOPT_ADJUST" label="MO_FLIC" value="PREF_FLICKER_FILTER" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-            <optionspc action="MENUOPT_ADJUST" label="Motion Blur" value="PREF_MOTIONBLUR" scaler="5" displayValue="MENU_DISPLAY_REFLECTION_QUALITY" />
             <optionspc action="MENUOPT_ADJUST" label="Bloom" value="PREF_BLOOM" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_DOF" value="PREF_DEFINITION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Console Gamma" value="PREF_CONSOLE_GAMMA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Tone Mapping" value="PREF_TONEMAPPING" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-            <optionspc action="MENUOPT_ADJUST" label="Screen Filter" value="PREF_TIMECYC" scaler="10" displayValue="MENU_DISPLAY_TIMECYC" />
+            <optionspc action="MENUOPT_ADJUST" label="UnclampLighting" value="PREF_UNCLAMPLIGHTING" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Depth of Field" value="PREF_TCYC_DOF" scaler="11" displayValue="MENU_DISPLAY_DOF" />
+            <optionspc action="MENUOPT_ADJUST" label="Motion Blur" value="PREF_MOTIONBLUR" scaler="5" displayValue="MENU_DISPLAY_REFLECTION_QUALITY" />
             <optionspc action="MENUOPT_ADJUST" label="TreeFX" value="PREF_TREE_LIGHTING" scaler="9" displayValue="MENU_DISPLAY_TREE_LIGHTING" />
             <optionspc action="MENUOPT_ADJUST" label="Tree Alpha" value="PREF_TREEALPHA" scaler="6" displayValue="MENU_DISPLAY_TREEALPHA" />
-            <optionspc action="MENUOPT_ADJUST" label="MO_DOF" value="PREF_DEFINITION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-            <optionspc action="MENUOPT_ADJUST" label="UnclampLighting" value="PREF_UNCLAMPLIGHTING" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="Screen Filter" value="PREF_TIMECYC" scaler="10" displayValue="MENU_DISPLAY_TIMECYC" />
             <optionspc action="MENUOPT_ADJUST" label="Distant Lights" value="PREF_DISTANTLIGHTS" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_TRUESKILLNAME" />
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            
             <options action="MENUOPT_SET" label="MO_DEF" value="SET_DEFAULT_DISPLAY" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
         </menu>
@@ -791,15 +806,16 @@
             <optionspc action="MENUOPT_ADJUST" label="MO_CARS" value="PREF_CAR_DENSITY" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
             <!--optionspc action="MENUOPT_ADJUST" label="MO_DOF" value="PREF_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" /-->
             <optionspc action="MENUOPT_ADJUST" label="MO_VSYNC" value="PREF_VSYNC" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-            <!--options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" /-->
+            
+            <optionspc action="MENUOPT_ADJUST" label="FPS Limiter" value="PREF_FPS_LIMIT_PRESET" scaler="15" displayValue="MENU_DISPLAY_FRAMELIMIT" />
+            <optionspc action="MENUOPT_ADJUST" label="Antialiasing" value="PREF_ANTIALIASING" scaler="8" displayValue="MENU_DISPLAY_ANTIALIASING" />
             <optionspc action="MENUOPT_ADJUST" label="Shadow Filter" value="PREF_SHADOWFILTER" scaler="6" displayValue="MENU_DISPLAY_SHADOWFILTER" />
             <optionspc action="MENUOPT_ADJUST" label="Sun Shafts" value="PREF_SUNSHAFTS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF"/>
             <optionspc action="MENUOPT_ADJUST" label="Volumetric Fog" value="PREF_VOLUMETRICFOG" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-            <optionspc action="MENUOPT_ADJUST" label="Antialiasing" value="PREF_ANTIALIASING" scaler="8" displayValue="MENU_DISPLAY_ANTIALIASING" />
-            <optionspc action="MENUOPT_ADJUST" label="FPS Limiter" value="PREF_FPS_LIMIT_PRESET" scaler="15" displayValue="MENU_DISPLAY_FRAMELIMIT" />
             <optionspc action="MENUOPT_ADJUST" label="MO_FOV" value="PREF_EPISODIC_RACECLASS_RACE_3" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
             <optionspc action="MENUOPT_ADJUST" label="LamppostShadows" value="PREF_LAMPPOSTSHADOWS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            
             <optionspc action="MENUOPT_GRAPHICS_ANALYZER" label="MO_ANALYZER" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_BENCHMARK" label="MO_BENCHMARK" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />
             <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
@@ -820,15 +836,16 @@
             <optionspc action="MENUOPT_ADJUST" label="MO_CARS" value="PREF_CAR_DENSITY" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
             <!--optionspc action="MENUOPT_ADJUST" label="MO_DOF" value="PREF_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" /-->
             <optionspc action="MENUOPT_ADJUST" label="MO_VSYNC" value="PREF_VSYNC" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-            <!--options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" /-->
+            
+            <optionspc action="MENUOPT_ADJUST" label="FPS Limiter" value="PREF_FPS_LIMIT_PRESET" scaler="15" displayValue="MENU_DISPLAY_FRAMELIMIT" />
+            <optionspc action="MENUOPT_ADJUST" label="Antialiasing" value="PREF_ANTIALIASING" scaler="8" displayValue="MENU_DISPLAY_ANTIALIASING" />
             <optionspc action="MENUOPT_ADJUST" label="Shadow Filter" value="PREF_SHADOWFILTER" scaler="6" displayValue="MENU_DISPLAY_SHADOWFILTER" />
             <optionspc action="MENUOPT_ADJUST" label="Sun Shafts" value="PREF_SUNSHAFTS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF"/>
             <optionspc action="MENUOPT_ADJUST" label="Volumetric Fog" value="PREF_VOLUMETRICFOG" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-            <optionspc action="MENUOPT_ADJUST" label="Antialiasing" value="PREF_ANTIALIASING" scaler="8" displayValue="MENU_DISPLAY_ANTIALIASING" />
-            <optionspc action="MENUOPT_ADJUST" label="FPS Limiter" value="PREF_FPS_LIMIT_PRESET" scaler="15" displayValue="MENU_DISPLAY_FRAMELIMIT" />
             <optionspc action="MENUOPT_ADJUST" label="MO_FOV" value="PREF_EPISODIC_RACECLASS_RACE_3" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
             <optionspc action="MENUOPT_ADJUST" label="LamppostShadows" value="PREF_LAMPPOSTSHADOWS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            
             <optionspc action="MENUOPT_GRAPHICS_ANALYZER" label="MO_ANALYZER" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_BENCHMARK" label="MO_BENCHMARK" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />
             <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
@@ -836,17 +853,22 @@
 
         <menupc HeaderText="MH_GAM" enum="SCR_TGAME">
             <optionspc action="MENUOPT_ADJUST" label="MO_REPLAY" value="PREF_REPLAY_MODE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-            <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="Skip Intro" value="PREF_SKIP_INTRO" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Skip Menu" value="PREF_SKIP_MENU" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Windowed" value="PREF_WINDOWED" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Borderless" value="PREF_BORDERLESS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Focus Loss" value="PREF_BLOCKONLOSTFOCUS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-            <optionspc action="MENUOPT_ADJUST" label="LightSyncRGB" value="PREF_LEDILLUMINATION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-            <optionspc action="MENUOPT_ADJUST" label="FPS Counter" value="PREF_FPSCOUNTER" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Letterbox" value="PREF_LETTERBOX" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Pillarbox" value="PREF_PILLARBOX" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-            <optionspc action="MENUOPT_ADJUST" label="CutscAudioSync" value="PREF_CUTSCENEAUDIOSYNC" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="FPS Counter" value="PREF_FPSCOUNTER" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <optionspc action="MENUOPT_ADJUST" label="LightSyncRGB" value="PREF_LEDILLUMINATION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="Timed Events" value="PREF_TIMEDEVENTS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <optionspc action="MENUOPT_ADJUST" label="Check Updates" value="PREF_UPDATE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            
             <optionspc action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
         </menupc>
 
@@ -877,11 +899,18 @@
         <menupc HeaderText="MH_CON" enum="SCR_TCONTROL">
             <options action="MENUOPT_KEYBOARD_OPTIONS" label="MO_KBOPT" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <options action="MENUOPT_CONTROLLER_OPTIONS" label="MO_CTRLOPT" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            
             <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-            <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-            <optionspc action="MENUOPT_ADJUST" label="Raw Input" value="PREF_RAWINPUT" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Always Run" value="PREF_ALWAYSRUN" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="Zoomed Movement" value="PREF_ZOOMEDMOVEMENT" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="Camera Shake" value="PREF_CAMERASHAKE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Cover Centering" value="PREF_COVERCENTERING" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <optionspc action="MENUOPT_ADJUST" label="CenteredVehCam" value="PREF_CENTEREDCAMERA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="CenteredFootCam" value="PREF_CENTEREDCAMERAFOOT" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <optionspc action="MENUOPT_ADJUST" label="Turn Indicators" value="PREF_TURNINDICATORS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            
             <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
         </menupc>
         <menupc HeaderText="MH_AUD" enum="SCR_TAUDIO">
@@ -895,7 +924,11 @@
             <options action="MENUOPT_ADJUST" label="ME_IND_FM_02" value="PREF_AUTOSCAN" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <options action="MENUOPT_QUICKSCAN" label="ME_IND_FM_03" value="SET_SCAN" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <options action="MENUOPT_COMPLETESCAN" label="ME_IND_FM_04" value="SET_SCAN" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-
+            
+            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <optionspc action="MENUOPT_ADJUST" label="Alt. Dialogues" value="PREF_ALTDIALOGUE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="CutscAudioSync" value="PREF_CUTSCENEAUDIOSYNC" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            
             <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
         </menupc>
         <menupc HeaderText="MH_DIS" enum="SCR_TDISPLAY">
@@ -908,13 +941,21 @@
             <options action="MENUOPT_NONE" label="" value="0" scaler="0" displayValue="0" />
             <options action="MENUOPT_ADJUST" label="MO_LAN" value="PREF_CURRENT_LANGUAGE" scaler="7" displayValue="MENU_DISPLAY_LANGUAGE" />
             <optionsps3 action="MENUOPT_ADJUST" label="MO_FLIC" value="PREF_FLICKER_FILTER" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-            <optionspc action="MENUOPT_ADJUST" label="Screen Filter" value="PREF_TIMECYC" scaler="10" displayValue="MENU_DISPLAY_TIMECYC" />
+            <optionspc action="MENUOPT_ADJUST" label="Bloom" value="PREF_BLOOM" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="MO_DOF" value="PREF_DEFINITION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="Console Gamma" value="PREF_CONSOLE_GAMMA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="Tone Mapping" value="PREF_TONEMAPPING" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="UnclampLighting" value="PREF_UNCLAMPLIGHTING" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Depth of Field" value="PREF_TCYC_DOF" scaler="11" displayValue="MENU_DISPLAY_DOF" />
+            <optionspc action="MENUOPT_ADJUST" label="Motion Blur" value="PREF_MOTIONBLUR" scaler="5" displayValue="MENU_DISPLAY_REFLECTION_QUALITY" />
             <optionspc action="MENUOPT_ADJUST" label="TreeFX" value="PREF_TREE_LIGHTING" scaler="9" displayValue="MENU_DISPLAY_TREE_LIGHTING" />
             <optionspc action="MENUOPT_ADJUST" label="Tree Alpha" value="PREF_TREEALPHA" scaler="6" displayValue="MENU_DISPLAY_TREEALPHA" />
-            <optionspc action="MENUOPT_ADJUST" label="MO_DOF" value="PREF_DEFINITION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="Screen Filter" value="PREF_TIMECYC" scaler="10" displayValue="MENU_DISPLAY_TIMECYC" />
+            <optionspc action="MENUOPT_ADJUST" label="Distant Lights" value="PREF_DISTANTLIGHTS" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_TRUESKILLNAME" />
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            
             <options action="MENUOPT_SET" label="MO_DEF" value="SET_DEFAULT_DISPLAY" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
         </menupc>

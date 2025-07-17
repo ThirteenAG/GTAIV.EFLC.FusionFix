@@ -49,25 +49,25 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 #### Display
 
-- **Motion Blur**, a separate toggle for motion blur with several intensity levels
 - **Bloom**, a separate toggle for bloom
+- **Definition**, toggle the old fuzzy look from consoles
 - **Console Gamma**, restores contrasted look from consoles
 - **Tone Mapping**, prevents highlights from being blown out
-- **Screen Filter**, an option to change color filters in the main game and episodes
+- **Extended Sunlight Reach**, allows sunlight to reach surfaces that it couldn't before, and increases cloud shading
 - **Depth of Field**, controls how intense the distant blur is during gameplay and whether it's enabled in cutscenes
+- **Motion Blur**, a separate toggle for motion blur with several intensity levels
 - **Tree Lighting**, offers "PC", "PC" with some improvements ("PC+") and "Console" style tree lighting
 - **Tree Alpha**, toggle between PC and Console alpha test reference for trees
-- **Definition**, toggle the old fuzzy look from consoles
-- **Extended Sunlight Reach**, allows sunlight to reach surfaces that it couldn't before, and increases cloud shading
+- **Screen Filter**, an option to change color filters in the main game and episodes
 - **Distant Lights**, toggle for integrated [Project2DFX](https://thirteenag.github.io/p2dfx)
 
 #### Graphics
 
+- **FPS Limiter**, set a custom FPS limit, select from a list of predefined values, or turn it off
+- **Anti-aliasing**, a toggle for FXAA or SMAA
 - **Shadow Filter**, toggle between sharp, soft, or contact hardening shadows
 - **Sun Shafts**, a godrays implementation faithful to the original art style
 - **Volumetric Fog**, a more advanced fog shader that hides the edges of the world
-- **Anti-aliasing**, a toggle for FXAA or SMAA
-- **FPS Limit**, set a custom FPS limit, select from a list of predefined values, or turn it off
 - **FOV**, adjusts in-game field of view
 - **Lamppost Shadows**, force every lamppost to cast shadows (may be buggy)
 
@@ -78,30 +78,33 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **Windowed**, toggle windowed mode
 - **Windowed Borderless**, toggle borderless mode
 - **Pause Game On Focus Loss**, pauses the game when it's minimized
+- **Letterbox**, draws cutscene borders on top and bottom of the screen
+- **Pillarbox**, draws cutscene borders on screen sides in ultrawide
+- **FPS Counter**, shows an episode colored FPS counter on the top left of the screen
 - **LightSyncRGB**, only Logitech hardware is supported, requires Logitech G HUB app,   [**watch full clip on YouTube**](https://www.youtube.com/watch?v=oLxn3q-NnZ0&hd=1)
 
 ![LightSyncRGB](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/assets/4904157/f925ad27-19ce-4dde-8801-0cec1578ade7)
 
-- **FPS Counter**, shows an episode colored FPS counter on the top left of the screen
-- **Letterbox**, draws cutscene borders on top and bottom of the screen
-- **Pillarbox**, draws cutscene borders on screen sides in ultrawide
-- **Cutscene Audio Sync**, enable this if you experience audio desynchronization in cutscenes
-- **Alternative Dialogues**, when enabled, forces the game to use alternative dialogues in some missions
 - **Timed Events**, toggles added seasonal events
 - **Check For Fusion Fix Updates**, checks if there's an update available on startup
 
+#### Audio
+
+- **Cutscene Audio Sync**, enable this if you experience audio desynchronization in cutscenes
+- **Alternative Dialogues**, when enabled, forces the game to use alternative dialogues in some missions
+
 #### Controls
 
-- **Raw Input**, raw input for menu and adjustments for in-game camera mouse look
 - **Always Run**, allows to run by default, like in classic GTA games
-- **Cover Centering**, added an option to disable camera centering in cover
 - **Allow Movement When Zoomed**, allows movement when aiming with a sniper rifle
-- **Centering Delay**, controls the time until the camera auto centering kicks in after moving it
-- **Gamepad Icons**, allows to select various controller icon styles (Xbox 360, Xbox One, PS3, PS4, PS5, Nintendo Switch, Steam Deck)
+- **Camera Shake**, shake effect has been fixed to work consistently at any frame rate and can be disabled with this option
+- **Cover Centering**, added an option to disable camera centering in cover
 - **Centered Vehicle Camera**, makes vehicle camera centered, for more options install the [original mod](https://github.com/gennariarmando/iv-centered-vehicle-cam) separately
 - **Centered On Foot Camera**, makes on foot camera centered, also for more options install the [original mod](https://github.com/gennariarmando/iv-centered-onfoot-cam)
-- **Camera Shake**, shake effect has been fixed to work consistently at any frame rate and can be disabled with this option
 - **Turn Indicators**, allows the player to use vehicle turn indicators
+- **Centering Delay**, controls the time until the camera auto centering kicks in after moving it
+- **Gamepad Icons**, allows to select various controller icon styles (Xbox 360, Xbox One, PS3, PS4, PS5, Nintendo Switch, Steam Deck)
+- **Raw Input**, raw input for menu and adjustments for in-game camera mouse look
 
 ## Core/Gameplay Changelog
 
