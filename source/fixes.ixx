@@ -56,6 +56,26 @@ public:
         return r;
     }
 
+    static inline injector::hook_back<void(*)()> hbsub_AD1240;
+    static void sub_AD1240()
+    {
+        Cam rootCam = 0;
+        Natives::GetRootCam(&rootCam);
+        auto ccam = CCam::GetCamPool()->GetAt(rootCam);
+        if (ccam)
+        {
+            auto ptr = *(uintptr_t*)((uintptr_t)ccam + 0x110);
+
+            if (ptr)
+            {
+                if (*(uint8_t*)(ptr + 0x27C) == 1)
+                    return;
+            }
+        }
+
+        return hbsub_AD1240.fun();
+    }
+
     Fixes()
     {
         FusionFix::onInitEventAsync() += []()
@@ -575,6 +595,13 @@ public:
             //         });
             //     }
             // }
+
+            // Workaround for drunk cam lights issue
+            {
+                auto pattern = find_pattern("E8 ? ? ? ? 6A ? FF 74 24 ? FF 74 24 ? 6A", "E8 ? ? ? ? 83 FF ? 6A");
+                if (!pattern.empty())
+                    hbsub_AD1240.fun = injector::MakeCALL(pattern.get_first(0), sub_AD1240, true).get();
+            }
         };
     }
 } Fixes;
