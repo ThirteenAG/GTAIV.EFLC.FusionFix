@@ -15,8 +15,8 @@ MID_spacing_between_middle_text 0.024375 0.0241875
 MID_background_opacity 160.00000 0.00000
 MID_background_position 1.00000 1.00000
 MID_background_size 0.95600 0.61500
-MID_slider_bar_offset 0.00000 0.01700
-MID_slider_bar_size 0.11925 0.01125
+MID_slider_bar_offset 0.00000 0.02150
+MID_slider_bar_size 0.15900 0.01125
 HLP_helper_text_position 0.91000 0.83600
 HLP_help_text_size 0.19800 0.30000
 HLP_help_text_spacing 0.01875 0.03650
@@ -29,7 +29,7 @@ BOT_clock_icon_pos -0.50000 0.00000
 BOT_clock_icon_size 0.01275 0.01725
 BOT_arrow_position 0.87500 0.69000
 BOT_arrow_size 0.02250 0.03150
-FAD_main_fade_time 500.00000 0.00000
+FAD_main_fade_time 200.00000 0.00000
 BRI_brief_text_size 0.25400 0.43000
 BRI_brief_text_pos 0.08800 0.21400
 BRI_brief_text_spacing 0.01725 0.11400
@@ -298,7 +298,7 @@ MID_background_opacity 160.00000 0.00000
 MID_background_position 1.00000 1.00000
 MID_background_size 0.95600 0.61500
 MID_slider_bar_offset 0.00000 0.02150
-MID_slider_bar_size 0.11775 0.009
+MID_slider_bar_size 0.15700 0.009
 HLP_helper_text_position 0.90100 0.83700
 HLP_help_text_size 0.21400 0.29200
 HLP_help_text_spacing 0.01875 0.03650
@@ -311,7 +311,7 @@ BOT_clock_icon_pos -0.50000 0.00000
 BOT_clock_icon_size 0.00600 0.02400
 BOT_arrow_position 0.87500 0.69000
 BOT_arrow_size 0.02250 0.03150
-FAD_main_fade_time 500.00000 0.00000
+FAD_main_fade_time 200.00000 0.00000
 BRI_brief_text_size 0.24700 0.42000
 BRI_brief_text_pos 0.09600 0.20400
 BRI_brief_text_spacing 0.01725 -0.03000
