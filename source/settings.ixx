@@ -938,6 +938,28 @@ public:
                     pFPSFont->Release();
                 pFPSFont = nullptr;
             };
+
+            FusionFix::onInitEventAsync() += []()
+            {
+                auto stationslimit = GetModulePath(GetModuleHandleW(NULL)).parent_path() / "pc" / "audio" / "Config" / "stationslimit.txt";
+
+                std::ifstream is(stationslimit, std::ios::in);
+                if (is)
+                {
+                    int limit = -1;
+                    is >> limit;
+
+                    if (limit >= 0 && limit <= 23)
+                    {
+                        auto pattern = hook::pattern("0F B6 35 ? ? ? ? 85 F6");
+                        if (!pattern.empty())
+                        {
+                            static int stationsLimit = limit;
+                            injector::WriteMemory(pattern.get_first(3), &stationsLimit, true);
+                        }
+                    }
+                }
+            };
         }
     }
 } Settings;
