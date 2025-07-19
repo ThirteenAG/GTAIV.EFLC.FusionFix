@@ -1379,6 +1379,7 @@ export void* (*FindPlayerVehicle)(int32_t id);
 export int32_t* pMenuTab;
 export int32_t* _dwCurrentEpisode;
 export void* (__stdcall* getNativeAddress)(uint32_t);
+export const char* pszCurrentCutsceneName = nullptr;
 export HWND gWnd;
 export RECT gRect;
 export bool bDynamicShadowForTrees = true;
@@ -1638,5 +1639,8 @@ public:
         
         pattern = find_pattern("8B 15 ? ? ? ? 46 3B 72 ? 7C ? 5E", "8B 3D ? ? ? ? 8B CE FF D2 2B 07");
         pVehiclePool = *pattern.get_first<decltype(pVehiclePool)>(2);
+
+        pattern = find_pattern("68 ? ? ? ? E8 ? ? ? ? 83 C4 ? 85 C0 0F 85 ? ? ? ? F3 0F 10 3D");
+        pszCurrentCutsceneName = *pattern.get_first<const char*>(1);
     }
 } Common;

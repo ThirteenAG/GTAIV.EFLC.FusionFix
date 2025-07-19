@@ -439,6 +439,9 @@ public:
                                 bIsQUB3D = true;
                             }
 
+                            if (!_stricmp(pszCurrentCutsceneName, "intro"))
+                                return;
+
                             *(uintptr_t*)(regs.esp - 4) = loc_6E39F3;
                         }
                     }
