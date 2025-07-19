@@ -602,6 +602,13 @@ public:
                 if (!pattern.empty())
                     hbsub_AD1240.fun = injector::MakeCALL(pattern.get_first(0), sub_AD1240, true).get();
             }
+
+            // Helicopter searchlights flicker/fight fix
+            {
+                auto pattern = find_pattern("3B 05 ? ? ? ? 0F 84 ? ? ? ? E8 ? ? ? ? F3 0F 10 87 ? ? ? ?", "3B 15 ? ? ? ? 0F 84 ? ? ? ? E8 ? ? ? ?");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(6), 6, true);
+            }
         };
     }
 } Fixes;
