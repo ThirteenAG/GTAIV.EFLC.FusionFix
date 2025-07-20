@@ -234,6 +234,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Added wind sway for real tree shadows
 - Fixed incorrectly offset shadows on water
 - Fixed flickering when shadows of transparent objects overlap
+- Fixed dark lines in night shadows
 
 #### Post processing
 

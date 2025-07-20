@@ -153,6 +153,8 @@ public:
         
         static bool bSmoothLightVolumes = true;
 
+        static bool bNoBloomColorShift = false;
+
         static int nToneMappingOperator = 0;
 
         FusionFix::onInitEvent() += []()
@@ -182,6 +184,7 @@ public:
             bSmoothLightVolumes = iniReader.ReadInteger("MISC", "SmoothLightVolumes", 1) != 0;
 
             nToneMappingOperator = std::clamp(iniReader.ReadInteger("MISC", "ToneMappingOperator", 0), 0, 1);
+            bNoBloomColorShift = iniReader.ReadInteger("MISC", "NoBloomColorShift", 0) != 0;
 
             // Redirect path to one unified folder
             auto pattern = hook::pattern("8B 04 8D ? ? ? ? A3 ? ? ? ? 8B 44 24 04");
@@ -407,7 +410,7 @@ public:
                         else
                             arr9[2] = 0.0f;
 
-                        arr9[3] = 0.0f;
+                        arr9[3] = bNoBloomColorShift ? 1.0f : 0.0f;
                         
 
 
