@@ -73,8 +73,14 @@ Antialiasing
 [FPS Limiter]
 Limitatore degli FPS
 
-[LamppostShadows]
-Ombre dei lampioni
+[ExtraNightShad]
+Ombre Notturne Extra
+
+[Lampposts]
+Lampioni
+
+[LampostsHeadl]
+Lampioni e Fari
 
 [Tree Alpha]
 Alfa degli alberi

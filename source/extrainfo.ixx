@@ -56,8 +56,7 @@ public:
                             auto FF_WARN1 = CText::getText("FF_WARN1");
                             if (imgNum >= imgArrSize) extra += FF_WARN1[0] ? FF_WARN1 : L"; ~r~WARNING: 255 IMG limit exceeded, will cause streaming issues.";
                         
-                            static auto LamppostShadows = FusionFixSettings.GetRef("PREF_LAMPPOSTSHADOWS");
-                            if (LamppostShadows->get() || bHeadlightShadows)
+                            if (bExtraNightShadows || bHeadlightShadows)
                             {
                                 extra += L"~n~";
                                 extra += L"                        ";

@@ -10,7 +10,6 @@ import natives;
 import settings;
 
 uint32_t* dwEpisodeID1 = nullptr;
-const char* byte_1295764 = nullptr;
 uint8_t* g_cutsceneAudio = nullptr;
 int* dword_12957B8 = nullptr;
 float* float_129574C = nullptr;
@@ -79,7 +78,7 @@ void __cdecl sub_9C2C80(float* a1)
         float audio_time_sec = audio_time_ms * 0.001f;
     
         // Adjust offset for cutscene "e2_int"
-        if (!_stricmp(byte_1295764, "e2_int"))
+        if (!_stricmp(pszCurrentCutsceneName, "e2_int"))
         {
             if (audio_time_sec < flt_1295798)
                 time_offset = flt_129579C;
@@ -91,7 +90,7 @@ void __cdecl sub_9C2C80(float* a1)
                 time_offset = flt_12957B4;
         }
         // Adjust offset for cutscene "GT06_AA"
-        else if (!_stricmp(byte_1295764, "GT06_AA"))
+        else if (!_stricmp(pszCurrentCutsceneName, "GT06_AA"))
         {
             if (audio_time_sec < flt_12957BC)
                 time_offset = flt_12957C0;
@@ -265,9 +264,6 @@ public:
 
                     pattern = find_pattern("83 3D ? ? ? ? ? 0F 57 D2");
                     dwEpisodeID1 = *pattern.get_first<uint32_t*>(2);
-
-                    pattern = find_pattern("68 ? ? ? ? E8 ? ? ? ? 83 C4 ? 85 C0 0F 85 ? ? ? ? F3 0F 10 3D");
-                    byte_1295764 = *pattern.get_first<const char*>(1);
 
                     pattern = find_pattern("51 56 8B 74 24 ? 57 F3 0F 10 06");
                     static auto shCutscAudioSync = safetyhook::create_inline(pattern.get_first(), sub_9C2C80);

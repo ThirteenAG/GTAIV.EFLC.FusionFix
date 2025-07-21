@@ -106,8 +106,7 @@ class Shadows
     static inline SafetyHookInline shsub_925DB0{};
     static int __cdecl sub_925DB0(int a1, int a2, int flags)
     {
-        static auto LamppostShadows = FusionFixSettings.GetRef("PREF_LAMPPOSTSHADOWS");
-        if (!LamppostShadows->get())
+        if (!bExtraNightShadows)
         {
             if (!Natives::IsInteriorScene())
                 return -1;
@@ -119,8 +118,7 @@ class Shadows
     static inline SafetyHookInline shsub_D77A00{};
     static void __fastcall sub_D77A00(void* _this, void* edx)
     {
-        static auto LamppostShadows = FusionFixSettings.GetRef("PREF_LAMPPOSTSHADOWS");
-        if (!LamppostShadows->get())
+        if (!bExtraNightShadows)
         {
             if (!Natives::IsInteriorScene())
                 return;
@@ -286,8 +284,7 @@ public:
                     {
                         static auto ShadowsHook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                         {
-                            static auto LamppostShadows = FusionFixSettings.GetRef("PREF_LAMPPOSTSHADOWS");
-                            if (!LamppostShadows->get())
+                            if (!bExtraNightShadows)
                             {
                                 if (Natives::IsInteriorScene())
                                 {

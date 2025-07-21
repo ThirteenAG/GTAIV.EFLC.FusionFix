@@ -73,8 +73,14 @@ Suavizado de líneas
 [FPS Limiter]
 Limitador de FPS
 
-[LamppostShadows]
-Sombras de farolas
+[ExtraNightShad]
+Sombras Nocturnas Adicionales
+
+[Lampposts]
+Farolas
+
+[LampostsHeadl]
+Farolas y Faros
 
 [Tree Alpha]
 Transparencia de árboles

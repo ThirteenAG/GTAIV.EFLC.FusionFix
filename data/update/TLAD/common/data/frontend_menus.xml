@@ -134,9 +134,9 @@
       <optionspc text="LB_RANKED" action="ACTION_NONE" value="0" />
     </menupc>
     <menu enum="MENU_DISPLAY_NETSTATS_SCORES">
-      <options text="NET_OV" action="ACTION_NONE" value="0" />
-      <options text="NET_BYS" action="ACTION_NONE" value="0" />
-      <options text="NET_BYT" action="ACTION_NONE" value="0" />
+      <options text="MO_OFF" action="ACTION_NONE" value="0" />
+      <options text="Lampposts" action="ACTION_NONE" value="1" />
+      <options text="LampostsHeadl" action="ACTION_NONE" value="2" />
     </menu>
     <menu enum="MENU_DISPLAY_NETSTATS_COMP_TEAM">
       <options text="NET_NO" action="ACTION_NONE" value="0" />
@@ -1217,7 +1217,7 @@
             <optionspc action="MENUOPT_ADJUST" label="Sun Shafts" value="PREF_SUNSHAFTS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF"/>
             <optionspc action="MENUOPT_ADJUST" label="Volumetric Fog" value="PREF_VOLUMETRICFOG" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="MO_FOV" value="PREF_EPISODIC_RACECLASS_RACE_3" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
-            <optionspc action="MENUOPT_ADJUST" label="LamppostShadows" value="PREF_LAMPPOSTSHADOWS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="ExtraNightShad" value="PREF_EXTRANIGHTSHADOWS" scaler="3" displayValue="MENU_DISPLAY_NETSTATS_SCORES" />
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
       
       <optionspc action="MENUOPT_GRAPHICS_ANALYZER" label="MO_ANALYZER" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />
@@ -1246,7 +1246,7 @@
             <optionspc action="MENUOPT_ADJUST" label="Sun Shafts" value="PREF_SUNSHAFTS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF"/>
             <optionspc action="MENUOPT_ADJUST" label="Volumetric Fog" value="PREF_VOLUMETRICFOG" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="MO_FOV" value="PREF_EPISODIC_RACECLASS_RACE_3" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
-            <optionspc action="MENUOPT_ADJUST" label="LamppostShadows" value="PREF_LAMPPOSTSHADOWS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="ExtraNightShad" value="PREF_EXTRANIGHTSHADOWS" scaler="3" displayValue="MENU_DISPLAY_NETSTATS_SCORES" />
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
       
       <optionspc action="MENUOPT_GRAPHICS_ANALYZER" label="MO_ANALYZER" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />

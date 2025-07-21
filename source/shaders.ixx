@@ -157,6 +157,8 @@ public:
 
         static int nToneMappingOperator = 0;
 
+        static auto bNoWindSway = false;
+
         FusionFix::onInitEvent() += []()
         {
             CIniReader iniReader("");
@@ -362,7 +364,7 @@ public:
                     // DynamicShadowForTrees Wind Sway
                     {
                         static float arr2[4];
-                        arr2[0] = Natives::IsInteriorScene() ? 0.0f : *dw11A2948;
+                        arr2[0] = (Natives::IsInteriorScene() || bNoWindSway) ? 0.0f : *dw11A2948;
                         arr2[1] = bEnableSnow ? 0.005f : 0.015f;
                         arr2[2] = 0.0f;
                         arr2[3] = 0.0f;
@@ -599,7 +601,10 @@ public:
             FusionFix::onGameInitEvent() += []()
             {
                 if (CText::hasViceCityStrings())
+                {
                     bFixRainDrops = false;
+                    bNoWindSway = true;
+                }
             };
 
             FusionFix::onBeforeReset() += []()

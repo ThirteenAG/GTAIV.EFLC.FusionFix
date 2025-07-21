@@ -73,8 +73,14 @@ Kantenglättung
 [FPS Limiter]
 FPS-Begrenzung
 
-[LamppostShadows]
-Straßenlaternen-Schatten
+[ExtraNightShad]
+Zusätzliche Nachtschatten
+
+[Lampposts]
+Laternenpfähle
+
+[LampostsHeadl]
+Laternenpfähle und Scheinwerfer
 
 [Tree Alpha]
 Baumtransparenz

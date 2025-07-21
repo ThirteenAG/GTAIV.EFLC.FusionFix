@@ -76,6 +76,58 @@ public:
         return hbsub_AD1240.fun();
     }
 
+    static inline uint32_t* dword_1670CD0 = nullptr;
+    static inline uint32_t* dwFrameCount = nullptr;
+    static inline void* g_pSearchlightHeli = nullptr; // Pointer to the helicopter that has the light
+    static inline unsigned int g_dwSearchlightLockTime = 0; // Timestamp of when the lock expires
+    static inline SafetyHookInline shCHelisub_B69D80 = {};
+    static void __fastcall CHelisub_B69D80(void* _this, void* edx)
+    {
+        // Check if this helicopter's searchlight is supposed to be on.
+        // This mirrors the check inside the original function.
+        bool isLightActive = (*(int8_t*)((uintptr_t)_this + 8044) && *(float*)((uintptr_t)_this + 8036) > 0.0 && !*(int8_t*)((uintptr_t)_this + 8240));
+
+        if (isLightActive)
+        {
+            auto currentTime = *CTimer::m_snTimeInMilliseconds;
+
+            // A helicopter can acquire the lock if:
+            // 1. No one has it (g_pSearchlightHeli is nullptr).
+            // 2. This helicopter already has it.
+            // 3. The lock from another helicopter has expired.
+            if (g_pSearchlightHeli == nullptr || g_pSearchlightHeli == _this || currentTime > g_dwSearchlightLockTime)
+            {
+                // This helicopter gets the lock.
+                g_pSearchlightHeli = _this;
+                g_dwSearchlightLockTime = currentTime + 10000; // Lock it for 10 seconds.
+
+                // To allow the original function to draw the light, we make sure its
+                // "once-per-frame" check will pass. We do this by setting the "last drawn frame"
+                // variable to something different than the current frame counter.
+                *dword_1670CD0 = *dwFrameCount - 1;
+            }
+            else
+            {
+                // Another helicopter has the lock and it's not expired.
+                // To prevent the original function from drawing, we make its
+                // "once-per-frame" check fail by setting the variables to be equal.
+                *dword_1670CD0 = *dwFrameCount;
+            }
+        }
+        else
+        {
+            // If this helicopter's light is off and it owned the lock, release it.
+            if (g_pSearchlightHeli == _this)
+            {
+                g_pSearchlightHeli = nullptr;
+            }
+        }
+
+        // Finally, call the original function. It will now behave correctly based on
+        // how we manipulated the global lock variable.
+        shCHelisub_B69D80.unsafe_fastcall(_this, edx);
+    }
+
     Fixes()
     {
         FusionFix::onInitEventAsync() += []()
@@ -439,6 +491,9 @@ public:
                                 bIsQUB3D = true;
                             }
 
+                            if (!_stricmp(pszCurrentCutsceneName, "intro"))
+                                return;
+
                             *(uintptr_t*)(regs.esp - 4) = loc_6E39F3;
                         }
                     }
@@ -601,6 +656,18 @@ public:
                 auto pattern = find_pattern("E8 ? ? ? ? 6A ? FF 74 24 ? FF 74 24 ? 6A", "E8 ? ? ? ? 83 FF ? 6A");
                 if (!pattern.empty())
                     hbsub_AD1240.fun = injector::MakeCALL(pattern.get_first(0), sub_AD1240, true).get();
+            }
+
+            // Helicopter lights fix
+            {
+                auto pattern = find_pattern("8B 0D ? ? ? ? 84 C0 8B 47", "8B 15 ? ? ? ? 3B 15 ? ? ? ? 0F 84 ? ? ? ? E8");
+                dword_1670CD0 = *pattern.get_first<uint32_t*>(2);
+
+                pattern = find_pattern("3B 05 ? ? ? ? 0F 84 ? ? ? ? E8 ? ? ? ? F3 0F 10 87", "3B 15 ? ? ? ? 0F 84 ? ? ? ? E8");
+                dwFrameCount = *pattern.get_first<uint32_t*>(2);
+
+                pattern = find_pattern("55 8B EC 83 E4 ? 81 EC ? ? ? ? 57 8B F9", "55 8B EC 83 E4 ? 81 EC ? ? ? ? 56 57 8B F1 E8 ? ? ? ? 8B 46");
+                shCHelisub_B69D80 = safetyhook::create_inline(pattern.get_first(), CHelisub_B69D80);
             }
         };
     }
