@@ -381,9 +381,8 @@ void RegisterCustomCoronas()
     }
 }
 
-void RegisterLamppost(WplInstance* pObj)
+void RegisterLamppost(WplInstance* pObj, std::pair<std::multimap<unsigned int, CLamppostInfo>::iterator, std::multimap<unsigned int, CLamppostInfo>::iterator> range)
 {
-    DWORD               nModelID = pObj->ModelNameHash;
     CMatrix             dummyMatrix;
 
     float qw = pObj->RotationW;
@@ -414,26 +413,28 @@ void RegisterLamppost(WplInstance* pObj)
     dummyMatrix.matrix.pos.z = pObj->PositionZ;
 
     {
-        auto v1 = CVector(pObj->PositionX, pObj->PositionY, pObj->PositionZ);
-        auto v2 = CVector(-278.37f, -1377.48f, 90.98f);
-        if (GetDistance((RwV3d*)&v1, (RwV3d*)&v2) <= 300.0f)
+        float dx = pObj->PositionX - -278.37f;
+        float dy = pObj->PositionY - -1377.48f;
+        float dz = pObj->PositionZ - 90.98f;
+        if ((dx * dx + dy * dy + dz * dz) <= (300.0f * 300.0f))
             return;
     }
 
-    auto foundElements = *pFileContentMMap | std::views::filter([&nModelID](auto& v) {
-        return v.first == nModelID;
-    });
-
-    for (auto& it : foundElements)
+    float heading = atan2(dummyMatrix.GetUp()->y, -dummyMatrix.GetUp()->x);
+    for (auto it = range.first; it != range.second; ++it)
     {
-        m_Lampposts.push_back(CLamppostInfo(dummyMatrix * it.second.vecPos, it.second.colour, it.second.fCustomSizeMult, it.second.nCoronaShowMode, it.second.nNoDistance, it.second.nDrawSearchlight, atan2(dummyMatrix.GetUp()->y, -dummyMatrix.GetUp()->x), it.second.fObjectDrawDistance));
+        m_Lampposts.push_back(CLamppostInfo(dummyMatrix * it->second.vecPos, it->second.colour, it->second.fCustomSizeMult, it->second.nCoronaShowMode, it->second.nNoDistance, it->second.nDrawSearchlight, heading, it->second.fObjectDrawDistance));
     }
 }
 
 WplInstance* PossiblyAddThisEntity(WplInstance* pInstance)
 {
-    if (m_bCatchLamppostsNow && pFileContentMMap->contains(pInstance->ModelNameHash))
-        RegisterLamppost(pInstance);
+    if (m_bCatchLamppostsNow)
+    {
+        auto range = pFileContentMMap->equal_range(pInstance->ModelNameHash);
+        if (range.first != range.second)
+            RegisterLamppost(pInstance, range);
+    }
 
     return pInstance;
 }

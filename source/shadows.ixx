@@ -81,7 +81,8 @@ void __cdecl CBaseModelInfo__setFlagsHook(void* pModel, int dwFlags, int a3)
 bool bHighResolutionNightShadows = false;
 int GetNightShadowQuality()
 {
-    switch (FusionFixSettings.Get("PREF_SHADOW_DENSITY"))
+    static auto sd = FusionFixSettings.GetRef("PREF_SHADOW_DENSITY");
+    switch (sd->get())
     {
     case 0: //MO_OFF
         return 0;

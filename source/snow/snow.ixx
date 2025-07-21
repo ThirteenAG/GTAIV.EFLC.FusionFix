@@ -79,7 +79,7 @@ rage::grcTexturePC* __fastcall sub_41B920(rage::grcTextureReference* tex, void* 
             return vehicle_genericmud_truck_snow;
     }
 
-    return shsub_41B920.fastcall<rage::grcTexturePC*>(tex, edx);
+    return shsub_41B920.unsafe_fastcall<rage::grcTexturePC*>(tex, edx);
 }
 
 class Snow
