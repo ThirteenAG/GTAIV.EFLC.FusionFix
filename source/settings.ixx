@@ -239,8 +239,8 @@ public:
             { 0, "PREF_ANTIALIASING",      "MISC",       "Antialiasing",                    "MENU_DISPLAY_ANTIALIASING",  6, nullptr, AntialiasingText.eMO_OFF, std::distance(std::begin(AntialiasingText.data), std::end(AntialiasingText.data)) - 1 },
             { 0, "PREF_UPDATE",            "UPDATE",     "CheckForUpdates",                 "",                           0, nullptr, 0, 1 },
             { 0, "PREF_BLOCKONLOSTFOCUS",  "MAIN",       "BlockOnLostFocus",                "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_LAMPPOSTSHADOWS",   "SHADOWS",    "LamppostShadows",                 "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_HEADLIGHTSHADOWS",  "SHADOWS",    "HeadlightShadows",                "",                           0, nullptr, 0, 1 },
+  /*UNUSED*/{ 0, "PREF_LAMPPOSTSHADOWS",   "SHADOWS",    "LamppostShadows",                 "",                           0, nullptr, 0, 1 },
+  /*UNUSED*/{ 0, "PREF_HEADLIGHTSHADOWS",  "SHADOWS",    "HeadlightShadows",                "",                           0, nullptr, 0, 1 },
             { 0, "PREF_TIMEDEVENTS",       "MISC",       "TimedEvents",                     "",                           1, nullptr, 0, 1 },
             { 0, "PREF_VOLUMETRICFOG",     "FOG",        "VolumetricFog",                   "",                           0, nullptr, 0, 1 },
             { 0, "PREF_TONEMAPPING",       "MISC",       "ToneMapping",                     "",                           0, nullptr, 0, 1 },
@@ -252,6 +252,7 @@ public:
             { 0, "PREF_CAMERASHAKE",       "MAIN",       "CameraShake",                     "",                           1, nullptr, 0, 1 },
             { 0, "PREF_CUTSCENEAUDIOSYNC", "MAIN",       "CutsceneAudioSync",               "",                           0, nullptr, 0, 1 },
             { 0, "PREF_TURNINDICATORS",    "MISC",       "TurnIndicators",                  "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_EXTRANIGHTSHADOWS", "SHADOWS",    "ExtraNightShadows",               "",                           0, nullptr, 0, 2 }, //MENU_DISPLAY_NETSTATS_SCORES
             // Enums are at capacity, to use more enums, replace multiplayer ones. On/Off toggles should still be possible to add.
         };
 
@@ -498,6 +499,12 @@ public:
         enum eAntialiasingText { eLow, eMedium, eHigh, eVeryHigh, eHighest, eMO_OFF, eFXAA, eSMAA };
         std::vector<const char*> data = { "Low", "Medium", "High", "Very High", "Highest", "MO_OFF", "FXAA", "SMAA" };
     } AntialiasingText;
+
+    struct
+    {
+        enum eExtraNightShadowsText { eOff, eLampposts, eLampostsHeadl };
+        std::vector<const char*> data = { "MO_OFF", "Lampposts", "LampostsHeadl" };
+    } ExtraNightShadowsText;
 
 } FusionFixSettings;
 
@@ -752,6 +759,29 @@ public:
                 auto pattern = hook::pattern("83 EC ? A1 ? ? ? ? 33 C4 89 44 24 ? A1 ? ? ? ? 8B 0D ? ? ? ? 53 55 56 33 ED 57 33 FF 85 C0 0F 45 E8");
                 if (!pattern.empty())
                     shGetUserLanguage = safetyhook::create_inline(pattern.get_first(0), static_cast<int(*)()>(GetUserLanguage));
+            }
+
+            // Shadows setting
+            {
+                FusionFixSettings.SetCallback("PREF_EXTRANIGHTSHADOWS", [](int32_t value)
+                {
+                    if (value)
+                    {
+                        bExtraNightShadows = true;
+                        bHeadlightShadows = value == FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
+                    }
+                    else
+                    {
+                        bExtraNightShadows = false;
+                        bHeadlightShadows = false;
+                    }
+                });
+
+                if (FusionFixSettings("PREF_EXTRANIGHTSHADOWS"))
+                {
+                    bExtraNightShadows = true;
+                    bHeadlightShadows = FusionFixSettings("PREF_EXTRANIGHTSHADOWS") == FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
+                }
             }
         };
 

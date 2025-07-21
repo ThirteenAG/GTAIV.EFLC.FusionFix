@@ -73,8 +73,14 @@ Fusion Fix: Проверять Обновления
 [FPS Limiter]
 Ограничитель кадров
 
-[LamppostShadows]
-Тени от фонарей
+[ExtraNightShad]
+Дополнительные ночные тени
+
+[Lampposts]
+От фонарных столбов
+
+[LampostsHeadl]
+От фонарных столбов и фар
 
 [Tree Alpha]
 Прозрачность деревьев

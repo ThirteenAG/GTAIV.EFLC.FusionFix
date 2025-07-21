@@ -73,8 +73,14 @@ Raw Input
 [FPS Limiter]
 FPSリミッター
 
-[LamppostShadows]
-街灯の影
+[ExtraNightShad]
+追加の夜の影
+
+[Lampposts]
+街灯
+
+[LampostsHeadl]
+街灯とヘッドライト
 
 [Tree Alpha]
 ツリー アルファ

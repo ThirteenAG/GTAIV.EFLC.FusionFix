@@ -113,23 +113,6 @@ public:
                     CShadows::hbStoreStaticShadow.fun = injector::MakeCALL(pattern.count(2).get(0).get<void*>(9), CShadows::StoreStaticShadowNPC).get();
                     CShadows::hbStoreStaticShadow.fun = injector::MakeCALL(pattern.count(2).get(1).get<void*>(9), CShadows::StoreStaticShadowNPC).get();
                 }
-            
-                //FusionFixSettings.SetCallback("PREF_HEADLIGHTSHADOWS", [](int32_t value)
-                //{
-                //    bHeadlightShadows = value;
-                //});
-                bHeadlightShadows = FusionFixSettings("PREF_HEADLIGHTSHADOWS");
-
-                NativeOverride::RegisterPhoneCheat("1111111111", []
-                {
-                    bHeadlightShadows = !bHeadlightShadows;
-                    FusionFixSettings.Set("PREF_HEADLIGHTSHADOWS", bHeadlightShadows);
-
-                    if (bHeadlightShadows)
-                        Natives::PrintHelp((char*)"CHEAT1");
-                    else
-                        Natives::PrintHelp((char*)"CHEAT2");
-                });
 
                 pattern = hook::pattern("E8 ? ? ? ? 85 C0 74 29 6A 00");
                 if (!pattern.empty())

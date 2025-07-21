@@ -73,8 +73,14 @@ Anticrénelage
 [FPS Limiter]
 Limiteur de FPS
 
-[LamppostShadows]
-Ombres de réverbères
+[ExtraNightShad]
+Ombres Nocturnes Supplémentaires
+
+[Lampposts]
+Lampadaires
+
+[LampostsHeadl]
+Lampadaires et Phares
 
 [Tree Alpha]
 Alpha des arbres

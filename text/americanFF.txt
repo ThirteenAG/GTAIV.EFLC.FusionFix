@@ -73,8 +73,14 @@ Anti-aliasing
 [FPS Limiter]
 FPS Limiter
 
-[LamppostShadows]
-Lamppost Shadows
+[ExtraNightShad]
+Extra Night Shadows
+
+[Lampposts]
+Lampposts
+
+[LampostsHeadl]
+Lampposts and Headlights
 
 [Tree Alpha]
 Tree Alpha
@@ -135,7 +141,6 @@ Halloween event deactivated
 
 [HalloweenEvent1]
 Halloween event activated
-
 
 [FF_WARN0]
 ~p~IMG Files:
