@@ -317,10 +317,24 @@ public:
                         if (viewport)
                         {
                             static float arr[4];
+                            static float cachedNearClip = 0.0f;
+                            static float cachedFarClip = 0.0f;
+                            static float cachedLog2Value = 0.0f;
+
                             arr[0] = 1.0f / viewport->mNearClip;
-                            arr[1] = 1.0f / log2(viewport->mFarClip / viewport->mNearClip);
+
+                            // Only recalculate log2 if clip planes have changed
+                            if (viewport->mNearClip != cachedNearClip || viewport->mFarClip != cachedFarClip)
+                            {
+                                cachedNearClip = viewport->mNearClip;
+                                cachedFarClip = viewport->mFarClip;
+                                cachedLog2Value = 1.0f / log2(viewport->mFarClip / viewport->mNearClip);
+                            }
+
+                            arr[1] = cachedLog2Value;
                             arr[2] = viewport->mFarClip / viewport->mNearClip;
                             arr[3] = viewport->mNearClip;
+
                             pDevice->SetVertexShaderConstantF(227, &arr[0], 1);
                             pDevice->SetPixelShaderConstantF(209, &arr[0], 1);
                         }
