@@ -77,10 +77,10 @@ FPS-Begrenzung
 Zusätzliche Nachtschatten
 
 [Lampposts]
-Laternenpfähle
+Straßenlaternen
 
 [LampostsHeadl]
-Laternenpfähle und Scheinwerfer
+Straßenlaternen und Scheinwerfer
 
 [Tree Alpha]
 Baumtransparenz
