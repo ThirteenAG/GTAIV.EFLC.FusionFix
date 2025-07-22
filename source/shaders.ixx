@@ -393,7 +393,8 @@ public:
                             arr7[1] = fSHADOWFILTERCHSSShadowBias;
                         }
 
-                        if (FusionFixSettings.Get("PREF_SHADOW_QUALITY") >= 4) // Very High
+                        static auto sq = FusionFixSettings.GetRef("PREF_SHADOW_QUALITY");
+                        if (sq->get() >= 4) // Very High
                             arr7[2] = shadowFilter->get() == FusionFixSettings.ShadowFilterText.eCHSS ? 1.0f : 0.0f;
                         else
                             arr7[2] = 0.0f;
@@ -422,8 +423,8 @@ public:
                     // Water reflection half-pixel offset
                     {
                         static float arr[4];
-
-                        switch (FusionFixSettings.Get("PREF_WATER_QUALITY"))
+                        static auto wq = FusionFixSettings.GetRef("PREF_WATER_QUALITY");
+                        switch (wq->get())
                         {
                             case 0:
                                 arr[0] = (0.5f / 160.0f);

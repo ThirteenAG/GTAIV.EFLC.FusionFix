@@ -37,11 +37,12 @@ public:
 
                         *(uintptr_t*)(regs.esp - 4) = loc_A2A60F;
                     }
-                    auto alwaysrunPref = FusionFixSettings.GetRef("PREF_ALWAYSRUN"); 
+                    static auto alwaysrunPref = FusionFixSettings.GetRef("PREF_ALWAYSRUN"); 
+                    static auto sprintPref = FusionFixSettings.GetRef("PREF_SPRINT"); 
                     auto bShouldRun = alwaysrunPref->get();
                     auto bDontRunNow = bShouldRun && bDoNotRunInside && Natives::IsInteriorScene();
 
-                    if (!FusionFixSettings.Get("PREF_SPRINT")) // toggle
+                    if (!sprintPref->get()) // toggle
                     {
                         if (bShouldRun)
                         {
