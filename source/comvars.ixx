@@ -1115,49 +1115,11 @@ export namespace rage
         {
             if (_this->m_parameters.wCount)
             {
-                // 1. Cache shader hash to avoid repeated string operations
-                static thread_local std::unordered_map<const char*, unsigned int> shaderHashCache;
-
-                unsigned int hash;
-                auto cacheIt = shaderHashCache.find(_this->m_pszShaderPath);
-                if (cacheIt != shaderHashCache.end())
-                {
-                    hash = cacheIt->second;
-                }
-                else
-                {
-                    auto sv = std::string_view(_this->m_pszShaderPath);
-                    auto shader_name = sv.substr(sv.find_last_of('/') + 1);
-                    hash = hashStringLowercaseFromSeed(shader_name.data(), 0);
-                    shaderHashCache[_this->m_pszShaderPath] = hash;
-                }
-
-                // 2. Use try_emplace to avoid redundant hash insertions
-                ShaderInfoParamHashes.try_emplace(hash, _this->m_parameters.pData, _this->m_parameters.wSize);
-
-                // 3. Optimize vector operations with early capacity check
-                auto& outerMap = ShaderInfoParams[hash];
-                auto [paramIt, paramInserted] = outerMap.try_emplace(index);
-
-                if (paramInserted)
-                {
-                    // New parameter - reserve capacity upfront
-                    paramIt->second.reserve(a5);
-                    paramIt->second.assign(static_cast<uint8_t*>(in), static_cast<uint8_t*>(in) + a5);
-                }
-                else
-                {
-                    // Existing parameter - check if data actually changed
-                    auto& paramVec = paramIt->second;
-                    if (paramVec.size() != a5 || std::memcmp(paramVec.data(), in, a5) != 0)
-                    {
-                        if (paramVec.capacity() < size_t(a5))
-                        {
-                            paramVec.reserve(a5);
-                        }
-                        paramVec.assign(static_cast<uint8_t*>(in), static_cast<uint8_t*>(in) + a5);
-                    }
-                }
+                auto sv = std::string_view(_this->m_pszShaderPath);
+                auto shader_name = sv.substr(sv.find_last_of('/') + 1);
+                auto hash = hashStringLowercaseFromSeed(shader_name.data(), 0);
+                ShaderInfoParamHashes[hash] = { _this->m_parameters.pData, _this->m_parameters.wSize };
+                ShaderInfoParams[hash][index].assign((uint8_t*)in, (uint8_t*)in + a5);
             }
             return shsub_436D70.fastcall(_this, edx, a2, index, in, a5, a6, a7);
         }
@@ -1165,41 +1127,7 @@ export namespace rage
         static inline SafetyHookInline shsetGlobalParam{};
         static void __cdecl setGlobalParam(int index, void* data, int a3)
         {
-            // Ultra-optimized version with custom hash and minimal operations
-            static thread_local struct
-            {
-                int lastIndex = -1;
-                alignas(16) uint8_t lastData[16];
-            } cache;
-
-            // Fast path: same index and data as last call
-            if (cache.lastIndex == index && std::memcmp(cache.lastData, data, 16) == 0)
-            {
-                return shsetGlobalParam.ccall(index, data, a3);
-            }
-
-            // Update cache
-            cache.lastIndex = index;
-            std::memcpy(cache.lastData, data, 16);
-
-            // Use structured binding with try_emplace for one lookup
-            auto [it, inserted] = GlobalParams.try_emplace(index);
-            if (inserted)
-            {
-                it->second.reserve(16);
-            }
-
-            // Direct memory copy if vector has sufficient capacity
-            if (it->second.capacity() >= 16)
-            {
-                it->second.resize(16);
-                std::memcpy(it->second.data(), data, 16);
-            }
-            else
-            {
-                it->second.assign(static_cast<uint8_t*>(data), static_cast<uint8_t*>(data) + 16);
-            }
-
+            GlobalParams[index].assign((uint8_t*)data, (uint8_t*)data + 16); //assuming 4x4, maybe needs fixing
             return shsetGlobalParam.ccall(index, data, a3);
         }
 
