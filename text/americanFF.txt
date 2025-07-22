@@ -95,7 +95,7 @@ Shadow Filter
 Headlight Shadows
 
 [Timed Events]
-Timed Events
+Seasonal Events
 
 [Tone Mapping]
 Tone Mapping
@@ -149,7 +149,7 @@ Halloween event activated
 ; ~r~WARNING: 255 IMG limit exceeded, will cause streaming issues.
 
 [FF_WARN2]
-~r~WARNING: Lamppost shadows may cause visual artifacts and performance issues.
+~r~WARNING: Extra Night Shadows is an original PC option by Rockstar. Extremely broken, not recommended.
 
 [FF_WARN3]
 ~r~WARNING: View Distance slider above 25 and Detail Distance slider above 31 may cause object pop-in.

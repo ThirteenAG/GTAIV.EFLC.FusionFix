@@ -141,9 +141,8 @@ public:
         static float fSHADOWFILTERCHSSMaxSoftness = 10.0f;
         static float fSHADOWFILTERCHSSLightSize = 500.0f;
 
-        static float fSSDensity = 0.85f;
-        static float fSSDecay = 0.975f;
-        static float fSSSunSize = 0.33f;
+        static float fSSDensity = 0.75f;
+        static float fSSDecay = 0.95f;
 
         static float fCascadeBlendSize = 0.1f;
 
@@ -175,9 +174,8 @@ public:
             fSHADOWFILTERCHSSMaxSoftness = iniReader.ReadFloat("SHADOWFILTERCHSS", "MaxSoftness", 10.0f);
             fSHADOWFILTERCHSSLightSize = iniReader.ReadFloat("SHADOWFILTERCHSS", "LightSize", 500.0f);
 
-            fSSDensity = std::clamp(iniReader.ReadFloat("SUNSHAFTS", "SunShaftsDensity", 0.9f), 0.0f, 1.0f);
+            fSSDensity = std::clamp(iniReader.ReadFloat("SUNSHAFTS", "SunShaftsDensity", 0.75f), 0.0f, 1.0f);
             fSSDecay = std::clamp(iniReader.ReadFloat("SUNSHAFTS", "SunShaftsDecay", 0.95f), 0.0f, 1.0f);
-            fSSSunSize = 1.0f / std::clamp(iniReader.ReadFloat("SUNSHAFTS", "SunShaftsSunSize", 0.075f), 0.0000001f, 1.0f);
 
             fCascadeBlendSize = std::clamp(iniReader.ReadFloat("SHADOWS", "CascadeBlendSize", 0.1f), 0.0f, 1.0f);
             nForceShadowFilter = std::clamp(iniReader.ReadInteger("SHADOWS", "ForceShadowFilter", 0), 0, 2);
@@ -556,7 +554,7 @@ public:
                         arr13[0] = max(CTimeCycleExt::GetSSIntensity(), 0.0f);
                         arr13[1] = fSSDensity;
                         arr13[2] = fSSDecay;
-                        arr13[3] = fSSSunSize;
+                        arr13[3] = 0.0f;
 
                         pDevice->SetPixelShaderConstantF(208, &arr13[0], 1);
                     }
