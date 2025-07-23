@@ -79,45 +79,47 @@ public:
     static inline uint32_t* dword_1670CD0 = nullptr;
     static inline uint32_t* dwFrameCount = nullptr;
     static inline void* g_pSearchlightHeli = nullptr; // Pointer to the helicopter that has the light
+    static inline int32_t g_dwSearchlightLockTime = 0; // Timestamp of when the lock expires
     static inline SafetyHookInline shCHelisub_B69D80 = {};
     static void __fastcall CHelisub_B69D80(void* _this, void* edx)
     {
-        // First, check if a helicopter currently has the lock.
-        if (g_pSearchlightHeli != nullptr)
-        {
-            // If so, check if that helicopter is still "active". A helicopter is considered
-            // active if its light is on. If it's destroyed, this check will fail.
-            bool isLockHolderActive = (*(int8_t*)((uintptr_t)g_pSearchlightHeli + 8044) && *(float*)((uintptr_t)g_pSearchlightHeli + 8036) > 0.0 && !*(int8_t*)((uintptr_t)g_pSearchlightHeli + 8240));
-            if (!isLockHolderActive)
-            {
-                // The helicopter that had the lock is no longer active, so release the lock.
-                // This allows another helicopter to take it.
-                g_pSearchlightHeli = nullptr;
-            }
-        }
-
-        // Now, check if the current helicopter's searchlight is supposed to be on.
+        // Check if this helicopter's searchlight is supposed to be on.
+        // This mirrors the check inside the original function.
         bool isLightActive = (*(int8_t*)((uintptr_t)_this + 8044) && *(float*)((uintptr_t)_this + 8036) > 0.0 && !*(int8_t*)((uintptr_t)_this + 8240));
 
         if (isLightActive)
         {
+            auto currentTime = *CTimer::m_snTimeInMilliseconds;
+
             // A helicopter can acquire the lock if:
             // 1. No one has it (g_pSearchlightHeli is nullptr).
             // 2. This helicopter already has it.
-            if (g_pSearchlightHeli == nullptr || g_pSearchlightHeli == _this)
+            // 3. The lock from another helicopter has expired.
+            if (g_pSearchlightHeli == nullptr || g_pSearchlightHeli == _this || currentTime > g_dwSearchlightLockTime)
             {
-                // This helicopter gets (or keeps) the lock.
+                // This helicopter gets the lock.
                 g_pSearchlightHeli = _this;
+                g_dwSearchlightLockTime = currentTime + 10000; // Lock it for 10 seconds.
 
                 // To allow the original function to draw the light, we make sure its
-                // "once-per-frame" check will pass.
+                // "once-per-frame" check will pass. We do this by setting the "last drawn frame"
+                // variable to something different than the current frame counter.
                 *dword_1670CD0 = *dwFrameCount - 1;
             }
             else
             {
-                // Another helicopter has the lock.
-                // To prevent the original function from drawing, we make its check fail.
+                // Another helicopter has the lock and it's not expired.
+                // To prevent the original function from drawing, we make its
+                // "once-per-frame" check fail by setting the variables to be equal.
                 *dword_1670CD0 = *dwFrameCount;
+            }
+        }
+        else
+        {
+            // If this helicopter's light is off and it owned the lock, release it.
+            if (g_pSearchlightHeli == _this)
+            {
+                g_pSearchlightHeli = nullptr;
             }
         }
 
