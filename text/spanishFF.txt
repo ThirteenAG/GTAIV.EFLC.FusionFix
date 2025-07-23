@@ -74,13 +74,13 @@ Suavizado de líneas
 Limitador de FPS
 
 [ExtraNightShad]
-Sombras Nocturnas Adicionales
+Sombras nocturnas adicionales
 
 [Lampposts]
 Farolas
 
 [LampostsHeadl]
-Farolas y Faros
+Farolas y faros
 
 [Tree Alpha]
 Transparencia de árboles
@@ -110,25 +110,25 @@ Permitir movimiento con zoom
 Luces lejanas
 
 [CenteredVehCam]
-Cámara de Vehículo Centrada
+Cámara de vehículo centrada
 
 [CenteredFootCam]
-Cámara a Pie Centrada
+Cámara a pie centrada
 
 [Camera Shake]
-Temblor de Cámara
+Temblor de cámara
 
 [CutscAudioSync]
-Sincronización de Audio de Escenas
+Sincronización de audio en escenas
 
 [CutscAudioSync0]
-Sincronización de Audio de Escenas desactivada
+Sincronización de audio en escenas desactivada
 
 [CutscAudioSync1]
-Sincronización de Audio de Escenas activada
+Sincronización de audio en escenas activada
 
 [Turn Indicators]
-Indicadores de Giro
+Indicadores de giro
 
 [WinterEvent0]
 Evento de invierno desactivado
@@ -149,7 +149,7 @@ Evento de Halloween activado
 ; ~r~ATENCIÓN: Se ha sobrepasado el límite de 255 archivos IMG y causará problemas de carga ("streaming"). 
 
 [FF_WARN2]
-~r~ATENCIÓN: Sombras Nocturnas Adicionales es una opción original de PC de Rockstar. Muy defectuosa, no recomendada.
+~r~ATENCIÓN: "Sombras nocturnas adicionales" es una opción original de PC hecho por Rockstar. Muy defectuosa, no recomendada.
 
 [FF_WARN3]
 ~r~ATENCIÓN: Los valores de distancia visible superiores a 25 y los valores de detalle de distancia superiores a 31 pueden causar que los objetos se dibujen bruscamente ("pop-in").
