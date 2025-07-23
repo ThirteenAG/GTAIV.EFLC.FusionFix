@@ -1088,9 +1088,10 @@ export namespace rage
         int m_pNext;
 
     public:
-        static inline std::unordered_map<int, std::vector<uint8_t>> GlobalParams;
+        static inline std::unordered_map<int, std::array<uint8_t, 16>> GlobalParams;
         static inline std::unordered_map<unsigned int, std::unordered_map<int, std::vector<uint8_t>>> ShaderInfoParams;
         static inline std::unordered_map<unsigned int, std::pair<int, int>> ShaderInfoParamHashes;
+        static inline std::unordered_map<const char*, unsigned int> ShaderNameHashCache;
 
         static inline void* pfngetParamIndex = nullptr;
         static int getParamIndex(grmShaderInfo* instance, const char* name, int a3)
@@ -1113,22 +1114,47 @@ export namespace rage
         static inline SafetyHookInline shsub_436D70{};
         static void __fastcall setShaderParam(grmShaderInfo* _this, void* edx, void* a2, int index, void* in, int a5, int a6, int a7)
         {
-            if (_this->m_parameters.wCount)
+            if (!_this->m_parameters.wCount)
+            {
+                return shsub_436D70.fastcall(_this, edx, a2, index, in, a5, a6, a7);
+            }
+
+            unsigned int hash;
+            auto cacheIt = ShaderNameHashCache.find(_this->m_pszShaderPath);
+            if (cacheIt != ShaderNameHashCache.end())
+            {
+                hash = cacheIt->second;
+            }
+            else
             {
                 auto sv = std::string_view(_this->m_pszShaderPath);
-                auto shader_name = sv.substr(sv.find_last_of('/') + 1);
-                auto hash = hashStringLowercaseFromSeed(shader_name.data(), 0);
-                ShaderInfoParamHashes[hash] = { _this->m_parameters.pData, _this->m_parameters.wSize };
-                ShaderInfoParams[hash][index].assign((uint8_t*)in, (uint8_t*)in + a5);
+                auto lastSlash = sv.find_last_of('/');
+                auto shader_name_sv = (lastSlash != std::string_view::npos) ? sv.substr(lastSlash + 1) : sv;
+                hash = hashStringLowercaseFromSeed(shader_name_sv.data(), 0);
+                ShaderNameHashCache[_this->m_pszShaderPath] = hash;
             }
+
+            auto& paramHashEntry = ShaderInfoParamHashes[hash];
+            if (paramHashEntry.first == 0)
+            {
+                paramHashEntry = { _this->m_parameters.pData, _this->m_parameters.wSize };
+            }
+
+            auto& paramVector = ShaderInfoParams[hash][index];
+            if (paramVector.size() != a5)
+            {
+                paramVector.resize(a5);
+            }
+            std::memcpy(paramVector.data(), in, a5);
+
             return shsub_436D70.fastcall(_this, edx, a2, index, in, a5, a6, a7);
         }
 
         static inline SafetyHookInline shsetGlobalParam{};
         static void __cdecl setGlobalParam(int index, void* data, int a3)
         {
-            GlobalParams[index].assign((uint8_t*)data, (uint8_t*)data + 16); //assuming 4x4, maybe needs fixing
-            return shsetGlobalParam.ccall(index, data, a3);
+            std::memcpy(GlobalParams[index].data(), data, 16); //assuming 4x4, maybe needs fixing
+            shsetGlobalParam.ccall(index, data, a3);
         }
 
         static inline grmShaderInfo_Parameter* globalShaderParameters = nullptr;
