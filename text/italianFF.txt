@@ -149,7 +149,7 @@ Evento di Halloween attivato
 ; ~r~ATTENZIONE: è stato superato il limite di 255 img, potrebbero verificarsi problemi di streaming.
 
 [FF_WARN2]
-~r~ATTENZIONE: le ombre dei lampioni possono causare artefatti visivi e problemi di prestazioni.
+~r~ATTENZIONE: Ombre Notturne Extra è un'impostazione PC originale di Rockstar. Estremamente difettosa, sconsigliata.
 
 [FF_WARN3]
 ~r~ATTENZIONE: un valore della barra Distanza visiva superiore a 25 e un valore della barra Distanza dettaglio superiore a 31 potrebbero causare l'effetto pop-in degli oggetti.

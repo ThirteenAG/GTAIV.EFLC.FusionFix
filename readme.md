@@ -69,7 +69,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **Sun Shafts**, a godrays implementation faithful to the original art style
 - **Volumetric Fog**, a more advanced fog shader that hides the edges of the world
 - **FOV**, adjusts in-game field of view
-- **Lamppost Shadows**, force every lamppost to cast shadows (may be buggy)
+- **Extra Night Shadows**, forces every lamppost and player headlights to cast shadows (*original PC option by Rockstar; extremely broken, not recommended*)
 
 #### Game
 
@@ -85,7 +85,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 ![LightSyncRGB](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/assets/4904157/f925ad27-19ce-4dde-8801-0cec1578ade7)
 
-- **Timed Events**, toggles added seasonal events
+- **Seasonal Events**, toggles added seasonal events
 - **Check For Fusion Fix Updates**, checks if there's an update available on startup
 
 #### Audio
@@ -260,6 +260,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Added fading to coronas in paraboloid reflections
 - Fixed anisotropic filtering affecting vehicle reflection intensity
 - Fixed distorted mirror reflections at certain camera angles
+- Improved vehicle and ped normal map quality
 
 #### Particles
 

@@ -149,7 +149,7 @@ Evento de Halloween activado
 ; ~r~ATENCIÓN: Se ha sobrepasado el límite de 255 archivos IMG y causará problemas de carga ("streaming"). 
 
 [FF_WARN2]
-~r~ATENCIÓN: Las sombras de farolas pueden causar errores visuales y problemas de rendimiento.
+~r~ATENCIÓN: Sombras Nocturnas Adicionales es una opción original de PC de Rockstar. Muy defectuosa, no recomendada.
 
 [FF_WARN3]
 ~r~ATENCIÓN: Los valores de distancia visible superiores a 25 y los valores de detalle de distancia superiores a 31 pueden causar que los objetos se dibujen bruscamente ("pop-in").

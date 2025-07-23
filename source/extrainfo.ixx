@@ -61,20 +61,11 @@ public:
                                 extra += L"~n~";
                                 extra += L"                        ";
                                 auto FF_WARN2 = std::wstring(CText::getText("FF_WARN2"));
-                                auto HeadlightShadow = CText::getText("HeadlightShadow");
-
-                                if (bHeadlightShadows)
-                                {
-                                    auto pos = FF_WARN2.find(L": ");
-                                    if (pos != std::wstring::npos) {
-                                        FF_WARN2.replace(pos, 2, L": " + std::wstring(HeadlightShadow) + L" / ");
-                                    }
-                                }
 
                                 if (FF_WARN2[0])
                                     extra += FF_WARN2;
                                 else
-                                    extra += L"~r~WARNING: Lamppost shadows may cause visual artifacts and performance issues.";
+                                    extra += L"~r~WARNING: Extra Night Shadows is an original PC option by Rockstar. Extremely broken, not recommended.";
                             }
 
 
