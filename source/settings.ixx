@@ -236,7 +236,7 @@ public:
             { 0, "PREF_BUTTONS",           "MISC",       "Buttons",                         "MENU_DISPLAY_BUTTONS",       6, nullptr, ButtonsText.eXbox360, std::distance(std::begin(ButtonsText.data), std::end(ButtonsText.data)) - 1 },
             { 0, "PREF_LETTERBOX",         "MISC",       "Letterbox",                       "",                           1, nullptr, 0, 1 },
             { 0, "PREF_PILLARBOX",         "MISC",       "Pillarbox",                       "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_ANTIALIASING",      "MISC",       "Antialiasing",                    "MENU_DISPLAY_ANTIALIASING",  6, nullptr, AntialiasingText.eMO_OFF, std::distance(std::begin(AntialiasingText.data), std::end(AntialiasingText.data)) - 1 },
+            { 0, "PREF_ANTIALIASING",      "MISC",       "Antialiasing",                    "MENU_DISPLAY_ANTIALIASING",  7, nullptr, AntialiasingText.eMO_OFF, std::distance(std::begin(AntialiasingText.data), std::end(AntialiasingText.data)) - 1 },
             { 0, "PREF_UPDATE",            "UPDATE",     "CheckForUpdates",                 "",                           0, nullptr, 0, 1 },
             { 0, "PREF_BLOCKONLOSTFOCUS",  "MAIN",       "BlockOnLostFocus",                "",                           0, nullptr, 0, 1 },
   /*UNUSED*/{ 0, "PREF_LAMPPOSTSHADOWS",   "SHADOWS",    "LamppostShadows",                 "",                           0, nullptr, 0, 1 },
