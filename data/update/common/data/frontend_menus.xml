@@ -544,7 +544,7 @@
             <optionspc action="MENUOPT_ADJUST" label="TreeFX" value="PREF_TREE_LIGHTING" scaler="9" displayValue="MENU_DISPLAY_TREE_LIGHTING" />
             <optionspc action="MENUOPT_ADJUST" label="Tree Alpha" value="PREF_TREEALPHA" scaler="6" displayValue="MENU_DISPLAY_TREEALPHA" />
             <optionspc action="MENUOPT_ADJUST" label="Screen Filter" value="PREF_TIMECYC" scaler="10" displayValue="MENU_DISPLAY_TIMECYC" />
-            <optionspc action="MENUOPT_ADJUST" label="LODLights" value="PREF_DISTANTLIGHTS" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_TRUESKILLNAME" />
+            <optionspc action="MENUOPT_ADJUST" label="Distant Lights" value="PREF_DISTANTLIGHTS" scaler="2" displayValue="MENU_DISPLAY_NETSTATS_TRUESKILLNAME" />
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             
             <options action="MENUOPT_SET" label="MO_DEF" value="SET_DEFAULT_DISPLAY" scaler="0" displayValue="MENU_DISPLAY_NONE" />
