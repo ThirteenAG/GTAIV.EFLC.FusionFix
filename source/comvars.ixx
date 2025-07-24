@@ -904,7 +904,7 @@ export namespace rage
         static grcRenderTargetPC* __stdcall CreateRT(const char* name, int32_t a2, uint32_t width, uint32_t height, uint32_t bitsPerPixel, grcRenderTargetDesc* desc)
         {
             // Scale phone screen/phone camera rendertarget resolution with game resolution.
-            if (std::string_view(name) == "PHONE_SCREEN" || std::string_view(name) == "PHOTO")
+            if (std::string_view(name) == "PHONE_SCREEN" || std::string_view(name) == "PHOTO" || std::string_view(name) == "FullScreenCopy2")
             {
                 auto res = (int32_t)(std::ceil((float)*rage::grcDevice::ms_nActiveHeight / 720.0f) * 256.0f);
                 width  = res;
