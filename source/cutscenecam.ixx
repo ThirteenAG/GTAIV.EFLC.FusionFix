@@ -1,6 +1,7 @@
 module;
 
 #include <common.hxx>
+#include <chrono>
 
 export module cutscenecam;
 
@@ -34,6 +35,9 @@ namespace rage
     }
 }
 
+std::chrono::steady_clock::time_point syncStartTime{};
+bool syncTimerActive = false;
+bool applicationLostFocus = false;
 void __cdecl sub_9C2C80(float* a1)
 {
     // Initialize variables
@@ -131,7 +135,19 @@ void __cdecl sub_9C2C80(float* a1)
     }
     oldState = curState;
 
-    if (cas->get())
+    if (syncTimerActive)
+    {
+        auto currentTime = std::chrono::steady_clock::now();
+        auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - syncStartTime);
+
+        if (elapsedTime.count() >= 5000)
+        {
+            syncTimerActive = false;
+            syncStartTime = std::chrono::steady_clock::time_point{};
+        }
+    }
+
+    if (cas->get() || syncTimerActive || applicationLostFocus)
     {
         // Original code
         // Apply cutscene state-specific timing
@@ -152,7 +168,23 @@ void __cdecl sub_9C2C80(float* a1)
     }
     else
     {
-        final_time = *float_11735BC * 1000.0f + initial_time;
+        if ((adjusted_time + audio_time_ms != 0) || ((adjusted_time | audio_time_ms) != 0)) // the hell is this? equivalent to noping `cmp     CCutscenes__m_dwCutsceneState, 8`
+        {
+            final_time = *float_11735BC * 1000.0f + initial_time;
+        }
+        else
+        {
+            if (adjusted_time == -1)
+            {
+                final_time = *float_117359C * 1000.0f + initial_time;
+            }
+            else
+            {
+                final_time = (float)adjusted_time - *float_129574C;
+                if (final_time < 0.0f)
+                    final_time = 0.0f;
+            }
+        }
     }
 
     *a1 = final_time;
@@ -267,6 +299,21 @@ public:
 
                     pattern = find_pattern("51 56 8B 74 24 ? 57 F3 0F 10 06");
                     static auto shCutscAudioSync = safetyhook::create_inline(pattern.get_first(), sub_9C2C80);
+                    
+                    FusionFix::onActivateApp() += [](bool wParam)
+                    {
+                        if (!wParam)
+                        {
+                            applicationLostFocus = true;
+                            syncTimerActive = false;
+                        }
+                        else
+                        {
+                            applicationLostFocus = false;
+                            syncStartTime = std::chrono::steady_clock::now();
+                            syncTimerActive = true;
+                        }
+                    };
                 }
             }
         };
