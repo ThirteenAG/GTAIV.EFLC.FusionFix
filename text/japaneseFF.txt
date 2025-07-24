@@ -106,7 +106,7 @@ FPSリミッター
 [Zoomed Movement]
 ズーム中の移動を許可
 
-[LODLights]
+[Distant Lights]
 遠い光
 
 [CenteredVehCam]

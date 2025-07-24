@@ -106,7 +106,7 @@ Volumetric Fog
 [Zoomed Movement]
 Allow Movement When Zoomed
 
-[LODLights]
+[Distant Lights]
 Distant Lights
 
 [CenteredVehCam]

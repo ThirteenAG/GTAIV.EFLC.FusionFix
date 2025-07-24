@@ -106,7 +106,7 @@ Fusion Fix: Проверять Обновления
 [Zoomed Movement]
 Разрешить движение при прицеливании
 
-[LODLights]
+[Distant Lights]
 Свет от фонарей
 
 [CenteredVehCam]

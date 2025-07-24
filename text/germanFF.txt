@@ -106,7 +106,7 @@ Volumetrischer Nebel
 [Zoomed Movement]
 Bewegung beim Zoomen erlauben
 
-[LODLights]
+[Distant Lights]
 Ferne Lichter
 
 [CenteredVehCam]

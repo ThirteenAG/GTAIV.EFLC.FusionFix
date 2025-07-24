@@ -106,7 +106,7 @@ Brouillard Volumétrique
 [Zoomed Movement]
 Permettre le mouvement en zoomant
 
-[LODLights]
+[Distant Lights]
 Lumières lointaines
 
 [CenteredVehCam]

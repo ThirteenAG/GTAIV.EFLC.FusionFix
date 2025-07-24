@@ -106,7 +106,7 @@ Niebla volumétrica
 [Zoomed Movement]
 Permitir movimiento con zoom
 
-[LODLights]
+[Distant Lights]
 Luces lejanas
 
 [CenteredVehCam]

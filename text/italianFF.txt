@@ -106,7 +106,7 @@ Nebbia volumetrica
 [Zoomed Movement]
 Consenti movimento con lo zoom
 
-[LODLights]
+[Distant Lights]
 Luci lontane
 
 [CenteredVehCam]
