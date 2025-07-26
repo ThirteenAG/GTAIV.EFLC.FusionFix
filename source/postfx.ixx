@@ -29,11 +29,9 @@ import d3dx9_43;
 #define IDR_SSAO_gen_ps                          120
 #define IDR_SSAO_blend_ps                        121
 
-#define IDR_DOF_ps                               125
 #define IDR_DeferredShadowBlur                   126
 #define IDR_SunShafts_PS                         127
 #define IDR_CascadeAtlasGen                      128
-#define IDR_SSDiffuseCloudsGen                   129
 
 #ifndef SAFE_RELEASE
 #define SAFE_RELEASE(p) { if (p) { (p)->Release(); (p)=NULL; } }
@@ -47,11 +45,9 @@ public:
     // --------- load --------- 
     IDirect3DTexture9* SMAA_areaTex = nullptr; // loaded from file
     IDirect3DTexture9* SMAA_searchTex = nullptr; // loaded from file
-    IDirect3DVolumeTexture9* blueNoiseVolume = nullptr; // loaded from file
 
     // --------- game textures --------- 
     IDirect3DTexture9* FullScreenTex = nullptr; // game hdr texture
-    IDirect3DTexture9* FullScreenTex2 = nullptr; // game hdr texture
     IDirect3DTexture9* HalfScreenTex = nullptr; // game half res screen texture
     IDirect3DTexture9* pQuarterHDRTex = nullptr; //  game 1/4 res screen texture
     IDirect3DTexture9* CascadeAtlasTex = nullptr;
@@ -70,7 +66,6 @@ public:
     // postfx textures created
     rage::grcRenderTargetPC* FullScreenTex_temp1 = nullptr; // main temp texture
     rage::grcRenderTargetPC* FullScreenTex_temp2 = nullptr; // main temp texture
-    rage::grcRenderTargetPC* FullScreenTex_temp3 = nullptr; // main temp texture
 
     //rage::grcRenderTargetPC* pShadowBlurTex1 = nullptr; // main shadow temp texture
     //rage::grcRenderTargetPC* pShadowBlurTex2 = nullptr; // main shadow temp texture
@@ -91,11 +86,6 @@ public:
     rage::grcRenderTargetPC* FullScreenDownsampleTex2 = nullptr; // main downsampled texture
 
 
-    // ----------- unused ----------- 
-    IDirect3DTexture9* stencilDownsampled = nullptr; // gen
-    rage::grcRenderTargetPC* HalfDepthStenciltex = nullptr; // gen
-
-
     // game render targets
     rage::grcRenderTargetPC* mSpecularAoRT = nullptr;
     rage::grcRenderTargetPC* mNormalRT = nullptr;
@@ -114,21 +104,15 @@ public:
 
     // surfaces
     IDirect3DSurface9* FullScreenSurface = nullptr;
-    IDirect3DSurface9* FullScreenSurface2 = nullptr;
     IDirect3DSurface9* FullScreenSurface_temp1 = nullptr;
     IDirect3DSurface9* FullScreenSurface_temp2 = nullptr;
-    IDirect3DSurface9* FullScreenSurface_temp3 = nullptr;
     IDirect3DSurface9* FullScreenDownsampleSurf = nullptr;
     IDirect3DSurface9* FullScreenDownsampleSurf2 = nullptr;
     IDirect3DSurface9* backBuffer = nullptr;
     IDirect3DSurface9* edgesSurf = nullptr;
     IDirect3DSurface9* blendSurf = nullptr;
-    IDirect3DSurface9* ppZStencilSurface = nullptr; // game depth buffer, get with GetDepthStencilSurface
-    IDirect3DSurface9* halfZStencilSurface = nullptr; // half screen temp depth buffer
     //IDirect3DSurface9* pShadowBlurSurf1 = nullptr;
     //IDirect3DSurface9* pShadowBlurSurf2 = nullptr;
-
-    IDirect3DSurface9* stencilDownsampledSurf = nullptr;
 
 
     // shaders
@@ -137,7 +121,6 @@ public:
     IDirect3DPixelShader9* SSDraw_PS = nullptr;
     IDirect3DPixelShader9* SSAdd_PS = nullptr;
     IDirect3DPixelShader9* SSPrepass_PS = nullptr;
-    IDirect3DPixelShader9* SSDiffuseCloudsGen_PS = nullptr;
     IDirect3DPixelShader9* SSAO_gen_ps = nullptr;
     IDirect3DPixelShader9* SSAO_blend_ps = nullptr;
 
@@ -169,24 +152,11 @@ public:
     //std::unordered_map<IDirect3DVertexShader9*, int> ShaderListVS;
 
     bool EnablePostfx = false;
-    float AoDistance = 100;
-    float AOFocusPoint[4] = { 350, 0, 0, 0 };
-    float AOFocusScale[4] = { 300, 0, 0, 0 };
-    float AAparameters[4] = { 0.25f , 0.125f , 0.0f, 0.0f };
-
-    float ResSSAA = 1.0f;
 
     // 0 off, 1 horizontal, 2 vertical, 3 horizontal e vertical.
     //int useScreenSpaceShadowsBlur = 3;
-    int useDepthOfField = 3;
-    int UseDebugTextures = 0;
-    bool UseSSAO = false;
     bool useStippleFilter = true;
     bool useHardwareBilinearSampling = false;
-
-    int DofSamples[4] = { 20 , 20, 20 ,20 };
-    float NoiseSale[4] = { 1.f / 256, 0.3f, -0.5f, 0 };
-    float BilateralDepthTreshold[4] = { 0.003f, 0.002f, 0.004f, 0.005f };
 
     bool shadersLoaded = false;
 
@@ -206,7 +176,6 @@ public:
         if(!SSAO_gen_ps && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SSAO_gen_ps), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                                                 if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SSAO_gen_ps) != S_OK || !SSAO_gen_ps) SAFE_RELEASE(SSAO_gen_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
         if(!SSAO_blend_ps && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SSAO_blend_ps), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                                             if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SSAO_blend_ps) != S_OK || !SSAO_blend_ps) SAFE_RELEASE(SSAO_blend_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
         if(!CascadeAtlasGen && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_CascadeAtlasGen), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                                         if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &CascadeAtlasGen) != S_OK || !CascadeAtlasGen) SAFE_RELEASE(CascadeAtlasGen); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
-        if(!SSDiffuseCloudsGen_PS && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SSDiffuseCloudsGen), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                                if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SSDiffuseCloudsGen_PS) != S_OK || !SSDiffuseCloudsGen_PS) SAFE_RELEASE(SSDiffuseCloudsGen_PS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
 
         //hlsl
         if(!SSDraw_PS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SunShafts_PS), NULL, NULL, "SSDraw", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                                             if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SSDraw_PS) != S_OK || !SSDraw_PS) SAFE_RELEASE(SSDraw_PS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
@@ -259,7 +228,6 @@ public:
         CascadeAtlasTex = nullptr;
 
         FullScreenTex = nullptr;
-        FullScreenTex2 = nullptr;
         HalfScreenTex = nullptr;
         pQuarterHDRTex = nullptr;
 
@@ -268,17 +236,11 @@ public:
             FullScreenTex_temp1->Destroy();
             FullScreenTex_temp1 = nullptr;
         }
-
+        
         if (FullScreenTex_temp2)
         {
             FullScreenTex_temp2->Destroy();
             FullScreenTex_temp2 = nullptr;
-        }
-        
-        if (FullScreenTex_temp3)
-        {
-            FullScreenTex_temp3->Destroy();
-            FullScreenTex_temp3 = nullptr;
         }
 
         if (edgesTex)
@@ -293,10 +255,6 @@ public:
             blendTex = nullptr;
         }
 
-
-        //SAFE_RELEASE(DepthStenciltex);
-        SAFE_RELEASE(stencilDownsampled);
-
         if (FullScreenDownsampleTex)
         {
             FullScreenDownsampleTex->Destroy();
@@ -307,12 +265,6 @@ public:
         {
             FullScreenDownsampleTex2->Destroy();
             FullScreenDownsampleTex2 = nullptr;
-        }
-
-        if (HalfDepthStenciltex)
-        {
-            HalfDepthStenciltex->Destroy();
-            HalfDepthStenciltex = nullptr;
         }
 
         //if (pShadowBlurTex1)
@@ -345,18 +297,11 @@ public:
         CIniReader iniReader("");
         EnablePostfx = iniReader.ReadInteger("SRF", "EnablePostfx", 1);
 
-        // downscaled simple, downscaled two passes, full screen simple, fullscreen 2 passes
-        useDepthOfField = iniReader.ReadInteger("SRF", "DepthOfFieldType", 3);
-        UseSSAO = iniReader.ReadInteger("SRF", "UseSSAO", 0) != 0;
         useStippleFilter = iniReader.ReadInteger("SRF", "StippleFilter", 1) != 0;
 
         // 0 off, 1 horizontal, 2 vertical, 3 horizontal e vertical.
         //useScreenSpaceShadowsBlur = iniReader.ReadInteger("SRF", "ScreenSpaceShadowsBlur", 0);
         //useHardwareBilinearSampling = iniReader.ReadInteger("SRF", "NewShadowAtlas", 0) != 0;
-
-        DofSamples[0] = iniReader.ReadInteger("SRF", "DofSamples", 20);
-        NoiseSale[0] = iniReader.ReadFloat("SRF", "NoiseSale", 1.f / 256.f);
-        BilateralDepthTreshold[0] = iniReader.ReadFloat("SRF", "BilateralDepthTreshold", 0.003f);
     }
 
     void createTextures(UINT Width, UINT Height, HMODULE hm)
@@ -384,10 +329,9 @@ public:
         };
 
         FullScreenTex_temp1 = CreateEmptyRT("FullScreenTex_temp1", 3, Width, Height, 32, &desc);
-        FullScreenTex_temp2 = CreateEmptyRT("FullScreenTex_temp2", 3, Width, Height, 32, &desc);
         
         desc.mFormat = rage::GRCFMT_A8R8G8B8;
-        FullScreenTex_temp3 = CreateEmptyRT("FullScreenTex_temp3", 3, Width, Height, 32, &desc);
+        FullScreenTex_temp2 = CreateEmptyRT("FullScreenTex_temp2", 3, Width, Height, 32, &desc);
 
         //desc.mFormat = rage::GRCFMT_G16R16F;
         // 
@@ -407,18 +351,10 @@ public:
         FullScreenDownsampleTex = CreateEmptyRT("FullScreenDownsampleTex", 3, Width / 2, Height / 2, 32, &desc);
         FullScreenDownsampleTex2 = CreateEmptyRT("FullScreenDownsampleTex2", 3, Width / 2, Height / 2, 32, &desc);
 
-        desc.mFormat = rage::GRCFMT_D24S8;
-        desc.field_24 = true; //D3DUSAGE_DEPTHSTENCIL ?
-
-        //pDevice->CreateTexture(Width / 2, Height / 2, 1, D3DUSAGE_DEPTHSTENCIL, D3DFMT_D24S8, D3DPOOL_DEFAULT, &HalfDepthStenciltex, 0);
-        HalfDepthStenciltex = CreateEmptyRT("HalfDepthStenciltex", 3, Width / 2, Height / 2, 32, &desc);
-
         if (!SMAA_areaTex)
             D3DXCreateTextureFromResourceExW(pDevice, hm, MAKEINTRESOURCEW(IDR_AreaTex), 160, 560, 1, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_LINEAR, D3DX_FILTER_LINEAR, 0, NULL, NULL, &SMAA_areaTex);
         if (!SMAA_searchTex)
             D3DXCreateTextureFromResourceExW(pDevice, hm, MAKEINTRESOURCEW(IDR_SearchTex), 64, 16, 1, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_LINEAR, D3DX_FILTER_LINEAR, 0, NULL, NULL, &SMAA_searchTex);
-        if (!blueNoiseVolume)
-            D3DXCreateVolumeTextureFromResourceExW(pDevice, hm, MAKEINTRESOURCEW(IDR_bluenoisevolume), 0, 0, 0, 0, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_LINEAR, D3DX_FILTER_LINEAR, D3DCOLOR_ARGB(150, 100, 100, 100), NULL, NULL, &blueNoiseVolume);
     }
 };
 
@@ -580,22 +516,17 @@ private:
             PostFxResources.CascadeAtlasTex = PostFxResources.mCascadeAtlasRT->mD3DTexture;
 
         PostFxResources.FullScreenTex = PostFxResources.mFullScreenRT->mD3DTexture;
-        PostFxResources.FullScreenTex2 = PostFxResources.mFullScreenRT2->mD3DTexture;
         PostFxResources.HalfScreenTex = PostFxResources.mHalfScreenRT->mD3DTexture;
         PostFxResources.pQuarterHDRTex = PostFxResources.mQuarterScreenRT->mD3DTexture;
 
         // get surfaces
         PostFxResources.FullScreenTex->GetSurfaceLevel(0, &PostFxResources.FullScreenSurface);
-        if(PostFxResources.FullScreenTex2)
-            PostFxResources.FullScreenTex2->GetSurfaceLevel(0, &PostFxResources.FullScreenSurface2);
 
         PostFxResources.FullScreenTex_temp1->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.FullScreenSurface_temp1);
         PostFxResources.FullScreenTex_temp2->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.FullScreenSurface_temp2);
-        PostFxResources.FullScreenTex_temp3->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.FullScreenSurface_temp3);
         PostFxResources.edgesTex->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.edgesSurf);
         PostFxResources.blendTex->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.blendSurf);
 
-        PostFxResources.HalfDepthStenciltex->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.halfZStencilSurface);
         PostFxResources.FullScreenDownsampleTex->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.FullScreenDownsampleSurf);
         PostFxResources.FullScreenDownsampleTex2->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.FullScreenDownsampleSurf2);
 
@@ -604,11 +535,8 @@ private:
         //PostFxResources.pShadowBlurTex1->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.pShadowBlurSurf1);
         //PostFxResources.pShadowBlurTex2->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.pShadowBlurSurf2);
 
-        //PostFxResources.stencilDownsampled->GetSurfaceLevel(0, &stencilDownsampledSurf       );
-
 
         pDevice->GetRenderTarget(0, &PostFxResources.backBuffer);
-        pDevice->GetDepthStencilSurface(&PostFxResources.ppZStencilSurface);
         pDevice->GetPixelShader(&oldps);
         pDevice->GetVertexShader(&oldvs);
 
@@ -636,7 +564,6 @@ private:
         SAFE_RELEASE(PostFxResources.backBuffer);
         SAFE_RELEASE(PostFxResources.FullScreenSurface_temp1);
         SAFE_RELEASE(PostFxResources.FullScreenSurface_temp2);
-        SAFE_RELEASE(PostFxResources.FullScreenSurface_temp3);
         SAFE_RELEASE(PostFxResources.FullScreenDownsampleSurf);
         SAFE_RELEASE(PostFxResources.FullScreenDownsampleSurf2);
         SAFE_RELEASE(PostFxResources.edgesSurf);
@@ -644,15 +571,9 @@ private:
         SAFE_RELEASE(PostFxResources.CascadeAtlasSurf);
 
         SAFE_RELEASE(PostFxResources.FullScreenSurface);
-        SAFE_RELEASE(PostFxResources.FullScreenSurface2);
 
-        SAFE_RELEASE(PostFxResources.ppZStencilSurface);
-
-        SAFE_RELEASE(PostFxResources.halfZStencilSurface);
         //SAFE_RELEASE(PostFxResources.pShadowBlurSurf1);
         //SAFE_RELEASE(PostFxResources.pShadowBlurSurf2);
-
-        SAFE_RELEASE(PostFxResources.stencilDownsampledSurf);
 
         PostFxResources.renderTargetTex = nullptr;
         PostFxResources.textureRead = nullptr;
@@ -661,20 +582,12 @@ private:
     }
 
     static HRESULT PostFx3(LPDIRECT3DDEVICE9 pDevice, IDirect3DPixelShader9* pShader, IDirect3DVertexShader9* vShader) {
-        D3DVOLUME_DESC volumeDescription;
-
         auto currGrcViewport = rage::GetCurrentViewport();
-        auto SunColor = rage::grmShaderInfo::getParam("gta_atmoscatt_clouds.fxc", "SunColor");
-        auto SunDirection = rage::grmShaderInfo::getParam("gta_atmoscatt_clouds.fxc", "SunDirection");
-        //auto gShadowMatrix = rage::grmShaderInfo::getGlobalParam("gShadowMatrix");
 
         HRESULT hr = S_FALSE;
 
         DWORD OldSRGB = 0;
         DWORD OldSampler = 0;
-
-        static float blueTimerVec4[4] = { 0.f };
-        static int blueTimer = 0;
 
         // save render state between post processing steps, 
         // in general each step expects the environment as the game 
@@ -684,30 +597,6 @@ private:
             pDevice->GetTexture(i, &PostFxResources.prePostFx[i]);
             pDevice->GetSamplerState(i, D3DSAMP_MAGFILTER, &PostFxResources.Samplers[i]);
         }
-
-        if(PostFxResources.blueNoiseVolume) {
-            PostFxResources.blueNoiseVolume->GetLevelDesc(0, &volumeDescription);
-
-            blueTimer++;
-            blueTimer = blueTimer % (volumeDescription.Depth + 1);
-            blueTimerVec4[0] = getWindowWidth() / float(volumeDescription.Width);
-            blueTimerVec4[1] = getWindowHeight() / float(volumeDescription.Height);
-            blueTimerVec4[2] = static_cast<float>(blueTimer) / float(volumeDescription.Depth);
-            blueTimerVec4[3] = static_cast<float>(blueTimer);
-        }
-
-        pDevice->SetPixelShaderConstantF(100, currGrcViewport->mWorldMatrix[0], 4);
-        pDevice->SetPixelShaderConstantF(104, currGrcViewport->mWorldViewMatrix[0], 4);
-        pDevice->SetPixelShaderConstantF(108, currGrcViewport->mWorldViewProjMatrix[0], 4);
-        pDevice->SetPixelShaderConstantF(112, currGrcViewport->mViewInverseMatrix[0], 4);
-        //pDevice->SetPixelShaderConstantF(116, gShadowMatrix, 4);
-        pDevice->SetPixelShaderConstantF(140, PostFxResources.BilateralDepthTreshold, 1);
-        // pDevice->SetPixelShaderConstantF(144, PostFxResources.NoiseSale, 1);
-        // pDevice->SetPixelShaderConstantF(218, blueTimerVec4, 1);
-
-        pDevice->SetTexture(8, PostFxResources.HalfScreenTex);
-        if(PostFxResources.blueNoiseVolume)
-            pDevice->SetTexture(9, PostFxResources.blueNoiseVolume);
 
         // main postfx passes
         {
@@ -726,7 +615,6 @@ private:
                     //
                     //    pDevice->SetPixelShader(PostFxResources.SSAO_gen_ps);
                     //    vec4[1] = PostFxResources.AoDistance;
-                    //    pDevice->SetPixelShaderConstantF(211, vec4, 1);
                     //
                     //    //pDevice->SetTexture(2, 0);
                     //    pDevice->SetRenderTarget(0, PostFxResources.pShadowBlurSurf1);
@@ -763,18 +651,15 @@ private:
 
                     static auto dof = FusionFixSettings.GetRef("PREF_TCYC_DOF");
                     if(dof->get() > FusionFixSettings.DofText.eCutscenesOnly || (dof->get() == FusionFixSettings.DofText.eCutscenesOnly && CCutscenes::hasCutsceneFinished())) {
-                        if(PostFxResources.useDepthOfField > 0 && PostFxResources.dof_blur_ps && PostFxResources.depth_of_field_tent_ps && PostFxResources.dof_coc_ps) {
-                            if(PostFxResources.ppZStencilSurface && PostFxResources.halfZStencilSurface && PostFxResources.FullScreenDownsampleSurf && PostFxResources.FullScreenDownsampleSurf2) {
+                        if(PostFxResources.dof_blur_ps && PostFxResources.depth_of_field_tent_ps && PostFxResources.dof_coc_ps) {
+                            if(PostFxResources.FullScreenDownsampleSurf && PostFxResources.FullScreenDownsampleSurf2) {
                                 pDevice->SetSamplerState(8, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
                                 pDevice->SetSamplerState(8, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
                                 pDevice->SetSamplerState(8, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
                                 pDevice->SetSamplerState(2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
 
-                                pDevice->SetDepthStencilSurface(PostFxResources.halfZStencilSurface);
-
                                 pDevice->SetPixelShader(PostFxResources.dof_blur_ps);
                                 pDevice->SetRenderTarget(0, PostFxResources.FullScreenDownsampleSurf);
-                                pDevice->SetTexture(2, PostFxResources.textureRead);
                                 pDevice->SetTexture(8, PostFxResources.HalfScreenTex);
                                 pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
                                 
@@ -784,13 +669,11 @@ private:
                                 pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
 
                                 pDevice->SetPixelShader(PostFxResources.dof_coc_ps);
-                                pDevice->SetDepthStencilSurface(PostFxResources.ppZStencilSurface);
                                 pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
                                 pDevice->SetTexture(2, PostFxResources.textureRead);
                                 pDevice->SetTexture(8, PostFxResources.FullScreenDownsampleTex2->mD3DTexture);
                                 pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
                                 PostFxResources.swapbuffers();
-                                pDevice->SetTexture(8, PostFxResources.HalfScreenTex);
 
                                 pDevice->SetPixelShader(pShader);
                             }
@@ -801,26 +684,17 @@ private:
                     if(refSunShafts->get()) {
                         // 2 passes at half res
                         if(PostFxResources.SSPrepass_PS && PostFxResources.SSDraw_PS) {
-                            if(PostFxResources.ppZStencilSurface && PostFxResources.halfZStencilSurface && PostFxResources.FullScreenDownsampleSurf && PostFxResources.FullScreenDownsampleSurf2) {
+                            if(PostFxResources.FullScreenDownsampleSurf && PostFxResources.FullScreenDownsampleSurf2) {
                                 pDevice->SetSamplerState(2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
                                 pDevice->SetSamplerState(8, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
                                 pDevice->SetSamplerState(8, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
                                 pDevice->SetSamplerState(8, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-                                pDevice->SetSamplerState(9, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-                                pDevice->SetSamplerState(9, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-                                pDevice->SetSamplerState(9, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
                                 pDevice->SetSamplerState(11, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
                                 pDevice->SetSamplerState(11, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
                                 pDevice->SetSamplerState(11, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
                                 pDevice->SetSamplerState(13, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
                                 pDevice->SetSamplerState(13, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
                                 pDevice->SetSamplerState(13, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-
-                                pDevice->SetDepthStencilSurface(PostFxResources.halfZStencilSurface);
-
-                                pDevice->SetTexture(13, 0);
-                                pDevice->SetTexture(11, 0);
-                                pDevice->SetTexture(8, 0);
 
                                 // crop around sun position
                                 pDevice->SetPixelShader(PostFxResources.SSPrepass_PS);
@@ -832,7 +706,6 @@ private:
                                 // sample sunshafts from a cropped texture
                                 pDevice->SetPixelShader(PostFxResources.SSDraw_PS);
                                 pDevice->SetRenderTarget(0, PostFxResources.FullScreenDownsampleSurf2);
-                                pDevice->SetTexture(8, 0);
                                 pDevice->SetTexture(11, PostFxResources.FullScreenDownsampleTex->mD3DTexture);
                                 pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
 
@@ -842,25 +715,14 @@ private:
                                 pDevice->SetTexture(11, PostFxResources.FullScreenDownsampleTex2->mD3DTexture);
                                 pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
 
-                                pDevice->SetTexture(8, 0);
-                                pDevice->SetTexture(11, 0);
-                                pDevice->SetTexture(13, 0);
-
                                 // add sunshafts to screen
                                 pDevice->SetPixelShader(PostFxResources.SSAdd_PS);
-                                pDevice->SetDepthStencilSurface(PostFxResources.ppZStencilSurface);
                                 pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
                                 pDevice->SetTexture(2, PostFxResources.textureRead);
-                                pDevice->SetTexture(8, PostFxResources.HalfScreenTex);
                                 pDevice->SetTexture(11, PostFxResources.FullScreenDownsampleTex->mD3DTexture);
-                                if(PostFxResources.blueNoiseVolume)
-                                    pDevice->SetTexture(9, PostFxResources.blueNoiseVolume);
 
                                 pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
                                 PostFxResources.swapbuffers();
-                                pDevice->SetTexture(13, 0);
-                                pDevice->SetTexture(11, 0);
-                                pDevice->SetTexture(8, 0);
 
                                 pDevice->SetPixelShader(pShader);
                             }
@@ -875,11 +737,10 @@ private:
                         }
 
                         if(UsePostFxAA->get() > FusionFixSettings.AntialiasingText.eMO_OFF)
-                            pDevice->SetRenderTarget(0, PostFxResources.FullScreenSurface_temp3);
+                            pDevice->SetRenderTarget(0, PostFxResources.FullScreenSurface_temp2);
                         else
                             pDevice->SetRenderTarget(0, PostFxResources.backBuffer);
 
-                        pDevice->SetTexture(9, PostFxResources.blueNoiseVolume);
                         pDevice->SetTexture(2, PostFxResources.textureRead);
                         pDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 0, 0);
 
@@ -889,8 +750,6 @@ private:
                         hbDrawPrimitivePostFX.fun();
                             // if(UsePostFxAA->get() > FusionFixSettings.AntialiasingText.eMO_OFF)
                             //     PostFxResources.swapbuffers();
-
-                        pDevice->SetTexture(9, 0);
                     }
                     
                     // Anti aliasing
@@ -902,12 +761,10 @@ private:
                             // pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
                             pDevice->SetRenderTarget(0, PostFxResources.backBuffer);
 
-                            pDevice->SetTexture(2, PostFxResources.FullScreenTex_temp3->mD3DTexture);
+                            pDevice->SetTexture(2, PostFxResources.FullScreenTex_temp2->mD3DTexture);
                             // pDevice->SetTexture(2, PostFxResources.textureRead);
 
                             hr = pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-                            PostFxResources.swapbuffers();
-                            //pDevice->SetTexture(2, 0);
                             pDevice->SetPixelShader(pShader);
                         }
 
@@ -973,11 +830,9 @@ private:
                             pDevice->SetPixelShader(PostFxResources.SMAA_EdgeDetection);
                             pDevice->SetVertexShader(PostFxResources.SMAA_EdgeDetectionVS);
                             pDevice->SetRenderTarget(0, PostFxResources.edgesSurf);
-                            //pDevice->SetTexture(2, 0);
-                            pDevice->SetTexture(0, PostFxResources.FullScreenTex_temp3->mD3DTexture);
+                            pDevice->SetTexture(0, PostFxResources.FullScreenTex_temp2->mD3DTexture);
                             pDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 0, 0);
                             pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
-                            pDevice->SetTexture(0, 0);
 
                             // SMAA_BlendingWeightsCalculation
                             pDevice->SetPixelShader(PostFxResources.SMAA_BlendingWeightsCalculation);
@@ -996,9 +851,7 @@ private:
                             // pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
                             pDevice->SetRenderTarget(0, PostFxResources.backBuffer);
 
-                            //pDevice->SetTexture(2,  textureRead);
-                            pDevice->SetTexture(0, PostFxResources.FullScreenTex_temp3->mD3DTexture);
-                            pDevice->SetTexture(1, PostFxResources.edgesTex->mD3DTexture);
+                            pDevice->SetTexture(0, PostFxResources.FullScreenTex_temp2->mD3DTexture);
                             pDevice->SetTexture(4, PostFxResources.blendTex->mD3DTexture);
 
                             pDevice->GetSamplerState(0, D3DSAMP_SRGBTEXTURE, &oldSample);
@@ -1021,10 +874,9 @@ private:
                                 pDevice->SetSamplerState(i, D3DSAMP_ADDRESSW, oldSample);
                             }
 
-                            PostFxResources.swapbuffers();
                             pDevice->SetTexture(0, PostFxResources.prePostFx[0]);
                             pDevice->SetTexture(1, PostFxResources.prePostFx[1]);
-                            pDevice->SetTexture(2, PostFxResources.FullScreenTex_temp3->mD3DTexture);
+                            pDevice->SetTexture(2, PostFxResources.FullScreenTex_temp2->mD3DTexture);
                             pDevice->SetTexture(3, PostFxResources.prePostFx[3]);
                             pDevice->SetTexture(4, PostFxResources.prePostFx[4]);
                             pDevice->SetPixelShader(pShader);
@@ -1086,7 +938,7 @@ private:
         IDirect3DPixelShader9* pShader = nullptr;
         HRESULT hr = S_FALSE;
         pDevice->GetPixelShader(&pShader);
-        // atmoscat clouds
+        // atmoscatt clouds
         if (PostFxResources.DiffuseTex != nullptr)
         {
             IDirect3DSurface9* DiffuseSurf = nullptr;
@@ -1096,7 +948,6 @@ private:
                 IDirect3DSurface9* oldRenderTarget1 = 0;
                 pDevice->GetRenderTarget(1, &oldRenderTarget1);
                 pDevice->SetRenderTarget(1, DiffuseSurf);
-                pDevice->SetPixelShader(PostFxResources.SSDiffuseCloudsGen_PS);
                 hr = hbDrawSkyHook.fun(_this, edx, a2, a3, a4, a5, a6, a7);
                 pDevice->SetPixelShader(pShader);
                 pDevice->SetRenderTarget(1, oldRenderTarget1);

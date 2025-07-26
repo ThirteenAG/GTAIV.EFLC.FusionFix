@@ -49,15 +49,13 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 #### Display
 
-- **Bloom**, a separate toggle for bloom
 - **Definition**, toggle the old fuzzy look from consoles
 - **Console Gamma**, restores contrasted look from consoles
-- **Tone Mapping**, prevents highlights from being blown out
-- **Extended Sunlight Reach**, allows sunlight to reach surfaces that it couldn't before, and increases cloud shading
-- **Depth of Field**, controls how intense the distant blur is during gameplay and whether it's enabled in cutscenes
 - **Motion Blur**, a separate toggle for motion blur with several intensity levels
+- **Depth of Field**, controls how intense the distant blur is during gameplay and whether it's enabled in cutscenes
 - **Tree Lighting**, offers "PC", "PC" with some improvements ("PC+") and "Console" style tree lighting
 - **Tree Alpha**, toggle between PC and Console alpha test reference for trees
+- **Bloom**, a global toggle for bloom
 - **Screen Filter**, an option to change color filters in the main game and episodes
 - **Distant Lights**, toggle for integrated [Project2DFX](https://thirteenag.github.io/p2dfx)
 
@@ -65,11 +63,12 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 - **FPS Limiter**, set a custom FPS limit, select from a list of predefined values, or turn it off
 - **Anti-aliasing**, a toggle for FXAA or SMAA
-- **Shadow Filter**, toggle between sharp, soft, or contact hardening shadows
-- **Sun Shafts**, a godrays implementation faithful to the original art style
 - **Volumetric Fog**, a more advanced fog shader that hides the edges of the world
+- **Sun Shafts**, a godrays implementation faithful to the original art style
+- **Extended Sunlight Reach**, allows sunlight to reach surfaces that it couldn't before, and increases cloud shading
+- **Tone Mapping**, prevents highlights from being blown out
+- **Shadow Filter**, toggles between sharp, soft, or contact hardening shadows
 - **FOV**, adjusts in-game field of view
-- **Extra Night Shadows**, forces every lamppost and player headlights to cast shadows (*original PC option by Rockstar; extremely broken, not recommended*)
 
 #### Game
 
@@ -81,7 +80,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **Letterbox**, draws cutscene borders on top and bottom of the screen
 - **Pillarbox**, draws cutscene borders on screen sides in ultrawide
 - **FPS Counter**, shows an episode colored FPS counter on the top left of the screen
-- **LightSyncRGB**, only Logitech hardware is supported, requires Logitech G HUB app,   [**watch full clip on YouTube**](https://www.youtube.com/watch?v=oLxn3q-NnZ0&hd=1)
+- **Extra Night Shadows**, forces every lamppost and player headlights to cast shadows (*original PC-only "feature"; extremely broken, not recommended*)
+- **LightSyncRGB**, only Logitech hardware is supported, requires Logitech G HUB app, [**watch full clip on YouTube**](https://www.youtube.com/watch?v=oLxn3q-NnZ0&hd=1)
 
 ![LightSyncRGB](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/assets/4904157/f925ad27-19ce-4dde-8801-0cec1578ade7)
 
@@ -126,6 +126,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored missing lamppost coronas from consoles
 - Fixed grass models stuck underground
 - Fixed assault rifle firing delay
+- Significantly sped up loading screens
 - Fixed jagged vehicle reflections
 - Restored higher shadow render distance from old versions of the game
 - Improved cascaded shadows performance, and added an option to double their resolution
@@ -164,6 +165,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 ### Misc
 
 - Restored timecycles from consoles with improved auto exposure and fixed missing moon in some weathers
+- Restored the language switch option from consoles
 - Added bloom and depth of field to TBOGT to match the other episodes
 - Fixed glass shards lacking colors
 - Added an option to restore the auto exposure effect from consoles
@@ -184,10 +186,10 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Added options to customize shadow blur, bias and cascade blending
 - Various other fixes, like LOD lights now appear at the appropriate time like on the console versions
 
-### Details
+### Some details
 
 - **AimingZoomFix** - set to **1** for proper fix, so it behaves like on xbox, set to **2** to have this fixed feature enabled in IV and TLAD, set to **-1** to disable this feature. **0** disables the fix, as usual.
-- **FpsLimit** - enter a desired value to specify the number of frames per second you want for the game. Like 30, 45, 60 or more. This will affect all gameplay.
+- **FpsLimit** - enter a desired value to specify the number of frames per second you want for the game. Like 30, 45, 60 or more. This will affect all gameplay. Refresh rate offsets may also be used.
 - **ExtraCutsceneFix** - fix stuttering animations in cutscenes
 - **CutsceneFpsLimit** - enter a desired value to specify the number of frames per second you want for the game to use on cutscenes only.
 - **ScriptCutsceneFovLimit** - this is the minimum fov value the game can set during script cutscenes, [like this one](https://www.youtube.com/watch?v=NzKw7ijHG10&hd=1). It prevents the game to zoom in too much on high fps. Since it's not a proper fix for the issue, you may disable it and use _hidden_ setting **ScriptCutsceneFpsLimit** that works the same way as **CutsceneFpsLimit**.

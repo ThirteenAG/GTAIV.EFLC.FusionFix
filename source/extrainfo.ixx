@@ -42,7 +42,7 @@ public:
                             }
                             extra = s;
                             extra += L"~n~";
-                            extra += L"                        ";
+                            extra += L"                    ";
 
                             auto FF_WARN0 = CText::getText("FF_WARN0");
                             extra += (FF_WARN0[0] ? FF_WARN0 : L"~p~IMG Files:") + std::wstring(L" ") + std::to_wstring(imgNum) + L" / " + std::to_wstring(imgArrSize);
@@ -56,10 +56,11 @@ public:
                             auto FF_WARN1 = CText::getText("FF_WARN1");
                             if (imgNum >= imgArrSize) extra += FF_WARN1[0] ? FF_WARN1 : L"; ~r~WARNING: 255 IMG limit exceeded, will cause streaming issues.";
                         
+                            /*
                             if (bExtraNightShadows || bHeadlightShadows)
                             {
                                 extra += L"~n~";
-                                extra += L"                        ";
+                                extra += L"                    ";
                                 auto FF_WARN2 = std::wstring(CText::getText("FF_WARN2"));
 
                                 if (FF_WARN2[0])
@@ -67,6 +68,7 @@ public:
                                 else
                                     extra += L"~r~WARNING: Extra Night Shadows is an original PC option by Rockstar. Extremely broken, not recommended.";
                             }
+                            */
 
 
                             if (FusionFixSettings.Get("PREF_SHADOWFILTER") == FusionFixSettings.ShadowFilterText.eCHSS)
@@ -74,7 +76,7 @@ public:
                                 if (FusionFixSettings.Get("PREF_SHADOW_QUALITY") < 4) // Very High
                                 {
                                     extra += L"~n~";
-                                    extra += L"                        ";
+                                    extra += L"                    ";
                                     auto FF_WARN6 = CText::getText("FF_WARN6");
                                     extra += FF_WARN6[0] ? FF_WARN6 : L"~r~WARNING: CHSS only takes effect with Shadow Quality set to Very High.";
                                 }
