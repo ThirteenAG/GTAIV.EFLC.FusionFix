@@ -226,7 +226,7 @@ public:
                 }
                 else
                 {
-                    pattern = find_pattern("89 0D ? ? ? ? F6 05");
+                    pattern = find_pattern("89 0D ? ? ? ? F6 05", "89 0D ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 8B 08");
                     static auto SetRefreshRateHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                     {
                         auto mode = (nFrameLimitType == 2) ? FrameLimiter::FPSLimitMode::FPS_ACCURATE : FrameLimiter::FPSLimitMode::FPS_REALTIME;
