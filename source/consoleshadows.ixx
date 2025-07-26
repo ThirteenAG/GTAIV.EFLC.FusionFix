@@ -159,7 +159,7 @@ public:
                     pattern = hook::pattern("E8 ? ? ? ? 85 C0 74 2A 53 E8");
 
                     static auto getLocalPlayerPed = (int (*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
-                    static auto FindPlayerCar = (int (*)())injector::GetBranchDestination(pattern.get_first(11)).as_int();
+                    static auto FindPlayerCar = (int (*)())injector::GetBranchDestination(pattern.get_first(10)).as_int();
 
                     static auto loc_AE3867 = (uintptr_t)hook::get_pattern("8B 4D 0C 8B 44 24 10 0F B7 54 CB");
                     static auto loc_AE374F = (uintptr_t)hook::get_pattern("8B 4D 14 83 F8 04 C6 44 24 ? ? 75 0F 8B 86");
