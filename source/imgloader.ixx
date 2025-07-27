@@ -130,24 +130,24 @@ public:
                                 };
 
                                 auto relativePath = lexicallyRelativeCaseIns(filePath, gamePath);
-                                auto imgPath = relativePath.native();
-                                std::replace(std::begin(imgPath), std::end(imgPath), L'\\', L'/');
+                                auto imgPath = relativePath.string();
+                                std::replace(std::begin(imgPath), std::end(imgPath), '\\', '/');
                                 auto pos = imgPath.find(L'/');
 
                                 if (pos != imgPath.npos)
                                 {
-                                    imgPath.replace(pos, 1, L":/");
+                                    imgPath.replace(pos, 1, ":/");
 
-                                    if (iequals(imgPath, L"update:/update.img"))
+                                    if (iequals(imgPath, "update:/update.img"))
                                         continue;
 
                                     if (std::any_of(std::begin(episodicPaths), std::end(episodicPaths), [&](auto& it) { return contains_subfolder(relativePath, it); }))
                                     {
                                         if (*_dwCurrentEpisode < int32_t(episodicPaths.size()) && contains_subfolder(relativePath, episodicPaths[*_dwCurrentEpisode]))
-                                            CImgManager__addImgFile(std::filesystem::path(imgPath).string().c_str(), 1, -1);
+                                            CImgManager__addImgFile(imgPath.data(), 1, -1);
                                     }
                                     else
-                                        CImgManager__addImgFile(std::filesystem::path(imgPath).string().c_str(), 1, -1);
+                                        CImgManager__addImgFile(imgPath.data(), 1, -1);
                                 }
                             }
                         }
