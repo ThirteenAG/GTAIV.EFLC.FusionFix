@@ -1102,8 +1102,12 @@ export namespace rage
 
         static int getParamIndex(unsigned int shader_hash, unsigned int name_hash, int a3)
         {
+            if (!ShaderInfoParamHashes.contains(shader_hash))
+                return 0;
+
             auto j = 1;
-            for (auto i = (int*)(ShaderInfoParamHashes[shader_hash].first + 0xC); j < ShaderInfoParamHashes[shader_hash].second; i += 0xC, ++j)
+            auto& shader_info = ShaderInfoParamHashes[shader_hash];
+            for (auto i = (int*)(shader_info.first + 0xC); j < shader_info.second; i += 0xC, ++j)
             {
                 if (i[0] == name_hash || i[1] == name_hash)
                     return j;
