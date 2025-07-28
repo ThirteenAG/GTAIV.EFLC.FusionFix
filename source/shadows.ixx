@@ -32,24 +32,23 @@ void* __cdecl CModelInfoStore__allocateInstanceModelHook(char* modelName)
     curModelName = modelName;
     std::transform(curModelName.begin(), curModelName.end(), curModelName.begin(), [](unsigned char c) { return std::tolower(c); });
 
-    if (bDynamicShadowsForTrees) {
-        static std::vector<std::string> treeNames = {
-            "ag_bigandbushy", "ag_bigandbushygrn", "ag_tree00", "ag_tree02", "ag_tree06", "azalea_md_ingame",
-            "azalea_md_ingame_05", "azalea_md_ingame_06", "azalea_md_ingame_2", "azalea_md_ingame_3",
-            "azalea_md_ingame_4", "bholly_md_ingame", "bholly_md_ingame_2", "bholly_md_s_ingame",
-            "bholly_md_s_ingame_2", "beech_md_ingame_2", "c_apple_md_ingame", "c_apple_md_ingame01",
-            "c_apple_md_ingame_2", "c_fern_md_ingame", "c_fern_md_ingame_2", "c_fern_md_ingame_3",
-            "elm_md_ingame", "elm_md_ingame_2", "h_c_md_f_ingame", "h_c_md_f_ingame_2", "l_p_sap_ingame_2",
-            "liveoak_md_ingame", "liveoak_md_ingame_2", "londonp_md_ingame", "londonp_md_ingame_2",
-            "mglory_c_md_ingame", "mglory_c_md_ingame_2", "pinoak_md_ingame", "pinoak_md_ingame_2",
-            "scotchpine", "tree_beech1", "tree_beech2", "w_birch_md_ingame", "w_birch_md_ingame2",
-            "w_birch_md_ingame_2", "w_r_cedar_md_ingame", "w_r_cedar_md_ing_2", "scotchpine2", "scotchpine4",
-            "tree_redcedar", "tree_redcedar2"
-        };
-        if (std::any_of(std::begin(treeNames), std::end(treeNames), [](auto& i) { return i == curModelName; }))
-        {
-            return injector::cstd<void* (char*)>::call(CModelInfoStore__allocateBaseModel, modelName);
-        }
+    static std::vector<std::string> treeNames = {
+        "ag_bigandbushy", "ag_bigandbushygrn", "ag_tree00", "ag_tree02", "ag_tree06", "azalea_md_ingame",
+        "azalea_md_ingame_05", "azalea_md_ingame_06", "azalea_md_ingame_2", "azalea_md_ingame_3",
+        "azalea_md_ingame_4", "bholly_md_ingame", "bholly_md_ingame_2", "bholly_md_s_ingame",
+        "bholly_md_s_ingame_2", "beech_md_ingame_2", "c_apple_md_ingame", "c_apple_md_ingame01",
+        "c_apple_md_ingame_2", "c_fern_md_ingame", "c_fern_md_ingame_2", "c_fern_md_ingame_3",
+        "elm_md_ingame", "elm_md_ingame_2", "h_c_md_f_ingame", "h_c_md_f_ingame_2", "l_p_sap_ingame_2",
+        "liveoak_md_ingame", "liveoak_md_ingame_2", "londonp_md_ingame", "londonp_md_ingame_2",
+        "mglory_c_md_ingame", "mglory_c_md_ingame_2", "pinoak_md_ingame", "pinoak_md_ingame_2",
+        "scotchpine", "tree_beech1", "tree_beech2", "w_birch_md_ingame", "w_birch_md_ingame2",
+        "w_birch_md_ingame_2", "w_r_cedar_md_ingame", "w_r_cedar_md_ing_2", "scotchpine2", "scotchpine4",
+        "tree_redcedar", "tree_redcedar2"
+    };
+
+    if (std::any_of(std::begin(treeNames), std::end(treeNames), [](auto& i) { return i == curModelName; }))
+    {
+        return injector::cstd<void* (char*)>::call(CModelInfoStore__allocateBaseModel, modelName);
     }
 
     return injector::cstd<void* (char*)>::call(CModelInfoStore__allocateInstanceModel, modelName);
@@ -57,32 +56,30 @@ void* __cdecl CModelInfoStore__allocateInstanceModelHook(char* modelName)
 
 void __cdecl CBaseModelInfo__setFlagsHook(void* pModel, int dwFlags, int a3)
 {
-    if (bExtraDynamicShadows)
+    enum
     {
-        enum
-        {
-            flag0, flag1, alpha, flag3, flag4, trees, flag6, instance, flag8,
-            enable_bone_anim, enable_uv_animation, model_hidden_shadow_casting,
-            flag12, no_shadow, flag14, flag15, flag16, dynamic, flag18, flag19,
-            flag20, no_backface_cull, static_shadow_1, static_shadow_2,
-            flag24, flag25, enable_specialattribute, flag27, flag28,
-            flag29, flag30, flag31
+        flag0, flag1, alpha, flag3, flag4, trees, flag6, instance, flag8,
+        enable_bone_anim, enable_uv_animation, model_hidden_shadow_casting,
+        flag12, no_shadow, flag14, flag15, flag16, dynamic, flag18, flag19,
+        flag20, no_backface_cull, static_shadow_1, static_shadow_2,
+        flag24, flag25, enable_specialattribute, flag27, flag28,
+        flag29, flag30, flag31
+    };
+
+    std::vector<std::string> modelNames = { };
+
+    if (bExtraDynamicShadows >= 1)
+    {
+        std::vector<std::string> vegetationNames = {
+            "bush", "weed", "grass", "azalea", "bholly", "fern", "tree"
         };
 
-        std::vector<std::string> modelNames = { };
+        modelNames.insert(modelNames.end(), vegetationNames.begin(), vegetationNames.end());
+    }
 
-        if (bExtraDynamicShadows >= 1)
-        {
-            std::vector<std::string> vegetationNames = {
-            "bush", "weed", "grass", "azalea", "bholly", "fern", "tree"
-            };
-
-            modelNames.insert(modelNames.end(), vegetationNames.begin(), vegetationNames.end());
-        }
-
-        if (bExtraDynamicShadows >= 2)
-        {
-            std::vector<std::string> grateNames = {
+    if (bExtraDynamicShadows >= 2)
+    {
+        std::vector<std::string> grateNames = {
             "rail05ax_ksun_01op", "rail09c_ksun_01op", "rail10a_ksun_01op", "bkn_ltrn_bkslin05b",
             "bkn_ltrn_bkslin04b", "bkn_ltrn_bkslin03b", "bkn_ltrn_bkslin02b", "mbridge_lt10_bkn",
             "mbridge_lt10_bknb", "rail08_ks2un_01b", "rail08a_ks2un_01b", "rail08c_ks2un_01b",
@@ -97,23 +94,22 @@ void __cdecl CBaseModelInfo__setFlagsHook(void* pModel, int dwFlags, int a3)
             "bx_firescape", "fire_esc_1b", "fire_esc_2b", "fire_esc_6", "fire_esc_6b", "fire_esc_7b",
             "fire_esc_10", "fire_esc_10b",
             "fence", "pillar", "post"
-            };
+        };
 
-            modelNames.insert(modelNames.end(), grateNames.begin(), grateNames.end());
-        }
+        modelNames.insert(modelNames.end(), grateNames.begin(), grateNames.end());
+    }
 
-        auto bitFlags = std::bitset<32>(dwFlags);
+    auto bitFlags = std::bitset<32>(dwFlags);
 
-        if (bitFlags.test(no_shadow))
+    if (bitFlags.test(no_shadow))
+    {
+        if (std::any_of(std::begin(modelNames), std::end(modelNames), [](auto& i) { return curModelName.contains(i); }))
         {
-            if (std::any_of(std::begin(modelNames), std::end(modelNames), [](auto& i) { return curModelName.contains(i); }))
-            {
-                bitFlags.reset(no_shadow);
-                bitFlags.reset(static_shadow_1);
-                bitFlags.reset(static_shadow_2);
+            bitFlags.reset(no_shadow);
+            bitFlags.reset(static_shadow_1);
+            bitFlags.reset(static_shadow_2);
 
-                dwFlags = static_cast<int>(bitFlags.to_ulong());
-            }
+            dwFlags = static_cast<int>(bitFlags.to_ulong());
         }
     }
 
@@ -129,10 +125,10 @@ int GetNightShadowQuality()
             return 0;
 
         case 1: //MO_MED
-            return 256 * (bHighResolutionNightShadows ? 2 : 1);
+            return 256  * (bHighResolutionNightShadows ? 2 : 1);
 
         case 2: //MO_HIGH
-            return 512 * (bHighResolutionNightShadows ? 2 : 1);
+            return 512  * (bHighResolutionNightShadows ? 2 : 1);
 
         case 3: //MO_VHIGH
             return 1024 * (bHighResolutionNightShadows ? 2 : 1);
@@ -176,7 +172,7 @@ public:
             CIniReader iniReader("");
 
             // [SHADOWS]
-            bExtraDynamicShadows = iniReader.ReadInteger("SHADOWS", "ExtraDynamicShadows", 2);
+            bExtraDynamicShadows = iniReader.ReadInteger("SHADOWS", "ExtraDynamicShadows", 1);
             bDynamicShadowsForTrees = iniReader.ReadInteger("SHADOWS", "DynamicShadowsForTrees", 1) != 0;
             bHighResolutionShadows = iniReader.ReadInteger("SHADOWS", "HighResolutionShadows", 0) != 0;
             bHighResolutionNightShadows = iniReader.ReadInteger("SHADOWS", "HighResolutionNightShadows", 0) != 0;
@@ -194,6 +190,7 @@ public:
             }
 
             // Extra dynamic shadows
+            if (bExtraDynamicShadows)
             {
                 auto pattern = hook::pattern("D9 6C 24 0E 56");
                 CBaseModelInfo__setFlags = injector::GetBranchDestination(pattern.get_first(5));
@@ -314,7 +311,7 @@ public:
                     pShadowMatrix[i].ShadowMatrix3 = 0.0f;
                 }
 
-                // Fix night shadow options
+                // Make night shadow options adjust night shadow resolution
                 pattern = find_pattern("8B 0D ? ? ? ? 85 C9 7E 1B", "8B 0D ? ? ? ? 33 C0 85 C9 7E 1B");
                 static auto shsub_925E70 = safetyhook::create_inline(pattern.get_first(0), GetNightShadowQuality);
 
@@ -329,7 +326,7 @@ public:
                     pattern = find_pattern("8B 55 20 F6 C1 06");
                     if (!pattern.empty())
                     {
-                        static auto ShadowsHook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        static auto FlagsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                         {
                             if (!bExtraNightShadows)
                             {
