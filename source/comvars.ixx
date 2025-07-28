@@ -1118,6 +1118,12 @@ export namespace rage
         static inline SafetyHookInline shsub_436D70{};
         static void __fastcall setShaderParam(grmShaderInfo* _this, void* edx, void* a2, int index, void* in, int a5, int a6, int a7)
         {
+            static thread_local bool inSetShaderParam = false;
+            if (inSetShaderParam)
+            {
+                return shsub_436D70.fastcall(_this, edx, a2, index, in, a5, a6, a7);
+            }
+            inSetShaderParam = true;
             if (_this->m_parameters.wCount)
             {
                 auto sv = std::string_view(_this->m_pszShaderPath);
@@ -1126,7 +1132,8 @@ export namespace rage
                 ShaderInfoParamHashes[hash] = { _this->m_parameters.pData, _this->m_parameters.wSize };
                 ShaderInfoParams[hash][index].assign((uint8_t*)in, (uint8_t*)in + a5);
             }
-            return shsub_436D70.fastcall(_this, edx, a2, index, in, a5, a6, a7);
+            shsub_436D70.fastcall(_this, edx, a2, index, in, a5, a6, a7);
+            inSetShaderParam = false;
         }
 
         static inline SafetyHookInline shsetGlobalParam{};
