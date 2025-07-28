@@ -382,8 +382,8 @@
       <options text="120" action="ACTION_NONE" value="8" />
       <options text="144" action="ACTION_NONE" value="9" />
       <options text="165" action="ACTION_NONE" value="10" />
-      <options text="240" action="ACTION_NONE" value="11" />
-      <options text="360" action="ACTION_NONE" value="12" />
+      <options text="200" action="ACTION_NONE" value="11" />
+      <options text="240" action="ACTION_NONE" value="12" />
     </menupc>
     <menupc enum="MENU_DISPLAY_SHADOWFILTER">
       <options text="Sharp" action="ACTION_NONE" value="1" />
