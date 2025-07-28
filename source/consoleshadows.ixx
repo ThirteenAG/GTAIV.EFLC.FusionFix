@@ -40,9 +40,10 @@ namespace CShadows
 
     void __cdecl StoreStaticShadowPlayerDriving(int a1, int a2, uint32_t Flags, int a4, int a5, int a6, int a7, int a8, int a9, int a10, int a11, int a12, int a13, int a14, int a15)
     {
+        // Disable the headlight shadows of the player's vehicle, if headlight shadows are off
         if (!bHeadlightShadows)
         {
-            Flags &= ~4;
+            Flags &= ~4; // Dynamic shadow
         }
 
         return hbStoreStaticShadow.fun(a1, a2, Flags, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15);
@@ -50,7 +51,8 @@ namespace CShadows
 
     void __cdecl StoreStaticShadowNPC(int a1, int a2, uint32_t Flags, int a4, int a5, int a6, int a7, int a8, int a9, int a10, int a11, int a12, int a13, int a14, int a15)
     {
-        Flags &= ~4;
+        // Disable the headlight shadows of NPC vehicles regardless of any condition, to avoid reaching patch 1.0.6.0 night shadow limits
+        Flags &= ~4; // Dynamic shadow
 
         return hbStoreStaticShadow.fun(a1, a2, Flags, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15);
     }
@@ -133,7 +135,7 @@ public:
                             {
                                 auto car = FindPlayerCar();
 
-                                // Disable the player car's shadow, along with the shadows of the player/peds in that vehicle, if headlight shadows and vehicle night shadows are on (to avoid both interfering witch each other)
+                                // Disable the shadow of the player's vehicle, along with the shadows of the player/peds in that vehicle, if headlight shadows and vehicle night shadows are on (to avoid both interfering witch each other)
                                 if (regs.esi && (regs.esi == car || (regs.esi == getLocalPlayerPed() && car && *(uint32_t*)(car + 0xFA0))) && !(*(char*)(regs.esp + 0x0B)))
                                 {
                                     *(uintptr_t*)(regs.esp - 4) = loc_AE3867;
@@ -169,7 +171,7 @@ public:
                             {
                                 auto car = FindPlayerCar();
 
-                                // Disable the player car's shadow, along with the shadows of the player/peds in that vehicle, if headlight shadows and vehicle night shadows are on (to avoid both interfering witch each other)
+                                // Disable the shadow of the player's vehicle, along with the shadows of the player/peds in that vehicle, if headlight shadows and vehicle night shadows are on (to avoid both interfering witch each other)
                                 if (regs.esi && (regs.esi == car || (regs.esi == getLocalPlayerPed() && car && *(uint32_t*)(car + 0xFA0))) && !(*(char*)(regs.esp + 0x0F)))
                                 {
                                     *(uintptr_t*)(regs.esp - 4) = loc_AE3867;
