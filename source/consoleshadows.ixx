@@ -149,6 +149,14 @@ public:
                                 *(uintptr_t*)(regs.esp - 4) = loc_AE374F;
                                 return;
                             }
+
+                            if (!bVehicleNightShadows)
+                            {
+                                if (regs.eax == 3 && (*(uint8_t*)(regs.esi + 620) & 4) != 0 && !(*(char*)(regs.esp + 0x0B)))
+                                {
+                                    *(uintptr_t*)(regs.esp - 4) = loc_AE3867;
+                                }
+                            }
                         }
                     }; injector::MakeInline<ShadowsHook>(pattern.get_first(0), pattern.get_first(25));
                 }
@@ -184,6 +192,14 @@ public:
                             {
                                 *(uintptr_t*)(regs.esp - 4) = loc_AE374F;
                                 return;
+                            }
+
+                            if (!bVehicleNightShadows)
+                            {
+                                if (regs.eax == 3 && (*(uint8_t*)(regs.esi + 620) & 4) != 0 && !(*(char*)(regs.esp + 0x0F)))
+                                {
+                                    *(uintptr_t*)(regs.esp - 4) = loc_AE3867;
+                                }
                             }
                         }
                     }; injector::MakeInline<ShadowsHook>(pattern.get_first(0), pattern.get_first(25));
