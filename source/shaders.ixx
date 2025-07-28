@@ -318,6 +318,23 @@ public:
                 });
             }
 
+            // Force the water surface render target resolution to always be 256x256. This matches the water tiling on the console versions.
+            {
+                static uint32_t dwWaterQuality = 1; // MO_MED?
+
+                auto pattern = find_pattern("8B 0D ? ? ? ? 53 BB ? ? ? ? D3 E3 85 D2 0F 85", "8B 0D ? ? ? ? BF ? ? ? ? D3 E7 85 C0 0F 85");
+                if (!pattern.empty())
+                {
+                    injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true); // MO_LOW?
+
+                    pattern = find_pattern("8B 0D ? ? ? ? F3 0F 10 0D ? ? ? ? B8 ? ? ? ? D3 E0 8B 0D", "8B 0D ? ? ? ? F3 0F 10 05 ? ? ? ? 6A 02 6A 01 BA");
+                    injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true); // MO_HIGH?
+
+                    pattern = find_pattern("8B 0D ? ? ? ? BE ? ? ? ? D3 E6 83 3D", "8B 0D ? ? ? ? F3 0F 11 0D ? ? ? ? F3 0F 10 0D");
+                    injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true); // MO_VHIGH?
+                }
+            }
+
             // z-fighting fix helpers
             {
                 auto pattern = find_pattern("75 ? 8B CE E8 ? ? ? ? 5E 8B E5 5D C3", "? 75 ? 56 E8 ? ? ? ? 8B E5");
