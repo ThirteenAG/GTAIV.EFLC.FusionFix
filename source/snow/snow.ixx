@@ -91,10 +91,6 @@ private:
         float TexCoord[2];
     };
 
-    static inline float mCfgVolumetricIntensityMultiplier = 1.0f;
-
-    static inline float mVolumeIntensity = 1.0f;
-
     static inline IDirect3DVertexBuffer9* mQuadVertexBuffer;
     static inline IDirect3DVertexDeclaration9* mQuadVertexDecl;
 
@@ -250,8 +246,6 @@ private:
 
         auto device = rage::grcDevice::GetD3DDevice();
 
-        mVolumeIntensity = 1.0f;
-
         static CWeather::eWeatherType currWeather;
 
         auto prevWeather = currWeather;
@@ -325,8 +319,6 @@ private:
                 threshold.y = 0.0f;
             else
                 threshold.y = 0.9999f;
-
-            mVolumeIntensity = threshold.y * 4.0f * mCfgVolumetricIntensityMultiplier;
 
             threshold.y = pow(threshold.y, 0.20f);
             threshold.x = max(0.9999f, (threshold.y / (threshold.y + 0.15f)) * 1.15f);
@@ -640,72 +632,66 @@ public:
                         mBeforeLightingCB->Append();
                 };
 
-                struct hash_tuple
-                {
-                    size_t operator()(const std::tuple<int, int, int>& t) const
-                    {
-                        return get<0>(t) ^ get<1>(t) ^ get<2>(t);
-                    }
-                };
+                //struct hash_tuple
+                //{
+                //    size_t operator()(const std::tuple<int, int, int>& t) const
+                //    {
+                //        return get<0>(t) ^ get<1>(t) ^ get<2>(t);
+                //    }
+                //};
 
-                static std::unordered_map<std::tuple<int, int, int>, float, hash_tuple> LightVolumeIntensity;
+                //static std::unordered_map<std::tuple<int, int, int>, float, hash_tuple> LightVolumeIntensity;
+
                 CRenderPhaseDeferredLighting_LightsToScreen::OnAfterCopyLight() += [](rage::CLightSource* light)
                 {
                     if (bEnableSnow)
                     {
-                        if (light->mFlags & 8 /*volumetric*/)
+                        if (light->mType == rage::LT_SPOT && light->mRadius < 35.0f && !(light->mFlags & 8) /* Exclude lights previously volumetric */ && !(light->mFlags & 0x300) /* Exclude vehicle lights and traffic lights */)
                         {
-                            LightVolumeIntensity[std::make_tuple(static_cast<int>(light->mPosition.x), static_cast<int>(light->mPosition.y), static_cast<int>(light->mPosition.z))] = 1.0f;
-                        }
-                        else if (light->mType == rage::LT_SPOT && !(light->mFlags & 0x300)/*vehicles and traffic lights*/)
-                        {
-                            if (mVolumeIntensity > 0.0f && light->mRadius < 50.0f)
-                            {
-                                light->mVolumeSize = 1.0f;
-                                light->mVolumeScale = 0.5f;
-                                light->mFlags |= 8;
-                                LightVolumeIntensity[std::make_tuple(static_cast<int>(light->mPosition.x), static_cast<int>(light->mPosition.y), static_cast<int>(light->mPosition.z))] = mVolumeIntensity;
-                            }
+                            light->mFlags |= 8;
+                            light->mVolumeSize  = 1.0f;
+                            light->mVolumeScale = 0.5f;
                         }
                     }
                 };
 
-                auto pattern = hook::pattern("C7 84 24 ? ? ? ? ? ? ? ? FF 74 06 44");
-                if (!pattern.empty())
-                {
-                    struct LightsHook
-                    {
-                        void operator()(injector::reg_pack& regs)
-                        {
-                            if (bEnableSnow)
-                            {
-                                auto light = (rage::CLightSource*)(regs.esi + regs.eax);
-                                *(float*)(regs.esp + 0xEC) = LightVolumeIntensity[std::make_tuple(static_cast<int>(light->mPosition.x), static_cast<int>(light->mPosition.y), static_cast<int>(light->mPosition.z))];
-                            }
-                            else
-                                *(float*)(regs.esp + 0xEC) = 1.0f;
-                        }
-                    }; injector::MakeInline<LightsHook>(pattern.get_first(0), pattern.get_first(11));
-                }
-                else
-                {
-                    pattern = hook::pattern("F3 0F 11 44 24 ? 8B 54 06 44");
-                    struct LightsHook
-                    {
-                        void operator()(injector::reg_pack& regs)
-                        {
-                            if (bEnableSnow)
-                            {
-                                auto light = (rage::CLightSource*)(regs.esi + regs.eax * 1);
-                                *(float*)(regs.esp + 0x68) = LightVolumeIntensity[std::make_tuple(static_cast<int>(light->mPosition.x), static_cast<int>(light->mPosition.y), static_cast<int>(light->mPosition.z))];
-                            }
-                            else
-                                *(float*)(regs.esp + 0x68) = 1.0f;
-                        }
-                    }; injector::MakeInline<LightsHook>(pattern.get_first(0), pattern.get_first(6));
-                }
+                // Causes volumes to flicker and is not really needed
+                //auto pattern = hook::pattern("C7 84 24 ? ? ? ? ? ? ? ? FF 74 06 44");
+                //if (!pattern.empty())
+                //{
+                //    struct LightsHook
+                //    {
+                //        void operator()(injector::reg_pack& regs)
+                //        {
+                //            if (bEnableSnow)
+                //            {
+                //                auto light = (rage::CLightSource*)(regs.esi + regs.eax);
+                //               *(float*)(regs.esp + 0xEC) = LightVolumeIntensity[std::make_tuple(static_cast<int>(light->mPosition.x), static_cast<int>(light->mPosition.y), static_cast<int>(light->mPosition.z))];
+                //            }
+                //            else
+                //                *(float*)(regs.esp + 0xEC) = 1.0f;
+                //        }
+                //    }; injector::MakeInline<LightsHook>(pattern.get_first(0), pattern.get_first(11));
+                //}
+                //else
+                //{
+                //    pattern = hook::pattern("F3 0F 11 44 24 ? 8B 54 06 44");
+                //    struct LightsHook
+                //    {
+                //        void operator()(injector::reg_pack& regs)
+                //        {
+                //            if (bEnableSnow)
+                //            {
+                //                auto light = (rage::CLightSource*)(regs.esi + regs.eax * 1);
+                //                *(float*)(regs.esp + 0x68) = LightVolumeIntensity[std::make_tuple(static_cast<int>(light->mPosition.x), static_cast<int>(light->mPosition.y), static_cast<int>(light->mPosition.z))];
+                //            }
+                //            else
+                //                *(float*)(regs.esp + 0x68) = 1.0f;
+                //        }
+                //    }; injector::MakeInline<LightsHook>(pattern.get_first(0), pattern.get_first(6));
+                //}
 
-                pattern = find_pattern("B9 ? ? ? ? E8 ? ? ? ? 8B 4D 0C 51 F3 0F 10 41 ? 8D 41 20", "B9 ? ? ? ? D9 44 24 1C D9 5C 24 04");
+                auto pattern = find_pattern("B9 ? ? ? ? E8 ? ? ? ? 8B 4D 0C 51 F3 0F 10 41 ? 8D 41 20", "B9 ? ? ? ? D9 44 24 1C D9 5C 24 04");
                 byte_1723BB0 = *pattern.get_first<uint8_t*>(1);
 
                 pattern = find_pattern("89 41 28 F3 0F 10 0D", "50 24 8B 0D ? ? ? ? 89 48 28 F3 0F 10 0D");

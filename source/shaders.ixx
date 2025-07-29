@@ -613,6 +613,9 @@ public:
 
         FusionFix::onInitEventAsync() += []()
         {
+            CIniReader iniReader("");
+            static bool bFixRainDrops = iniReader.ReadInteger("MISC", "FixRainDrops", 1) != 0;
+
             // Skip SetRenderState D3DRS_ADAPTIVETESS_* entirely (silences warnings in DXVK logs)
             auto pattern = find_pattern("74 24 F3 0F 10 44 24 ? 51 8D 44 24 44", "74 1C D9 44 24 14 51 8D 4C 24 44");
             injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
