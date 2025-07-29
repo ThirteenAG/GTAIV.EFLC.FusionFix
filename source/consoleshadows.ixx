@@ -5,53 +5,56 @@ module;
 export module consoleshadows;
 
 import common;
-import settings;
 import comvars;
-import natives;
+import settings;
 
-void* fnAE3DE0 = nullptr;
 void* fnAE3310 = nullptr;
+
 bool bVehicleNightShadows = false;
-bool bIsDirLightShadows = false;
+bool bIsDirLightShadows   = false;
+
 int __cdecl sub_AE3310(int a1, int a2, int a3, int a4, int a5)
 {
     if (bVehicleNightShadows && !bIsDirLightShadows)
+    {
         injector::cstd<int(int, int, int, int, int)>::call(fnAE3310, a1, 0, 0, 0, a5);
+    }
 
     return injector::cstd<int (int, int, int, int, int)>::call(fnAE3310, a1, a2, a3, a4, a5);
 }
 
-SafetyHookInline sh_grcSetRendersState{};
 uint32_t* dword_17F58E4;
+SafetyHookInline sh_grcSetRenderState{};
+
 void __stdcall grcSetRenderStateHook()
 {
     if (dword_17F58E4 && *dword_17F58E4)
     {
-        return sh_grcSetRendersState.unsafe_stdcall();
+        return sh_grcSetRenderState.unsafe_stdcall();
     }
 }
 
 namespace CShadows
 {
-    injector::hook_back<void(__cdecl*)(int, int, int, int, int, int, int, int, int, int, int, int, int, int, int)> hbStoreStaticShadow;
+    injector::hook_back<void(__cdecl*)(int, int, uint32_t, int, int, int, int, int, int, int, int, int, int, int, int)> hbStoreStaticShadow;
 
-    void __cdecl StoreStaticShadowPlayerDriving(int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8, int a9, int a10, int a11, int a12, int a13, int a14, int a15)
+    void __cdecl StoreStaticShadowPlayerDriving(int a1, int a2, uint32_t Flags, int a4, int a5, int a6, int a7, int a8, int a9, int a10, int a11, int a12, int a13, int a14, int a15)
     {
+        // Disable the headlight shadows of the player's vehicle, if headlight shadows are off
         if (!bHeadlightShadows)
         {
-            a3 &= ~3;
-            a3 &= ~4;
+            Flags &= ~4; // Dynamic shadow
         }
 
-        return hbStoreStaticShadow.fun(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15);
+        return hbStoreStaticShadow.fun(a1, a2, Flags, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15);
     }
 
-    void __cdecl StoreStaticShadowNPC(int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8, int a9, int a10, int a11, int a12, int a13, int a14, int a15)
+    void __cdecl StoreStaticShadowNPC(int a1, int a2, uint32_t Flags, int a4, int a5, int a6, int a7, int a8, int a9, int a10, int a11, int a12, int a13, int a14, int a15)
     {
-        a3 &= ~3;
-        a3 &= ~4;
+        // Disable the headlight shadows of NPC vehicles regardless of any condition, to avoid reaching patch 1.0.6.0 night shadow limits
+        Flags &= ~4; // Dynamic shadow
 
-        return hbStoreStaticShadow.fun(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15);
+        return hbStoreStaticShadow.fun(a1, a2, Flags, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15);
     }
 }
 
@@ -63,15 +66,25 @@ public:
         FusionFix::onInitEventAsync() += []()
         {
             CIniReader iniReader("");
+
+            // [NIGHTSHADOWS]
             bVehicleNightShadows = iniReader.ReadInteger("NIGHTSHADOWS", "VehicleNightShadows", 1) != 0;
 
-            // Render dynamic shadows casted by vehicles from point lights. Bugs: Tire shadows, vehicle damage/dents/deformation shadows are missing
+            // Vehicle night shadows
+            // Allows rendering dynamic shadows of vehicles from artificial light sources
+            // Bugs: Vehicle tires and damage/dents/deformation do not get included in the shadow maps
             {
                 auto pattern = find_pattern("E8 ? ? ? ? 6A 00 6A 14 E8 ? ? ? ? 8B F8 83 C4 44", "E8 ? ? ? ? 53 6A 14 E8 ? ? ? ? 83 C4 44");
                 fnAE3310 = injector::GetBranchDestination(pattern.get_first(0)).get();
                 injector::MakeCALL(pattern.get_first(0), sub_AE3310, true);
 
-                // Limit rendering to "night shadows" only, fixes vehicle damage not being reflected on directional light shadows (aka. the sun)
+                pattern = find_pattern("89 35 ? ? ? ? E8 ? ? ? ? 5E C2 04 00", "89 1D ? ? ? ? 8B 07 8B 50 10 8B CF 89 1D");
+                dword_17F58E4 = *pattern.get_first<uint32_t*>(2);
+
+                pattern = find_pattern("51 53 55 8B 2D ? ? ? ? 56 0F B7 5D 1C 33 F6 85 DB 7E 3A 57 EB 09", "53 56 57 8B 3D ? ? ? ? 0F B7 5F 1C 33 F6 85 DB 7E 41 55 EB 0A");
+                sh_grcSetRenderState = safetyhook::create_inline(pattern.get_first(0), grcSetRenderStateHook);
+
+                // Limit rendering to night shadows only, fixes vehicle damage not being reflected on directional light shadows (aka. those from the sun/moon/thunderbolts)
                 pattern = hook::pattern("E8 ? ? ? ? 8B F0 83 C4 08 85 F6 74 17 8B 0D ? ? ? ? 8B 11 FF 52 28");
                 if (!pattern.count(2).empty())
                 {
@@ -90,14 +103,6 @@ public:
                 }
             }
 
-            // Fix crash caused by the patches below.
-            {
-                auto pattern = find_pattern("89 35 ? ? ? ? E8 ? ? ? ? 5E C2 04 00", "89 1D ? ? ? ? 8B 07 8B 50 10 8B CF 89 1D");
-                dword_17F58E4 = *pattern.get_first<uint32_t*>(2);
-                pattern = find_pattern("51 53 55 8B 2D ? ? ? ? 56 0F B7 5D 1C 33 F6 85 DB 7E 3A 57 EB 09", "53 56 57 8B 3D ? ? ? ? 0F B7 5F 1C 33 F6 85 DB 7E 41 55 EB 0A");
-                sh_grcSetRendersState = safetyhook::create_inline(pattern.get_first(0), grcSetRenderStateHook);
-            }
-
             // Headlight shadows
             {
                 auto pattern = hook::pattern("68 04 05 00 00 6A 02 6A 00");
@@ -106,7 +111,7 @@ public:
                     CShadows::hbStoreStaticShadow.fun = injector::MakeCALL(pattern.count(2).get(0).get<void*>(9), CShadows::StoreStaticShadowPlayerDriving).get();
                     CShadows::hbStoreStaticShadow.fun = injector::MakeCALL(pattern.count(2).get(1).get<void*>(9), CShadows::StoreStaticShadowPlayerDriving).get();
                 }
-            
+
                 pattern = hook::pattern("68 04 01 00 00 6A 02 6A 00");
                 if (!pattern.count(2).empty())
                 {
@@ -132,7 +137,7 @@ public:
                             {
                                 auto car = FindPlayerCar();
 
-                                // Disable player/car shadows
+                                // Disable the shadow of the player's vehicle, along with the shadows of the player/peds in that vehicle, if headlight shadows and vehicle night shadows are on (to avoid both interfering witch each other)
                                 if (regs.esi && (regs.esi == car || (regs.esi == getLocalPlayerPed() && car && *(uint32_t*)(car + 0xFA0))) && !(*(char*)(regs.esp + 0x0B)))
                                 {
                                     *(uintptr_t*)(regs.esp - 4) = loc_AE3867;
@@ -140,16 +145,19 @@ public:
                                 }
                             }
 
-                            // Enable player/ped shadows while in vehicles
+                            // Enable shadows of the player/peds while in vehicles, if vehicle night shadows are on and if headlight shadows are off
                             if (!bHeadlightShadows && bVehicleNightShadows)
                             {
                                 *(uintptr_t*)(regs.esp - 4) = loc_AE374F;
                                 return;
                             }
 
-                            if (regs.eax == 3 && (*(uint8_t*)(regs.esi + 620) & 4) != 0 && !(*(char*)(regs.esp + 0x0B)))
+                            if (!bVehicleNightShadows)
                             {
-                                *(uintptr_t*)(regs.esp - 4) = loc_AE3867;
+                                if (regs.eax == 3 && (*(uint8_t*)(regs.esi + 620) & 4) != 0 && !(*(char*)(regs.esp + 0x0B)))
+                                {
+                                    *(uintptr_t*)(regs.esp - 4) = loc_AE3867;
+                                }
                             }
                         }
                     }; injector::MakeInline<ShadowsHook>(pattern.get_first(0), pattern.get_first(25));
@@ -173,7 +181,7 @@ public:
                             {
                                 auto car = FindPlayerCar();
 
-                                // Disable player/car shadows
+                                // Disable the shadow of the player's vehicle, along with the shadows of the player/peds in that vehicle, if headlight shadows and vehicle night shadows are on (to avoid both interfering witch each other)
                                 if (regs.esi && (regs.esi == car || (regs.esi == getLocalPlayerPed() && car && *(uint32_t*)(car + 0xFA0))) && !(*(char*)(regs.esp + 0x0F)))
                                 {
                                     *(uintptr_t*)(regs.esp - 4) = loc_AE3867;
@@ -181,16 +189,19 @@ public:
                                 }
                             }
 
-                            // Enable player/ped shadows while in vehicles
+                            // Enable shadows of the player/peds while in vehicles, if vehicle night shadows are on and if headlight shadows are off
                             if (!bHeadlightShadows && bVehicleNightShadows)
                             {
                                 *(uintptr_t*)(regs.esp - 4) = loc_AE374F;
                                 return;
                             }
 
-                            if (regs.eax == 3 && (*(uint8_t*)(regs.esi + 620) & 4) != 0 && !(*(char*)(regs.esp + 0x0F)))
+                            if (!bVehicleNightShadows)
                             {
-                                *(uintptr_t*)(regs.esp - 4) = loc_AE3867;
+                                if (regs.eax == 3 && (*(uint8_t*)(regs.esi + 620) & 4) != 0 && !(*(char*)(regs.esp + 0x0F)))
+                                {
+                                    *(uintptr_t*)(regs.esp - 4) = loc_AE3867;
+                                }
                             }
                         }
                     }; injector::MakeInline<ShadowsHook>(pattern.get_first(0), pattern.get_first(25));

@@ -134,15 +134,15 @@ public:
         {
             CIniReader iniReader("");
 
+            // [MAIN]
             int32_t nAimingZoomFix = iniReader.ReadInteger("MAIN", "AimingZoomFix", 1);
             bool bRecoilFix = iniReader.ReadInteger("MAIN", "RecoilFix", 1) != 0;
             bool bForceNoMemRestrict = iniReader.ReadInteger("MAIN", "ForceNoMemRestrict", 1) != 0;
 
-            //[MISC]
-            bool bDefaultCameraAngleInTLAD = iniReader.ReadInteger("MISC", "DefaultCameraAngleInTLAD", 0) != 0;
-            bool bPedDeathAnimFixFromTBOGT = iniReader.ReadInteger("MISC", "PedDeathAnimFixFromTBOGT", 1) != 0;
-
-            bool bAlwaysDisplayHealthOnReticle = iniReader.ReadInteger("MISC", "AlwaysDisplayHealthOnReticle", 0) != 0;
+            // [MISC]
+            bool bDefaultCameraAngleInTLaD = iniReader.ReadInteger("MISC", "DefaultCameraAngleInTLaD", 0) != 0;
+            bool bPedDeathAnimFixFromTBoGT = iniReader.ReadInteger("MISC", "PedDeathAnimFixFromTBoGT", 1) != 0;
+            bool bAlwaysDisplayHealthOnReticle = iniReader.ReadInteger("MISC", "AlwaysDisplayHealthOnReticle", 1) != 0;
 
             //fix for zoom flag in tbogt
             if (nAimingZoomFix)
@@ -217,14 +217,14 @@ public:
                 injector::WriteMemory(pattern.get_first(10), &fRecMult, true);
             }
 
-            if (bDefaultCameraAngleInTLAD)
+            if (bDefaultCameraAngleInTLaD)
             {
                 static uint32_t episode_id = 0;
                 auto pattern = find_pattern<2>("83 3D ? ? ? ? ? 8B 01 0F 44 C2 89 01 B0 01 C2 08 00", "83 3D ? ? ? ? ? 75 06 C7 00 ? ? ? ? B0 01 C2 08 00");
                 injector::WriteMemory(pattern.count(2).get(0).get<void>(2), &episode_id, true);
             }
 
-            if (bPedDeathAnimFixFromTBOGT)
+            if (bPedDeathAnimFixFromTBoGT)
             {
                 auto pattern = hook::pattern("8B D9 75 2E");
                 if (!pattern.empty())
@@ -502,13 +502,6 @@ public:
                 pattern = find_pattern("6A 01 8B C8 E8 ? ? ? ? EB 02 33 C0 50 E8 ? ? ? ? 83 C4 04 8B 45 0C 8B 4C 24 18", "6A 01 8B C8 E8 ? ? ? ? EB 02 33 C0 8B C8 E8 ? ? ? ? 8B 4D 0C");
                 injector::WriteMemory<uint8_t>(pattern.get_first(1), 0, true);
             }
-
-            // Water Foam Height Weirdness
-            //{
-            //    auto pattern = hook::pattern("F3 0F 58 0D ? ? ? ? 83 EC 08 F3 0F 59 05");
-            //    if (!pattern.empty())
-            //        injector::MakeNOP(pattern.get_first(0), 8, true);
-            //}
             
             // Render LOD lights during cutscenes (console behavior)
             {
