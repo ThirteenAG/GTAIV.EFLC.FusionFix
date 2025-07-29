@@ -648,9 +648,10 @@ public:
             static auto shouldModifyBackground = [](int curMenuTab) -> bool
             {
                 auto selectedItem = CMenu::getSelectedItem();
-                return (curMenuTab == 0 && selectedItem == 15) || // PREF_EXTRANIGHTSHADOWS
-                       (curMenuTab == 5 && selectedItem == 8)  || // PREF_CENTEREDCAMERA
-                       (curMenuTab == 5 && selectedItem == 9);    // PREF_CENTEREDCAMERAFOOT
+                return (curMenuTab == 8)                       || // Everything in Display Tab
+                       (curMenuTab == 0 && selectedItem == 15) || // PREF_EXTRANIGHTSHADOWS in Game Tab
+                       (curMenuTab == 5 && selectedItem == 8)  || // PREF_CENTEREDCAMERA in Controls Tab
+                       (curMenuTab == 5 && selectedItem == 9);    // PREF_CENTEREDCAMERAFOOT in Controls Tab
             };
 
             pattern = hook::pattern("83 FE ? 75 ? FF 35 ? ? ? ? E8 ? ? ? ? 83 C4 ? 85 C0 79");
