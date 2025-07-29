@@ -50,87 +50,81 @@ class Shaders
         auto pDevice = rage::grcDevice::GetD3DDevice();
 
         {
-            auto AzimuthColor = rage::grmShaderInfo::getParam("gta_atmoscatt_clouds.fxc", "AzimuthColor");
-            auto AzimuthHeight = rage::grmShaderInfo::getParam("gta_atmoscatt_clouds.fxc", "AzimuthHeight");
+            static auto AzimuthColorIdx = rage::grmShaderInfo::registerShaderParam("gta_atmoscatt_clouds.fxc", "AzimuthColor");
+            static auto AzimuthHeightIdx = rage::grmShaderInfo::registerShaderParam("gta_atmoscatt_clouds.fxc", "AzimuthHeight");
+            auto& AzimuthColor = rage::grmShaderInfo::getShaderParamData(AzimuthColorIdx);
+            auto& AzimuthHeight = rage::grmShaderInfo::getShaderParamData(AzimuthHeightIdx);
             
-            if (AzimuthColor && AzimuthHeight)
-            {
-                static float arr[4];
-                arr[0] = AzimuthColor[0];
-                arr[1] = AzimuthColor[1];
-                arr[2] = AzimuthColor[2];
-                arr[3] = AzimuthHeight[0];
+            static float arr[4];
+            arr[0] = AzimuthColor[0];
+            arr[1] = AzimuthColor[1];
+            arr[2] = AzimuthColor[2];
+            arr[3] = AzimuthHeight[0];
 
-                pDevice->SetPixelShaderConstantF(212, &arr[0], 1);
-                pDevice->SetVertexShaderConstantF(228, &arr[0], 1);
-            }
+            pDevice->SetPixelShaderConstantF(212, &arr[0], 1);
+            pDevice->SetVertexShaderConstantF(228, &arr[0], 1);
         }
 
         {
-            auto AzimuthColorEast = rage::grmShaderInfo::getParam("gta_atmoscatt_clouds.fxc", "AzimuthColorEast");
-            auto AzimuthStrength = rage::grmShaderInfo::getParam("gta_atmoscatt_clouds.fxc", "AzimuthStrength");
+            static auto AzimuthColorEastIdx = rage::grmShaderInfo::registerShaderParam("gta_atmoscatt_clouds.fxc", "AzimuthColorEast");
+            static auto AzimuthStrengthIdx = rage::grmShaderInfo::registerShaderParam("gta_atmoscatt_clouds.fxc", "AzimuthStrength");
+            auto& AzimuthColorEast = rage::grmShaderInfo::getShaderParamData(AzimuthColorEastIdx);
+            auto& AzimuthStrength = rage::grmShaderInfo::getShaderParamData(AzimuthStrengthIdx);
             
-            if (AzimuthColorEast && AzimuthStrength)
-            {
-                static float arr[4];
-                arr[0] = AzimuthColorEast[0];
-                arr[1] = AzimuthColorEast[1];
-                arr[2] = AzimuthColorEast[2];
-                arr[3] = AzimuthStrength[0];
+            static float arr[4];
+            arr[0] = AzimuthColorEast[0];
+            arr[1] = AzimuthColorEast[1];
+            arr[2] = AzimuthColorEast[2];
+            arr[3] = AzimuthStrength[0];
 
-                pDevice->SetPixelShaderConstantF(213, &arr[0], 1);
-                pDevice->SetVertexShaderConstantF(229, &arr[0], 1);
-            }
+            pDevice->SetPixelShaderConstantF(213, &arr[0], 1);
+            pDevice->SetVertexShaderConstantF(229, &arr[0], 1);
         }
-
+        
         {
-            auto SkyColor = rage::grmShaderInfo::getParam("gta_atmoscatt_clouds.fxc", "SkyColor");
-            auto HDRExposure = rage::grmShaderInfo::getParam("gta_atmoscatt_clouds.fxc", "HDRExposure");
+            static auto SkyColorIdx = rage::grmShaderInfo::registerShaderParam("gta_atmoscatt_clouds.fxc", "SkyColor");
+            static auto HDRExposureIdx = rage::grmShaderInfo::registerShaderParam("gta_atmoscatt_clouds.fxc", "HDRExposure");
+            auto& SkyColor = rage::grmShaderInfo::getShaderParamData(SkyColorIdx);
+            auto& HDRExposure = rage::grmShaderInfo::getShaderParamData(HDRExposureIdx);
+        
+            static float arr[4];
+            arr[0] = SkyColor[0];
+            arr[1] = SkyColor[1];
+            arr[2] = SkyColor[2];
+            arr[3] = HDRExposure[0];
 
-            if (SkyColor && HDRExposure)
-            {
-                static float arr[4];
-                arr[0] = SkyColor[0];
-                arr[1] = SkyColor[1];
-                arr[2] = SkyColor[2];
-                arr[3] = HDRExposure[0];
-
-                pDevice->SetPixelShaderConstantF(214, &arr[0], 1);
-                pDevice->SetVertexShaderConstantF(234, &arr[0], 1);
-            }
+            pDevice->SetPixelShaderConstantF(214, &arr[0], 1);
+            pDevice->SetVertexShaderConstantF(234, &arr[0], 1);
         }
-
+        
         {
-            auto SunColor = rage::grmShaderInfo::getParam("gta_atmoscatt_clouds.fxc", "SunColor");
-            auto HDRSunExposure = rage::grmShaderInfo::getParam("gta_atmoscatt_clouds.fxc", "HDRSunExposure");
+            static auto SunColorIdx = rage::grmShaderInfo::registerShaderParam("gta_atmoscatt_clouds.fxc", "SunColor");
+            static auto HDRSunExposureIdx = rage::grmShaderInfo::registerShaderParam("gta_atmoscatt_clouds.fxc", "HDRSunExposure");
+            auto& SunColor = rage::grmShaderInfo::getShaderParamData(SunColorIdx);
+            auto& HDRSunExposure = rage::grmShaderInfo::getShaderParamData(HDRSunExposureIdx);
             
-            if (SunColor && HDRSunExposure)
-            {
-                static float arr[4];
-                arr[0] = SunColor[0];
-                arr[1] = SunColor[1];
-                arr[2] = SunColor[2];
-                arr[3] = HDRSunExposure[0];
+            static float arr[4];
+            arr[0] = SunColor[0];
+            arr[1] = SunColor[1];
+            arr[2] = SunColor[2];
+            arr[3] = HDRSunExposure[0];
 
-                pDevice->SetPixelShaderConstantF(215, &arr[0], 1);
-                pDevice->SetVertexShaderConstantF(231, &arr[0], 1);
-            }
+            pDevice->SetPixelShaderConstantF(215, &arr[0], 1);
+            pDevice->SetVertexShaderConstantF(231, &arr[0], 1);
         }
-
+        
         {
-            auto SunDirection = rage::grmShaderInfo::getParam("gta_atmoscatt_clouds.fxc", "SunDirection");
+            static auto SunDirectionIdx = rage::grmShaderInfo::registerShaderParam("gta_atmoscatt_clouds.fxc", "SunDirection");
+            auto& SunDirection = rage::grmShaderInfo::getShaderParamData(SunDirectionIdx);
+        
+            static float arr[4];
+            arr[0] = SunDirection[0];
+            arr[1] = (-1.0f * SunDirection[2]);
+            arr[2] = SunDirection[1];
+            arr[3] = 0.0f;
 
-            if (SunDirection)
-            {
-                static float arr[4];
-                arr[0] = SunDirection[0];
-                arr[1] = (-1.0f * SunDirection[2]);
-                arr[2] = SunDirection[1];
-                arr[3] = 0.0f;
-
-                pDevice->SetPixelShaderConstantF(216, &arr[0], 1);
-                pDevice->SetVertexShaderConstantF(232, &arr[0], 1);
-            }
+            pDevice->SetPixelShaderConstantF(216, &arr[0], 1);
+            pDevice->SetVertexShaderConstantF(232, &arr[0], 1);
         }
     }
 

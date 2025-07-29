@@ -1088,10 +1088,25 @@ export namespace rage
         int m_pNext;
 
     public:
-        static inline std::unordered_map<int, std::array<uint8_t, 16>> GlobalParams;
-        static inline std::unordered_map<unsigned int, std::unordered_map<int, std::vector<uint8_t>>> ShaderInfoParams;
-        static inline std::unordered_map<unsigned int, std::pair<int, int>> ShaderInfoParamHashes;
-        static inline std::unordered_map<const char*, unsigned int> ShaderNameHashCache;
+        static inline std::vector<std::pair<std::string, std::pair<std::string, int>>> ShaderParamNames;
+        static inline std::vector<std::array<float, 4>> ShaderParamData;
+
+        static inline size_t registerShaderParam(const char* shader, const char* param)
+        {
+            ShaderParamNames.emplace_back(shader, std::make_pair(param, -1));
+            ShaderParamData.emplace_back(); // zero-initialized
+            return ShaderParamNames.size() - 1;
+        }
+
+        static inline void setShaderParamData(size_t idx, const void* src, size_t size)
+        {
+            std::memcpy(ShaderParamData[idx].data(), src, min(size, sizeof(decltype(ShaderParamData)::value_type)));
+        }
+
+        static inline decltype(ShaderParamData)::value_type& getShaderParamData(size_t idx)
+        {
+            return ShaderParamData[idx];
+        }
 
         static inline void* pfngetParamIndex = nullptr;
         static int getParamIndex(grmShaderInfo* instance, const char* name, int a3)
@@ -1100,92 +1115,31 @@ export namespace rage
             return func(instance, name, a3);
         }
 
-        static int getParamIndex(unsigned int shader_hash, unsigned int name_hash, int a3)
-        {
-            if (!ShaderInfoParamHashes.contains(shader_hash))
-                return 0;
-
-            auto j = 1;
-            auto& shader_info = ShaderInfoParamHashes[shader_hash];
-            for (auto i = (int*)(shader_info.first + 0xC); j < shader_info.second; i += 0xC, ++j)
-            {
-                if (i[0] == name_hash || i[1] == name_hash)
-                    return j;
-            }
-            return 0;
-        }
-
         static inline SafetyHookInline shsub_436D70{};
-        static void __fastcall setShaderParam(grmShaderInfo* _this, void* edx, void* a2, int index, void* in, int a5, int a6, int a7)
+        static void __fastcall setShaderParam(grmShaderInfo* _this, void* edx, void* a2, int index, void* pDataArr, int nArrSize, int a6, int a7)
         {
-            static thread_local bool inSetShaderParam = false;
-            if (inSetShaderParam)
-            {
-                return shsub_436D70.fastcall(_this, edx, a2, index, in, a5, a6, a7);
-            }
-            inSetShaderParam = true;
             if (_this->m_parameters.wCount)
             {
                 auto sv = std::string_view(_this->m_pszShaderPath);
                 auto shader_name = sv.substr(sv.find_last_of('/') + 1);
-                auto hash = hashStringLowercaseFromSeed(shader_name.data(), 0);
-                ShaderInfoParamHashes[hash] = { _this->m_parameters.pData, _this->m_parameters.wSize };
-                ShaderInfoParams[hash][index].assign((uint8_t*)in, (uint8_t*)in + a5);
-            }
-            shsub_436D70.fastcall(_this, edx, a2, index, in, a5, a6, a7);
-            inSetShaderParam = false;
-        }
 
-        static inline SafetyHookInline shsetGlobalParam{};
-        static void __cdecl setGlobalParam(int index, void* data, int a3)
-        {
-            std::memcpy(GlobalParams[index].data(), data, 16); //assuming 4x4, maybe needs fixing
-            shsetGlobalParam.ccall(index, data, a3);
-        }
+                auto it = std::find_if(ShaderParamNames.begin(), ShaderParamNames.end(), [&](auto& pair)
+                {
+                    int& cachedIdx = pair.second.second;
+                    if (cachedIdx < 0) cachedIdx = getParamIndex(_this, pair.second.first.c_str(), 1);
+                    return index == cachedIdx && shader_name == pair.first;
+                });
 
-        static inline grmShaderInfo_Parameter* globalShaderParameters = nullptr;
-        static inline uint32_t* dwGlobalShaderParameterCount = nullptr;
-        static grmShaderInfo_Parameter* getGlobalShaderInfoParam(const char* name)
-        {
-            for (uint32_t i = 0; i < *dwGlobalShaderParameterCount; i++)
-            {
-                if (std::string_view(name) == std::string_view(globalShaderParameters[i].pszName))
-                    return &globalShaderParameters[i];
+                if (it != ShaderParamNames.end())
+                {
+                    size_t idx = std::distance(ShaderParamNames.begin(), it);
+                    setShaderParamData(idx, pDataArr, nArrSize);
+                }
             }
-            return nullptr;
+            shsub_436D70.fastcall(_this, edx, a2, index, pDataArr, nArrSize, a6, a7);
         }
 
         static inline int(__cdecl* getGlobalParameterIndexByName)(const char* a1) = nullptr;
-        static float* getGlobalParam(const char* name)
-        {
-            auto i = getGlobalParameterIndexByName(name);
-            if (GlobalParams.contains(i))
-                return reinterpret_cast<float*>(GlobalParams[i].data());
-            else
-            {
-                auto it = getGlobalShaderInfoParam(name);
-                return it && it->pValue ? reinterpret_cast<float*>(it->pValue) : nullptr;
-            }
-            return nullptr;
-        }
-
-        static float* getParam(const char* shaderName, const char* paramName)
-        {
-            auto hash = hashStringLowercaseFromSeed(paramName, 0);
-
-            for (auto& it : ShaderInfoParams)
-            {
-                if (it.first == hashStringLowercaseFromSeed(shaderName, 0))
-                 {
-                    auto i = getParamIndex(it.first, hash, 1);
-                    if (i)
-                        return reinterpret_cast<float*>(it.second[i].data());
-                    else
-                        break;
-                }
-            }
-            return nullptr;
-        }
     };
 }
 
@@ -1548,15 +1502,6 @@ public:
 
         pattern = find_pattern("8B 54 24 08 85 D2 74 62", "56 8B 74 24 0C 85 F6 74 62");
         rage::grmShaderInfo::shsub_436D70 = safetyhook::create_inline(pattern.get_first(0), rage::grmShaderInfo::setShaderParam);
-
-        pattern = find_pattern("81 C6 ? ? ? ? 42 57", "81 C6 ? ? ? ? 55 A3");
-        rage::grmShaderInfo::globalShaderParameters = *pattern.get_first<rage::grmShaderInfo_Parameter*>(2);
-
-        pattern = find_pattern("8B 15 ? ? ? ? 8D 34 52", "8B 15 ? ? ? ? 83 C2 FF 33 C0");
-        rage::grmShaderInfo::dwGlobalShaderParameterCount = *pattern.get_first<uint32_t*>(2);
-
-        pattern = find_pattern("83 3D ? ? ? ? ? 75 61 8B 44 24 04", "83 3D ? ? ? ? ? 75 5D");
-        rage::grmShaderInfo::shsetGlobalParam = safetyhook::create_inline(pattern.get_first(0), rage::grmShaderInfo::setGlobalParam);
 
         pattern = find_pattern("55 8B EC 83 E4 F0 81 EC ? ? ? ? 53 8B D9 56 F7 83", "55 8B EC 83 E4 F0 81 EC ? ? ? ? 53 56 57 8B F9 33 DB");
         CRenderPhaseDeferredLighting_LightsToScreen::shBuildRenderList = safetyhook::create_inline(pattern.get_first(), CRenderPhaseDeferredLighting_LightsToScreen::BuildRenderList);
