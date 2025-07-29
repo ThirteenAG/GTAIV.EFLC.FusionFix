@@ -42,7 +42,7 @@ public:
                             }
                             extra = s;
                             extra += L"~n~";
-                            extra += L"                    ";
+                            extra += L"                        ";
 
                             auto FF_WARN0 = CText::getText("FF_WARN0");
                             extra += (FF_WARN0[0] ? FF_WARN0 : L"~p~IMG Files:") + std::wstring(L" ") + std::to_wstring(imgNum) + L" / " + std::to_wstring(imgArrSize);
@@ -60,7 +60,7 @@ public:
                             if (bExtraNightShadows || bHeadlightShadows)
                             {
                                 extra += L"~n~";
-                                extra += L"                    ";
+                                extra += L"                        ";
                                 auto FF_WARN2 = std::wstring(CText::getText("FF_WARN2"));
 
                                 if (FF_WARN2[0])
@@ -76,7 +76,7 @@ public:
                                 if (FusionFixSettings.Get("PREF_SHADOW_QUALITY") < 4) // Very High
                                 {
                                     extra += L"~n~";
-                                    extra += L"                    ";
+                                    extra += L"                        ";
                                     auto FF_WARN6 = CText::getText("FF_WARN6");
                                     extra += FF_WARN6[0] ? FF_WARN6 : L"~r~WARNING: CHSS only takes effect with Shadow Quality set to Very High.";
                                 }

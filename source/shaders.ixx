@@ -148,9 +148,8 @@ public:
         static float fSHADOWFILTERCHSSShadowSoftness = 1.5f;
         static float fSHADOWFILTERCHSSShadowBias = 5.0f;
         static float fSHADOWFILTERCHSSMaxSoftness = 10.0f;
-        static float fSHADOWFILTERCHSSLightSize = 500.0f;
 
-        static float fSSDensity = 0.75f;
+        static float fSSDensity = 0.9f;
         static float fSSDecay = 0.95f;
 
         static float fCascadeBlendSize = 0.1f;
@@ -181,9 +180,8 @@ public:
             fSHADOWFILTERCHSSShadowSoftness = iniReader.ReadFloat("SHADOWFILTERCHSS", "ShadowSoftness", 1.5f);
             fSHADOWFILTERCHSSShadowBias = iniReader.ReadFloat("SHADOWFILTERCHSS", "ShadowBias", 5.0f);
             fSHADOWFILTERCHSSMaxSoftness = iniReader.ReadFloat("SHADOWFILTERCHSS", "MaxSoftness", 10.0f);
-            fSHADOWFILTERCHSSLightSize = iniReader.ReadFloat("SHADOWFILTERCHSS", "LightSize", 500.0f);
 
-            fSSDensity = std::clamp(iniReader.ReadFloat("SUNSHAFTS", "SunShaftsDensity", 0.75f), 0.0f, 1.0f);
+            fSSDensity = std::clamp(iniReader.ReadFloat("SUNSHAFTS", "SunShaftsDensity", 0.9f), 0.0f, 1.0f);
             fSSDecay = std::clamp(iniReader.ReadFloat("SUNSHAFTS", "SunShaftsDecay", 0.95f), 0.0f, 1.0f);
 
             fCascadeBlendSize = std::clamp(iniReader.ReadFloat("SHADOWS", "CascadeBlendSize", 0.1f), 0.0f, 1.0f);
@@ -443,7 +441,7 @@ public:
                         pDevice->SetPixelShaderConstantF(218, &arr7[0], 1);
 
                         arr9[0] = bHighResolutionShadows ? fSHADOWFILTERCHSSMaxSoftness * 2.0f : fSHADOWFILTERCHSSMaxSoftness;
-                        arr9[1] = bHighResolutionShadows ? fSHADOWFILTERCHSSLightSize * 2.0f : fSHADOWFILTERCHSSLightSize;
+                        arr9[1] = bHighResolutionShadows ? CTimeCycleExt::GetCHSSLightSize() * 2.0f : CTimeCycleExt::GetCHSSLightSize();
                         
                         //off / vanilla style / filmic
                         static auto tm = FusionFixSettings.GetRef("PREF_TONEMAPPING");

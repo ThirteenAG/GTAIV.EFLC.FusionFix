@@ -138,6 +138,7 @@ export class CTimeCycleModifiersExt
         float fVolFogAltitudeTweak;
         float fVolFogPower;
         float fSSIntensity;
+        float fCHSSLightSize;
     };
 
     static std::string_view trim(std::string_view sv)
@@ -172,14 +173,15 @@ public:
                 continue;
 
             char keyBuffer[256] = { 0 };
-            float fVolFogDensity, fVolFogHeightFalloff, fVolFogAltitudeTweak, fVolFogPower, fSSIntensity;
-            if (sscanf(svLine.data(), "%255s %f %f %f %f %f",
-                keyBuffer, &fVolFogDensity, &fVolFogHeightFalloff,
-                &fVolFogAltitudeTweak, &fVolFogPower, &fSSIntensity) == 6)
-            {
-                m_TimecycleModifiers[CTimeCycleModifier::GetIndexFromHash(hashStringLowercaseFromSeed(keyBuffer, 0))] = { fVolFogDensity, fVolFogHeightFalloff, fVolFogAltitudeTweak, fVolFogPower, fSSIntensity };
-                initialized = true;
-            }
+            float fVolFogDensity = 0.004f;
+            float fVolFogHeightFalloff = 0.015f;
+            float fVolFogAltitudeTweak = 0.7f;
+            float fVolFogPower = 1.0f;
+            float fSSIntensity = 0.002f;
+            float fCHSSLightSize = 500.0f;
+            sscanf(svLine.data(), "%255s %f %f %f %f %f %f", keyBuffer, &fVolFogDensity, &fVolFogHeightFalloff, &fVolFogAltitudeTweak, &fVolFogPower, &fSSIntensity, &fCHSSLightSize);
+            m_TimecycleModifiers[CTimeCycleModifier::GetIndexFromHash(hashStringLowercaseFromSeed(keyBuffer, 0))] = { fVolFogDensity, fVolFogHeightFalloff, fVolFogAltitudeTweak, fVolFogPower, fSSIntensity, fCHSSLightSize };
+            initialized = true;
         }
     }
 
@@ -196,6 +198,7 @@ export class CTimeCycleExt
     static inline float m_fVolFogAltitudeTweak[NUMHOURS][NUMWEATHERS]; // control fog density at very high altitudes
     static inline float m_fVolFogPower[NUMHOURS][NUMWEATHERS];         // control fog start distance
     static inline float m_fSSIntensity[NUMHOURS][NUMWEATHERS];         // control sun shafts intensity
+    static inline float m_fCHSSLightSize[NUMHOURS][NUMWEATHERS];       // control CHSS penumbra scaling
 
     static inline float m_fDirLightColorR[NUMHOURS][NUMWEATHERS];
     static inline float m_fDirLightColorG[NUMHOURS][NUMWEATHERS];
@@ -207,6 +210,7 @@ export class CTimeCycleExt
     static inline float m_fCurrentVolFogAltitudeTweak;
     static inline float m_fCurrentVolFogPower;
     static inline float m_fCurrentSSIntensity;
+    static inline float m_fCurrentCHSSLightSize;
 
     static inline float m_fCurrentDirLightColorR;
     static inline float m_fCurrentDirLightColorG;
@@ -218,6 +222,7 @@ export class CTimeCycleExt
     static inline float tmp_fVolFogAltitudeTweak[NUMHOURS][NUMWEATHERS];
     static inline float tmp_fVolFogPower[NUMHOURS][NUMWEATHERS];
     static inline float tmp_fSSIntensity[NUMHOURS][NUMWEATHERS];
+    static inline float tmp_fCHSSLightSize[NUMHOURS][NUMWEATHERS];
 
 public:
     static inline float tmp_fDirLightColorR[NUMHOURS][NUMWEATHERS];
@@ -237,6 +242,7 @@ public:
     static float GetVolFogAltitudeTweak() { return m_fCurrentVolFogAltitudeTweak; }
     static float GetVolFogPower() { return m_fCurrentVolFogPower; }
     static float GetSSIntensity() { return m_fCurrentSSIntensity; }
+    static float GetCHSSLightSize() { return m_fCurrentCHSSLightSize; }
 
     static float GetDirLightColorR() { return m_fCurrentDirLightColorR; }
     static float GetDirLightColorG() { return m_fCurrentDirLightColorG; }
@@ -271,19 +277,20 @@ public:
 
                     if (!line.empty() && line.front() != '/' && line.front() != '#')
                     {
-                        float fVolFogDensity, fVolFogHeightFalloff, fVolFogAltitudeTweak, fVolFogPower, fSSIntensity;
-                        if (sscanf(line.data(), "%f %f %f %f %f",
-                            &fVolFogDensity, &fVolFogHeightFalloff,
-                            &fVolFogAltitudeTweak, &fVolFogPower,
-                            &fSSIntensity) == 5)
-                        {
-                            tmp_fVolFogDensity[h][w] = fVolFogDensity;
-                            tmp_fVolFogHeightFalloff[h][w] = fVolFogHeightFalloff;
-                            tmp_fVolFogAltitudeTweak[h][w] = fVolFogAltitudeTweak;
-                            tmp_fVolFogPower[h][w] = fVolFogPower;
-                            tmp_fSSIntensity[h][w] = fSSIntensity;
-                            initialized = true;
-                        }
+                        float fVolFogDensity = 0.004f;
+                        float fVolFogHeightFalloff = 0.015f;
+                        float fVolFogAltitudeTweak = 0.7f;
+                        float fVolFogPower = 1.0f;
+                        float fSSIntensity = 0.002f;
+                        float fCHSSLightSize = 500.0f;
+                        sscanf(line.data(), "%f %f %f %f %f %f", &fVolFogDensity, &fVolFogHeightFalloff, &fVolFogAltitudeTweak, &fVolFogPower, &fSSIntensity, &fCHSSLightSize);
+                        tmp_fVolFogDensity[h][w] = fVolFogDensity;
+                        tmp_fVolFogHeightFalloff[h][w] = fVolFogHeightFalloff;
+                        tmp_fVolFogAltitudeTweak[h][w] = fVolFogAltitudeTweak;
+                        tmp_fVolFogPower[h][w] = fVolFogPower;
+                        tmp_fSSIntensity[h][w] = fSSIntensity;
+                        tmp_fCHSSLightSize[h][w] = fCHSSLightSize;
+                        initialized = true;
                         break;
                     }
                 }
@@ -321,6 +328,7 @@ public:
         FillGaps(m_fVolFogAltitudeTweak, tmp_fVolFogAltitudeTweak);
         FillGaps(m_fVolFogPower, tmp_fVolFogPower);
         FillGaps(m_fSSIntensity, tmp_fSSIntensity);
+        FillGaps(m_fCHSSLightSize, tmp_fCHSSLightSize);
 
         FillGaps(m_fDirLightColorR, tmp_fDirLightColorR);
         FillGaps(m_fDirLightColorG, tmp_fDirLightColorG);
@@ -386,6 +394,7 @@ public:
         float baseVolFogAltitudeTweak = INTERP(m_fVolFogAltitudeTweak);
         float baseVolFogPower = INTERP(m_fVolFogPower);
         float baseSSIntensity = INTERP(m_fSSIntensity);
+        float baseCHSSLightSize = INTERP(m_fCHSSLightSize);
 
         for (const auto& it : currentTimecycleModifiers)
         {
@@ -402,6 +411,8 @@ public:
                     baseVolFogPower = baseVolFogPower * (1.0f - it.second) + modifier.fVolFogPower * it.second;
                 if (modifier.fSSIntensity != -1.0f)
                     baseSSIntensity = baseSSIntensity * (1.0f - it.second) + modifier.fSSIntensity * it.second;
+                if (modifier.fCHSSLightSize != -1.0f)
+                    baseCHSSLightSize = baseCHSSLightSize * (1.0f - it.second) + modifier.fCHSSLightSize * it.second;
             }
         }
 
@@ -410,6 +421,7 @@ public:
         m_fCurrentVolFogAltitudeTweak = baseVolFogAltitudeTweak;
         m_fCurrentVolFogPower = baseVolFogPower;
         m_fCurrentSSIntensity = baseSSIntensity;
+        m_fCurrentCHSSLightSize = baseCHSSLightSize;
 
         m_fCurrentDirLightColorR = INTERP(m_fDirLightColorR);
         m_fCurrentDirLightColorG = INTERP(m_fDirLightColorG);
