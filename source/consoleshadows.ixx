@@ -66,6 +66,8 @@ public:
         FusionFix::onInitEventAsync() += []()
         {
             CIniReader iniReader("");
+
+            // [NIGHTSHADOWS]
             bVehicleNightShadows = iniReader.ReadInteger("NIGHTSHADOWS", "VehicleNightShadows", 1) != 0;
 
             // Vehicle night shadows

@@ -93,7 +93,7 @@ void __cdecl CBaseModelInfo__setFlagsHook(void* pModel, int dwFlags, int a3)
             "bx_eltrain_10a",
             "bx_firescape", "fire_esc_1b", "fire_esc_2b", "fire_esc_6", "fire_esc_6b", "fire_esc_7b",
             "fire_esc_10", "fire_esc_10b",
-            "fence", "pillar", "post"
+            "fence", "cj_mh_cp_post1"
         };
 
         modelNames.insert(modelNames.end(), grateNames.begin(), grateNames.end());
@@ -172,7 +172,7 @@ public:
             CIniReader iniReader("");
 
             // [SHADOWS]
-            bExtraDynamicShadows = iniReader.ReadInteger("SHADOWS", "ExtraDynamicShadows", 1);
+            bExtraDynamicShadows = iniReader.ReadInteger("SHADOWS", "ExtraDynamicShadows", 2);
             bDynamicShadowsForTrees = iniReader.ReadInteger("SHADOWS", "DynamicShadowsForTrees", 1) != 0;
             bHighResolutionShadows = iniReader.ReadInteger("SHADOWS", "HighResolutionShadows", 0) != 0;
             bHighResolutionNightShadows = iniReader.ReadInteger("SHADOWS", "HighResolutionNightShadows", 0) != 0;
