@@ -1180,6 +1180,17 @@ export namespace CMenuManager
     uint8_t* bLoadscreenShown = nullptr;
 }
 
+export namespace CMenu
+{
+    int* m_pMenuID = nullptr;
+    int(__cdecl* m_pGetSelectedItem)(int menuID) = nullptr;
+
+    int getSelectedItem()
+    {
+        return CMenu::m_pGetSelectedItem(*m_pMenuID);
+    }
+}
+
 export namespace CCutscenes
 {
     uint32_t* m_dwCutsceneState;
@@ -1598,5 +1609,11 @@ public:
 
         pattern = find_pattern("68 ? ? ? ? E8 ? ? ? ? 83 C4 ? 85 C0 0F 85 ? ? ? ? F3 0F 10 3D");
         pszCurrentCutsceneName = *pattern.get_first<const char*>(1);
+
+        pattern = find_pattern("FF 35 ? ? ? ? E8 ? ? ? ? 83 C4 ? 85 C0 79", "8B 0D ? ? ? ? 53 51 E8 ? ? ? ? 83 C4 ? 84 C0");
+        CMenu::m_pMenuID = *pattern.get_first<int*>(2);
+
+        pattern = find_pattern("8B 44 24 ? 83 F8 ? 74 ? 8B 0C 85 ? ? ? ? 85 C9 74 ? 80 B8 ? ? ? ? ? 74 ? 8B 81 ? ? ? ? C3 B8", "8B 4C 24 ? 83 F9 ? 74 ? 8B 04 8D ? ? ? ? 85 C0 74 ? 80 B9 ? ? ? ? ? 74 ? 8B 80 ? ? ? ? C3 B8");
+        CMenu::m_pGetSelectedItem = (decltype(CMenu::m_pGetSelectedItem))pattern.get_first();
     }
 } Common;

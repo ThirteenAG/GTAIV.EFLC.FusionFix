@@ -644,6 +644,46 @@ public:
                     injector::MakeNOP(pattern.get_first(3), 2);
             }
 
+            // Same but for Game tab
+            static auto shouldModifyBackground = [](int curMenuTab) -> bool
+            {
+                auto selectedItem = CMenu::getSelectedItem();
+                return (curMenuTab == 0 && selectedItem == 15) || // PREF_EXTRANIGHTSHADOWS
+                       (curMenuTab == 5 && selectedItem == 8)  || // PREF_CENTEREDCAMERA
+                       (curMenuTab == 5 && selectedItem == 9);    // PREF_CENTEREDCAMERAFOOT
+            };
+
+            pattern = hook::pattern("83 FE ? 75 ? FF 35 ? ? ? ? E8 ? ? ? ? 83 C4 ? 85 C0 79");
+            if (!pattern.empty())
+            {
+                static auto loc_5C27AD = (uintptr_t)hook::get_pattern("E8 ? ? ? ? 84 C0 74 ? 80 3D ? ? ? ? ? 74 ? 84 DB 74 ? 83 FE");
+                struct MenuBackgroundHook1
+                {
+                    void operator()(injector::reg_pack& regs)
+                    {
+                        if (regs.esi != 49 && !shouldModifyBackground(regs.esi))
+                        {
+                            *(uintptr_t*)(regs.esp - 4) = loc_5C27AD;
+                            return;
+                        }
+                    }
+                }; injector::MakeInline<MenuBackgroundHook1>(pattern.get_first(0));
+
+                pattern = hook::pattern("83 F8 ? 0F 84 ? ? ? ? 80 3D ? ? ? ? ? 0F 85 ? ? ? ? 83 F8");
+                static auto loc_5A9815 = (uintptr_t)hook::get_pattern("80 3D ? ? ? ? ? 0F 84 ? ? ? ? 8D 44 24 ? 6A ? 50 E8 ? ? ? ? 6A");
+                struct MenuBackgroundHook2
+                {
+                    void operator()(injector::reg_pack& regs)
+                    {
+                        if (regs.eax == 3 || shouldModifyBackground(regs.eax))
+                        {
+                            *(uintptr_t*)(regs.esp - 4) = loc_5A9815;
+                            return;
+                        }
+                    }
+                }; injector::MakeInline<MenuBackgroundHook2>(pattern.get_first(0), pattern.get_first(9));
+            }
+
             //menu scrolling
             pattern = find_pattern("83 F8 10 7E 37 6A 00 E8 ? ? ? ? 83 C4 04 8D 70 F8 E8 ? ? ? ? D9 5C 24 30", "83 F8 10 7E 2A 6A 00 E8 ? ? ? ? 83 E8 08 89 44 24 14");
             injector::WriteMemory<uint8_t>(pattern.get_first(2), 0x10 * 2, true);
@@ -803,7 +843,7 @@ public:
             FusionFix::onEndScene() += []()
             {
                 static auto fpsc = FusionFixSettings.GetRef("PREF_FPSCOUNTER");
-                if (pMenuTab && *pMenuTab == 8 || *pMenuTab == 49 || fpsc->get())
+                if (pMenuTab && *pMenuTab == 8 || *pMenuTab == 49 || (*pMenuTab == 0 && CMenu::getSelectedItem() == 15) || fpsc->get())
                 {
                     static std::list<int> m_times;
                     static int fontSize = 0;

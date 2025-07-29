@@ -95,6 +95,12 @@ public:
             pattern = find_pattern("F3 0F 11 44 24 ? E8 ? ? ? ? 5F B0", "F3 0F 11 44 24 ? E8 ? ? ? ? 5F 5E B0 ? 5B 8B E5 5D C2");
             hbCopyMatBehind.fun = injector::MakeCALL(pattern.get_first(6), CopyMatBehind, true).get();
 
+            FusionFixSettings.SetCallback("PREF_CENTEREDCAMERA", [](int32_t value)
+            {
+                bMenuNeedsUpdate = 4;
+                bMenuNeedsUpdate2 = 4;
+            });
+
             auto HandleCenteredVehicleCamIVasi = []()
             {
                 bLoadedCenteredVehicleCamIVasi = true;
@@ -150,6 +156,12 @@ public:
 
             pattern = find_pattern("E8 ? ? ? ? 8B 8E ? ? ? ? 56 8D 44 24 74", "E8 ? ? ? ? 8B 8E ? ? ? ? 56 8D 94 24");
             hbCopyMatBehind.fun = injector::MakeCALL(pattern.get_first(0), CopyMatBehind, true).get();
+
+            FusionFixSettings.SetCallback("PREF_CENTEREDCAMERAFOOT", [](int32_t value)
+            {
+                bMenuNeedsUpdate = 4;
+                bMenuNeedsUpdate2 = 4;
+            });
 
             auto HandleCenteredOnFootCamIVasi = []()
             {
