@@ -725,7 +725,7 @@ public:
                 static auto farClipMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                 {
                     static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
-                    if (fog->get() && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
+                    if (fog->get())
                         regs.xmm0.f32[0] = 1.0f;
                     else
                         regs.xmm0.f32[0] = *farClipMultiplier;
@@ -745,7 +745,7 @@ public:
                 static auto farClipMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                 {
                     static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
-                    if (fog->get() && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
+                    if (fog->get())
                         regs.xmm2.f32[0] = 1.0f;
                     else
                         regs.xmm2.f32[0] = *farClipMultiplier;
@@ -766,7 +766,7 @@ public:
                 static auto nearFogMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                 {
                     static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
-                    if (fog->get() && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
+                    if (fog->get())
                         regs.xmm0.f32[0] = 1.0f;
                     else
                         regs.xmm0.f32[0] = *nearFogMultiplier;
@@ -780,7 +780,7 @@ public:
                 static auto nearFogMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                 {
                     static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
-                    if (fog->get() && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
+                    if (fog->get())
                         regs.xmm2.f32[0] = 1.0f;
                     else
                         regs.xmm2.f32[0] = *nearFogMultiplier;

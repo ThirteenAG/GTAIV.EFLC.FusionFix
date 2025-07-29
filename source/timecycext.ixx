@@ -133,12 +133,12 @@ export class CTimeCycleModifiersExt
 {
     struct TimeCycleModifierExt
     {
-        float fVolFogDensity;
-        float fVolFogHeightFalloff;
-        float fVolFogAltitudeTweak;
-        float fVolFogPower;
-        float fSSIntensity;
-        float fCHSSLightSize;
+        float fVolFogDensity = -1.0f;
+        float fVolFogHeightFalloff = -1.0f;
+        float fVolFogAltitudeTweak = -1.0f;
+        float fVolFogPower = -1.0f;
+        float fSSIntensity = -1.0f;
+        float fCHSSLightSize = -1.0f;
     };
 
     static std::string_view trim(std::string_view sv)
@@ -150,21 +150,16 @@ export class CTimeCycleModifiersExt
         return rsv.substr(0, rsv.size() - std::distance(rsv.rbegin(), end));
     }
 
-    static inline bool initialized = false;
-
 public:
     static inline std::array<TimeCycleModifierExt, CTimeCycleModifier::ARRAY_SIZE> m_TimecycleModifiers;
 
     static void Initialise(const std::filesystem::path& path)
     {
-        initialized = false;
-
         std::ifstream is(path, std::ios::binary);
         if (!is)
             return;
 
         std::string fileContent((std::istreambuf_iterator<char>(is)), std::istreambuf_iterator<char>());
-
         std::istringstream iss(fileContent);
         std::string line;
         while (std::getline(iss, line)) {
@@ -173,21 +168,15 @@ public:
                 continue;
 
             char keyBuffer[256] = { 0 };
-            float fVolFogDensity = 0.004f;
-            float fVolFogHeightFalloff = 0.015f;
-            float fVolFogAltitudeTweak = 0.7f;
-            float fVolFogPower = 1.0f;
-            float fSSIntensity = 0.002f;
-            float fCHSSLightSize = 500.0f;
+            float fVolFogDensity = -1.0f;
+            float fVolFogHeightFalloff = -1.0f;
+            float fVolFogAltitudeTweak = -1.0f;
+            float fVolFogPower = -1.0f;
+            float fSSIntensity = -1.0f;
+            float fCHSSLightSize = -1.0f;
             sscanf(svLine.data(), "%255s %f %f %f %f %f %f", keyBuffer, &fVolFogDensity, &fVolFogHeightFalloff, &fVolFogAltitudeTweak, &fVolFogPower, &fSSIntensity, &fCHSSLightSize);
             m_TimecycleModifiers[CTimeCycleModifier::GetIndexFromHash(hashStringLowercaseFromSeed(keyBuffer, 0))] = { fVolFogDensity, fVolFogHeightFalloff, fVolFogAltitudeTweak, fVolFogPower, fSSIntensity, fCHSSLightSize };
-            initialized = true;
         }
-    }
-
-    static bool IsInitialized()
-    {
-        return initialized;
     }
 };
 
@@ -233,10 +222,7 @@ public:
 private:
     static inline float interp_c0, interp_c1, interp_c2, interp_c3;
 
-    static inline bool initialized = false;
-
 public:
-    static float IsInitialized() { return initialized; }
     static float GetVolFogDensity() { return m_fCurrentVolFogDensity; }
     static float GetVolFogHeightFalloff() { return m_fCurrentVolFogHeightFalloff; }
     static float GetVolFogAltitudeTweak() { return m_fCurrentVolFogAltitudeTweak; }
@@ -251,7 +237,18 @@ public:
 
     static void Initialise(std::filesystem::path path)
     {
-        initialized = false;
+        for (int h = 0; h < NUMHOURS; ++h)
+        {
+            for (int w = 0; w < NUMWEATHERS; ++w)
+            {
+                tmp_fVolFogDensity[h][w] = 0.004f;
+                tmp_fVolFogHeightFalloff[h][w] = 0.015f;
+                tmp_fVolFogAltitudeTweak[h][w] = 0.7f;
+                tmp_fVolFogPower[h][w] = 1.0f;
+                tmp_fSSIntensity[h][w] = 0.002f;
+                tmp_fCHSSLightSize[h][w] = 500.0f;
+            }
+        }
 
         std::ifstream is(path, std::ios::binary);
         if (!is)
@@ -290,7 +287,6 @@ public:
                         tmp_fVolFogPower[h][w] = fVolFogPower;
                         tmp_fSSIntensity[h][w] = fSSIntensity;
                         tmp_fCHSSLightSize[h][w] = fCHSSLightSize;
-                        initialized = true;
                         break;
                     }
                 }
@@ -510,13 +506,6 @@ public:
             
             pattern = find_pattern("E8 ? ? ? ? 8B 4C 24 ? 8B 54 24 ? 0F 57 C0 0F 2F 81 ? ? ? ? 0F B6 D2 B8", "E8 ? ? ? ? 0F 57 C0 0F 2F 86 ? ? ? ? 72");
             CTimeCycleModifier::hbBlendWithModifier.fun = injector::MakeCALL(pattern.get_first(), CTimeCycleModifier::BlendWithModifier2).get();
-
-            // need to reinit timecyc because of CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized() check in timecyc hooks
-            FusionFix::onGameInitEvent() += []()
-            {
-                CTimeCycle::Initialise();
-                CTimeCycle::InitialiseModifiers();
-            };
         };
     }
 } TimecycExt;

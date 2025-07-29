@@ -69,7 +69,7 @@ int timecyc_scanf(const char* i, const char* fmt, int* mAmbient0ColorR, int* mAm
     if (!FusionFixSettings("PREF_BLOOM"))
         *mBloomIntensity = 0.0f;
 
-    if (FusionFixSettings("PREF_VOLUMETRICFOG") && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
+    if (FusionFixSettings("PREF_VOLUMETRICFOG"))
         *mFarClip = fVolFogFarClip;
 
     switch (FusionFixSettings("PREF_TCYC_DOF"))
@@ -260,7 +260,7 @@ int cutsc_scanf(const char* i, const char* fmt, int* keyframe, float* farclip, f
 {
     auto res = sscanf(i, fmt, keyframe, farclip, nearclip);
 
-    if (FusionFixSettings("PREF_VOLUMETRICFOG") && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
+    if (FusionFixSettings("PREF_VOLUMETRICFOG"))
     {
         *farclip = 0.0f;
         //*nearclip = -1.0f;
@@ -292,7 +292,7 @@ int timecyclemodifiers_scanf(const char* i, const char* fmt, char* Name, float* 
     if (std::string_view(Name) == "Police" || std::string_view(Name) == "intro")
         return res;
 
-    if (FusionFixSettings("PREF_VOLUMETRICFOG") && CTimeCycleExt::IsInitialized() && CTimeCycleModifiersExt::IsInitialized())
+    if (FusionFixSettings("PREF_VOLUMETRICFOG"))
     {
         *MinFarClip = -1.0f;
         *MaxFarClip = -1.0f;

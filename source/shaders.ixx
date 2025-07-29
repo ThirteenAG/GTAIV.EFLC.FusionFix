@@ -578,7 +578,7 @@ public:
                         arr11[2] = bSmoothLightVolumes ? 1.0f : 0.0f;
                         arr11[3] = 0.0f;
 
-                        if (!CTimeCycleExt::IsInitialized() || !CTimeCycleModifiersExt::IsInitialized() || bIsQUB3D)
+                        if (bIsQUB3D)
                             arr11[1] = 0.0f;
 
                         static float arr12[4];
