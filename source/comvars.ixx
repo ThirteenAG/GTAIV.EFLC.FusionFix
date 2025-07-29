@@ -1400,6 +1400,7 @@ export int bMenuNeedsUpdate2 = 0;
 export bool bEnableSnow = false;
 export bool bEnableHall = false;
 export bool bFixAutoExposure = true;
+export bool bFixRainDrops = true;
 export bool bExtraNightShadows = false;
 export bool bHeadlightShadows = false;
 export bool bHighResolutionShadows = false;

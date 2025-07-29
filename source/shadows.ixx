@@ -249,7 +249,7 @@ public:
                 }
                 else
                 {
-                    // Remove code that doubled shadow cascade resolution.
+                    // Remove code that doubled shadow cascade resolution
                     pattern = find_pattern("03 F6 E8 ? ? ? ? 8B 0D ? ? ? ? 8D 54 24 0C", "03 F6 E8 ? ? ? ? 8B 0D ? ? ? ? 8D 44 24 0C");
                     injector::MakeNOP(pattern.get_first(0), 2, true);
                 }
