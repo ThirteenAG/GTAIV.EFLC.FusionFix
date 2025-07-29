@@ -649,7 +649,7 @@ public:
                         if (light->mType == rage::LT_SPOT && light->mRadius < 35.0f && !(light->mFlags & 8) /* Exclude lights previously volumetric */ && !(light->mFlags & 0x300) /* Exclude vehicle lights and traffic lights */)
                         {
                             light->mFlags |= 8;
-                            light->mVolumeSize  = 1.0f;
+                            light->mVolumeSize  = 4.0f;
                             light->mVolumeScale = 0.5f;
                         }
                     }
