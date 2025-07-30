@@ -312,13 +312,18 @@ T GetExeModuleName()
         return moduleFileName.substr(moduleFileName.find_last_of(L"/\\") + 1);
 }
 
-export template <typename T, typename V>
-bool iequals(const T& s1, const V& s2)
+export bool iequals(std::string_view s1, std::string_view s2)
 {
-    T str1(s1); T str2(s2);
-    std::transform(str1.begin(), str1.end(), str1.begin(), ::tolower);
-    std::transform(str2.begin(), str2.end(), str2.begin(), ::tolower);
-    return (str1 == str2);
+    if (s1.size() != s2.size()) return false;
+    return std::equal(s1.begin(), s1.end(), s2.begin(), s2.end(),
+        [](char a, char b) { return ::tolower(a) == ::tolower(b); });
+}
+
+export bool iequals(std::wstring_view s1, std::wstring_view s2)
+{
+    if (s1.size() != s2.size()) return false;
+    return std::equal(s1.begin(), s1.end(), s2.begin(), s2.end(),
+        [](wchar_t a, wchar_t b) { return ::towlower(a) == ::towlower(b); });
 }
 
 export inline void CreateThreadAutoClose(LPSECURITY_ATTRIBUTES lpThreadAttributes, SIZE_T dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress, LPVOID lpParameter, DWORD dwCreationFlags, LPDWORD lpThreadId)
