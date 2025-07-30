@@ -136,8 +136,7 @@ public:
     Shaders()
     {
         static IDirect3DTexture9* pHDRTexQuarter = nullptr;
-        static float fTreeAlphaPC = 0.625f;
-        static float fTreeAlphaConsole = 4.0f;
+        static float fOverrideTreeAlpha = 0.0f;
 
         static float fSHADOWFILTERSHARPShadowSoftness = 1.5f;
         static float fSHADOWFILTERSHARPShadowBias = 5.0f;
@@ -170,8 +169,7 @@ public:
         {
             CIniReader iniReader("");
             bFixAutoExposure = iniReader.ReadInteger("MISC", "FixAutoExposure", 1) != 0;
-            fTreeAlphaPC = std::clamp(iniReader.ReadFloat("MISC", "TreeAlphaPC", 0.625f), 0.0f, 10.0f);
-            fTreeAlphaConsole = std::clamp(iniReader.ReadFloat("MISC", "TreeAlphaConsole", 4.0f), 0.0f, 10.0f);
+            fOverrideTreeAlpha = std::clamp(iniReader.ReadFloat("MISC", "OverrideTreeAlpha", 0.0f), 0.0f, 255.0f);
             fSHADOWFILTERSHARPShadowSoftness = iniReader.ReadFloat("SHADOWFILTERSHARP", "ShadowSoftness", 1.5f);
             fSHADOWFILTERSHARPShadowBias = iniReader.ReadFloat("SHADOWFILTERSHARP", "ShadowBias", 5.0f);
             fSHADOWFILTERSOFTShadowSoftness = iniReader.ReadFloat("SHADOWFILTERSOFT", "ShadowSoftness", 3.0f);
@@ -511,7 +509,7 @@ public:
 
                         arr5[1] = bEnableSnow ? 1.0f : 0.0f;
                         arr5[2] = 0.0f;
-                        arr5[3] = treealpha->get() == FusionFixSettings.TreeAlphaText.eConsole ? fTreeAlphaConsole : fTreeAlphaPC;
+                        arr5[3] = fOverrideTreeAlpha == 0.0f ? (treealpha->get() == FusionFixSettings.TreeAlphaText.eConsole ? 4.0f : 0.625f) : fOverrideTreeAlpha;
                         pDevice->SetPixelShaderConstantF(221, &arr5[0], 1);
                     }
 
