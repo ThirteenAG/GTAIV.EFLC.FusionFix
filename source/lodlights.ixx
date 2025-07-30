@@ -666,7 +666,7 @@ public:
             static raw_mem DisableDefaultLodLightsHookAddr(pattern.get_first(0), { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
             if (bDisableDefaultLodLights)
             {
-                static uintptr_t loc_D658B0 = (uintptr_t)find_pattern("33 FF 8B F0 C1 E6").get_first(0);
+                static uintptr_t loc_D658B0 = resolve_next_displacement(pattern.get_first(0)).value();
                 struct DisableDefaultLodLights
                 {
                     void operator()(injector::reg_pack& regs)

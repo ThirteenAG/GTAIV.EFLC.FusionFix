@@ -125,10 +125,9 @@ public:
                     static auto getLocalPlayerPed = (int (*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
                     static auto FindPlayerCar = (int (*)())injector::GetBranchDestination(pattern.get_first(11)).as_int();
 
-                    static auto loc_AE3867 = (uintptr_t)hook::get_pattern("8B 74 24 14 FF 44 24 10");
-                    static auto loc_AE374F = (uintptr_t)hook::get_pattern("C6 44 24 ? ? 83 F8 04 75 12");
-
                     pattern = hook::pattern("83 F8 03 75 14 F6 86");
+                    static auto loc_AE3867 = resolve_next_displacement(pattern.get_first(14)).value();
+                    static auto loc_AE374F = resolve_next_displacement(pattern.get_first(3)).value();
                     struct ShadowsHook
                     {
                         void operator()(injector::reg_pack& regs)
@@ -169,10 +168,9 @@ public:
                     static auto getLocalPlayerPed = (int (*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
                     static auto FindPlayerCar = (int (*)())injector::GetBranchDestination(pattern.get_first(10)).as_int();
 
-                    static auto loc_AE3867 = (uintptr_t)hook::get_pattern("8B 4D 0C 8B 44 24 10 0F B7 54 CB");
-                    static auto loc_AE374F = (uintptr_t)hook::get_pattern("8B 4D 14 83 F8 04 C6 44 24 ? ? 75 0F 8B 86");
-
                     pattern = hook::pattern("83 F8 03 75 17 F6 86");
+                    static auto loc_AE3867 = resolve_next_displacement(pattern.get_first(14)).value();
+                    static auto loc_AE374F = resolve_next_displacement(pattern.get_first(3)).value();
                     struct ShadowsHook
                     {
                         void operator()(injector::reg_pack& regs)
