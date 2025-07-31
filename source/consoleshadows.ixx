@@ -125,10 +125,9 @@ public:
                     static auto getLocalPlayerPed = (int (*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
                     static auto FindPlayerCar = (int (*)())injector::GetBranchDestination(pattern.get_first(11)).as_int();
 
-                    static auto loc_AE3867 = (uintptr_t)hook::get_pattern("8B 74 24 14 FF 44 24 10");
-                    static auto loc_AE374F = (uintptr_t)hook::get_pattern("C6 44 24 ? ? 83 F8 04 75 12");
-
                     pattern = hook::pattern("83 F8 03 75 14 F6 86");
+                    static auto loc_AE3867 = resolve_next_displacement(pattern.get_first(14)).value();
+                    static auto loc_AE374F = resolve_next_displacement(pattern.get_first(3)).value();
                     struct ShadowsHook
                     {
                         void operator()(injector::reg_pack& regs)
@@ -140,23 +139,21 @@ public:
                                 // Disable the shadow of the player's vehicle, along with the shadows of the player/peds in that vehicle, if headlight shadows and vehicle night shadows are on (to avoid both interfering witch each other)
                                 if (regs.esi && (regs.esi == car || (regs.esi == getLocalPlayerPed() && car && *(uint32_t*)(car + 0xFA0))) && !(*(char*)(regs.esp + 0x0B)))
                                 {
-                                    *(uintptr_t*)(regs.esp - 4) = loc_AE3867;
-                                    return;
+                                    return_to(loc_AE3867);
                                 }
                             }
 
                             // Enable shadows of the player/peds while in vehicles, if vehicle night shadows are on and if headlight shadows are off
                             if (!bHeadlightShadows && bVehicleNightShadows)
                             {
-                                *(uintptr_t*)(regs.esp - 4) = loc_AE374F;
-                                return;
+                                return_to(loc_AE374F);
                             }
 
                             if (!bVehicleNightShadows)
                             {
                                 if (regs.eax == 3 && (*(uint8_t*)(regs.esi + 620) & 4) != 0 && !(*(char*)(regs.esp + 0x0B)))
                                 {
-                                    *(uintptr_t*)(regs.esp - 4) = loc_AE3867;
+                                    force_return_address(loc_AE3867);
                                 }
                             }
                         }
@@ -169,10 +166,9 @@ public:
                     static auto getLocalPlayerPed = (int (*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
                     static auto FindPlayerCar = (int (*)())injector::GetBranchDestination(pattern.get_first(10)).as_int();
 
-                    static auto loc_AE3867 = (uintptr_t)hook::get_pattern("8B 4D 0C 8B 44 24 10 0F B7 54 CB");
-                    static auto loc_AE374F = (uintptr_t)hook::get_pattern("8B 4D 14 83 F8 04 C6 44 24 ? ? 75 0F 8B 86");
-
                     pattern = hook::pattern("83 F8 03 75 17 F6 86");
+                    static auto loc_AE3867 = resolve_next_displacement(pattern.get_first(14)).value();
+                    static auto loc_AE374F = resolve_next_displacement(pattern.get_first(3)).value();
                     struct ShadowsHook
                     {
                         void operator()(injector::reg_pack& regs)
@@ -184,23 +180,21 @@ public:
                                 // Disable the shadow of the player's vehicle, along with the shadows of the player/peds in that vehicle, if headlight shadows and vehicle night shadows are on (to avoid both interfering witch each other)
                                 if (regs.esi && (regs.esi == car || (regs.esi == getLocalPlayerPed() && car && *(uint32_t*)(car + 0xFA0))) && !(*(char*)(regs.esp + 0x0F)))
                                 {
-                                    *(uintptr_t*)(regs.esp - 4) = loc_AE3867;
-                                    return;
+                                    return_to(loc_AE3867);
                                 }
                             }
 
                             // Enable shadows of the player/peds while in vehicles, if vehicle night shadows are on and if headlight shadows are off
                             if (!bHeadlightShadows && bVehicleNightShadows)
                             {
-                                *(uintptr_t*)(regs.esp - 4) = loc_AE374F;
-                                return;
+                                return_to(loc_AE374F);
                             }
 
                             if (!bVehicleNightShadows)
                             {
                                 if (regs.eax == 3 && (*(uint8_t*)(regs.esi + 620) & 4) != 0 && !(*(char*)(regs.esp + 0x0F)))
                                 {
-                                    *(uintptr_t*)(regs.esp - 4) = loc_AE3867;
+                                    force_return_address(loc_AE3867);
                                 }
                             }
                         }

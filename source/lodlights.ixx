@@ -642,6 +642,9 @@ public:
                     static bool bOnce = false;
                     if (!bOnce)
                     {
+                        if (CText::hasViceCityStrings())
+                            fCoronaRadiusMultiplier *= 1.3f;
+
                         LoadDatFile();
                         RegisterCustomCoronas();
                         bOnce = true;
@@ -666,14 +669,14 @@ public:
             static raw_mem DisableDefaultLodLightsHookAddr(pattern.get_first(0), { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
             if (bDisableDefaultLodLights)
             {
-                static uintptr_t loc_D658B0 = (uintptr_t)find_pattern("33 FF 8B F0 C1 E6").get_first(0);
+                static uintptr_t loc_D658B0 = resolve_next_displacement(pattern.get_first(0)).value();
                 struct DisableDefaultLodLights
                 {
                     void operator()(injector::reg_pack& regs)
                     {
                         static auto dl = FusionFixSettings.GetRef("PREF_DISTANTLIGHTS");
                         if (!dl->get() && regs.eax < 8)
-                            *(uintptr_t*)(regs.esp - 4) = loc_D658B0;
+                            force_return_address(loc_D658B0);
                     }
                 }; injector::MakeInline<DisableDefaultLodLights>(pattern.get_first(0), pattern.get_first(9));
             }

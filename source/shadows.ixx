@@ -54,6 +54,7 @@ void* __cdecl CModelInfoStore__allocateInstanceModelHook(char* modelName)
     return injector::cstd<void* (char*)>::call(CModelInfoStore__allocateInstanceModel, modelName);
 }
 
+std::vector<std::string> modelNames;
 void __cdecl CBaseModelInfo__setFlagsHook(void* pModel, int dwFlags, int a3)
 {
     enum
@@ -66,44 +67,11 @@ void __cdecl CBaseModelInfo__setFlagsHook(void* pModel, int dwFlags, int a3)
         flag29, flag30, flag31
     };
 
-    std::vector<std::string> modelNames = { };
-
-    if (bExtraDynamicShadows >= 1)
-    {
-        std::vector<std::string> vegetationNames = {
-            "bush", "weed", "grass", "azalea", "bholly", "fern", "tree"
-        };
-
-        modelNames.insert(modelNames.end(), vegetationNames.begin(), vegetationNames.end());
-    }
-
-    if (bExtraDynamicShadows >= 2)
-    {
-        std::vector<std::string> grateNames = {
-            "rail05ax_ksun_01op", "rail09c_ksun_01op", "rail10a_ksun_01op", "bkn_ltrn_bkslin05b",
-            "bkn_ltrn_bkslin04b", "bkn_ltrn_bkslin03b", "bkn_ltrn_bkslin02b", "mbridge_lt10_bkn",
-            "mbridge_lt10_bknb", "rail08_ks2un_01b", "rail08a_ks2un_01b", "rail08c_ks2un_01b",
-            "bkn_ltrn_qwslin02b", "bkn_ltrn_qwslin03b", "qw2_track0_d", "qw2_track1_d",
-            "qw2_track2_d", "qw2_track4_d", "am_qm_fm4trkb", "am_qm_ho4trkb", "qw_track10_d",
-            "qw_track9_d", "qw_track11_d", "qw_track16_d", "qw_track16b_d", "am_qm_eltrntrk4b",
-            "am_qm_eltrntrk3b", "am_qm_eltrntrk2b", "am_qm_eltrntrk1b", "qw2_track7_d",
-            "qw2_track6_d", "qw2_track3_d", "qw2_track5_d", "rail01_qe_01b", "rail01_qe_02b",
-            "bxw_el_mesh", "bxw_el_lights2", "bxw_el_lights", "el_lights01", "el_lights02a",
-            "el_lights02", "el_lights04", "bx_eltrain_5a", "bx_eltrain_6a", "bx_eltrain_7a",
-            "bx_eltrain_10a",
-            "bx_firescape", "fire_esc_1b", "fire_esc_2b", "fire_esc_6", "fire_esc_6b", "fire_esc_7b",
-            "fire_esc_10", "fire_esc_10b",
-            "fence", "cj_mh_cp_post1"
-        };
-
-        modelNames.insert(modelNames.end(), grateNames.begin(), grateNames.end());
-    }
-
     auto bitFlags = std::bitset<32>(dwFlags);
 
     if (bitFlags.test(no_shadow))
     {
-        if (std::any_of(std::begin(modelNames), std::end(modelNames), [](auto& i) { return curModelName.contains(i); }))
+        if (bExtraDynamicShadows >= 3 || std::any_of(std::begin(modelNames), std::end(modelNames), [](auto& i) { return curModelName.contains(i); }))
         {
             bitFlags.reset(no_shadow);
             bitFlags.reset(static_shadow_1);
@@ -192,6 +160,37 @@ public:
             // Extra dynamic shadows
             if (bExtraDynamicShadows)
             {
+                if (bExtraDynamicShadows >= 1)
+                {
+                    std::vector<std::string> vegetationNames = {
+                        "bush", "weed", "grass", "azalea", "bholly", "fern", "tree"
+                    };
+
+                    modelNames.insert(modelNames.end(), vegetationNames.begin(), vegetationNames.end());
+                }
+
+                if (bExtraDynamicShadows >= 2)
+                {
+                    std::vector<std::string> grateNames = {
+                        "rail05ax_ksun_01op", "rail09c_ksun_01op", "rail10a_ksun_01op", "bkn_ltrn_bkslin05b",
+                        "bkn_ltrn_bkslin04b", "bkn_ltrn_bkslin03b", "bkn_ltrn_bkslin02b", "mbridge_lt10_bkn",
+                        "mbridge_lt10_bknb", "rail08_ks2un_01b", "rail08a_ks2un_01b", "rail08c_ks2un_01b",
+                        "bkn_ltrn_qwslin02b", "bkn_ltrn_qwslin03b", "qw2_track0_d", "qw2_track1_d",
+                        "qw2_track2_d", "qw2_track4_d", "am_qm_fm4trkb", "am_qm_ho4trkb", "qw_track10_d",
+                        "qw_track9_d", "qw_track11_d", "qw_track16_d", "qw_track16b_d", "am_qm_eltrntrk4b",
+                        "am_qm_eltrntrk3b", "am_qm_eltrntrk2b", "am_qm_eltrntrk1b", "qw2_track7_d",
+                        "qw2_track6_d", "qw2_track3_d", "qw2_track5_d", "rail01_qe_01b", "rail01_qe_02b",
+                        "bxw_el_mesh", "bxw_el_lights2", "bxw_el_lights", "el_lights01", "el_lights02a",
+                        "el_lights02", "el_lights04", "bx_eltrain_5a", "bx_eltrain_6a", "bx_eltrain_7a",
+                        "bx_eltrain_10a",
+                        "bx_firescape", "fire_esc_1b", "fire_esc_2b", "fire_esc_6", "fire_esc_6b", "fire_esc_7b",
+                        "fire_esc_10", "fire_esc_10b",
+                        "fence", "cj_mh_cp_post1"
+                    };
+
+                    modelNames.insert(modelNames.end(), grateNames.begin(), grateNames.end());
+                }
+
                 auto pattern = hook::pattern("D9 6C 24 0E 56");
                 CBaseModelInfo__setFlags = injector::GetBranchDestination(pattern.get_first(5));
                 injector::MakeCALL(pattern.get_first(5), CBaseModelInfo__setFlagsHook, true);

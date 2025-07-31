@@ -474,7 +474,7 @@ public:
             {
                 static uint32_t* dwEFB1B8 = *hook::pattern("6A 01 6A 10 89 3D").get_first<uint32_t*>(6);
                 auto pattern = find_pattern("83 FF 05 74 05 83 FF 04 75 26 6A 00 6A 0C E8 ? ? ? ? 83 C4 08 85 C0 74 0B 6A 01 8B C8 E8", "83 FF 05 74 05");
-                static uintptr_t loc_6E39F3 = (uintptr_t)find_pattern("8B 45 0C 8B 4C 24 18 33 F6 33 D2 89 74 24 1C 66 3B 54 C1", "8B 4D 0C 66 83 7C CE").get_first(0);
+                static auto loc_AE39F3 = resolve_next_displacement(pattern.get_first(5)).value();
                 struct EmissiveDepthWriteHook
                 {
                     void operator()(injector::reg_pack& regs)
@@ -494,7 +494,7 @@ public:
                             if (!_stricmp(pszCurrentCutsceneName, "intro"))
                                 return;
 
-                            *(uintptr_t*)(regs.esp - 4) = loc_6E39F3;
+                            force_return_address(loc_AE39F3);
                         }
                     }
                 }; injector::MakeInline<EmissiveDepthWriteHook>(pattern.get_first(0), pattern.get_first(10));
@@ -581,18 +581,16 @@ public:
             // Always display the ped health on the reticle with free-aim while on foot, used to be a gamepad + multiplayer only feature (PC is always free-aim unless it's melee combat).
             if (bAlwaysDisplayHealthOnReticle)
             {
-                auto pattern = hook::pattern("80 3D ? ? ? ? ? 75 64 A1 ? ? ? ? 8B 0C 85");
+                auto pattern = hook::pattern("80 BB ? ? ? ? ? 74 61 56 57 E8");
                 if (!pattern.empty())
                 {
-                    static auto loc_5C8E93 = (uintptr_t)pattern.get_first(0);
-                    
-                    pattern = hook::pattern("80 BB ? ? ? ? ? 74 61 56 57 E8");
+                    static auto loc_5C8E93 = resolve_next_displacement(pattern.get_first(0)).value();
                     struct ReticleHealthHook
                     {
                         void operator()(injector::reg_pack& regs)
                         {
                             if (!(*(uint8_t*)(regs.ebx + 12941)) || !(*(uint8_t*)(regs.ebx + 12940)))
-                                *(uintptr_t*)(regs.esp - 4) = loc_5C8E93;
+                                force_return_address(loc_5C8E93);
                         }
                     }; injector::MakeInline<ReticleHealthHook>(pattern.get_first(0), pattern.get_first(9));
 
@@ -601,15 +599,14 @@ public:
                 }
                 else
                 {
-                    static auto loc_5C8E93 = (uintptr_t)hook::get_pattern("80 3D ? ? ? ? ? 75 6A A1 ? ? ? ? 8B 04 85");
-
                     pattern = hook::pattern("80 B9 ? ? ? ? ? 74 6D 56 57 E8");
+                    static auto loc_5C8E93 = resolve_next_displacement(pattern.get_first(0)).value();
                     struct ReticleHealthHook
                     {
                         void operator()(injector::reg_pack& regs)
                         {
                             if (!(*(uint8_t*)(regs.ecx + 12941)) || !(*(uint8_t*)(regs.ecx + 12940)))
-                                *(uintptr_t*)(regs.esp - 4) = loc_5C8E93;
+                                force_return_address(loc_5C8E93);
                         }
                     }; injector::MakeInline<ReticleHealthHook>(pattern.get_first(0), pattern.get_first(9));
 

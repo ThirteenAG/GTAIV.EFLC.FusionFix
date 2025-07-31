@@ -70,8 +70,7 @@ public:
         FusionFix::onInitEventAsync() += []()
         {
             auto pattern = find_pattern("0F 85 ? ? ? ? 84 DB 0F 85 ? ? ? ? 8B CE", "0F 85 ? ? ? ? 84 DB 0F 85 ? ? ? ? 8B CF");
-            //injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jz -> jmp
-            static uintptr_t loc_A75BB0 = (uintptr_t)find_pattern("83 3D ? ? ? ? ? 75 ? 8B 07 68", "83 3D ? ? ? ? ? 75 ? 8B 06 8B 50").get_first(0);
+            static auto loc_A75BB0 = resolve_next_displacement(pattern.get_first(0)).value();
             struct DisableSniperWeaponTypeCheck
             {
                 void operator()(injector::reg_pack& regs)
@@ -79,7 +78,7 @@ public:
                     static auto zm = FusionFixSettings.GetRef("PREF_ZOOMEDMOVEMENT");
                     if (zm->get() || (!zm->get() && *(uint32_t*)(regs.eax + 4) != 6))
                     {
-                        *(uintptr_t*)(regs.esp - 4) = loc_A75BB0;
+                        force_return_address(loc_A75BB0);
                     }
                 }
             }; injector::MakeInline<DisableSniperWeaponTypeCheck>(pattern.get_first(0), pattern.get_first(6));

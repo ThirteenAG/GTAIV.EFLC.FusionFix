@@ -1,10 +1,12 @@
 module;
 
 #include <common.hxx>
+#include <Zydis.h>
 
 export module common;
 
 import <stacktrace>;
+import <optional>;
 
 export class FusionFix
 {
@@ -312,13 +314,18 @@ T GetExeModuleName()
         return moduleFileName.substr(moduleFileName.find_last_of(L"/\\") + 1);
 }
 
-export template <typename T, typename V>
-bool iequals(const T& s1, const V& s2)
+export bool iequals(std::string_view s1, std::string_view s2)
 {
-    T str1(s1); T str2(s2);
-    std::transform(str1.begin(), str1.end(), str1.begin(), ::tolower);
-    std::transform(str2.begin(), str2.end(), str2.begin(), ::tolower);
-    return (str1 == str2);
+    if (s1.size() != s2.size()) return false;
+    return std::equal(s1.begin(), s1.end(), s2.begin(), s2.end(),
+        [](char a, char b) { return ::tolower(a) == ::tolower(b); });
+}
+
+export bool iequals(std::wstring_view s1, std::wstring_view s2)
+{
+    if (s1.size() != s2.size()) return false;
+    return std::equal(s1.begin(), s1.end(), s2.begin(), s2.end(),
+        [](wchar_t a, wchar_t b) { return ::towlower(a) == ::towlower(b); });
 }
 
 export inline void CreateThreadAutoClose(LPSECURITY_ATTRIBUTES lpThreadAttributes, SIZE_T dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress, LPVOID lpParameter, DWORD dwCreationFlags, LPDWORD lpThreadId)
@@ -997,3 +1004,142 @@ private:
     std::vector<uint8_t> old_code;
     std::vector<uint8_t> new_code;
 };
+
+export std::optional<uintptr_t> resolve_displacement(auto ip)
+{
+    ZydisDecoder decoder;
+    #if defined(_M_X64) || defined(__x86_64__)
+    ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_STACK_WIDTH_64);
+    #else
+    ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LEGACY_32, ZYDIS_STACK_WIDTH_32);
+    #endif
+
+    ZydisDecodedInstruction instruction;
+    ZydisDecodedOperand operands[ZYDIS_MAX_OPERAND_COUNT];
+
+    ZyanStatus status = ZydisDecoderDecodeFull(
+        &decoder,
+        (void*)ip,
+        ZYDIS_MAX_INSTRUCTION_LENGTH,
+        &instruction,
+        operands
+    );
+
+    if (!ZYAN_SUCCESS(status))
+    {
+        return std::nullopt;
+    }
+
+    for (uint32_t i = 0; i < instruction.operand_count_visible; ++i)
+    {
+        const auto& operand = operands[i];
+
+        if (operand.type == ZYDIS_OPERAND_TYPE_MEMORY)
+        {
+            if (operand.mem.disp.has_displacement)
+            {
+                #if defined(_M_X64) || defined(__x86_64__)
+                if (operand.mem.is_rip_relative)
+                {
+                    return (uintptr_t)ip + instruction.length + operand.mem.disp.value;
+                }
+                #else
+                return static_cast<uintptr_t>(operand.mem.disp.value);
+                #endif
+            }
+        }
+        else if (operand.type == ZYDIS_OPERAND_TYPE_IMMEDIATE)
+        {
+            if (operand.imm.is_relative)
+            {
+                return (uintptr_t)ip + instruction.length + operand.imm.value.s;
+            }
+        }
+    }
+
+    if (instruction.attributes & ZYDIS_ATTRIB_IS_RELATIVE && instruction.raw.disp.size > 0)
+    {
+        return (uintptr_t)ip + instruction.length + instruction.raw.disp.value;
+    }
+
+    return std::nullopt;
+}
+
+export std::optional<uintptr_t> resolve_next_displacement(auto ip)
+{
+    ZydisDecoder decoder;
+    #if defined(_M_X64) || defined(__x86_64__)
+    ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_STACK_WIDTH_64);
+    #else
+    ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LEGACY_32, ZYDIS_STACK_WIDTH_32);
+    #endif
+
+    ZydisDecodedInstruction instruction;
+    ZydisDecodedOperand operands[ZYDIS_MAX_OPERAND_COUNT];
+
+    uintptr_t current_ip = (uintptr_t)ip;
+    size_t instruction_count = 0;
+
+    while (true)
+    {
+        ZyanStatus status = ZydisDecoderDecodeFull(
+            &decoder,
+            (void*)current_ip,
+            ZYDIS_MAX_INSTRUCTION_LENGTH,
+            &instruction,
+            operands
+        );
+
+        if (!ZYAN_SUCCESS(status))
+        {
+            return std::nullopt;
+        }
+
+        if (instruction.meta.category == ZYDIS_CATEGORY_COND_BR)
+        {
+            for (uint32_t i = 0; i < instruction.operand_count_visible; ++i)
+            {
+                const auto& operand = operands[i];
+
+                if (operand.type == ZYDIS_OPERAND_TYPE_MEMORY)
+                {
+                    if (operand.mem.disp.has_displacement)
+                    {
+                        #if defined(_M_X64) || defined(__x86_64__)
+                        if (operand.mem.is_rip_relative)
+                        {
+                            return current_ip + instruction.length + operand.mem.disp.value;
+                        }
+                        #else
+                        return static_cast<uintptr_t>(operand.mem.disp.value);
+                        #endif
+                    }
+                }
+                else if (operand.type == ZYDIS_OPERAND_TYPE_IMMEDIATE)
+                {
+                    if (operand.imm.is_relative)
+                    {
+                        return current_ip + instruction.length + operand.imm.value.s;
+                    }
+                }
+            }
+
+            if (instruction.attributes & ZYDIS_ATTRIB_IS_RELATIVE && instruction.raw.disp.size > 0)
+            {
+                return current_ip + instruction.length + instruction.raw.disp.value;
+            }
+
+            return std::nullopt;
+        }
+
+        current_ip += instruction.length;
+
+        constexpr size_t MAX_INSTRUCTIONS = 20;
+        if (++instruction_count >= MAX_INSTRUCTIONS)
+        {
+            return std::nullopt;
+        }
+    }
+
+    return std::nullopt;
+}

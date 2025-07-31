@@ -7,9 +7,6 @@ export module timecycext;
 import common;
 import comvars;
 
-export std::vector<std::string> snowTC;
-export std::vector<std::string> hallTC;
-
 export constexpr auto NUMWEATHERS = 9;
 export constexpr auto NUMHOURS = 11;
 constexpr int ACTUAL_HOURS[NUMHOURS] = { 0, 5, 6, 7, 9, 12, 18, 19, 20, 21, 22 };
