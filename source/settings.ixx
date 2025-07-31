@@ -18,7 +18,7 @@ bool shouldModifyMenuBackground(int curMenuTab)
 {
     auto selectedItem = CMenu::getSelectedItem();
     return (curMenuTab == 8)                       ||  // Everything in Display Tab
-           (curMenuTab == 0 && selectedItem == 15) ||  // PREF_EXTRANIGHTSHADOWS in Game Tab
+           (curMenuTab == 0 && selectedItem == 16) ||  // PREF_EXTRANIGHTSHADOWS in Game Tab
            (curMenuTab == 5 && selectedItem == 8)  ||  // PREF_CENTEREDCAMERA in Controls Tab
            (curMenuTab == 5 && selectedItem == 9);     // PREF_CENTEREDCAMERAFOOT in Controls Tab
 }
