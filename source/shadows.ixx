@@ -103,7 +103,7 @@ void __cdecl CBaseModelInfo__setFlagsHook(void* pModel, int dwFlags, int a3)
 
     if (bitFlags.test(no_shadow))
     {
-        if (std::any_of(std::begin(modelNames), std::end(modelNames), [](auto& i) { return curModelName.contains(i); }))
+        if (bExtraDynamicShadows >= 3 || std::any_of(std::begin(modelNames), std::end(modelNames), [](auto& i) { return curModelName.contains(i); }))
         {
             bitFlags.reset(no_shadow);
             bitFlags.reset(static_shadow_1);
