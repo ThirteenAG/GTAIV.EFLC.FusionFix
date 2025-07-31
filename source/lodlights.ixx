@@ -676,7 +676,7 @@ public:
                     {
                         static auto dl = FusionFixSettings.GetRef("PREF_DISTANTLIGHTS");
                         if (!dl->get() && regs.eax < 8)
-                            *(uintptr_t*)(regs.esp - 4) = loc_D658B0;
+                            force_return_address(loc_D658B0);
                     }
                 }; injector::MakeInline<DisableDefaultLodLights>(pattern.get_first(0), pattern.get_first(9));
             }

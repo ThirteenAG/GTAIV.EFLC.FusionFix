@@ -494,7 +494,7 @@ public:
                             if (!_stricmp(pszCurrentCutsceneName, "intro"))
                                 return;
 
-                            *(uintptr_t*)(regs.esp - 4) = loc_AE39F3;
+                            force_return_address(loc_AE39F3);
                         }
                     }
                 }; injector::MakeInline<EmissiveDepthWriteHook>(pattern.get_first(0), pattern.get_first(10));
@@ -590,7 +590,7 @@ public:
                         void operator()(injector::reg_pack& regs)
                         {
                             if (!(*(uint8_t*)(regs.ebx + 12941)) || !(*(uint8_t*)(regs.ebx + 12940)))
-                                *(uintptr_t*)(regs.esp - 4) = loc_5C8E93;
+                                force_return_address(loc_5C8E93);
                         }
                     }; injector::MakeInline<ReticleHealthHook>(pattern.get_first(0), pattern.get_first(9));
 
@@ -606,7 +606,7 @@ public:
                         void operator()(injector::reg_pack& regs)
                         {
                             if (!(*(uint8_t*)(regs.ecx + 12941)) || !(*(uint8_t*)(regs.ecx + 12940)))
-                                *(uintptr_t*)(regs.esp - 4) = loc_5C8E93;
+                                force_return_address(loc_5C8E93);
                         }
                     }; injector::MakeInline<ReticleHealthHook>(pattern.get_first(0), pattern.get_first(9));
 

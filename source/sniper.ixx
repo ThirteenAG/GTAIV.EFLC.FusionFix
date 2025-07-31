@@ -78,7 +78,7 @@ public:
                     static auto zm = FusionFixSettings.GetRef("PREF_ZOOMEDMOVEMENT");
                     if (zm->get() || (!zm->get() && *(uint32_t*)(regs.eax + 4) != 6))
                     {
-                        *(uintptr_t*)(regs.esp - 4) = loc_A75BB0;
+                        force_return_address(loc_A75BB0);
                     }
                 }
             }; injector::MakeInline<DisableSniperWeaponTypeCheck>(pattern.get_first(0), pattern.get_first(6));

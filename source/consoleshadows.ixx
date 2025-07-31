@@ -139,23 +139,21 @@ public:
                                 // Disable the shadow of the player's vehicle, along with the shadows of the player/peds in that vehicle, if headlight shadows and vehicle night shadows are on (to avoid both interfering witch each other)
                                 if (regs.esi && (regs.esi == car || (regs.esi == getLocalPlayerPed() && car && *(uint32_t*)(car + 0xFA0))) && !(*(char*)(regs.esp + 0x0B)))
                                 {
-                                    *(uintptr_t*)(regs.esp - 4) = loc_AE3867;
-                                    return;
+                                    return_to(loc_AE3867);
                                 }
                             }
 
                             // Enable shadows of the player/peds while in vehicles, if vehicle night shadows are on and if headlight shadows are off
                             if (!bHeadlightShadows && bVehicleNightShadows)
                             {
-                                *(uintptr_t*)(regs.esp - 4) = loc_AE374F;
-                                return;
+                                return_to(loc_AE374F);
                             }
 
                             if (!bVehicleNightShadows)
                             {
                                 if (regs.eax == 3 && (*(uint8_t*)(regs.esi + 620) & 4) != 0 && !(*(char*)(regs.esp + 0x0B)))
                                 {
-                                    *(uintptr_t*)(regs.esp - 4) = loc_AE3867;
+                                    force_return_address(loc_AE3867);
                                 }
                             }
                         }
@@ -182,23 +180,21 @@ public:
                                 // Disable the shadow of the player's vehicle, along with the shadows of the player/peds in that vehicle, if headlight shadows and vehicle night shadows are on (to avoid both interfering witch each other)
                                 if (regs.esi && (regs.esi == car || (regs.esi == getLocalPlayerPed() && car && *(uint32_t*)(car + 0xFA0))) && !(*(char*)(regs.esp + 0x0F)))
                                 {
-                                    *(uintptr_t*)(regs.esp - 4) = loc_AE3867;
-                                    return;
+                                    return_to(loc_AE3867);
                                 }
                             }
 
                             // Enable shadows of the player/peds while in vehicles, if vehicle night shadows are on and if headlight shadows are off
                             if (!bHeadlightShadows && bVehicleNightShadows)
                             {
-                                *(uintptr_t*)(regs.esp - 4) = loc_AE374F;
-                                return;
+                                return_to(loc_AE374F);
                             }
 
                             if (!bVehicleNightShadows)
                             {
                                 if (regs.eax == 3 && (*(uint8_t*)(regs.esi + 620) & 4) != 0 && !(*(char*)(regs.esp + 0x0F)))
                                 {
-                                    *(uintptr_t*)(regs.esp - 4) = loc_AE3867;
+                                    force_return_address(loc_AE3867);
                                 }
                             }
                         }

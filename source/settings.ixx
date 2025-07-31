@@ -670,8 +670,7 @@ public:
                     {
                         if (regs.esi != 49 && !shouldModifyMenuBackground(regs.esi))
                         {
-                            *(uintptr_t*)(regs.esp - 4) = loc_5C27AD;
-                            return;
+                            return_to(loc_5C27AD);
                         }
                     }
                 }; injector::MakeInline<MenuBackgroundHook1>(pattern.get_first(0));
@@ -684,8 +683,7 @@ public:
                     {
                         if (regs.eax == 3 || shouldModifyMenuBackground(regs.eax))
                         {
-                            *(uintptr_t*)(regs.esp - 4) = loc_5A9815;
-                            return;
+                            return_to(loc_5A9815);
                         }
                     }
                 }; injector::MakeInline<MenuBackgroundHook2>(pattern.get_first(0), pattern.get_first(9));
@@ -699,8 +697,7 @@ public:
                     {
                         if (pMenuTab && (*pMenuTab != 49 && !shouldModifyMapMenuBackground(*pMenuTab)))
                         {
-                            *(uintptr_t*)(regs.esp - 4) = loc_5A8557;
-                            return;
+                            return_to(loc_5A8557);
                         }
                     }
                 }; injector::MakeInline<MenuBackgroundHook3>(pattern.get_first(0), pattern.get_first(9));
@@ -714,8 +711,7 @@ public:
                     {
                         if (regs.eax == 49 || shouldModifyMapMenuBackground(regs.eax))
                         {
-                            *(uintptr_t*)(regs.esp - 4) = loc_5AC19A;
-                            return;
+                            return_to(loc_5AC19A);
                         }
                     }
                 }; injector::MakeInline<MenuBackgroundHook4>(pattern.get_first(0));
