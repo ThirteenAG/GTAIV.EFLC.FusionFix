@@ -330,16 +330,8 @@ public:
                         std::filesystem::path("IV"),
                         std::filesystem::path("TLAD"),
                         std::filesystem::path("TBoGT"),
+                        std::filesystem::path("VICECITY"),
                     };
-
-                    if (CText::hasViceCityStrings())
-                    {
-                        episodicPaths = {
-                            std::filesystem::path("VICECITY"),
-                            std::filesystem::path("VICECITY"),
-                            std::filesystem::path("VICECITY"),
-                        };
-                    }
 
                     auto gamePath = GetExeModulePath();
                     std::error_code ec;
@@ -356,6 +348,9 @@ public:
                                 auto contains_subfolder = [](const std::filesystem::path& path, const std::filesystem::path& base) -> bool {
                                     for (auto& p : path)
                                     {
+                                        if (p == *path.begin())
+                                            continue;
+
                                         if (iequals(p.native(), base.native()))
                                             return true;
                                     }
@@ -430,7 +425,11 @@ public:
 
                                     if (std::any_of(std::begin(episodicPaths), std::end(episodicPaths), [&](auto& it) { return contains_subfolder(relativePath, it); }))
                                     {
-                                        if (*_dwCurrentEpisode < int32_t(episodicPaths.size()) && contains_subfolder(relativePath, episodicPaths[*_dwCurrentEpisode]))
+                                        auto curEp = *_dwCurrentEpisode;
+                                        if (CText::hasViceCityStrings())
+                                            curEp = episodicPaths.size() - 1;
+
+                                        if (curEp < int32_t(episodicPaths.size()) && contains_subfolder(relativePath, episodicPaths[curEp]))
                                             CImgManager__addImgFile(imgPath.data(), 1, -1);
                                     }
                                     else
