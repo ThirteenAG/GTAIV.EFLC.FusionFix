@@ -14,6 +14,21 @@ import fusiondxhook;
 import gxtloader;
 import timecycext;
 
+bool shouldModifyMenuBackground(int curMenuTab)
+{
+    auto selectedItem = CMenu::getSelectedItem();
+    return (curMenuTab == 8)                       ||  // Everything in Display Tab
+           (curMenuTab == 0 && selectedItem == 15) ||  // PREF_EXTRANIGHTSHADOWS in Game Tab
+           (curMenuTab == 5 && selectedItem == 8)  ||  // PREF_CENTEREDCAMERA in Controls Tab
+           (curMenuTab == 5 && selectedItem == 9);     // PREF_CENTEREDCAMERAFOOT in Controls Tab
+}
+
+bool bTransparentMapMenu = false;
+export bool shouldModifyMapMenuBackground(int curMenuTab = *pMenuTab)
+{
+    return bTransparentMapMenu && curMenuTab == 3;
+}
+
 namespace CText
 {
     using CText = void;
@@ -645,15 +660,6 @@ public:
             }
 
             // Same but for Game tab
-            static auto shouldModifyBackground = [](int curMenuTab) -> bool
-            {
-                auto selectedItem = CMenu::getSelectedItem();
-                return (curMenuTab == 8)                       || // Everything in Display Tab
-                       (curMenuTab == 0 && selectedItem == 15) || // PREF_EXTRANIGHTSHADOWS in Game Tab
-                       (curMenuTab == 5 && selectedItem == 8)  || // PREF_CENTEREDCAMERA in Controls Tab
-                       (curMenuTab == 5 && selectedItem == 9);    // PREF_CENTEREDCAMERAFOOT in Controls Tab
-            };
-
             pattern = hook::pattern("83 FE ? 75 ? FF 35 ? ? ? ? E8 ? ? ? ? 83 C4 ? 85 C0 79");
             if (!pattern.empty())
             {
@@ -662,7 +668,7 @@ public:
                 {
                     void operator()(injector::reg_pack& regs)
                     {
-                        if (regs.esi != 49 && !shouldModifyBackground(regs.esi))
+                        if (regs.esi != 49 && !shouldModifyMenuBackground(regs.esi))
                         {
                             *(uintptr_t*)(regs.esp - 4) = loc_5C27AD;
                             return;
@@ -676,7 +682,7 @@ public:
                 {
                     void operator()(injector::reg_pack& regs)
                     {
-                        if (regs.eax == 3 || shouldModifyBackground(regs.eax))
+                        if (regs.eax == 3 || shouldModifyMenuBackground(regs.eax))
                         {
                             *(uintptr_t*)(regs.esp - 4) = loc_5A9815;
                             return;
@@ -684,13 +690,14 @@ public:
                     }
                 }; injector::MakeInline<MenuBackgroundHook2>(pattern.get_first(0), pattern.get_first(9));
 
+                // And for map tab
                 pattern = hook::pattern("83 3D ? ? ? ? ? 75 ? 83 FE ? 74 ? C6 05 ? ? ? ? ? E8 ? ? ? ? 83 3D");
                 static auto loc_5A8557 = resolve_displacement(pattern.get_first(7)).value();
                 struct MenuBackgroundHook3
                 {
                     void operator()(injector::reg_pack& regs)
                     {
-                        if (pMenuTab && (*pMenuTab != 49 && *pMenuTab != 3))
+                        if (pMenuTab && (*pMenuTab != 49 && !shouldModifyMapMenuBackground(*pMenuTab)))
                         {
                             *(uintptr_t*)(regs.esp - 4) = loc_5A8557;
                             return;
@@ -705,7 +712,7 @@ public:
                 {
                     void operator()(injector::reg_pack& regs)
                     {
-                        if (regs.eax == 49 || regs.eax == 3)
+                        if (regs.eax == 49 || shouldModifyMapMenuBackground(regs.eax))
                         {
                             *(uintptr_t*)(regs.esp - 4) = loc_5AC19A;
                             return;
@@ -860,6 +867,7 @@ public:
         {
             CIniReader iniReader("");
             static bool bExtendedTimecycEditing = iniReader.ReadInteger("FOG", "ExtendedTimecycEditing", 0) != 0;
+            bTransparentMapMenu = iniReader.ReadInteger("MISC", "TransparentMapMenu", 0) != 0;
 
             static ID3DXFont* pFPSFont = nullptr;
             
