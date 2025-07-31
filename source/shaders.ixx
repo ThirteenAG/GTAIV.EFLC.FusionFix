@@ -135,7 +135,7 @@ class Shaders
 public:
     Shaders()
     {
-        static IDirect3DTexture9* pHDRTexQuarter = nullptr;
+        static rage::grcRenderTargetPC* pHDRTexQuarter = nullptr;
         static float fTreeAlphaPC = 0.625f;
         static float fTreeAlphaConsole = 4.0f;
 
@@ -605,9 +605,6 @@ public:
 
         FusionFix::onInitEventAsync() += []()
         {
-            CIniReader iniReader("");
-            static bool bFixRainDrops = iniReader.ReadInteger("MISC", "FixRainDrops", 1) != 0;
-
             // Skip SetRenderState D3DRS_ADAPTIVETESS_* entirely (silences warnings in DXVK logs)
             auto pattern = find_pattern("74 24 F3 0F 10 44 24 ? 51 8D 44 24 44", "74 1C D9 44 24 14 51 8D 4C 24 44");
             injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
@@ -615,26 +612,37 @@ public:
             pattern = find_pattern("74 0A 6A 00 E8 ? ? ? ? 83 C4 04 8B 7C 24 1C 83 EF 80", "74 0A 6A 00 E8 ? ? ? ? 83 C4 04 8B 5C 24 20 81 C6");
             injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
 
-            pattern = find_pattern<2>("89 3C B5 ? ? ? ? 8B 82 ? ? ? ? 57 8B 08 56 50 FF 91 ? ? ? ? 5F 5E C2 0C 00", "89 14 8D ? ? ? ? 8B 80 ? ? ? ? 8B 30 52 8B 96 ? ? ? ? 51 50 FF D2 5E C2 0C 00");
-            static auto reg = *pattern.get(1).get<uint8_t>(1);
-            static auto SetTextureHook = safetyhook::create_mid(pattern.get(1).get<void>(0), [](SafetyHookContext& regs)
+            //rain drop refraction fix
+            pattern = find_pattern("E8 ? ? ? ? 8B 5E 74 8B 46 0C", "E8 ? ? ? ? 8B 4D 50 85 C9 5F 5E");
+            static auto grcEffect__SetTexture = static_cast<void(__thiscall*)(uintptr_t, uintptr_t, uint32_t, rage::grcTexturePC*)>(injector::GetBranchDestination(pattern.get_first(0)).get());
+
+            pattern = find_pattern("55 8B EC 83 E4 F8 83 EC 18 56 57 8B F9 83 7F 04 00", "55 8B EC 83 E4 F8 83 EC 10 56 8B F0");
+            static auto stackSize = *pattern.get_first<uint8_t>(8);
+            static auto SetCommonParticleVarsHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
             {
-                if (bFixRainDrops && ((reg == 0x3C && regs.esi == 1 && regs.edi == 0) || (reg != 0x3C && regs.ecx == 1 && regs.edx == 0)))
+                if (!pHDRTexQuarter)
                 {
-                    if (!pHDRTexQuarter)
-                    {
-                        auto qs0 = rage::grcTextureFactoryPC::GetRTByName("Quarter Screen 0");
-                        if (qs0)
-                            pHDRTexQuarter = qs0->mD3DTexture;
-                    }
+                    pHDRTexQuarter = rage::grcTextureFactoryPC::GetRTByName("Quarter Screen 0");
+                }
                 
-                    if (pHDRTexQuarter)
-                    {
-                        if (reg == 0x3C)
-                            regs.edi = (uintptr_t)pHDRTexQuarter;
-                        else
-                            regs.edx = (uintptr_t)pHDRTexQuarter;
-                    }
+                uintptr_t thisPtr;
+                if (stackSize == 0x10)
+                {
+                    thisPtr = regs.eax;
+                }
+                else
+                {
+                    thisPtr = regs.ecx;
+                }
+                
+                uint32_t frameMapVar = *(uint32_t*)(thisPtr + 0xA0);
+                uintptr_t shaderFx = *(uintptr_t*)(thisPtr + 0x4);
+                uintptr_t instanceData = shaderFx + 0x14;
+                uintptr_t effect = *(uintptr_t*)(instanceData + 0x4);
+
+                if (frameMapVar)
+                {
+                    grcEffect__SetTexture(effect, instanceData, frameMapVar, reinterpret_cast<rage::grcTexturePC*>(pHDRTexQuarter));
                 }
             });
 
@@ -642,7 +650,6 @@ public:
             {
                 if (CText::hasViceCityStrings())
                 {
-                    bFixRainDrops = false;
                     bNoWindSway = true;
                 }
             };
