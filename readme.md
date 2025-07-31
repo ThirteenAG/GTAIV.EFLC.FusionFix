@@ -166,7 +166,6 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 - Restored timecycles from consoles with improved auto exposure and fixed missing moon in some weathers
 - Restored the language switch option from consoles
-- Added bloom and depth of field to TBOGT to match the other episodes
 - Fixed glass shards lacking colors
 - Added an option to restore the auto exposure effect from consoles
 - Restored environment reflection intensity from consoles
