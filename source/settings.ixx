@@ -26,7 +26,7 @@ bool shouldModifyMenuBackground(int curMenuTab)
 bool bTransparentMapMenu = false;
 export bool shouldModifyMapMenuBackground(int curMenuTab = *pMenuTab)
 {
-    return bTransparentMapMenu && curMenuTab == 3;
+    return bTransparentMapMenu && bIsMenu && curMenuTab == 3;
 }
 
 namespace CText
@@ -1063,6 +1063,18 @@ public:
                         }
                     }
                 }
+            };
+
+            FusionFix::onMenuEnterEvent() += []()
+            {
+                bIsMenu = true;
+                fMenuBlur = 1.0f;
+            };
+
+            FusionFix::onMenuExitEvent() += []()
+            {
+                bIsMenu = false;
+                fMenuBlur = 0.0f;
             };
         }
     }

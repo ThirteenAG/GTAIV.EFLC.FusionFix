@@ -143,6 +143,8 @@ public:
             bool bDefaultCameraAngleInTLaD = iniReader.ReadInteger("MISC", "DefaultCameraAngleInTLaD", 0) != 0;
             bool bPedDeathAnimFixFromTBoGT = iniReader.ReadInteger("MISC", "PedDeathAnimFixFromTBoGT", 1) != 0;
             bool bAlwaysDisplayHealthOnReticle = iniReader.ReadInteger("MISC", "AlwaysDisplayHealthOnReticle", 1) != 0;
+            int nMenuEnteringDelay = std::clamp(iniReader.ReadInteger("MISC", "MenuEnteringDelay", 0), 0, 400);
+            int nMenuAccessDelayOnStartup = std::clamp(iniReader.ReadInteger("MISC", "MenuAccessDelayOnStartup", 0), 0, 2700);
 
             //fix for zoom flag in tbogt
             if (nAimingZoomFix)
@@ -658,6 +660,16 @@ public:
 
                 pattern = find_pattern("55 8B EC 83 E4 ? 81 EC ? ? ? ? 57 8B F9", "55 8B EC 83 E4 ? 81 EC ? ? ? ? 56 57 8B F1 E8 ? ? ? ? 8B 46");
                 shCHelisub_B69D80 = safetyhook::create_inline(pattern.get_first(), CHelisub_B69D80);
+            }
+
+            {
+                auto pattern = hook::pattern("68 ? ? ? ? E8 ? ? ? ? 6A ? E8 ? ? ? ? 8B 0D");
+                if (!pattern.empty())
+                    injector::WriteMemory(pattern.get_first(1), nMenuEnteringDelay, true);
+
+                pattern = hook::pattern("81 F9 ? ? ? ? 72 ? EB ? E8");
+                if (!pattern.empty())
+                    injector::WriteMemory(pattern.get_first(2), nMenuAccessDelayOnStartup + 300, true);
             }
         };
     }
