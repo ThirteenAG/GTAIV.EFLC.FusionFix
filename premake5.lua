@@ -46,6 +46,16 @@ workspace "GTAIV.EFLC.FusionFix"
    defines { "rsc_FileVersion=\"" .. major .. "." .. minor .. "." .. build .. "\"" }
    defines { "rsc_ProductVersion=\"" .. major .. "." .. minor .. "." .. build .. "\"" }
 
+   local githash = ""
+   local f = io.popen("git rev-parse --short HEAD")
+   if f then
+      githash = f:read("*a"):gsub("%s+", "")
+      f:close()
+   end
+
+   defines { "rsc_GitSHA1=\"" .. githash .. "\"" }
+   defines { "rsc_GitSHA1W=L\"" .. githash .. "\"" }
+
    defines { "_CRT_SECURE_NO_WARNINGS" }
 
    includedirs { "source" }

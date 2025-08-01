@@ -21,7 +21,7 @@ std::wstring GetModuleVersion(HMODULE hModule)
         DWORD size = GetFileVersionInfoSizeW(filePath, &dummy);
         if (size > 0)
         {
-            std::vector<BYTE> versionInfo(size); // RAII-managed buffer
+            std::vector<BYTE> versionInfo(size);
             if (GetFileVersionInfoW(filePath, 0, size, versionInfo.data()))
             {
                 VS_FIXEDFILEINFO* fileInfo;
@@ -33,6 +33,13 @@ std::wstring GetModuleVersion(HMODULE hModule)
                     DWORD build = (fileInfo->dwFileVersionLS >> 16) & 0xFFFF;
                     DWORD revision = (fileInfo->dwFileVersionLS) & 0xFFFF;
                     versionStr = std::format(L"{}.{}.{}.{}", major, minor, build, revision);
+                }
+
+                wchar_t* gitHash = nullptr;
+                UINT gitHashLen = 0;
+                if (VerQueryValueW(versionInfo.data(), L"\\StringFileInfo\\040004b0\\GitHash", (LPVOID*)&gitHash, &gitHashLen) && gitHashLen > 1)
+                {
+                    versionStr += L"-" + std::wstring(gitHash);
                 }
             }
         }
