@@ -143,7 +143,7 @@ public:
             bool bDefaultCameraAngleInTLaD = iniReader.ReadInteger("MISC", "DefaultCameraAngleInTLaD", 0) != 0;
             bool bPedDeathAnimFixFromTBoGT = iniReader.ReadInteger("MISC", "PedDeathAnimFixFromTBoGT", 1) != 0;
             bool bAlwaysDisplayHealthOnReticle = iniReader.ReadInteger("MISC", "AlwaysDisplayHealthOnReticle", 1) != 0;
-            int nMenuEnteringDelay = std::clamp(iniReader.ReadInteger("MISC", "MenuEnteringDelay", 0), 0, 400);
+            int nMenuEnteringDelay = std::clamp(iniReader.ReadInteger("MISC", "MenuEnteringDelay", 0), 20, 400);
             int nMenuAccessDelayOnStartup = std::clamp(iniReader.ReadInteger("MISC", "MenuAccessDelayOnStartup", 0), 0, 2700);
 
             //fix for zoom flag in tbogt
