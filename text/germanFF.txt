@@ -167,7 +167,7 @@ Transparentes Kartenmenü
 ~r~ACHTUNG: CHSS bewirkt nur etwas, wenn die Schattenqualität auf "Sehr hoch" eingestellt ist.
 
 [FF_WARN7]
-~r~ACHTUNG: Verwenden Sie die Zwischensequenz-Audio-Synchronisierung, wenn Sie eine Audio-Desynchronisation feststellen. Sie kann in einer Zwischensequenz mit der Pfeil-nach-oben-Taste oder dem D-Pad nach oben.
+~r~ACHTUNG: Schalten Sie die Zwischensequenz-Audio-Synchronisierung EIN (ON) bei Audio-Desynchronisation, AUS (OFF) für flüssigere Animationen. Dies kann in einer Zwischensequenz mit der Pfeil-nach-oben-Taste oder dem D-Pad nach oben umgeschaltet
 
 [DUMMY_l11]
 Dummy label.

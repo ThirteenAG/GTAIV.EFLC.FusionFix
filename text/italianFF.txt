@@ -167,7 +167,7 @@ Menu Mappa Trasparente
 ~r~ATTENZIONE: CHSS ha effetto solo con la Qualità delle Ombre impostata su Molto Alta.
 
 [FF_WARN7]
-~r~ATTENZIONE: Usa la Sincronizzazione Audio Intermezzi se riscontri desincronizzazione audio. Può essere attivata/disattivata in un intermezzo tramite il tasto Freccia Su o il D-pad Su.
+~r~ATTENZIONE: Usa la Sincronizzazione Audio Intermezzi su ON se riscontri desincronizzazione audio, su OFF per la fluidità dell'animazione. Può essere attivata/disattivata in un intermezzo tramite il tasto Freccia Su o il D-pad Su.
 
 [DUMMY_l11]
 Dummy label.
