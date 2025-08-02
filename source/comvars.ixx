@@ -1370,7 +1370,6 @@ export bool bHeadlightShadows = false;
 export bool bHighResolutionShadows = false;
 export bool bIsQUB3D = false;
 export float fMenuBlur = 0.0f;
-export bool bIsMenu = false;
 
 export inline LONG getWindowWidth()
 {

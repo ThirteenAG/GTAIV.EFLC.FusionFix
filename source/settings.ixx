@@ -511,7 +511,7 @@ public:
 export bool shouldModifyMapMenuBackground(int curMenuTab = *pMenuTab)
 {
     static auto bTransparentMapMenu = FusionFixSettings.GetRef("PREF_TRANSPARENTMAPMENU");
-    return bTransparentMapMenu->get() && bIsMenu && curMenuTab == 3;
+    return bTransparentMapMenu->get() && fMenuBlur && curMenuTab == 3;
 }
 
 class Settings
@@ -655,7 +655,7 @@ public:
             {
                 auto selectedItem = CMenu::getSelectedItem();
                 return (curMenuTab == 8)                       ||  // Everything in Display Tab
-                       (curMenuTab == 0 && selectedItem == 16) ||  // PREF_EXTRANIGHTSHADOWS in Game Tab
+                       (curMenuTab == 0 && selectedItem == 18) ||  // PREF_EXTRANIGHTSHADOWS in Game Tab
                        (curMenuTab == 5 && selectedItem == 8)  ||  // PREF_CENTEREDCAMERA in Controls Tab
                        (curMenuTab == 5 && selectedItem == 9);     // PREF_CENTEREDCAMERAFOOT in Controls Tab
             };
@@ -1089,15 +1089,16 @@ public:
                 }
             };
 
-            FusionFix::onMenuEnterEvent() += []()
+            FusionFix::onMenuDrawingEvent() += []()
             {
-                bIsMenu = true;
-                fMenuBlur = 1.0f;
+                if (*pMenuTab == 3)
+                    fMenuBlur = 1.0f;
+                else
+                    fMenuBlur = 0.0f;
             };
 
             FusionFix::onMenuExitEvent() += []()
             {
-                bIsMenu = false;
                 fMenuBlur = 0.0f;
             };
         }
