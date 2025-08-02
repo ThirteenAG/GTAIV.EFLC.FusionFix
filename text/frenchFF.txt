@@ -142,6 +142,9 @@ Clignotants
 [HalloweenEvent1]
 Événement d'Halloween
 
+[TranspMapMenu]
+Menu de la carte transparent
+
 [FF_WARN0]
 ~p~Fichiers IMG:
 

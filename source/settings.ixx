@@ -14,21 +14,6 @@ import fusiondxhook;
 import gxtloader;
 import timecycext;
 
-bool shouldModifyMenuBackground(int curMenuTab)
-{
-    auto selectedItem = CMenu::getSelectedItem();
-    return (curMenuTab == 8)                       ||  // Everything in Display Tab
-           (curMenuTab == 0 && selectedItem == 16) ||  // PREF_EXTRANIGHTSHADOWS in Game Tab
-           (curMenuTab == 5 && selectedItem == 8)  ||  // PREF_CENTEREDCAMERA in Controls Tab
-           (curMenuTab == 5 && selectedItem == 9);     // PREF_CENTEREDCAMERAFOOT in Controls Tab
-}
-
-bool bTransparentMapMenu = false;
-export bool shouldModifyMapMenuBackground(int curMenuTab = *pMenuTab)
-{
-    return bTransparentMapMenu && bIsMenu && curMenuTab == 3;
-}
-
 namespace CText
 {
     using CText = void;
@@ -254,7 +239,7 @@ public:
             { 0, "PREF_ANTIALIASING",      "MISC",       "Antialiasing",                    "MENU_DISPLAY_ANTIALIASING",  7, nullptr, AntialiasingText.eMO_OFF, std::distance(std::begin(AntialiasingText.data), std::end(AntialiasingText.data)) - 1 },
             { 0, "PREF_UPDATE",            "UPDATE",     "CheckForUpdates",                 "",                           0, nullptr, 0, 1 },
             { 0, "PREF_BLOCKONLOSTFOCUS",  "MAIN",       "BlockOnLostFocus",                "",                           0, nullptr, 0, 1 },
-  /*UNUSED*/{ 0, "PREF_LAMPPOSTSHADOWS",   "SHADOWS",    "LamppostShadows",                 "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_TRANSPARENTMAPMENU","MISC",       "TransparentMapMenu",              "",                           0, nullptr, 0, 1 },
   /*UNUSED*/{ 0, "PREF_HEADLIGHTSHADOWS",  "SHADOWS",    "HeadlightShadows",                "",                           0, nullptr, 0, 1 },
             { 0, "PREF_TIMEDEVENTS",       "MISC",       "TimedEvents",                     "",                           1, nullptr, 0, 1 },
             { 0, "PREF_VOLUMETRICFOG",     "FOG",        "VolumetricFog",                   "",                           0, nullptr, 0, 1 },
@@ -523,6 +508,12 @@ public:
 
 } FusionFixSettings;
 
+export bool shouldModifyMapMenuBackground(int curMenuTab = *pMenuTab)
+{
+    static auto bTransparentMapMenu = FusionFixSettings.GetRef("PREF_TRANSPARENTMAPMENU");
+    return bTransparentMapMenu->get() && bIsMenu && curMenuTab == 3;
+}
+
 class Settings
 {
 public:
@@ -660,6 +651,15 @@ public:
             }
 
             // Same but for Game tab
+            static auto shouldModifyMenuBackground = [](int curMenuTab) -> bool
+            {
+                auto selectedItem = CMenu::getSelectedItem();
+                return (curMenuTab == 8) ||  // Everything in Display Tab
+                    (curMenuTab == 0 && selectedItem == 16) ||  // PREF_EXTRANIGHTSHADOWS in Game Tab
+                    (curMenuTab == 5 && selectedItem == 8) ||  // PREF_CENTEREDCAMERA in Controls Tab
+                    (curMenuTab == 5 && selectedItem == 9);     // PREF_CENTEREDCAMERAFOOT in Controls Tab
+            };
+
             pattern = hook::pattern("83 FE ? 75 ? FF 35 ? ? ? ? E8 ? ? ? ? 83 C4 ? 85 C0 79");
             if (!pattern.empty())
             {
@@ -863,7 +863,6 @@ public:
         {
             CIniReader iniReader("");
             static bool bExtendedTimecycEditing = iniReader.ReadInteger("FOG", "ExtendedTimecycEditing", 0) != 0;
-            bTransparentMapMenu = iniReader.ReadInteger("MISC", "TransparentMapMenu", 0) != 0;
 
             static ID3DXFont* pFPSFont = nullptr;
             

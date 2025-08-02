@@ -522,6 +522,7 @@
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="LightSyncRGB" value="PREF_LEDILLUMINATION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Timed Events" value="PREF_TIMEDEVENTS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="TranspMapMenu" value="PREF_TRANSPARENTMAPMENU" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="Check Updates" value="PREF_UPDATE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
@@ -1275,6 +1276,7 @@
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="LightSyncRGB" value="PREF_LEDILLUMINATION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Timed Events" value="PREF_TIMEDEVENTS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="TranspMapMenu" value="PREF_TRANSPARENTMAPMENU" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="Check Updates" value="PREF_UPDATE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       

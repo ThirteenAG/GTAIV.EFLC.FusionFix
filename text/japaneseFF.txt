@@ -142,6 +142,9 @@ FPSリミッター
 [HalloweenEvent1]
 ハロウィーンイベントが有効化されました
 
+[TranspMapMenu]
+透明マップメニュー
+
 [FF_WARN0]
 ~p~IMG ファイル:
 

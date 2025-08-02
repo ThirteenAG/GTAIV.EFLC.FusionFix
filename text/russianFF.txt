@@ -142,6 +142,9 @@ Fusion Fix: Проверять Обновления
 [HalloweenEvent1]
 Хэллоуин событие включено
 
+[TranspMapMenu]
+Прозрачное меню карты
+
 [FF_WARN0]
 ~p~IMG Архивы:
 

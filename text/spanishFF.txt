@@ -142,6 +142,9 @@ Evento de Halloween desactivado
 [HalloweenEvent1]
 Evento de Halloween activado
 
+[TranspMapMenu]
+Menú del mapa transparente
+
 [FF_WARN0]
 ~p~Archivos IMG:
 

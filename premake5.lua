@@ -17,6 +17,7 @@ workspace "GTAIV.EFLC.FusionFix"
    buildoptions { "/dxifcInlineFunctions- /Zc:__cplusplus /utf-8" }
    staticruntime "On"
    characterset ("Unicode")
+   flags { "MultiProcessorCompile" }
 
    defines { "rsc_CompanyName=\"GTAIV.EFLC.FusionFix\"" }
    defines { "rsc_LegalCopyright=\"GTAIV.EFLC.FusionFix\""} 

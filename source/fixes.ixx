@@ -671,6 +671,10 @@ public:
                 if (!pattern.empty())
                     injector::WriteMemory(pattern.get_first(1), nMenuEnteringDelay, true);
 
+                pattern = hook::pattern("68 ? ? ? ? EB ? 6A ? 68 ? ? ? ? 6A");
+                if (!pattern.empty())
+                    injector::WriteMemory(pattern.get_first(1), nMenuEnteringDelay, true);
+
                 pattern = hook::pattern("81 F9 ? ? ? ? 72 ? EB ? E8");
                 if (!pattern.empty())
                     injector::WriteMemory(pattern.get_first(2), nMenuAccessDelayOnStartup + 300, true);
