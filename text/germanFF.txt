@@ -163,5 +163,8 @@ Halloween-Event aktiviert
 [FF_WARN6]
 ~r~ACHTUNG: CHSS bewirkt nur etwas, wenn die Schattenqualität auf "Sehr hoch" eingestellt ist.
 
+[FF_WARN7]
+~r~ACHTUNG: Verwenden Sie die Zwischensequenz-Audio-Synchronisierung, wenn Sie eine Audio-Desynchronisation feststellen. Sie kann in einer Zwischensequenz mit der Pfeil-nach-oben-Taste oder dem D-Pad nach oben.
+
 [DUMMY_l11]
 Dummy label.

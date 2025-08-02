@@ -163,5 +163,8 @@ Evento de Halloween activado
 [FF_WARN6]
 ~r~ATENCIÓN: CHSS se activa solamente con la calidad de las sombras puesta en "Muy alta".
 
+[FF_WARN7]
+~r~ATENCIÓN: Usa la sincronización de audio de cinemáticas si tienes desincronización de audio. Se puede activar/desactivar en una cinemática con la tecla de flecha arriba o el D-pad arriba.
+
 [DUMMY_l11]
 Dummy label.

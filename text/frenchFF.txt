@@ -163,5 +163,8 @@ Clignotants
 [FF_WARN6]
 ~r~AVERTISSEMENT : CHSS ne fonctionne qu'avec la Qualité des Ombres réglée sur Très Élevée.
 
+[FF_WARN7]
+~r~AVERTISSEMENT : Utilisez la synchronisation audio des cinématiques si vous rencontrez une désynchronisation audio. Elle peut être activée/désactivée dans une cinématique avec la touche Flèche Haut ou le D-pad Haut.
+
 [DUMMY_l11]
 Dummy label.

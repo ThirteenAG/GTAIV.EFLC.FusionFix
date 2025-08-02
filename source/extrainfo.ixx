@@ -85,32 +85,12 @@ public:
                     {
                         static std::wstring extra = L"";
                         
-                        if (CGameConfigReader::ms_imgFiles && pMenuTab && (*pMenuTab == 49 || *pMenuTab == 0))
+                        if (CGameConfigReader::ms_imgFiles && pMenuTab && (*pMenuTab == 49 || *pMenuTab == 0 || *pMenuTab == 7)) // Graphics || Game || Audio
                         {
                             auto s = std::wstring_view((wchar_t*)regs.eax);
-                            auto imgNum = 0;
-                            auto imgArrSize = 0;
-                            for (auto& it : *CGameConfigReader::ms_imgFiles)
-                            {
-                                if (it.m_hFile != -1)
-                                    imgNum++;
-                                imgArrSize++;
-                            }
                             extra = s;
                             extra += L"~n~";
                             extra += L"                        ";
-
-                            if (*pMenuTab == 49)
-                            {
-                                auto FF_WARN0 = CText::getText("FF_WARN0");
-                                extra += (FF_WARN0[0] ? FF_WARN0 : L"~p~IMG Files:") + std::wstring(L" ") + std::to_wstring(imgNum) + L" / " + std::to_wstring(imgArrSize);
-
-                                ::PROCESS_MEMORY_COUNTERS pmc;
-                                if (::GetProcessMemoryInfo(::GetCurrentProcess(), &pmc, sizeof(pmc)))
-                                {
-                                    extra += L"; RAM: " + std::to_wstring(pmc.WorkingSetSize / 1000 / 1000) + L" MB";
-                                }
-                            }
 
                             if (*pMenuTab == 0)
                             {
@@ -123,37 +103,44 @@ public:
                                 if (!ualVer.empty())
                                     extra += L" / " + ualVer;
                             }
-
-                            if (*pMenuTab == 49)
+                            else if (*pMenuTab == 49)
                             {
+                                auto imgNum = 0;
+                                auto imgArrSize = 0;
+                                for (auto& it : *CGameConfigReader::ms_imgFiles)
+                                {
+                                    if (it.m_hFile != -1)
+                                        imgNum++;
+                                    imgArrSize++;
+                                }
+
+                                auto FF_WARN0 = CText::getText("FF_WARN0");
+                                extra += (FF_WARN0[0] ? FF_WARN0 : L"~p~IMG Files:") + std::wstring(L" ") + std::to_wstring(imgNum) + L" / " + std::to_wstring(imgArrSize);
+
+                                ::PROCESS_MEMORY_COUNTERS pmc;
+                                if (::GetProcessMemoryInfo(::GetCurrentProcess(), &pmc, sizeof(pmc)))
+                                {
+                                    extra += L"; RAM: " + std::to_wstring(pmc.WorkingSetSize / 1000 / 1000) + L" MB";
+                                }
+
                                 auto FF_WARN1 = CText::getText("FF_WARN1");
                                 if (imgNum >= imgArrSize) extra += FF_WARN1[0] ? FF_WARN1 : L"; ~r~WARNING: 255 IMG limit exceeded, will cause streaming issues.";
-                            }
-
-                            /*
-                            if (bExtraNightShadows || bHeadlightShadows)
-                            {
-                                extra += L"~n~";
-                                extra += L"                        ";
-                                auto FF_WARN2 = std::wstring(CText::getText("FF_WARN2"));
-
-                                if (FF_WARN2[0])
-                                    extra += FF_WARN2;
-                                else
-                                    extra += L"~r~WARNING: Extra Night Shadows is an original PC option by Rockstar. Extremely broken, not recommended.";
-                            }
-                            */
-
-
-                            if (FusionFixSettings.Get("PREF_SHADOWFILTER") == FusionFixSettings.ShadowFilterText.eCHSS)
-                            {
-                                if (FusionFixSettings.Get("PREF_SHADOW_QUALITY") < 4) // Very High
+                            
+                                if (FusionFixSettings.Get("PREF_SHADOWFILTER") == FusionFixSettings.ShadowFilterText.eCHSS)
                                 {
-                                    extra += L"~n~";
-                                    extra += L"                        ";
-                                    auto FF_WARN6 = CText::getText("FF_WARN6");
-                                    extra += FF_WARN6[0] ? FF_WARN6 : L"~r~WARNING: CHSS only takes effect with Shadow Quality set to Very High.";
+                                    if (FusionFixSettings.Get("PREF_SHADOW_QUALITY") < 4) // Very High
+                                    {
+                                        extra += L"~n~";
+                                        extra += L"                        ";
+                                        auto FF_WARN6 = CText::getText("FF_WARN6");
+                                        extra += FF_WARN6[0] ? FF_WARN6 : L"~r~WARNING: CHSS only takes effect with Shadow Quality set to Very High.";
+                                    }
                                 }
+                            }
+                            else if (*pMenuTab == 7)
+                            {
+                                auto FF_WARN7 = CText::getText("FF_WARN7");
+                                extra += FF_WARN7[0] ? FF_WARN7 : L"~r~WARNING: Use Cutscene Audio Sync if you have audio desynchronization. It can be toggled in a cutscene via the Up Arrow key or D-pad Up.";
                             }
 
                             regs.eax = (uintptr_t)extra.c_str();

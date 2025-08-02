@@ -163,5 +163,8 @@ Halloween event activated
 [FF_WARN6]
 ~r~WARNING: CHSS only takes effect with Shadow Quality set to Very High.
 
+[FF_WARN7]
+~r~WARNING: Use Cutscene Audio Sync if you have audio desynchronization. It can be toggled in a cutscene via the Up Arrow key or D-pad Up.
+
 [DUMMY_l11]
 Dummy label.
