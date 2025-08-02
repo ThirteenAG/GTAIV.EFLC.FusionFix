@@ -651,13 +651,13 @@ public:
             }
 
             // Same but for Game tab
-            static auto shouldModifyMenuBackground = [](int curMenuTab) -> bool
+            static auto shouldModifyMenuBackground = [](int curMenuTab = *pMenuTab) -> bool
             {
                 auto selectedItem = CMenu::getSelectedItem();
-                return (curMenuTab == 8) ||  // Everything in Display Tab
-                    (curMenuTab == 0 && selectedItem == 16) ||  // PREF_EXTRANIGHTSHADOWS in Game Tab
-                    (curMenuTab == 5 && selectedItem == 8) ||  // PREF_CENTEREDCAMERA in Controls Tab
-                    (curMenuTab == 5 && selectedItem == 9);     // PREF_CENTEREDCAMERAFOOT in Controls Tab
+                return (curMenuTab == 8)                       ||  // Everything in Display Tab
+                       (curMenuTab == 0 && selectedItem == 16) ||  // PREF_EXTRANIGHTSHADOWS in Game Tab
+                       (curMenuTab == 5 && selectedItem == 8)  ||  // PREF_CENTEREDCAMERA in Controls Tab
+                       (curMenuTab == 5 && selectedItem == 9);     // PREF_CENTEREDCAMERAFOOT in Controls Tab
             };
 
             pattern = hook::pattern("83 FE ? 75 ? FF 35 ? ? ? ? E8 ? ? ? ? 83 C4 ? 85 C0 79");
@@ -702,7 +702,6 @@ public:
                     }
                 }; injector::MakeInline<MenuBackgroundHook3>(pattern.get_first(0), pattern.get_first(9));
 
-
                 pattern = hook::pattern("83 F8 ? 74 ? 83 F8 ? 75 ? 33 C9 8D 64 24 ? 8B 81 ? ? ? ? 3B 81 ? ? ? ? 0F 85");
                 static auto loc_5AC19A = resolve_displacement(pattern.get_first(3)).value();
                 struct MenuBackgroundHook4
@@ -715,6 +714,32 @@ public:
                         }
                     }
                 }; injector::MakeInline<MenuBackgroundHook4>(pattern.get_first(0));
+
+                // TLAD
+                pattern = hook::pattern("8D 83 ? ? ? ? 50 8D 84 24 ? ? ? ? EB ? 8D 83 ? ? ? ? 50 8D 84 24 ? ? ? ? EB ? 8D 83 ? ? ? ? 50 8D 84 24 ? ? ? ? EB ? 8D 83");
+                struct MenuBackgroundHook5
+                {
+                    void operator()(injector::reg_pack& regs)
+                    {
+                        regs.eax = regs.ebx + 0x112;
+
+                        if (shouldModifyMenuBackground())
+                            regs.eax = regs.ebx + 0x114;
+                    }
+                }; injector::MakeInline<MenuBackgroundHook5>(pattern.get_first(0), pattern.get_first(6));
+
+                pattern = hook::pattern("83 3D ? ? ? ? ? 74 ? 38 05");
+                static auto loc_5AF8EE = resolve_displacement(pattern.get_first(0)).value();
+                struct MenuBackgroundHook6
+                {
+                    void operator()(injector::reg_pack& regs)
+                    {
+                        if (*pMenuTab == 8 && !shouldModifyMenuBackground())
+                        {
+                            return_to(loc_5AF8EE);
+                        }
+                    }
+                }; injector::MakeInline<MenuBackgroundHook6>(pattern.get_first(0), pattern.get_first(9));
             }
 
             //menu scrolling
