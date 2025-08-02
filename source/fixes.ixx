@@ -483,21 +483,25 @@ public:
                     {
                         // Fix for visual bugs in QUB3D that will occur with this fix. Only enable z-write for emissives shaders when the camera/player height is 3000 or higher.
                         // This height check was present in patch 1.0.4.0 and was removed in patch 1.0.6.0+, in addition Z-write for emissive shaders was enabled permanently.
-                        if ((regs.edi == 5 || regs.edi == 4) && *(float*)(*dwEFB1B8 + 296) < 3000.0f)
-                        {
-                        }
-                        else
-                        {
-                            if ((regs.edi == 5 || regs.edi == 4) && *(float*)(*dwEFB1B8 + 296) >= 3000.0f)
-                            {
-                                bIsQUB3D = true;
-                            }
+                        const bool isEmissiveShader = regs.edi == 5 || regs.edi == 4;
+                        const float cameraHeight = *(float*)(*dwEFB1B8 + 296);
 
-                            if (!_stricmp(pszCurrentCutsceneName, "intro"))
-                                return;
-
-                            force_return_address(loc_AE39F3);
+                        if (!_stricmp(pszCurrentCutsceneName, "intro"))
+                        {
+                            return_to(loc_AE39F3);
                         }
+
+                        if (isEmissiveShader && cameraHeight < 3000.0f)
+                        {
+                            return;
+                        }
+
+                        if (isEmissiveShader && cameraHeight >= 3000.0f)
+                        {
+                            bIsQUB3D = true;
+                        }
+
+                        return_to(loc_AE39F3);
                     }
                 }; injector::MakeInline<EmissiveDepthWriteHook>(pattern.get_first(0), pattern.get_first(10));
 
