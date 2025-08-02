@@ -74,12 +74,13 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 - **Skip Intro**, added an option to skip intro
 - **Skip Menu**, added an option to skip main menu after startup
+- **Letterbox**, draws cutscene borders on top and bottom of the screen
+- **Pillarbox**, draws cutscene borders on screen sides in ultrawide
+- **Transparent Map Menu**, makes the map screen background transparent
+- **FPS Counter**, shows an episode colored FPS counter on the top left of the screen
 - **Windowed**, toggle windowed mode
 - **Windowed Borderless**, toggle borderless mode
 - **Pause Game On Focus Loss**, pauses the game when it's minimized
-- **Letterbox**, draws cutscene borders on top and bottom of the screen
-- **Pillarbox**, draws cutscene borders on screen sides in ultrawide
-- **FPS Counter**, shows an episode colored FPS counter on the top left of the screen
 - **Extra Night Shadows**, forces every lamppost and player headlights to cast shadows (*original PC-only "feature"; extremely broken, not recommended*)
 - **LightSyncRGB**, only Logitech hardware is supported, requires Logitech G HUB app, [**watch full clip on YouTube**](https://www.youtube.com/watch?v=oLxn3q-NnZ0&hd=1)
 
