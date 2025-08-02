@@ -167,7 +167,7 @@ Transparent Map Menu
 ~r~WARNING: CHSS only takes effect with Shadow Quality set to Very High.
 
 [FF_WARN7]
-~r~WARNING: Use Cutscene Audio Sync ON if you have audio desynchronization, OFF for animation smoothness. It can be toggled in a cutscene via ~PAD_UP~.
+~r~WARNING: Set Cutscene Audio Sync ON if you have audio desynchronization, OFF for animation smoothness. It can be toggled in a cutscene via ~PAD_UP~
 
 [DUMMY_l11]
 Dummy label.
