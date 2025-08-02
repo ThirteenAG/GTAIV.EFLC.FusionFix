@@ -140,7 +140,7 @@ public:
                             else if (*pMenuTab == 7)
                             {
                                 auto FF_WARN7 = CText::getText("FF_WARN7");
-                                extra += FF_WARN7[0] ? FF_WARN7 : L"~r~WARNING: Use Cutscene Audio Sync if you have audio desynchronization. It can be toggled in a cutscene via the Up Arrow key or D-pad Up.";
+                                extra += FF_WARN7[0] ? FF_WARN7 : L"~r~WARNING: Use Cutscene Audio Sync ON if you have audio desynchronization, OFF for animation smoothness. It can be toggled in a cutscene via ~PAD_UP~";
                             }
 
                             regs.eax = (uintptr_t)extra.c_str();

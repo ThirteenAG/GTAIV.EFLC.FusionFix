@@ -167,7 +167,7 @@ Menu de la carte transparent
 ~r~AVERTISSEMENT : CHSS ne fonctionne qu'avec la Qualité des Ombres réglée sur Très Élevée.
 
 [FF_WARN7]
-~r~AVERTISSEMENT : Utilisez la synchronisation audio des cinématiques sur ON en cas de désynchronisation audio, sur OFF pour la fluidité de l'animation. Elle peut être basculée dans une cinématique via la touche Flèche Haut ou le D-pad Haut.
+~r~AVERTISSEMENT : Utilisez la synchronisation audio des cinématiques sur ON en cas de désynchronisation audio, sur OFF pour la fluidité de l'animation. Elle peut être basculée dans une cinématique via ~PAD_UP~.
 
 [DUMMY_l11]
 Dummy label.

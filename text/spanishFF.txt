@@ -167,7 +167,7 @@ Menú del mapa transparente
 ~r~ATENCIÓN: CHSS se activa solamente con la calidad de las sombras puesta en "Muy alta".
 
 [FF_WARN7]
-~r~ATENCIÓN: Usa la sincronización de audio en ON si tienes desincronización, en OFF para la fluidez de la animación. Se puede cambiar en una cinemática con la tecla de flecha arriba o el D-pad arriba.
+~r~ATENCIÓN: Usa la sincronización de audio en ON si tienes desincronización, en OFF para la fluidez de la animación. Se puede cambiar en una cinemática con ~PAD_UP~.
 
 [DUMMY_l11]
 Dummy label.
