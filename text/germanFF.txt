@@ -119,13 +119,13 @@ Zentrierte Zu-Fuß-Kamera
 Kamerawackeln
 
 [CutscAudioSync]
-Zwischensequenz-Audio-Synchronisation
+Synchronen Ton in Zwischensequenzen erzwingen
 
 [CutscAudioSync0]
-Zwischensequenz-Audio-Synchronisation deaktiviert
+Synchroner Zwischensequenzton deaktiviert
 
 [CutscAudioSync1]
-Zwischensequenz-Audio-Synchronisation aktiviert
+Synchroner Zwischensequenzton aktiviert
 
 [Turn Indicators]
 Blinker
@@ -143,7 +143,7 @@ Halloween-Event deaktiviert
 Halloween-Event aktiviert
 
 [TranspMapMenu]
-Transparentes Kartenmenü
+Transparenter Kartenhintergrund im Menü
 
 [FF_WARN0]
 ~p~IMG-Dateien:
@@ -152,7 +152,7 @@ Transparentes Kartenmenü
 ; ~r~ACHTUNG: Obergrenze von 255 IMG-Dateien überschritten, was zu Streaming-Problemen führt.
 
 [FF_WARN2]
-~r~ACHTUNG: Zusätzliche Nachtschatten ist eine PC-Option von Rockstar. Stark fehlerhaft, nicht empfohlen.
+~r~ACHTUNG: Zusätzliche Nachtschatten ist eine extrem fehlerbehaftete PC-Option von Rockstar. Aktivieren nicht empfohlen.
 
 [FF_WARN3]
 ~r~ACHTUNG: Bei Werten von über 25 für die Sichtdistanz und über 31 für die Detaildistanz kann es zu Pop-in von Objekten kommen.
@@ -167,7 +167,7 @@ Transparentes Kartenmenü
 ~r~ACHTUNG: CHSS bewirkt nur etwas, wenn die Schattenqualität auf "Sehr hoch" eingestellt ist.
 
 [FF_WARN7]
-~r~ACHTUNG: Schalten Sie die Zwischensequenz-Audio-Synchronisierung EIN (ON) bei Audio-Desynchronisation, AUS (OFF) für flüssigere Animationen. Dies kann in einer Zwischensequenz mit
+~r~ACHTUNG: Nur bei auffallend asynchronem Ton aktivieren, für flüssige Animationen deaktiviert lassen. Kann während Zwischensequenzen mit ~PAD_UP~ ein- und ausgeschaltet werden.
 
 [DUMMY_l11]
 Dummy label.
