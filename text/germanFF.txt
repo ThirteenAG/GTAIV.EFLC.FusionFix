@@ -152,7 +152,7 @@ Transparenter Kartenhintergrund im Menü
 ; ~r~ACHTUNG: Obergrenze von 255 IMG-Dateien überschritten, was zu Streaming-Problemen führt.
 
 [FF_WARN2]
-~r~ACHTUNG: Zusätzliche Nachtschatten ist eine extrem fehlerbehaftete PC-Option von Rockstar. Aktivieren nicht empfohlen.
+~r~ACHTUNG: "Zusätzliche Nachtschatten" ist eine extrem fehlerbehaftete PC-Option von Rockstar. Aktivieren nicht empfohlen.
 
 [FF_WARN3]
 ~r~ACHTUNG: Bei Werten von über 25 für die Sichtdistanz und über 31 für die Detaildistanz kann es zu Pop-in von Objekten kommen.
@@ -167,7 +167,7 @@ Transparenter Kartenhintergrund im Menü
 ~r~ACHTUNG: CHSS bewirkt nur etwas, wenn die Schattenqualität auf "Sehr hoch" eingestellt ist.
 
 [FF_WARN7]
-~r~ACHTUNG: Nur bei auffallend asynchronem Ton aktivieren, für flüssige Animationen deaktiviert lassen. Kann während Zwischensequenzen mit ~PAD_UP~ ein- und ausgeschaltet werden.
+~r~ACHTUNG: "Synchronen Ton in Zwischensequenzen erzwingen" nur bei auffallend asynchronem Ton aktivieren, für flüssige Animationen deaktiviert lassen. Kann während Zwischensequenzen mit ~PAD_UP~ ein- und ausgeschaltet werden.
 
 [DUMMY_l11]
 Dummy label.
