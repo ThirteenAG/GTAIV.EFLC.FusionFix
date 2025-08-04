@@ -86,6 +86,14 @@ public:
                     injector::MakeNOP(pattern.get_first(7), 2, true);
                 }
 
+                pattern = hook::pattern("83 3D ? ? ? ? ? 75 21 8B 87"); // APC rotation sound
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                else {
+                    pattern = hook::pattern("83 3D ? ? ? ? ? 75 21 8B 96");
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                }
+
                 pattern = hook::pattern("8B 1D ? ? ? ? 83 C4 04 83 FB 02"); // buzzard rocket particles
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(12), 2, true);
