@@ -19,7 +19,6 @@ int32_t bExtraDynamicShadows;
 bool bHighResolutionNightShadows = false;
 
 std::string curModelName;
-
 void* __cdecl CModelInfoStore__allocateBaseModelHook(char* modelName)
 {
     curModelName = modelName;
@@ -71,7 +70,7 @@ void __cdecl CBaseModelInfo__setFlagsHook(void* pModel, int dwFlags, int a3)
 
     if (bitFlags.test(no_shadow))
     {
-        if (bExtraDynamicShadows >= 3 || std::any_of(std::begin(modelNames), std::end(modelNames), [](auto& i) { return curModelName.contains(i); }))
+        if (std::any_of(std::begin(modelNames), std::end(modelNames), [](auto& i) { return curModelName.contains(i); }))
         {
             bitFlags.reset(no_shadow);
             bitFlags.reset(static_shadow_1);
@@ -86,8 +85,8 @@ void __cdecl CBaseModelInfo__setFlagsHook(void* pModel, int dwFlags, int a3)
 
 int GetNightShadowQuality()
 {
-    static auto ShadowDensity = FusionFixSettings.GetRef("PREF_SHADOW_DENSITY");
-    switch (ShadowDensity->get())
+    static auto NightShadows = FusionFixSettings.GetRef("PREF_SHADOW_DENSITY");
+    switch (NightShadows->get())
     {
         case 0: //MO_OFF
             return 0;
@@ -163,7 +162,8 @@ public:
                 if (bExtraDynamicShadows >= 1)
                 {
                     std::vector<std::string> vegetationNames = {
-                        "bush", "weed", "grass", "azalea", "bholly", "fern", "tree"
+                        "ag_bigandbushy", "ag_bigandbushygrn", "azalea_md_ingame", "azalea_md_ingame_06",
+                        "azalea_md_ingame_2", "bholly_md_ingame", "bholly_md_ingame_2", "bholly_md_s_ingame_2", "c_fern_md_ingame_2"
                     };
 
                     modelNames.insert(modelNames.end(), vegetationNames.begin(), vegetationNames.end());
@@ -171,7 +171,8 @@ public:
 
                 if (bExtraDynamicShadows >= 2)
                 {
-                    std::vector<std::string> grateNames = {
+                    std::vector<std::string> miscNames = {
+                        "fence",
                         "rail05ax_ksun_01op", "rail09c_ksun_01op", "rail10a_ksun_01op", "bkn_ltrn_bkslin05b",
                         "bkn_ltrn_bkslin04b", "bkn_ltrn_bkslin03b", "bkn_ltrn_bkslin02b", "mbridge_lt10_bkn",
                         "mbridge_lt10_bknb", "rail08_ks2un_01b", "rail08a_ks2un_01b", "rail08c_ks2un_01b",
@@ -183,12 +184,39 @@ public:
                         "bxw_el_mesh", "bxw_el_lights2", "bxw_el_lights", "el_lights01", "el_lights02a",
                         "el_lights02", "el_lights04", "bx_eltrain_5a", "bx_eltrain_6a", "bx_eltrain_7a",
                         "bx_eltrain_10a",
-                        "bx_firescape", "fire_esc_1b", "fire_esc_2b", "fire_esc_6", "fire_esc_6b", "fire_esc_7b",
-                        "fire_esc_10", "fire_esc_10b",
-                        "fence", "cj_mh_cp_post1"
+                        "fire_esc_1", "fire_esc_1b", "fire_esc_2", "fire_esc_2b", "fire_esc_2_steps", "fire_esc_4",
+                        "fire_esc_4b", "fire_esc_5", "fire_esc_5b", "fire_esc_6", "fire_esc_6b", "fire_esc_7",
+                        "fire_esc_7b", "fire_esc_8", "fire_esc_8b", "fire_esc_9", "fire_esc_9b", "fire_esc_10",
+                        "fire_esc_10b", "fire_esc_11", "fire_esc_11b", "fire_esc_11c", "fire_esc_12b", "bx_firescape",
+                        "pedbridged_mh8", "pedbridge2d_mh8", "pedbridge2d2_mh8",
+                        "coast_d_06_mh8", "coast_d_09_mh8", "coast_d_10_mh8", "coast_d_08_mh8", "coast_d_11_mh8",
+                        "coast_d_21_mh8", "coast_d_27_mh8", "coast_d_28_mh8", "coast_d_26_mh8", "coast_d_03_mh8",
+                        "coast_d_34_mh8", "coast_d_35_mh8", "coast_d_36_mh8", "coast_d_37_mh8",
+                        "05_01_dtl1_mh5", "05_02_dtl1_mh5", "05_03_dtl1_mh5", "05_04_dtl1_mh5",
+                        "cj_mh_cp_post1", "wii_bboard", "concblock01_mh12", "concblock02_mh12", "concblock03_mh12",
+                        "qw_astprkgrs5", "qw_astprkgrs7", "qw2_queenstun", "jers_tun01_mh3",
+                        "seawall_det2_mh12", "seawall_det4_mh12", "seawall_det4c_mh12", "seawall_det5_mh12",
+                        "tg_f_n", "lod_tg_f_n01", "dm_prj_grnd04_mh7", "hlmcoastrd2_mh12", "hlmcoast11d_mh12",
+                        "mun_gnd01_mh2", "27_land01_lmap", "cc2_3_crprk_cst", "stmys_path2",
+                        "dumbo_bstep_bkn", "dumbolisted_bkn03", "dumborock01_bkn", "dumborock02_bkn",
+                        "ag_roads_brks02", "ag_roads_brks03", "ag_roads_brks07", "tg_f_road1",
+                        "bxe_road_57a", "bxe_road_27", "bxe_road_39", "bxw_road_47", "bxe_road_63",
+                        "qw_road2", "qw_road3", "qw_road4",
+                        "10_road_mh1", "10_road2_mh1", "road14_01_mh1", "croad01_mh1", "croad02_mh1", "road1_02_mh1",
+                        "newroads_26_mh3", "road_59_mh7",
+                        "nj01_08road", "nj01_24road", "nj01_31road"
                     };
 
-                    modelNames.insert(modelNames.end(), grateNames.begin(), grateNames.end());
+                    modelNames.insert(modelNames.end(), miscNames.begin(), miscNames.end());
+                }
+
+                if (bExtraDynamicShadows >= 3)
+                {
+                    std::vector<std::string> roadNames = {
+                        "road"
+                    };
+
+                    modelNames.insert(modelNames.end(), roadNames.begin(), roadNames.end());
                 }
 
                 auto pattern = hook::pattern("D9 6C 24 0E 56");
