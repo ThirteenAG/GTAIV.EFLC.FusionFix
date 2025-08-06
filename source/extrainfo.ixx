@@ -73,7 +73,7 @@ public:
                     auto m = std::get<HMODULE>(e);
                     if (IsModuleUAL(m))
                     {
-                        ualVer = L"ASI Loader: v" + GetModuleVersion(m);
+                        ualVer = L"ASI Loader: v" + GetModuleVersion(m) + L" (" + GetModulePath(m).filename().wstring() + L")";
                         break;
                     }
                 }
