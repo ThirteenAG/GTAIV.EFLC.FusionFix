@@ -145,6 +145,12 @@ Halloween-Event aktiviert
 [TranspMapMenu]
 Transparenter Kartenhintergrund im Menü
 
+[Extra Streaming]
+Zusätzlicher Streaming-Speicher
+
+[FF_SM]
+Streaming-Budget
+
 [FF_WARN0]
 ~p~IMG-Dateien:
 

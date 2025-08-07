@@ -2,11 +2,15 @@ module;
 
 #include <common.hxx>
 #include <dxgi1_6.h>
+#include <psapi.h>
 
 export module vram;
 
 import common;
 import comvars;
+import settings;
+
+export unsigned int nStreamingMemory = 0;
 
 constexpr SIZE_T _2048mb = 2147483648u;
 
@@ -72,6 +76,58 @@ SIZE_T GetProcessPreferredGPUMemory()
     return memory;
 }
 
+class ExtraStreamingMemory
+{
+private:
+    static constexpr size_t MIN_MEMORY_THRESHOLD = 2LL * 1024 * 1024 * 1024; // 2GB
+    static constexpr size_t MAX_MEMORY_THRESHOLD = 2900LL * 1024 * 1024;     // 2.9GB
+    static constexpr float MAX_MULTIPLIER = 1.5f;
+    static constexpr float MIN_MULTIPLIER = 0.9f;
+
+public:
+    static float GetDynamicMultiplier()
+    {
+        PROCESS_MEMORY_COUNTERS pmc;
+        if (!GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc)))
+        {
+            return MIN_MULTIPLIER; // Fallback to safe value
+        }
+
+        size_t currentMemory = pmc.WorkingSetSize;
+
+        // Below 2GB - use maximum multiplier (1.5)
+        if (currentMemory < MIN_MEMORY_THRESHOLD)
+        {
+            return MAX_MULTIPLIER;
+        }
+
+        // Above 2.9GB - use minimum multiplier (0.9)
+        if (currentMemory >= MAX_MEMORY_THRESHOLD)
+        {
+            return MIN_MULTIPLIER;
+        }
+
+        // Between 2GB and 2.9GB - linear interpolation
+        float memoryRange = (float)(MAX_MEMORY_THRESHOLD - MIN_MEMORY_THRESHOLD);
+        float currentRange = (float)(currentMemory - MIN_MEMORY_THRESHOLD);
+        float ratio = currentRange / memoryRange; // 0.0 to 1.0
+
+        // Linear interpolation: 1.5 at 2GB -> 0.9 at 2.9GB
+        return MAX_MULTIPLIER - (ratio * (MAX_MULTIPLIER - MIN_MULTIPLIER));
+    }
+};
+
+static inline SafetyHookInline streamingBudgetHook = {};
+static unsigned int __fastcall CalculateStreamingMemoryBudget(void* _this, void* edx, float a2)
+{
+    static auto bExtraStreamingMemory = FusionFixSettings.GetRef("PREF_EXTRASTREAMINGMEMORY");
+    if (bExtraStreamingMemory->get())
+        a2 = ExtraStreamingMemory::GetDynamicMultiplier();
+
+    nStreamingMemory = streamingBudgetHook.unsafe_fastcall<unsigned int>(_this, edx, a2);
+    return nStreamingMemory;
+}
+
 class VRam
 {
 public:
@@ -91,6 +147,10 @@ public:
                     regs.eax = totalVRAM;
                 });
             }
+
+            pattern = find_pattern("55 8B EC 83 E4 ? F3 0F 10 55 ? 83 EC");
+            if (!pattern.empty())
+                streamingBudgetHook = safetyhook::create_inline(pattern.get_first(0), CalculateStreamingMemoryBudget);
         };
     }
 } VRam;

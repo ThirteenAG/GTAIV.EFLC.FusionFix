@@ -145,6 +145,12 @@ Evento di Halloween attivato
 [TranspMapMenu]
 Menu Mappa Trasparente
 
+[Extra Streaming]
+Memoria di streaming aggiuntiva
+
+[FF_SM]
+Budget di streaming
+
 [FF_WARN0]
 ~p~IMG Files:
 

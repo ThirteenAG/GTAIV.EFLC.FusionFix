@@ -145,6 +145,12 @@ FPSリミッター
 [TranspMapMenu]
 透明マップメニュー
 
+[Extra Streaming]
+追加ストリーミングメモリ
+
+[FF_SM]
+ストリーミング予算
+
 [FF_WARN0]
 ~p~IMG ファイル:
 

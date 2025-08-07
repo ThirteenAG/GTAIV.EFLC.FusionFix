@@ -145,6 +145,12 @@ Halloween event activated
 [TranspMapMenu]
 Transparent Map Menu
 
+[Extra Streaming]
+Extra Streaming Memory
+
+[FF_SM]
+Streaming budget
+
 [FF_WARN0]
 ~p~IMG Files:
 

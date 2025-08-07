@@ -145,6 +145,12 @@ Clignotants
 [TranspMapMenu]
 Menu de la carte transparent
 
+[Extra Streaming]
+Mémoire de streaming supplémentaire
+
+[FF_SM]
+Budget de streaming
+
 [FF_WARN0]
 ~p~Fichiers IMG:
 
