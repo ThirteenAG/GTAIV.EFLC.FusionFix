@@ -144,7 +144,8 @@ public:
             bool bPedDeathAnimFixFromTBoGT = iniReader.ReadInteger("MISC", "PedDeathAnimFixFromTBoGT", 1) != 0;
             bool bAlwaysDisplayHealthOnReticle = iniReader.ReadInteger("MISC", "AlwaysDisplayHealthOnReticle", 1) != 0;
             int nMenuEnteringDelay = std::clamp(iniReader.ReadInteger("MISC", "MenuEnteringDelay", 0), 20, 400);
-            int nMenuAccessDelayOnStartup = std::clamp(iniReader.ReadInteger("MISC", "MenuAccessDelayOnStartup", 0), 0, 2700);
+            int nMenuExitingDelay = std::clamp(iniReader.ReadInteger("MISC", "MenuExitingDelay", 0), 0, 800);
+            int nMenuAccessDelayOnStartup = std::clamp(iniReader.ReadInteger("MISC", "MenuAccessDelayOnStartup", 0), 300, 3000);
 
             //fix for zoom flag in tbogt
             if (nAimingZoomFix)
@@ -666,6 +667,7 @@ public:
                 shCHelisub_B69D80 = safetyhook::create_inline(pattern.get_first(), CHelisub_B69D80);
             }
 
+            // Menu input lag
             {
                 auto pattern = hook::pattern("68 ? ? ? ? E8 ? ? ? ? 6A ? E8 ? ? ? ? 8B 0D");
                 if (!pattern.empty())
@@ -673,11 +675,11 @@ public:
 
                 pattern = hook::pattern("68 ? ? ? ? EB ? 6A ? 68 ? ? ? ? 6A");
                 if (!pattern.empty())
-                    injector::WriteMemory(pattern.get_first(1), nMenuEnteringDelay, true);
+                    injector::WriteMemory(pattern.get_first(1), nMenuExitingDelay, true);
 
                 pattern = hook::pattern("81 F9 ? ? ? ? 72 ? EB ? E8");
                 if (!pattern.empty())
-                    injector::WriteMemory(pattern.get_first(2), nMenuAccessDelayOnStartup + 300, true);
+                    injector::WriteMemory(pattern.get_first(2), nMenuAccessDelayOnStartup, true);
             }
         };
     }
