@@ -151,6 +151,12 @@ Zusätzlicher Streaming-Speicher
 [FF_SM]
 Streaming-Budget
 
+[Graphics API]
+Grafik-API
+
+[FF_RESTART]
+GTA IV muss neu gestartet werden, um die Einstellungen anzuwenden.
+
 [FF_WARN0]
 ~p~IMG-Dateien:
 

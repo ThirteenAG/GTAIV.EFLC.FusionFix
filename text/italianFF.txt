@@ -151,6 +151,12 @@ Memoria di streaming aggiuntiva
 [FF_SM]
 Budget di streaming
 
+[Graphics API]
+API grafica
+
+[FF_RESTART]
+GTA IV deve essere riavviato per applicare le impostazioni.
+
 [FF_WARN0]
 ~p~IMG Files:
 

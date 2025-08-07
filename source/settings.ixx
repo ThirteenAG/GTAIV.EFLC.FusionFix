@@ -253,6 +253,7 @@ public:
             { 0, "PREF_CUTSCENEAUDIOSYNC",     "MAIN",       "CutsceneAudioSync",               "",                           0, nullptr, 0, 1 },
             { 0, "PREF_TURNINDICATORS",        "MISC",       "TurnIndicators",                  "",                           0, nullptr, 0, 1 },
             { 0, "PREF_EXTRANIGHTSHADOWS",     "SHADOWS",    "ExtraNightShadows",               "",                           0, nullptr, 0, 2 }, //MENU_DISPLAY_NETSTATS_SCORES
+            { 0, "PREF_GRAPHICSAPI",           "MAIN",       "GraphicsAPI",                     "",                           0, nullptr, 0, 1 }, //MENU_DISPLAY_NETSTATS_COMP_TEAM
             // Enums are at capacity, to use more enums, replace multiplayer ones. On/Off toggles should still be possible to add.
         };
 
@@ -555,6 +556,58 @@ public:
                     if (FusionFixSettings.isSame(id, "PREF_CURRENT_LANGUAGE"))
                     {
                         FusionFixSettings.SaveLanguagePref(value);
+                    }
+
+                    // custom handler for graphics api switch
+                    if (FusionFixSettings.isSame(id, "PREF_GRAPHICSAPI"))
+                    {
+                        auto hModule = LoadLibraryEx(L"vulkan.dll", NULL, LOAD_LIBRARY_AS_DATAFILE);
+
+                        if (hModule == NULL)
+                        {
+                            FusionFixSettings.Set(id, 0);
+                        }
+                        else
+                        {
+                            FreeLibrary(hModule);
+
+                            WCHAR szPath[MAX_PATH];
+                            std::vector<std::filesystem::path> cfgPaths;
+                            auto cfgName = L"d3d9.cfg";
+                            cfgPaths.emplace_back(GetExeModulePath() / cfgName);
+                            if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, szPath)))
+                                cfgPaths.emplace_back(std::filesystem::path(szPath) / L"Rockstar Games\\GTA IV\\" / cfgName);
+                            if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, szPath)))
+                                cfgPaths.emplace_back(std::filesystem::path(szPath) / L"d3d9.cfg" / cfgName);
+                            if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_MYDOCUMENTS, NULL, 0, szPath)))
+                                cfgPaths.emplace_back(std::filesystem::path(szPath) / L"d3d9.cfg" / cfgName);
+
+                            auto cfgPath = cfgPaths.front();
+                            for (auto& it : cfgPaths)
+                            {
+                                auto status = std::filesystem::status(it).permissions();
+                                if (status == std::filesystem::perms::unknown)
+                                {
+                                    std::ofstream ofile;
+                                    ofile.open(it, std::ios::binary);
+                                    if (ofile.is_open())
+                                    {
+                                        cfgPath = it;
+                                        ofile.close();
+                                        break;
+                                    }
+                                }
+                                else if ((std::filesystem::perms::owner_read & status) == std::filesystem::perms::owner_read &&
+                                    (std::filesystem::perms::owner_write & status) == std::filesystem::perms::owner_write)
+                                {
+                                    cfgPath = it;
+                                    break;
+                                }
+                            }
+
+                            CIniReader d3d9cfg(cfgPath);
+                            d3d9cfg.WriteInteger("MAIN", "API", value, true);
+                        }
                     }
                 }
             }; injector::MakeInline<IniWriter>(pattern.get_first(0), pattern.get_first(7));

@@ -151,6 +151,12 @@ Extra Streaming Memory
 [FF_SM]
 Streaming budget
 
+[Graphics API]
+Graphics API
+
+[FF_RESTART]
+GTA IV must be restarted in order to apply settings.
+
 [FF_WARN0]
 ~p~IMG Files:
 

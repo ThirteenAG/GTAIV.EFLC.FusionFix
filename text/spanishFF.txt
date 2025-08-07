@@ -151,6 +151,12 @@ Memoria de streaming adicional
 [FF_SM]
 Presupuesto de streaming
 
+[Graphics API]
+API gráfica
+
+[FF_RESTART]
+GTA IV debe ser reiniciado para aplicar la configuración.
+
 [FF_WARN0]
 ~p~Archivos IMG:
 

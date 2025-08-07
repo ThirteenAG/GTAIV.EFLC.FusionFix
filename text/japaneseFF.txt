@@ -151,6 +151,12 @@ FPSリミッター
 [FF_SM]
 ストリーミング予算
 
+[Graphics API]
+グラフィックスAPI
+
+[FF_RESTART]
+設定を適用するにはGTA IVを再起動する必要があります。
+
 [FF_WARN0]
 ~p~IMG ファイル:
 

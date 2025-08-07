@@ -1,4 +1,5 @@
 copy bin\GTAIV.EFLC.FusionFix.asi data\plugins\GTAIV.EFLC.FusionFix.asi
+copy bin\d3d9.dll data\d3d9.dll
 
 call buildimg.bat
 call buildwtd.bat

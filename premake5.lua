@@ -150,3 +150,23 @@ project "GTAIV.EFLC.FusionFixInstaller"
    filter "configurations:Release"
       defines { "NDEBUG" }
       optimize "On"
+
+project "d3d9"
+   language "C++"
+   targetdir "bin"
+   targetextension ".dll"
+   staticruntime "On"
+
+   removefiles { "source/**" }
+   removefiles { "external/**" }
+   files { "source/d3d9/d3d9.def" }
+   files { "source/d3d9/d3d9.cpp" }
+   files { "source/resources/Versioninfo.rc" }
+
+   filter "configurations:Debug"
+      defines { "DEBUG" }
+      symbols "On"
+
+   filter "configurations:Release"
+      defines { "NDEBUG" }
+      optimize "On"

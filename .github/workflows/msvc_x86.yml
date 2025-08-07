@@ -80,11 +80,27 @@ jobs:
         tag: "Win32-latest"
         fileName: "dinput8-Win32.zip"
 
+    - name: Download DXVK
+      uses: robinraju/release-downloader@v1.11
+      with:
+        repository: "doitsujin/dxvk"
+        latest: true
+        fileName: "dxvk-*.tar.gz"
+
     - name: Unpack dependencies
       run: |
           7z x dinput8-Win32.zip -odata/ -y
           del dinput8-Win32.zip
           del data\dinput8-Win32.SHA512
+          for %%f in (dxvk-*.tar.gz) do (
+              7z x -so "%%f" | 7z x -si -ttar -odxvk
+              for /d %%d in (dxvk\dxvk-*) do (
+                  if exist "%%d\x32\d3d9.dll" (
+                      copy "%%d\x32\d3d9.dll" "data\vulkan.dll"
+                  )
+              )
+              rmdir /s /q dxvk
+          )
 
     - name: Pack binaries
       run: |
