@@ -1,12 +1,1036 @@
 module;
 
 #include <common.hxx>
+#include <filesystem>
+#include <vector>
+#include <memory>
+#include <fstream>
+#include <string>
+#include <cstring>
+#include <algorithm>
+#include <unordered_set>
+#include <wincrypt.h>
+#pragma comment(lib, "crypt32.lib")
 
 export module imgloader;
 
 import common;
 import settings;
 import comvars;
+
+struct VFSFileEntry
+{
+    std::filesystem::path sourcePath;
+    std::string virtualName;
+};
+
+enum eIMG_version
+{
+    IMG_VERSION_1,  // GTA III, GTA VC
+    IMG_VERSION_2,  // GTA SA
+    IMG_VERSION_3   // GTA IV
+};
+
+class ImgProcessor
+{
+public:
+    static constexpr size_t IMG_BLOCK_SIZE = 2048;
+    static constexpr size_t MAX_FILESIZE = 0xFFFF * IMG_BLOCK_SIZE;
+    static constexpr size_t MAX_FILENAME_LENGTH_V2 = 23;
+    static constexpr size_t MAX_FILENAME_LENGTH_V3 = 255;
+    static constexpr uint32_t GTAIV_MAGIC_ID = 0xA94E2A52;
+
+    // GTA IV AES-256 encryption key (32 bytes - 256 bits)
+    static constexpr uint8_t GTAIV_ENCRYPTION_KEY[32] = {
+        0x1a, 0xb5, 0x6f, 0xed, 0x7e, 0xc3, 0xff, 0x01,
+        0x22, 0x7b, 0x69, 0x15, 0x33, 0x97, 0x5d, 0xce,
+        0x47, 0xd7, 0x69, 0x65, 0x3f, 0xf7, 0x75, 0x42,
+        0x6a, 0x96, 0xcd, 0x6d, 0x53, 0x07, 0x56, 0x5d
+    };
+
+    #pragma pack(push, 1)
+    struct IMG_Header_V2
+    {
+        char signature[4];      // "VER2"
+        uint32_t numFiles;
+    };
+
+    struct IMG_Entry_V2
+    {
+        uint32_t position;      // In blocks
+        uint16_t sizeLow;       // In blocks
+        uint16_t sizeHigh;      // In blocks
+        char name[24];          // Null terminated
+    };
+
+    struct IMG_Header_V3
+    {
+        uint32_t magicId;       // 0xA94E2A52
+        uint32_t version;       // 3
+        uint32_t numItems;
+        uint32_t tableSize;
+        uint16_t itemSize;      // 16
+        uint16_t unknown;
+    };
+
+    struct IMG_Entry_V3
+    {
+        uint32_t sizeOrRSCFlags;   // Size for normal files, RSC flags for resource files
+        uint32_t resourceType;     // ResourceType
+        uint32_t offsetBlock;      // OffsetBlock
+        uint16_t usedBlocks;       // UsedBlocks
+        uint16_t flags;            // Flags
+    };
+    #pragma pack(pop)
+
+    struct FileEntry
+    {
+        std::string name;
+        std::vector<uint8_t> data;
+        uint32_t position = 0;
+        bool isReplacement = false; // Tracks if this file was replaced (for merging)
+    };
+
+    static std::shared_ptr<std::vector<uint8_t>> CreateImgFromFolder(const std::filesystem::path& folderPath, eIMG_version version = IMG_VERSION_3, bool encrypted = false)
+    {
+        std::vector<VFSFileEntry> fileList;
+
+        std::error_code ec;
+        if (!std::filesystem::exists(folderPath, ec) || !std::filesystem::is_directory(folderPath, ec))
+        {
+            return nullptr;
+        }
+
+        constexpr auto perms = std::filesystem::directory_options::skip_permission_denied |
+            std::filesystem::directory_options::follow_directory_symlink;
+
+        for (const auto& entry : std::filesystem::recursive_directory_iterator(folderPath, perms, ec))
+        {
+            if (ec) continue;
+            if (!entry.is_regular_file(ec)) continue;
+
+            VFSFileEntry fileEntry;
+            fileEntry.sourcePath = entry.path();
+            fileEntry.virtualName = entry.path().filename().string(); // Use just filename
+            fileList.push_back(fileEntry);
+        }
+
+        return CreateImgFromFileList(fileList, version, encrypted);
+    }
+
+    static std::shared_ptr<std::vector<uint8_t>> CreateImgFromFileList(const std::vector<VFSFileEntry>& fileList, eIMG_version version = IMG_VERSION_3, bool encrypted = false)
+    {
+        if (fileList.empty())
+        {
+            return nullptr;
+        }
+
+        // Load all files into memory
+        std::vector<FileEntry> entries;
+        for (const auto& fileEntry : fileList)
+        {
+            std::error_code ec;
+            if (!std::filesystem::exists(fileEntry.sourcePath, ec) || !std::filesystem::is_regular_file(fileEntry.sourcePath, ec))
+            {
+                continue; // Skip missing files
+            }
+
+            // Load file data
+            std::ifstream file(fileEntry.sourcePath, std::ios::binary | std::ios::ate);
+            if (!file.is_open())
+                continue;
+
+            auto size = file.tellg();
+            if (size > MAX_FILESIZE)
+                continue; // Skip files that are too large
+
+            file.seekg(0, std::ios::beg);
+            std::vector<uint8_t> fileData(static_cast<size_t>(size));
+            if (!file.read(reinterpret_cast<char*>(fileData.data()), size))
+                continue;
+
+            FileEntry entry;
+            entry.name = fileEntry.virtualName.empty() ? fileEntry.sourcePath.filename().string() : fileEntry.virtualName;
+
+            // Truncate filename if needed
+            size_t maxLen = (version == IMG_VERSION_3) ? MAX_FILENAME_LENGTH_V3 : MAX_FILENAME_LENGTH_V2;
+            if (entry.name.length() > maxLen)
+            {
+                entry.name = entry.name.substr(0, maxLen);
+            }
+
+            entry.data = std::move(fileData);
+            entries.push_back(std::move(entry));
+        }
+
+        if (entries.empty())
+        {
+            return nullptr;
+        }
+
+        return CreateImgFromEntries(entries, version, encrypted);
+    }
+
+    static std::shared_ptr<std::vector<uint8_t>> MergeImgWithFolder(const std::filesystem::path& originalImgPath, const std::filesystem::path& updateFolderPath)
+    {
+        // Step 1: Extract original IMG archive
+        auto originalFiles = ExtractImgArchive(originalImgPath);
+        if (!originalFiles.has_value())
+        {
+            return nullptr; // Failed to read original IMG
+        }
+
+        auto [extractedFiles, version, wasEncrypted] = originalFiles.value();
+
+        // Step 2: Get replacement files from update folder
+        auto replacementFiles = GetReplacementFiles(updateFolderPath);
+
+        // Step 3: Merge files (replace existing, add new)
+        auto mergedFiles = MergeFiles(extractedFiles, replacementFiles);
+
+        // Step 4: Create new IMG archive with merged content (preserve encryption state)
+        return CreateImgFromEntries(mergedFiles, version, wasEncrypted);
+    }
+
+    // Extract all files from an existing IMG archive
+    static std::optional<std::tuple<std::vector<FileEntry>, eIMG_version, bool>> ExtractImgArchive(const std::filesystem::path& imgPath)
+    {
+        std::error_code ec;
+        if (!std::filesystem::exists(imgPath, ec) || !std::filesystem::is_regular_file(imgPath, ec))
+        {
+            return std::nullopt;
+        }
+
+        std::ifstream file(imgPath, std::ios::binary);
+        if (!file.is_open())
+        {
+            return std::nullopt;
+        }
+
+        // Read file into memory
+        file.seekg(0, std::ios::end);
+        size_t fileSize = (size_t)file.tellg();
+        file.seekg(0, std::ios::beg);
+
+        std::vector<uint8_t> imgData(fileSize);
+        if (!file.read(reinterpret_cast<char*>(imgData.data()), fileSize))
+        {
+            return std::nullopt;
+        }
+
+        // Detect IMG version and extract
+        if (fileSize >= 4 && memcmp(imgData.data(), "VER2", 4) == 0)
+        {
+            auto result = ExtractImgV2(imgData);
+            if (result.has_value())
+            {
+                return std::make_tuple(result.value().first, result.value().second, false);
+            }
+        }
+        else if (fileSize >= 4)
+        {
+            uint32_t magicId = *reinterpret_cast<const uint32_t*>(imgData.data());
+            if (magicId == GTAIV_MAGIC_ID) // GTA IV unencrypted
+            {
+                auto result = ExtractImgV3(imgData);
+                if (result.has_value())
+                {
+                    return std::make_tuple(result.value().first, result.value().second, false);
+                }
+            }
+            else // GTA IV encrypted
+            {
+                auto decryptedData = DecryptGTAIVArchive(imgData);
+                if (!decryptedData.empty() && decryptedData.size() >= 4)
+                {
+                    uint32_t decryptedMagicId = *reinterpret_cast<const uint32_t*>(decryptedData.data());
+                    if (decryptedMagicId == GTAIV_MAGIC_ID)
+                    {
+                        auto result = ExtractImgV3(decryptedData);
+                        if (result.has_value())
+                        {
+                            return std::make_tuple(result.value().first, result.value().second, true);
+                        }
+                    }
+                }
+            }
+        }
+
+        return std::nullopt; // Unknown format
+    }
+
+private:
+    static std::vector<uint8_t> DecryptGTAIVArchive(const std::vector<uint8_t>& encryptedData)
+    {
+        if (encryptedData.empty() || encryptedData.size() < sizeof(IMG_Header_V3))
+        {
+            return {};
+        }
+
+        // Check if header is already unencrypted
+        const IMG_Header_V3* header = reinterpret_cast<const IMG_Header_V3*>(encryptedData.data());
+        if (header->magicId == GTAIV_MAGIC_ID && header->version == 3 && header->itemSize == 16)
+        {
+            return encryptedData;
+        }
+
+        HCRYPTPROV hCryptProv = 0;
+        HCRYPTKEY hKey = 0;
+        std::vector<uint8_t> result = encryptedData;
+
+        try
+        {
+            if (!CryptAcquireContext(&hCryptProv, NULL, NULL, PROV_RSA_AES, CRYPT_VERIFYCONTEXT))
+            {
+                return {};
+            }
+
+            struct
+            {
+                BLOBHEADER hdr;
+                DWORD keySize;
+                BYTE keyData[32];
+            } keyBlob;
+            keyBlob.hdr.bType = PLAINTEXTKEYBLOB;
+            keyBlob.hdr.bVersion = CUR_BLOB_VERSION;
+            keyBlob.hdr.reserved = 0;
+            keyBlob.hdr.aiKeyAlg = CALG_AES_256;
+            keyBlob.keySize = 32;
+            memcpy(keyBlob.keyData, GTAIV_ENCRYPTION_KEY, 32);
+
+            if (!CryptImportKey(hCryptProv, (BYTE*)&keyBlob, sizeof(keyBlob), 0, 0, &hKey))
+            {
+                CryptReleaseContext(hCryptProv, 0);
+                return {};
+            }
+
+            DWORD mode = CRYPT_MODE_ECB;
+            if (!CryptSetKeyParam(hKey, KP_MODE, (BYTE*)&mode, 0))
+            {
+                CryptDestroyKey(hKey);
+                CryptReleaseContext(hCryptProv, 0);
+                return {};
+            }
+
+            // Decrypt header (16 rounds)
+            std::vector<uint8_t> decryptedHeaderData(encryptedData.begin(), encryptedData.begin() + 20);
+            for (int round = 0; round < 16; ++round)
+            {
+                DWORD blockLen = 16;
+                if (!CryptDecrypt(hKey, 0, FALSE, 0, decryptedHeaderData.data(), &blockLen) || blockLen != 16)
+                {
+                    CryptDestroyKey(hKey);
+                    CryptReleaseContext(hCryptProv, 0);
+                    return {};
+                }
+            }
+
+            const IMG_Header_V3* decryptedHeader = reinterpret_cast<const IMG_Header_V3*>(decryptedHeaderData.data());
+            if (decryptedHeader->magicId != GTAIV_MAGIC_ID || decryptedHeader->version != 3 || decryptedHeader->itemSize != 16)
+            {
+                CryptDestroyKey(hKey);
+                CryptReleaseContext(hCryptProv, 0);
+                return {};
+            }
+
+            std::copy(decryptedHeaderData.begin(), decryptedHeaderData.end(), result.begin());
+
+            // Decrypt TOC (entries + filename table)
+            size_t entriesOffset = sizeof(IMG_Header_V3);
+            size_t entriesSize = decryptedHeader->numItems * sizeof(IMG_Entry_V3);
+            size_t filenameTableOffset = entriesOffset + entriesSize;
+            size_t filenameTableSize = decryptedHeader->tableSize - entriesSize;
+
+            if (entriesOffset + entriesSize > result.size() || filenameTableOffset + filenameTableSize > result.size())
+            {
+                CryptDestroyKey(hKey);
+                CryptReleaseContext(hCryptProv, 0);
+                return {};
+            }
+
+            // Decrypt TOC entries (16 rounds per entry)
+            for (uint32_t i = 0; i < decryptedHeader->numItems; ++i)
+            {
+                size_t entryOffset = entriesOffset + (i * sizeof(IMG_Entry_V3));
+                if (entryOffset + sizeof(IMG_Entry_V3) <= result.size())
+                {
+                    for (int round = 0; round < 16; ++round)
+                    {
+                        DWORD blockLen = 16;
+                        if (!CryptDecrypt(hKey, 0, FALSE, 0, result.data() + entryOffset, &blockLen) || blockLen != 16)
+                        {
+                            CryptDestroyKey(hKey);
+                            CryptReleaseContext(hCryptProv, 0);
+                            return {};
+                        }
+                    }
+                }
+            }
+
+            // Decrypt filename table (16 rounds per 16-byte block)
+            size_t alignedSize = filenameTableSize & ~0xF;
+            if (alignedSize > 0 && filenameTableOffset + alignedSize <= result.size())
+            {
+                for (size_t offset = 0; offset < alignedSize; offset += 16)
+                {
+                    for (int round = 0; round < 16; ++round)
+                    {
+                        DWORD blockLen = 16;
+                        if (!CryptDecrypt(hKey, 0, FALSE, 0, result.data() + filenameTableOffset + offset, &blockLen) || blockLen != 16)
+                        {
+                            CryptDestroyKey(hKey);
+                            CryptReleaseContext(hCryptProv, 0);
+                            return {};
+                        }
+                    }
+                }
+            }
+
+            CryptDestroyKey(hKey);
+            CryptReleaseContext(hCryptProv, 0);
+            return result;
+        }
+        catch (...)
+        {
+            if (hKey) CryptDestroyKey(hKey);
+            if (hCryptProv) CryptReleaseContext(hCryptProv, 0);
+            return {};
+        }
+    }
+
+    static void EncryptGTAIVArchive(std::vector<uint8_t>& data)
+    {
+        if (data.empty() || data.size() < sizeof(IMG_Header_V3))
+        {
+            return;
+        }
+
+        // Read header to determine TOC size
+        const IMG_Header_V3* header = reinterpret_cast<const IMG_Header_V3*>(data.data());
+        size_t tocSize = sizeof(IMG_Header_V3) + header->tableSize;
+        if (tocSize > data.size() || tocSize % 16 != 0)
+        {
+            return;
+        }
+
+        // Extract TOC for encryption
+        std::vector<uint8_t> tocData(data.begin(), data.begin() + tocSize);
+
+        HCRYPTPROV hCryptProv = 0;
+        HCRYPTKEY hKey = 0;
+
+        try
+        {
+            // Acquire crypto context
+            if (!CryptAcquireContext(&hCryptProv, NULL, NULL, PROV_RSA_AES, CRYPT_VERIFYCONTEXT))
+            {
+                return;
+            }
+
+            // Import key
+            struct
+            {
+                BLOBHEADER hdr;
+                DWORD keySize;
+                BYTE keyData[32];
+            } keyBlob;
+            keyBlob.hdr.bType = PLAINTEXTKEYBLOB;
+            keyBlob.hdr.bVersion = CUR_BLOB_VERSION;
+            keyBlob.hdr.reserved = 0;
+            keyBlob.hdr.aiKeyAlg = CALG_AES_256;
+            keyBlob.keySize = 32;
+            memcpy(keyBlob.keyData, GTAIV_ENCRYPTION_KEY, 32);
+
+            if (!CryptImportKey(hCryptProv, (BYTE*)&keyBlob, sizeof(keyBlob), 0, 0, &hKey))
+            {
+                CryptReleaseContext(hCryptProv, 0);
+                return;
+            }
+
+            // Set ECB mode
+            DWORD mode = CRYPT_MODE_ECB;
+            if (!CryptSetKeyParam(hKey, KP_MODE, (BYTE*)&mode, 0))
+            {
+                CryptDestroyKey(hKey);
+                CryptReleaseContext(hCryptProv, 0);
+                return;
+            }
+
+            // Perform 16 rounds of encryption
+            for (int round = 0; round < 16; ++round)
+            {
+                for (size_t offset = 0; offset < tocSize; offset += 16)
+                {
+                    DWORD blockLen = 16;
+                    if (!CryptEncrypt(hKey, 0, FALSE, 0, tocData.data() + offset, &blockLen, 16) || blockLen != 16)
+                    {
+                        CryptDestroyKey(hKey);
+                        CryptReleaseContext(hCryptProv, 0);
+                        return;
+                    }
+                }
+            }
+
+            CryptDestroyKey(hKey);
+            CryptReleaseContext(hCryptProv, 0);
+
+            // Replace original TOC with encrypted TOC
+            std::copy(tocData.begin(), tocData.end(), data.begin());
+        }
+        catch (...)
+        {
+            if (hKey) CryptDestroyKey(hKey);
+            if (hCryptProv) CryptReleaseContext(hCryptProv, 0);
+        }
+    }
+
+    static uint32_t GetActualFileSize(const IMG_Entry_V3& entry)
+    {
+        bool isResourceFile = (entry.sizeOrRSCFlags & 0xC0000000) != 0;
+
+        if (!isResourceFile)
+        {
+            return entry.sizeOrRSCFlags; // Direct size
+        }
+        else
+        {
+            // For resource files, calculate size from blocks and padding
+            int paddingCount = entry.flags & 0x7FF;
+            return entry.usedBlocks * IMG_BLOCK_SIZE - paddingCount;
+        }
+    }
+
+    static std::shared_ptr<std::vector<uint8_t>> CreateImgFromEntries(const std::vector<FileEntry>& files, eIMG_version version, bool encrypted = false)
+    {
+        if (files.empty())
+        {
+            return nullptr;
+        }
+
+        // Create mutable copy for position calculation
+        std::vector<FileEntry> entries = files;
+
+        switch (version)
+        {
+        case IMG_VERSION_2:
+            return CreateImgV2(entries);
+        case IMG_VERSION_3:
+            return CreateImgV3(entries, encrypted);
+        default:
+            return CreateImgV3(entries, encrypted);
+        }
+    }
+
+    // Extract GTA SA IMG (Version 2)
+    static std::optional<std::pair<std::vector<FileEntry>, eIMG_version>> ExtractImgV2(const std::vector<uint8_t>& imgData)
+    {
+        if (imgData.size() < sizeof(IMG_Header_V2))
+        {
+            return std::nullopt;
+        }
+
+        const IMG_Header_V2* header = reinterpret_cast<const IMG_Header_V2*>(imgData.data());
+        if (memcmp(header->signature, "VER2", 4) != 0)
+        {
+            return std::nullopt;
+        }
+
+        size_t entriesOffset = sizeof(IMG_Header_V2);
+        size_t entriesSize = header->numFiles * sizeof(IMG_Entry_V2);
+
+        if (imgData.size() < entriesOffset + entriesSize)
+        {
+            return std::nullopt;
+        }
+
+        std::vector<FileEntry> files;
+        const IMG_Entry_V2* entries = reinterpret_cast<const IMG_Entry_V2*>(imgData.data() + entriesOffset);
+
+        for (uint32_t i = 0; i < header->numFiles; ++i)
+        {
+            const IMG_Entry_V2& entry = entries[i];
+
+            // Calculate file size in bytes
+            uint32_t sizeInBlocks = (entry.sizeHigh != 0) ? entry.sizeHigh : entry.sizeLow;
+            uint32_t sizeInBytes = sizeInBlocks * IMG_BLOCK_SIZE;
+            uint32_t dataOffset = entry.position * IMG_BLOCK_SIZE;
+
+            if (dataOffset + sizeInBytes > imgData.size())
+            {
+                continue; // Skip invalid entries
+            }
+
+            FileEntry file;
+            file.name = std::string(entry.name, strnlen(entry.name, sizeof(entry.name)));
+            file.data.assign(imgData.begin() + dataOffset, imgData.begin() + dataOffset + sizeInBytes);
+
+            // Remove padding from the end
+            while (!file.data.empty() && file.data.back() == 0)
+            {
+                file.data.pop_back();
+            }
+
+            files.push_back(std::move(file));
+        }
+
+        return std::make_pair(files, IMG_VERSION_2);
+    }
+
+    static std::optional<std::pair<std::vector<FileEntry>, eIMG_version>> ExtractImgV3(const std::vector<uint8_t>& imgData)
+    {
+        if (imgData.size() < sizeof(IMG_Header_V3))
+        {
+            return std::nullopt;
+        }
+
+        const IMG_Header_V3* header = reinterpret_cast<const IMG_Header_V3*>(imgData.data());
+        if (header->magicId != GTAIV_MAGIC_ID || header->version != 3 || header->itemSize != 16)
+        {
+            return std::nullopt;
+        }
+
+        size_t entriesOffset = sizeof(IMG_Header_V3);
+        size_t entriesSize = header->numItems * sizeof(IMG_Entry_V3);
+
+        if (imgData.size() < entriesOffset + entriesSize)
+        {
+            return std::nullopt;
+        }
+
+        std::vector<FileEntry> files;
+        const IMG_Entry_V3* entries = reinterpret_cast<const IMG_Entry_V3*>(imgData.data() + entriesOffset);
+
+        // Read filename table
+        size_t filenameTableOffset = entriesOffset + entriesSize;
+        size_t filenameTableSize = header->tableSize - (header->numItems * header->itemSize);
+
+        if (filenameTableOffset + filenameTableSize > imgData.size())
+        {
+            return std::nullopt;
+        }
+
+        std::vector<std::string> filenames;
+        size_t currentOffset = filenameTableOffset;
+
+        for (uint32_t i = 0; i < header->numItems; ++i)
+        {
+            if (currentOffset >= imgData.size())
+            {
+                break;
+            }
+
+            const char* nameStart = reinterpret_cast<const char*>(imgData.data() + currentOffset);
+            size_t maxNameLen = imgData.size() - currentOffset;
+            size_t nameLen = strnlen(nameStart, maxNameLen);
+
+            if (currentOffset + nameLen >= imgData.size())
+            {
+                break;
+            }
+
+            filenames.emplace_back(nameStart, nameLen);
+            currentOffset += nameLen + 1; // +1 for null terminator
+        }
+
+        for (uint32_t i = 0; i < header->numItems && i < filenames.size(); ++i)
+        {
+            const IMG_Entry_V3& entry = entries[i];
+
+            uint32_t actualSize = GetActualFileSize(entry);
+            uint32_t dataOffset = entry.offsetBlock * IMG_BLOCK_SIZE;
+
+            if (dataOffset + actualSize > imgData.size())
+            {
+                continue; // Skip invalid entries
+            }
+
+            FileEntry file;
+            file.name = filenames[i];
+            file.data.assign(imgData.begin() + dataOffset, imgData.begin() + dataOffset + actualSize);
+            files.push_back(std::move(file));
+        }
+
+        return std::make_pair(files, IMG_VERSION_3);
+    }
+
+    static std::vector<FileEntry> GetReplacementFiles(const std::filesystem::path& updateFolderPath)
+    {
+        std::vector<FileEntry> replacementFiles;
+        std::error_code ec;
+
+        if (!std::filesystem::exists(updateFolderPath, ec) || !std::filesystem::is_directory(updateFolderPath, ec))
+        {
+            return replacementFiles;
+        }
+
+        // Scan folder for replacement files
+        constexpr auto perms = std::filesystem::directory_options::skip_permission_denied |
+            std::filesystem::directory_options::follow_directory_symlink;
+
+        for (const auto& entry : std::filesystem::recursive_directory_iterator(updateFolderPath, perms, ec))
+        {
+            if (ec) continue;
+            if (!entry.is_regular_file(ec)) continue;
+
+            // Load replacement file
+            std::ifstream file(entry.path(), std::ios::binary | std::ios::ate);
+            if (!file.is_open()) continue;
+
+            auto size = file.tellg();
+            if (size > MAX_FILESIZE) continue; // Skip files that are too large
+
+            file.seekg(0, std::ios::beg);
+            std::vector<uint8_t> fileData(static_cast<size_t>(size));
+            if (!file.read(reinterpret_cast<char*>(fileData.data()), size)) continue;
+
+            FileEntry replacementFile;
+            replacementFile.name = entry.path().filename().string();
+            replacementFile.data = std::move(fileData);
+            replacementFile.isReplacement = true;
+
+            replacementFiles.push_back(std::move(replacementFile));
+        }
+
+        return replacementFiles;
+    }
+
+    // Merge original files with replacement files
+    static std::vector<FileEntry> MergeFiles(const std::vector<FileEntry>& originalFiles, const std::vector<FileEntry>& replacementFiles)
+    {
+        // Create lookup map for replacements (case-insensitive)
+        std::unordered_map<std::string, const FileEntry*> replacementMap;
+        for (const auto& file : replacementFiles)
+        {
+            std::string lowerName = file.name;
+            std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(), ::tolower);
+            replacementMap[lowerName] = &file;
+        }
+
+        std::vector<FileEntry> mergedFiles;
+        std::unordered_set<std::string> processedFiles;
+
+        // Process original files (replace if needed)
+        for (const auto& originalFile : originalFiles)
+        {
+            std::string lowerName = originalFile.name;
+            std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(), ::tolower);
+
+            auto it = replacementMap.find(lowerName);
+            if (it != replacementMap.end())
+            {
+                // Use replacement file
+                FileEntry mergedFile = *it->second;
+                mergedFile.name = originalFile.name; // Keep original casing
+                mergedFiles.push_back(std::move(mergedFile));
+                processedFiles.insert(lowerName);
+            }
+            else
+            {
+                // Keep original file
+                mergedFiles.push_back(originalFile);
+            }
+        }
+
+        // Add new files that weren't replacements
+        for (const auto& replacementFile : replacementFiles)
+        {
+            std::string lowerName = replacementFile.name;
+            std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(), ::tolower);
+
+            if (processedFiles.find(lowerName) == processedFiles.end())
+            {
+                // This is a new file, add it
+                mergedFiles.push_back(replacementFile);
+            }
+        }
+
+        return mergedFiles;
+    }
+
+    // Create GTA SA format IMG (Version 2)
+    static std::shared_ptr<std::vector<uint8_t>> CreateImgV2(std::vector<FileEntry>& entries)
+    {
+        // Calculate header size
+        size_t headerSize = sizeof(IMG_Header_V2) + (entries.size() * sizeof(IMG_Entry_V2));
+        size_t alignedHeaderSize = AlignToBlocks(headerSize);
+
+        // Calculate file positions and total size
+        uint32_t currentPosition = static_cast<uint32_t>(alignedHeaderSize / IMG_BLOCK_SIZE);
+        size_t totalSize = alignedHeaderSize;
+
+        for (auto& entry : entries)
+        {
+            entry.position = currentPosition;
+            size_t alignedFileSize = AlignToBlocks(entry.data.size());
+            currentPosition += static_cast<uint32_t>(alignedFileSize / IMG_BLOCK_SIZE);
+            totalSize += alignedFileSize;
+        }
+
+        // Create IMG data
+        auto imgData = std::make_shared<std::vector<uint8_t>>(totalSize);
+        uint8_t* data = imgData->data();
+        size_t offset = 0;
+
+        // Write header
+        IMG_Header_V2 header;
+        memcpy(header.signature, "VER2", 4);
+        header.numFiles = static_cast<uint32_t>(entries.size());
+        memcpy(data + offset, &header, sizeof(header));
+        offset += sizeof(header);
+
+        // Write file entries
+        for (const auto& entry : entries)
+        {
+            IMG_Entry_V2 imgEntry = {};
+            imgEntry.position = entry.position;
+
+            size_t sizeInBlocks = AlignToBlocks(entry.data.size()) / IMG_BLOCK_SIZE;
+            if (sizeInBlocks <= 0xFFFF)
+            {
+                imgEntry.sizeLow = static_cast<uint16_t>(sizeInBlocks);
+                imgEntry.sizeHigh = 0;
+            }
+            else
+            {
+                imgEntry.sizeLow = 0;
+                imgEntry.sizeHigh = static_cast<uint16_t>(sizeInBlocks);
+            }
+
+            strncpy_s(imgEntry.name, sizeof(imgEntry.name), entry.name.c_str(), _TRUNCATE);
+
+            memcpy(data + offset, &imgEntry, sizeof(imgEntry));
+            offset += sizeof(imgEntry);
+        }
+
+        // Pad header to block boundary
+        offset = alignedHeaderSize;
+
+        // Write file data
+        for (const auto& entry : entries)
+        {
+            // Write file data
+            memcpy(data + offset, entry.data.data(), entry.data.size());
+            offset += entry.data.size();
+
+            // Pad to block boundary
+            while (offset % IMG_BLOCK_SIZE != 0)
+            {
+                data[offset++] = 0;
+            }
+        }
+
+        return imgData;
+    }
+
+    struct RSCHeader
+    {
+        static constexpr uint32_t MAGIC_VALUE = 0x05435352;
+
+        uint32_t magic;
+        uint32_t type;
+        uint32_t flags;
+        uint16_t compressCodec;
+        uint16_t padding;
+    };
+
+    // Helper function to check if file data represents an RSC resource
+    static bool IsResourceFile(const std::vector<uint8_t>& fileData)
+    {
+        if (fileData.size() < sizeof(RSCHeader))
+            return false;
+
+        const RSCHeader* header = reinterpret_cast<const RSCHeader*>(fileData.data());
+        return (header->magic == RSCHeader::MAGIC_VALUE);
+    }
+
+    // Helper function to get RSC flags and resource type from file data
+    static std::pair<uint32_t, uint32_t> GetRSCInfo(const std::vector<uint8_t>& fileData)
+    {
+        if (fileData.size() < sizeof(RSCHeader))
+            return { 0, 0 }; // Default values
+
+        const RSCHeader* header = reinterpret_cast<const RSCHeader*>(fileData.data());
+
+        // Validate magic number first
+        if (header->magic != RSCHeader::MAGIC_VALUE)
+            return { 0, 0 }; // Default values for non-RSC files
+
+        uint32_t flags = header->flags;
+        uint32_t type = header->type;
+
+        return { flags, type };
+    }
+
+    // Helper function to determine resource type based on file extension (fallback)
+    static uint32_t GetResourceTypeFromExtension(const std::string& filename)
+    {
+        // Find the last dot to get the extension
+        size_t dotPos = filename.find_last_of('.');
+        if (dotPos == std::string::npos)
+        {
+            return 0;
+        }
+
+        std::string extension = filename.substr(dotPos + 1);
+        std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+
+        if (extension == "wtd") return 0x08;      // Texture
+        else if (extension == "xtd") return 0x07; // TextureXBOX  
+        else if (extension == "wdr") return 0x6E; // Model
+        else if (extension == "xdr") return 0x6D; // ModelXBOX
+        else if (extension == "wft") return 0x70; // ModelFrag
+        else if (extension == "wbd" || extension == "xbd") return 0x20; // Bounds
+        else if (extension == "xpfl") return 0x24; // Particles (could also be 0x1B)
+        else if (extension == "xhm" || extension == "xad") return 0x01; // Generic
+        else if (extension == "dff") return 0x6E; // Model file (SA format, treat as Model)
+        else if (extension == "txd") return 0x08; // Texture dictionary (SA format, treat as Texture)
+        else if (extension == "col") return 0x20; // Collision (treat as Bounds)
+        else if (extension == "ipl") return 0x01; // Item placement (Generic)
+        else if (extension == "ifp") return 0x01; // Animation (Generic)
+        else if (extension == "cut") return 0x01; // Cutscene (Generic)
+        else if (extension == "dat") return 0x01; // Data file (Generic)
+        else if (extension == "ide") return 0x01; // Item definition (Generic)
+        else if (extension == "img") return 0x01; // IMG archive (Generic)
+        else if (extension == "scm") return 0x01; // Script (Generic)
+        else return 0; // Default for unknown extensions
+    }
+
+    // Create GTA IV format IMG (Version 3)
+    static std::shared_ptr<std::vector<uint8_t>> CreateImgV3(std::vector<FileEntry>& entries, bool encrypted = false)
+    {
+        // Calculate filename table size
+        size_t filenameTableSize = 0;
+        for (const auto& entry : entries)
+        {
+            filenameTableSize += entry.name.length() + 1; // +1 for null terminator
+        }
+
+        // Calculate TOC size
+        size_t baseTocSize = sizeof(IMG_Header_V3) + (entries.size() * sizeof(IMG_Entry_V3)) + filenameTableSize;
+
+        // Add 32 bytes
+        size_t tocWithPadding = baseTocSize + 32;
+
+        // Align the entire TOC to block boundaries
+        size_t alignedTocSize = AlignToBlocks(tocWithPadding);
+
+        // Calculate file positions and total size
+        uint32_t currentPosition = static_cast<uint32_t>(alignedTocSize / IMG_BLOCK_SIZE);
+        size_t totalSize = alignedTocSize;
+
+        for (auto& entry : entries)
+        {
+            entry.position = currentPosition;
+            size_t alignedFileSize = AlignToBlocks(entry.data.size());
+            currentPosition += static_cast<uint32_t>(alignedFileSize / IMG_BLOCK_SIZE);
+            totalSize += alignedFileSize;
+        }
+
+        // Create IMG data with exact calculated size
+        auto imgData = std::make_shared<std::vector<uint8_t>>(totalSize, 0);
+        uint8_t* data = imgData->data();
+        size_t offset = 0;
+
+        // Write header
+        IMG_Header_V3 header = {};
+        header.magicId = GTAIV_MAGIC_ID;
+        header.version = 3;
+        header.numItems = static_cast<uint32_t>(entries.size());
+        header.tableSize = static_cast<uint32_t>((entries.size() * sizeof(IMG_Entry_V3)) + filenameTableSize);
+        header.itemSize = sizeof(IMG_Entry_V3);
+        header.unknown = 0x00E9;
+
+        memcpy(data + offset, &header, sizeof(header));
+        offset += sizeof(header);
+
+        for (const auto& entry : entries)
+        {
+            IMG_Entry_V3 imgEntry = {};
+
+            bool isResourceFile = IsResourceFile(entry.data);
+
+            if (isResourceFile)
+            {
+                // Handle RSC files
+                auto [rscFlags, resourceType] = GetRSCInfo(entry.data);
+
+                // For RSC files, the sizeOrRSCFlags field contains the RSC flags from file header
+                imgEntry.sizeOrRSCFlags = rscFlags;
+                imgEntry.resourceType = resourceType;
+
+                // Calculate padding for RSC files
+                size_t alignedSize = AlignToBlocks(entry.data.size());
+                uint16_t paddingCount = static_cast<uint16_t>(alignedSize - entry.data.size());
+
+                // Store padding in lower 11 bits and set RSC flag
+                imgEntry.flags = (paddingCount & 0x7FF) | 0x2000; // Set bit 13 to indicate RSC
+            }
+            else
+            {
+                // Handle normal files
+                imgEntry.sizeOrRSCFlags = static_cast<uint32_t>(entry.data.size());
+                imgEntry.resourceType = GetResourceTypeFromExtension(entry.name);
+                imgEntry.flags = 0; // No special flags for normal files
+            }
+
+            imgEntry.offsetBlock = entry.position;
+            imgEntry.usedBlocks = static_cast<uint16_t>(AlignToBlocks(entry.data.size()) / IMG_BLOCK_SIZE);
+
+            memcpy(data + offset, &imgEntry, sizeof(imgEntry));
+            offset += sizeof(imgEntry);
+        }
+
+        // Write filename table
+        for (const auto& entry : entries)
+        {
+            memcpy(data + offset, entry.name.c_str(), entry.name.length());
+            offset += entry.name.length();
+            data[offset++] = 0;
+        }
+
+        // Skip over the 32 bytes padding
+        offset += 32;
+
+        // Write file data at their calculated positions
+        for (const auto& entry : entries)
+        {
+            size_t fileOffset = entry.position * IMG_BLOCK_SIZE;
+            size_t allocatedSize = AlignToBlocks(entry.data.size());
+
+            // Write the actual file data
+            memcpy(data + fileOffset, entry.data.data(), entry.data.size());
+        }
+
+        // Apply encryption if requested
+        if (encrypted)
+        {
+            EncryptGTAIVArchive(*imgData);
+        }
+
+        return imgData;
+    }
+
+    // Helper function to align size to IMG block boundaries
+    static size_t AlignToBlocks(size_t size)
+    {
+        return ((size + IMG_BLOCK_SIZE - 1) / IMG_BLOCK_SIZE) * IMG_BLOCK_SIZE;
+    }
+};
+
+inline std::shared_ptr<std::vector<uint8_t>> MergeImgWithFolder(const std::filesystem::path& originalImgPath, const std::filesystem::path& updateFolderPath)
+{
+    return ImgProcessor::MergeImgWithFolder(originalImgPath, updateFolderPath);
+}
+
+inline std::shared_ptr<std::vector<uint8_t>> CreateImgFromFolder(const std::filesystem::path& folderPath, eIMG_version version = IMG_VERSION_3, bool encrypted = false)
+{
+    return ImgProcessor::CreateImgFromFolder(folderPath, version, encrypted);
+}
+
+inline std::shared_ptr<std::vector<uint8_t>> CreateImgFromFileList(const std::vector<VFSFileEntry>& fileList, eIMG_version version = IMG_VERSION_3, bool encrypted = false)
+{
+    return ImgProcessor::CreateImgFromFileList(fileList, version, encrypted);
+}
 
 class IMGLoader
 {
@@ -16,6 +1040,7 @@ public:
         FusionFix::onInitEvent() += []()
         {
             static bool (WINAPI* GetOverloadPathW)(wchar_t* out, size_t out_size) = nullptr;
+            static bool (WINAPI* AddVirtualFileForOverload)(const wchar_t* virtualPath, const uint8_t* data, size_t size, int priority) = nullptr;
 
             ModuleList dlls;
             dlls.Enumerate(ModuleList::SearchLocation::LocalOnly);
@@ -24,6 +1049,7 @@ public:
                 auto m = std::get<HMODULE>(e);
                 if (IsModuleUAL(m)) {
                     GetOverloadPathW = (decltype(GetOverloadPathW))GetProcAddress(m, "GetOverloadPathW");
+                    AddVirtualFileForOverload = (decltype(AddVirtualFileForOverload))GetProcAddress(m, "AddVirtualFileForOverload");
                     break;
                 }
             }
@@ -49,10 +1075,70 @@ public:
 
             static auto updatePath = std::filesystem::path(s.data());
 
+            if (AddVirtualFileForOverload)
+            {
+                static std::future<void> BuildIMGsFuture;
+
+                auto pattern = find_pattern("81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 8B 84 24 ? ? ? ? 53 56 68", "81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 8B 84 24 ? ? ? ? 53 55 56 68 ? ? ? ? 50 E8");
+                static auto readGameConfigHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    if (BuildIMGsFuture.valid())
+                        BuildIMGsFuture.wait();
+                });
+
+                BuildIMGsFuture = std::async(std::launch::async, []()
+                {
+                    std::error_code ec;
+                    if (std::filesystem::exists(updatePath, ec))
+                    {
+                        constexpr auto perms = std::filesystem::directory_options::skip_permission_denied |
+                            std::filesystem::directory_options::follow_directory_symlink;
+
+                        for (const auto& it : std::filesystem::recursive_directory_iterator(updatePath, perms, ec))
+                        {
+                            if (ec)
+                                continue;
+
+                            auto folderPath = std::filesystem::path(it.path());
+
+                            // Check for folder with .img extension
+                            if (std::filesystem::is_directory(it, ec) && iequals(folderPath.extension().native(), L".img"))
+                            {
+                                // Look for corresponding original IMG
+                                auto relativePath = lexicallyRelativeCaseIns(folderPath, updatePath);
+                                auto originalImgPath = GetExeModulePath() / relativePath;
+
+                                // Change extension back to .img for the original file
+                                originalImgPath.replace_extension(".img");
+
+                                if (std::filesystem::exists(originalImgPath, ec) && std::filesystem::is_regular_file(originalImgPath, ec))
+                                {
+                                    // Merge original IMG with the folder inside update
+                                    auto mergedImgData = MergeImgWithFolder(originalImgPath, folderPath);
+                                    if (mergedImgData)
+                                    {
+                                        AddVirtualFileForOverload(relativePath.wstring().c_str(), mergedImgData->data(), mergedImgData->size(), 1000);
+                                    }
+                                }
+                                else
+                                {
+                                    auto ImgData = CreateImgFromFolder(folderPath);
+                                    if (ImgData)
+                                    {
+                                        auto gamePath = GetExeModulePath();
+                                        auto path = lexicallyRelativeCaseIns(folderPath, gamePath);
+                                        AddVirtualFileForOverload(path.wstring().c_str(), ImgData->data(), ImgData->size(), 1000);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
             //IMG Loader
             auto pattern = find_pattern("E8 ? ? ? ? 6A 00 E8 ? ? ? ? 83 C4 14 6A 00 B9 ? ? ? ? E8 ? ? ? ? 83 3D", "E8 ? ? ? ? 6A 00 E8 ? ? ? ? 83 C4 14 6A 00 B9");
             static auto CImgManager__addImgFile = (void(__cdecl*)(const char*, char, int)) injector::GetBranchDestination(pattern.get_first(0)).get();
-            static auto sub_A95980 = (void(__cdecl*)(unsigned char)) injector::GetBranchDestination(pattern.get_first(7)).get();
 
             pattern = find_pattern("89 44 24 44 8B 44 24 4C 53 68 ? ? ? ? 50 E8 ? ? ? ? 8B D8 6A 01 53 E8 ? ? ? ? 83 C4 10", "89 44 24 44 8B 44 24 4C 57 68 ? ? ? ? 50 E8 ? ? ? ? 8B F8 6A 01 57 E8 ? ? ? ? 83 C4 10");
             struct ImgListHook
@@ -343,7 +1429,7 @@ public:
                         {
                             auto filePath = std::filesystem::path(file.path());
 
-                            if (!std::filesystem::is_directory(file, ec) && iequals(filePath.extension().native(), L".img"))
+                            if (iequals(filePath.extension().native(), L".img"))
                             {
                                 auto contains_subfolder = [](const std::filesystem::path& path, const std::filesystem::path& base) -> bool {
                                     for (auto& p : path)
@@ -357,54 +1443,8 @@ public:
                                     return false;
                                 };
 
-                                static auto lexicallyRelativeCaseIns = [](const std::filesystem::path& path, const std::filesystem::path& base) -> std::filesystem::path
-                                {
-                                    class input_iterator_range
-                                    {
-                                    public:
-                                        input_iterator_range(const std::filesystem::path::const_iterator& first, const std::filesystem::path::const_iterator& last)
-                                            : _first(first)
-                                            , _last(last)
-                                        {}
-                                        std::filesystem::path::const_iterator begin() const { return _first; }
-                                        std::filesystem::path::const_iterator end() const { return _last; }
-                                    private:
-                                        std::filesystem::path::const_iterator _first;
-                                        std::filesystem::path::const_iterator _last;
-                                    };
-
-                                    if (!iequals(path.root_name().wstring(), base.root_name().wstring()) || path.is_absolute() != base.is_absolute() || (!path.has_root_directory() && base.has_root_directory())) {
-                                        return std::filesystem::path();
-                                    }
-                                    std::filesystem::path::const_iterator a = path.begin(), b = base.begin();
-                                    while (a != path.end() && b != base.end() && iequals(a->wstring(), b->wstring())) {
-                                        ++a;
-                                        ++b;
-                                    }
-                                    if (a == path.end() && b == base.end()) {
-                                        return std::filesystem::path(".");
-                                    }
-                                    int count = 0;
-                                    for (const auto& element : input_iterator_range(b, base.end())) {
-                                        if (element != "." && element != "" && element != "..") {
-                                            ++count;
-                                        }
-                                        else if (element == "..") {
-                                            --count;
-                                        }
-                                    }
-                                    if (count < 0) {
-                                        return std::filesystem::path();
-                                    }
-                                    std::filesystem::path result;
-                                    for (int i = 0; i < count; ++i) {
-                                        result /= "..";
-                                    }
-                                    for (const auto& element : input_iterator_range(a, path.end())) {
-                                        result /= element;
-                                    }
-                                    return result;
-                                };
+                                if (!AddVirtualFileForOverload && std::filesystem::is_directory(file, ec))
+                                    continue;
 
                                 auto relativePath = lexicallyRelativeCaseIns(filePath, gamePath);
                                 auto imgPath = relativePath.string();
