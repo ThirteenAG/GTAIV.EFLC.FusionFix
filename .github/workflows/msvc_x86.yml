@@ -88,6 +88,7 @@ jobs:
         fileName: "dxvk-*.tar.gz"
 
     - name: Unpack dependencies
+      shell: cmd
       run: |
           7z x dinput8-Win32.zip -odata/ -y
           del dinput8-Win32.zip
