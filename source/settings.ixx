@@ -565,7 +565,10 @@ public:
 
                         if (hModule == NULL)
                         {
-                            FusionFixSettings.Set(id, 0);
+                            if (GetModuleHandleW(L"winevulkan.dll") || GetModuleHandleW(L"vulkan-1.dll"))
+                                FusionFixSettings.Set(id, 1);
+                            else
+                                FusionFixSettings.Set(id, 0);
                         }
                         else
                         {
@@ -1153,6 +1156,23 @@ public:
             FusionFix::onMenuExitEvent() += []()
             {
                 fMenuBlur = 0.0f;
+            };
+
+            FusionFix::onGameInitEvent() += []()
+            {
+                static auto api = FusionFixSettings.GetRef("PREF_GRAPHICSAPI");
+                auto hModule = LoadLibraryEx(L"vulkan.dll", NULL, LOAD_LIBRARY_AS_DATAFILE);
+                if (hModule == NULL)
+                {
+                    if (api->get() && !GetModuleHandleW(L"winevulkan.dll") && !GetModuleHandleW(L"vulkan-1.dll"))
+                        FusionFixSettings.Set("PREF_GRAPHICSAPI", 0);
+                    else if (!api->get() && (GetModuleHandleW(L"winevulkan.dll") || GetModuleHandleW(L"vulkan-1.dll")))
+                        FusionFixSettings.Set("PREF_GRAPHICSAPI", 1);
+                }
+                else
+                {
+                    FreeLibrary(hModule);
+                }
             };
         }
     }

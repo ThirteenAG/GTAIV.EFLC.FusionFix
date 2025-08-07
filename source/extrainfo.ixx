@@ -108,11 +108,6 @@ public:
                                 if (FF_RESTART[0])
                                 {
                                     static auto api = FusionFixSettings.GetRef("PREF_GRAPHICSAPI");
-
-                                    //not the best place to reset the setting, but whatever
-                                    if (api && !GetModuleHandleW(L"winevulkan.dll") && !GetModuleHandleW(L"vulkan-1.dll"))
-                                        FusionFixSettings.Set("PREF_GRAPHICSAPI", 0);
-
                                     static auto initialSelectedApi = api->get();
 
                                     if (initialSelectedApi != api->get())
