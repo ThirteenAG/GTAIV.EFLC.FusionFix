@@ -151,6 +151,32 @@ public:
             pattern = find_pattern("55 8B EC 83 E4 ? F3 0F 10 55 ? 83 EC");
             if (!pattern.empty())
                 streamingBudgetHook = safetyhook::create_inline(pattern.get_first(0), CalculateStreamingMemoryBudget);
+
+            pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? A1 ? ? ? ? 85 C0 74");
+            if (!pattern.empty())
+            {
+                static int* g_cmdarg_nomemrestrict = *pattern.get_first<int*>(2);
+                static auto loc_427FC9 = resolve_next_displacement(pattern.get_first(0)).value();
+                struct NoMemRestrictHook
+                {
+                    void operator()(injector::reg_pack& regs)
+                    {
+                        static auto bExtraStreamingMemory = FusionFixSettings.GetRef("PREF_EXTRASTREAMINGMEMORY");
+                        if (bExtraStreamingMemory->get())
+                        {
+                            return;
+                        }
+                        else
+                        {
+                            return_to(loc_427FC9);
+                        }
+
+                        // Original code for reference
+                        if (*g_cmdarg_nomemrestrict)
+                            return_to(loc_427FC9);
+                    }
+                }; injector::MakeInline<NoMemRestrictHook>(pattern.get_first(0), pattern.get_first(13));
+            }
         };
     }
 } VRam;

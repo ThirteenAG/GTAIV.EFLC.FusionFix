@@ -137,7 +137,7 @@ public:
             // [MAIN]
             int32_t nAimingZoomFix = iniReader.ReadInteger("MAIN", "AimingZoomFix", 1);
             bool bRecoilFix = iniReader.ReadInteger("MAIN", "RecoilFix", 1) != 0;
-            bool bForceNoMemRestrict = iniReader.ReadInteger("MAIN", "ForceNoMemRestrict", 1) != 0;
+            //bool bForceNoMemRestrict = iniReader.ReadInteger("MAIN", "ForceNoMemRestrict", 1) != 0;
 
             // [MISC]
             bool bDefaultCameraAngleInTLaD = iniReader.ReadInteger("MISC", "DefaultCameraAngleInTLaD", 0) != 0;
@@ -285,20 +285,20 @@ public:
                 injector::MakeCALL(pattern.get_first(0), sub_477300, true);
 
                 // related to the same issue
-                if (bForceNoMemRestrict)
-                {
-                    pattern = find_pattern("0F 85 ? ? ? ? A1 ? ? ? ? 85 C0 74 5C", "0F 85 ? ? ? ? A1 ? ? ? ? 85 C0 74 5A");
-                    if (!pattern.empty())
-                    {
-                        injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jnz -> jmp
-                    }
-                    else
-                    {
-                        pattern = find_pattern("75 7E A1 ? ? ? ? 85 C0");
-                        if (!pattern.empty())
-                            injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz -> jmp
-                    }
-                }
+                //if (bForceNoMemRestrict)
+                //{
+                //    pattern = find_pattern("0F 85 ? ? ? ? A1 ? ? ? ? 85 C0 74 5C", "0F 85 ? ? ? ? A1 ? ? ? ? 85 C0 74 5A");
+                //    if (!pattern.empty())
+                //    {
+                //        injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jnz -> jmp
+                //    }
+                //    else
+                //    {
+                //        pattern = find_pattern("75 7E A1 ? ? ? ? 85 C0");
+                //        if (!pattern.empty())
+                //            injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz -> jmp
+                //    }
+                //}
             }
 
             // Make LOD lights appear at the appropriate time like on the console version (consoles: 7 PM, pc: 10 PM)
