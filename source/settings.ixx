@@ -136,6 +136,8 @@ private:
         return std::nullopt;
     }
 public:
+    static inline std::filesystem::path d3d9cfgPath;
+
     CSettings()
     {
         TCHAR szPath[MAX_PATH];
@@ -170,6 +172,42 @@ public:
             {
                 cfgPath = it;
                 break;
+            }
+        }
+
+        {
+            WCHAR szPath[MAX_PATH];
+            std::vector<std::filesystem::path> d3d9cfgPaths;
+            auto cfgName = L"d3d9.cfg";
+            d3d9cfgPaths.emplace_back(GetExeModulePath() / cfgName);
+            if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, szPath)))
+                d3d9cfgPaths.emplace_back(std::filesystem::path(szPath) / L"Rockstar Games\\GTA IV\\" / cfgName);
+            if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, szPath)))
+                d3d9cfgPaths.emplace_back(std::filesystem::path(szPath) / L"d3d9.cfg" / cfgName);
+            if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_MYDOCUMENTS, NULL, 0, szPath)))
+                d3d9cfgPaths.emplace_back(std::filesystem::path(szPath) / L"d3d9.cfg" / cfgName);
+
+            d3d9cfgPath = d3d9cfgPaths.front();
+            for (auto& it : d3d9cfgPaths)
+            {
+                auto status = std::filesystem::status(it).permissions();
+                if (status == std::filesystem::perms::unknown)
+                {
+                    std::ofstream ofile;
+                    ofile.open(it, std::ios::binary);
+                    if (ofile.is_open())
+                    {
+                        d3d9cfgPath = it;
+                        ofile.close();
+                        break;
+                    }
+                }
+                else if ((std::filesystem::perms::owner_read & status) == std::filesystem::perms::owner_read &&
+                    (std::filesystem::perms::owner_write & status) == std::filesystem::perms::owner_write)
+                {
+                    d3d9cfgPath = it;
+                    break;
+                }
             }
         }
 
@@ -351,6 +389,23 @@ public:
             for (auto& pattern : patterns)
                 if (!pattern.empty())
                     injector::WriteMemory(pattern.get_first(3), &aMenuPrefs2[0].prefID, true);
+        }
+
+        CIniReader d3d9cfg(d3d9cfgPath);
+        auto api = d3d9cfg.ReadInteger("MAIN", "API", 0);
+        FusionFixSettings.Set("PREF_GRAPHICSAPI", api);
+
+        auto hModule = LoadLibraryEx(L"vulkan.dll", NULL, LOAD_LIBRARY_AS_DATAFILE);
+        if (hModule == NULL)
+        {
+            if (api && !GetModuleHandleW(L"winevulkan.dll") && !GetModuleHandleW(L"vulkan-1.dll"))
+                FusionFixSettings.Set("PREF_GRAPHICSAPI", 0);
+            else if (!api && (GetModuleHandleW(L"winevulkan.dll") || GetModuleHandleW(L"vulkan-1.dll")))
+                FusionFixSettings.Set("PREF_GRAPHICSAPI", 1);
+        }
+        else
+        {
+            FreeLibrary(hModule);
         }
     }
 public:
@@ -574,41 +629,7 @@ public:
                         {
                             FreeLibrary(hModule);
 
-                            WCHAR szPath[MAX_PATH];
-                            std::vector<std::filesystem::path> cfgPaths;
-                            auto cfgName = L"d3d9.cfg";
-                            cfgPaths.emplace_back(GetExeModulePath() / cfgName);
-                            if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, szPath)))
-                                cfgPaths.emplace_back(std::filesystem::path(szPath) / L"Rockstar Games\\GTA IV\\" / cfgName);
-                            if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, szPath)))
-                                cfgPaths.emplace_back(std::filesystem::path(szPath) / L"d3d9.cfg" / cfgName);
-                            if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_MYDOCUMENTS, NULL, 0, szPath)))
-                                cfgPaths.emplace_back(std::filesystem::path(szPath) / L"d3d9.cfg" / cfgName);
-
-                            auto cfgPath = cfgPaths.front();
-                            for (auto& it : cfgPaths)
-                            {
-                                auto status = std::filesystem::status(it).permissions();
-                                if (status == std::filesystem::perms::unknown)
-                                {
-                                    std::ofstream ofile;
-                                    ofile.open(it, std::ios::binary);
-                                    if (ofile.is_open())
-                                    {
-                                        cfgPath = it;
-                                        ofile.close();
-                                        break;
-                                    }
-                                }
-                                else if ((std::filesystem::perms::owner_read & status) == std::filesystem::perms::owner_read &&
-                                    (std::filesystem::perms::owner_write & status) == std::filesystem::perms::owner_write)
-                                {
-                                    cfgPath = it;
-                                    break;
-                                }
-                            }
-
-                            CIniReader d3d9cfg(cfgPath);
+                            CIniReader d3d9cfg(CSettings::d3d9cfgPath);
                             d3d9cfg.WriteInteger("MAIN", "API", value, true);
                         }
                     }
@@ -1156,23 +1177,6 @@ public:
             FusionFix::onMenuExitEvent() += []()
             {
                 fMenuBlur = 0.0f;
-            };
-
-            FusionFix::onGameInitEvent() += []()
-            {
-                static auto api = FusionFixSettings.GetRef("PREF_GRAPHICSAPI");
-                auto hModule = LoadLibraryEx(L"vulkan.dll", NULL, LOAD_LIBRARY_AS_DATAFILE);
-                if (hModule == NULL)
-                {
-                    if (api->get() && !GetModuleHandleW(L"winevulkan.dll") && !GetModuleHandleW(L"vulkan-1.dll"))
-                        FusionFixSettings.Set("PREF_GRAPHICSAPI", 0);
-                    else if (!api->get() && (GetModuleHandleW(L"winevulkan.dll") || GetModuleHandleW(L"vulkan-1.dll")))
-                        FusionFixSettings.Set("PREF_GRAPHICSAPI", 1);
-                }
-                else
-                {
-                    FreeLibrary(hModule);
-                }
             };
         }
     }
