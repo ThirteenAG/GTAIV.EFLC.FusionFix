@@ -40,13 +40,7 @@ public:
     static constexpr size_t MAX_FILENAME_LENGTH_V3 = 255;
     static constexpr uint32_t GTAIV_MAGIC_ID = 0xA94E2A52;
 
-    // GTA IV AES-256 encryption key (32 bytes - 256 bits)
-    static constexpr uint8_t GTAIV_ENCRYPTION_KEY[32] = {
-        0x1a, 0xb5, 0x6f, 0xed, 0x7e, 0xc3, 0xff, 0x01,
-        0x22, 0x7b, 0x69, 0x15, 0x33, 0x97, 0x5d, 0xce,
-        0x47, 0xd7, 0x69, 0x65, 0x3f, 0xf7, 0x75, 0x42,
-        0x6a, 0x96, 0xcd, 0x6d, 0x53, 0x07, 0x56, 0x5d
-    };
+    static inline uint8_t(*GTAIV_ENCRYPTION_KEY)[32] = nullptr;
 
     #pragma pack(push, 1)
     struct IMG_Header_V2
@@ -296,7 +290,7 @@ private:
             keyBlob.hdr.reserved = 0;
             keyBlob.hdr.aiKeyAlg = CALG_AES_256;
             keyBlob.keySize = 32;
-            memcpy(keyBlob.keyData, GTAIV_ENCRYPTION_KEY, 32);
+            memcpy(keyBlob.keyData, *GTAIV_ENCRYPTION_KEY, 32);
 
             if (!CryptImportKey(hCryptProv, (BYTE*)&keyBlob, sizeof(keyBlob), 0, 0, &hKey))
             {
@@ -439,7 +433,7 @@ private:
             keyBlob.hdr.reserved = 0;
             keyBlob.hdr.aiKeyAlg = CALG_AES_256;
             keyBlob.keySize = 32;
-            memcpy(keyBlob.keyData, GTAIV_ENCRYPTION_KEY, 32);
+            memcpy(keyBlob.keyData, *GTAIV_ENCRYPTION_KEY, 32);
 
             if (!CryptImportKey(hCryptProv, (BYTE*)&keyBlob, sizeof(keyBlob), 0, 0, &hKey))
             {
@@ -861,40 +855,6 @@ private:
         return { flags, type };
     }
 
-    // Helper function to determine resource type based on file extension (fallback)
-    static uint32_t GetResourceTypeFromExtension(const std::string& filename)
-    {
-        // Find the last dot to get the extension
-        size_t dotPos = filename.find_last_of('.');
-        if (dotPos == std::string::npos)
-        {
-            return 0;
-        }
-
-        std::string extension = filename.substr(dotPos + 1);
-        std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
-
-        if (extension == "wtd") return 0x08;      // Texture
-        else if (extension == "xtd") return 0x07; // TextureXBOX  
-        else if (extension == "wdr") return 0x6E; // Model
-        else if (extension == "xdr") return 0x6D; // ModelXBOX
-        else if (extension == "wft") return 0x70; // ModelFrag
-        else if (extension == "wbd" || extension == "xbd") return 0x20; // Bounds
-        else if (extension == "xpfl") return 0x24; // Particles (could also be 0x1B)
-        else if (extension == "xhm" || extension == "xad") return 0x01; // Generic
-        else if (extension == "dff") return 0x6E; // Model file (SA format, treat as Model)
-        else if (extension == "txd") return 0x08; // Texture dictionary (SA format, treat as Texture)
-        else if (extension == "col") return 0x20; // Collision (treat as Bounds)
-        else if (extension == "ipl") return 0x01; // Item placement (Generic)
-        else if (extension == "ifp") return 0x01; // Animation (Generic)
-        else if (extension == "cut") return 0x01; // Cutscene (Generic)
-        else if (extension == "dat") return 0x01; // Data file (Generic)
-        else if (extension == "ide") return 0x01; // Item definition (Generic)
-        else if (extension == "img") return 0x01; // IMG archive (Generic)
-        else if (extension == "scm") return 0x01; // Script (Generic)
-        else return 0; // Default for unknown extensions
-    }
-
     // Create GTA IV format IMG (Version 3)
     static std::shared_ptr<std::vector<uint8_t>> CreateImgV3(std::vector<FileEntry>& entries, bool encrypted = false)
     {
@@ -969,8 +929,8 @@ private:
             {
                 // Handle normal files
                 imgEntry.sizeOrRSCFlags = static_cast<uint32_t>(entry.data.size());
-                imgEntry.resourceType = GetResourceTypeFromExtension(entry.name);
-                imgEntry.flags = 0; // No special flags for normal files
+                imgEntry.resourceType = 0;
+                imgEntry.flags = 0;
             }
 
             imgEntry.offsetBlock = entry.position;
@@ -1077,9 +1037,12 @@ public:
 
             if (AddVirtualFileForOverload)
             {
+                auto pattern = find_pattern("B9 ? ? ? ? E8 ? ? ? ? 83 C4 ? 83 BC 24", "25 ? ? ? ? 53 55 56 0B C1");
+                ImgProcessor::GTAIV_ENCRYPTION_KEY = reinterpret_cast<uint8_t(*)[32]>(*pattern.get_first<void*>(1));
+
                 static std::future<void> BuildIMGsFuture;
 
-                auto pattern = find_pattern("81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 8B 84 24 ? ? ? ? 53 56 68", "81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 8B 84 24 ? ? ? ? 53 55 56 68 ? ? ? ? 50 E8");
+                pattern = find_pattern("81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 8B 84 24 ? ? ? ? 53 56 68", "81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 8B 84 24 ? ? ? ? 53 55 56 68 ? ? ? ? 50 E8");
                 static auto readGameConfigHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                 {
                     if (BuildIMGsFuture.valid())
