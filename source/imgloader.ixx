@@ -480,7 +480,7 @@ private:
 
     static uint32_t GetActualFileSize(const IMG_Entry_V3& entry)
     {
-        bool isResourceFile = (entry.sizeOrRSCFlags & 0xC0000000) != 0;
+        bool isResourceFile = ((entry.sizeOrRSCFlags & 0xC0000000) != 0) || ((entry.sizeOrRSCFlags & 0x80000000) == 0x80000000);
 
         if (!isResourceFile)
         {
