@@ -149,6 +149,50 @@ public:
                         }
                     }; injector::MakeInline<ShadowsHook>(pattern.get_first(0), pattern.get_first(14));
                 }
+                else
+                    {
+                    pattern = hook::pattern("E8 ? ? ? ? 85 C0 74 2A 53");
+                    {
+                    static auto getLocalPlayerPed = (int (*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
+                    static auto FindPlayerCar = (int (*)())injector::GetBranchDestination(pattern.get_first(11)).as_int();
+
+                        //static auto loc_76A56F = (uintptr_t)hook::get_pattern("8B 4D 0C 8B 44 24 10");    //crashes
+                        static auto loc_76A450 = (uintptr_t)hook::get_pattern("85 C9 75 5C 0F B6 46 62 50");
+                        static auto loc_76A437 = (uintptr_t)hook::get_pattern("C6 44 24 ? ? 75 0F 8B 86 ? ? ? ?");
+
+
+                    pattern = hook::pattern("83 F8 03 75 17 F6 86");
+                    struct ShadowsHook
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            //if (bHeadlightShadows && bVehicleNightShadows)
+                            //{
+                                //auto car = FindPlayerCar();
+
+                                 //Disable player/car shadows
+                                //if (regs.esi && (regs.esi == car || (regs.esi == getLocalPlayerPed() && car && *(uint32_t*)(car + 0xFA0))))
+                                //{
+                                    //*(uintptr_t*)(regs.esp - 4) = loc_76A56F;
+                                    //return;
+                                //}
+                            //}
+
+                            // Enable player/ped shadows while in vehicles
+                            if ((bHeadlightShadows || bVehicleNightShadows) && (((*(uint8_t*)(regs.esi + 620) & 4) != 0) && (regs.eax == 3 || regs.eax == 4)))
+                            {
+                                *(uintptr_t*)(regs.esp - 4) = loc_76A450;
+                                return;
+                            }
+
+                            if (regs.eax != 3 || (*(uint8_t*)(regs.esi + 620) & 4) == 0)
+                            {
+                                *(uintptr_t*)(regs.esp - 4) = loc_76A437;
+                            }
+                        }
+                    }; injector::MakeInline<ShadowsHook>(pattern.get_first(0), pattern.get_first(12));
+                    }
+                }
             }
         };
     }
