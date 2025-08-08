@@ -395,18 +395,10 @@ public:
         auto api = d3d9cfg.ReadInteger("MAIN", "API", 0);
         FusionFixSettings.Set("PREF_GRAPHICSAPI", api);
 
-        auto hModule = LoadLibraryEx(L"vulkan.dll", NULL, LOAD_LIBRARY_AS_DATAFILE);
-        if (hModule == NULL)
-        {
-            if (api && !GetModuleHandleW(L"winevulkan.dll") && !GetModuleHandleW(L"vulkan-1.dll"))
-                FusionFixSettings.Set("PREF_GRAPHICSAPI", 0);
-            else if (!api && (GetModuleHandleW(L"winevulkan.dll") || GetModuleHandleW(L"vulkan-1.dll")))
-                FusionFixSettings.Set("PREF_GRAPHICSAPI", 1);
-        }
-        else
-        {
-            FreeLibrary(hModule);
-        }
+        if (api && !GetModuleHandleW(L"winevulkan.dll") && !GetModuleHandleW(L"vulkan-1.dll"))
+            FusionFixSettings.Set("PREF_GRAPHICSAPI", 0);
+        else if (!api && (GetModuleHandleW(L"winevulkan.dll") || GetModuleHandleW(L"vulkan-1.dll")))
+            FusionFixSettings.Set("PREF_GRAPHICSAPI", 1);
     }
 public:
     int32_t Get(int32_t prefID)
@@ -616,9 +608,10 @@ public:
                     // custom handler for graphics api switch
                     if (FusionFixSettings.isSame(id, "PREF_GRAPHICSAPI"))
                     {
-                        auto hModule = LoadLibraryEx(L"vulkan.dll", NULL, LOAD_LIBRARY_AS_DATAFILE);
+                        auto vulkan = LoadLibraryExW(L"vulkan.dll", NULL, LOAD_LIBRARY_AS_DATAFILE);
+                        auto FusionFixGraphicsApiSwitch = GetProcAddress(GetModuleHandleW(L"d3d9.dll"), "FusionFixGraphicsApiSwitch");
 
-                        if (hModule == NULL)
+                        if (vulkan == NULL || !FusionFixGraphicsApiSwitch)
                         {
                             if (GetModuleHandleW(L"winevulkan.dll") || GetModuleHandleW(L"vulkan-1.dll"))
                                 FusionFixSettings.Set(id, 1);
@@ -627,8 +620,7 @@ public:
                         }
                         else
                         {
-                            FreeLibrary(hModule);
-
+                            FreeLibrary(vulkan);
                             CIniReader d3d9cfg(CSettings::d3d9cfgPath);
                             d3d9cfg.WriteInteger("MAIN", "API", value, true);
                         }

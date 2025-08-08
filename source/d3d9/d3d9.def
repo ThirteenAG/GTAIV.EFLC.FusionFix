@@ -17,3 +17,4 @@ Direct3DCreate9On12Ex = _Direct3DCreate9On12Ex @21
 Direct3DShaderValidatorCreate9 = _Direct3DShaderValidatorCreate9 @24
 PSGPError = _PSGPError @25
 PSGPSampleTexture = _PSGPSampleTexture @26
+FusionFixGraphicsApiSwitch = _FusionFixGraphicsApiSwitch

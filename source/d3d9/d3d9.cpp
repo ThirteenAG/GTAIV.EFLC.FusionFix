@@ -97,6 +97,11 @@ __declspec(naked) void _PSGPSampleTexture()
     _asm { jmp[d3d9.PSGPSampleTexture] }
 }
 
+void _FusionFixGraphicsApiSwitch()
+{
+    return;
+}
+
 std::filesystem::path GetModulePath(HMODULE hModule)
 {
     static constexpr auto INITIAL_BUFFER_SIZE = MAX_PATH;
