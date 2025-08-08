@@ -1169,11 +1169,17 @@ public:
             auto pattern = find_pattern("51 56 57 64 8B 3D", "51 53 56 BE ? ? ? ? 33 DB");
             static auto readFrontendMenuHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
             {
-                auto api = FusionFixSettings.GetRef("PREF_GRAPHICSAPI")->get();
-                if (api && !GetModuleHandleW(L"winevulkan.dll") && !GetModuleHandleW(L"vulkan-1.dll"))
-                    FusionFixSettings.Set("PREF_GRAPHICSAPI", 0);
-                else if (!api && (GetModuleHandleW(L"winevulkan.dll") || GetModuleHandleW(L"vulkan-1.dll")))
-                    FusionFixSettings.Set("PREF_GRAPHICSAPI", 1);
+                static bool bOnce = false;
+
+                if (!bOnce)
+                {
+                    bOnce = true;
+                    auto api = FusionFixSettings.GetRef("PREF_GRAPHICSAPI")->get();
+                    if (api && !GetModuleHandleW(L"winevulkan.dll") && !GetModuleHandleW(L"vulkan-1.dll"))
+                        FusionFixSettings.Set("PREF_GRAPHICSAPI", 0);
+                    else if (!api && (GetModuleHandleW(L"winevulkan.dll") || GetModuleHandleW(L"vulkan-1.dll")))
+                        FusionFixSettings.Set("PREF_GRAPHICSAPI", 1);
+                }
             });
         }
     }
