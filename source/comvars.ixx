@@ -1126,7 +1126,7 @@ export namespace rage
                 auto it = std::find_if(ShaderParamNames.begin(), ShaderParamNames.end(), [&](auto& pair)
                 {
                     int& cachedIdx = pair.second.second;
-                    if (cachedIdx < 0) cachedIdx = getParamIndex(_this, pair.second.first.c_str(), 1);
+                    if (cachedIdx <= 0) cachedIdx = getParamIndex(_this, pair.second.first.c_str(), 1);
                     return index == cachedIdx && shader_name == pair.first;
                 });
 
