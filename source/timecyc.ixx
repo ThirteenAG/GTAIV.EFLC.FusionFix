@@ -12,7 +12,6 @@ import timecycext;
 
 std::vector<std::string> snowTC;
 std::vector<std::string> hallTC;
-std::vector<std::string> vcTC;
 
 float fVolFogFarClip = 4500.0f;
 
@@ -41,12 +40,6 @@ int timecyc_scanf(const char* i, const char* fmt, int* mAmbient0ColorR, int* mAm
 {
     if (!i)
         return 0;
-
-    if (CText::hasViceCityStrings())
-    {
-        if (vcTC.size() == 99)
-            i = vcTC[scanfCount].c_str();
-    }
 
     if (bEnableSnow)
     {
@@ -425,13 +418,6 @@ public:
                         hallTC.emplace_back(line);
                 }
                 //assert(hallTC.size() == 99);
-
-                std::ifstream istr_vc(filePath / "timecycvc.dat");
-                while (std::getline(istr_vc, line))
-                {
-                    if (line.find_first_not_of(" \t\r\n") != std::string::npos && !line.contains('/'))
-                        vcTC.emplace_back(line);
-                }
             }
         };
     }
