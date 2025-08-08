@@ -394,11 +394,6 @@ public:
         CIniReader d3d9cfg(d3d9cfgPath);
         auto api = d3d9cfg.ReadInteger("MAIN", "API", 0);
         FusionFixSettings.Set("PREF_GRAPHICSAPI", api);
-
-        if (api && !GetModuleHandleW(L"winevulkan.dll") && !GetModuleHandleW(L"vulkan-1.dll"))
-            FusionFixSettings.Set("PREF_GRAPHICSAPI", 0);
-        else if (!api && (GetModuleHandleW(L"winevulkan.dll") || GetModuleHandleW(L"vulkan-1.dll")))
-            FusionFixSettings.Set("PREF_GRAPHICSAPI", 1);
     }
 public:
     int32_t Get(int32_t prefID)
@@ -1170,6 +1165,16 @@ public:
             {
                 fMenuBlur = 0.0f;
             };
+
+            auto pattern = find_pattern("51 56 57 64 8B 3D", "51 53 56 BE ? ? ? ? 33 DB");
+            static auto readFrontendMenuHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+            {
+                auto api = FusionFixSettings.GetRef("PREF_GRAPHICSAPI")->get();
+                if (api && !GetModuleHandleW(L"winevulkan.dll") && !GetModuleHandleW(L"vulkan-1.dll"))
+                    FusionFixSettings.Set("PREF_GRAPHICSAPI", 0);
+                else if (!api && (GetModuleHandleW(L"winevulkan.dll") || GetModuleHandleW(L"vulkan-1.dll")))
+                    FusionFixSettings.Set("PREF_GRAPHICSAPI", 1);
+            });
         }
     }
 } Settings;

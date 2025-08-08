@@ -364,6 +364,7 @@
         <menu HeaderText="MH_GAM" enum="SCR_GAME">
             <options action="MENUOPT_JUMP_NEXT_MENU" label="MO_LOA" value="SCR_LOAD" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <options action="MENUOPT_JUMP_NEWGAME" label="MO_NEW" value="SCR_NEW_GAME" scaler="0" displayValue="MENU_DISPLAY_NONE" />
+            <options action="MENUOPT_JUMP_MARKETPLACE" label="MO_MARKETPLACE" value="SCR_MARKETPLACE" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <options action="MENUOPT_ADJUST" label="MO_AUTOSAV" value="PREF_AUTOSAVE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <options action="MENUOPT_ADJUST" label="MO_REPLAY" value="PREF_REPLAY_MODE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <options action="MENUOPT_JUMP_GUIDE" label="MO_GUIDE" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
