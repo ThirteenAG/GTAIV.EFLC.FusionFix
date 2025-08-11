@@ -96,6 +96,11 @@ public:
         static Event<> EndScene;
         return EndScene;
     }
+    static Event<>& onReadGameConfig()
+    {
+        static Event<> ReadGameConfig;
+        return ReadGameConfig;
+    }
     //static Event<>& onAfterReset() {
     //    static Event<> AfterReset;
     //    return AfterReset;

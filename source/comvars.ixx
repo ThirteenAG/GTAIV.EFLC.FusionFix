@@ -1349,6 +1349,8 @@ export namespace Matrix34
     void (__fastcall* fromEulersXYZ)(float* _this, void* edx, float* a2);
 }
 
+export uint8_t(*GTAIV_ENCRYPTION_KEY)[32] = nullptr;
+
 export void* (*FindPlayerPed)(int32_t id);
 export void* (*FindPlayerVehicle)(int32_t id);
 
@@ -1406,11 +1408,30 @@ export namespace CGameConfigReader
 
 export int* dwSniperInverted = nullptr;
 
+export namespace UAL
+{
+    bool (WINAPI* GetOverloadPathW)(wchar_t* out, size_t out_size) = nullptr;
+    bool (WINAPI* AddVirtualFileForOverload)(const wchar_t* virtualPath, const uint8_t* data, size_t size, int priority) = nullptr;
+}
+
 class Common
 {
 public:
     Common()
     {
+        ModuleList dlls;
+        dlls.Enumerate(ModuleList::SearchLocation::LocalOnly);
+        for (auto& e : dlls.m_moduleList)
+        {
+            auto m = std::get<HMODULE>(e);
+            if (IsModuleUAL(m))
+            {
+                UAL::GetOverloadPathW = (decltype(UAL::GetOverloadPathW))GetProcAddress(m, "GetOverloadPathW");
+                UAL::AddVirtualFileForOverload = (decltype(UAL::AddVirtualFileForOverload))GetProcAddress(m, "AddVirtualFileForOverload");
+                break;
+            }
+        }
+
         auto pattern = find_pattern("56 57 8B F9 8B 07 FF 50 08 25", "56 8B F1 8B 06 8B 50 08 57 FF D2 25");
         CBaseDC::AppendAddr = pattern.get_first(0);
 
@@ -1616,5 +1637,8 @@ public:
 
         pattern = find_pattern("8B 44 24 ? 83 F8 ? 74 ? 8B 0C 85 ? ? ? ? 85 C9 74 ? 80 B8 ? ? ? ? ? 74 ? 8B 81 ? ? ? ? C3 B8", "8B 4C 24 ? 83 F9 ? 74 ? 8B 04 8D ? ? ? ? 85 C0 74 ? 80 B9 ? ? ? ? ? 74 ? 8B 80 ? ? ? ? C3 B8");
         CMenu::m_pGetSelectedItem = (decltype(CMenu::m_pGetSelectedItem))pattern.get_first();
+
+        pattern = find_pattern("B9 ? ? ? ? E8 ? ? ? ? 83 C4 ? 83 BC 24", "25 ? ? ? ? 53 55 56 0B C1");
+        GTAIV_ENCRYPTION_KEY = reinterpret_cast<uint8_t(*)[32]>(*pattern.get_first<void*>(1));
     }
 } Common;

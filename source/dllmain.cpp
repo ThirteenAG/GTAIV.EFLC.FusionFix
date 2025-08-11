@@ -120,6 +120,12 @@ void Init()
         FusionFix::onActivateApp().executeAll(false);
     });
 
+    pattern = find_pattern("81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 8B 84 24 ? ? ? ? 53 56 68", "81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 8B 84 24 ? ? ? ? 53 55 56 68 ? ? ? ? 50 E8");
+    static auto ReadGameConfigHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+    {
+        FusionFix::onReadGameConfig().executeAll();
+    });
+
     static auto futures = FusionFix::onInitEventAsync().executeAllAsync();
 
     FusionFix::onGameInitEvent() += []()

@@ -40,8 +40,6 @@ public:
     static constexpr size_t MAX_FILENAME_LENGTH_V3 = 255;
     static constexpr uint32_t GTAIV_MAGIC_ID = 0xA94E2A52;
 
-    static inline uint8_t(*GTAIV_ENCRYPTION_KEY)[32] = nullptr;
-
     #pragma pack(push, 1)
     struct IMG_Header_V2
     {
@@ -999,24 +997,9 @@ public:
     {
         FusionFix::onInitEvent() += []()
         {
-            static bool (WINAPI* GetOverloadPathW)(wchar_t* out, size_t out_size) = nullptr;
-            static bool (WINAPI* AddVirtualFileForOverload)(const wchar_t* virtualPath, const uint8_t* data, size_t size, int priority) = nullptr;
-
-            ModuleList dlls;
-            dlls.Enumerate(ModuleList::SearchLocation::LocalOnly);
-            for (auto& e : dlls.m_moduleList)
-            {
-                auto m = std::get<HMODULE>(e);
-                if (IsModuleUAL(m)) {
-                    GetOverloadPathW = (decltype(GetOverloadPathW))GetProcAddress(m, "GetOverloadPathW");
-                    AddVirtualFileForOverload = (decltype(AddVirtualFileForOverload))GetProcAddress(m, "AddVirtualFileForOverload");
-                    break;
-                }
-            }
-
             std::wstring s;
             s.resize(MAX_PATH, L'\0');
-            if (!GetOverloadPathW || !GetOverloadPathW(s.data(), s.size()))
+            if (!UAL::GetOverloadPathW || !UAL::GetOverloadPathW(s.data(), s.size()))
             {
                 s = GetExeModulePath() / L"update";
             }
@@ -1035,21 +1018,9 @@ public:
 
             static auto updatePath = std::filesystem::path(s.data());
 
-            if (AddVirtualFileForOverload)
+            if (UAL::AddVirtualFileForOverload)
             {
-                auto pattern = find_pattern("B9 ? ? ? ? E8 ? ? ? ? 83 C4 ? 83 BC 24", "25 ? ? ? ? 53 55 56 0B C1");
-                ImgProcessor::GTAIV_ENCRYPTION_KEY = reinterpret_cast<uint8_t(*)[32]>(*pattern.get_first<void*>(1));
-
-                static std::future<void> BuildIMGsFuture;
-
-                pattern = find_pattern("81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 8B 84 24 ? ? ? ? 53 56 68", "81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 8B 84 24 ? ? ? ? 53 55 56 68 ? ? ? ? 50 E8");
-                static auto readGameConfigHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                {
-                    if (BuildIMGsFuture.valid())
-                        BuildIMGsFuture.wait();
-                });
-
-                BuildIMGsFuture = std::async(std::launch::async, []()
+                static std::future<void> BuildIMGsFuture = std::async(std::launch::async, []()
                 {
                     std::error_code ec;
                     if (std::filesystem::exists(updatePath, ec))
@@ -1080,7 +1051,7 @@ public:
                                     auto mergedImgData = MergeImgWithFolder(originalImgPath, folderPath);
                                     if (mergedImgData)
                                     {
-                                        AddVirtualFileForOverload(relativePath.wstring().c_str(), mergedImgData->data(), mergedImgData->size(), 1000);
+                                        UAL::AddVirtualFileForOverload(relativePath.wstring().c_str(), mergedImgData->data(), mergedImgData->size(), 1000);
                                     }
                                 }
                                 else
@@ -1090,13 +1061,19 @@ public:
                                     {
                                         auto gamePath = GetExeModulePath();
                                         auto path = lexicallyRelativeCaseIns(folderPath, gamePath);
-                                        AddVirtualFileForOverload(path.wstring().c_str(), ImgData->data(), ImgData->size(), 1000);
+                                        UAL::AddVirtualFileForOverload(path.wstring().c_str(), ImgData->data(), ImgData->size(), 1000);
                                     }
                                 }
                             }
                         }
                     }
                 });
+
+                FusionFix::onReadGameConfig() += []()
+                {
+                    if (BuildIMGsFuture.valid())
+                        BuildIMGsFuture.wait();
+                };
             }
 
             //IMG Loader
@@ -1406,7 +1383,7 @@ public:
                                     return false;
                                 };
 
-                                if (!AddVirtualFileForOverload && std::filesystem::is_directory(file, ec))
+                                if (!UAL::AddVirtualFileForOverload && std::filesystem::is_directory(file, ec))
                                     continue;
 
                                 auto relativePath = lexicallyRelativeCaseIns(filePath, gamePath);
