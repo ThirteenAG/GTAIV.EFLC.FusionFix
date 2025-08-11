@@ -783,7 +783,7 @@ private:
         dir->children.reserve(dir->contentEntryCount);
         for (uint32_t i = 0; i < dir->contentEntryCount; ++i)
         {
-            int childIndex = dir->contentEntryIndex + i;
+            uint32_t childIndex = dir->contentEntryIndex + i;
             if (childIndex < allEntries.size())
             {
                 auto child = allEntries[childIndex];
