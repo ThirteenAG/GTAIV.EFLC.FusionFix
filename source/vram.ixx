@@ -117,11 +117,11 @@ public:
     }
 };
 
-static inline SafetyHookInline streamingBudgetHook = {};
+static bool bExtraStreamingMemory = false;
+static SafetyHookInline streamingBudgetHook = {};
 static unsigned int __fastcall CalculateStreamingMemoryBudget(void* _this, void* edx, float a2)
 {
-    static auto bExtraStreamingMemory = FusionFixSettings.GetRef("PREF_EXTRASTREAMINGMEMORY");
-    if (bExtraStreamingMemory->get())
+    if (bExtraStreamingMemory)
         a2 = ExtraStreamingMemory::GetDynamicMultiplier();
 
     nStreamingMemory = streamingBudgetHook.unsafe_fastcall<unsigned int>(_this, edx, a2);
@@ -135,6 +135,9 @@ public:
     {
         FusionFix::onInitEvent() += []()
         {
+            CIniReader iniReader("");
+            bExtraStreamingMemory = iniReader.ReadInteger("MISC", "ExtraStreamingMemory", 0);
+
             auto pattern = find_pattern("B8 ? ? ? ? 33 D2 83 C4");
             if (!pattern.empty())
             {
@@ -148,10 +151,6 @@ public:
                 });
             }
 
-            pattern = find_pattern("55 8B EC 83 E4 ? F3 0F 10 55 ? 83 EC");
-            if (!pattern.empty())
-                streamingBudgetHook = safetyhook::create_inline(pattern.get_first(0), CalculateStreamingMemoryBudget);
-
             pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? A1 ? ? ? ? 85 C0 74");
             if (!pattern.empty())
             {
@@ -161,8 +160,7 @@ public:
                 {
                     void operator()(injector::reg_pack& regs)
                     {
-                        static auto bExtraStreamingMemory = FusionFixSettings.GetRef("PREF_EXTRASTREAMINGMEMORY");
-                        if (bExtraStreamingMemory->get())
+                        if (bExtraStreamingMemory)
                         {
                             return;
                         }
@@ -176,6 +174,19 @@ public:
                             return_to(loc_427FC9);
                     }
                 }; injector::MakeInline<NoMemRestrictHook>(pattern.get_first(0), pattern.get_first(13));
+            }
+            else
+            {
+                pattern = find_pattern("75 7E A1 ? ? ? ? 85 C0");
+                if (!pattern.empty())
+                    injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz -> jmp
+            }
+
+            if (bExtraStreamingMemory)
+            {
+                pattern = find_pattern("55 8B EC 83 E4 ? F3 0F 10 55 ? 83 EC");
+                if (!pattern.empty())
+                    streamingBudgetHook = safetyhook::create_inline(pattern.get_first(0), CalculateStreamingMemoryBudget);
             }
         };
     }

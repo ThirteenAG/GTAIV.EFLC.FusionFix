@@ -383,7 +383,6 @@
             <optionspc action="MENUOPT_ADJUST" label="Borderless" value="PREF_BORDERLESS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Focus Loss" value="PREF_BLOCKONLOSTFOCUS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="ExtraNightShad" value="PREF_EXTRANIGHTSHADOWS" scaler="3" displayValue="MENU_DISPLAY_NETSTATS_SCORES" />
-            <optionspc action="MENUOPT_ADJUST" label="Extra Streaming" value="PREF_EXTRASTREAMINGMEMORY" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="LightSyncRGB" value="PREF_LEDILLUMINATION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Timed Events" value="PREF_TIMEDEVENTS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
@@ -878,7 +877,6 @@
             <optionspc action="MENUOPT_ADJUST" label="Borderless" value="PREF_BORDERLESS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Focus Loss" value="PREF_BLOCKONLOSTFOCUS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="ExtraNightShad" value="PREF_EXTRANIGHTSHADOWS" scaler="3" displayValue="MENU_DISPLAY_NETSTATS_SCORES" />
-            <optionspc action="MENUOPT_ADJUST" label="Extra Streaming" value="PREF_EXTRASTREAMINGMEMORY" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="LightSyncRGB" value="PREF_LEDILLUMINATION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Timed Events" value="PREF_TIMEDEVENTS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />

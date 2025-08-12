@@ -139,9 +139,6 @@ public:
                                     extra += L"; RAM: " + std::to_wstring(pmc.WorkingSetSize / 1024 / 1024) + L" MB";
                                 }
 
-                                auto FF_SM = CText::getText("FF_SM");
-                                extra += std::wstring(L"; ") + (FF_SM[0] ? FF_SM : L"Streaming budget") + L": " + std::to_wstring(nStreamingMemory / 1024 / 1024) + L" MB";
-
                                 auto FF_WARN1 = CText::getText("FF_WARN1");
                                 if (imgNum >= imgArrSize) extra += FF_WARN1[0] ? FF_WARN1 : L"; ~r~WARNING: 255 IMG limit exceeded, will cause streaming issues.";
                             
