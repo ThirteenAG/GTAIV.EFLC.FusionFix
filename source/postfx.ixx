@@ -503,8 +503,8 @@ private:
         IDirect3DDevice9* pDevice = rage::grcDevice::GetD3DDevice();
 
         // get textures
-        if(PostFxResources.mNormalRT->mD3DTexture == nullptr)
-            return;
+        // if(PostFxResources.mNormalRT->mD3DTexture == nullptr)
+        //     return;
         PostFxResources.NormalTex = PostFxResources.mNormalRT->mD3DTexture;
         PostFxResources.DiffuseTex = PostFxResources.mDiffuseRT->mD3DTexture;
         PostFxResources.SpecularTex = PostFxResources.mSpecularRT->mD3DTexture;

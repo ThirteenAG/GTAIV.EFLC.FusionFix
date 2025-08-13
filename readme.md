@@ -32,6 +32,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 > [!IMPORTANT]
 > This fix was tested only with latest official update and latest [ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/latest/download/Ultimate-ASI-Loader.zip) (included in the archive).
+> Also, it is designed to run without any commandline or launch parameters whatsoever, as it handles everything automatically. Adding unnecessary parameters may lead to crashes or other issues.
 
 ## Donation links
 
@@ -45,7 +46,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 ## New menu options
 
->FusionFix adds new options to the in-game menu that can be easily toggled and customized in real time. The config file allows for further customization by advanced users.
+> FusionFix adds new options to the in-game menu that can be easily toggled and customized in real time. The config file allows for further customization by advanced users.
 
 #### Display
 
@@ -72,6 +73,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 #### Game
 
+- **Graphics API**, select between DirectX 9 and Vulkan (through [DXVK](https://github.com/doitsujin/dxvk/releases)), requires a restart
 - **Skip Intro**, added an option to skip intro
 - **Skip Menu**, added an option to skip main menu after startup
 - **Letterbox**, draws cutscene borders on top and bottom of the screen
@@ -122,6 +124,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Added IMG Loader (from update folder)
 - Increased corona limit to avoid heavy flickering of game's lights
 - Improved ultrawide support
+- Fixed improper VRAM detection on some setups
 - Added various fixed animations and vehicle models
 - Fixed draw distance sliders not being applied on startup
 - Restored missing lamppost coronas from consoles
@@ -174,13 +177,14 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed incorrect water and post processing noise tiling on quality levels other than medium
 - Added an option to display NPC's health on the reticle when playing with keyboard and mouse
 - Fixed camera stuttering while sprinting and turning with a controller
-- Added an option to fix black rain droplets and restore their refraction effect
+- Fixed black rain droplets and missing refraction
 - Improved phone screen resolution
 - Fixed offset mirrors
 - Fixed washed out mirror reflections on some graphics cards
-- Enabled "-nomemrestrict" parameter by default to reduce pop-in
+- Significantly reduced pop-in on higher graphics settings
 - Restored functionality of some rain parameters from visualsettings.dat
 - Restored console rain density
+- Sped up menu and pause transitions
 - Fixed TLAD phone keypad rendering on top of the plastic cover
 - Added an option to enable shadows for some objects and vegetation that lack them
 - Added options to customize shadow blur, bias and cascade blending
