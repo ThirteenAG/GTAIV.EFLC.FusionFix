@@ -1227,7 +1227,7 @@ public:
     {
         FusionFix::onInitEvent() += []()
         {
-            if (UAL::AddVirtualFileForOverload)
+            if (UAL::AddVirtualFileForOverloadW)
             {
                 std::wstring s;
                 s.resize(MAX_PATH, L'\0');
@@ -1269,7 +1269,7 @@ public:
                                     auto mergedRpfData = MergeRpfWithFolder(originalRpfPath, folderPath);
                                     if (mergedRpfData)
                                     {
-                                        UAL::AddVirtualFileForOverload(relativePath.wstring().c_str(), mergedRpfData->data(), mergedRpfData->size(), 1000);
+                                        UAL::AddVirtualFileForOverloadW(relativePath.wstring().c_str(), mergedRpfData->data(), mergedRpfData->size(), 1000);
                                     }
                                 }
                                 else
@@ -1280,7 +1280,7 @@ public:
                                     {
                                         auto gamePath = GetExeModulePath();
                                         auto path = lexicallyRelativeCaseIns(folderPath, gamePath);
-                                        UAL::AddVirtualFileForOverload(path.wstring().c_str(), rpfData->data(), rpfData->size(), 1000);
+                                        UAL::AddVirtualFileForOverloadW(path.wstring().c_str(), rpfData->data(), rpfData->size(), 1000);
                                     }
                                 }
                             }

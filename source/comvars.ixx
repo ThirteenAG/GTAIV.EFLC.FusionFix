@@ -1411,7 +1411,7 @@ export int* dwSniperInverted = nullptr;
 export namespace UAL
 {
     bool (WINAPI* GetOverloadPathW)(wchar_t* out, size_t out_size) = nullptr;
-    bool (WINAPI* AddVirtualFileForOverload)(const wchar_t* virtualPath, const uint8_t* data, size_t size, int priority) = nullptr;
+    bool (WINAPI* AddVirtualFileForOverloadW)(const wchar_t* virtualPath, const uint8_t* data, size_t size, int priority) = nullptr;
 }
 
 class Common
@@ -1427,7 +1427,7 @@ public:
             if (IsModuleUAL(m))
             {
                 UAL::GetOverloadPathW = (decltype(UAL::GetOverloadPathW))GetProcAddress(m, "GetOverloadPathW");
-                UAL::AddVirtualFileForOverload = (decltype(UAL::AddVirtualFileForOverload))GetProcAddress(m, "AddVirtualFileForOverload");
+                UAL::AddVirtualFileForOverloadW = (decltype(UAL::AddVirtualFileForOverloadW))GetProcAddress(m, "AddVirtualFileForOverloadW");
                 break;
             }
         }

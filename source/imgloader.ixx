@@ -1018,7 +1018,7 @@ public:
 
             static auto updatePath = std::filesystem::path(s.data());
 
-            if (UAL::AddVirtualFileForOverload)
+            if (UAL::AddVirtualFileForOverloadW)
             {
                 static std::future<void> BuildIMGsFuture = std::async(std::launch::async, []()
                 {
@@ -1051,7 +1051,7 @@ public:
                                     auto mergedImgData = MergeImgWithFolder(originalImgPath, folderPath);
                                     if (mergedImgData)
                                     {
-                                        UAL::AddVirtualFileForOverload(relativePath.wstring().c_str(), mergedImgData->data(), mergedImgData->size(), 1000);
+                                        UAL::AddVirtualFileForOverloadW(relativePath.wstring().c_str(), mergedImgData->data(), mergedImgData->size(), 1000);
                                     }
                                 }
                                 else
@@ -1061,7 +1061,7 @@ public:
                                     {
                                         auto gamePath = GetExeModulePath();
                                         auto path = lexicallyRelativeCaseIns(folderPath, gamePath);
-                                        UAL::AddVirtualFileForOverload(path.wstring().c_str(), ImgData->data(), ImgData->size(), 1000);
+                                        UAL::AddVirtualFileForOverloadW(path.wstring().c_str(), ImgData->data(), ImgData->size(), 1000);
                                     }
                                 }
                             }
@@ -1383,7 +1383,7 @@ public:
                                     return false;
                                 };
 
-                                if (!UAL::AddVirtualFileForOverload && std::filesystem::is_directory(file, ec))
+                                if (!UAL::AddVirtualFileForOverloadW && std::filesystem::is_directory(file, ec))
                                     continue;
 
                                 auto relativePath = lexicallyRelativeCaseIns(filePath, gamePath);
