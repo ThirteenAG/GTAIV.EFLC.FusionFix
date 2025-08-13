@@ -54,7 +54,7 @@ public:
                 }
             });
 
-            NativeOverride::RegisterPhoneCheat("9335550100", []
+            NativeOverride::RegisterPhoneCheat("2885550100", []
             {
                 if (*_dwCurrentEpisode == 0)
                 {
