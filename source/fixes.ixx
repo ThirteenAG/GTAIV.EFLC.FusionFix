@@ -128,6 +128,31 @@ public:
         shCHelisub_B69D80.unsafe_fastcall(_this, edx);
     }
 
+    static inline injector::hook_back<bool(*)()> hbsub_5DCA80;
+    static bool sub_5DCA80()
+    {
+        static uint32_t zoomOutEndTime = 0;
+        auto currentTime = *CTimer::m_snTimeInMilliseconds;
+
+        // Call the original function to check the actual key state.
+        if (hbsub_5DCA80.fun())
+        {
+            // The key is pressed. Set our timer to end 3 seconds from now.
+            zoomOutEndTime = currentTime + 3000;
+            return true; // Return true to zoom out.
+        }
+
+        // The key is not pressed. Check if we are within the 3-second delay period.
+        if (currentTime < zoomOutEndTime)
+        {
+            // The timer has not expired yet, so we keep returning true.
+            return true;
+        }
+
+        // The key is not pressed and the timer has expired.
+        return false; // Return false to allow the zoom to return to normal.
+    }
+
     Fixes()
     {
         FusionFix::onInitEventAsync() += []()
@@ -634,6 +659,13 @@ public:
                 auto pattern = hook::pattern("83 F9 ? 0F 86 ? ? ? ? F3 0F 10 15");
                 if (!pattern.empty())
                     injector::WriteMemory<uint8_t>(pattern.get_first(2), 15, true);
+            }
+
+            // Radar zoom stays for a bit
+            {
+                auto pattern = find_pattern("E8 ? ? ? ? 84 C0 74 ? F3 0F 10 05 ? ? ? ? F3 0F 11 44 24 ? 6A");
+                if (!pattern.empty())
+                    hbsub_5DCA80.fun = injector::MakeCALL(pattern.get_first(0), sub_5DCA80, true).get();
             }
 
             // Subtract Contrast slider value by 1 internally, same as on Xbox 360
