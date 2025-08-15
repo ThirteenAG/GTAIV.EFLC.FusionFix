@@ -129,9 +129,9 @@ void __cdecl sub_9C2C80(float* a1)
         FusionFixSettings.Set("PREF_CUTSCENEAUDIOSYNC", cas->get() ? 0 : 1);
 
         if (cas->get())
-            Natives::PrintBig((char*)"CutscAudioSync1", 1000, 3);
+            Natives::PrintBig((char*)"CutscAudioSync1", 1000, 2);
         else
-            Natives::PrintBig((char*)"CutscAudioSync0", 1000, 3);
+            Natives::PrintBig((char*)"CutscAudioSync0", 1000, 2);
     }
     oldState = curState;
 

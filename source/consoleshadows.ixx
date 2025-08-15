@@ -122,8 +122,8 @@ public:
                 pattern = hook::pattern("E8 ? ? ? ? 85 C0 74 29 6A 00");
                 if (!pattern.empty())
                 {
-                    static auto getLocalPlayerPed = (int (*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
-                    static auto FindPlayerCar = (int (*)())injector::GetBranchDestination(pattern.get_first(11)).as_int();
+                    static auto getLocalPlayerPed = (uintptr_t(*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
+                    static auto FindPlayerCar = (uintptr_t(*)())injector::GetBranchDestination(pattern.get_first(11)).as_int();
 
                     pattern = hook::pattern("83 F8 03 75 14 F6 86");
                     static auto loc_AE3867 = resolve_next_displacement(pattern.get_first(14)).value();
@@ -134,10 +134,27 @@ public:
                         {
                             if (bHeadlightShadows && bVehicleNightShadows)
                             {
-                                auto car = FindPlayerCar();
+                                static auto checkPassengersAndCar = [](uintptr_t car, uintptr_t checkAgainst)
+                                {
+                                    if (!car || !checkAgainst)
+                                        return false;
+
+                                    if (checkAgainst == car)
+                                        return true;
+
+                                    auto passengers = (uintptr_t*)(car + 0xF50); // m_pDriver followed by m_pPassengers[8]
+
+                                    for (size_t i = 0; i < 9; i++)
+                                    {
+                                        if (checkAgainst == passengers[i])
+                                            return true;
+                                    }
+
+                                    return false;
+                                };
 
                                 // Disable the shadow of the player's vehicle, along with the shadows of the player/peds in that vehicle, if headlight shadows and vehicle night shadows are on (to avoid both interfering witch each other)
-                                if (regs.esi && (regs.esi == car || (regs.esi == getLocalPlayerPed() && car && *(uint32_t*)(car + 0xFA0))) && !(*(char*)(regs.esp + 0x0B)))
+                                if (checkPassengersAndCar(FindPlayerCar(), regs.esi) && !(*(char*)(regs.esp + 0x0B)))
                                 {
                                     return_to(loc_AE3867);
                                 }
@@ -163,8 +180,8 @@ public:
                 {
                     pattern = hook::pattern("E8 ? ? ? ? 85 C0 74 2A 53 E8");
 
-                    static auto getLocalPlayerPed = (int (*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
-                    static auto FindPlayerCar = (int (*)())injector::GetBranchDestination(pattern.get_first(10)).as_int();
+                    static auto getLocalPlayerPed = (uintptr_t(*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
+                    static auto FindPlayerCar = (uintptr_t (*)())injector::GetBranchDestination(pattern.get_first(10)).as_int();
 
                     pattern = hook::pattern("83 F8 03 75 17 F6 86");
                     static auto loc_AE3867 = resolve_next_displacement(pattern.get_first(14)).value();
@@ -175,10 +192,26 @@ public:
                         {
                             if (bHeadlightShadows && bVehicleNightShadows)
                             {
-                                auto car = FindPlayerCar();
+                                static auto checkPassengersAndCar = [](uintptr_t car, uintptr_t checkAgainst) {
+                                    if (!car || !checkAgainst)
+                                        return false;
+
+                                    if (checkAgainst == car)
+                                        return true;
+
+                                    auto passengers = (uintptr_t*)(car + 0xFA0); // m_pDriver followed by m_pPassengers[8]
+
+                                    for (size_t i = 0; i < 9; i++)
+                                    {
+                                        if (checkAgainst == passengers[i])
+                                            return true;
+                                    }
+
+                                    return false;
+                                };
 
                                 // Disable the shadow of the player's vehicle, along with the shadows of the player/peds in that vehicle, if headlight shadows and vehicle night shadows are on (to avoid both interfering witch each other)
-                                if (regs.esi && (regs.esi == car || (regs.esi == getLocalPlayerPed() && car && *(uint32_t*)(car + 0xFA0))) && !(*(char*)(regs.esp + 0x0F)))
+                                if (checkPassengersAndCar(FindPlayerCar(), regs.esi) && !(*(char*)(regs.esp + 0x0F)))
                                 {
                                     return_to(loc_AE3867);
                                 }
