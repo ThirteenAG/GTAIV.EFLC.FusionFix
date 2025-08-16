@@ -161,8 +161,6 @@ public:
 
         static bool bNoBloomColorShift = false;
 
-        static int nToneMappingOperator = 1;
-
         static auto bNoWindSway = false;
 
         FusionFix::onInitEvent() += []()
@@ -188,7 +186,6 @@ public:
             bSmoothShorelines = iniReader.ReadInteger("MISC", "SmoothShorelines", 1) != 0;
             bSmoothLightVolumes = iniReader.ReadInteger("MISC", "SmoothLightVolumes", 1) != 0;
 
-            nToneMappingOperator = std::clamp(iniReader.ReadInteger("MISC", "ToneMappingOperator", 1), 1, 2);
             bNoBloomColorShift = iniReader.ReadInteger("MISC", "NoBloomColorShift", 0) != 0;
 
             // Redirect path to one unified folder
@@ -303,8 +300,7 @@ public:
                 static auto PostFXContrastHook = safetyhook::create_mid(pattern.get_first(8), [](SafetyHookContext& regs)
                 {
                     static auto consolegamma = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA");
-                    static auto tmo = FusionFixSettings.GetRef("PREF_TONEMAPPING");
-                    regs.xmm0.f32[0] += regs.xmm0.f32[0] >= 1.3f ? 0.0f : (consolegamma->get() && (nToneMappingOperator == 1 || !tmo->get()) ? 0.06f : 0.0f);
+                    regs.xmm0.f32[0] += regs.xmm0.f32[0] >= 1.3f ? 0.0f : (consolegamma->get() ? 0.06f : 0.0f);
                 });
             }
 
@@ -441,12 +437,8 @@ public:
                         arr9[0] = bHighResolutionShadows ? fSHADOWFILTERCHSSMaxSoftness * 2.0f : fSHADOWFILTERCHSSMaxSoftness;
                         arr9[1] = bHighResolutionShadows ? CTimeCycleExt::GetCHSSLightSize() * 2.0f : CTimeCycleExt::GetCHSSLightSize();
                         
-                        //off / vanilla style / filmic
                         static auto tm = FusionFixSettings.GetRef("PREF_TONEMAPPING");
-                        if (tm->get())
-                            arr9[2] = static_cast<float>(nToneMappingOperator * 2 - 3);
-                        else
-                            arr9[2] = 0.0f;
+                        arr9[2] = static_cast<float>(tm->get());
 
                         arr9[3] = bNoBloomColorShift ? 1.0f : 0.0f;
                         
@@ -517,11 +509,10 @@ public:
                     {
                         static auto gamma = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA");
                         static auto mblur = FusionFixSettings.GetRef("PREF_MOTIONBLUR");
-                        static auto tonemap = FusionFixSettings.GetRef("PREF_TONEMAPPING");
                         static float arr3[4];
                         arr3[0] = (bFixAutoExposure ? 1.0f : 0.0f);
                         arr3[1] = (bSmoothShorelines ? 1.0f : 0.0f);
-                        arr3[2] = static_cast<float>(gamma->get() && (nToneMappingOperator == 1 || !tonemap->get()));
+                        arr3[2] = static_cast<float>(gamma->get());
                         static float mblurscale = 1.0f;
                         switch(mblur->get())
                         {
