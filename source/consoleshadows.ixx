@@ -181,7 +181,7 @@ public:
                     pattern = hook::pattern("E8 ? ? ? ? 85 C0 74 2A 53 E8");
 
                     static auto getLocalPlayerPed = (uintptr_t(*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
-                    static auto FindPlayerCar = (uintptr_t (*)())injector::GetBranchDestination(pattern.get_first(10)).as_int();
+                    static auto FindPlayerCar = (uintptr_t(*)())injector::GetBranchDestination(pattern.get_first(10)).as_int();
 
                     pattern = hook::pattern("83 F8 03 75 17 F6 86");
                     static auto loc_AE3867 = resolve_next_displacement(pattern.get_first(14)).value();
@@ -232,6 +232,18 @@ public:
                             }
                         }
                     }; injector::MakeInline<ShadowsHook>(pattern.get_first(0), pattern.get_first(25));
+                }
+            }
+
+            {
+                auto pattern = find_pattern("C7 44 24 ? ? ? ? ? F3 0F 11 14 24 50");
+                if (!pattern.empty())
+                {
+                    static auto CarStaticShadowIntensityHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        if (bHeadlightShadows && bVehicleNightShadows)
+                            regs.xmm2.f32[0] *= 3.0f;
+                    });
                 }
             }
         };
