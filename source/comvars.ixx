@@ -1745,10 +1745,11 @@ public:
             if (nCurrentCamera == CAM_FPS_WEAPON)
             {
                 bInSniperScope = true;
-                bZoomingWithSniperNow = false;
             }
             else
             {
+                if (bInSniperScope)
+                    bZoomingWithSniperNow = false;
                 bInSniperScope = false;
             }
         });
