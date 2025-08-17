@@ -157,6 +157,9 @@ API graphique
 [FF_RESTART]
 GTA IV doit être redémarré pour appliquer les paramètres.
 
+[Extended Sniper]
+Commandes du fusil de sniper étendu
+
 [FF_WARN0]
 ~p~Fichiers IMG:
 

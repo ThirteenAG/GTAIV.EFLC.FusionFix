@@ -157,6 +157,9 @@ Grafik-API
 [FF_RESTART]
 GTA IV muss neu gestartet werden, um die Einstellungen anzuwenden.
 
+[Extended Sniper]
+Steuerung des erweiterten
+
 [FF_WARN0]
 ~p~IMG-Dateien:
 
