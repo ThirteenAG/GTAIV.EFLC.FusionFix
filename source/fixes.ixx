@@ -847,7 +847,13 @@ public:
             {
                 auto pattern = hook::pattern("72 ? FF 76 ? E8 ? ? ? ? 83 C4 ? 83 38");
                 if (!pattern.empty())
+                {
                     injector::MakeNOP(pattern.get_first(), 2, true);
+
+                    // Force IV/TLAD bullet tracer particles, TBoGT tracer particles have weird/wrong positioning.
+                    pattern = hook::pattern("75 ? 68 ? ? ? ? EB ? 68 ? ? ? ? E8 ? ? ? ? 83 C4 ? 8B F8");
+                    injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz -> jmp
+                }
             }
         };
     }
