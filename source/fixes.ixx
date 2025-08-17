@@ -171,6 +171,7 @@ public:
             int nMenuEnteringDelay = std::clamp(iniReader.ReadInteger("MISC", "MenuEnteringDelay", 0), 20, 400);
             int nMenuExitingDelay = std::clamp(iniReader.ReadInteger("MISC", "MenuExitingDelay", 0), 0, 800);
             int nMenuAccessDelayOnStartup = std::clamp(iniReader.ReadInteger("MISC", "MenuAccessDelayOnStartup", 0), 300, 3000);
+            bool bAlwaysShowBulletTraces = iniReader.ReadInteger("MISC", "AlwaysShowBulletTraces", 0) != 0;
 
             //fix for zoom flag in tbogt
             if (nAimingZoomFix)
@@ -774,6 +775,14 @@ public:
                 pattern = hook::pattern("81 F9 ? ? ? ? 72 ? EB ? E8");
                 if (!pattern.empty())
                     injector::WriteMemory(pattern.get_first(2), nMenuAccessDelayOnStartup, true);
+            }
+
+            // Bullet Traces
+            if (bAlwaysShowBulletTraces)
+            {
+                auto pattern = hook::pattern("72 ? FF 76 ? E8 ? ? ? ? 83 C4 ? 83 38");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(), 2, true);
             }
         };
     }
