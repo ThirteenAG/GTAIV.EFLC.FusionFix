@@ -171,6 +171,7 @@ public:
             int nMenuEnteringDelay = std::clamp(iniReader.ReadInteger("MISC", "MenuEnteringDelay", 0), 20, 400);
             int nMenuExitingDelay = std::clamp(iniReader.ReadInteger("MISC", "MenuExitingDelay", 0), 0, 800);
             int nMenuAccessDelayOnStartup = std::clamp(iniReader.ReadInteger("MISC", "MenuAccessDelayOnStartup", 0), 300, 3000);
+            bool bAlwaysShowBulletTraces = iniReader.ReadInteger("MISC", "AlwaysShowBulletTraces", 0) != 0;
 
             //fix for zoom flag in tbogt
             if (nAimingZoomFix)
@@ -187,6 +188,28 @@ public:
                 {
                     void operator()(injector::reg_pack& regs)
                     {
+                        static auto esc = FusionFixSettings.GetRef("PREF_EXTENDEDSNIPERCONTROLS");
+                        if (esc->get())
+                        {
+                            auto pPed = CPlayer::getLocalPlayerPed();
+                            if (pPed)
+                            {
+                                auto m_WeaponData = CWeaponData::getWeaponData(pPed + 0x2B0, 0);
+                                auto weaponType = CWeapon::getWeaponByType(m_WeaponData ? *(int*)(m_WeaponData + 0x18) : 0);
+
+                                if ((*(uint32_t*)(weaponType + 0x20) & 8) != 0)
+                                {
+                                    if (!CPed::IsPedInCover(pPed))
+                                    {
+                                        *(uint8_t*)(regs.esi + 0x200) &= 0xFE;
+                                        byte_F47AB1 = 0;
+                                        bZoomingWithSniperNow = true;
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+
                         *(uint8_t*)(regs.esi + 0x200) |= 1;
                         byte_F47AB1 = 1;
                     }
@@ -235,6 +258,46 @@ public:
                             byte_F47AB1 = *(uint8_t*)(regs.esi + 0x200);
                         }
                     }; injector::MakeInline<AimZoomHook3>(pattern.get_first(0), pattern.get_first(6));
+                }
+            }
+            else
+            {
+                auto pattern = find_pattern("80 8E ? ? ? ? ? EB 43");
+                struct AimZoomHook1
+                {
+                    void operator()(injector::reg_pack& regs)
+                    {
+                        static auto esc = FusionFixSettings.GetRef("PREF_EXTENDEDSNIPERCONTROLS");
+                        if (esc->get())
+                        {
+                            auto pPed = CPlayer::getLocalPlayerPed();
+                            if (pPed)
+                            {                                
+                                auto m_WeaponData = CWeaponData::getWeaponData(pPed + 0x2B0, 0);
+                                auto weaponType = CWeapon::getWeaponByType(m_WeaponData ? *(int*)(m_WeaponData + 0x18) : 0);
+
+                                if ((*(uint32_t*)(weaponType + 0x20) & 8) != 0)
+                                {
+                                    if (!CPed::IsPedInCover(pPed))
+                                    {
+                                        *(uint8_t*)(regs.esi + 0x200) &= 0xFE;
+                                        bZoomingWithSniperNow = true;
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+
+                        *(uint8_t*)(regs.esi + 0x200) |= 1;
+                    }
+                };
+
+                if (!pattern.empty())
+                    injector::MakeInline<AimZoomHook1>(pattern.get_first(0), pattern.get_first(7));
+                else
+                {
+                    pattern = find_pattern("08 9E ? ? ? ? E9");
+                    injector::MakeInline<AimZoomHook1>(pattern.get_first(0), pattern.get_first(6));
                 }
             }
 
@@ -712,6 +775,14 @@ public:
                 pattern = hook::pattern("81 F9 ? ? ? ? 72 ? EB ? E8");
                 if (!pattern.empty())
                     injector::WriteMemory(pattern.get_first(2), nMenuAccessDelayOnStartup, true);
+            }
+
+            // Bullet Traces
+            if (bAlwaysShowBulletTraces)
+            {
+                auto pattern = hook::pattern("72 ? FF 76 ? E8 ? ? ? ? 83 C4 ? 83 38");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(), 2, true);
             }
         };
     }

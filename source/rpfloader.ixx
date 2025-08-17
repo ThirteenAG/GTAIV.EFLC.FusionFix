@@ -1227,7 +1227,10 @@ public:
     {
         FusionFix::onInitEvent() += []()
         {
-            if (UAL::AddVirtualFileForOverloadW)
+            CIniReader iniReader("");
+            bool bLoadRPF = iniReader.ReadInteger("FILELOADER", "LoadRPF", 0) != 0;
+
+            if (bLoadRPF && UAL::AddVirtualFileForOverloadW)
             {
                 std::wstring s;
                 s.resize(MAX_PATH, L'\0');

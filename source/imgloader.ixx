@@ -997,6 +997,9 @@ public:
     {
         FusionFix::onInitEvent() += []()
         {
+            CIniReader iniReader("");
+            static bool bLoadIMG = iniReader.ReadInteger("FILELOADER", "LoadIMG", 0) != 0;
+
             std::wstring s;
             s.resize(MAX_PATH, L'\0');
             if (!UAL::GetOverloadPathW || !UAL::GetOverloadPathW(s.data(), s.size()))
@@ -1018,7 +1021,7 @@ public:
 
             static auto updatePath = std::filesystem::path(s.data());
 
-            if (UAL::AddVirtualFileForOverloadW)
+            if (bLoadIMG && UAL::AddVirtualFileForOverloadW)
             {
                 static std::future<void> BuildIMGsFuture = std::async(std::launch::async, []()
                 {
@@ -1383,7 +1386,7 @@ public:
                                     return false;
                                 };
 
-                                if (!UAL::AddVirtualFileForOverloadW && std::filesystem::is_directory(file, ec))
+                                if ((!bLoadIMG || !UAL::AddVirtualFileForOverloadW) && std::filesystem::is_directory(file, ec))
                                     continue;
 
                                 auto relativePath = lexicallyRelativeCaseIns(filePath, gamePath);

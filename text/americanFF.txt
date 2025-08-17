@@ -157,6 +157,9 @@ Graphics API
 [FF_RESTART]
 GTA IV must be restarted in order to apply settings.
 
+[Extended Sniper]
+Extended Sniper Controls
+
 [FF_WARN0]
 ~p~IMG Files:
 

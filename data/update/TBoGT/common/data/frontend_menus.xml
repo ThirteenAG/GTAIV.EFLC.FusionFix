@@ -491,6 +491,7 @@
             <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="Always Run" value="PREF_ALWAYSRUN" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Zoomed Movement" value="PREF_ZOOMEDMOVEMENT" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="Extended Sniper" value="PREF_EXTENDEDSNIPERCONTROLS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Camera Shake" value="PREF_CAMERASHAKE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Cover Centering" value="PREF_COVERCENTERING" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
@@ -1298,6 +1299,7 @@
             <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="Always Run" value="PREF_ALWAYSRUN" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Zoomed Movement" value="PREF_ZOOMEDMOVEMENT" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="Extended Sniper" value="PREF_EXTENDEDSNIPERCONTROLS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Camera Shake" value="PREF_CAMERASHAKE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Cover Centering" value="PREF_COVERCENTERING" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />

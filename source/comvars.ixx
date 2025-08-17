@@ -20,6 +20,53 @@ enum GameLanguage
     eLANG_JAPANESE,
 };
 
+enum eCamMode
+{
+    CAM_SKELETON = 0,
+    CAM_FOLLOW_PED = 1,
+    CAM_FOLLOW_VEHICLE = 2,
+    CAM_INTERP = 3,
+    CAM_SHAKE = 4,
+    CAM_FINAL = 5,
+    CAM_SCRIPT = 6,
+    CAM_GAME = 7,
+    CAM_TRANS = 8,
+    CAM_AIM_WEAPON = 9,
+    CAM_BUSTED = 10,
+    CAM_PHOTO = 11,
+    CAM_IDLE = 12,
+    CAM_2_PLAYER = 13,
+    CAM_SCRIPTED = 14,
+    CAM_CUTSCENE = 15,
+    CAM_WASTED = 16,
+    CAM_1ST_PERSON = 17,
+    CAM_2_PLAYER_VEH = 18,
+    CAM_AIM_WEAPON_VEH = 19,
+    CAM_VIEWPORTS = 20,
+    CAM_HISTORY = 21,
+    CAM_CINEMATIC = 22,
+    CAM_CINEMATIC_HELI_CHASE = 23,
+    CAM_CINEMATIC_CAM_MAN = 24,
+    CAM_SPLINE = 25,
+    CAM_CINEMATOGRAPHY = 26,
+    CAM_FPS_WEAPON = 27,
+    CAM_FIRE_TRUCK = 28,
+    CAM_RADAR = 29,
+    CAM_WEAPON_AIMING = 30,
+    CAM_ANIMATED = 31,
+    CAM_INTERMEZZO = 32,
+    CAM_VIEW_SEQ = 33,
+    CAM_VIEWFIND = 34,
+    CAM_PLAYER_SETTINGS = 35,
+    CAM_CINEMATIC_VEH_OFFSET = 36,
+    CAM_REPLAY = 37,
+    CAM_FREE = 38,
+    CAM_DEBUG = 39,
+    CAM_MARKET = 40,
+    CAM_SECTOR = 41,
+    NUM_CAM_MODES,
+};
+
 export unsigned int hashStringLowercaseFromSeed(const char* str, unsigned int seed)
 {
     auto hash = seed;
@@ -318,6 +365,18 @@ namespace CPed
     export CPool<void*>* GetPedPool()
     {
         return *pPedPool;
+    }
+
+    export bool IsPedInCover(uintptr_t pPed)
+    {
+        for (uintptr_t* node = *(uintptr_t**)(*(uintptr_t*)(pPed + 0x224) + 0x2E0); node != nullptr; node = (uintptr_t*)node[3]) //m_pPedIntelligence->
+        {
+            if (node[1] == 1054)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }
 
@@ -1248,6 +1307,22 @@ export namespace CClock
     int16_t GetSeconds() { return *ms_nGameClockSeconds; }
 }
 
+export namespace CPlayer
+{
+    uintptr_t (*getLocalPlayerPed)() = nullptr;
+    uintptr_t (*findPlayerCar)() = nullptr;
+}
+
+export namespace CWeaponData
+{
+    uintptr_t (__fastcall* getWeaponData)(uintptr_t weaponData, int edx) = nullptr;
+}
+
+export namespace CWeapon
+{
+    uintptr_t (__cdecl* getWeaponByType)(int weaponID) = nullptr;
+}
+
 export namespace RageDirect3DDevice9
 {
     enum eTexture : uint32_t
@@ -1372,6 +1447,9 @@ export bool bHeadlightShadows = false;
 export bool bHighResolutionShadows = false;
 export bool bIsQUB3D = false;
 export float fMenuBlur = 0.0f;
+export bool bZoomingWithSniperNow = false;
+export bool bInSniperScope = false;
+export eCamMode nCurrentCamera = NUM_CAM_MODES;
 
 export inline LONG getWindowWidth()
 {
@@ -1640,5 +1718,39 @@ public:
 
         pattern = find_pattern("B9 ? ? ? ? E8 ? ? ? ? 83 C4 ? 83 BC 24", "25 ? ? ? ? 53 55 56 0B C1");
         GTAIV_ENCRYPTION_KEY = reinterpret_cast<uint8_t(*)[32]>(*pattern.get_first<void*>(1));
+
+        pattern = hook::pattern("E8 ? ? ? ? 85 C0 74 29 6A 00");
+        if (!pattern.empty())
+        {
+            CPlayer::getLocalPlayerPed = (uintptr_t(*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
+            CPlayer::findPlayerCar = (uintptr_t(*)())injector::GetBranchDestination(pattern.get_first(11)).as_int();
+        }
+        else
+        {
+            pattern = hook::pattern("E8 ? ? ? ? 85 C0 74 2A 53 E8");
+            CPlayer::getLocalPlayerPed = (uintptr_t(*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
+            CPlayer::findPlayerCar = (uintptr_t(*)())injector::GetBranchDestination(pattern.get_first(10)).as_int();
+        }
+
+        pattern = find_pattern("8B C1 56 8B 70 ? 85 F6", "8B 41 ? 85 C0 74 ? 8B 80 ? ? ? ? 85 C0 74 ? 8B 51");
+        CWeaponData::getWeaponData = (decltype(CWeaponData::getWeaponData))pattern.get_first(0);
+
+        pattern = find_pattern("8B 44 24 ? 83 F8 ? 7D ? 69 C0");
+        CWeapon::getWeaponByType = (decltype(CWeapon::getWeaponByType))pattern.get_first(0);
+
+        pattern = find_pattern("8B 44 24 ? 83 F8 ? 0F 87 ? ? ? ? FF 24 85 ? ? ? ? 8B 0D ? ? ? ? E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 8B C8 E8", "8B 44 24 ? 83 F8 ? 0F 87 ? ? ? ? FF 24 85 ? ? ? ? 8B 0D ? ? ? ? E8 ? ? ? ? 85 C0 74");
+        static auto CreateCamHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+        {
+            nCurrentCamera = eCamMode(*(int32_t*)(regs.esp + 0xC));
+            if (nCurrentCamera == CAM_FPS_WEAPON)
+            {
+                bInSniperScope = true;
+                bZoomingWithSniperNow = false;
+            }
+            else
+            {
+                bInSniperScope = false;
+            }
+        });
     }
 } Common;

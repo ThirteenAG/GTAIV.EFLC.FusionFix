@@ -157,6 +157,9 @@ API gráfica
 [FF_RESTART]
 GTA IV debe ser reiniciado para aplicar la configuración.
 
+[Extended Sniper]
+Controles del rifle de francotirador extendido
+
 [FF_WARN0]
 ~p~Archivos IMG:
 

@@ -157,6 +157,9 @@ FPSリミッター
 [FF_RESTART]
 設定を適用するにはGTA IVを再起動する必要があります。
 
+[Extended Sniper]
+拡張スナイパーライフルの操作
+
 [FF_WARN0]
 ~p~IMG ファイル:
 
