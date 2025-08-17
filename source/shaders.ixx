@@ -161,7 +161,7 @@ public:
         
         static bool bSmoothLightVolumes = true;
 
-        static bool bNoBloomColorShift = false;
+        static bool bNoBloomColorShift = true;
 
         static auto bNoWindSway = false;
 
@@ -188,7 +188,7 @@ public:
             bSmoothShorelines = iniReader.ReadInteger("MISC", "SmoothShorelines", 1) != 0;
             bSmoothLightVolumes = iniReader.ReadInteger("MISC", "SmoothLightVolumes", 1) != 0;
 
-            bNoBloomColorShift = iniReader.ReadInteger("MISC", "NoBloomColorShift", 0) != 0;
+            bNoBloomColorShift = iniReader.ReadInteger("MISC", "NoBloomColorShift", 1) != 0;
             fMaxPQValue = max(iniReader.ReadFloat("MISC", "MaxPQValue", 100.0f), 0.0f);
 
             // Redirect path to one unified folder
@@ -443,7 +443,7 @@ public:
                         static auto tm = FusionFixSettings.GetRef("PREF_TONEMAPPING");
                         arr9[2] = static_cast<float>(tm->get());
 
-                        arr9[3] = bNoBloomColorShift ? 1.0f : 0.0f;
+                        arr9[3] = bNoBloomColorShift && tm->get() ? 1.0f : 0.0f;
                         
 
 
