@@ -135,15 +135,19 @@ public:
                                     if (!car || !checkAgainst)
                                         return false;
 
-                                    if (checkAgainst == car)
-                                    {
-                                        if (!*(uint8_t*)(car + 0xF15)) // lights off
-                                            return false;
+                                    if (!*(uint8_t*)(car + 0xF15)) // lights off
+                                        return false;
 
+                                    auto m_nVehicleType = *(uint32_t*)(car + 0x1304);
+                                    if (m_nVehicleType == VEHICLETYPE_AUTOMOBILE)
+                                    {
                                         if (*(uint8_t*)(car + 0x1190) != 0 && *(uint8_t*)(car + 0x1191) != 0) // headlights damaged
                                             return false;
-
-                                        return true;
+                                    }
+                                    else if (m_nVehicleType == VEHICLETYPE_BIKE)
+                                    {
+                                        if (*(uint8_t*)(car + 0x1190) != 0 || *(uint8_t*)(car + 0x1191) != 0) // headlight damaged
+                                            return false;
                                     }
 
                                     auto passengers = (uintptr_t*)(car + 0xF50); // m_pDriver followed by m_pPassengers[8]
@@ -153,6 +157,9 @@ public:
                                         if (checkAgainst == passengers[i])
                                             return true;
                                     }
+
+                                    if (checkAgainst == car)
+                                        return true;
 
                                     return false;
                                 };

@@ -24,16 +24,6 @@ public:
 
     static bool IsVehicleTypeOffCenter(CVehicle const* veh)
     {
-        enum eVehicleType
-        {
-            VEHICLETYPE_AUTOMOBILE = 0x0,
-            VEHICLETYPE_BIKE = 0x1,
-            VEHICLETYPE_BOAT = 0x2,
-            VEHICLETYPE_TRAIN = 0x3,
-            VEHICLETYPE_HELI = 0x4,
-            VEHICLETYPE_PLANE = 0x5,
-        };
-
         uint32_t m_nVehicleType = *reinterpret_cast<uint32_t*>(reinterpret_cast<uintptr_t>(veh) + 0x1304);
         return m_nVehicleType == VEHICLETYPE_AUTOMOBILE || m_nVehicleType == VEHICLETYPE_PLANE || m_nVehicleType == VEHICLETYPE_HELI;
     }
