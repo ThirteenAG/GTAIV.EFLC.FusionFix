@@ -136,7 +136,15 @@ public:
                                         return false;
 
                                     if (checkAgainst == car)
+                                    {
+                                        if (!*(uint8_t*)(car + 0xF15)) // lights off
+                                            return false;
+
+                                        if (*(uint8_t*)(car + 0x1190) != 0 && *(uint8_t*)(car + 0x1191) != 0) // headlights damaged
+                                            return false;
+
                                         return true;
+                                    }
 
                                     auto passengers = (uintptr_t*)(car + 0xF50); // m_pDriver followed by m_pPassengers[8]
 
