@@ -855,6 +855,16 @@ public:
                     injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz -> jmp
                 }
             }
+
+            //CTxdStore::releaseData
+            {
+                auto pattern = hook::pattern("EB ? 8B 71 ? 0F AF F2 03 31 A1 ? ? ? ? 8D 3C 85");
+                if (!pattern.empty())
+                {
+                    injector::WriteMemory<uint16_t>(pattern.get_first(-2), 0x905F, true); // pop esi, ret
+                    injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xC35E, true); // pop esi, ret
+                }
+            }
         };
     }
 } Fixes;
