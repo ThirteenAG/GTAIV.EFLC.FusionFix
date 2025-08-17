@@ -189,7 +189,7 @@ public:
             bSmoothLightVolumes = iniReader.ReadInteger("MISC", "SmoothLightVolumes", 1) != 0;
 
             bNoBloomColorShift = iniReader.ReadInteger("MISC", "NoBloomColorShift", 1) != 0;
-            fMaxPQValue = max(iniReader.ReadFloat("MISC", "MaxPQValue", 100.0f), 0.0f);
+            fMaxPQValue = max(iniReader.ReadFloat("MISC", "MaxPQValue", 100.0f), 0.0000001f);
 
             // Redirect path to one unified folder
             auto pattern = hook::pattern("8B 04 8D ? ? ? ? A3 ? ? ? ? 8B 44 24 04");
