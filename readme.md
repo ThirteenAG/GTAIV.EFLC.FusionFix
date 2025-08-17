@@ -67,7 +67,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **Volumetric Fog**, a more advanced fog shader that hides the edges of the world
 - **Sun Shafts**, a godrays implementation faithful to the original art style
 - **Extended Sunlight Reach**, allows sunlight to reach surfaces that it couldn't before, and increases cloud shading
-- **Tone Mapping**, prevents highlights from being blown out
+- **Tone Mapping**, prevents highlights from being blown out, more operators can be found [here](https://github.com/Parallellines0451/GTAIV.EFLC.FusionShaders/tree/main/assets/luts/samples)
 - **Shadow Filter**, toggles between sharp, soft, or contact hardening shadows
 - **FOV**, adjusts in-game field of view
 

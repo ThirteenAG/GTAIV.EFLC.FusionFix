@@ -153,15 +153,15 @@ public:
 
         static float fCascadeBlendSize = 0.1f;
 
+        static float fMaxPQValue = 100.0f;
+
         static int nForceShadowFilter = 0;
 
         static bool bSmoothShorelines = true;
         
         static bool bSmoothLightVolumes = true;
 
-        static bool bNoBloomColorShift = false;
-
-        static int nToneMappingOperator = 1;
+        static bool bNoBloomColorShift = true;
 
         static auto bNoWindSway = false;
 
@@ -188,8 +188,8 @@ public:
             bSmoothShorelines = iniReader.ReadInteger("MISC", "SmoothShorelines", 1) != 0;
             bSmoothLightVolumes = iniReader.ReadInteger("MISC", "SmoothLightVolumes", 1) != 0;
 
-            nToneMappingOperator = std::clamp(iniReader.ReadInteger("MISC", "ToneMappingOperator", 1), 1, 2);
-            bNoBloomColorShift = iniReader.ReadInteger("MISC", "NoBloomColorShift", 0) != 0;
+            bNoBloomColorShift = iniReader.ReadInteger("MISC", "NoBloomColorShift", 1) != 0;
+            fMaxPQValue = max(iniReader.ReadFloat("MISC", "MaxPQValue", 100.0f), 0.0000001f);
 
             // Redirect path to one unified folder
             auto pattern = hook::pattern("8B 04 8D ? ? ? ? A3 ? ? ? ? 8B 44 24 04");
@@ -303,8 +303,7 @@ public:
                 static auto PostFXContrastHook = safetyhook::create_mid(pattern.get_first(8), [](SafetyHookContext& regs)
                 {
                     static auto consolegamma = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA");
-                    static auto tmo = FusionFixSettings.GetRef("PREF_TONEMAPPING");
-                    regs.xmm0.f32[0] += regs.xmm0.f32[0] >= 1.3f ? 0.0f : (consolegamma->get() && (nToneMappingOperator == 1 || !tmo->get()) ? 0.06f : 0.0f);
+                    regs.xmm0.f32[0] += regs.xmm0.f32[0] >= 1.3f ? 0.0f : (consolegamma->get() ? 0.06f : 0.0f);
                 });
             }
 
@@ -441,14 +440,10 @@ public:
                         arr9[0] = bHighResolutionShadows ? fSHADOWFILTERCHSSMaxSoftness * 2.0f : fSHADOWFILTERCHSSMaxSoftness;
                         arr9[1] = bHighResolutionShadows ? CTimeCycleExt::GetCHSSLightSize() * 2.0f : CTimeCycleExt::GetCHSSLightSize();
                         
-                        //off / vanilla style / filmic
                         static auto tm = FusionFixSettings.GetRef("PREF_TONEMAPPING");
-                        if (tm->get())
-                            arr9[2] = static_cast<float>(nToneMappingOperator * 2 - 3);
-                        else
-                            arr9[2] = 0.0f;
+                        arr9[2] = static_cast<float>(tm->get());
 
-                        arr9[3] = bNoBloomColorShift ? 1.0f : 0.0f;
+                        arr9[3] = bNoBloomColorShift && tm->get() ? 1.0f : 0.0f;
                         
 
 
@@ -517,11 +512,10 @@ public:
                     {
                         static auto gamma = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA");
                         static auto mblur = FusionFixSettings.GetRef("PREF_MOTIONBLUR");
-                        static auto tonemap = FusionFixSettings.GetRef("PREF_TONEMAPPING");
                         static float arr3[4];
                         arr3[0] = (bFixAutoExposure ? 1.0f : 0.0f);
                         arr3[1] = (bSmoothShorelines ? 1.0f : 0.0f);
-                        arr3[2] = static_cast<float>(gamma->get() && (nToneMappingOperator == 1 || !tonemap->get()));
+                        arr3[2] = static_cast<float>(gamma->get());
                         static float mblurscale = 1.0f;
                         switch(mblur->get())
                         {
@@ -571,7 +565,7 @@ public:
                         pDevice->SetVertexShaderConstantF(235, &arr10[0], 1);
 
                         static float arr11[4];
-                        arr11[0] = 0.0f;
+                        arr11[0] = 1.0f / fMaxPQValue;
                         arr11[1] = static_cast<float>(fog->get());
                         arr11[2] = bSmoothLightVolumes ? 1.0f : 0.0f;
                         arr11[3] = 0.0f;

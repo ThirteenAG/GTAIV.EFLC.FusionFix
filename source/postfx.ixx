@@ -49,17 +49,17 @@ public:
     // --------- game textures --------- 
     IDirect3DTexture9* FullScreenTex = nullptr; // game hdr texture
     IDirect3DTexture9* HalfScreenTex = nullptr; // game half res screen texture
-    IDirect3DTexture9* pQuarterHDRTex = nullptr; //  game 1/4 res screen texture
-    IDirect3DTexture9* CascadeAtlasTex = nullptr;
-    IDirect3DSurface9* CascadeAtlasSurf = nullptr;
+    // IDirect3DTexture9* pQuarterHDRTex = nullptr; //  game 1/4 res screen texture
+    // IDirect3DTexture9* CascadeAtlasTex = nullptr;
+    // IDirect3DSurface9* CascadeAtlasSurf = nullptr;
 
-    IDirect3DTexture9* NormalTex = nullptr;
+    // IDirect3DTexture9* NormalTex = nullptr;
     IDirect3DTexture9* DiffuseTex = nullptr;
-    IDirect3DTexture9* SpecularTex = nullptr;
-    IDirect3DTexture9* DepthTex = nullptr;
-    IDirect3DTexture9* StencilTex = nullptr;
-    IDirect3DTexture9* BloomTex = nullptr;
-    IDirect3DTexture9* CurrentLumTex = nullptr;
+    // IDirect3DTexture9* SpecularTex = nullptr;
+    // IDirect3DTexture9* DepthTex = nullptr;
+    // IDirect3DTexture9* StencilTex = nullptr;
+    // IDirect3DTexture9* BloomTex = nullptr;
+    // IDirect3DTexture9* CurrentLumTex = nullptr;
 
 
     //------- full screen ---------
@@ -87,19 +87,19 @@ public:
 
 
     // game render targets
-    rage::grcRenderTargetPC* mSpecularAoRT = nullptr;
-    rage::grcRenderTargetPC* mNormalRT = nullptr;
+    // rage::grcRenderTargetPC* mSpecularAoRT = nullptr;
+    // rage::grcRenderTargetPC* mNormalRT = nullptr;
     rage::grcRenderTargetPC* mDiffuseRT = nullptr;
-    rage::grcRenderTargetPC* mSpecularRT = nullptr;
-    rage::grcRenderTargetPC* mDepthRT = nullptr;
-    rage::grcRenderTargetPC* mStencilRT = nullptr;
+    // rage::grcRenderTargetPC* mSpecularRT = nullptr;
+    // rage::grcRenderTargetPC* mDepthRT = nullptr;
+    // rage::grcRenderTargetPC* mStencilRT = nullptr;
     rage::grcRenderTargetPC* mFullScreenRT = nullptr;
-    rage::grcRenderTargetPC* mFullScreenRT2 = nullptr;
+    // rage::grcRenderTargetPC* mFullScreenRT2 = nullptr;
     rage::grcRenderTargetPC* mHalfScreenRT = nullptr;
-    rage::grcRenderTargetPC* mCascadeAtlasRT = nullptr;
-    rage::grcRenderTargetPC* mQuarterScreenRT = nullptr;
-    rage::grcRenderTargetPC* mBloomRT = nullptr;
-    rage::grcRenderTargetPC* mCurrentLum = nullptr;
+    // rage::grcRenderTargetPC* mCascadeAtlasRT = nullptr;
+    // rage::grcRenderTargetPC* mQuarterScreenRT = nullptr;
+    // rage::grcRenderTargetPC* mBloomRT = nullptr;
+    // rage::grcRenderTargetPC* mCurrentLum = nullptr;
 
 
     // surfaces
@@ -121,8 +121,8 @@ public:
     IDirect3DPixelShader9* SSDraw_PS = nullptr;
     IDirect3DPixelShader9* SSAdd_PS = nullptr;
     IDirect3DPixelShader9* SSPrepass_PS = nullptr;
-    IDirect3DPixelShader9* SSAO_gen_ps = nullptr;
-    IDirect3DPixelShader9* SSAO_blend_ps = nullptr;
+    // IDirect3DPixelShader9* SSAO_gen_ps = nullptr;
+    // IDirect3DPixelShader9* SSAO_blend_ps = nullptr;
 
 
     IDirect3DPixelShader9* dof_blur_ps = nullptr;
@@ -143,10 +143,10 @@ public:
     //IDirect3DPixelShader9* DeferredShadowBlurH_ps = nullptr;
     //IDirect3DPixelShader9* DeferredShadowBlurV_ps = nullptr;
     //IDirect3DPixelShader9* DeferredShadowBlurCircle_ps = nullptr;
-    IDirect3DPixelShader9* deferred_lighting_PS1 = nullptr;
-    IDirect3DPixelShader9* deferred_lighting_PS2 = nullptr;
+    // IDirect3DPixelShader9* deferred_lighting_PS1 = nullptr;
+    // IDirect3DPixelShader9* deferred_lighting_PS2 = nullptr;
 
-    IDirect3DPixelShader9* CascadeAtlasGen = nullptr;
+    // IDirect3DPixelShader9* CascadeAtlasGen = nullptr;
 
     //std::unordered_map<IDirect3DPixelShader9*, int> ShaderListPS;
     //std::unordered_map<IDirect3DVertexShader9*, int> ShaderListVS;
@@ -156,7 +156,6 @@ public:
     // 0 off, 1 horizontal, 2 vertical, 3 horizontal e vertical.
     //int useScreenSpaceShadowsBlur = 3;
     bool useStippleFilter = true;
-    bool useHardwareBilinearSampling = false;
 
     bool shadersLoaded = false;
 
@@ -171,11 +170,11 @@ public:
         if(!depth_of_field_tent_ps && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_depth_of_field_tent_ps), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                           if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &depth_of_field_tent_ps) != S_OK || !depth_of_field_tent_ps) SAFE_RELEASE(depth_of_field_tent_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
         if(!stipple_filter_ps && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_stipple_filter_ps), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                                     if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &stipple_filter_ps) != S_OK || !stipple_filter_ps) SAFE_RELEASE(stipple_filter_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
         //if(!DeferredShadowGen_ps && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_DeferredShadowGen_ps), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                               if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &DeferredShadowGen_ps) != S_OK || !DeferredShadowGen_ps) SAFE_RELEASE(DeferredShadowGen_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
-        if(!deferred_lighting_PS1 && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_deferred_lighting_PS1), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                             if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &deferred_lighting_PS1) != S_OK || !deferred_lighting_PS1) SAFE_RELEASE(deferred_lighting_PS1); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
-        if(!deferred_lighting_PS2 && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_deferred_lighting_PS2), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                             if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &deferred_lighting_PS2) != S_OK || !deferred_lighting_PS2) SAFE_RELEASE(deferred_lighting_PS2); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
-        if(!SSAO_gen_ps && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SSAO_gen_ps), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                                                 if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SSAO_gen_ps) != S_OK || !SSAO_gen_ps) SAFE_RELEASE(SSAO_gen_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
-        if(!SSAO_blend_ps && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SSAO_blend_ps), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                                             if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SSAO_blend_ps) != S_OK || !SSAO_blend_ps) SAFE_RELEASE(SSAO_blend_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
-        if(!CascadeAtlasGen && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_CascadeAtlasGen), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                                         if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &CascadeAtlasGen) != S_OK || !CascadeAtlasGen) SAFE_RELEASE(CascadeAtlasGen); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
+        // if(!deferred_lighting_PS1 && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_deferred_lighting_PS1), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                             if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &deferred_lighting_PS1) != S_OK || !deferred_lighting_PS1) SAFE_RELEASE(deferred_lighting_PS1); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
+        // if(!deferred_lighting_PS2 && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_deferred_lighting_PS2), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                             if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &deferred_lighting_PS2) != S_OK || !deferred_lighting_PS2) SAFE_RELEASE(deferred_lighting_PS2); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
+        // if(!SSAO_gen_ps && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SSAO_gen_ps), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                                                 if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SSAO_gen_ps) != S_OK || !SSAO_gen_ps) SAFE_RELEASE(SSAO_gen_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
+        // if(!SSAO_blend_ps && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SSAO_blend_ps), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                                             if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SSAO_blend_ps) != S_OK || !SSAO_blend_ps) SAFE_RELEASE(SSAO_blend_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
+        // if(!CascadeAtlasGen && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_CascadeAtlasGen), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                                         if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &CascadeAtlasGen) != S_OK || !CascadeAtlasGen) SAFE_RELEASE(CascadeAtlasGen); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
 
         //hlsl
         if(!SSDraw_PS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SunShafts_PS), NULL, NULL, "SSDraw", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                                             if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SSDraw_PS) != S_OK || !SSDraw_PS) SAFE_RELEASE(SSDraw_PS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
@@ -218,18 +217,18 @@ public:
     };
 
     void ReleaseTextures() {
-        NormalTex = nullptr;
+        // NormalTex = nullptr;
         DiffuseTex = nullptr;
-        SpecularTex = nullptr;
-        StencilTex = nullptr;
-        BloomTex = nullptr;
-        CurrentLumTex = nullptr;
-        DepthTex = nullptr;
-        CascadeAtlasTex = nullptr;
+        // SpecularTex = nullptr;
+        // StencilTex = nullptr;
+        // BloomTex = nullptr;
+        // CurrentLumTex = nullptr;
+        // DepthTex = nullptr;
+        // CascadeAtlasTex = nullptr;
 
         FullScreenTex = nullptr;
         HalfScreenTex = nullptr;
-        pQuarterHDRTex = nullptr;
+        // pQuarterHDRTex = nullptr;
 
         if (FullScreenTex_temp1)
         {
@@ -281,13 +280,11 @@ public:
     }
 
     bool ShadersFinishedLoading() {
-        if(FxaaPS && dof_blur_ps && dof_coc_ps && depth_of_field_tent_ps && stipple_filter_ps &&
-           //DeferredShadowGen_ps && 
-           deferred_lighting_PS1 && deferred_lighting_PS2 && SSAO_gen_ps &&
-           SSAO_blend_ps && SSDraw_PS && SSPrepass_PS && SSAdd_PS //&& DeferredShadowBlurH_ps &&
-           //DeferredShadowBlurV_ps && DeferredShadowBlurCircle_ps
+        if(FxaaPS && dof_blur_ps && dof_coc_ps && depth_of_field_tent_ps && stipple_filter_ps
+           && SSDraw_PS && SSPrepass_PS && SSAdd_PS
            && SMAA_EdgeDetection && SMAA_BlendingWeightsCalculation && SMAA_NeighborhoodBlending
            && SMAA_EdgeDetectionVS && SMAA_BlendingWeightsCalculationVS && SMAA_NeighborhoodBlendingVS)
+           // DeferredShadowGen_ps && deferred_lighting_PS1 && deferred_lighting_PS2 && SSAO_gen_ps && SSAO_blend_ps && DeferredShadowBlurH_ps && DeferredShadowBlurV_ps && DeferredShadowBlurCircle_ps
             return true;
 
         return false;
@@ -402,19 +399,19 @@ private:
     static void __fastcall OnDeviceLost()
     {
         PostFxResources.ReleaseTextures();
-        PostFxResources.mSpecularAoRT    =nullptr;
-        PostFxResources.mNormalRT        =nullptr;
+        // PostFxResources.mSpecularAoRT    =nullptr;
+        // PostFxResources.mNormalRT        =nullptr;
         PostFxResources.mDiffuseRT       =nullptr;
-        PostFxResources.mSpecularRT      =nullptr;
-        PostFxResources.mDepthRT         =nullptr;
-        PostFxResources.mStencilRT       =nullptr;
+        // PostFxResources.mSpecularRT      =nullptr;
+        // PostFxResources.mDepthRT         =nullptr;
+        // PostFxResources.mStencilRT       =nullptr;
         PostFxResources.mFullScreenRT    =nullptr;
-        PostFxResources.mFullScreenRT2   =nullptr;
+        // PostFxResources.mFullScreenRT2   =nullptr;
         PostFxResources.mHalfScreenRT    =nullptr;
-        PostFxResources.mCascadeAtlasRT  =nullptr;
-        PostFxResources.mQuarterScreenRT =nullptr;
-        PostFxResources.mBloomRT         =nullptr;
-        PostFxResources.mCurrentLum      =nullptr;
+        // PostFxResources.mCascadeAtlasRT  =nullptr;
+        // PostFxResources.mQuarterScreenRT =nullptr;
+        // PostFxResources.mBloomRT         =nullptr;
+        // PostFxResources.mCurrentLum      =nullptr;
 
         if (mQuadVertexBuffer)
         {
@@ -432,18 +429,18 @@ private:
 
     static void __fastcall OnDeviceReset()
     {
-        PostFxResources.mNormalRT       = rage::grcTextureFactoryPC::GetRTByName( "_DEFERRED_GBUFFER_1_"  );
+        // PostFxResources.mNormalRT       = rage::grcTextureFactoryPC::GetRTByName( "_DEFERRED_GBUFFER_1_"  );
         PostFxResources.mDiffuseRT      = rage::grcTextureFactoryPC::GetRTByName( "_DEFERRED_GBUFFER_0_"  );
-        PostFxResources.mSpecularRT     = rage::grcTextureFactoryPC::GetRTByName( "_DEFERRED_GBUFFER_2_"  );
-        PostFxResources.mDepthRT        = rage::grcTextureFactoryPC::GetRTByName( "_DEFERRED_GBUFFER_3_"  );
-        PostFxResources.mStencilRT      = rage::grcTextureFactoryPC::GetRTByName( "_STENCIL_BUFFER_"      );
-        PostFxResources.mCascadeAtlasRT = rage::grcTextureFactoryPC::GetRTByName( "CASCADE_ATLAS"         );
+        // PostFxResources.mSpecularRT     = rage::grcTextureFactoryPC::GetRTByName( "_DEFERRED_GBUFFER_2_"  );
+        // PostFxResources.mDepthRT        = rage::grcTextureFactoryPC::GetRTByName( "_DEFERRED_GBUFFER_3_"  );
+        // PostFxResources.mStencilRT      = rage::grcTextureFactoryPC::GetRTByName( "_STENCIL_BUFFER_"      );
+        // PostFxResources.mCascadeAtlasRT = rage::grcTextureFactoryPC::GetRTByName( "CASCADE_ATLAS"         );
         PostFxResources.mFullScreenRT   = rage::grcTextureFactoryPC::GetRTByName( "FullScreenCopy"        );
-        PostFxResources.mFullScreenRT2  = rage::grcTextureFactoryPC::GetRTByName( "FullScreenCopy2"       );
+        // PostFxResources.mFullScreenRT2  = rage::grcTextureFactoryPC::GetRTByName( "FullScreenCopy2"       );
         PostFxResources.mHalfScreenRT   = rage::grcTextureFactoryPC::GetRTByName( "Quarter Screen 0"      );
-        PostFxResources.mQuarterScreenRT= rage::grcTextureFactoryPC::GetRTByName( "Blur Screen 0"         );
-        PostFxResources.mBloomRT        = rage::grcTextureFactoryPC::GetRTByName( "Blur Screen 2 Copy"    );
-        PostFxResources.mCurrentLum     = rage::grcTextureFactoryPC::GetRTByName( "Current Lum"           );
+        // PostFxResources.mQuarterScreenRT= rage::grcTextureFactoryPC::GetRTByName( "Blur Screen 0"         );
+        // PostFxResources.mBloomRT        = rage::grcTextureFactoryPC::GetRTByName( "Blur Screen 2 Copy"    );
+        // PostFxResources.mCurrentLum     = rage::grcTextureFactoryPC::GetRTByName( "Current Lum"           );
 
         auto width = *rage::grcDevice::ms_nActiveWidth;
         auto height = *rage::grcDevice::ms_nActiveHeight;
@@ -505,19 +502,19 @@ private:
         // get textures
         // if(PostFxResources.mNormalRT->mD3DTexture == nullptr)
         //     return;
-        PostFxResources.NormalTex = PostFxResources.mNormalRT->mD3DTexture;
+        // PostFxResources.NormalTex = PostFxResources.mNormalRT->mD3DTexture;
         PostFxResources.DiffuseTex = PostFxResources.mDiffuseRT->mD3DTexture;
-        PostFxResources.SpecularTex = PostFxResources.mSpecularRT->mD3DTexture;
-        PostFxResources.StencilTex = PostFxResources.mStencilRT->mD3DTexture;
-        PostFxResources.BloomTex = PostFxResources.mBloomRT->mD3DTexture;
-        PostFxResources.CurrentLumTex = PostFxResources.mCurrentLum->mD3DTexture;
-        PostFxResources.DepthTex = PostFxResources.mDepthRT->mD3DTexture;
-        if (PostFxResources.mCascadeAtlasRT)
-            PostFxResources.CascadeAtlasTex = PostFxResources.mCascadeAtlasRT->mD3DTexture;
+        // PostFxResources.SpecularTex = PostFxResources.mSpecularRT->mD3DTexture;
+        // PostFxResources.StencilTex = PostFxResources.mStencilRT->mD3DTexture;
+        // PostFxResources.BloomTex = PostFxResources.mBloomRT->mD3DTexture;
+        // PostFxResources.CurrentLumTex = PostFxResources.mCurrentLum->mD3DTexture;
+        // PostFxResources.DepthTex = PostFxResources.mDepthRT->mD3DTexture;
+        // if (PostFxResources.mCascadeAtlasRT)
+        //     PostFxResources.CascadeAtlasTex = PostFxResources.mCascadeAtlasRT->mD3DTexture;
 
         PostFxResources.FullScreenTex = PostFxResources.mFullScreenRT->mD3DTexture;
         PostFxResources.HalfScreenTex = PostFxResources.mHalfScreenRT->mD3DTexture;
-        PostFxResources.pQuarterHDRTex = PostFxResources.mQuarterScreenRT->mD3DTexture;
+        // PostFxResources.pQuarterHDRTex = PostFxResources.mQuarterScreenRT->mD3DTexture;
 
         // get surfaces
         PostFxResources.FullScreenTex->GetSurfaceLevel(0, &PostFxResources.FullScreenSurface);
@@ -530,8 +527,8 @@ private:
         PostFxResources.FullScreenDownsampleTex->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.FullScreenDownsampleSurf);
         PostFxResources.FullScreenDownsampleTex2->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.FullScreenDownsampleSurf2);
 
-        if (PostFxResources.CascadeAtlasTex)
-            PostFxResources.CascadeAtlasTex->GetSurfaceLevel(0, &PostFxResources.CascadeAtlasSurf);
+        // if (PostFxResources.CascadeAtlasTex)
+        //     PostFxResources.CascadeAtlasTex->GetSurfaceLevel(0, &PostFxResources.CascadeAtlasSurf);
         //PostFxResources.pShadowBlurTex1->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.pShadowBlurSurf1);
         //PostFxResources.pShadowBlurTex2->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.pShadowBlurSurf2);
 
@@ -568,7 +565,7 @@ private:
         SAFE_RELEASE(PostFxResources.FullScreenDownsampleSurf2);
         SAFE_RELEASE(PostFxResources.edgesSurf);
         SAFE_RELEASE(PostFxResources.blendSurf);
-        SAFE_RELEASE(PostFxResources.CascadeAtlasSurf);
+        // SAFE_RELEASE(PostFxResources.CascadeAtlasSurf);
 
         SAFE_RELEASE(PostFxResources.FullScreenSurface);
 
