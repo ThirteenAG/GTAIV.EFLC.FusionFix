@@ -278,7 +278,7 @@ public:
             { 0, "PREF_UPDATE",                 "UPDATE",     "CheckForUpdates",                 "",                           0, nullptr, 0, 1 },
             { 0, "PREF_BLOCKONLOSTFOCUS",       "MAIN",       "BlockOnLostFocus",                "",                           0, nullptr, 0, 1 },
             { 0, "PREF_TRANSPARENTMAPMENU",     "MISC",       "TransparentMapMenu",              "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_EXTENDEDSNIPERCONTROLS", "MISC",       "ExtendedSniperControls",          "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_EXTENDEDSNIPERCONTROLS", "MISC",       "ExtendedSniperControls",          "",                           0, nullptr, 0, 1 },
             { 0, "PREF_TIMEDEVENTS",            "MISC",       "TimedEvents",                     "",                           1, nullptr, 0, 1 },
             { 0, "PREF_VOLUMETRICFOG",          "FOG",        "VolumetricFog",                   "",                           0, nullptr, 0, 1 },
             { 0, "PREF_TONEMAPPING",            "MISC",       "ToneMapping",                     "",                           0, nullptr, 0, 1 },
