@@ -271,6 +271,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 #### Particles
 
 - Fixed soft particles
+- Fixed particles flickering in some interiors
 - Fixed stuttery particle animations caused by patch 1.0.5.0
 - Fixed rain being almost invisible, especially at night
 - Fixed rain streaks becoming shorter at high framerates
