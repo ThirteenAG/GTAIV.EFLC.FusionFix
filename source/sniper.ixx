@@ -153,6 +153,33 @@ public:
             pattern = hook::pattern("E8 ? ? ? ? 83 C4 ? 84 C0 75 ? 8A 87");
             if (!pattern.empty())
                 hbsub_A72820.fun = injector::MakeCALL(pattern.get_first(), sub_A72820).get();
+
+            // Recoil
+            pattern = find_pattern("F3 0F 59 05 ? ? ? ? F3 0F 10 64 24 ? F3 0F 10 54 24");
+            if (!pattern.empty())
+            {
+                static auto RecoilHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    static auto esc = FusionFixSettings.GetRef("PREF_EXTENDEDSNIPERCONTROLS");
+                    if (esc->get())
+                    {
+                        auto pPed = CPlayer::getLocalPlayerPed();
+                        if (pPed)
+                        {
+                            auto m_WeaponData = CWeaponData::getWeaponData(pPed + 0x2B0, 0);
+                            auto weaponType = CWeapon::getWeaponByType(m_WeaponData ? *(int*)(m_WeaponData + 0x18) : 0);
+
+                            if ((*(uint32_t*)(weaponType + 0x20) & 8) != 0)
+                            {
+                                if (!CPed::IsPedInCover(pPed))
+                                {
+                                    regs.xmm1.f32[0] = 0.1f;
+                                }
+                            }
+                        }
+                    }
+                });
+            }
         };
     }
 } Sniper;
