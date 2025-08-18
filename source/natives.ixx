@@ -4653,8 +4653,8 @@ public:
     static inline auto IsCharVisible(Ped ped) { return NativeInvoke::Invoke<1296, std::to_underlying(NativeHashes::IS_CHAR_VISIBLE), bool>(ped); }
     static inline auto IsCharWaitingForWorldCollision(Ped ped) { return NativeInvoke::Invoke<1297, std::to_underlying(NativeHashes::IS_CHAR_WAITING_FOR_WORLD_COLLISION), bool>(ped); }
     static inline auto IsClosestObjectOfTypeSmashedOrDamaged(float x, float y, float z, float radius, uint32_t type_or_model, bool flag0, bool flag1) { return NativeInvoke::Invoke<1298, std::to_underlying(NativeHashes::IS_CLOSEST_OBJECT_OF_TYPE_SMASHED_OR_DAMAGED), bool>(x, y, z, radius, type_or_model, flag0, flag1); }
-    static inline auto IsControlJustPressed(int a1, int32_t controlid) { return NativeInvoke::Invoke<1299, std::to_underlying(NativeHashes::IS_CONTROL_JUST_PRESSED), bool>(a1, controlid); }
-    static inline auto IsControlPressed(int a1, int32_t controlid) { return NativeInvoke::Invoke<1300, std::to_underlying(NativeHashes::IS_CONTROL_PRESSED), bool>(a1, controlid); }
+    static inline auto IsControlJustPressed(int padIndex, int32_t control) { return NativeInvoke::Invoke<1299, std::to_underlying(NativeHashes::IS_CONTROL_JUST_PRESSED), bool>(padIndex, control); }
+    static inline auto IsControlPressed(int padIndex, int32_t control) { return NativeInvoke::Invoke<1300, std::to_underlying(NativeHashes::IS_CONTROL_PRESSED), bool>(padIndex, control); }
     static inline auto IsCopPedInArea3dNoSave(float x0, float y0, float z0, float x1, float y1, float z1) { return NativeInvoke::Invoke<1301, std::to_underlying(NativeHashes::IS_COP_PED_IN_AREA_3D_NO_SAVE), bool>(x0, y0, z0, x1, y1, z1); }
     static inline auto IsCopVehicleInArea3dNoSave(float x0, float y0, float z0, float x1, float y1, float z1) { return NativeInvoke::Invoke<1302, std::to_underlying(NativeHashes::IS_COP_VEHICLE_IN_AREA_3D_NO_SAVE), bool>(x0, y0, z0, x1, y1, z1); }
     static inline auto IsDamageTrackerActiveOnNetworkId(Any a1) { return NativeInvoke::Invoke<1303, std::to_underlying(NativeHashes::IS_DAMAGE_TRACKER_ACTIVE_ON_NETWORK_ID), Any>(a1); }

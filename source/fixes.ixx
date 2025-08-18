@@ -131,7 +131,7 @@ public:
     static inline injector::hook_back<bool(*)()> hbsub_5DCA80;
     static bool sub_5DCA80()
     {
-        static uint32_t zoomOutEndTime = 0;
+        static int32_t zoomOutEndTime = 0;
         auto currentTime = *CTimer::m_snTimeInMilliseconds;
 
         // Call the original function to check the actual key state.
@@ -201,10 +201,7 @@ public:
                                 {
                                     if (!CPed::IsPedInCover(pPed))
                                     {
-                                        *(uint8_t*)(regs.esi + 0x200) &= 0xFE;
-                                        byte_F47AB1 = 0;
                                         bZoomingWithSniperNow = true;
-                                        return;
                                     }
                                 }
                             }
@@ -212,6 +209,8 @@ public:
 
                         *(uint8_t*)(regs.esi + 0x200) |= 1;
                         byte_F47AB1 = 1;
+
+                        bCurrentZoom = *(uint8_t*)(regs.esi + 0x200) & 1;
                     }
                 };
                 if (!pattern.empty())
@@ -228,6 +227,8 @@ public:
                     {
                         *(uint8_t*)(regs.esi + 0x200) &= 0xFE;
                         byte_F47AB1 = 0;
+
+                        bCurrentZoom = *(uint8_t*)(regs.esi + 0x200) & 1;
                     }
                 };
                 if (!pattern.empty())
@@ -271,18 +272,15 @@ public:
                                         {
                                             auto v = regs.ecx & 0xFF;
                                             if (v & 1)
-                                            {
-                                                *(uint8_t*)(regs.esi + 0x200) &= 0xFE;
-                                                byte_F47AB1 = 0;
                                                 bZoomingWithSniperNow = true;
-                                                return;
-                                            }
                                         }
                                     }
                                 }
                             }
 
                             byte_F47AB1 = *(uint8_t*)(regs.esi + 0x200);
+
+                            bCurrentZoom = *(uint8_t*)(regs.esi + 0x200) & 1;
                         }
                     }; injector::MakeInline<AimZoomHook3>(pattern.get_first(0), pattern.get_first(6));
                 }
@@ -299,7 +297,7 @@ public:
                         {
                             auto pPed = CPlayer::getLocalPlayerPed();
                             if (pPed)
-                            {                                
+                            {
                                 auto m_WeaponData = CWeaponData::getWeaponData(pPed + 0x2B0, 0);
                                 auto weaponType = CWeapon::getWeaponByType(m_WeaponData ? *(int*)(m_WeaponData + 0x18) : 0);
 
@@ -307,15 +305,15 @@ public:
                                 {
                                     if (!CPed::IsPedInCover(pPed))
                                     {
-                                        *(uint8_t*)(regs.esi + 0x200) &= 0xFE;
                                         bZoomingWithSniperNow = true;
-                                        return;
                                     }
                                 }
                             }
                         }
 
                         *(uint8_t*)(regs.esi + 0x200) |= 1;
+
+                        bCurrentZoom = *(uint8_t*)(regs.esi + 0x200) & 1;
                     }
                 };
 
@@ -352,15 +350,13 @@ public:
                                         {
                                             auto v = regs.ecx & 0xFF;
                                             if (v & 1)
-                                            {
-                                                *(uint8_t*)(regs.esi + 0x200) &= 0xFE;
                                                 bZoomingWithSniperNow = true;
-                                                return;
-                                            }
                                         }
                                     }
                                 }
                             }
+
+                            bCurrentZoom = *(uint8_t*)(regs.esi + 0x200) & 1;
                         }
                     }; injector::MakeInline<AimZoomHook3>(pattern.get_first(0), pattern.get_first(6));
                 }

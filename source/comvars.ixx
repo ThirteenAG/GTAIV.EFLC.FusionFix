@@ -1459,6 +1459,7 @@ export bool bIsQUB3D = false;
 export float fMenuBlur = 0.0f;
 export bool bZoomingWithSniperNow = false;
 export bool bInSniperScope = false;
+export bool bCurrentZoom = false;
 export eCamMode nCurrentCamera = NUM_CAM_MODES;
 
 export inline LONG getWindowWidth()
