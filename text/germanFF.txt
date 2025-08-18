@@ -160,6 +160,9 @@ GTA IV muss neu gestartet werden, um die Einstellungen anzuwenden.
 [Extended Sniper]
 Steuerung des erweiterten
 
+[Bullet Traces]
+Immer Kugelspuren anzeigen
+
 [FF_WARN0]
 ~p~IMG-Dateien:
 

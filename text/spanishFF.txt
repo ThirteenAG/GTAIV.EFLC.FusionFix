@@ -160,6 +160,9 @@ GTA IV debe ser reiniciado para aplicar la configuración.
 [Extended Sniper]
 Controles del rifle de francotirador extendido
 
+[Bullet Traces]
+Mostrar siempre las trazas de balas
+
 [FF_WARN0]
 ~p~Archivos IMG:
 

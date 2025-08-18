@@ -171,7 +171,6 @@ public:
             int nMenuEnteringDelay = std::clamp(iniReader.ReadInteger("MISC", "MenuEnteringDelay", 0), 20, 400);
             int nMenuExitingDelay = std::clamp(iniReader.ReadInteger("MISC", "MenuExitingDelay", 0), 0, 800);
             int nMenuAccessDelayOnStartup = std::clamp(iniReader.ReadInteger("MISC", "MenuAccessDelayOnStartup", 0), 300, 3000);
-            bool bAlwaysShowBulletTraces = iniReader.ReadInteger("MISC", "AlwaysShowBulletTraces", 0) != 0;
 
             //fix for zoom flag in tbogt
             if (nAimingZoomFix)
@@ -839,17 +838,29 @@ public:
             }
 
             // Bullet Traces
-            if (bAlwaysShowBulletTraces)
             {
-                auto pattern = hook::pattern("72 ? FF 76 ? E8 ? ? ? ? 83 C4 ? 83 38");
+                auto pattern = find_pattern("0F 2F C8 72 ? FF 76");
                 if (!pattern.empty())
                 {
-                    injector::MakeNOP(pattern.get_first(), 2, true);
+                    static auto loc_B5D8D8 = resolve_next_displacement(pattern.get_first(0)).value();
+                    injector::MakeNOP(pattern.get_first(0), 5);
+                    static auto BulletTracesHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        static auto esc = FusionFixSettings.GetRef("PREF_BULLETTRACES");
+                        if (esc->get())
+                        {
+                            return;
+                        }
 
-                    // Force IV/TLAD bullet tracer particles, TBoGT tracer particles have weird/wrong positioning.
-                    pattern = hook::pattern("75 ? 68 ? ? ? ? EB ? 68 ? ? ? ? E8 ? ? ? ? 83 C4 ? 8B F8");
-                    injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz -> jmp
+                        if (regs.xmm0.f32[0] >= regs.xmm1.f32[0])
+                            return_to(loc_B5D8D8);
+                    });
                 }
+
+                // Force IV/TLAD bullet tracer particles, TBoGT tracer particles have weird/wrong positioning.
+                pattern = hook::pattern("75 ? 68 ? ? ? ? EB ? 68 ? ? ? ? E8 ? ? ? ? 83 C4 ? 8B F8");
+                if (!pattern.empty())
+                    injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz -> jmp
             }
 
             //CTxdStore::releaseData

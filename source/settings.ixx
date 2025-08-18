@@ -292,6 +292,7 @@ public:
             { 0, "PREF_TURNINDICATORS",         "MISC",       "TurnIndicators",                  "",                           0, nullptr, 0, 1 },
             { 0, "PREF_EXTRANIGHTSHADOWS",      "SHADOWS",    "ExtraNightShadows",               "",                           0, nullptr, 0, 2 }, //MENU_DISPLAY_NETSTATS_SCORES
             { 0, "PREF_GRAPHICSAPI",            "MAIN",       "GraphicsAPI",                     "",                           0, nullptr, 0, 1 }, //MENU_DISPLAY_NETSTATS_COMP_TEAM
+            { 0, "PREF_BULLETTRACES",           "MISC",       "AlwaysShowBulletTraces",          "",                           0, nullptr, 0, 1 },
             // Enums are at capacity, to use more enums, replace multiplayer ones. On/Off toggles should still be possible to add.
         };
 
