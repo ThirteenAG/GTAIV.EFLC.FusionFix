@@ -100,6 +100,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 - **Always Run**, allows to run by default, like in classic GTA games
 - **Allow Movement When Zoomed**, allows movement when aiming with a sniper rifle
+- **Extended Sniper Controls**, allows aiming with sniper rifles without using the scope
 - **Camera Shake**, shake effect has been fixed to work consistently at any frame rate and can be disabled with this option
 - **Cover Centering**, added an option to disable camera centering in cover
 - **Centered Vehicle Camera**, makes vehicle camera centered, for more options install the [original mod](https://github.com/gennariarmando/iv-centered-vehicle-cam) separately
@@ -203,7 +204,6 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **VehicleBudget** - allows to increase the budget of vehicles.
 - **PedBudget** - allows to increase the budget of pedestrians.
 - **LightSyncRGB** - custom ambient lighting for IV, TLAD and TBOGT, health indication on G-Keys, police lights, ammo counter.
-- **ToneMappingOperator** - select the tone mapping function used by the in-game option.
 
 ## Shaders Changelog
 
