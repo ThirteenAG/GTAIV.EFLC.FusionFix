@@ -7,6 +7,7 @@ export module sniper;
 import common;
 import comvars;
 import settings;
+import natives;
 
 float __cdecl sub_8EFA20(uint8_t* a1)
 {
@@ -62,6 +63,32 @@ float __cdecl sub_8EFA20(uint8_t* a1)
     return 0.0f;
 }
 
+bool cancelInitiated = false;
+injector::hook_back<char(__cdecl*)(char)> hbsub_A72820;
+char __cdecl sub_A72820(char a1)
+{
+    static auto esc = FusionFixSettings.GetRef("PREF_EXTENDEDSNIPERCONTROLS");
+    if (esc->get())
+    {
+        static auto cancel = false;
+        constexpr auto INPUT_LOOK_BEHIND = 7;
+        if (bInSniperScope && Natives::IsControlJustPressed(0, INPUT_LOOK_BEHIND))
+        {
+            cancel = true;
+            cancelInitiated = true;
+        }
+
+        if (cancel && bInSniperScope)
+            return false;
+        else if (!bInSniperScope)
+            cancel = false;
+    }
+
+    return hbsub_A72820.fun(a1);
+}
+
+static auto bFakeZoom = false;
+
 class Sniper
 {
 public:
@@ -95,9 +122,12 @@ public:
                 {
                     if (regs.eax & 8)
                     {
-                        if (!bZoomingWithSniperNow && !bInSniperScope)
+                        if ((!bZoomingWithSniperNow && !bCurrentZoom) || (cancelInitiated))
                         {
-                            regs.eax ^= 8;
+                            regs.eax ^= 8; //remove scope
+
+                            if (!bCurrentZoom)
+                                cancelInitiated = false;
                         }
                     }
                 }
@@ -105,45 +135,24 @@ public:
 
             pattern = find_pattern("8B 40 ? C1 E8 ? A8 ? 8B 44 24 ? 74");
             if (!pattern.empty())
-            {
                 static auto SniperAimHook1 = safetyhook::create_mid(pattern.get_first(3), [](SafetyHookContext& regs) { OverrideSniperFlags(regs); });
-            }
 
             pattern = find_pattern("8B 40 ? C1 E8 ? A8 ? 75 ? F6 85");
             if (!pattern.empty())
-            {
                 static auto SniperAimHook2 = safetyhook::create_mid(pattern.get_first(3), [](SafetyHookContext& regs) { OverrideSniperFlags(regs); });
-            }
 
             pattern = find_pattern("8B 43 ? C1 E8 ? A8 ? 74 ? 80 7C 24");
             if (!pattern.empty())
-            {
                 static auto CrosshairHook = safetyhook::create_mid(pattern.get_first(3), [](SafetyHookContext& regs) { OverrideSniperFlags(regs); });
-            }
 
-            pattern = find_pattern("0F 85 ? ? ? ? 8B 87 ? ? ? ? 83 C0 ? 53");
+            // Toggle
+            pattern = hook::pattern("E8 ? ? ? ? 83 C4 ? 84 C0 75 ? 38 05 ? ? ? ? 0F 84");
             if (!pattern.empty())
-            {
-                static auto loc_A293B8 = resolve_displacement(pattern.get_first(0)).value();
-                static auto AimZoomStateHook = safetyhook::create_mid(loc_A293B8, [](SafetyHookContext& regs)
-                {
-                    static auto esc = FusionFixSettings.GetRef("PREF_EXTENDEDSNIPERCONTROLS");
-                    if (esc->get())
-                    {
-                        auto pPed = CPlayer::getLocalPlayerPed();
-                        if (pPed)
-                        {
-                            auto m_WeaponData = CWeaponData::getWeaponData(pPed + 0x2B0, 0);
-                            auto weaponType = CWeapon::getWeaponByType(m_WeaponData ? *(int*)(m_WeaponData + 0x18) : 0);
+                hbsub_A72820.fun = injector::MakeCALL(pattern.get_first(), sub_A72820).get();
 
-                            if ((*(uint32_t*)(weaponType + 0x20) & 8) != 0)
-                            {
-                                *(uint8_t*)(regs.esi + 0x200) &= 0xFE;
-                            }
-                        }
-                    }
-                });
-            }
+            pattern = hook::pattern("E8 ? ? ? ? 83 C4 ? 84 C0 75 ? 8A 87");
+            if (!pattern.empty())
+                hbsub_A72820.fun = injector::MakeCALL(pattern.get_first(), sub_A72820).get();
         };
     }
 } Sniper;
