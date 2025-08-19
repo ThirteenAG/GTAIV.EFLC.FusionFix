@@ -1456,9 +1456,7 @@ export bool bHeadlightShadows = false;
 export bool bHighResolutionShadows = false;
 export bool bIsQUB3D = false;
 export float fMenuBlur = 0.0f;
-export bool bZoomingWithSniperNow = false;
 export bool bInSniperScope = false;
-export bool bCurrentZoom = false;
 export eCamMode nCurrentCamera = NUM_CAM_MODES;
 
 export inline LONG getWindowWidth()
@@ -1758,8 +1756,6 @@ public:
             }
             else
             {
-                if (bInSniperScope)
-                    bZoomingWithSniperNow = false;
                 bInSniperScope = false;
             }
         });

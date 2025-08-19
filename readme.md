@@ -51,7 +51,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 #### Display
 
 - **FOV**, adjusts in-game field of view
-- **Language**, switch languages in-game like in the console versions
+- **Language**, switch languages in-game like in previous versions
 - **Definition**, toggle the old fuzzy look from consoles
 - **Console Gamma**, restores contrasted look from consoles
 - **Console Auto Exposure**, restores the stronger auto exposure / eye adaptation effect from consoles
@@ -102,7 +102,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 - **Always Run**, allows to run by default, like in classic GTA games
 - **Allow Movement When Zoomed**, allows movement when aiming with a sniper rifle
-- **Extended Sniper Controls**, allows aiming with sniper rifles without using the scope
+- **Extended Sniper Controls**, allows aiming with sniper rifles without using the scope, press Jump button to toggle between third-person aim and the scope
 - **Camera Shake**, shake effect has been fixed to work consistently at any frame rate and can be disabled with this option
 - **Centered Vehicle Camera**, makes vehicle camera centered, for more options install the [original mod](https://github.com/gennariarmando/iv-centered-vehicle-cam) separately
 - **Centered On Foot Camera**, makes on foot camera centered, also for more options install the [original mod](https://github.com/gennariarmando/iv-centered-onfoot-cam)

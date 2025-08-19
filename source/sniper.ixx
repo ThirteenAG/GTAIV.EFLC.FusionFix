@@ -63,6 +63,7 @@ float __cdecl sub_8EFA20(uint8_t* a1)
     return 0.0f;
 }
 
+bool bWantsSniperScope = false;
 bool cancelInitiated = false;
 injector::hook_back<char(__cdecl*)(char)> hbsub_A72820;
 char __cdecl sub_A72820(char a1)
@@ -71,11 +72,30 @@ char __cdecl sub_A72820(char a1)
     if (esc->get())
     {
         static auto cancel = false;
-        constexpr auto INPUT_LOOK_BEHIND = 7;
-        if (bInSniperScope && Natives::IsControlJustPressed(0, INPUT_LOOK_BEHIND))
+        constexpr auto INPUT_JUMP = 2;
+        if (Natives::IsControlJustPressed(0, INPUT_JUMP))
         {
-            cancel = true;
-            cancelInitiated = true;
+            auto pPed = CPlayer::getLocalPlayerPed();
+            if (pPed)
+            {
+                auto m_WeaponData = CWeaponData::getWeaponData(pPed + 0x2B0, 0);
+                auto weaponType = CWeapon::getWeaponByType(m_WeaponData ? *(int*)(m_WeaponData + 0x18) : 0);
+
+                if ((*(uint32_t*)(weaponType + 0x20) & 8) != 0)
+                {
+                    if (!CPed::IsPedInCover(pPed))
+                    {
+                        if (bInSniperScope)
+                        {
+                            bWantsSniperScope = false;
+                            cancel = true;
+                            cancelInitiated = true;
+                        }
+                        else
+                            bWantsSniperScope = true;
+                    }
+                }
+            }
         }
 
         if (cancel && bInSniperScope)
@@ -122,11 +142,11 @@ public:
                 {
                     if (regs.eax & 8)
                     {
-                        if ((!bZoomingWithSniperNow && !bCurrentZoom) || (cancelInitiated))
+                        if (!bWantsSniperScope || cancelInitiated)
                         {
                             regs.eax ^= 8; //remove scope
 
-                            if (!bCurrentZoom)
+                            if (!bWantsSniperScope)
                                 cancelInitiated = false;
                         }
                     }

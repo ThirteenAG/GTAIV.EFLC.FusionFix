@@ -188,29 +188,8 @@ public:
                 {
                     void operator()(injector::reg_pack& regs)
                     {
-                        static auto esc = FusionFixSettings.GetRef("PREF_EXTENDEDSNIPERCONTROLS");
-                        if (esc->get())
-                        {
-                            auto pPed = CPlayer::getLocalPlayerPed();
-                            if (pPed)
-                            {
-                                auto m_WeaponData = CWeaponData::getWeaponData(pPed + 0x2B0, 0);
-                                auto weaponType = CWeapon::getWeaponByType(m_WeaponData ? *(int*)(m_WeaponData + 0x18) : 0);
-
-                                if ((*(uint32_t*)(weaponType + 0x20) & 8) != 0)
-                                {
-                                    if (!CPed::IsPedInCover(pPed))
-                                    {
-                                        bZoomingWithSniperNow = true;
-                                    }
-                                }
-                            }
-                        }
-
                         *(uint8_t*)(regs.esi + 0x200) |= 1;
                         byte_F47AB1 = 1;
-
-                        bCurrentZoom = *(uint8_t*)(regs.esi + 0x200) & 1;
                     }
                 };
                 if (!pattern.empty())
@@ -227,8 +206,6 @@ public:
                     {
                         *(uint8_t*)(regs.esi + 0x200) &= 0xFE;
                         byte_F47AB1 = 0;
-
-                        bCurrentZoom = *(uint8_t*)(regs.esi + 0x200) & 1;
                     }
                 };
                 if (!pattern.empty())
@@ -256,107 +233,7 @@ public:
                         void operator()(injector::reg_pack& regs)
                         {
                             *(uint8_t*)(regs.esi + 0x200) = regs.ecx & 0xFF;
-
-                            static auto esc = FusionFixSettings.GetRef("PREF_EXTENDEDSNIPERCONTROLS");
-                            if (esc->get())
-                            {
-                                auto pPed = CPlayer::getLocalPlayerPed();
-                                if (pPed)
-                                {
-                                    auto m_WeaponData = CWeaponData::getWeaponData(pPed + 0x2B0, 0);
-                                    auto weaponType = CWeapon::getWeaponByType(m_WeaponData ? *(int*)(m_WeaponData + 0x18) : 0);
-
-                                    if ((*(uint32_t*)(weaponType + 0x20) & 8) != 0)
-                                    {
-                                        if (!CPed::IsPedInCover(pPed))
-                                        {
-                                            auto v = regs.ecx & 0xFF;
-                                            if (v & 1)
-                                                bZoomingWithSniperNow = true;
-                                        }
-                                    }
-                                }
-                            }
-
                             byte_F47AB1 = *(uint8_t*)(regs.esi + 0x200);
-
-                            bCurrentZoom = *(uint8_t*)(regs.esi + 0x200) & 1;
-                        }
-                    }; injector::MakeInline<AimZoomHook3>(pattern.get_first(0), pattern.get_first(6));
-                }
-            }
-            else
-            {
-                auto pattern = find_pattern("80 8E ? ? ? ? ? EB 43");
-                struct AimZoomHook1
-                {
-                    void operator()(injector::reg_pack& regs)
-                    {
-                        static auto esc = FusionFixSettings.GetRef("PREF_EXTENDEDSNIPERCONTROLS");
-                        if (esc->get())
-                        {
-                            auto pPed = CPlayer::getLocalPlayerPed();
-                            if (pPed)
-                            {
-                                auto m_WeaponData = CWeaponData::getWeaponData(pPed + 0x2B0, 0);
-                                auto weaponType = CWeapon::getWeaponByType(m_WeaponData ? *(int*)(m_WeaponData + 0x18) : 0);
-
-                                if ((*(uint32_t*)(weaponType + 0x20) & 8) != 0)
-                                {
-                                    if (!CPed::IsPedInCover(pPed))
-                                    {
-                                        bZoomingWithSniperNow = true;
-                                    }
-                                }
-                            }
-                        }
-
-                        *(uint8_t*)(regs.esi + 0x200) |= 1;
-
-                        bCurrentZoom = *(uint8_t*)(regs.esi + 0x200) & 1;
-                    }
-                };
-
-                if (!pattern.empty())
-                    injector::MakeInline<AimZoomHook1>(pattern.get_first(0), pattern.get_first(7));
-                else
-                {
-                    pattern = find_pattern("08 9E ? ? ? ? E9");
-                    injector::MakeInline<AimZoomHook1>(pattern.get_first(0), pattern.get_first(6));
-                }
-
-                //gamepad handler
-                pattern = find_pattern("88 8E ? ? ? ? 84 DB");
-                if (!pattern.empty())
-                {
-                    struct AimZoomHook3
-                    {
-                        void operator()(injector::reg_pack& regs)
-                        {
-                            *(uint8_t*)(regs.esi + 0x200) = regs.ecx & 0xFF;
-
-                            static auto esc = FusionFixSettings.GetRef("PREF_EXTENDEDSNIPERCONTROLS");
-                            if (esc->get())
-                            {
-                                auto pPed = CPlayer::getLocalPlayerPed();
-                                if (pPed)
-                                {
-                                    auto m_WeaponData = CWeaponData::getWeaponData(pPed + 0x2B0, 0);
-                                    auto weaponType = CWeapon::getWeaponByType(m_WeaponData ? *(int*)(m_WeaponData + 0x18) : 0);
-
-                                    if ((*(uint32_t*)(weaponType + 0x20) & 8) != 0)
-                                    {
-                                        if (!CPed::IsPedInCover(pPed))
-                                        {
-                                            auto v = regs.ecx & 0xFF;
-                                            if (v & 1)
-                                                bZoomingWithSniperNow = true;
-                                        }
-                                    }
-                                }
-                            }
-
-                            bCurrentZoom = *(uint8_t*)(regs.esi + 0x200) & 1;
                         }
                     }; injector::MakeInline<AimZoomHook3>(pattern.get_first(0), pattern.get_first(6));
                 }
