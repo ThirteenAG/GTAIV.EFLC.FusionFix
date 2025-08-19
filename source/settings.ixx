@@ -261,7 +261,7 @@ public:
             { 0, "PREF_TCYC_DOF",               "MISC",       "DepthOfField",                    "MENU_DISPLAY_DOF",           6, nullptr, DofText.eOff, std::distance(std::begin(DofText.data), std::end(DofText.data)) - 1 },
             { 0, "PREF_MOTIONBLUR",             "MAIN",       "MotionBlur",                      "",                           2, nullptr, 0, 4 }, //MENU_DISPLAY_REFLECTION_QUALITY
             { 0, "PREF_LEDILLUMINATION",        "MISC",       "LightSyncRGB",                    "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_TREEALPHA",              "MISC",       "TreeAlpha",                       "MENU_DISPLAY_TREEALPHA",     4, nullptr, TreeAlphaText.ePC, std::distance(std::begin(TreeAlphaText.data), std::end(TreeAlphaText.data)) - 1 },
+            { 0, "PREF_TREEALPHA",              "MISC",       "TreeAlpha",                       "MENU_DISPLAY_TREE_LIGHTING", 6, nullptr, TreeFxText.ePC, std::distance(std::begin(TreeFxText.data), std::end(TreeFxText.data)) - 1 },
             { 0, "PREF_SUNSHAFTS",              "MISC",       "SunShafts",                       "",                           0, nullptr, 0, 1 },
             { 0, "PREF_FPSCOUNTER",             "FRAMELIMIT", "DisplayFpsCounter",               "",                           0, nullptr, 0, 1 },
             { 0, "PREF_ALWAYSRUN",              "MISC",       "AlwaysRun",                       "",                           0, nullptr, 0, 1 },
@@ -293,6 +293,7 @@ public:
             { 0, "PREF_EXTRANIGHTSHADOWS",      "SHADOWS",    "ExtraNightShadows",               "",                           0, nullptr, 0, 2 }, //MENU_DISPLAY_NETSTATS_SCORES
             { 0, "PREF_GRAPHICSAPI",            "MAIN",       "GraphicsAPI",                     "",                           0, nullptr, 0, 1 }, //MENU_DISPLAY_NETSTATS_COMP_TEAM
             { 0, "PREF_BULLETTRACES",           "MISC",       "AlwaysShowBulletTraces",          "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_AUTOEXPOSURE",           "MISC",       "ConsoleAutoExposure",             "",                           1, nullptr, 0, 1 },
             // Enums are at capacity, to use more enums, replace multiplayer ones. On/Off toggles should still be possible to add.
         };
 

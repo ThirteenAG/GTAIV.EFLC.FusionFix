@@ -55,6 +55,9 @@ Raw Input
 [Console Gamma]
 コンソールガンマ
 
+[Auto Exposure]
+コンソール自動露出
+
 [Screen Filter]
 スクリーンフィルター
 

@@ -168,7 +168,6 @@ public:
         FusionFix::onInitEvent() += []()
         {
             CIniReader iniReader("");
-            bFixAutoExposure = iniReader.ReadInteger("MISC", "FixAutoExposure", 1) != 0;
             fOverrideTreeAlpha = std::clamp(iniReader.ReadFloat("MISC", "OverrideTreeAlpha", 0.0f), 0.0f, 255.0f);
             fSHADOWFILTERSHARPShadowSoftness = iniReader.ReadFloat("SHADOWFILTERSHARP", "ShadowSoftness", 1.5f);
             fSHADOWFILTERSHARPShadowBias = iniReader.ReadFloat("SHADOWFILTERSHARP", "ShadowBias", 5.0f);
@@ -504,7 +503,21 @@ public:
 
                         arr5[1] = bEnableSnow ? 1.0f : 0.0f;
                         arr5[2] = fMenuBlur;
-                        arr5[3] = fOverrideTreeAlpha == 0.0f ? (treealpha->get() == FusionFixSettings.TreeAlphaText.eConsole ? 4.0f : 0.625f) : fOverrideTreeAlpha;
+
+                        static float alphamul = 4.0f;
+                        if (fOverrideTreeAlpha == 0.0f)
+                        {
+                            switch (treealpha->get())
+                            {
+                            case FusionFixSettings.TreeFxText.ePC: alphamul = 0.625f; break;
+                            case FusionFixSettings.TreeFxText.ePCPlus: alphamul = 1.0f; break;
+                            case FusionFixSettings.TreeFxText.eConsole: alphamul = 4.0f; break;
+                            }
+                        }
+                        else
+                            alphamul = fOverrideTreeAlpha;
+
+                        arr5[3] = alphamul;
                         pDevice->SetPixelShaderConstantF(221, &arr5[0], 1);
                     }
 
@@ -512,8 +525,9 @@ public:
                     {
                         static auto gamma = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA");
                         static auto mblur = FusionFixSettings.GetRef("PREF_MOTIONBLUR");
+                        static auto ae = FusionFixSettings.GetRef("PREF_AUTOEXPOSURE");
                         static float arr3[4];
-                        arr3[0] = (bFixAutoExposure ? 1.0f : 0.0f);
+                        arr3[0] = (ae->get() ? 1.0f / 9.0f : 1.0f / 16.0f);
                         arr3[1] = (bSmoothShorelines ? 1.0f : 0.0f);
                         arr3[2] = static_cast<float>(gamma->get());
                         static float mblurscale = 1.0f;

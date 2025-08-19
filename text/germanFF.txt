@@ -55,6 +55,9 @@ Bloom-Effekt
 [Console Gamma]
 Konsolengamma
 
+[Auto Exposure]
+Konsolen-Autobelichtung
+
 [Screen Filter]
 Bildschirmfilter
 

@@ -167,6 +167,7 @@ public:
             // [MISC]
             bool bDefaultCameraAngleInTLaD = iniReader.ReadInteger("MISC", "DefaultCameraAngleInTLaD", 0) != 0;
             bool bPedDeathAnimFixFromTBoGT = iniReader.ReadInteger("MISC", "PedDeathAnimFixFromTBoGT", 1) != 0;
+            bool bDisableCameraCenteringInCover = iniReader.ReadInteger("MISC", "DisableCameraCenteringInCover", 1) != 0;
             bool bAlwaysDisplayHealthOnReticle = iniReader.ReadInteger("MISC", "AlwaysDisplayHealthOnReticle", 1) != 0;
             int nMenuEnteringDelay = std::clamp(iniReader.ReadInteger("MISC", "MenuEnteringDelay", 0), 20, 400);
             int nMenuExitingDelay = std::clamp(iniReader.ReadInteger("MISC", "MenuExitingDelay", 0), 0, 800);
@@ -388,24 +389,31 @@ public:
             }
 
             {
-                static constexpr float xmm_0 = FLT_MAX / 2.0f;
-                unsigned char bytes[4];
-                auto n = (uint32_t)&xmm_0;
-                bytes[0] = (n >> 24) & 0xFF;
-                bytes[1] = (n >> 16) & 0xFF;
-                bytes[2] = (n >> 8) & 0xFF;
-                bytes[3] = (n >> 0) & 0xFF;
+                // static constexpr float xmm_0 = FLT_MAX / 2.0f;
+                // unsigned char bytes[4];
+                // auto n = (uint32_t)&xmm_0;
+                // bytes[0] = (n >> 24) & 0xFF;
+                // bytes[1] = (n >> 16) & 0xFF;
+                // bytes[2] = (n >> 8) & 0xFF;
+                // bytes[3] = (n >> 0) & 0xFF;
+                // 
+                // auto pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 47 ? F3 0F 11 47 ? 8B D1 89 54 24 10", "F3 0F 10 05 ? ? ? ? F3 0F 58 46 ? 89 8C 24");
+                // static raw_mem CoverCB(pattern.get_first(4), { bytes[3], bytes[2], bytes[1], bytes[0] });
+                // FusionFixSettings.SetCallback("PREF_COVERCENTERING", [](int32_t value) {
+                //     if (value)
+                //         CoverCB.Restore();
+                //     else
+                //         CoverCB.Write();
+                // });
+                // if (!FusionFixSettings("PREF_COVERCENTERING"))
+                //     CoverCB.Write();
 
-                auto pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 47 ? F3 0F 11 47 ? 8B D1 89 54 24 10", "F3 0F 10 05 ? ? ? ? F3 0F 58 46 ? 89 8C 24");
-                static raw_mem CoverCB(pattern.get_first(4), { bytes[3], bytes[2], bytes[1], bytes[0] });
-                FusionFixSettings.SetCallback("PREF_COVERCENTERING", [](int32_t value) {
-                    if (value)
-                        CoverCB.Restore();
-                    else
-                        CoverCB.Write();
-                });
-                if (!FusionFixSettings("PREF_COVERCENTERING"))
-                    CoverCB.Write();
+                if (bDisableCameraCenteringInCover)
+                {
+                    static constexpr float xmm_0 = FLT_MAX / 2.0f;
+                    auto pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 47 ? F3 0F 11 47 ? 8B D1 89 54 24 10", "F3 0F 10 05 ? ? ? ? F3 0F 58 46 ? 89 8C 24");
+                    injector::WriteMemory(pattern.get_first(4), &xmm_0, true);
+                }
             }
 
             // reverse lights fix

@@ -55,6 +55,9 @@ Effet Bloom
 [Console Gamma]
 Gamme de consoles
 
+[Auto Exposure]
+Exposition automatique console
+
 [Screen Filter]
 Filtre à écran
 

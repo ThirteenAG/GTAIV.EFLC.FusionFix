@@ -55,6 +55,9 @@ Fusion Fix: Проверять Обновления
 [Console Gamma]
 Консольная Гамма
 
+[Auto Exposure]
+Автоэкспозиция консоли
+
 [Screen Filter]
 Фильтр Экрана
 

@@ -55,6 +55,9 @@ Bloom
 [Console Gamma]
 Gamma delle console
 
+[Auto Exposure]
+Esposizione automatica console
+
 [Screen Filter]
 Filtro dello schermo
 

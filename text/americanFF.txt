@@ -55,6 +55,9 @@ Bloom
 [Console Gamma]
 Console Gamma
 
+[Auto Exposure]
+Console Auto Exposure
+
 [Screen Filter]
 Screen Filter
 
