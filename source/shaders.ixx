@@ -504,7 +504,21 @@ public:
 
                         arr5[1] = bEnableSnow ? 1.0f : 0.0f;
                         arr5[2] = fMenuBlur;
-                        arr5[3] = fOverrideTreeAlpha == 0.0f ? (treealpha->get() == FusionFixSettings.TreeAlphaText.eConsole ? 4.0f : 0.625f) : fOverrideTreeAlpha;
+
+                        static float alphamul = 4.0f;
+                        if (fOverrideTreeAlpha == 0.0f)
+                        {
+                            switch (treealpha->get())
+                            {
+                            case FusionFixSettings.TreeFxText.ePC: alphamul = 0.625f; break;
+                            case FusionFixSettings.TreeFxText.ePCPlus: alphamul = 1.0f; break;
+                            case FusionFixSettings.TreeFxText.eConsole: alphamul = 4.0f; break;
+                            }
+                        }
+                        else
+                            alphamul = fOverrideTreeAlpha;
+
+                        arr5[3] = alphamul;
                         pDevice->SetPixelShaderConstantF(221, &arr5[0], 1);
                     }
 

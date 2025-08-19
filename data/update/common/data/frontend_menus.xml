@@ -547,7 +547,7 @@
             <optionspc action="MENUOPT_ADJUST" label="Motion Blur" value="PREF_MOTIONBLUR" scaler="5" displayValue="MENU_DISPLAY_REFLECTION_QUALITY" />
             <optionspc action="MENUOPT_ADJUST" label="Depth of Field" value="PREF_TCYC_DOF" scaler="11" displayValue="MENU_DISPLAY_DOF" />
             <optionspc action="MENUOPT_ADJUST" label="TreeFX" value="PREF_TREE_LIGHTING" scaler="9" displayValue="MENU_DISPLAY_TREE_LIGHTING" />
-            <optionspc action="MENUOPT_ADJUST" label="Tree Alpha" value="PREF_TREEALPHA" scaler="6" displayValue="MENU_DISPLAY_TREEALPHA" />
+            <optionspc action="MENUOPT_ADJUST" label="Tree Alpha" value="PREF_TREEALPHA" scaler="9" displayValue="MENU_DISPLAY_TREE_LIGHTING" />
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="Bloom" value="PREF_BLOOM" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Screen Filter" value="PREF_TIMECYC" scaler="10" displayValue="MENU_DISPLAY_TIMECYC" />
@@ -966,7 +966,7 @@
             <optionspc action="MENUOPT_ADJUST" label="Motion Blur" value="PREF_MOTIONBLUR" scaler="5" displayValue="MENU_DISPLAY_REFLECTION_QUALITY" />
             <optionspc action="MENUOPT_ADJUST" label="Depth of Field" value="PREF_TCYC_DOF" scaler="11" displayValue="MENU_DISPLAY_DOF" />
             <optionspc action="MENUOPT_ADJUST" label="TreeFX" value="PREF_TREE_LIGHTING" scaler="9" displayValue="MENU_DISPLAY_TREE_LIGHTING" />
-            <optionspc action="MENUOPT_ADJUST" label="Tree Alpha" value="PREF_TREEALPHA" scaler="6" displayValue="MENU_DISPLAY_TREEALPHA" />
+            <optionspc action="MENUOPT_ADJUST" label="Tree Alpha" value="PREF_TREEALPHA" scaler="9" displayValue="MENU_DISPLAY_TREE_LIGHTING" />
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="Bloom" value="PREF_BLOOM" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Screen Filter" value="PREF_TIMECYC" scaler="10" displayValue="MENU_DISPLAY_TIMECYC" />
