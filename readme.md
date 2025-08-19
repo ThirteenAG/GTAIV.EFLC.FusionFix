@@ -50,8 +50,11 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 #### Display
 
+- **FOV**, adjusts in-game field of view
+- **Language**, switch languages in-game like in the console versions
 - **Definition**, toggle the old fuzzy look from consoles
 - **Console Gamma**, restores contrasted look from consoles
+- **Console Auto Exposure**, restores the stronger auto exposure / eye adaptation effect from consoles
 - **Motion Blur**, a separate toggle for motion blur with several intensity levels
 - **Depth of Field**, controls how intense the distant blur is during gameplay and whether it's enabled in cutscenes
 - **Tree Lighting**, offers "PC", "PC" with some improvements ("PC+") and "Console" style tree lighting
@@ -69,11 +72,10 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **Extended Sunlight Reach**, allows sunlight to reach surfaces that it couldn't before, and increases cloud shading
 - **Tone Mapping**, prevents highlights from being blown out, more operators can be found [here](https://github.com/Parallellines0451/GTAIV.EFLC.FusionShaders/tree/main/assets/luts/samples)
 - **Shadow Filter**, toggles between sharp, soft, or contact hardening shadows
-- **FOV**, adjusts in-game field of view
+- **Graphics API**, select between DirectX 9 and Vulkan (through [DXVK](https://github.com/doitsujin/dxvk/releases)), requires a restart
 
 #### Game
 
-- **Graphics API**, select between DirectX 9 and Vulkan (through [DXVK](https://github.com/doitsujin/dxvk/releases)), requires a restart
 - **Skip Intro**, added an option to skip intro
 - **Skip Menu**, added an option to skip main menu after startup
 - **Letterbox**, draws cutscene borders on top and bottom of the screen
@@ -102,10 +104,10 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **Allow Movement When Zoomed**, allows movement when aiming with a sniper rifle
 - **Extended Sniper Controls**, allows aiming with sniper rifles without using the scope
 - **Camera Shake**, shake effect has been fixed to work consistently at any frame rate and can be disabled with this option
-- **Cover Centering**, added an option to disable camera centering in cover
 - **Centered Vehicle Camera**, makes vehicle camera centered, for more options install the [original mod](https://github.com/gennariarmando/iv-centered-vehicle-cam) separately
 - **Centered On Foot Camera**, makes on foot camera centered, also for more options install the [original mod](https://github.com/gennariarmando/iv-centered-onfoot-cam)
 - **Turn Indicators**, allows the player to use vehicle turn indicators
+- **Always Show Bullet Traces**, shows bullet traces on every shot instead of randomly, like in the older games
 - **Centering Delay**, controls the time until the camera auto centering kicks in after moving it
 - **Gamepad Icons**, allows to select various controller icon styles (Xbox 360, Xbox One, PS3, PS4, PS5, Nintendo Switch, Steam Deck)
 - **Raw Input**, raw input for menu and adjustments for in-game camera mouse look
@@ -170,7 +172,6 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 ### Misc
 
 - Restored timecycles from consoles with improved auto exposure and fixed missing moon in some weathers
-- Restored the language switch option from consoles
 - Fixed glass shards lacking colors
 - Added an option to restore the auto exposure effect from consoles
 - Restored environment reflection intensity from consoles
