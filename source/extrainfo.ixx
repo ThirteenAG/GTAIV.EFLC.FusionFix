@@ -93,7 +93,7 @@ public:
                             extra += L"~n~";
                             extra += L"                        ";
 
-                            if (*pMenuTab == 0)
+                            if (*pMenuTab == 49)
                             {
                                 if (!exeVer.empty())
                                     extra += L"~p~" + exeVer;

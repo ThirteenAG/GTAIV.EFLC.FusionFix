@@ -55,6 +55,9 @@ Resplandor
 [Console Gamma]
 Gamma de consola
 
+[Auto Exposure]
+Exposición automática de consola
+
 [Screen Filter]
 Filtro de pantalla
 
