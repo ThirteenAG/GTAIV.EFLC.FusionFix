@@ -1131,14 +1131,14 @@ export std::optional<uintptr_t> resolve_displacement(auto ip)
         {
             if (operand.imm.is_relative)
             {
-                return (uintptr_t)ip + instruction.length + operand.imm.value.s;
+                return (uintptr_t)ip + instruction.length + ZyanISize(operand.imm.value.s);
             }
         }
     }
 
     if (instruction.attributes & ZYDIS_ATTRIB_IS_RELATIVE && instruction.raw.disp.size > 0)
     {
-        return (uintptr_t)ip + instruction.length + instruction.raw.disp.value;
+        return (uintptr_t)ip + instruction.length + ZyanISize(instruction.raw.disp.value);
     }
 
     return std::nullopt;
@@ -1198,14 +1198,14 @@ export std::optional<uintptr_t> resolve_next_displacement(auto ip)
                 {
                     if (operand.imm.is_relative)
                     {
-                        return current_ip + instruction.length + operand.imm.value.s;
+                        return current_ip + instruction.length + ZyanISize(operand.imm.value.s);
                     }
                 }
             }
 
             if (instruction.attributes & ZYDIS_ATTRIB_IS_RELATIVE && instruction.raw.disp.size > 0)
             {
-                return current_ip + instruction.length + instruction.raw.disp.value;
+                return current_ip + instruction.length + ZyanISize(instruction.raw.disp.value);
             }
 
             return std::nullopt;

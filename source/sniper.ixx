@@ -83,7 +83,7 @@ char __cdecl sub_A72820(char a1)
 
                 if ((*(uint32_t*)(weaponType + 0x20) & 8) != 0)
                 {
-                    if (!CPed::IsPedInCover(pPed))
+                    if (CPed::ComparePedTasks(pPed, TaskID::TaskSimpleAimGun, -TaskID::TaskComplexNewUseCover))
                     {
                         if (bInSniperScope)
                         {
@@ -191,10 +191,7 @@ public:
 
                             if ((*(uint32_t*)(weaponType + 0x20) & 8) != 0)
                             {
-                                if (!CPed::IsPedInCover(pPed))
-                                {
-                                    regs.xmm1.f32[0] = 0.1f;
-                                }
+                                regs.xmm1.f32[0] = 0.1f;
                             }
                         }
                     }
