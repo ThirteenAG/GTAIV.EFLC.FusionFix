@@ -85,6 +85,9 @@ Farolas
 [LampostsHeadl]
 Farolas y faros
 
+[LampHeadlVNS]
+Farolas y faros + ombre notturne dei veicoli
+
 [Tree Alpha]
 Transparencia de árboles
 

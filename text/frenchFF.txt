@@ -85,6 +85,9 @@ Lampadaires
 [LampostsHeadl]
 Lampadaires et Phares
 
+[LampHeadlVNS]
+Lampadaires et Phares + ombres nocturnes des véhicules
+
 [Tree Alpha]
 Alpha des arbres
 

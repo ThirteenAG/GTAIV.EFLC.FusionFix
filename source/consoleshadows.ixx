@@ -8,11 +8,9 @@ import common;
 import comvars;
 import settings;
 
+bool bIsDirLightShadows = false;
+
 void* fnAE3310 = nullptr;
-
-bool bVehicleNightShadows = false;
-bool bIsDirLightShadows   = false;
-
 int __cdecl sub_AE3310(int a1, int a2, int a3, int a4, int a5)
 {
     if (bVehicleNightShadows && !bIsDirLightShadows)
@@ -25,7 +23,6 @@ int __cdecl sub_AE3310(int a1, int a2, int a3, int a4, int a5)
 
 uint32_t* dword_17F58E4;
 SafetyHookInline sh_grcSetRenderState{};
-
 void __stdcall grcSetRenderStateHook()
 {
     if (dword_17F58E4 && *dword_17F58E4)
@@ -65,11 +62,6 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            CIniReader iniReader("");
-
-            // [NIGHTSHADOWS]
-            bVehicleNightShadows = iniReader.ReadInteger("NIGHTSHADOWS", "VehicleNightShadows", 1) != 0;
-
             // Vehicle night shadows
             // Allows rendering dynamic shadows of vehicles from artificial light sources
             // Bugs: Vehicle tires and damage/dents/deformation do not get included in the shadow maps

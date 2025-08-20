@@ -85,6 +85,9 @@ FPSリミッター
 [LampostsHeadl]
 街灯とヘッドライト
 
+[LampHeadlVNS]
+街灯とヘッドライト + 車両の夜の影
+
 [Tree Alpha]
 ツリー アルファ
 

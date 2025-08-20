@@ -85,6 +85,9 @@ Lampposts
 [LampostsHeadl]
 Lampposts and Headlights
 
+[LampHeadlVNS]
+Lampposts and Headlights + Vehicle Night Shadows
+
 [Tree Alpha]
 Tree Alpha
 

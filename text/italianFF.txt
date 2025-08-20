@@ -85,6 +85,9 @@ Lampioni
 [LampostsHeadl]
 Lampioni e Fari
 
+[LampHeadlVNS]
+Lampioni e Fari + ombre notturne dei veicoli
+
 [Tree Alpha]
 Alfa degli alberi
 

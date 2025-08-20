@@ -290,7 +290,7 @@ public:
             { 0, "PREF_CAMERASHAKE",            "MAIN",       "CameraShake",                     "",                           1, nullptr, 0, 1 },
             { 0, "PREF_CUTSCENEAUDIOSYNC",      "MAIN",       "CutsceneAudioSync",               "",                           0, nullptr, 0, 1 },
             { 0, "PREF_TURNINDICATORS",         "MISC",       "TurnIndicators",                  "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_EXTRANIGHTSHADOWS",      "SHADOWS",    "ExtraNightShadows",               "",                           0, nullptr, 0, 2 }, //MENU_DISPLAY_NETSTATS_SCORES
+            { 0, "PREF_EXTRANIGHTSHADOWS",      "SHADOWS",    "ExtraNightShadows",               "",                           0, nullptr, 0, 3 }, //MENU_DISPLAY_NETSTATS_SCORES
             { 0, "PREF_GRAPHICSAPI",            "MAIN",       "GraphicsAPI",                     "",                           0, nullptr, 0, 1 }, //MENU_DISPLAY_NETSTATS_COMP_TEAM
             { 0, "PREF_BULLETTRACES",           "MISC",       "AlwaysShowBulletTraces",          "",                           0, nullptr, 0, 1 },
             { 0, "PREF_AUTOEXPOSURE",           "MISC",       "ConsoleAutoExposure",             "",                           1, nullptr, 0, 1 },
@@ -547,8 +547,8 @@ public:
 
     struct
     {
-        enum eExtraNightShadowsText { eOff, eLampposts, eLampostsHeadl };
-        std::vector<const char*> data = { "MO_OFF", "Lampposts", "LampostsHeadl" };
+        enum eExtraNightShadowsText { eOff, eLampposts, eLampostsHeadl, eLampHeadlVNS };
+        std::vector<const char*> data = { "MO_OFF", "Lampposts", "LampostsHeadl", "LampHeadlVNS" };
     } ExtraNightShadowsText;
 
 } FusionFixSettings;
@@ -721,7 +721,7 @@ public:
             {
                 auto selectedItem = CMenu::getSelectedItem();
                 return (curMenuTab == 8)                       ||  // Everything in Display Tab
-                       (curMenuTab == 0 && selectedItem == 19) ||  // PREF_EXTRANIGHTSHADOWS in Game Tab
+                       (curMenuTab == 0 && selectedItem == 18) ||  // PREF_EXTRANIGHTSHADOWS in Game Tab
                        (curMenuTab == 5 && selectedItem == 8)  ||  // PREF_CENTEREDCAMERA in Controls Tab
                        (curMenuTab == 5 && selectedItem == 9);     // PREF_CENTEREDCAMERAFOOT in Controls Tab
             };
@@ -932,19 +932,22 @@ public:
                     if (value)
                     {
                         bExtraNightShadows = true;
-                        bHeadlightShadows = value == FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
+                        bHeadlightShadows = value >= FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
+                        bVehicleNightShadows = value >= FusionFixSettings.ExtraNightShadowsText.eLampHeadlVNS;
                     }
                     else
                     {
                         bExtraNightShadows = false;
                         bHeadlightShadows = false;
+                        bVehicleNightShadows = false;
                     }
                 });
 
                 if (FusionFixSettings("PREF_EXTRANIGHTSHADOWS"))
                 {
                     bExtraNightShadows = true;
-                    bHeadlightShadows = FusionFixSettings("PREF_EXTRANIGHTSHADOWS") == FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
+                    bHeadlightShadows = FusionFixSettings("PREF_EXTRANIGHTSHADOWS") >= FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
+                    bVehicleNightShadows = FusionFixSettings("PREF_EXTRANIGHTSHADOWS") >= FusionFixSettings.ExtraNightShadowsText.eLampHeadlVNS;
                 }
             }
         };

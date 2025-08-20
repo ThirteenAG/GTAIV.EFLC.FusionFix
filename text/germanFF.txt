@@ -85,6 +85,9 @@ Straßenlaternen
 [LampostsHeadl]
 Straßenlaternen und Scheinwerfer
 
+[LampHeadlVNS]
+Straßenlaternen und Scheinwerfer + Fahrzeug-Nachtschatten
+
 [Tree Alpha]
 Baumtransparenz
 

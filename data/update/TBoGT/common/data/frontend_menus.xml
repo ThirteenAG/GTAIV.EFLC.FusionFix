@@ -133,6 +133,7 @@
       <options text="MO_OFF" action="ACTION_NONE" value="0" />
       <options text="Lampposts" action="ACTION_NONE" value="1" />
       <options text="LampostsHeadl" action="ACTION_NONE" value="2" />
+      <options text="LampHeadlVNS" action="ACTION_NONE" value="3" />
     </menu>
     <menu enum="MENU_DISPLAY_NETSTATS_COMP_TEAM">
       <options text="DirectX 9" action="ACTION_NONE" value="0" />
@@ -445,7 +446,7 @@
             <optionspc action="MENUOPT_ADJUST" label="Windowed" value="PREF_WINDOWED" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Borderless" value="PREF_BORDERLESS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Focus Loss" value="PREF_BLOCKONLOSTFOCUS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-            <optionspc action="MENUOPT_ADJUST" label="ExtraNightShad" value="PREF_EXTRANIGHTSHADOWS" scaler="3" displayValue="MENU_DISPLAY_NETSTATS_SCORES" />
+            <optionspc action="MENUOPT_ADJUST" label="ExtraNightShad" value="PREF_EXTRANIGHTSHADOWS" scaler="4" displayValue="MENU_DISPLAY_NETSTATS_SCORES" />
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="LightSyncRGB" value="PREF_LEDILLUMINATION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Timed Events" value="PREF_TIMEDEVENTS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
@@ -1250,7 +1251,7 @@
             <optionspc action="MENUOPT_ADJUST" label="Windowed" value="PREF_WINDOWED" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Borderless" value="PREF_BORDERLESS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Focus Loss" value="PREF_BLOCKONLOSTFOCUS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-            <optionspc action="MENUOPT_ADJUST" label="ExtraNightShad" value="PREF_EXTRANIGHTSHADOWS" scaler="3" displayValue="MENU_DISPLAY_NETSTATS_SCORES" />
+            <optionspc action="MENUOPT_ADJUST" label="ExtraNightShad" value="PREF_EXTRANIGHTSHADOWS" scaler="4" displayValue="MENU_DISPLAY_NETSTATS_SCORES" />
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="LightSyncRGB" value="PREF_LEDILLUMINATION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Timed Events" value="PREF_TIMEDEVENTS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
