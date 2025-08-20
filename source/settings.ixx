@@ -933,7 +933,7 @@ public:
                     {
                         bExtraNightShadows = true;
                         bHeadlightShadows = value >= FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
-                        bVehicleNightShadows = value >= FusionFixSettings.ExtraNightShadowsText.eLampHeadlVNS;
+                        bVehicleNightShadows = value != FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
                     }
                     else
                     {
@@ -947,7 +947,7 @@ public:
                 {
                     bExtraNightShadows = true;
                     bHeadlightShadows = FusionFixSettings("PREF_EXTRANIGHTSHADOWS") >= FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
-                    bVehicleNightShadows = FusionFixSettings("PREF_EXTRANIGHTSHADOWS") >= FusionFixSettings.ExtraNightShadowsText.eLampHeadlVNS;
+                    bVehicleNightShadows = FusionFixSettings("PREF_EXTRANIGHTSHADOWS") != FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
                 }
             }
         };
