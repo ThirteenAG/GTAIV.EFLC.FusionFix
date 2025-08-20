@@ -267,7 +267,7 @@ public:
                 {
                     void operator()(injector::reg_pack& regs)
                     {
-                        regs.xmm1.f32[0] += 0.085f * *CTimer::fTimeStep;
+                        regs.xmm1.f32[0] += 0.6375f * *CTimer::fTimeStep;
                     }
                 }; injector::MakeInline<LoadingTextSparks>(pattern.get_first(0), pattern.get_first(8));
             }
@@ -278,7 +278,7 @@ public:
                 {
                     void operator()(injector::reg_pack& regs)
                     {
-                        regs.xmm0.f32[0] += 0.085f * *CTimer::fTimeStep;
+                        regs.xmm0.f32[0] += 0.6375f * *CTimer::fTimeStep;
                     }
                 }; injector::MakeInline<LoadingTextSparks>(pattern.get_first(0), pattern.get_first(8));
             }
