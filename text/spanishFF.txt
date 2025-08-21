@@ -86,7 +86,7 @@ Farolas
 Farolas y faros
 
 [LampHeadlVNS]
-Farolas y faros + ombre notturne dei veicoli
+Farolas, faros y sombras nocturnas del vehículo 
 
 [Tree Alpha]
 Transparencia de árboles
@@ -161,10 +161,10 @@ Presupuesto de streaming
 API gráfica
 
 [FF_RESTART]
-GTA IV debe ser reiniciado para aplicar la configuración.
+Se debe reiniciar el juego para aplicar la configuración.
 
 [Extended Sniper]
-Controles del rifle de francotirador extendido
+Controles extendidos del rifle de francotirador
 
 [Bullet Traces]
 Mostrar siempre las trazas de balas
@@ -191,7 +191,7 @@ Mostrar siempre las trazas de balas
 ~r~ATENCIÓN: CHSS se activa solamente con la calidad de las sombras puesta en "Muy alta".
 
 [FF_WARN7]
-~r~ATENCIÓN: Usa la sincronización de audio en ON si tienes desincronización, en OFF para la fluidez de la animación. Se puede cambiar en una cinemática con ~PAD_UP~.
+~r~ATENCIÓN: Activa la sincronización de audio si tienes desincronización del audio en escenas, desactívala para animaciones fluidas. Se puede cambiar en una escena con ~PAD_UP~.
 
 [DUMMY_l11]
 Dummy label.
