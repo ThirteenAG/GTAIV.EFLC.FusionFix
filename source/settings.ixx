@@ -939,7 +939,7 @@ public:
                     {
                         bExtraNightShadows = false;
                         bHeadlightShadows = false;
-                        bVehicleNightShadows = false;
+                        bVehicleNightShadows = true;
                     }
                 });
 
