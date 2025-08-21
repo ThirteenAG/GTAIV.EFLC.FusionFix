@@ -56,7 +56,7 @@ Bloom-Effekt
 Konsolengamma
 
 [Auto Exposure]
-Konsolen-Autobelichtung
+Konsolen-Belichtungsautomatik
 
 [Screen Filter]
 Bildschirmfilter
@@ -164,10 +164,10 @@ Grafik-API
 GTA IV muss neu gestartet werden, um die Einstellungen anzuwenden.
 
 [Extended Sniper]
-Steuerung des erweiterten
+Erweiterte Sniper-Steuerung
 
 [Bullet Traces]
-Immer Kugelspuren anzeigen
+Schussspuren immer sichtbar
 
 [FF_WARN0]
 ~p~IMG-Dateien:
