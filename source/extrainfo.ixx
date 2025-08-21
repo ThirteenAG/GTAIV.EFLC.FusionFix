@@ -93,7 +93,7 @@ public:
                             extra += L"~n~";
                             extra += L"                        ";
 
-                            if (*pMenuTab == 49)
+                            if (*pMenuTab == 0)
                             {
                                 if (!exeVer.empty())
                                     extra += L"~p~" + exeVer;
@@ -104,18 +104,15 @@ public:
                                 if (!ualVer.empty())
                                     extra += L" / " + ualVer;
 
-                                auto FF_RESTART = CText::getText("FF_RESTART");
-                                if (FF_RESTART[0])
+                                auto ens = CText::getText("FF_WARN2");
+                                if (ens[0])
                                 {
-                                    static auto api = FusionFixSettings.GetRef("PREF_GRAPHICSAPI");
-                                    static auto initialSelectedApi = api->get();
-
-                                    if (initialSelectedApi != api->get())
+                                    if (FusionFixSettings.GetRef("PREF_EXTRANIGHTSHADOWS")->get() != 0)
                                     {
                                         extra += L"~n~";
                                         extra += L"                        ";
                                         extra += L"~r~";
-                                        extra += FF_RESTART;
+                                        extra += ens;
                                     }
                                 }
                             }
@@ -142,6 +139,21 @@ public:
                                 auto FF_WARN1 = CText::getText("FF_WARN1");
                                 if (imgNum >= imgArrSize) extra += FF_WARN1[0] ? FF_WARN1 : L"; ~r~WARNING: 255 IMG limit exceeded, will cause streaming issues.";
                             
+                                auto FF_RESTART = CText::getText("FF_RESTART");
+                                if (FF_RESTART[0])
+                                {
+                                    static auto api = FusionFixSettings.GetRef("PREF_GRAPHICSAPI");
+                                    static auto initialSelectedApi = api->get();
+
+                                    if (initialSelectedApi != api->get())
+                                    {
+                                        extra += L"~n~";
+                                        extra += L"                        ";
+                                        extra += L"~r~";
+                                        extra += FF_RESTART;
+                                    }
+                                }
+
                                 if (FusionFixSettings.Get("PREF_SHADOWFILTER") == FusionFixSettings.ShadowFilterText.eCHSS)
                                 {
                                     if (FusionFixSettings.Get("PREF_SHADOW_QUALITY") < 4) // Very High
