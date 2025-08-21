@@ -771,6 +771,20 @@ public:
                              *(uint32_t*)(regs.eax + regs.ecx * 4) = regs.edx;
                     });
                 }
+
+                pattern = find_pattern("8B 83 ? ? ? ? 8B 88 ? ? ? ? 8B B8");
+                if (!pattern.empty())
+                {
+                    static auto loc_A7A6E8 = resolve_displacement(pattern.get_first(-6)).value();
+                    injector::MakeNOP(pattern.get_first(0), 6);
+                    static auto setVehicleComponentsHook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs) {
+                        regs.eax = *(uint32_t*)(regs.ebx + 0xCC);
+                        if (!regs.eax)
+                        {
+                            return_to(loc_A7A6E8);
+                        }
+                    });
+                }
             }
         };
     }
