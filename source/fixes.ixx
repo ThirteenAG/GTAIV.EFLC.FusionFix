@@ -757,35 +757,6 @@ public:
                     injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xC35E, true); // pop esi, ret
                 }
             }
-
-            // CVehicleModelInfo::setVehicleComponents extra crash check
-            {
-                auto pattern = find_pattern("8B 83 ? ? ? ? 89 14 88");
-                if (!pattern.empty())
-                {
-                    injector::MakeNOP(pattern.get_first(0), 9);
-                    static auto setVehicleComponentsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs) {
-                         regs.eax = *(uint32_t*)(regs.ebx + 0xCC);
-
-                         if (regs.eax)
-                             *(uint32_t*)(regs.eax + regs.ecx * 4) = regs.edx;
-                    });
-                }
-
-                pattern = find_pattern("8B 83 ? ? ? ? 8B 88 ? ? ? ? 8B B8");
-                if (!pattern.empty())
-                {
-                    static auto loc_A7A6E8 = resolve_displacement(pattern.get_first(-6)).value();
-                    injector::MakeNOP(pattern.get_first(0), 6);
-                    static auto setVehicleComponentsHook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs) {
-                        regs.eax = *(uint32_t*)(regs.ebx + 0xCC);
-                        if (!regs.eax)
-                        {
-                            return_to(loc_A7A6E8);
-                        }
-                    });
-                }
-            }
         };
     }
 } Fixes;
