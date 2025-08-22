@@ -422,7 +422,7 @@ private:
         if (mQuadVertexDecl)
         {
             mQuadVertexDecl->Release();
-            mQuadVertexBuffer = nullptr;
+            mQuadVertexDecl = nullptr;
         }
 
     }
