@@ -239,7 +239,7 @@ public:
                 {
                     static auto CarStaticShadowIntensityHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        if (bHeadlightShadows && bVehicleNightShadows)
+                        if (bHeadlightShadows)
                             regs.xmm2.f32[0] *= 3.0f;
                     });
                 }
