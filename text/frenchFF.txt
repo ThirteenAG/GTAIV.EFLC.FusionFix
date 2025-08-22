@@ -2,7 +2,7 @@
 Sauter l'intro
 
 [Skip Menu]
-Sauter menu
+Sauter le menu
 
 [Windowed]
 Fenêtre
@@ -11,19 +11,19 @@ Fenêtre
 Fenêtre sans bordures
 
 [Focus Loss]
-Mettre jeu en pause en cas de changement de fenêtre
+Mettre le jeu en pause en cas de changement de fenêtre
 
 [LightSyncRGB]
 Logitech LightSync RGB
 
 [FPS Counter]
-Compteur de FPS
+Compteur de fps
 
 [Letterbox]
-Letterbox de la cinématique
+Cinématiques en 4/3
 
 [Pillarbox]
-Pillarbox de la cinématique
+Cinématiques en 16/9 avec barres noir
 
 [Alt. Dialogues]
 Dialogues alternatifs
@@ -32,61 +32,61 @@ Dialogues alternatifs
 Vérifier les mises à jour de FusionFix
 
 [Raw Input]
-Raw Input
+Raw input 
 
 [Always Run]
-Courez toujours
+Toujours courir
 
 [Cover Centering]
-Centrage du couvert
+Centrage de la vue
 
 [Centering Delay]
-Retard de centrage
+Délai de centrage de la vue
 
 [Gamepad Icons]
-Icônes du manette de jeu
+Icônes de la manette de jeu
 
 [Motion Blur]
 Flou de mouvement
 
 [Bloom]
-Effet Bloom 
+Effets de bloom 
 
 [Console Gamma]
-Gamme de consoles
+Gamma de console
 
 [Auto Exposure]
-Exposition automatique console
+Exposition automatique de console
 
 [Screen Filter]
-Filtre à écran
+Filtre d'écran
 
 [Depth of Field]
 Profondeur de champ
 
 [TreeFX]
-Illumination des arbres
+Éclairage des arbres
 
 [Sun Shafts]
-Puits de soleil
+Rayons de soleil
 
 [Antialiasing]
 Anticrénelage
 
 [FPS Limiter]
-Limiteur de FPS
+Limiteur de fps
 
 [ExtraNightShad]
-Ombres Nocturnes Supplémentaires
+Ombres nocturnes supplémentaires
 
 [Lampposts]
 Lampadaires
 
 [LampostsHeadl]
-Lampadaires et Phares
+Lampadaires et phares
 
 [LampHeadlVNS]
-Lampadaires et Phares + ombres nocturnes des véhicules
+Lampadaires et phares + ombres nocturnes des véhicules
 
 [Tree Alpha]
 Alpha des arbres
@@ -95,19 +95,19 @@ Alpha des arbres
 Portée étendue de la lumière du soleil
 
 [Shadow Filter]
-Filtre d'ombre
+Filtrage des ombres
 
 [HeadlightShadow]
 Ombres des phares
 
 [Timed Events]
-Événements saisonniers
+Évènements saisonniers
 
 [Tone Mapping]
-Mappage Tonal
+Mappage tonal
 
 [Volumetric Fog]
-Brouillard Volumétrique
+Brouillard volumétrique
 
 [Zoomed Movement]
 Permettre le mouvement en zoomant
@@ -116,37 +116,37 @@ Permettre le mouvement en zoomant
 Lumières lointaines
 
 [CenteredVehCam]
-Caméra Véhicule Centrée
+Caméra en véhicule centrée
 
 [CenteredFootCam]
-Caméra à Pied Centrée
+Caméra à pied centrée
 
 [Camera Shake]
-Tremblement de Caméra
+Tremblement de caméra
 
 [CutscAudioSync]
-Synchronisation Audio des Cinématiques
+Synchronisation audio des cinématiques
 
 [CutscAudioSync0]
-Synchronisation Audio des Cinématiques désactivée
+Synchronisation audio des cinématiques désactivée
 
 [CutscAudioSync1]
-Synchronisation Audio des Cinématiques activée
+Synchronisation audio des cinématiques activée
 
 [Turn Indicators]
 Clignotants
 
 [WinterEvent0]
-Événement d'hiver désactivé
+Évènement d'hiver désactivé
 
 [WinterEvent1]
-Événement d'hiver activé
+Évènement d'hiver activé
 
 [HalloweenEvent0]
-Événement d'Halloween désactivé
+Évènement d'halloween désactivé
 
 [HalloweenEvent1]
-Événement d'Halloween
+Évènement d'halloween activé
 
 [TranspMapMenu]
 Menu de la carte transparent
@@ -155,7 +155,7 @@ Menu de la carte transparent
 Mémoire de streaming supplémentaire
 
 [FF_SM]
-Budget de streaming
+Budget de mémoire de streaming
 
 [Graphics API]
 API graphique
@@ -164,31 +164,31 @@ API graphique
 GTA IV doit être redémarré pour appliquer les paramètres.
 
 [Extended Sniper]
-Commandes du fusil de sniper étendu
+Commande étendue du fusil de sniper
 
 [FF_WARN0]
 ~p~Fichiers IMG:
 
 [FF_WARN1]
-; ~r~AVERTISSEMENT: la limite de 255 IMG est dépassée, des problèmes de streaming peuvent survenir
+; ~r~AVERTISSEMENT : la limite de 255 IMG est dépassée, des problèmes de streaming peuvent survenir.
 
 [FF_WARN2]
-~r~AVERTISSEMENT: Ombres Nocturnes Supplémentaires est une option PC originale de Rockstar. Très défectueuse, déconseillée.
+~r~AVERTISSEMENT : Ombres nocturne supplémentaire est une option pc originale de Rockstar. Très défectueuse et donc déconseillée.
 
 [FF_WARN3]
-~r~AVERTISSEMENT : Une valeur de barre de distance de dessin supérieure à 25 et une valeur de barre de distance de détail supérieure à 31 peuvent entraîner l'apparition d'objets.
+~r~AVERTISSEMENT : Une valeur de distance d'affichage supérieure à 25 et une valeur de distance d'affichage des détails supérieure à 31 peuvent entraîner le pop-in d'objets.
 
 [FF_WARN4]
-~r~AVERTISSEMENT : Une valeur de barre de distance de dessin supérieure à 25 pourrait entraîner l'apparition d'objets.
+~r~AVERTISSEMENT : Une valeur de distance d'affichage supérieure à 25 peut entraîner le pop-in d'objets.
 
 [FF_WARN5]
-~r~AVERTISSEMENT : Une valeur de barre de distance de détail supérieure à 31 pourrait entraîner l'apparition d'objets. 
+~r~AVERTISSEMENT : Une valeur de distance d'affichage des détails supérieure à 31 peut entraîner le pop-in d'objets.
 
 [FF_WARN6]
-~r~AVERTISSEMENT : CHSS ne fonctionne qu'avec la Qualité des Ombres réglée sur Très Élevée.
+~r~AVERTISSEMENT : CHSS ne fonctionne qu'avec la qualité des ombres réglée sur très élevée.
 
 [FF_WARN7]
-~r~AVERTISSEMENT : Utilisez la synchronisation audio des cinématiques sur ON en cas de désynchronisation audio, sur OFF pour la fluidité de l'animation. Elle peut être basculée dans une cinématique via ~PAD_UP~.
+~r~AVERTISSEMENT : Utilisez la synchronisation audio des cinématiques sur ON en cas de désynchronisation audio, sur OFF pour la fluidité de l'animation. Peut être changer en cinématique via ~PAD_UP~.
 
 [DUMMY_l11]
 Dummy label.
