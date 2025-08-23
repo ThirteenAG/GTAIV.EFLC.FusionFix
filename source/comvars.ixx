@@ -1670,12 +1670,14 @@ export namespace rage
 
     VALIDATE_SIZE(grmShaderInfo_Parameter, 0x30);
 
+    #pragma pack(push, 1)
     struct sysArray
     {
         int pData;
         int16_t wCount;
         int16_t wSize;
     };
+    #pragma pack(pop)
 
     struct grmShaderInfo_Values
     {
@@ -1724,12 +1726,8 @@ export namespace rage
             return ShaderParamData[idx];
         }
 
-        static inline void* pfngetParamIndex = nullptr;
-        static int getParamIndex(grmShaderInfo* instance, const char* name, int a3)
-        {
-            auto func = (int(__thiscall*)(grmShaderInfo* instance, const char* name, int a3))pfngetParamIndex;
-            return func(instance, name, a3);
-        }
+        static inline int(__cdecl* getGlobalParameterIndexByName)(const char* a1) = nullptr;
+        static inline int(__fastcall* getParamIndex)(grmShaderInfo* instance, void* edx, const char* name, int a3) = nullptr;
 
         static inline SafetyHookInline shsub_436D70{};
         static void __fastcall setShaderParam(grmShaderInfo* _this, void* edx, void* a2, int index, void* pDataArr, int nArrSize, int a6, int a7)
@@ -1737,12 +1735,13 @@ export namespace rage
             if (_this->m_parameters.wCount)
             {
                 auto sv = std::string_view(_this->m_pszShaderPath);
-                auto shader_name = sv.substr(sv.find_last_of('/') + 1);
+                auto last_slash = sv.find_last_of('/');
+                auto shader_name = last_slash != std::string_view::npos ? sv.substr(last_slash + 1) : sv;
 
                 auto it = std::find_if(ShaderParamNames.begin(), ShaderParamNames.end(), [&](auto& pair)
                 {
                     int& cachedIdx = pair.second.second;
-                    if (cachedIdx <= 0) cachedIdx = getParamIndex(_this, pair.second.first.c_str(), 1);
+                    if (cachedIdx <= 0) cachedIdx = getParamIndex(_this, edx, pair.second.first.c_str(), 1);
                     return index == cachedIdx && shader_name == pair.first;
                 });
 
@@ -1754,8 +1753,6 @@ export namespace rage
             }
             shsub_436D70.fastcall(_this, edx, a2, index, pDataArr, nArrSize, a6, a7);
         }
-
-        static inline int(__cdecl* getGlobalParameterIndexByName)(const char* a1) = nullptr;
     };
 }
 
@@ -2161,7 +2158,7 @@ public:
         CTimeCycle::InitialiseModifiers = pattern.get_first<void(__cdecl)()>(0);
 
         pattern = find_pattern("56 57 6A 00 FF 74 24 10 8B F9 E8 ? ? ? ? 0F B7 77 0C", "8B 44 24 04 56 57 6A 00 50 8B F9");
-        rage::grmShaderInfo::pfngetParamIndex = pattern.get_first<void*>(0);
+        rage::grmShaderInfo::getParamIndex = (decltype(rage::grmShaderInfo::getParamIndex))pattern.get_first(0);
 
         pattern = find_pattern("56 6A 00 FF 74 24 0C E8 ? ? ? ? 8B 35", "8B 44 24 04 56 6A 00 50 E8 ? ? ? ? 8B 35");
         rage::grmShaderInfo::getGlobalParameterIndexByName = pattern.get_first<int(__cdecl)(const char*)>(0);
