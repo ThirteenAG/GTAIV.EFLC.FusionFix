@@ -53,10 +53,10 @@ Flou de mouvement
 Effets de bloom 
 
 [Console Gamma]
-Gamma de console
+Gamma des consoles
 
 [Auto Exposure]
-Exposition automatique de console
+Exposition automatique des consoles
 
 [Screen Filter]
 Filtre d'écran
@@ -116,13 +116,13 @@ Permettre le mouvement en zoomant
 Lumières lointaines
 
 [CenteredVehCam]
-Caméra en véhicule centrée
+Centrer la caméra du véhicule
 
 [CenteredFootCam]
-Caméra à pied centrée
+Centrer la caméra à pied
 
 [Camera Shake]
-Tremblement de caméra
+Tremblements de caméra
 
 [CutscAudioSync]
 Synchronisation audio des cinématiques
@@ -149,7 +149,7 @@ Clignotants
 Évènement d'halloween activé
 
 [TranspMapMenu]
-Menu de la carte transparent
+Carte du menu transparente
 
 [Extra Streaming]
 Mémoire de streaming supplémentaire
@@ -173,16 +173,16 @@ Commande étendue du fusil de sniper
 ; ~r~AVERTISSEMENT : la limite de 255 IMG est dépassée, des problèmes de streaming peuvent survenir.
 
 [FF_WARN2]
-~r~AVERTISSEMENT : Ombres nocturne supplémentaire est une option pc originale de Rockstar. Très défectueuse et donc déconseillée.
+~r~AVERTISSEMENT : Ombres nocturnes supplémentaires est une option pc originale de Rockstar. Très défectueuse et donc déconseillée.
 
 [FF_WARN3]
-~r~AVERTISSEMENT : Une valeur de distance d'affichage supérieure à 25 et une valeur de distance d'affichage des détails supérieure à 31 peuvent entraîner le pop-in d'objets.
+~r~AVERTISSEMENT : Une valeur de distance d'affichage supérieure à 25 et une valeur de distance d'affichage des détails supérieure à 31 peuvent entraîner le pop-in de textures.
 
 [FF_WARN4]
-~r~AVERTISSEMENT : Une valeur de distance d'affichage supérieure à 25 peut entraîner le pop-in d'objets.
+~r~AVERTISSEMENT : Une valeur de distance d'affichage supérieure à 25 peut entraîner le pop-in de textures.
 
 [FF_WARN5]
-~r~AVERTISSEMENT : Une valeur de distance d'affichage des détails supérieure à 31 peut entraîner le pop-in d'objets.
+~r~AVERTISSEMENT : Une valeur de distance d'affichage des détails supérieure à 31 peut entraîner le pop-in de textures.
 
 [FF_WARN6]
 ~r~AVERTISSEMENT : CHSS ne fonctionne qu'avec la qualité des ombres réglée sur très élevée.
@@ -191,4 +191,4 @@ Commande étendue du fusil de sniper
 ~r~AVERTISSEMENT : Utilisez la synchronisation audio des cinématiques sur ON en cas de désynchronisation audio, sur OFF pour la fluidité de l'animation. Peut être changer en cinématique via ~PAD_UP~.
 
 [DUMMY_l11]
-Dummy label.
+Option fictive.
