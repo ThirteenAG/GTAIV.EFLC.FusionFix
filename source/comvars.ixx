@@ -1751,7 +1751,7 @@ export namespace rage
                     setShaderParamData(idx, pDataArr, nArrSize);
                 }
             }
-            shsub_436D70.fastcall(_this, edx, a2, index, pDataArr, nArrSize, a6, a7);
+            shsub_436D70.unsafe_fastcall(_this, edx, a2, index, pDataArr, nArrSize, a6, a7);
         }
     };
 }
@@ -1932,7 +1932,7 @@ public:
     static void __fastcall BuildRenderList(CBaseDC* _this, void* edx)
     {
         OnBuildRenderList().executeAll();
-        return shBuildRenderList.fastcall(_this, edx);
+        return shBuildRenderList.unsafe_fastcall(_this, edx);
     }
 
     static rage::CLightSource* __fastcall CopyLight(void* _this, void* edx, void* a2)
