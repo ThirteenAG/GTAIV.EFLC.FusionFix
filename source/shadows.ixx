@@ -128,7 +128,7 @@ class Shadows
                 return;
         }
 
-        return shsub_D77A00.fastcall(_this, edx);
+        return shsub_D77A00.unsafe_fastcall(_this, edx);
     }
 
 public:

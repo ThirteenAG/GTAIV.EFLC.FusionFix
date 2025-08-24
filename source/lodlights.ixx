@@ -642,9 +642,6 @@ public:
                     static bool bOnce = false;
                     if (!bOnce)
                     {
-                        if (CText::hasViceCityStrings())
-                            fCoronaRadiusMultiplier *= 1.3f;
-
                         LoadDatFile();
                         RegisterCustomCoronas();
                         bOnce = true;

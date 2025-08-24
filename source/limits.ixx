@@ -6,6 +6,7 @@ module;
 export module limits;
 
 import common;
+import settings;
 
 class LimitAdjuster
 {
@@ -151,7 +152,7 @@ public:
                     void operator()(injector::reg_pack& regs)
                     {
                         auto name = std::string_view(*(const char**)(regs.esp + 16));
-                        if (std::any_of(poolNames.begin(), poolNames.end(), [&name](auto& i) {return i == name; }))
+                        if (std::any_of(poolNames.begin(), poolNames.end(), [&name](auto& i) {return i == name; }) || (name == "VehicleStruct" && CText::hasViceCityStrings()))
                             regs.edi *= 2;
                         regs.eax = regs.edi * regs.edx;
                     }
@@ -165,7 +166,7 @@ public:
                     void operator()(injector::reg_pack& regs)
                     {
                         auto name = std::string_view(*(const char**)(regs.esp + 16));
-                        if (std::any_of(poolNames.begin(), poolNames.end(), [&name](auto& i) {return i == name; }))
+                        if (std::any_of(poolNames.begin(), poolNames.end(), [&name](auto& i) {return i == name; }) || (name == "VehicleStruct" && CText::hasViceCityStrings()))
                             regs.edi *= 2;
                         regs.ecx = regs.edi * regs.eax;
                     }

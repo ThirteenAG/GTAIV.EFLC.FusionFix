@@ -128,6 +128,7 @@ public:
         shCHelisub_B69D80.unsafe_fastcall(_this, edx);
     }
 
+    static inline int32_t nRadarZoomDelay = 0;
     static inline injector::hook_back<bool(*)()> hbsub_5DCA80;
     static bool sub_5DCA80()
     {
@@ -138,7 +139,7 @@ public:
         if (hbsub_5DCA80.fun())
         {
             // The key is pressed. Set our timer to end 3 seconds from now.
-            zoomOutEndTime = currentTime + 3000;
+            zoomOutEndTime = currentTime + nRadarZoomDelay;
             return true; // Return true to zoom out.
         }
 
@@ -172,6 +173,7 @@ public:
             int nMenuEnteringDelay = std::clamp(iniReader.ReadInteger("MISC", "MenuEnteringDelay", 0), 20, 400);
             int nMenuExitingDelay = std::clamp(iniReader.ReadInteger("MISC", "MenuExitingDelay", 0), 0, 800);
             int nMenuAccessDelayOnStartup = std::clamp(iniReader.ReadInteger("MISC", "MenuAccessDelayOnStartup", 0), 300, 3000);
+            nRadarZoomDelay = std::clamp(iniReader.ReadInteger("MISC", "RadarZoomDelay", 0), 0, 60000);
 
             //fix for zoom flag in tbogt
             if (nAimingZoomFix)
@@ -746,16 +748,6 @@ public:
                 pattern = hook::pattern("75 ? 68 ? ? ? ? EB ? 68 ? ? ? ? E8 ? ? ? ? 83 C4 ? 8B F8");
                 if (!pattern.empty())
                     injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz -> jmp
-            }
-
-            //CTxdStore::releaseData
-            {
-                auto pattern = hook::pattern("EB ? 8B 71 ? 0F AF F2 03 31 A1 ? ? ? ? 8D 3C 85");
-                if (!pattern.empty())
-                {
-                    injector::WriteMemory<uint16_t>(pattern.get_first(-2), 0x905F, true); // pop esi, ret
-                    injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xC35E, true); // pop esi, ret
-                }
             }
         };
     }
