@@ -598,7 +598,7 @@ public:
                 if (!pattern.empty())
                     CEpisodes::hbisAvailable.fun = injector::MakeCALL(pattern.get_first(), CEpisodes::isAvailable).get();
 
-                pattern = hook::pattern("E8 ? ? ? ? 84 C0 75 ? A2");
+                pattern = hook::pattern("E8 ? ? ? ? 84 C0 75 ? A2 ? ? ? ? C6 05 ? ? ? ? ? A2 ? ? ? ? E8 ? ? ? ? C7 05");
                 if (!pattern.empty())
                     CEpisodes::hbisAvailable.fun = injector::MakeCALL(pattern.get_first(), CEpisodes::isAvailable).get();
 
