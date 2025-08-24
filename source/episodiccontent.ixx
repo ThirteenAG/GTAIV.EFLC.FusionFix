@@ -5,6 +5,18 @@ module;
 export module episodiccontent;
 
 import common;
+import settings;
+
+namespace CEpisodes
+{
+    injector::hook_back<char(__fastcall*)(void*, void*, int)> hbisAvailable;
+    char __fastcall isAvailable(void* _this, void* edx, int a2)
+    {
+        if (CText::hasViceCityStrings())
+            return 0;
+        return hbisAvailable.fun(_this, edx, a2);
+    }
+}
 
 class EpisodicContent
 {
@@ -579,6 +591,20 @@ public:
                 auto pattern = hook::pattern("85 DB 74 1E A1 ? ? ? ? 85 C0 74 15 3B D8 74 11");
                 if (!pattern.empty())
                     injector::WriteMemory<uint8_t>(pattern.get_first(2), 0xEB, true);
+            }
+
+            {
+                auto pattern = hook::pattern("E8 ? ? ? ? 84 C0 75 ? 8B 0D ? ? ? ? 6A ? E8 ? ? ? ? 84 C0 75 ? A2");
+                if (!pattern.empty())
+                    CEpisodes::hbisAvailable.fun = injector::MakeCALL(pattern.get_first(), CEpisodes::isAvailable).get();
+
+                pattern = hook::pattern("E8 ? ? ? ? 84 C0 75 ? A2");
+                if (!pattern.empty())
+                    CEpisodes::hbisAvailable.fun = injector::MakeCALL(pattern.get_first(), CEpisodes::isAvailable).get();
+
+                pattern = hook::pattern("E8 ? ? ? ? 84 C0 75 ? 46 83 FE ? 7C ? 83 C8");
+                if (!pattern.empty())
+                    CEpisodes::hbisAvailable.fun = injector::MakeCALL(pattern.get_first(), CEpisodes::isAvailable).get();
             }
         };
     }
