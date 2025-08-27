@@ -1,8 +1,8 @@
 ﻿[Skip Intro]
-Salta Intro
+Salta intro
 
 [Skip Menu]
-Salta menu 
+Salta menu
 
 [Windowed]
 In finestra
@@ -17,13 +17,13 @@ Gioco in pausa quando la finestra non è attiva
 Logitech LightSync RGB
 
 [FPS Counter]
-Contatore degli FPS 
+Contatore degli FPS
 
 [Letterbox]
-Letterbox del filmato
+Barre orizzontali nelle cinematiche
 
 [Pillarbox]
-Pillarbox del filmato
+Barre verticali nelle cinematiche
 
 [Alt. Dialogues]
 Dialoghi alternativi
@@ -38,10 +38,10 @@ Raw Input
 Corri sempre
 
 [Cover Centering]
-Centratura della copertura
+Centra camera al riparo
 
 [Centering Delay]
-Ritardo della centratura
+Ritarda centramento della camera
 
 [Gamepad Icons]
 Icone del gamepad
@@ -56,7 +56,7 @@ Bloom
 Gamma delle console
 
 [Auto Exposure]
-Esposizione automatica console
+Esposizione automatica delle console
 
 [Screen Filter]
 Filtro dello schermo
@@ -65,7 +65,7 @@ Filtro dello schermo
 Profondità di campo
 
 [TreeFX]
-Illuminazione degli alberi 
+Illuminazione degli alberi
 
 [Sun Shafts]
 Raggi solari
@@ -77,19 +77,19 @@ Antialiasing
 Limitatore degli FPS
 
 [ExtraNightShad]
-Ombre Notturne Extra
+Ombre notturne extra
 
 [Lampposts]
 Lampioni
 
 [LampostsHeadl]
-Lampioni e Fari
+Lampioni e fari
 
 [LampHeadlVNS]
-Lampioni e Fari + ombre notturne dei veicoli
+Lampioni e fari + ombre notturne dei veicoli
 
 [Tree Alpha]
-Alfa degli alberi
+Trasparenza degli alberi
 
 [UnclampLighting]
 Estensione della portata della luce solare
@@ -104,7 +104,7 @@ Ombre dei fari
 Eventi stagionali
 
 [Tone Mapping]
-Mappatura tonale
+Mappatura dei toni
 
 [Volumetric Fog]
 Nebbia volumetrica
@@ -113,28 +113,28 @@ Nebbia volumetrica
 Consenti movimento con lo zoom
 
 [Distant Lights]
-Luci lontane
+Luci distanti
 
 [CenteredVehCam]
-Telecamera Veicolo Centrata
+Telecamera veicolo centrata
 
 [CenteredFootCam]
-Telecamera a Piedi Centrata
+Telecamera a piedi centrata
 
 [Camera Shake]
-Vibrazione della Camera
+Vibrazione della camera
 
 [CutscAudioSync]
-Sincronizzazione Audio Filmati
+Sincronizzazione audio cinematiche
 
 [CutscAudioSync0]
-Sincronizzazione Audio Filmati disattivata
+Sincronizzazione audio cinematiche disattivata
 
 [CutscAudioSync1]
-Sincronizzazione Audio Filmati attivata
+Sincronizzazione audio cinematiche attivata
 
 [Turn Indicators]
-Indicatori di Svolta
+Indicatori di direzione
 
 [WinterEvent0]
 Evento invernale disattivato
@@ -149,7 +149,7 @@ Evento di Halloween disattivato
 Evento di Halloween attivato
 
 [TranspMapMenu]
-Menu Mappa Trasparente
+Menu della mappa trasparente
 
 [Extra Streaming]
 Memoria di streaming aggiuntiva
@@ -164,34 +164,34 @@ API grafica
 GTA IV deve essere riavviato per applicare le impostazioni.
 
 [Extended Sniper]
-Controlli del fucile di precisione esteso
+Controlli estesi del fucile di precisione
 
 [Bullet Traces]
 Mostra sempre le tracce dei proiettili
 
 [FF_WARN0]
-~p~IMG Files:
+~p~Archivi IMG:
 
 [FF_WARN1]
-; ~r~ATTENZIONE: è stato superato il limite di 255 img, potrebbero verificarsi problemi di streaming.
+; ~r~ATTENZIONE: È stato superato il limite di 255 archivi IMG, potrebbero verificarsi problemi di streaming.
 
 [FF_WARN2]
-~r~ATTENZIONE: Ombre Notturne Extra è un'impostazione PC originale di Rockstar. Estremamente difettosa, sconsigliata.
+~r~ATTENZIONE: Ombre notturne extra è un'impostazione PC originale di Rockstar. Molto difettosa, non raccomandata.
 
 [FF_WARN3]
-~r~ATTENZIONE: un valore della barra Distanza visiva superiore a 25 e un valore della barra Distanza dettaglio superiore a 31 potrebbero causare l'effetto pop-in degli oggetti.
+~r~ATTENZIONE: Un valore della distanza visuale superiore a 25 e un valore della distanza dettagli superiore a 31 potrebbero causare il pop-in degli oggetti.
 
 [FF_WARN4]
-~r~ATTENZIONE: un valore della barra Distanza visiva superiore a 25 potrebbe causare l'effetto pop-in degli oggetti.
+~r~ATTENZIONE: Un valore della distanza visuale superiore a 25 potrebbe causare il pop-in degli oggetti.
 
 [FF_WARN5]
-~r~ATTENZIONE: un valore della barra Distanza dettaglio superiore a 31 potrebbe causare l'effetto pop-in degli oggetti.
+~r~ATTENZIONE: Un valore della distanza dettagli superiore a 31 potrebbe causare il pop-in degli oggetti.
 
 [FF_WARN6]
-~r~ATTENZIONE: CHSS ha effetto solo con la Qualità delle Ombre impostata su Molto Alta.
+~r~ATTENZIONE: CHSS ha effetto solo se la qualità delle ombre è impostata su Molto Alta.
 
 [FF_WARN7]
-~r~ATTENZIONE: Usa la Sincronizzazione Audio Intermezzi su ON se riscontri desincronizzazione audio, su OFF per la fluidità dell'animazione. Può essere attivata/disattivata in un intermezzo tramite ~PAD_UP~.
+~r~ATTENZIONE: Attiva la sincronizzazione audio cinematiche se riscontri desincronizzazione audio, disattivala per la fluidità delle animazioni. Può essere attivata/disattivata in una cinematica tramite ~PAD_UP~.
 
 [DUMMY_l11]
 Dummy label.
