@@ -311,7 +311,7 @@ public:
             }
             else
             {
-                pattern = hook::pattern("F3 0F 58 15 ? ? ? ? 33 C0 F3 0F 11 15 ? ? ? ? A3");
+                pattern = hook::pattern("F3 0F 58 15 ? ? ? ? 33 C0 F3 0F 11 15 ? ? ? ? A3 ? ? ? ? 8B 0D ? ? ? ? 39 0D ? ? ? ? 74 0B");
                 struct CDSpinnerHook
                 {
                     void operator()(injector::reg_pack& regs)
@@ -322,7 +322,7 @@ public:
             }
 
             // Cop blips
-            pattern = find_pattern("F3 0F 10 4C 24 ? 0F 28 C1 F3 0F 59 C2", "D9 44 24 04 8B 0D ? ? ? ? D8 0D ? ? ? ? F3 0F 10 05");
+            pattern = find_pattern("F3 0F 10 4C 24 ? 0F 28 C1 F3 0F 59 C2", "D9 44 24 04 8B 0D ? ? ? ? D8 0D ? ? ? ? F3 0F 10 05 ? ? ? ? 83 05 ? ? ? ? ? D9 3C 24");
             if (!pattern.empty())
             {
                 static int CustomFrameCounter = 0;

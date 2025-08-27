@@ -691,7 +691,7 @@ public:
 
             // Radar zoom (T hotkey) 30fps cap fix
             {
-                auto pattern = find_pattern("83 F9 ? 0F 86 ? ? ? ? F3 0F 10 15", "83 F8 1E 0F 86 ? ? ? ? F3 0F 10 0D");
+                auto pattern = find_pattern("83 F9 ? 0F 86 ? ? ? ? F3 0F 10 15", "83 F8 1E 0F 86 ? ? ? ? F3 0F 10 0D ? ? ? ? 0F 2E C1");
                 if (!pattern.empty())
                     injector::WriteMemory<uint8_t>(pattern.get_first(2), 15, true);
             }
@@ -724,7 +724,7 @@ public:
 
             // Menu input lag
             {
-                auto pattern = hook::pattern("EB 05 68 ? ? ? ? E8 ? ? ? ? 6A 08 E8 ? ? ? 00");
+                auto pattern = hook::pattern("EB 05 68 ? ? ? ? E8 ? ? ? ? 6A 08");
                 if (!pattern.empty())
                     injector::WriteMemory(pattern.get_first(3), nMenuEnteringDelay, true);
 

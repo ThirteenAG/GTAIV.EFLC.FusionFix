@@ -282,7 +282,7 @@ public:
                     injector::WriteMemory(pattern.get_first(4), &f0, true);
                 else
                 {
-                    pattern = hook::pattern("8B 35 ? ? ? ? 2B C1 1B D6 89 44 24 18 89 54 24 1C DF 6C 24 18 D8 0D");
+                    pattern = hook::pattern("8B 35 ? ? ? ? 2B C1 1B D6 89 44 24 18 89 54 24 1C DF 6C 24 18 D8 0D ? ? ? ? D9 05 ? ? ? ? DF F1");
                     if (!pattern.empty())
                         injector::WriteMemory(pattern.get_first(2), &f0, true);
                 }
