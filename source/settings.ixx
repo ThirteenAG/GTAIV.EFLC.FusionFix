@@ -726,6 +726,7 @@ public:
                        (curMenuTab == 5 && selectedItem == 9);     // PREF_CENTEREDCAMERAFOOT in Controls Tab
             };
 
+            // TODO: Add preCE compatibility | Pattern hint: 83 3D ? ? ? ? ? 75 13 8B 0D ? ? ? ? 51 E8 ? ? ? ? 83 C4 04 85 C0 7D 21
             pattern = hook::pattern("83 FE ? 75 ? FF 35 ? ? ? ? E8 ? ? ? ? 83 C4 ? 85 C0 79");
             if (!pattern.empty())
             {
@@ -741,6 +742,7 @@ public:
                     }
                 }; injector::MakeInline<MenuBackgroundHook1>(pattern.get_first(0));
 
+                // TODO: Add preCE compatibility | Pattern hint: 83 F8 03 0F 84 ? ? ? ? 80 3D ? ? ? ? ? 0F 85 ? ? ? ? 83 F8 31
                 pattern = hook::pattern("83 F8 ? 0F 84 ? ? ? ? 80 3D ? ? ? ? ? 0F 85 ? ? ? ? 83 F8");
                 static auto loc_5A9815 = resolve_displacement(pattern.get_first(3)).value();
                 struct MenuBackgroundHook2
@@ -755,6 +757,7 @@ public:
                 }; injector::MakeInline<MenuBackgroundHook2>(pattern.get_first(0), pattern.get_first(9));
 
                 // And for map tab
+                // TODO: Add preCE compatibility | Pattern hint: B8 ? ? ? ? 39 05 ? ? ? ? 75 12 39 44 24 14 74 2B
                 pattern = hook::pattern("83 3D ? ? ? ? ? 75 ? 83 FE ? 74 ? C6 05 ? ? ? ? ? E8 ? ? ? ? 83 3D");
                 static auto loc_5A8557 = resolve_displacement(pattern.get_first(7)).value();
                 struct MenuBackgroundHook3
@@ -768,6 +771,7 @@ public:
                     }
                 }; injector::MakeInline<MenuBackgroundHook3>(pattern.get_first(0), pattern.get_first(9));
 
+                // TODO: Add preCE compatibility | Pattern hint: 83 F8 31 74 05 83 F8 3E 75 6F 33 C0 8B FF
                 pattern = hook::pattern("83 F8 ? 74 ? 83 F8 ? 75 ? 33 C9 8D 64 24 ? 8B 81 ? ? ? ? 3B 81 ? ? ? ? 0F 85");
                 static auto loc_5AC19A = resolve_displacement(pattern.get_first(3)).value();
                 struct MenuBackgroundHook4
@@ -782,6 +786,7 @@ public:
                 }; injector::MakeInline<MenuBackgroundHook4>(pattern.get_first(0));
 
                 // TLAD
+                // TODO: Add preCE compatibility | Pattern hint: 8D 8D ? ? ? ? 51 52 E8 ? ? ? ? 8B 08 89 4C 24 18
                 pattern = hook::pattern("8D 83 ? ? ? ? 50 8D 84 24 ? ? ? ? EB ? 8D 83 ? ? ? ? 50 8D 84 24 ? ? ? ? EB ? 8D 83 ? ? ? ? 50 8D 84 24 ? ? ? ? EB ? 8D 83");
                 struct MenuBackgroundHook5
                 {
@@ -794,6 +799,7 @@ public:
                     }
                 }; injector::MakeInline<MenuBackgroundHook5>(pattern.get_first(0), pattern.get_first(6));
 
+                // TODO: Add preCE compatibility | Pattern hint: 83 3D ? ? ? ? ? 74 0C 38 1D ? ? ? ? 0F 84 ? ? ? ? 8D 84 24
                 pattern = hook::pattern("83 3D ? ? ? ? ? 74 ? 38 05");
                 static auto loc_5AF8EE = resolve_displacement(pattern.get_first(0)).value();
                 struct MenuBackgroundHook6

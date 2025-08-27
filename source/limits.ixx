@@ -181,6 +181,7 @@ public:
             }
 
             // Liveries
+            // TODO: Fix preCE compatibility?
             {
                 static std::unordered_map<uint32_t, std::array<uint32_t, CHAR_MAX + 1>> liveries;
 
@@ -257,7 +258,7 @@ public:
                     }
                     else
                     {
-                        pattern = hook::pattern("8B 94 8B ? ? ? ? 0F BF 43 48 52 50 E9 ? ? ? ?");
+                        pattern = hook::pattern("8B 94 8B ? ? ? ? 0F BF 43 48 52 50 E9 ? ? ? ? 0F BE 8B");
                         struct LiveryAccessHook
                         {
                             void operator()(injector::reg_pack& regs)

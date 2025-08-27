@@ -79,16 +79,17 @@ public:
                     }
                 }
 
-                auto pattern = hook::pattern("F3 0F 10 44 24 ? 6A FF 6A FF 50 83 EC 08 F3 0F 11 44 24 ? F3 0F 10 44 24 ? F3 0F 11 04 24 E8 ? ? ? ? 83 C4 14");
+                auto pattern = find_pattern("F3 0F 10 44 24 ? 6A FF 6A FF 50 83 EC 08 F3 0F 11 44 24 ? F3 0F 10 44 24 ? F3 0F 11 04 24 E8 ? ? ? ? 83 C4 14", "D9 44 24 0C 6A FF 6A FF 52 83 EC 08 D9 5C 24 04 D9 44 24 1C D9 1C 24 E8 ? ? ? ? 83 C4 14");
                 if (!pattern.empty())
                 {
+                    static auto reg = *pattern.get_first<uint8_t>(10);
                     static auto PauseHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         static std::wstring extra = L"";
 
                         if (CGameConfigReader::ms_imgFiles && pMenuTab && (*pMenuTab == 49 || *pMenuTab == 0 || *pMenuTab == 7)) // Graphics || Game || Audio
                         {
-                            auto s = std::wstring_view((wchar_t*)regs.eax);
+                            auto s = std::wstring_view((wchar_t*)(reg == 0x50 ? regs.eax : regs.edx));
                             extra = s;
                             extra += L"~n~";
                             extra += L"                        ";
@@ -171,103 +172,10 @@ public:
                                 extra += FF_WARN7[0] ? FF_WARN7 : L"~r~WARNING: Set Cutscene Audio Sync ON if you have audio desynchronization, OFF for animation smoothness. It can be toggled in a cutscene via ~PAD_UP~";
                             }
 
-                            regs.eax = (uintptr_t)extra.c_str();
-                        }
-                    });
-                }
-                else
-                {
-                    pattern = hook::pattern("D9 44 24 0C 6A FF 6A FF 52 83 EC 08 D9 5C 24 04 D9 44 24 1C D9 1C 24 E8 ? ? ? ? 83 C4 14");
-                    static auto PauseHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                    {
-                        static std::wstring extra = L"";
-
-                        if (CGameConfigReader::ms_imgFiles && pMenuTab && (*pMenuTab == 49 || *pMenuTab == 0 || *pMenuTab == 7)) // Graphics || Game || Audio
-                        {
-                            auto s = std::wstring_view((wchar_t*)regs.edx);
-                            extra = s;
-                            extra += L"~n~";
-                            extra += L"                        ";
-
-                            if (*pMenuTab == 0)
-                            {
-                                if (!exeVer.empty())
-                                    extra += L"~p~" + exeVer;
-
-                                if (!asiVer.empty())
-                                    extra += L" / " + asiVer;
-
-                                if (!ualVer.empty())
-                                    extra += L" / " + ualVer;
-
-                                auto ens = CText::getText("FF_WARN2");
-                                if (ens[0])
-                                {
-                                    if (FusionFixSettings.GetRef("PREF_EXTRANIGHTSHADOWS")->get() != 0)
-                                    {
-                                        extra += L"~n~";
-                                        extra += L"                        ";
-                                        extra += L"~r~";
-                                        extra += ens;
-                                    }
-                                }
-                            }
-                            else if (*pMenuTab == 49)
-                            {
-                                auto imgNum = 0;
-                                auto imgArrSize = 0;
-                                for (auto& it : *CGameConfigReader::ms_imgFiles)
-                                {
-                                    if (it.m_hFile != -1)
-                                        imgNum++;
-                                    imgArrSize++;
-                                }
-
-                                auto FF_WARN0 = CText::getText("FF_WARN0");
-                                extra += (FF_WARN0[0] ? FF_WARN0 : L"~p~IMG Files:") + std::wstring(L" ") + std::to_wstring(imgNum) + L" / " + std::to_wstring(imgArrSize);
-
-                                ::PROCESS_MEMORY_COUNTERS pmc;
-                                if (::GetProcessMemoryInfo(::GetCurrentProcess(), &pmc, sizeof(pmc)))
-                                {
-                                    extra += L"; RAM: " + std::to_wstring(pmc.WorkingSetSize / 1024 / 1024) + L" MB";
-                                }
-
-                                auto FF_WARN1 = CText::getText("FF_WARN1");
-                                if (imgNum >= imgArrSize) extra += FF_WARN1[0] ? FF_WARN1 : L"; ~r~WARNING: 255 IMG limit exceeded, will cause streaming issues.";
-
-                                auto FF_RESTART = CText::getText("FF_RESTART");
-                                if (FF_RESTART[0])
-                                {
-                                    static auto api = FusionFixSettings.GetRef("PREF_GRAPHICSAPI");
-                                    static auto initialSelectedApi = api->get();
-
-                                    if (initialSelectedApi != api->get())
-                                    {
-                                        extra += L"~n~";
-                                        extra += L"                        ";
-                                        extra += L"~r~";
-                                        extra += FF_RESTART;
-                                    }
-                                }
-
-                                if (FusionFixSettings.Get("PREF_SHADOWFILTER") == FusionFixSettings.ShadowFilterText.eCHSS)
-                                {
-                                    if (FusionFixSettings.Get("PREF_SHADOW_QUALITY") < 4) // Very High
-                                    {
-                                        extra += L"~n~";
-                                        extra += L"                        ";
-                                        auto FF_WARN6 = CText::getText("FF_WARN6");
-                                        extra += FF_WARN6[0] ? FF_WARN6 : L"~r~WARNING: CHSS only takes effect with Shadow Quality set to Very High.";
-                                    }
-                                }
-                            }
-                            else if (*pMenuTab == 7)
-                            {
-                                auto FF_WARN7 = CText::getText("FF_WARN7");
-                                extra += FF_WARN7[0] ? FF_WARN7 : L"~r~WARNING: Set Cutscene Audio Sync ON if you have audio desynchronization, OFF for animation smoothness. It can be toggled in a cutscene via ~PAD_UP~";
-                            }
-
-                            regs.edx = (uintptr_t)extra.c_str();
+                            if (reg == 0x50)
+                                regs.eax = (uintptr_t)extra.c_str();
+                            else
+                                regs.edx = (uintptr_t)extra.c_str();
                         }
                     });
                 }

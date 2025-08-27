@@ -179,7 +179,7 @@ public:
                         }
                     }; injector::MakeInline<ShadowsHook>(pattern.get_first(0), pattern.get_first(25));
                 }
-                else
+                else // TODO: Adapt remaining CE code
                 {
                     pattern = hook::pattern("83 F8 03 75 17 F6 86");
                     static auto loc_AE3867 = resolve_next_displacement(pattern.get_first(14)).value();
@@ -233,6 +233,8 @@ public:
                 }
             }
 
+            // Multiply car/bike bottom static shadow texture intensity while headlight shadows and vehicle night shadows are active (to compensate for the player's car lacking a shadow)
+            // TODO: Add preCE compatibility | Pattern hint: F3 0F 11 54 24 ? D9 45 10 F3 0F 11 54 24 ? D9
             {
                 auto pattern = find_pattern("C7 44 24 ? ? ? ? ? F3 0F 11 14 24 50");
                 if (!pattern.empty())

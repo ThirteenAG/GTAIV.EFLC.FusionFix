@@ -266,94 +266,57 @@ public:
             pattern = find_pattern("E8 ? ? ? ? 8B CD 88 44 24 0F", "E8 ? ? ? ? 8B CF 88 44 24 0F");
             injector::MakeCALL(pattern.get_first(), *(void**)&dest, true);
 
+            // ??? kinda affects anims idk ???
+            pattern = find_pattern("F3 0F 11 86 ? ? ? ? 5E 5B 8B 4C 24 30 33 CC E8 ? ? ? ? 83 C4 34 C2 04 00", "F3 0F 11 8F ? ? ? ? 5F 5E B8 ? ? ? ? 5D 83 C4 2C C2 04 00");
+            if (!pattern.empty())
+                injector::MakeNOP(pattern.get_first(), 8, true);
+
+            pattern = find_pattern("F3 0F 11 86 ? ? ? ? 5F 5E B8 ? ? ? ? 5B 8B 4C 24 30 33 CC E8 ? ? ? ? 83 C4 34 C2 04 00", "F3 0F 11 8F ? ? ? ? C6 87 ? ? ? ? ? 5F 5E B8 ? ? ? ? 5D 83 C4 2C C2 04 00");
+            if (!pattern.empty())
+                injector::MakeNOP(pattern.get_first(), 8, true);
+
+            // timing? audio sync?
+            pattern = find_pattern("B9 ? ? ? ? F3 0F 11 44 24 ? E8 ? ? ? ? 83 3D");
+            g_cutsceneAudio = *pattern.get_first<uint8_t*>(1);
+
+            pattern = find_pattern("8B 0D ? ? ? ? F6 C1 ? 75 ? 83 C9 ? 89 0D ? ? ? ? C7 05");
+            if (!pattern.empty())
+                dword_12957B8 = *pattern.get_first<int*>(2);
+            else
             {
-                // ??? kinda affects anims idk ???
-                pattern = find_pattern("F3 0F 11 86 ? ? ? ? 5E 5B 8B 4C 24 30 33 CC E8 ? ? ? ? 83 C4 34 C2 04 00", "F3 0F 11 8F ? ? ? ? 5F 5E B8 ? ? ? ? 5D 83 C4 2C C2 04 00");
-                if (!pattern.empty())
-                    injector::MakeNOP(pattern.get_first(), 8, true);
+                pattern = hook::pattern("A1 ? ? ? ? A8 01 F3 0F 10 05 ? ? ? ? F3 0F 10 0D");
+                dword_12957B8 = *pattern.get_first<int*>(1);
+            }
 
-                pattern = find_pattern("F3 0F 11 86 ? ? ? ? 5F 5E B8 ? ? ? ? 5B 8B 4C 24 30 33 CC E8 ? ? ? ? 83 C4 34 C2 04 00", "F3 0F 11 8F ? ? ? ? C6 87 ? ? ? ? ? 5F 5E B8 ? ? ? ? 5D 83 C4 2C C2 04 00");
-                if (!pattern.empty())
-                    injector::MakeNOP(pattern.get_first(), 8, true);
+            pattern = find_pattern("F3 0F 5C 05 ? ? ? ? 0F 2F D0 76 ? 5F", "F3 0F 5C 05 ? ? ? ? 0F 2F E8 76 1E F3 0F 11 2F 5F 5E 59 C3");
+            float_129574C = *pattern.get_first<float*>(4);
 
-                // timing? audio sync?
-                auto pattern = find_pattern("B9 ? ? ? ? F3 0F 11 44 24 ? E8 ? ? ? ? 83 3D");
-                g_cutsceneAudio = *pattern.get_first<uint8_t*>(1);
+            pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 44 24 ? 5F", "F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 44 24 ? F3 0F 11 07");
+            float_11735BC = *pattern.get_first<float*>(4);
 
-                pattern = find_pattern("8B 0D ? ? ? ? F6 C1 ? 75 ? 83 C9 ? 89 0D ? ? ? ? C7 05");
-                if (!pattern.empty())
-                {
-                    dword_12957B8 = *pattern.get_first<int*>(2);
+            pattern = find_pattern("F3 0F 10 05 ? ? ? ? EB ? 66 0F 6E C0", "F3 0F 10 05 ? ? ? ? EB 21 F3 0F 2A C0 F3 0F 5C 05 ? ? ? ? 0F 2F E8");
+            float_117359C = *pattern.get_first<float*>(4);
 
-                    pattern = find_pattern("F3 0F 5C 05 ? ? ? ? 0F 2F D0 76 ? 5F");
-                    float_129574C = *pattern.get_first<float*>(4);
+            pattern = find_pattern("83 3D ? ? ? ? ? 0F 57 D2", "83 3D ? ? ? ? ? 0F 57 ED 8B F0 F3 0F 11 6C 24 ? 0F 85 ? ? ? ? A1 ? ? ? ? A8 01");
+            dwEpisodeID1 = *pattern.get_first<uint32_t*>(2);
 
-                    pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 44 24 ? 5F");
-                    float_11735BC = *pattern.get_first<float*>(4);
-
-                    pattern = find_pattern("F3 0F 10 05 ? ? ? ? EB ? 66 0F 6E C0");
-                    float_117359C = *pattern.get_first<float*>(4);
-
-                    pattern = find_pattern("83 3D ? ? ? ? ? 0F 57 D2");
-                    dwEpisodeID1 = *pattern.get_first<uint32_t*>(2);
-
-                    pattern = find_pattern("51 56 8B 74 24 ? 57 F3 0F 10 06");
-                    static auto shCutscAudioSync = safetyhook::create_inline(pattern.get_first(), sub_9C2C80);
+            pattern = find_pattern("51 56 8B 74 24 ? 57 F3 0F 10 06", "51 56 57 8B 7C 24 10 F3 0F 10 07 B9 ? ? ? ? F3 0F 11 44 24");
+            static auto shCutscAudioSync = safetyhook::create_inline(pattern.get_first(), sub_9C2C80);
                     
-                    FusionFix::onActivateApp() += [](bool wParam)
-                    {
-                        if (!wParam)
-                        {
-                            applicationLostFocus = true;
-                            syncTimerActive = false;
-                        }
-                        else
-                        {
-                            applicationLostFocus = false;
-                            syncStartTime = std::chrono::steady_clock::now();
-                            syncTimerActive = true;
-                        }
-                    };
+            FusionFix::onActivateApp() += [](bool wParam)
+            {
+                if (!wParam)
+                {
+                    applicationLostFocus = true;
+                    syncTimerActive = false;
                 }
                 else
                 {
-                    pattern = hook::pattern("A1 ? ? ? ? A8 01 F3 0F 10 05 ? ? ? ? F3 0F 10 0D ? ? ? ? F3 0F 10 15 ? ? ? ?");
-                    if (!pattern.empty())
-                    {
-                        dword_12957B8 = *pattern.get_first<int*>(1);
-
-                        pattern = hook::pattern("F3 0F 5C 05 ? ? ? ? 0F 2F E8 76 1E F3 0F 11 2F 5F 5E 59 C3");
-                        float_129574C = *pattern.get_first<float*>(4);
-
-                        pattern = hook::pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 44 24 ? F3 0F 11 07");
-                        float_11735BC = *pattern.get_first<float*>(4);
-
-                        pattern = hook::pattern("F3 0F 10 05 ? ? ? ? EB 21 F3 0F 2A C0 F3 0F 5C 05 ? ? ? ? 0F 2F E8");
-                        float_117359C = *pattern.get_first<float*>(4);
-
-                        pattern = hook::pattern("83 3D ? ? ? ? ? 0F 57 ED 8B F0 F3 0F 11 6C 24 ? 0F 85 ? ? ? ? A1 ? ? ? ? A8 01");
-                        dwEpisodeID1 = *pattern.get_first<uint32_t*>(2);
-
-                        pattern = hook::pattern("51 56 57 8B 7C 24 10 F3 0F 10 07 B9 ? ? ? ? F3 0F 11 44 24 ? E8 ? ? ? ? 83 3D ? ? ? ? ?");
-                        static auto shCutscAudioSync = safetyhook::create_inline(pattern.get_first(), sub_9C2C80);
-
-                        FusionFix::onActivateApp() += [](bool wParam)
-                        {
-                            if (!wParam)
-                            {
-                                applicationLostFocus = true;
-                                syncTimerActive = false;
-                            }
-                            else
-                            {
-                                applicationLostFocus = false;
-                                syncStartTime = std::chrono::steady_clock::now();
-                                syncTimerActive = true;
-                            }
-                        };
-                    }
+                    applicationLostFocus = false;
+                    syncStartTime = std::chrono::steady_clock::now();
+                    syncTimerActive = true;
                 }
-            }
+            };
         };
     }
 } CutsceneCam;

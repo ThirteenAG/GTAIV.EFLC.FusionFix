@@ -135,12 +135,14 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
+            // TODO: Add preCE compatibility | Pattern hint: 55 8B EC 83 E4 F0 8B 45 10 83 EC 14 53 8B 5D 08
             auto pattern = hook::pattern("55 8B EC 83 E4 ? 8B 45 ? 83 EC ? 8B 80");
             if (!pattern.empty())
             {
                 sh_sub_A3FF30 = safetyhook::create_inline(pattern.get_first(0), sub_A3FF30);
 
                 static Vehicle prev_player_car = 0;
+                // TODO: Add preCE compatibility | Pattern hint: F3 0F 11 81 ? ? ? ? 8A 54 24 0F 24 7F C0 E2 07 0A C2 88 81
                 pattern = hook::pattern("F3 0F 11 82 ? ? ? ? 8A 44 24"); //breaks npc paths for some reason
                 if (!pattern.empty())
                 {
@@ -165,7 +167,8 @@ public:
                         *(float*)(regs.edx + 0x1088) = regs.xmm0.f32[0];
                     });
                 }
-                
+
+                // TODO: Add preCE compatibility | Pattern hint: F3 0F 11 86 ? ? ? ? F3 0F 11 86 ? ? ? ? E8 ? ? ? ? 84 C0 75 0A C7 86
                 pattern = hook::pattern("C7 86 ? ? ? ? ? ? ? ? C7 86 ? ? ? ? ? ? ? ? E8 ? ? ? ? 84 C0 75 ? C7 86 ? ? ? ? ? ? ? ? F6 86");
                 if (!pattern.empty())
                 {
@@ -180,6 +183,7 @@ public:
                     });
                 }
 
+                // TODO: Add preCE compatibility | Pattern hint: E8 ? ? ? ? 84 C0 0F 84 ? ? ? ? 8B 16 8B 82 ? ? ? ? 8B CE FF D0 D8 25
                 pattern = hook::pattern("E8 ? ? ? ? 84 C0 0F 84 ? ? ? ? 8B 07 8B CF 8B 80 ? ? ? ? FF D0 D9 5C 24");
                 if (!pattern.empty())
                 {

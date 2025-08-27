@@ -311,7 +311,7 @@ public:
             }
             else
             {
-                pattern = hook::pattern("F3 0F 58 15 ? ? ? ? 33 C0 F3 0F 11 15 ? ? ? ? A3 ? ? ? ?");
+                pattern = hook::pattern("F3 0F 58 15 ? ? ? ? 33 C0 F3 0F 11 15 ? ? ? ? A3");
                 struct CDSpinnerHook
                 {
                     void operator()(injector::reg_pack& regs)
@@ -322,7 +322,7 @@ public:
             }
 
             // Cop blips
-            pattern = find_pattern("F3 0F 10 4C 24 ? 0F 28 C1 F3 0F 59 C2", "D9 44 24 04 8B 0D ? ? ? ? D8 0D ? ? ? ?");
+            pattern = find_pattern("F3 0F 10 4C 24 ? 0F 28 C1 F3 0F 59 C2", "D9 44 24 04 8B 0D ? ? ? ? D8 0D ? ? ? ? F3 0F 10 05");
             if (!pattern.empty())
             {
                 static int CustomFrameCounter = 0;
@@ -351,6 +351,7 @@ public:
             shCameraShake = safetyhook::create_inline(pattern.get_first(), CameraShake);
 
             // Natives
+            // TODO: Add preCE compatibility
             hbSET_CAM_FOV.fun = NativeOverride::Register(Natives::NativeHashes::SET_CAM_FOV, NATIVE_SET_CAM_FOV, "E8 ? ? ? ? 83 C4 08 C3", 30);
             hbSLIDE_OBJECT.fun = NativeOverride::Register(Natives::NativeHashes::SLIDE_OBJECT, NATIVE_SLIDE_OBJECT, "E8 ? ? ? ? 0F B6 C8", 107);
         };

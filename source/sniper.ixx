@@ -153,14 +153,17 @@ public:
                 }
             };
 
+            // TODO: Add preCE compatibility | Pattern hint: 8B 42 20 8B 6C 24 20 C1 E8 03 A8 01 74 10 85 ED 74 0C 80 7C 24
             pattern = find_pattern("8B 40 ? C1 E8 ? A8 ? 8B 44 24 ? 74");
             if (!pattern.empty())
                 static auto SniperAimHook1 = safetyhook::create_mid(pattern.get_first(3), [](SafetyHookContext& regs) { OverrideSniperFlags(regs); });
 
+            // TODO: Add preCE compatibility | Pattern hint: 8B 40 20 C1 E8 03 A8 01 75 08 84 97 ? ? ? ? 74
             pattern = find_pattern("8B 40 ? C1 E8 ? A8 ? 75 ? F6 85");
             if (!pattern.empty())
                 static auto SniperAimHook2 = safetyhook::create_mid(pattern.get_first(3), [](SafetyHookContext& regs) { OverrideSniperFlags(regs); });
 
+            // TODO: Add preCE compatibility | Pattern hint: 8B 4B 20 C1 E9 03 F6 C1 01 74 07 80 7C 24 ? ? 74 08
             pattern = find_pattern("8B 43 ? C1 E8 ? A8 ? 74 ? 80 7C 24");
             if (!pattern.empty())
                 static auto CrosshairHook = safetyhook::create_mid(pattern.get_first(3), [](SafetyHookContext& regs) { OverrideSniperFlags(regs); });
@@ -170,11 +173,13 @@ public:
             if (!pattern.empty())
                 hbsub_A72820.fun = injector::MakeCALL(pattern.get_first(), sub_A72820).get();
 
+            // TODO: Add preCE compatibility | Pattern hint: E8 ? ? ? ? 83 C4 04 84 C0 75 17 8A 8E ? ? ? ? 80 E1 0F 80 F9 02
             pattern = hook::pattern("E8 ? ? ? ? 83 C4 ? 84 C0 75 ? 8A 87");
             if (!pattern.empty())
                 hbsub_A72820.fun = injector::MakeCALL(pattern.get_first(), sub_A72820).get();
 
             // Recoil
+            // TODO: Add preCE compatibility | Pattern hint: D8 0D ? ? ? ? F3 0F 10 5C 24 ? F3 0F 10 64 24 ? F3 0F 10 6C 24
             pattern = find_pattern("F3 0F 59 05 ? ? ? ? F3 0F 10 64 24 ? F3 0F 10 54 24");
             if (!pattern.empty())
             {

@@ -72,6 +72,7 @@ public:
         }
     }
 
+    // TODO: Fix preCE compatibility
     CenteredCam()
     {
         FusionFix::onInitEventAsync() += []()

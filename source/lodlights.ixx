@@ -619,6 +619,7 @@ public:
             bSlightlyIncreaseRadiusWithDistance = iniReader.ReadInteger("PROJECT2DFX", "SlightlyIncreaseRadiusWithDistance", 1) != 0;
             bDisableDefaultLodLights = iniReader.ReadInteger("PROJECT2DFX", "DisableDefaultLodLights", 1) != 0;
 
+            // TODO: Add preCE compatibility | Pattern hint: 05 ? ? ? ? D9 5C 24 04 8D 4C 24 38 D9
             auto pattern = hook::pattern("05 ? ? ? ? 50 8D 4C 24 60");
 
             if (pattern.empty())
@@ -626,6 +627,7 @@ public:
 
             mTimeCycle = *pattern.get_first<Timecycle*>(1);
 
+            // TODO: Add preCE compatibility | Pattern hint: A1 ? ? ? ? 56 8D 70 01 81 FE ? ? ? ? 0F 8D ? ? ? ? 8B 4C 24 08
             pattern = hook::pattern("8B 15 ? ? ? ? 56 8D 72 01");
             DrawCorona2 = (int(__cdecl*)(int id, char r, char g, char b, float a5, CVector* pos, float radius, float a8, float a9, int a10, float a11, char a12, char a13, int a14))(pattern.get(0).get<uintptr_t>(0));
 
@@ -633,6 +635,7 @@ public:
             static raw_mem RegisterLODLightsAddr(pattern.get_first(0), { 0x90, 0x90, 0x90, 0x90, 0x90 });
             injector::MakeCALL(pattern.get_first(0), RegisterLODLights, true);
 
+            // TODO: Add preCE compatibility | Pattern hint: 8B 5D 08 8B 4B 1C 8D 44 24 14 50 51 C6 44 24 ? ? E8
             pattern = hook::pattern("8B 75 08 8D 44 24 1C 50 FF 76 1C C6 44 24");
             static raw_mem LoadObjectInstanceHookAddr(pattern.get_first(0), { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
             struct LoadObjectInstanceHook
@@ -654,6 +657,7 @@ public:
                 }
             }; injector::MakeInline<LoadObjectInstanceHook>(pattern.get_first(0), pattern.get_first(7));
 
+            // TODO: Add preCE compatibility | Pattern hint: F3 0F 10 05 ? ? ? ? F3 0F 59 C4 F3 0F 11 45 ? F3 0F 10 AD
             pattern = find_pattern("F3 0F 59 45 ? F3 0F 11 45 ? 0F 28 85");
             static auto WaterMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
             {
@@ -662,6 +666,7 @@ public:
                     regs.xmm0.f32[0] = 1.0f;
             });
 
+            // TODO: Add preCE compatibility | Pattern hint: 83 FB 08 89 5C 24 64 0F 8C ? ? ? ? 83 3D ? ? ? ? ? 75 68
             pattern = hook::pattern("83 F8 08 0F 8C ? ? ? ? 83 3D");
             static raw_mem DisableDefaultLodLightsHookAddr(pattern.get_first(0), { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
             if (bDisableDefaultLodLights)
@@ -679,6 +684,7 @@ public:
             }
 
             static float f0 = 0.0f;
+            // TODO: Add preCE compatibility | Pattern hint: F3 0F 5C 05 ? ? ? ? F3 0F 59 05 ? ? ? ? 0F 2F C1 76 08 F3 0F 11 4C 24 ? EB 06
             pattern = hook::pattern("F3 0F 5C 0D ? ? ? ? F3 0F 11 84 24 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 0D ? ? ? ? 0F 2F C8 F3 0F 11 4C 24");
             injector::WriteMemory(pattern.get_first(4), &f0, true);
 

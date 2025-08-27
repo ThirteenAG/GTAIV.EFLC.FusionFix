@@ -411,6 +411,7 @@ public:
             }
 
             // Custom FOV
+            // Small bug: FOV doesn't update in the menu on preCE
             {
                 auto pattern = find_pattern("E8 ? ? ? ? F6 87 ? ? ? ? ? 5B", "E8 ? ? ? ? 8B CE E8 ? ? ? ? F6 86 ? ? ? ? ? 5F");
                 hbsub_B07600.fun = injector::MakeCALL(pattern.get_first(0), sub_B07600, true).get();
@@ -568,7 +569,7 @@ public:
                 pattern = find_pattern("6A 01 8B C8 E8 ? ? ? ? EB 02 33 C0 50 E8 ? ? ? ? 83 C4 04 8B 45 0C 8B 4C 24 18", "6A 01 8B C8 E8 ? ? ? ? EB 02 33 C0 8B C8 E8 ? ? ? ? 8B 4D 0C");
                 injector::WriteMemory<uint8_t>(pattern.get_first(1), 0, true);
             }
-            
+
             // Render LOD lights during cutscenes (console behavior)
             {
                 auto pattern = hook::pattern("E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? A1 ? ? ? ? 83 F8 02 0F 84");
@@ -723,7 +724,7 @@ public:
 
             // Menu input lag
             {
-                auto pattern = hook::pattern("EB 05 68 ? ? ? ? E8 ? ? ? ? 6A 08 E8 ? ? ? ?");
+                auto pattern = hook::pattern("EB 05 68 ? ? ? ? E8 ? ? ? ? 6A 08 E8 ? ? ? 00");
                 if (!pattern.empty())
                     injector::WriteMemory(pattern.get_first(3), nMenuEnteringDelay, true);
 
@@ -737,6 +738,7 @@ public:
             }
 
             // Bullet traces
+            // TODO: Add preCE compatibility | Pattern hint: DF F1 DD D8 72 71 8B 56 18 52 E8
             {
                 auto pattern = find_pattern("0F 2F C8 72 ? FF 76");
                 if (!pattern.empty())

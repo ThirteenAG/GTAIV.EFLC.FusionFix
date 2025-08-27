@@ -355,6 +355,7 @@ public:
                     pattern = find_pattern("83 EC 3C 80 3D ? ? ? ? ? 56 8B F1", "83 EC 3C 53 33 DB");
                     shsub_D77A00 = safetyhook::create_inline(pattern.get_first(0), sub_D77A00);
 
+                    // TODO: Add preCE compatibility | Pattern hint: 8B 7D 20 F3 0F 11 64 24 ? F3 0F 10 25 ? ? ? ? F3 0F 11 44 24
                     pattern = find_pattern("8B 55 20 F6 C1 06");
                     if (!pattern.empty())
                     {
