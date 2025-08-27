@@ -3979,8 +3979,8 @@ public:
     static inline auto GetAmmoInClip(Ped ped, uint32_t weapon, uint32_t* pAmmo) { return NativeInvoke::Invoke<622, std::to_underlying(NativeHashes::GET_AMMO_IN_CLIP), bool>(ped, weapon, pAmmo); }
     static inline auto GetAngleBetween2dVectors(float x1, float y1, float x2, float y2, float* pResult) { return NativeInvoke::Invoke<623, std::to_underlying(NativeHashes::GET_ANGLE_BETWEEN_2D_VECTORS), void>(x1, y1, x2, y2, pResult); }
     static inline auto GetAnimGroupFromChar(Ped ped) { return NativeInvoke::Invoke<624, std::to_underlying(NativeHashes::GET_ANIM_GROUP_FROM_CHAR), char*>(ped); }
-    static inline auto GetAsciiJustPressed(int32_t key, int a2) { return NativeInvoke::Invoke<625, std::to_underlying(NativeHashes::GET_ASCII_JUST_PRESSED), int32_t>(key, a2); }
-    static inline auto GetAsciiPressed(int32_t key, int32_t* a2) { return NativeInvoke::Invoke<626, std::to_underlying(NativeHashes::GET_ASCII_PRESSED), bool>(key, a2); }
+    static inline auto GetAsciiJustPressed(int32_t key, int32_t* pressedKey) { return NativeInvoke::Invoke<625, std::to_underlying(NativeHashes::GET_ASCII_JUST_PRESSED), int32_t>(key, pressedKey); }
+    static inline auto GetAsciiPressed(int32_t key, int32_t* pressedKey) { return NativeInvoke::Invoke<626, std::to_underlying(NativeHashes::GET_ASCII_PRESSED), bool>(key, pressedKey); }
     static inline auto GetAspectRatio() { return NativeInvoke::Invoke<627, std::to_underlying(NativeHashes::GET_ASPECT_RATIO), float>(); }
     static inline auto GetAudibleMusicTrackTextId() { return NativeInvoke::Invoke<628, std::to_underlying(NativeHashes::GET_AUDIBLE_MUSIC_TRACK_TEXT_ID), int32_t>(); }
     static inline auto GetAudioRoomId() { return NativeInvoke::Invoke<629, std::to_underlying(NativeHashes::GET_AUDIO_ROOM_ID), int32_t>(); }
