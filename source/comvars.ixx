@@ -2113,7 +2113,7 @@ public:
         pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? 8B 43 20 53", "F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? 83 C4 04 83 7C 24");
         CTimer::fTimeStep = *pattern.get_first<float*>(4);
 
-        pattern = hook::pattern("BE ? ? ? ? 8D 44 24 0C 50 8D 46 10 50");
+        pattern = hook::pattern("BE ? ? ? ? 8D 44 24 0C 50 8D ? 10 ?");
         if (!pattern.empty())
             CGameConfigReader::ms_imgFiles = *pattern.get_first<decltype(CGameConfigReader::ms_imgFiles)>(1);
 
@@ -2242,7 +2242,7 @@ public:
         pattern = find_pattern("8B 44 24 04 85 C0 75 18 A1", "8B 44 24 ? 85 C0 75 ? A1 ? ? ? ? 83 F8 ? 74");
         FindPlayerPed = (decltype(FindPlayerPed))pattern.get_first();
 
-        pattern = hook::pattern("8B 44 24 04 85 C0 75 15");
+        pattern = hook::pattern("8B 44 24 04 85 C0 75 15 A1 ? ? ? ? 83 F8 FF 75 04 33 C0 EB 07");
         FindPlayerVehicle = (decltype(FindPlayerVehicle))pattern.get_first();
 
         pattern = find_pattern("8B 0D ? ? ? ? 83 C4 ? 50 E8 ? ? ? ? 85 C0 74", "8B 3D ? ? ? ? 8B CE FF D2 6A ? 6A ? 6A ? 2B 07");

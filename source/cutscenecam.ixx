@@ -268,11 +268,11 @@ public:
 
             {
                 // ??? kinda affects anims idk ???
-                pattern = hook::pattern("F3 0F 11 86 ? ? ? ? 5E 5B 8B 4C 24 30 33 CC E8 ? ? ? ? 83 C4 34 C2 04 00");
+                pattern = find_pattern("F3 0F 11 86 ? ? ? ? 5E 5B 8B 4C 24 30 33 CC E8 ? ? ? ? 83 C4 34 C2 04 00", "F3 0F 11 8F ? ? ? ? 5F 5E B8 ? ? ? ? 5D 83 C4 2C C2 04 00");
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(), 8, true);
 
-                pattern = hook::pattern("F3 0F 11 86 ? ? ? ? 5F 5E B8 ? ? ? ? 5B 8B 4C 24 30 33 CC E8 ? ? ? ? 83 C4 34 C2 04 00");
+                pattern = find_pattern("F3 0F 11 86 ? ? ? ? 5F 5E B8 ? ? ? ? 5B 8B 4C 24 30 33 CC E8 ? ? ? ? 83 C4 34 C2 04 00", "F3 0F 11 8F ? ? ? ? C6 87 ? ? ? ? ? 5F 5E B8 ? ? ? ? 5D 83 C4 2C C2 04 00");
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(), 8, true);
 
@@ -314,6 +314,44 @@ public:
                             syncTimerActive = true;
                         }
                     };
+                }
+                else
+                {
+                    pattern = hook::pattern("A1 ? ? ? ? A8 01 F3 0F 10 05 ? ? ? ? F3 0F 10 0D ? ? ? ? F3 0F 10 15 ? ? ? ?");
+                    if (!pattern.empty())
+                    {
+                        dword_12957B8 = *pattern.get_first<int*>(1);
+
+                        pattern = hook::pattern("F3 0F 5C 05 ? ? ? ? 0F 2F E8 76 1E F3 0F 11 2F 5F 5E 59 C3");
+                        float_129574C = *pattern.get_first<float*>(4);
+
+                        pattern = hook::pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 44 24 ? F3 0F 11 07");
+                        float_11735BC = *pattern.get_first<float*>(4);
+
+                        pattern = hook::pattern("F3 0F 10 05 ? ? ? ? EB 21 F3 0F 2A C0 F3 0F 5C 05 ? ? ? ? 0F 2F E8");
+                        float_117359C = *pattern.get_first<float*>(4);
+
+                        pattern = hook::pattern("83 3D ? ? ? ? ? 0F 57 ED 8B F0 F3 0F 11 6C 24 ? 0F 85 ? ? ? ? A1 ? ? ? ? A8 01");
+                        dwEpisodeID1 = *pattern.get_first<uint32_t*>(2);
+
+                        pattern = hook::pattern("51 56 57 8B 7C 24 10 F3 0F 10 07 B9 ? ? ? ? F3 0F 11 44 24 ? E8 ? ? ? ? 83 3D ? ? ? ? ?");
+                        static auto shCutscAudioSync = safetyhook::create_inline(pattern.get_first(), sub_9C2C80);
+
+                        FusionFix::onActivateApp() += [](bool wParam)
+                        {
+                            if (!wParam)
+                            {
+                                applicationLostFocus = true;
+                                syncTimerActive = false;
+                            }
+                            else
+                            {
+                                applicationLostFocus = false;
+                                syncStartTime = std::chrono::steady_clock::now();
+                                syncTimerActive = true;
+                            }
+                        };
+                    }
                 }
             }
         };

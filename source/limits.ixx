@@ -175,7 +175,7 @@ public:
 
             // Drawable reference list limit, fixes In the Crosshairs mission crash with maxed out draw distance
             {
-                auto pattern = hook::pattern("68 C8 32 00 00 E8 66 FF FF FF C3");
+                auto pattern = hook::pattern("68 C8 32 00 00 E8 ? FF FF FF C3");
                 if (!pattern.empty())
                     injector::WriteMemory(pattern.get_first(1), 20000, true);
             }
@@ -184,7 +184,7 @@ public:
             {
                 static std::unordered_map<uint32_t, std::array<uint32_t, CHAR_MAX + 1>> liveries;
 
-                auto pattern = hook::pattern("89 86 ? ? ? ? 89 86 ? ? ? ? 89 86 ? ? ? ? 89 86 ? ? ? ? C7 86 ? ? ? ? ? ? ? ? C7 86 ? ? ? ? ? ? ? ? C7 86 ? ? ? ? ? ? ? ? C7 86 ? ? ? ? ? ? ? ? C7 86");
+                auto pattern = find_pattern("89 86 ? ? ? ? 89 86 ? ? ? ? 89 86 ? ? ? ? 89 86 ? ? ? ? C7 86 ? ? ? ? ? ? ? ? C7 86 ? ? ? ? ? ? ? ? C7 86 ? ? ? ? ? ? ? ? C7 86 ? ? ? ? ? ? ? ? C7 86", "89 86 3C ? ? ? 89 86 ? ? ? ? 89 86 ? ? ? ? 89 86 ? ? ? ? F3 0F 11 86 ? ? ? ? F3 0F 11 86 ? ? ? ? F3 0F 11 86 ? ? ? ? F3 0F 11 86 ? ? ? ? F3 0F 11 86");
                 if (!pattern.empty())
                 {         
                     struct CVehicleModelInfoInitializeHook
@@ -210,36 +210,77 @@ public:
                     }; injector::MakeInline<CBaseModelInfoTerminateHook>(pattern.get_first(0), pattern.get_first(8));
 
                     pattern = hook::pattern("8D B3 ? ? ? ? 33 DB 8D 9B");
-                    struct CVehicleModelInfoSetVehicleDrawableHook
+                    if (!pattern.empty())
                     {
-                        void operator()(injector::reg_pack& regs)
+                        struct CVehicleModelInfoSetVehicleDrawableHook
                         {
-                            regs.esi = *(uint32_t*)(regs.ebx + 0x13C);
-                        }
-                    }; injector::MakeInline<CVehicleModelInfoSetVehicleDrawableHook>(pattern.get_first(0), pattern.get_first(6));
+                            void operator()(injector::reg_pack& regs)
+                            {
+                                regs.esi = *(uint32_t*)(regs.ebx + 0x13C);
+                            }
+                        }; injector::MakeInline<CVehicleModelInfoSetVehicleDrawableHook>(pattern.get_first(0), pattern.get_first(6));
+                    }
+                    else
+                    {
+                        pattern = hook::pattern("8D B5 ? ? ? ? 83 FB 04");
+                        struct CVehicleModelInfoSetVehicleDrawableHook
+                        {
+                            void operator()(injector::reg_pack& regs)
+                            {
+                                regs.esi = *(uint32_t*)(regs.ebp + 0x13C);
+                            }
+                        }; injector::MakeInline<CVehicleModelInfoSetVehicleDrawableHook>(pattern.get_first(0));
+                    }
 
                     pattern = hook::pattern("FF B4 81 ? ? ? ? 0F BF 41 48");
-                    struct LiveryAccessHook
+                    if (!pattern.empty())
                     {
-                        void operator()(injector::reg_pack& regs)
+                        struct LiveryAccessHook
                         {
-                            auto arr = (uint32_t**)(regs.ecx + 0x13C);
-                            if (arr)
+                            void operator()(injector::reg_pack& regs)
                             {
-                                auto ptr = *arr;
-                                if (ptr && (int)ptr != -1)
+                                auto arr = (uint32_t**)(regs.ecx + 0x13C);
+                                if (arr)
                                 {
-                                    regs.eax = ptr[regs.eax];
-                                    return;
+                                    auto ptr = *arr;
+                                    if (ptr && (int)ptr != -1)
+                                    {
+                                        regs.eax = ptr[regs.eax];
+                                        return;
+                                    }
                                 }
+                                regs.eax = 0;
                             }
-                            regs.eax = 0;
-                        }
-                    }; injector::MakeInline<LiveryAccessHook>(pattern.get_first(0), pattern.get_first(7));
-                    injector::WriteMemory<uint8_t>(pattern.get_first(6), 0x50, true); // push eax
+                        }; injector::MakeInline<LiveryAccessHook>(pattern.get_first(0), pattern.get_first(7));
+
+                        injector::WriteMemory<uint8_t>(pattern.get_first(6), 0x50, true); // push eax
+                    }
+                    else
+                    {
+                        pattern = hook::pattern("8B 94 8B ? ? ? ? 0F BF 43 48 52 50 E9 ? ? ? ?");
+                        struct LiveryAccessHook
+                        {
+                            void operator()(injector::reg_pack& regs)
+                            {
+                                auto arr = (uint32_t**)(regs.ebx + 0x13C);
+                                if (arr)
+                                {
+                                    auto ptr = *arr;
+                                    if (ptr && (int)ptr != -1)
+                                    {
+                                        regs.eax = ptr[regs.eax];
+                                        return;
+                                    }
+                                }
+                                regs.eax = 0;
+                            }
+                        }; injector::MakeInline<LiveryAccessHook>(pattern.get_first(0), pattern.get_first(7));
+
+                        injector::WriteMemory<uint8_t>(pattern.get_first(13), 0x50, true); // push eax
+                    }
                 }
                 
-                pattern = hook::pattern("83 FB 04 7D 45 8D 44 24 24 6A 00");
+                pattern = find_pattern("83 FB 04 7D 45 8D 44 24 24 6A 00", "83 FB 04 7D 47 8D 54 24 20 6A 00");
                 if (!pattern.empty())
                     injector::WriteMemory<uint8_t>(pattern.get_first(2), CHAR_MAX, true);
             }

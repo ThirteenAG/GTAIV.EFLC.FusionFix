@@ -6,10 +6,10 @@ export module fixes;
 
 import common;
 import comvars;
-import settings;
-import natives;
-import shaders;
 import fusiondxhook;
+import natives;
+import settings;
+import shaders;
 
 class Fixes
 {
@@ -427,26 +427,50 @@ public:
             // Fix mouse cursor scale
             {
                 auto pattern = hook::pattern("F3 0F 11 44 24 ? E8 ? ? ? ? D9 5C 24 20 80 3D");
-                struct MouseHeightHook 
-                {
-                    void operator()(injector::reg_pack& regs) 
-                    {
-                        *(float*)(regs.esp + 0x40 - 0x24) = 30.0f * (1.0f / 768.0f);
-                    }
-                };
                 if (!pattern.empty())
-                    injector::MakeInline<MouseHeightHook>(pattern.get_first(0), pattern.get_first(6));
+                {
+                    struct MouseHeightHook
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            *(float*)(regs.esp + 0x40 - 0x24) = 30.0f * (1.0f / 768.0f);
+                        }
+                    }; injector::MakeInline<MouseHeightHook>(pattern.get_first(0), pattern.get_first(6));
+                }
+                else
+                {
+                    pattern = hook::pattern("F3 0F 11 44 24 ? E8 ? ? ? ? D9 5C 24 1C 80 3D");
+                    struct MouseHeightHook
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            *(float*)(regs.esp + 0x40 - 0x18) = 30.0f * (1.0f / 768.0f);
+                        }
+                    }; injector::MakeInline<MouseHeightHook>(pattern.get_first(0), pattern.get_first(6));
+                }
 
                 pattern = hook::pattern("F3 0F 11 44 24 ? FF 50 24 66 0F 6E C0 0F 5B C0 6A 01");
-                struct MouseWidthHook 
-                {
-                    void operator()(injector::reg_pack& regs) 
-                    {
-                        *(float*)(regs.esp + 0x10) = 30.0f * (1.0f / 1024.0f);
-                    }
-                };
                 if (!pattern.empty())
-                    injector::MakeInline<MouseWidthHook>(pattern.get_first(0), pattern.get_first(6));
+                {
+                    struct MouseWidthHook
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            *(float*)(regs.esp + 0x10) = 30.0f * (1.0f / 1024.0f);
+                        }
+                    }; injector::MakeInline<MouseWidthHook>(pattern.get_first(0), pattern.get_first(6));
+                }
+                else
+                {
+                    pattern = hook::pattern("F3 0F 11 44 24 ? FF D2 F3 0F 2A C0 F3 0F 59 05 ? ? ? ? 6A 01");
+                    struct MouseWidthHook
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            *(float*)(regs.esp + 0x20) = 30.0f * (1.0f / 1024.0f);
+                        }
+                    }; injector::MakeInline<MouseWidthHook>(pattern.get_first(0), pattern.get_first(6));
+                }
             }
 
             // Restored a small detail regarding pedprops from the console versions that was changed on PC. Regular cops & fat cops will now spawn with their hat prop disabled when in a vehicle.
@@ -487,16 +511,16 @@ public:
                 }
             }
 
-            // Glass Shards Color Fix
+            // Glass shards color fix
             {
-                static auto veh_glass_red = "veh_glass_red";
+                static auto veh_glass_red   = "veh_glass_red";
                 static auto veh_glass_amber = "veh_glass_amber";
 
-                auto pattern = hook::pattern("68 ? ? ? ? EB E2 6A 00 68");
+                auto pattern = find_pattern("68 ? ? ? ? EB E2 6A 00 68", "68 ? ? ? ? EB 07 6A 00 68 ? ? ? ? E8 ? ? ? ? 83 C4 08");
                 if (!pattern.empty())
                     injector::WriteMemory(pattern.get_first(1), &veh_glass_red[0], true);
 
-                pattern = hook::pattern("68 ? ? ? ? E8 ? ? ? ? 83 C4 08 89 44 24 0C 6A 00 6A 00");
+                pattern = find_pattern("68 ? ? ? ? E8 ? ? ? ? 83 C4 08 89 44 24 0C 6A 00 6A 00", "68 ? ? ? ? E8 ? ? ? ? 83 C4 08 6A 00 6A 00 50 B9 ? ? ? ? 89 44 24 18 E8 ? ? ? ? 8B F0 85 F6 0F 84");
                 if (!pattern.empty())
                     injector::WriteMemory(pattern.get_first(1), &veh_glass_amber[0], true);
             }
@@ -659,14 +683,14 @@ public:
 
             // Radio reset fix
             {
-                auto pattern = hook::pattern("74 ? 85 C9 75 ? 32 C0 50");
+                auto pattern = find_pattern("74 ? 85 C9 75 ? 32 C0 50", "74 16 85 C0 75 12 D9 EE");
                 if (!pattern.empty())
                     injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jz -> jmp
             }
 
             // Radar zoom (T hotkey) 30fps cap fix
             {
-                auto pattern = hook::pattern("83 F9 ? 0F 86 ? ? ? ? F3 0F 10 15");
+                auto pattern = find_pattern("83 F9 ? 0F 86 ? ? ? ? F3 0F 10 15", "83 F8 1E 0F 86 ? ? ? ? F3 0F 10 0D");
                 if (!pattern.empty())
                     injector::WriteMemory<uint8_t>(pattern.get_first(2), 15, true);
             }
@@ -677,18 +701,6 @@ public:
                 if (!pattern.empty())
                     hbsub_5DCA80.fun = injector::MakeCALL(pattern.get_first(0), sub_5DCA80, true).get();
             }
-
-            // Subtract Contrast slider value by 1 internally, same as on Xbox 360
-            // {
-            //     auto pattern = find_pattern("F3 0F 59 C7 0F 2F C8 76 05 0F 28 C1 EB 05 0F 2F E0 76 16", "F3 0F 59 C6 0F 2F E8 76 05 0F 28 C5 EB 05 0F 2F D8 76 16");
-            //     if (!pattern.empty())
-            //     {
-            //         static auto ContrastSliderHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-            //         {
-            //             regs.xmm0.f32[0] -= 1.0f;
-            //         });
-            //     }
-            // }
 
             // Workaround for drunk cam lights issue
             {
@@ -711,9 +723,9 @@ public:
 
             // Menu input lag
             {
-                auto pattern = hook::pattern("68 ? ? ? ? E8 ? ? ? ? 6A ? E8 ? ? ? ? 8B 0D");
+                auto pattern = hook::pattern("EB 05 68 ? ? ? ? E8 ? ? ? ? 6A 08 E8 ? ? ? ?");
                 if (!pattern.empty())
-                    injector::WriteMemory(pattern.get_first(1), nMenuEnteringDelay, true);
+                    injector::WriteMemory(pattern.get_first(3), nMenuEnteringDelay, true);
 
                 pattern = hook::pattern("68 ? ? ? ? EB ? 6A ? 68 ? ? ? ? 6A");
                 if (!pattern.empty())
@@ -724,7 +736,7 @@ public:
                     injector::WriteMemory(pattern.get_first(2), nMenuAccessDelayOnStartup, true);
             }
 
-            // Bullet Traces
+            // Bullet traces
             {
                 auto pattern = find_pattern("0F 2F C8 72 ? FF 76");
                 if (!pattern.empty())
@@ -744,8 +756,8 @@ public:
                     });
                 }
 
-                // Force IV/TLAD bullet tracer particles, TBoGT tracer particles have weird/wrong positioning.
-                pattern = hook::pattern("75 ? 68 ? ? ? ? EB ? 68 ? ? ? ? E8 ? ? ? ? 83 C4 ? 8B F8");
+                // Force IV/TLAD bullet tracer particles, TBoGT tracer particles have weird/wrong positioning
+                pattern = find_pattern("75 ? 68 ? ? ? ? EB ? 68 ? ? ? ? E8 ? ? ? ? 83 C4 ? 8B F8", "75 07 68 ? ? ? ? EB 05 68 ? ? ? ? E8 ? ? ? ? 83 C4 08 6A 00 6A 00 8B F8 57");
                 if (!pattern.empty())
                     injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz -> jmp
             }
