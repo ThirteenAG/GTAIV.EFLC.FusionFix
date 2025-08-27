@@ -703,28 +703,6 @@ public:
                 pStormRender = reinterpret_cast<gtaRainRender*>((uintptr_t)pRainRender + 0x60);
                 pStormEmitter = reinterpret_cast<gtaRainEmitter*>((uintptr_t)pRainEmitter + 0xD0);
 
-                NativeOverride::RegisterPhoneCheat("7665550100", []
-                {
-                    bEnableSnow = !bEnableSnow;
-                    ToggleSnow(bEnableSnow);
-
-                    if (bEnableSnow)
-                        Natives::PrintHelp((char*)"WinterEvent1");
-                    else
-                        Natives::PrintHelp((char*)"WinterEvent0");
-                });
-
-                NativeOverride::RegisterPhoneCheat("2665550100", []
-                {
-                    bEnableHall = !bEnableHall;
-                    ToggleSnow(false);
-
-                    if (bEnableHall)
-                        Natives::PrintHelp((char*)"HalloweenEvent1");
-                    else
-                        Natives::PrintHelp((char*)"HalloweenEvent0");
-                });
-
                 // Snow on vehicles: load textures
                 pattern = find_pattern("E8 ? ? ? ? 8B 0D ? ? ? ? 83 C4 18 8B 01 6A 00", "E8 ? ? ? ? 83 C4 18 8B 0D");
                 static auto FXRain__CTxdStore__setCurrent = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& ctx)
@@ -756,6 +734,29 @@ public:
         };
     }
 } Snow;
+
+export void SnowCheat()
+{
+    bEnableHall = false;
+    bEnableSnow = !bEnableSnow;
+    Snow::ToggleSnow(bEnableSnow);
+
+    if (bEnableSnow)
+        Natives::PrintHelp((char*)"WinterEvent1");
+    else
+        Natives::PrintHelp((char*)"WinterEvent0");
+}
+
+export void HallCheat()
+{
+    bEnableHall = !bEnableHall;
+    Snow::ToggleSnow(false);
+
+    if (bEnableHall)
+        Natives::PrintHelp((char*)"HalloweenEvent1");
+    else
+        Natives::PrintHelp((char*)"HalloweenEvent0");
+}
 
 extern "C"
 {

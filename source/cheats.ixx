@@ -7,14 +7,74 @@ export module cheats;
 import common;
 import comvars;
 import natives;
+import settings;
+import snow;
+
+constexpr size_t MAX_CHEAT_LENGTH = 32;
+char CheatString[MAX_CHEAT_LENGTH] = { 0 };
+
+std::vector<std::pair<const char*, std::function<void()>>> ReversedCheats =
+{
+    { "wonstitel", []() { SnowCheat(); }}, // letitsnow
+    { "ecafyracs", []() { HallCheat(); }}, // scaryface
+};
 
 class Cheats
 {
 public:
     Cheats()
     {
+        FusionFix::onGameInitEvent() += []()
+        {
+            if (CText::hasViceCityStrings)
+            {
+                memset(CheatString, 0, sizeof(CheatString));
+
+                FusionFix::onGameProcessEvent() += []() {
+                    int keyIndex = 0;
+                    while (keyIndex < 255)
+                    {
+                        int pressedKey;
+                        if (keyIndex != 8 && Natives::GetAsciiJustPressed(keyIndex, &pressedKey))
+                        {
+                            memmove(CheatString + 1, CheatString, MAX_CHEAT_LENGTH - 2);
+                            CheatString[0] = static_cast<char>(pressedKey);
+                            CheatString[MAX_CHEAT_LENGTH - 1] = '\0';
+                        }
+
+                        ++keyIndex;
+                    }
+
+                    if (CheatString[0] == '\0')
+                        return;
+
+                    for (const auto& it : ReversedCheats)
+                    {
+                        const char* revCheat = it.first;
+                        size_t len = strlen(revCheat);
+                        if (len > MAX_CHEAT_LENGTH)
+                            continue;
+                        if (strncmp(CheatString, revCheat, len) == 0)
+                        {
+                            it.second();
+                            CheatString[0] = '\0';
+                            break;
+                        }
+                    }
+                };
+            }
+        };
+
         FusionFix::onInitEventAsync() += []()
         {
+            NativeOverride::RegisterPhoneCheat("7665550100", [] {
+                SnowCheat();
+            });
+
+            NativeOverride::RegisterPhoneCheat("2665550100", [] {
+                HallCheat();
+            });
+
             enum ePedComponent
             {
                 PED_COMPONENT_HEAD,
