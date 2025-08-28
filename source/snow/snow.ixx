@@ -735,27 +735,33 @@ public:
     }
 } Snow;
 
-export void SnowCheat()
+export void SnowCheat(bool bPrintHelp = true)
 {
     bEnableHall = false;
     bEnableSnow = !bEnableSnow;
     Snow::ToggleSnow(bEnableSnow);
 
-    if (bEnableSnow)
-        Natives::PrintHelp((char*)"WinterEvent1");
-    else
-        Natives::PrintHelp((char*)"WinterEvent0");
+    if (bPrintHelp)
+    {
+        if (bEnableSnow)
+            Natives::PrintHelp((char*)"WinterEvent1");
+        else
+            Natives::PrintHelp((char*)"WinterEvent0");
+    }
 }
 
-export void HallCheat()
+export void HallCheat(bool bPrintHelp = true)
 {
     bEnableHall = !bEnableHall;
     Snow::ToggleSnow(false);
 
-    if (bEnableHall)
-        Natives::PrintHelp((char*)"HalloweenEvent1");
-    else
-        Natives::PrintHelp((char*)"HalloweenEvent0");
+    if (bPrintHelp)
+    {
+        if (bEnableHall)
+            Natives::PrintHelp((char*)"HalloweenEvent1");
+        else
+            Natives::PrintHelp((char*)"HalloweenEvent0");
+    }
 }
 
 extern "C"

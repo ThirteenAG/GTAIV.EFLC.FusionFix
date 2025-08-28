@@ -8,34 +8,30 @@ import fusiondxhook;
 injector::hook_back<void(*)()> hbCGameProcess;
 void CGameProcessHook()
 {
-    static std::once_flag of;
-    std::call_once(of, []()
-    {
-        FusionFix::onGameInitEvent().executeAll();
-    });
-
     if (CTimer::m_UserPause && CTimer::m_CodePause)
     {
-        static auto oldMenuState = 0;
-
         if (!*CTimer::m_UserPause && !*CTimer::m_CodePause)
         {
-            uint32_t curMenuState = false;
-            if (curMenuState != oldMenuState) {
-                FusionFix::onMenuExitEvent().executeAll();
-            }
-            oldMenuState = curMenuState;
+            static std::once_flag of;
+            std::call_once(of, []() {
+                FusionFix::onGameInitEvent().executeAll();
+            });
+
             FusionFix::onGameProcessEvent().executeAll();
         }
-        else
+
+        static bool oldMenuState = false;
+        bool curMenuState = CMenuManager::m_MenuActive && *CMenuManager::m_MenuActive;
+        if (curMenuState != oldMenuState)
         {
-            uint32_t curMenuState = true;
-            if (curMenuState != oldMenuState) {
+            if (curMenuState)
                 FusionFix::onMenuEnterEvent().executeAll();
-            }
-            oldMenuState = curMenuState;
-            FusionFix::onMenuDrawingEvent().executeAll();
+            else
+                FusionFix::onMenuExitEvent().executeAll();
         }
+        oldMenuState = curMenuState;
+        if (curMenuState)
+            FusionFix::onMenuDrawingEvent().executeAll();
     }
 
     return hbCGameProcess.fun();
