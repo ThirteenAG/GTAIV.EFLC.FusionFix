@@ -26,7 +26,7 @@ public:
     {
         FusionFix::onGameInitEvent() += []()
         {
-            if (CText::hasViceCityStrings)
+            if (CText::hasViceCityStrings())
             {
                 memset(CheatString, 0, sizeof(CheatString));
 
@@ -67,6 +67,16 @@ public:
 
         FusionFix::onInitEventAsync() += []()
         {
+            CIniReader iniReader("");
+            bool bSnowCheat = iniReader.ReadInteger("CHEATS", "SnowCheat", 0) != 0;
+            bool bHalloweenCheat = iniReader.ReadInteger("CHEATS", "HalloweenCheat", 0) != 0;
+
+            if (bSnowCheat)
+                FusionFix::onGameInitEvent() += []() { SnowCheat(false); };
+
+            if (bHalloweenCheat)
+                FusionFix::onGameInitEvent() += []() { HallCheat(false); };
+
             NativeOverride::RegisterPhoneCheat("7665550100", [] {
                 SnowCheat();
             });
