@@ -135,16 +135,16 @@ public:
             injector::MakeCALL(pattern.get_first(0), sub_8EFA20, true);
 
             // Extended sniper controls
-            static auto OverrideSniperFlags = [](SafetyHookContext& regs)
+            static auto OverrideSniperFlags = [](uintptr_t& reg)
             {
                 static auto esc = FusionFixSettings.GetRef("PREF_EXTENDEDSNIPERCONTROLS");
                 if (esc->get())
                 {
-                    if (regs.eax & 8)
+                    if (reg & 8)
                     {
                         if (!bWantsSniperScope || cancelInitiated)
                         {
-                            regs.eax ^= 8; //remove scope
+                            reg ^= 8; // Remove scope
 
                             if (!bWantsSniperScope)
                                 cancelInitiated = false;
@@ -153,34 +153,39 @@ public:
                 }
             };
 
-            // TODO: Add preCE compatibility | Pattern hint: 8B 42 20 8B 6C 24 20 C1 E8 03 A8 01 74 10 85 ED 74 0C 80 7C 24
-            pattern = find_pattern("8B 40 ? C1 E8 ? A8 ? 8B 44 24 ? 74");
+            pattern = hook::pattern("8B 40 ? C1 E8 ? A8 ? 8B 44 24 ? 74");
             if (!pattern.empty())
-                static auto SniperAimHook1 = safetyhook::create_mid(pattern.get_first(3), [](SafetyHookContext& regs) { OverrideSniperFlags(regs); });
+                static auto SniperAimHook1 = safetyhook::create_mid(pattern.get_first(3), [](SafetyHookContext& regs) { OverrideSniperFlags(regs.eax); });
+            else
+            {
+                pattern = hook::pattern("8B 42 20 8B 6C 24 20 C1 E8 03 A8 01 74 10 85 ED 74 0C 80 7C 24");
+                static auto SniperAimHook1 = safetyhook::create_mid(pattern.get_first(7), [](SafetyHookContext& regs) { OverrideSniperFlags(regs.eax); });
+            }
 
-            // TODO: Add preCE compatibility | Pattern hint: 8B 40 20 C1 E8 03 A8 01 75 08 84 97 ? ? ? ? 74
-            pattern = find_pattern("8B 40 ? C1 E8 ? A8 ? 75 ? F6 85");
+            pattern = find_pattern("8B 40 ? C1 E8 ? A8 ? 75 ? F6 85", "8B 40 20 C1 E8 03 A8 01 75 08 84 97 ? ? ? ? 74");
             if (!pattern.empty())
-                static auto SniperAimHook2 = safetyhook::create_mid(pattern.get_first(3), [](SafetyHookContext& regs) { OverrideSniperFlags(regs); });
+                static auto SniperAimHook2 = safetyhook::create_mid(pattern.get_first(3), [](SafetyHookContext& regs) { OverrideSniperFlags(regs.eax); });
 
-            // TODO: Add preCE compatibility | Pattern hint: 8B 4B 20 C1 E9 03 F6 C1 01 74 07 80 7C 24 ? ? 74 08
-            pattern = find_pattern("8B 43 ? C1 E8 ? A8 ? 74 ? 80 7C 24");
+            pattern = hook::pattern("8B 43 ? C1 E8 ? A8 ? 74 ? 80 7C 24");
             if (!pattern.empty())
-                static auto CrosshairHook = safetyhook::create_mid(pattern.get_first(3), [](SafetyHookContext& regs) { OverrideSniperFlags(regs); });
+                static auto CrosshairHook = safetyhook::create_mid(pattern.get_first(3), [](SafetyHookContext& regs) { OverrideSniperFlags(regs.eax); });
+            else
+            {
+                pattern = hook::pattern("8B 4B 20 C1 E9 03 F6 C1 01 74 07 80 7C 24 ? ? 74 08");
+                static auto CrosshairHook = safetyhook::create_mid(pattern.get_first(3), [](SafetyHookContext& regs) { OverrideSniperFlags(regs.ecx); });
+            }
 
             // Toggle
             pattern = hook::pattern("E8 ? ? ? ? 83 C4 ? 84 C0 75 ? 38 05 ? ? ? ? 0F 84");
             if (!pattern.empty())
                 hbsub_A72820.fun = injector::MakeCALL(pattern.get_first(), sub_A72820).get();
 
-            // TODO: Add preCE compatibility | Pattern hint: E8 ? ? ? ? 83 C4 04 84 C0 75 17 8A 8E ? ? ? ? 80 E1 0F 80 F9 02
-            pattern = hook::pattern("E8 ? ? ? ? 83 C4 ? 84 C0 75 ? 8A 87");
+            pattern = find_pattern("E8 ? ? ? ? 83 C4 ? 84 C0 75 ? 8A 87", "E8 ? ? ? ? 83 C4 04 84 C0 75 17 8A 8E ? ? ? ? 80 E1 0F 80 F9 02");
             if (!pattern.empty())
                 hbsub_A72820.fun = injector::MakeCALL(pattern.get_first(), sub_A72820).get();
 
             // Recoil
-            // TODO: Add preCE compatibility | Pattern hint: D8 0D ? ? ? ? F3 0F 10 5C 24 ? F3 0F 10 64 24 ? F3 0F 10 6C 24
-            pattern = find_pattern("F3 0F 59 05 ? ? ? ? F3 0F 10 64 24 ? F3 0F 10 54 24");
+            pattern = find_pattern("F3 0F 59 05 ? ? ? ? F3 0F 10 64 24 ? F3 0F 10 54 24", "D8 0D ? ? ? ? F3 0F 10 5C 24 ? F3 0F 10 64 24 ? F3 0F 10 6C 24");
             if (!pattern.empty())
             {
                 static auto RecoilHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
