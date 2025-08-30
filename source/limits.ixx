@@ -188,7 +188,7 @@ public:
                 auto pattern = find_pattern("89 86 ? ? ? ? 89 86 ? ? ? ? 89 86 ? ? ? ? 89 86 ? ? ? ? C7 86 ? ? ? ? ? ? ? ? C7 86 ? ? ? ? ? ? ? ? C7 86 ? ? ? ? ? ? ? ? C7 86 ? ? ? ? ? ? ? ? C7 86",
                                             "89 86 ? ? ? ? 89 86 ? ? ? ? 89 86 ? ? ? ? 89 86 ? ? ? ? F3 0F 11 86 ? ? ? ? F3 0F 11 86 ? ? ? ? F3 0F 11 86 ? ? ? ? F3 0F 11 86 ? ? ? ? F3 0F 11 86 ? ? ? ? F3 0F 11 86 ? ? ? ? 80 A6 ? ? ? ? ? 88 8E ? ? ? ? 66 89 86 ? ? ? ? F3 0F 11 86 ? ? ? ? 89 86 ? ? ? ? 5E");
                 if (!pattern.empty())
-                {         
+                {
                     struct CVehicleModelInfoInitializeHook
                     {
                         void operator()(injector::reg_pack& regs)
@@ -231,7 +231,7 @@ public:
                             {
                                 regs.esi = *(uint32_t*)(regs.ebp + 0x13C);
                             }
-                        }; injector::MakeInline<CVehicleModelInfoSetVehicleDrawableHook>(pattern.get_first(0));
+                        }; injector::MakeInline<CVehicleModelInfoSetVehicleDrawableHook>(pattern.get_first(0), pattern.get_first(6));
                     }
 
                     pattern = hook::pattern("FF B4 81 ? ? ? ? 0F BF 41 48");
@@ -270,18 +270,18 @@ public:
                                     auto ptr = *arr;
                                     if (ptr && (int)ptr != -1)
                                     {
-                                        regs.eax = ptr[regs.eax];
+                                        regs.edx = ptr[regs.ecx];
                                         return;
                                     }
                                 }
-                                regs.eax = 0;
+                                regs.edx = 0;
                             }
                         }; injector::MakeInline<LiveryAccessHook>(pattern.get_first(0), pattern.get_first(7));
 
-                        injector::WriteMemory<uint8_t>(pattern.get_first(13), 0x50, true); // push eax
+                        injector::WriteMemory<uint8_t>(pattern.get_first(6), 0x50, true); // push eax
                     }
                 }
-                
+
                 pattern = find_pattern("83 FB 04 7D 45 8D 44 24 24 6A 00", "83 FB 04 7D 47 8D 54 24 20 6A 00");
                 if (!pattern.empty())
                     injector::WriteMemory<uint8_t>(pattern.get_first(2), CHAR_MAX, true);

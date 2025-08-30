@@ -24,7 +24,8 @@ public:
 
     static bool IsVehicleTypeOffCenter(CVehicle const* veh)
     {
-        uint32_t m_nVehicleType = *reinterpret_cast<uint32_t*>(reinterpret_cast<uintptr_t>(veh) + 0x1304);
+        // TODO: Find a way to handle offsets for both CE and preCE
+        uint32_t m_nVehicleType = *reinterpret_cast<uint32_t*>(reinterpret_cast<uintptr_t>(veh) + 0x1304); // 0x1350 on preCE
         return m_nVehicleType == VEHICLETYPE_AUTOMOBILE || m_nVehicleType == VEHICLETYPE_PLANE || m_nVehicleType == VEHICLETYPE_HELI;
     }
 

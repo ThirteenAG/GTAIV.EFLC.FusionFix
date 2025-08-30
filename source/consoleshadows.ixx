@@ -179,7 +179,7 @@ public:
                         }
                     }; injector::MakeInline<ShadowsHook>(pattern.get_first(0), pattern.get_first(25));
                 }
-                else // TODO: Adapt remaining CE code
+                else // TODO: Figure out offsets for preCE
                 {
                     pattern = hook::pattern("83 F8 03 75 17 F6 86");
                     static auto loc_AE3867 = resolve_next_displacement(pattern.get_first(14)).value();
@@ -190,12 +190,25 @@ public:
                         {
                             if (bHeadlightShadows && bVehicleNightShadows)
                             {
-                                static auto checkPassengersAndCar = [](uintptr_t car, uintptr_t checkAgainst) {
+                                static auto checkPassengersAndCar = [](uintptr_t car, uintptr_t checkAgainst)
+                                {
                                     if (!car || !checkAgainst)
                                         return false;
 
-                                    if (checkAgainst == car)
-                                        return true;
+                                    //if (!*(uint8_t*)(car + 0x???)) // lights off
+                                    //    return false;
+
+                                    auto m_nVehicleType = *(uint32_t*)(car + 0x1350);
+                                    if (m_nVehicleType == VEHICLETYPE_AUTOMOBILE)
+                                    {
+                                        //if (*(uint8_t*)(car + 0x????) != 0 && *(uint8_t*)(car + 0x????) != 0) // headlights damaged
+                                        //    return false;
+                                    }
+                                    else if (m_nVehicleType == VEHICLETYPE_BIKE)
+                                    {
+                                        //if (*(uint8_t*)(car + 0x????) != 0 || *(uint8_t*)(car + 0x????) != 0) // headlight damaged
+                                        //    return false;
+                                    }
 
                                     auto passengers = (uintptr_t*)(car + 0xFA0); // m_pDriver followed by m_pPassengers[8]
 
@@ -204,6 +217,9 @@ public:
                                         if (checkAgainst == passengers[i])
                                             return true;
                                     }
+
+                                    if (checkAgainst == car)
+                                        return true;
 
                                     return false;
                                 };

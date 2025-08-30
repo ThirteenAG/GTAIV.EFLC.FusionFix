@@ -411,7 +411,6 @@ public:
             }
 
             // Custom FOV
-            // Small bug: FOV doesn't update in the menu on preCE
             {
                 auto pattern = find_pattern("E8 ? ? ? ? F6 87 ? ? ? ? ? 5B", "E8 ? ? ? ? 8B CE E8 ? ? ? ? F6 86 ? ? ? ? ? 5F");
                 hbsub_B07600.fun = injector::MakeCALL(pattern.get_first(0), sub_B07600, true).get();

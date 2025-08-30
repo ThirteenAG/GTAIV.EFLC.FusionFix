@@ -328,7 +328,7 @@ public:
                 bMenuNeedsUpdate = 200;
             });
 
-            // make timecyc changes visible in menu
+            // Make timecyc changes visible in menu
             auto pattern = hook::pattern("0A 05 ? ? ? ? 0A 05 ? ? ? ? 0F 85 ? ? ? ? E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 11 04 24");
             if (!pattern.empty())
             {
@@ -349,7 +349,7 @@ public:
                 pattern = hook::pattern("0A 05 ? ? ? ? 0A 05 ? ? ? ? 74 12");
                 injector::MakeInline<MenuTimecycHook>(pattern.get_first(0), pattern.get_first(6));
             }
-            else
+            else // TODO: Fix preCE compatibility
             {
                 pattern = hook::pattern("E8 ? ? ? ? 84 C0 74 1F A1 ? ? ? ? 69 C0");
                 static injector::hook_back<int(*)()> hbsub_4B18F0;
