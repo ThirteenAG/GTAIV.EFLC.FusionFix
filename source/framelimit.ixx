@@ -270,15 +270,22 @@ public:
                     }
                 });
 
-                pattern = find_pattern("8B 4C 24 04 8B 54 24 08 8B 41 08");
+                // Unlimit in-game loading screens' FPS
+                pattern = find_pattern("8B 4C 24 04 8B 54 24 08 8B 41 08", "8B 54 24 04 8B 42 08 85 C0 8B 4C 24 08 75 12");
                 if (!pattern.empty())
                     injector::MakeJMP(pattern.get_first(0), sub_411F50, true);
 
-                //unlimit loadscreens fps
+                // Unlimit initial loading screens' FPS
                 static float f0 = 0.0f;
                 pattern = hook::pattern("F3 0F 10 05 ? ? ? ? 2B C1 1B D6 89 44 24 18 89 54 24 1C DF 6C 24 18 D9 5C 24 18 F3 0F 10 4C 24 ? F3 0F 59 0D ? ? ? ? 0F 2F C1");
                 if (!pattern.empty())
                     injector::WriteMemory(pattern.get_first(4), &f0, true);
+                else
+                {
+                    pattern = hook::pattern("8B 35 ? ? ? ? 2B C1 1B D6 89 44 24 18 89 54 24 1C DF 6C 24 18 D8 0D ? ? ? ? D9 05 ? ? ? ? DF F1");
+                    if (!pattern.empty())
+                        injector::WriteMemory(pattern.get_first(2), &f0, true);
+                }
             }
 
             if (fScriptCutsceneFovLimit)
@@ -298,11 +305,11 @@ public:
         FusionFix::onInitEventAsync() += []()
         {
             // Off Route infinite loading (CCutsceneObject method causes CRenderer::removeAllTexturesFromDictionary to softlock for unidentified reason)
-            auto pattern = hook::pattern("E8 ? ? ? ? 83 C4 0C C7 04 B5 ? ? ? ? ? ? ? ? 4E");
+            auto pattern = find_pattern("E8 ? ? ? ? 83 C4 0C C7 04 B5 ? ? ? ? ? ? ? ? 4E", "E8 ? ? ? ? 83 C4 0C 89 3C B5 ? ? ? ? 83 C6 01");
             if (!pattern.empty())
                 hbsub_C64CB0.fun = injector::MakeCALL(pattern.get_first(0), sub_C64CB0).get();
 
-            pattern = hook::pattern("83 EC 28 83 3D ? ? ? ? ? 56 8B F1");
+            pattern = find_pattern("83 EC 28 83 3D ? ? ? ? ? 56 8B F1", "83 EC 28 B8 ? ? ? ? 39 05 ? ? ? ? 56 8B F1");
             if (!pattern.empty())
             {
                 static auto InfiniteLoadingWorkaround2 = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)

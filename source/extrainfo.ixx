@@ -79,16 +79,17 @@ public:
                     }
                 }
 
-                auto pattern = hook::pattern("F3 0F 10 44 24 ? 6A FF 6A FF 50 83 EC 08 F3 0F 11 44 24 ? F3 0F 10 44 24 ? F3 0F 11 04 24 E8 ? ? ? ? 83 C4 14");
+                auto pattern = find_pattern("F3 0F 10 44 24 ? 6A FF 6A FF 50 83 EC 08 F3 0F 11 44 24 ? F3 0F 10 44 24 ? F3 0F 11 04 24 E8 ? ? ? ? 83 C4 14", "D9 44 24 0C 6A FF 6A FF 52 83 EC 08 D9 5C 24 04 D9 44 24 1C D9 1C 24 E8 ? ? ? ? 83 C4 14");
                 if (!pattern.empty())
                 {
+                    static auto reg = *pattern.get_first<uint8_t>(10);
                     static auto PauseHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         static std::wstring extra = L"";
-                        
+
                         if (CGameConfigReader::ms_imgFiles && pMenuTab && (*pMenuTab == 49 || *pMenuTab == 0 || *pMenuTab == 7)) // Graphics || Game || Audio
                         {
-                            auto s = std::wstring_view((wchar_t*)regs.eax);
+                            auto s = std::wstring_view((wchar_t*)(reg == 0x50 ? regs.eax : regs.edx));
                             extra = s;
                             extra += L"~n~";
                             extra += L"                        ";
@@ -138,7 +139,7 @@ public:
 
                                 auto FF_WARN1 = CText::getText("FF_WARN1");
                                 if (imgNum >= imgArrSize) extra += FF_WARN1[0] ? FF_WARN1 : L"; ~r~WARNING: 255 IMG limit exceeded, will cause streaming issues.";
-                            
+
                                 auto FF_RESTART = CText::getText("FF_RESTART");
                                 if (FF_RESTART[0])
                                 {
@@ -171,7 +172,10 @@ public:
                                 extra += FF_WARN7[0] ? FF_WARN7 : L"~r~WARNING: Set Cutscene Audio Sync ON if you have audio desynchronization, OFF for animation smoothness. It can be toggled in a cutscene via ~PAD_UP~";
                             }
 
-                            regs.eax = (uintptr_t)extra.c_str();
+                            if (reg == 0x50)
+                                regs.eax = (uintptr_t)extra.c_str();
+                            else
+                                regs.edx = (uintptr_t)extra.c_str();
                         }
                     });
                 }

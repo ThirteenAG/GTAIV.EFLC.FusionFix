@@ -190,12 +190,25 @@ public:
                         {
                             if (bHeadlightShadows && bVehicleNightShadows)
                             {
-                                static auto checkPassengersAndCar = [](uintptr_t car, uintptr_t checkAgainst) {
+                                static auto checkPassengersAndCar = [](uintptr_t car, uintptr_t checkAgainst)
+                                {
                                     if (!car || !checkAgainst)
                                         return false;
 
-                                    if (checkAgainst == car)
-                                        return true;
+                                    if (!*(uint8_t*)(car + 0xF65)) // lights off
+                                        return false;
+
+                                    auto m_nVehicleType = *(uint32_t*)(car + 0x1350);
+                                    if (m_nVehicleType == VEHICLETYPE_AUTOMOBILE)
+                                    {
+                                        if (*(uint8_t*)(car + 0x11E0) != 0 && *(uint8_t*)(car + 0x11E1) != 0) // headlights damaged
+                                            return false;
+                                    }
+                                    else if (m_nVehicleType == VEHICLETYPE_BIKE)
+                                    {
+                                        if (*(uint8_t*)(car + 0x11E0) != 0 || *(uint8_t*)(car + 0x11E1) != 0) // headlight damaged
+                                            return false;
+                                    }
 
                                     auto passengers = (uintptr_t*)(car + 0xFA0); // m_pDriver followed by m_pPassengers[8]
 
@@ -204,6 +217,9 @@ public:
                                         if (checkAgainst == passengers[i])
                                             return true;
                                     }
+
+                                    if (checkAgainst == car)
+                                        return true;
 
                                     return false;
                                 };
@@ -233,6 +249,8 @@ public:
                 }
             }
 
+            // Multiply car/bike bottom static shadow texture intensity while headlight shadows and vehicle night shadows are active (to compensate for the player's car lacking a shadow)
+            // TODO: Add preCE compatibility | Pattern hint: F3 0F 11 54 24 ? D9 45 10 F3 0F 11 54 24 ? D9
             {
                 auto pattern = find_pattern("C7 44 24 ? ? ? ? ? F3 0F 11 14 24 50");
                 if (!pattern.empty())
