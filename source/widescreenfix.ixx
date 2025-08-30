@@ -132,12 +132,12 @@ public:
     {
         float aspectRatio = SCREEN_ASPECT_RATIO;
         const char* name = texName;
-        if (aspectRatio >= (16.0f / 9.0f))
+        if (aspectRatio >= (21.0f / 9.0f))
+            name = "offline_21by9";
+        else if (aspectRatio >= (16.0f / 9.0f))
             name = "offline_w";
         else if (aspectRatio >= (16.0f / 10.0f))
             name = "offline_16by10";
-        else if (aspectRatio >= (21.0f / 9.0f))
-            name = "offline_21by9";
 
         hbUITexture__Load.fun(ui, 0, txdSlot, name, arg4, arg5);
     }
