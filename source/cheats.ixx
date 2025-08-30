@@ -15,8 +15,8 @@ char CheatString[MAX_CHEAT_LENGTH] = { 0 };
 
 std::vector<std::pair<const char*, std::function<void()>>> ReversedCheats =
 {
-    { "wonstitel", []() { SnowCheat(); }}, // letitsnow
-    { "ecafyracs", []() { HallCheat(); }}, // scaryface
+    { "wonstitel", []() { SnowCheat(false); }}, // letitsnow
+    { "ecafyracs", []() { HallCheat(false); }}, // scaryface
 };
 
 class Cheats
