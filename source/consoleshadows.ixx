@@ -179,7 +179,7 @@ public:
                         }
                     }; injector::MakeInline<ShadowsHook>(pattern.get_first(0), pattern.get_first(25));
                 }
-                else // TODO: Figure out offsets for preCE
+                else
                 {
                     pattern = hook::pattern("83 F8 03 75 17 F6 86");
                     static auto loc_AE3867 = resolve_next_displacement(pattern.get_first(14)).value();
@@ -195,19 +195,19 @@ public:
                                     if (!car || !checkAgainst)
                                         return false;
 
-                                    //if (!*(uint8_t*)(car + 0x???)) // lights off
-                                    //    return false;
+                                    if (!*(uint8_t*)(car + 0xF65)) // lights off
+                                        return false;
 
                                     auto m_nVehicleType = *(uint32_t*)(car + 0x1350);
                                     if (m_nVehicleType == VEHICLETYPE_AUTOMOBILE)
                                     {
-                                        //if (*(uint8_t*)(car + 0x????) != 0 && *(uint8_t*)(car + 0x????) != 0) // headlights damaged
-                                        //    return false;
+                                        if (*(uint8_t*)(car + 0x11E0) != 0 && *(uint8_t*)(car + 0x11E1) != 0) // headlights damaged
+                                            return false;
                                     }
                                     else if (m_nVehicleType == VEHICLETYPE_BIKE)
                                     {
-                                        //if (*(uint8_t*)(car + 0x????) != 0 || *(uint8_t*)(car + 0x????) != 0) // headlight damaged
-                                        //    return false;
+                                        if (*(uint8_t*)(car + 0x11E0) != 0 || *(uint8_t*)(car + 0x11E1) != 0) // headlight damaged
+                                            return false;
                                     }
 
                                     auto passengers = (uintptr_t*)(car + 0xFA0); // m_pDriver followed by m_pPassengers[8]
