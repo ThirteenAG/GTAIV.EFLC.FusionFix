@@ -2257,7 +2257,7 @@ public:
         pattern = find_pattern("8B 0D ? ? ? ? E8 ? ? ? ? 85 C0 74 ? 80 7C 24 ? ? 75", "8B 0D ? ? ? ? E8 ? ? ? ? 85 C0 74 ? 8B C8 E8 ? ? ? ? E9 ? ? ? ? 33 F6");
         pCamPool = *pattern.get_first<decltype(pCamPool)>(2);
         
-        pattern = find_pattern("8B 15 ? ? ? ? 46 3B 72 ? 7C ? 5E", "8B 3D ? ? ? ? 8B CE FF D2 2B 07");
+        pattern = find_pattern("8B 15 ? ? ? ? 46 3B 72 ? 7C ? 5E", "8B 3D ? ? ? ? 8B CE FF D2 6A ? 6A ? 6A ? EB");
         pVehiclePool = *pattern.get_first<decltype(pVehiclePool)>(2);
 
         pattern = find_pattern("68 ? ? ? ? E8 ? ? ? ? 83 C4 ? 85 C0 0F 85 ? ? ? ? F3 0F 10 3D");
