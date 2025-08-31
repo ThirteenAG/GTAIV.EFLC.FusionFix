@@ -74,14 +74,14 @@ jobs:
         msbuild -m build/GTAIV.EFLC.FusionFix.sln /property:Configuration=Release /property:Platform=Win32
 
     - name: Download Ultimate ASI Loader x86
-      uses: robinraju/release-downloader@v1.11
+      uses: robinraju/release-downloader@v1.12
       with:
         repository: "ThirteenAG/Ultimate-ASI-Loader"
         tag: "Win32-latest"
         fileName: "dinput8-Win32.zip"
 
     - name: Download DXVK
-      uses: robinraju/release-downloader@v1.11
+      uses: robinraju/release-downloader@v1.12
       with:
         repository: "doitsujin/dxvk"
         latest: true
