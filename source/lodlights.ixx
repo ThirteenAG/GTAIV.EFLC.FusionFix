@@ -622,10 +622,10 @@ public:
             auto pattern = find_pattern("05 ? ? ? ? 50 8D 4C 24 60", "05 ? ? ? ? D9 5C 24 04 8D 4C 24 38 D9");
             mTimeCycle = *pattern.get_first<Timecycle*>(1);
 
-            pattern = hook::pattern("8B 15 ? ? ? ? 56 8D 72 01", "A1 ? ? ? ? 56 8D 70 01 81 FE");
+            pattern = find_pattern("8B 15 ? ? ? ? 56 8D 72 01", "A1 ? ? ? ? 56 8D 70 01 81 FE");
             DrawCorona2 = (int(__cdecl*)(int id, char r, char g, char b, float a5, CVector* pos, float radius, float a8, float a9, int a10, float a11, char a12, char a13, int a14))(pattern.get(0).get<uintptr_t>(0));
 
-            pattern = hook::pattern("E8 ? ? ? ? 83 3D ? ? ? ? ? 74 05 E8 ? ? ? ? 6A 05", "E8 ? ? ? ? 83 3D ? ? ? ? 00 74 05 E8 ? ? ? ? 6A 05");
+            pattern = find_pattern("E8 ? ? ? ? 83 3D ? ? ? ? ? 74 05 E8 ? ? ? ? 6A 05", "E8 ? ? ? ? 83 3D ? ? ? ? 00 74 05 E8 ? ? ? ? 6A 05");
             static raw_mem RegisterLODLightsAddr(pattern.get_first(0), { 0x90, 0x90, 0x90, 0x90, 0x90 });
             injector::MakeCALL(pattern.get_first(0), RegisterLODLights, true);
 
@@ -722,7 +722,7 @@ public:
             static raw_mem DisableDefaultLodLightsHookAddr(pattern.get_first(0), { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
 
             static float f0 = 0.0f;
-            pattern = hook::pattern("F3 0F 5C 0D ? ? ? ? F3 0F 11 84 24 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 0D ? ? ? ? 0F 2F C8 F3 0F 11 4C 24", "F3 0F 5C 05 ? ? ? ? F3 0F 59 05 ? ? ? ? 0F 2F C1 76 08 F3 0F 11 4C 24 ? EB 06");
+            pattern = find_pattern("F3 0F 5C 0D ? ? ? ? F3 0F 11 84 24 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 0D ? ? ? ? 0F 2F C8 F3 0F 11 4C 24", "F3 0F 5C 05 ? ? ? ? F3 0F 59 05 ? ? ? ? 0F 2F C1 76 08 F3 0F 11 4C 24 ? EB 06");
             injector::WriteMemory(pattern.get_first(4), &f0, true);
 
             auto InitIVLodLights = []()
