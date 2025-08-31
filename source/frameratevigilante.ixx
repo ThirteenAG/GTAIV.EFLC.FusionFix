@@ -246,6 +246,7 @@ public:
                 }; injector::MakeInline<FramerateVigilanteHook1>(pattern.get_first(0), pattern.get_first(6));
             }
 
+            // Loading text
             pattern = hook::pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 C1 F3 0F 11 05 ? ? ? ? EB 36");
             if (!pattern.empty())
             {
@@ -259,7 +260,20 @@ public:
                     }
                 }; injector::MakeInline<LoadingTextSpeed>(pattern.get_first(0), pattern.get_first(12));
             }
+            else
+            {
+                pattern = hook::pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 05 ? ? ? ? F3 0F 11 05 ? ? ? ? EB 30");
+                static auto f1738420 = *pattern.get_first<float*>(4);
+                struct LoadingTextSpeed
+                {
+                    void operator()(injector::reg_pack& regs)
+                    {
+                        regs.xmm0.f32[0] = *f1738420 * *CTimer::fTimeStep;
+                    }
+                }; injector::MakeInline<LoadingTextSpeed>(pattern.get_first(0), pattern.get_first(8));
+            }
 
+            // Loading sparks
             pattern = hook::pattern("F3 0F 58 0D ? ? ? ? 0F 5B C0 F3 0F 11 0D");
             if (!pattern.empty())
             {
@@ -295,9 +309,20 @@ public:
                     }
                 }; injector::MakeInline<CDSpinnerHook>(pattern.get_first(0), pattern.get_first(8));
             }
-            
+            else
+            {
+                pattern = hook::pattern("F3 0F 58 15 ? ? ? ? 33 C0 F3 0F 11 15 ? ? ? ? A3 ? ? ? ? 8B 0D ? ? ? ? 39 0D ? ? ? ? 74 0B");
+                struct CDSpinnerHook
+                {
+                    void operator()(injector::reg_pack& regs)
+                    {
+                        regs.xmm2.f32[0] += *CTimer::fTimeStep * 5.0f;
+                    }
+                }; injector::MakeInline<CDSpinnerHook>(pattern.get_first(0), pattern.get_first(8));
+            }
+
             // Cop blips
-            pattern = hook::pattern("F3 0F 10 4C 24 ? 0F 28 C1 F3 0F 59 C2");
+            pattern = find_pattern("F3 0F 10 4C 24 ? 0F 28 C1 F3 0F 59 C2", "D9 44 24 04 8B 0D ? ? ? ? D8 0D ? ? ? ? F3 0F 10 05 ? ? ? ? 83 05 ? ? ? ? ? D9 3C 24");
             if (!pattern.empty())
             {
                 static int CustomFrameCounter = 0;
@@ -328,6 +353,8 @@ public:
             // Natives
             hbSET_CAM_FOV.fun = NativeOverride::Register(Natives::NativeHashes::SET_CAM_FOV, NATIVE_SET_CAM_FOV, "E8 ? ? ? ? 83 C4 08 C3", 30);
             hbSLIDE_OBJECT.fun = NativeOverride::Register(Natives::NativeHashes::SLIDE_OBJECT, NATIVE_SLIDE_OBJECT, "E8 ? ? ? ? 0F B6 C8", 107);
+            if (!hbSLIDE_OBJECT.fun)
+                hbSLIDE_OBJECT.fun = NativeOverride::Register(Natives::NativeHashes::SLIDE_OBJECT, NATIVE_SLIDE_OBJECT, "E8 ? ? ? ? 83 C4 ? C3", 30);
         };
     }
 } FramerateVigilante;

@@ -619,42 +619,64 @@ public:
             bSlightlyIncreaseRadiusWithDistance = iniReader.ReadInteger("PROJECT2DFX", "SlightlyIncreaseRadiusWithDistance", 1) != 0;
             bDisableDefaultLodLights = iniReader.ReadInteger("PROJECT2DFX", "DisableDefaultLodLights", 1) != 0;
 
-            auto pattern = hook::pattern("05 ? ? ? ? 50 8D 4C 24 60");
-
-            if (pattern.empty())
-                return;
-
+            auto pattern = find_pattern("05 ? ? ? ? 50 8D 4C 24 60", "05 ? ? ? ? D9 5C 24 04 8D 4C 24 38 D9");
             mTimeCycle = *pattern.get_first<Timecycle*>(1);
 
-            pattern = hook::pattern("8B 15 ? ? ? ? 56 8D 72 01");
+            pattern = find_pattern("8B 15 ? ? ? ? 56 8D 72 01", "A1 ? ? ? ? 56 8D 70 01 81 FE");
             DrawCorona2 = (int(__cdecl*)(int id, char r, char g, char b, float a5, CVector* pos, float radius, float a8, float a9, int a10, float a11, char a12, char a13, int a14))(pattern.get(0).get<uintptr_t>(0));
 
-            pattern = hook::pattern("E8 ? ? ? ? 83 3D ? ? ? ? ? 74 05 E8 ? ? ? ? 6A 05");
+            pattern = find_pattern("E8 ? ? ? ? 83 3D ? ? ? ? ? 74 05 E8 ? ? ? ? 6A 05", "E8 ? ? ? ? 83 3D ? ? ? ? 00 74 05 E8 ? ? ? ? 6A 05");
             static raw_mem RegisterLODLightsAddr(pattern.get_first(0), { 0x90, 0x90, 0x90, 0x90, 0x90 });
             injector::MakeCALL(pattern.get_first(0), RegisterLODLights, true);
 
             pattern = hook::pattern("8B 75 08 8D 44 24 1C 50 FF 76 1C C6 44 24");
-            static raw_mem LoadObjectInstanceHookAddr(pattern.get_first(0), { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
-            struct LoadObjectInstanceHook
+            if (!pattern.empty())
             {
-                void operator()(injector::reg_pack& regs)
+                struct LoadObjectInstanceHook
                 {
-                    static bool bOnce = false;
-                    if (!bOnce)
+                    void operator()(injector::reg_pack& regs)
                     {
-                        LoadDatFile();
-                        RegisterCustomCoronas();
-                        bOnce = true;
+                        static bool bOnce = false;
+                        if (!bOnce)
+                        {
+                            LoadDatFile();
+                            RegisterCustomCoronas();
+                            bOnce = true;
+                        }
+
+                        regs.esi = *(uintptr_t*)(regs.ebp + 0x8);
+                        regs.eax = (regs.esp + 0x1C);
+
+                        PossiblyAddThisEntity((WplInstance*)regs.esi);
                     }
+                }; injector::MakeInline<LoadObjectInstanceHook>(pattern.get_first(0), pattern.get_first(7));
+            }
+            else
+            {
+                pattern = hook::pattern("8B 5D 08 8B 4B 1C 8D 44 24 14 50 51");
+                struct LoadObjectInstanceHook
+                {
+                    void operator()(injector::reg_pack& regs)
+                    {
+                        static bool bOnce = false;
+                        if (!bOnce)
+                        {
+                            LoadDatFile();
+                            RegisterCustomCoronas();
+                            bOnce = true;
+                        }
 
-                    regs.esi = *(uintptr_t*)(regs.ebp + 0x8);
-                    regs.eax = (regs.esp + 0x1C);
+                        regs.ebx = *(uintptr_t*)(regs.ebp + 0x8);
+                        regs.ecx = *(uintptr_t*)(regs.ebx + 0x1C);
 
-                    PossiblyAddThisEntity((WplInstance*)regs.esi);
-                }
-            }; injector::MakeInline<LoadObjectInstanceHook>(pattern.get_first(0), pattern.get_first(7));
+                        PossiblyAddThisEntity((WplInstance*)regs.ebx);
+                    }
+                }; injector::MakeInline<LoadObjectInstanceHook>(pattern.get_first(0), pattern.get_first(6));
+            }
 
-            pattern = find_pattern("F3 0F 59 45 ? F3 0F 11 45 ? 0F 28 85");
+            static raw_mem LoadObjectInstanceHookAddr(pattern.get_first(0), { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
+
+            pattern = find_pattern("F3 0F 59 45 ? F3 0F 11 45 ? 0F 28 85", "F3 0F 10 05 ? ? ? ? F3 0F 59 C4 F3 0F 11 45");
             static auto WaterMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
             {
                 static auto dl = FusionFixSettings.GetRef("PREF_DISTANTLIGHTS");
@@ -663,23 +685,44 @@ public:
             });
 
             pattern = hook::pattern("83 F8 08 0F 8C ? ? ? ? 83 3D");
-            static raw_mem DisableDefaultLodLightsHookAddr(pattern.get_first(0), { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
-            if (bDisableDefaultLodLights)
+            if (!pattern.empty())
             {
-                static uintptr_t loc_D658B0 = resolve_next_displacement(pattern.get_first(0)).value();
-                struct DisableDefaultLodLights
+                if (bDisableDefaultLodLights)
                 {
-                    void operator()(injector::reg_pack& regs)
+                    static uintptr_t loc_D658B0 = resolve_next_displacement(pattern.get_first(0)).value();
+                    struct DisableDefaultLodLights
                     {
-                        static auto dl = FusionFixSettings.GetRef("PREF_DISTANTLIGHTS");
-                        if (!dl->get() && regs.eax < 8)
-                            force_return_address(loc_D658B0);
-                    }
-                }; injector::MakeInline<DisableDefaultLodLights>(pattern.get_first(0), pattern.get_first(9));
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            static auto dl = FusionFixSettings.GetRef("PREF_DISTANTLIGHTS");
+                            if (!dl->get() && regs.eax < 8)
+                                force_return_address(loc_D658B0);
+                        }
+                    }; injector::MakeInline<DisableDefaultLodLights>(pattern.get_first(0), pattern.get_first(9));
+                }
+            }
+            else
+            {
+                pattern = hook::pattern("0F 8C ? ? ? ? 83 3D ? ? ? ? ? 75 ? F3 0F 10 05");
+                if (bDisableDefaultLodLights)
+                {
+                    static uintptr_t loc_D658B0 = resolve_displacement(pattern.get_first(0)).value();
+                    struct DisableDefaultLodLights
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            static auto dl = FusionFixSettings.GetRef("PREF_DISTANTLIGHTS");
+                            if (!dl->get() && regs.ebx < 8)
+                                force_return_address(loc_D658B0);
+                        }
+                    }; injector::MakeInline<DisableDefaultLodLights>(pattern.get_first(0), pattern.get_first(6));
+                }
             }
 
+            static raw_mem DisableDefaultLodLightsHookAddr(pattern.get_first(0), { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
+
             static float f0 = 0.0f;
-            pattern = hook::pattern("F3 0F 5C 0D ? ? ? ? F3 0F 11 84 24 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 0D ? ? ? ? 0F 2F C8 F3 0F 11 4C 24");
+            pattern = find_pattern("F3 0F 5C 0D ? ? ? ? F3 0F 11 84 24 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 0D ? ? ? ? 0F 2F C8 F3 0F 11 4C 24", "F3 0F 5C 05 ? ? ? ? F3 0F 59 05 ? ? ? ? 0F 2F C1 76 08 F3 0F 11 4C 24 ? EB 06");
             injector::WriteMemory(pattern.get_first(4), &f0, true);
 
             auto InitIVLodLights = []()

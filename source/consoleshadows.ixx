@@ -78,9 +78,9 @@ public:
 
                 // Limit rendering to night shadows only, fixes vehicle damage not being reflected on directional light shadows (aka. those from the sun/moon/thunderbolts)
                 pattern = hook::pattern("E8 ? ? ? ? 8B F0 83 C4 08 85 F6 74 17 8B 0D ? ? ? ? 8B 11 FF 52 28");
-                if (!pattern.count(2).empty())
+                if (!pattern.count_hint(2).empty())
                 {
-                    static auto IsDirLightShadowsHook = safetyhook::create_mid(pattern.count(2).get(1).get<void*>(0), [](SafetyHookContext& regs)
+                    static auto IsDirLightShadowsHook = safetyhook::create_mid(pattern.count_hint(2).get(1).get<void*>(0), [](SafetyHookContext& regs)
                     {
                         bIsDirLightShadows = *(bool*)(regs.esp + 0x1C - 0x04);
                     });
@@ -190,12 +190,25 @@ public:
                         {
                             if (bHeadlightShadows && bVehicleNightShadows)
                             {
-                                static auto checkPassengersAndCar = [](uintptr_t car, uintptr_t checkAgainst) {
+                                static auto checkPassengersAndCar = [](uintptr_t car, uintptr_t checkAgainst)
+                                {
                                     if (!car || !checkAgainst)
                                         return false;
 
-                                    if (checkAgainst == car)
-                                        return true;
+                                    if (!*(uint8_t*)(car + 0xF65)) // lights off
+                                        return false;
+
+                                    auto m_nVehicleType = *(uint32_t*)(car + 0x1350);
+                                    if (m_nVehicleType == VEHICLETYPE_AUTOMOBILE)
+                                    {
+                                        if (*(uint8_t*)(car + 0x11E0) != 0 && *(uint8_t*)(car + 0x11E1) != 0) // headlights damaged
+                                            return false;
+                                    }
+                                    else if (m_nVehicleType == VEHICLETYPE_BIKE)
+                                    {
+                                        if (*(uint8_t*)(car + 0x11E0) != 0 || *(uint8_t*)(car + 0x11E1) != 0) // headlight damaged
+                                            return false;
+                                    }
 
                                     auto passengers = (uintptr_t*)(car + 0xFA0); // m_pDriver followed by m_pPassengers[8]
 
@@ -204,6 +217,9 @@ public:
                                         if (checkAgainst == passengers[i])
                                             return true;
                                     }
+
+                                    if (checkAgainst == car)
+                                        return true;
 
                                     return false;
                                 };
@@ -233,6 +249,7 @@ public:
                 }
             }
 
+            // Multiply car/bike bottom static shadow texture intensity while headlight shadows and vehicle night shadows are active (to compensate for the player's car lacking a shadow)
             {
                 auto pattern = find_pattern("C7 44 24 ? ? ? ? ? F3 0F 11 14 24 50");
                 if (!pattern.empty())
@@ -241,6 +258,14 @@ public:
                     {
                         if (bHeadlightShadows)
                             regs.xmm2.f32[0] *= 3.0f;
+                    });
+                }
+                else
+                {
+                    pattern = find_pattern("F3 0F 11 54 24 ? D9 45 ? D9 1C 24");
+                    static auto CarStaticShadowIntensityHook = safetyhook::create_mid(pattern.get_first(12), [](SafetyHookContext& regs) {
+                        if (bHeadlightShadows)
+                            *(float*)regs.esp *= 3.0f;
                     });
                 }
             }

@@ -2113,7 +2113,7 @@ public:
         pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? 8B 43 20 53", "F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? 83 C4 04 83 7C 24");
         CTimer::fTimeStep = *pattern.get_first<float*>(4);
 
-        pattern = hook::pattern("BE ? ? ? ? 8D 44 24 0C 50 8D 46 10 50");
+        pattern = find_pattern("BE ? ? ? ? 8D 44 24 0C 50 8D 46 10 50", "BE ? ? ? ? 8D 44 24 0C 50 8D 4E 10 51");
         if (!pattern.empty())
             CGameConfigReader::ms_imgFiles = *pattern.get_first<decltype(CGameConfigReader::ms_imgFiles)>(1);
 
@@ -2182,10 +2182,10 @@ public:
 
         pattern = find_pattern("A1 ? ? ? ? 83 C4 08 8B CF", "A1 ? ? ? ? 80 3F 04");
         CWeather::OldWeatherType = *pattern.get_first<CWeather::eWeatherType*>(1);
-        
+
         pattern = find_pattern("A1 ? ? ? ? 89 46 4C A1", "A1 ? ? ? ? 77 05 A1 ? ? ? ? 80 3F 04");
         CWeather::NewWeatherType = *pattern.get_first<CWeather::eWeatherType*>(1);
-        
+
         pattern = hook::pattern("F3 0F 10 05 ? ? ? ? 8B 44 24 0C 8B 4C 24 04");
         CWeather::InterpolationValue = *pattern.get_first<float*>(4);
 
@@ -2194,16 +2194,16 @@ public:
 
         pattern = find_pattern("81 EC ? ? ? ? 8D 04 24 68 ? ? ? ? FF B4 24", "8B 44 24 04 81 EC ? ? ? ? 68");
         rage::grcTextureFactoryPC::shCreateTexture = safetyhook::create_inline(pattern.get_first(0), rage::grcTextureFactoryPC::CreateTexture);
-        
+
         pattern = find_pattern("53 8B 5C 24 08 56 33 F6 57 39 35 ? ? ? ? 7E 25 8B 3C B5", "53 8B 5C 24 08 56 57 33 FF 39 3D", "53 8B 5C 24 08 56 33 F6 39 35 ? ? ? ? 57 7E 29 8B 3C B5 ? ? ? ? 8B 07 8B 50 14 53 8B CF FF D2 50 E8 ? ? ? ? 83 C4 08 85 C0");
         rage::grcTextureFactoryPC::shCreateRT = safetyhook::create_inline(pattern.get_first(0), rage::grcTextureFactoryPC::CreateRT);
 
         pattern = find_pattern("53 55 56 57 8B F9 85 FF 74 3F", "53 55 8B 6C 24 0C 56 57 EB 06 8D 9B 00 00 00 00 0F B7 51 14 33 FF 83 EA 01 78 26 8B 59 10", "85 C9 53 55 56 57 74 40 8B 6C 24 14 8D 64 24 00");
         CTxdStore::getEntryByKey = pattern.get_first<rage::grcTexturePC*(__fastcall)(int*, void*, unsigned int)>(0);
-        
+
         pattern = find_pattern("55 8B EC 83 E4 ? 83 EC ? F3 0F 10 05 ? ? ? ? 56 8B 75 ? 0F 57 DB F3 0F 10 0E 0F 2E CB 57 9F 8B F9 F3 0F 11 44 24 ? F6 C4 ? 7A ? 0F 28 CB F3 0F 11 44 24", "55 8B EC 83 E4 ? 0F 57 D2 83 EC ? 56 57");
         Matrix34::fromEulersXYZ = pattern.get_first<void(__fastcall)(float*, void*, float*)>(0);
-        
+
         pattern = hook::pattern("68 ? ? ? ? 68 ? ? ? ? 68 ? ? ? ? 68 ? ? ? ? E8 ? ? ? ? 8B C8 E8 ? ? ? ? A3 ? ? ? ? 5E");
         CTxdStore::at = (int* (__cdecl*)(int))injector::ReadMemory<uint32_t>(pattern.get_first(1), true);
 
@@ -2242,7 +2242,7 @@ public:
         pattern = find_pattern("8B 44 24 04 85 C0 75 18 A1", "8B 44 24 ? 85 C0 75 ? A1 ? ? ? ? 83 F8 ? 74");
         FindPlayerPed = (decltype(FindPlayerPed))pattern.get_first();
 
-        pattern = hook::pattern("8B 44 24 04 85 C0 75 15");
+        pattern = hook::pattern("8B 44 24 04 85 C0 75 15 A1 ? ? ? ? 83 F8 FF 75 04 33 C0 EB 07");
         FindPlayerVehicle = (decltype(FindPlayerVehicle))pattern.get_first();
 
         pattern = find_pattern("8B 0D ? ? ? ? 83 C4 ? 50 E8 ? ? ? ? 85 C0 74", "8B 3D ? ? ? ? 8B CE FF D2 6A ? 6A ? 6A ? 2B 07");
@@ -2257,7 +2257,7 @@ public:
         pattern = find_pattern("8B 0D ? ? ? ? E8 ? ? ? ? 85 C0 74 ? 80 7C 24 ? ? 75", "8B 0D ? ? ? ? E8 ? ? ? ? 85 C0 74 ? 8B C8 E8 ? ? ? ? E9 ? ? ? ? 33 F6");
         pCamPool = *pattern.get_first<decltype(pCamPool)>(2);
         
-        pattern = find_pattern("8B 15 ? ? ? ? 46 3B 72 ? 7C ? 5E", "8B 3D ? ? ? ? 8B CE FF D2 2B 07");
+        pattern = find_pattern("8B 15 ? ? ? ? 46 3B 72 ? 7C ? 5E", "8B 3D ? ? ? ? 8B CE FF D2 6A ? 6A ? 6A ? EB");
         pVehiclePool = *pattern.get_first<decltype(pVehiclePool)>(2);
 
         pattern = find_pattern("68 ? ? ? ? E8 ? ? ? ? 83 C4 ? 85 C0 0F 85 ? ? ? ? F3 0F 10 3D");

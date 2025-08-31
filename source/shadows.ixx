@@ -374,6 +374,23 @@ public:
                             }
                         });
                     }
+                    else
+                    {
+                        pattern = find_pattern("E8 ? ? ? ? 0F B6 46 ? F3 0F 10 44 24");
+                        static auto FlagsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs) {
+                            if (!bExtraNightShadows)
+                            {
+                                if (Natives::IsInteriorScene())
+                                {
+                                    if ((*(uint32_t*)(regs.esi + 0x4C) & 0x8000000) != 0) // new flag to detect affected lampposts
+                                    {
+                                        regs.ebx &= ~3;
+                                        regs.ebx &= ~4;
+                                    }
+                                }
+                            }
+                        });
+                    }
                 }
             }
         };
