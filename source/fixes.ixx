@@ -736,7 +736,6 @@ public:
             }
 
             // Bullet traces
-            // TODO: Add preCE compatibility | Pattern hint: DF F1 DD D8 72 71 8B 56 18 52 E8
             {
                 auto pattern = find_pattern("0F 2F C8 72 ? FF 76");
                 if (!pattern.empty())
