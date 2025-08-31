@@ -6,8 +6,8 @@ export module frameratevigilante;
 
 import common;
 import comvars;
-import natives;
 import settings;
+import natives;
 
 injector::hook_back<double(__fastcall*)(void* _this, void* edx, void* a2, void* a3)> hbsub_A18510;
 double __fastcall sub_A18510(void* _this, void* edx, void* a2, void* a3)

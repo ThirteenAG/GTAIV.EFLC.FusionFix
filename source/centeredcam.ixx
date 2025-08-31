@@ -20,12 +20,12 @@ public:
     using CPed = void;
     using CPlayerPed = void;
 
+    static inline ptrdiff_t VehicleTypeOffset = 0x1304;
     static inline CVehicle* (*GetVehiclePedWouldEnter)(CPed* ped, rage::Vector3* pos, bool arg2) = nullptr;
 
     static bool IsVehicleTypeOffCenter(CVehicle const* veh)
     {
-        // TODO: Find a way to handle offsets for both CE and preCE
-        uint32_t m_nVehicleType = *reinterpret_cast<uint32_t*>(reinterpret_cast<uintptr_t>(veh) + 0x1304); // 0x1350 on preCE
+        uint32_t m_nVehicleType = *reinterpret_cast<uint32_t*>(reinterpret_cast<uintptr_t>(veh) + VehicleTypeOffset);
         return m_nVehicleType == VEHICLETYPE_AUTOMOBILE || m_nVehicleType == VEHICLETYPE_PLANE || m_nVehicleType == VEHICLETYPE_HELI;
     }
 
@@ -73,13 +73,19 @@ public:
         }
     }
 
-    // TODO: Fix preCE compatibility
     CenteredCam()
     {
         FusionFix::onInitEventAsync() += []()
         {
-            auto pattern = find_pattern("55 8B EC 83 E4 F0 83 EC 78 56 8B 75 08 57 F7 86", "55 8B EC 83 E4 ? 83 EC ? 56 8B 75 ? F7 86");
-            GetVehiclePedWouldEnter = (decltype(GetVehiclePedWouldEnter))pattern.get_first();
+            auto pattern = hook::pattern("55 8B EC 83 E4 F0 83 EC 78 56 8B 75 08 57 F7 86");
+            if (!pattern.empty())
+                GetVehiclePedWouldEnter = (decltype(GetVehiclePedWouldEnter))pattern.get_first();
+            else
+            {
+                hook::pattern("55 8B EC 83 E4 F0 83 EC 78 56 8B 75 08 57 F7 86");
+                ptrdiff_t VehicleTypeOffset = 0x1350;
+                GetVehiclePedWouldEnter = (decltype(GetVehiclePedWouldEnter))pattern.get_first();
+            }
 
             pattern = find_pattern("E8 ? ? ? ? 80 A7 ? ? ? ? ? 80 A7 ? ? ? ? ? 80 7C 24", "E8 ? ? ? ? 80 A6 ? ? ? ? ? 80 A6 ? ? ? ? ? 80 BC 24");
             hbCopyMatFront.fun = injector::MakeCALL(pattern.get_first(0), CopyMatFront, true).get();

@@ -6,9 +6,8 @@ export module fixes;
 
 import common;
 import comvars;
-import fusiondxhook;
-import natives;
 import settings;
+import natives;
 import shaders;
 
 class Fixes
