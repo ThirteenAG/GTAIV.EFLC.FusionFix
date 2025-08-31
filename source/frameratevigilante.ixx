@@ -351,7 +351,6 @@ public:
             shCameraShake = safetyhook::create_inline(pattern.get_first(), CameraShake);
 
             // Natives
-            // TODO: Add preCE compatibility
             hbSET_CAM_FOV.fun = NativeOverride::Register(Natives::NativeHashes::SET_CAM_FOV, NATIVE_SET_CAM_FOV, "E8 ? ? ? ? 83 C4 08 C3", 30);
             hbSLIDE_OBJECT.fun = NativeOverride::Register(Natives::NativeHashes::SLIDE_OBJECT, NATIVE_SLIDE_OBJECT, "E8 ? ? ? ? 0F B6 C8", 107);
             if (!hbSLIDE_OBJECT.fun)
