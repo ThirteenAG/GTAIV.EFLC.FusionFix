@@ -755,6 +755,27 @@ public:
                             return_to(loc_B5D8D8);
                     });
                 }
+                else
+                {
+                    pattern = find_pattern("72 ? 8B 56 ? 52");
+                    static auto loc_B5D8D8 = resolve_displacement(pattern.get_first(0)).value();
+                    injector::MakeNOP(pattern.get_first(0), 5);
+                    static auto BulletTracesHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs) {
+                        static auto esc = FusionFixSettings.GetRef("PREF_BULLETTRACES");
+                        if (esc->get())
+                        {
+                            regs.edx = *(uint32_t*)(regs.esi + 0x18);
+                            return;
+                        }
+
+                        //fcomip  st, st(1)
+                        constexpr uint32_t FLAG_CF = 1u << 0;
+                        if (regs.eflags & FLAG_CF)
+                            return_to(loc_B5D8D8);
+
+                        regs.edx = *(uint32_t*)(regs.esi + 0x18);
+                    });
+                }
 
                 // Force IV/TLAD bullet tracer particles, TBoGT tracer particles have weird/wrong positioning
                 pattern = find_pattern("75 ? 68 ? ? ? ? EB ? 68 ? ? ? ? E8 ? ? ? ? 83 C4 ? 8B F8", "75 07 68 ? ? ? ? EB 05 68 ? ? ? ? E8 ? ? ? ? 83 C4 08 6A 00 6A 00 8B F8 57");

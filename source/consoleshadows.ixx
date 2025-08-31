@@ -78,9 +78,9 @@ public:
 
                 // Limit rendering to night shadows only, fixes vehicle damage not being reflected on directional light shadows (aka. those from the sun/moon/thunderbolts)
                 pattern = hook::pattern("E8 ? ? ? ? 8B F0 83 C4 08 85 F6 74 17 8B 0D ? ? ? ? 8B 11 FF 52 28");
-                if (!pattern.count(2).empty())
+                if (!pattern.count_hint(2).empty())
                 {
-                    static auto IsDirLightShadowsHook = safetyhook::create_mid(pattern.count(2).get(1).get<void*>(0), [](SafetyHookContext& regs)
+                    static auto IsDirLightShadowsHook = safetyhook::create_mid(pattern.count_hint(2).get(1).get<void*>(0), [](SafetyHookContext& regs)
                     {
                         bIsDirLightShadows = *(bool*)(regs.esp + 0x1C - 0x04);
                     });
