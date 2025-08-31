@@ -18,7 +18,7 @@ namespace CTimeCycleModifier
 {
     constexpr auto STRIDE = 47;
     export constexpr auto ARRAY_SIZE = 900;
-    int (*msTimeCycleModifiers)[ARRAY_SIZE];
+    int (*msTimeCycleModifiers)[ARRAY_SIZE * STRIDE];
     bool bOverwrite = false;
 
     SafetyHookInline shApplyTimecycModifier = {};
@@ -36,19 +36,19 @@ namespace CTimeCycleModifier
         shApplyTimecycModifier.unsafe_fastcall(_this, edx, a2, a3, a4);
     }
 
+    static int cachedIndex = -1;
     injector::hook_back<void(__fastcall*)(void*, void*, int, float)> hbBlendWithModifier;
     void __fastcall BlendWithModifier(void* _this, void* edx, int a2, float a3)
     {
         auto diff = a2 - (uintptr_t)msTimeCycleModifiers;
-        auto index = (diff / 47) / 4;
-        currentTimecycleModifiers.emplace_back(index, a3);
+        cachedIndex = (diff / 47) / 4;
 
         return hbBlendWithModifier.fun(_this, edx, a2, a3);
     }
 
     void __fastcall BlendWithModifier2(void* _this, void* edx, int a2, float a3)
     {
-        currentTimecycleModifiers.back().second = a3;
+        currentTimecycleModifiers.emplace_back(cachedIndex, a3);
         bOverwrite = true;
 
         return hbBlendWithModifier.fun(_this, edx, a2, a3);
