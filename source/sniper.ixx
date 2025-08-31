@@ -107,8 +107,6 @@ char __cdecl sub_A72820(char a1)
     return hbsub_A72820.fun(a1);
 }
 
-static auto bFakeZoom = false;
-
 class Sniper
 {
 public:
