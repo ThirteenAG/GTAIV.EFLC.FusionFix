@@ -250,7 +250,6 @@ public:
             }
 
             // Multiply car/bike bottom static shadow texture intensity while headlight shadows and vehicle night shadows are active (to compensate for the player's car lacking a shadow)
-            // TODO: Add preCE compatibility | Pattern hint: F3 0F 11 54 24 ? D9 45 10 F3 0F 11 54 24 ? D9
             {
                 auto pattern = find_pattern("C7 44 24 ? ? ? ? ? F3 0F 11 14 24 50");
                 if (!pattern.empty())
