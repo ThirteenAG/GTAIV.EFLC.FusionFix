@@ -206,13 +206,6 @@ public:
 
         if (CTimer::m_CodePause && !*CTimer::m_CodePause)
         {
-            if (!*rage::scrThread::s_CurrentThread)
-            {
-                static rage::scrThread dummyThread;
-                memset(&dummyThread, 0, sizeof(rage::scrThread));
-                *rage::scrThread::s_CurrentThread = &dummyThread;
-            }
-
             if (!m_IndexTable[Index])
             {
                 auto fn = GetNativeHandler(Hash);

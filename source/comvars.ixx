@@ -1877,6 +1877,21 @@ export namespace rage
         static inline scrThread* (*GetActiveThread)();
         static inline scrThread* (*GetThread)(scrThreadId id);
         static inline void (*RegisterCommand)(uint32_t hashCode, void (*handler)());
+
+        static inline SafetyHookInline shGetActiveThread{};
+        static inline void* GetActiveThreadHook()
+        {
+            auto ret = shGetActiveThread.unsafe_call<void*>();
+
+            if (!ret)
+            {
+                static rage::scrThread dummyThread;
+                memset(&dummyThread, 0, sizeof(rage::scrThread));
+                return static_cast<void*>(&dummyThread);
+            }
+
+            return ret;
+        }
     };
 }
 
@@ -2443,5 +2458,9 @@ public:
         
         pattern = find_pattern("FF 74 24 ? FF 74 24 ? E8 ? ? ? ? 84 C0 75 ? 6A ? FF 74 24 ? 68", "8B 44 24 ? 56 8B 74 24 ? 50 56 E8 ? ? ? ? 84 C0");
         rage::scrThread::RegisterCommand = (decltype(rage::scrThread::RegisterCommand))pattern.get_first(0);
+
+        pattern = find_pattern("E8 ? ? ? ? E9 ? ? ? ? 80 BC 3B", "E8 ? ? ? ? D9 45 ? F3 0F 10 05 ? ? ? ? F3 0F 2A 4D");
+        rage::scrThread::shGetActiveThread = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first()).as_int(), rage::scrThread::GetActiveThreadHook);
+
     }
 } Common;
