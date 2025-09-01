@@ -349,11 +349,9 @@ public:
                 pattern = hook::pattern("0A 05 ? ? ? ? 0A 05 ? ? ? ? 74 12");
                 injector::MakeInline<MenuTimecycHook>(pattern.get_first(0), pattern.get_first(6));
             }
-            else // TODO: Fix preCE compatibility
+            else
             {
-                pattern = hook::pattern("E8 ? ? ? ? 84 C0 74 1F A1 ? ? ? ? 69 C0");
                 static injector::hook_back<int(*)()> hbsub_4B18F0;
-                hbsub_4B18F0.fun = injector::GetBranchDestination(pattern.get_first()).get();
                 static auto MenuTimecycHook = []() -> int
                 {
                     if (bMenuNeedsUpdate > 0) {
@@ -361,11 +359,29 @@ public:
                         return 0;
                     }
                     return hbsub_4B18F0.fun();
-                }; hbsub_4B18F0.fun = injector::MakeCALL(pattern.get_first(), static_cast<int(*)()>(MenuTimecycHook), true).get();
+                };
+                
+                pattern = hook::pattern("E8 ? ? ? ? 84 C0 5F 0F 85");
+                hbsub_4B18F0.fun = injector::MakeCALL(pattern.get_first(), static_cast<int(*)()>(MenuTimecycHook), true).get();
 
-                pattern = hook::pattern("0F 85 ? ? ? ? E8 ? ? ? ? 84 C0 75 7C");
-                injector::MakeNOP(pattern.get_first(0), 6, true);
-                injector::MakeNOP(pattern.get_first(13), 2, true);
+                pattern = hook::pattern("E8 ? ? ? ? 84 C0 74 ? A1 ? ? ? ? 69 C0");
+                hbsub_4B18F0.fun = injector::MakeCALL(pattern.get_first(), static_cast<int(*)()>(MenuTimecycHook), true).get();
+
+                static injector::hook_back<char(*)()> hbsub_8AC010;
+                static auto MenuTimecycHook2 = []() -> char {
+                    if (bMenuNeedsUpdate > 0)
+                    {
+                        bMenuNeedsUpdate--;
+                        return 0;
+                    }
+                    return hbsub_8AC010.fun();
+                };
+
+                pattern = hook::pattern("E8 ? ? ? ? 84 C0 74 ? 38 1D ? ? ? ? 75 ? B3");
+                hbsub_8AC010.fun = injector::MakeCALL(pattern.get_first(), static_cast<char(*)()>(MenuTimecycHook2), true).get();
+
+                pattern = hook::pattern("80 3D ? ? ? ? ? 74 ? 84 DB 74 ? 8B 06");
+                injector::MakeNOP(pattern.get_first(0), 9, true);
             }
 
             pattern = find_pattern("E8 ? ? ? ? 0F B6 8C 24 ? ? ? ? 0F B6 84 24", "E8 ? ? ? ? 0F B6 84 24 ? ? ? ? 0F B6 8C 24");
