@@ -15,8 +15,8 @@ char CheatString[MAX_CHEAT_LENGTH] = { 0 };
 
 std::vector<std::pair<const char*, std::function<void()>>> ReversedCheats =
 {
-    { "wonstitel", []() { SnowCheat(false); }}, // letitsnow
-    { "ecafyracs", []() { HallCheat(false); }}, // scaryface
+    { "wonstitel", []() { SnowCheat(); }}, // letitsnow
+    { "ecafyracs", []() { HallCheat(); }}, // scaryface
 };
 
 class Cheats
@@ -72,10 +72,10 @@ public:
             bool bHalloweenCheat = iniReader.ReadInteger("CHEATS", "HalloweenCheat", 0) != 0;
 
             if (bSnowCheat)
-                FusionFix::onGameInitEvent() += []() { SnowCheat(false); };
+                FusionFix::onGameInitEvent() += []() { SnowCheat(); };
 
             if (bHalloweenCheat)
-                FusionFix::onGameInitEvent() += []() { HallCheat(false); };
+                FusionFix::onGameInitEvent() += []() { HallCheat(); };
 
             NativeOverride::RegisterPhoneCheat("7665550100", [] {
                 SnowCheat();

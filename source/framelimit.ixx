@@ -9,6 +9,7 @@ export module framelimit;
 import common;
 import comvars;
 import settings;
+import natives;
 
 int32_t nFrameLimitType;
 float fFpsLimit;
@@ -16,6 +17,17 @@ float fCutsceneFpsLimit;
 float fScriptCutsceneFpsLimit;
 float fScriptCutsceneFovLimit;
 float fLoadingFpsLimit;
+float fMinigamesFpsLimit;
+
+std::vector<std::string> minigamesNames = { //TODO
+    "ambcabaret", "ambcomedyclub", "ambstripclub", "ambtv", "ambwardrobe", "ambwindowlift", "atmobj",
+    "binco_brook_s", "boating", "carwash", "computerstreamed", "darts", "dating_alex", "dating_carmen",
+    "dating_kate", "dating_kiki", "dating_michelle", "empiredown", "empiretelescope", "happytshirt",
+    "helicopter", "jacob_gun_car", "modo_manhat_5", "perseus_manhat_8", "policetest", "pool_game",
+    "puzzle", "ray6", "telescope", "tenpinbowl", "window_lift_launcher", "ability_gun_car", "air_hockey",
+    "ambdrinking", "ambfoodeating", "burgervendor", "cablecars", "foodserver", "golf", "gunlockup", "gunlockupct",
+    "magvendor", "nutvendor", "sprunk", "vendor", "arm_wrestling", "hi_lo_cards",
+};
 
 class FrameLimiter
 {
@@ -133,7 +145,9 @@ FrameLimiter CutsceneFpsLimiter;
 FrameLimiter ScriptCutsceneFpsLimiter;
 FrameLimiter LoadingFpsLimiter;
 FrameLimiter LoadingFpsLimiter2;
+FrameLimiter MinigamesFpsLimiter;
 bool bUnlockFramerateDuringLoadscreens = true;
+bool bNeedsToLimitFpsForThisMinigame = false;
 void __cdecl sub_855640()
 {
     static auto preset = FusionFixSettings.GetRef("PREF_FPS_LIMIT_PRESET");
@@ -163,6 +177,9 @@ void __cdecl sub_855640()
             }
         }
     }
+
+    if (Natives::IsMinigameInProgress() && bNeedsToLimitFpsForThisMinigame)
+        MinigamesFpsLimiter.Sync();
 }
 
 injector::hook_back<void(__cdecl*)(void*)> hbsub_C64CB0;
@@ -188,6 +205,7 @@ public:
             fScriptCutsceneFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "ScriptCutsceneFpsLimit", 0));
             fScriptCutsceneFovLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "ScriptCutsceneFovLimit", 0));
             fLoadingFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "LoadingFpsLimit", 30));
+            fMinigamesFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "MinigamesFpsLimit", 30));
             bUnlockFramerateDuringLoadscreens = iniReader.ReadInteger("FRAMELIMIT", "UnlockFramerateDuringLoadscreens", 0) != 0;
 
             //if (fFpsLimit || fCutsceneFpsLimit || fScriptCutsceneFpsLimit)
@@ -200,6 +218,7 @@ public:
                 ScriptCutsceneFpsLimiter.Init(mode, fScriptCutsceneFpsLimit);
                 LoadingFpsLimiter.Init(mode, std::clamp(fLoadingFpsLimit, 30.0f, FLT_MAX));
                 LoadingFpsLimiter2.Init(mode, 240.0f);
+                MinigamesFpsLimiter.Init(mode, std::clamp(fMinigamesFpsLimit, 30.0f, FLT_MAX));
 
                 auto pattern = find_pattern("A3 ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 50 8B 08");
                 if (!pattern.empty())
@@ -315,6 +334,24 @@ public:
                 static auto InfiniteLoadingWorkaround2 = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                 {
                     LoadingFpsLimiter.Sync();
+                });
+            }
+
+            pattern = find_pattern("FF 05 ? ? ? ? C3 E8", "83 05 ? ? ? ? ? C3 E8 ? ? ? ? 8B C8");
+            if (!pattern.empty())
+            {
+                static auto SET_MINIGAME_IN_PROGRESS_HOOK = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs) {
+                    auto curThread = (rage::scrThread*)regs.eax;
+                    if (curThread)
+                    {
+                        std::string curScript = curThread->m_szProgramName;
+                        std::transform(curScript.begin(), curScript.end(), curScript.begin(), [](unsigned char c) { return std::tolower(c); });
+            
+                        if (std::any_of(std::begin(minigamesNames), std::end(minigamesNames), [&curScript](const auto& i) { return i == curScript; }))
+                            bNeedsToLimitFpsForThisMinigame = true;
+                        else
+                            bNeedsToLimitFpsForThisMinigame = false;
+                    }
                 });
             }
         };
