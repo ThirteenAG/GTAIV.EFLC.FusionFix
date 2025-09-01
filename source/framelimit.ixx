@@ -175,7 +175,7 @@ void __cdecl sub_855640()
         }
     }
 
-    if (Natives::IsMinigameInProgress() && bNeedsToLimitFpsForThisMinigame)
+    if (fMinigamesFpsLimit && Natives::IsMinigameInProgress() && bNeedsToLimitFpsForThisMinigame)
         MinigamesFpsLimiter.Sync();
 }
 
@@ -211,11 +211,14 @@ public:
                 if (mode == FrameLimiter::FPSLimitMode::FPS_ACCURATE)
                     timeBeginPeriod(1);
 
+                if (fMinigamesFpsLimit)
+                    fMinigamesFpsLimit = std::clamp(fMinigamesFpsLimit, 30.0f, FLT_MAX);
+
                 CutsceneFpsLimiter.Init(mode, fCutsceneFpsLimit);
                 ScriptCutsceneFpsLimiter.Init(mode, fScriptCutsceneFpsLimit);
                 LoadingFpsLimiter.Init(mode, std::clamp(fLoadingFpsLimit, 30.0f, FLT_MAX));
                 LoadingFpsLimiter2.Init(mode, 240.0f);
-                MinigamesFpsLimiter.Init(mode, std::clamp(fMinigamesFpsLimit, 30.0f, FLT_MAX));
+                MinigamesFpsLimiter.Init(mode, fMinigamesFpsLimit);
 
                 auto pattern = find_pattern("A3 ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 50 8B 08");
                 if (!pattern.empty())
