@@ -1756,6 +1756,130 @@ export namespace rage
     };
 }
 
+export namespace rage
+{
+    enum scrThreadId : int32_t
+    {
+        THREAD_INVALID = 0x0,
+    };
+
+    enum scrProgramId : uint32_t
+    {
+        srcpidNONE = 0x0,
+    };
+
+    union scrValue
+    {
+        int Int;
+        float Float;
+        bool Bool;
+        void* Reference;
+        const char* String;
+    };
+
+    class scrThread
+    {
+    public:
+        enum State
+        {
+            RUNNING,
+            BLOCKED,
+            ABORTED,
+            HALTED
+        };
+
+        struct Serialized
+        {
+            scrThreadId m_ThreadId;
+            scrProgramId m_Prog;
+            State m_State;
+            int m_PC;
+            int m_FP;
+            int m_SP;
+            float m_TimerA;
+            float m_TimerB;
+            float m_Wait;
+            int m_MinPC;
+            int m_MaxPC;
+            uint8_t pad[42];
+        };
+
+        struct Info
+        {
+            scrValue* ResultPtr;
+            int32_t ParamCount;
+            scrValue* Params;
+            int32_t BufferCount;
+            Vector3* Orig[4];
+            Vector4 Buffer[4];
+
+            Info() = default;
+            Info(scrValue* resultPtr, int32_t parameterCount, scrValue* params) :
+                ResultPtr(resultPtr), ParamCount(parameterCount), Params(params),
+                BufferCount(0)
+            {
+            }
+        };
+
+        struct InfoWithBuf : Info
+        {
+            uint8_t Buf[64] = {};
+
+            inline InfoWithBuf()
+            {
+                Params = (rage::scrValue*)&Buf;
+                ResultPtr = (rage::scrValue*)&Buf;
+                ParamCount = 0;
+                BufferCount = 0;
+            }
+
+            template <typename T>
+            void Fill(T value)
+            {
+                *reinterpret_cast<T*>(Buf + 4 * ParamCount) = value;
+                ParamCount++;
+            }
+        };
+
+        int32_t vt;
+        Serialized m_Serialized;
+        int32_t* m_Stack;
+        int32_t* m_iInstructionCount;
+        int32_t* m_argStructSize;
+        int32_t* m_argStructOffset;
+        const char* m_AbortReason;
+        char m_szProgramName[24];
+        int m_dwSavedDeathArrestIP;
+        int m_dwSavedDeatharrestFrameSP;
+        int m_dwSavedDeatharrestStackOff;
+        char m_bOnMission;
+        bool m_bSafeForNetworkGame;
+        bool m_bThisScriptShouldBeSaved;
+        bool m_bPlayerControlOnInMissionCleanup;
+        bool m_bClearHelpInMissionCleanup;
+        bool m_bMiniGameScript;
+        bool m_bAllowNonMinigameTextMessages;
+        bool m_bAllowOneTimeOnlyCommandToRun;
+        bool m_bPaused;
+        bool m_bCanBePaused;
+        bool m_eHandleType;                   //handle type 0: ped, 1: object, 2: world point
+        bool field_9F;
+        int m_handle;
+        bool m_bCanRemoveBlipsCreatedByAnyScript;
+        int field_A8;
+        int m_dwFlags;                        //0x1 = player may enter only specified vehicle
+
+    public:
+        static inline sysArray* sm_Threads;
+        static inline scrThread** s_CurrentThread;
+
+    public:
+        static inline scrThread* (*GetActiveThread)();
+        static inline scrThread* (*GetThread)(scrThreadId id);
+        static inline void (*RegisterCommand)(uint32_t hashCode, void (*handler)());
+    };
+}
+
 export namespace CViewport3DScene
 {
     rage::grcRenderTargetPC** pGBufferRTs = nullptr;
@@ -2304,5 +2428,20 @@ public:
                 bInSniperScope = false;
             }
         });
+
+        pattern = find_pattern("8B 15 ? ? ? ? 5E 85 D2 74 ? 8B 03", "8B 15 ? ? ? ? 53 66 8B 1D ? ? ? ? 33 FF 66 3B DD");
+        rage::scrThread::sm_Threads = *pattern.get_first<decltype(rage::scrThread::sm_Threads)>(2);
+
+        pattern = find_pattern("8B 35 ? ? ? ? 8B 47 ? FF 77", "89 3D ? ? ? ? E8 ? ? ? ? 83 7D");
+        rage::scrThread::s_CurrentThread = *pattern.get_first<decltype(rage::scrThread::s_CurrentThread)>(2);
+
+        pattern = find_pattern("E8 ? ? ? ? 8B 10 8B C8 FF 62", "E8 ? ? ? ? 8B 10 8B C8 8B 42 ? FF E0");
+        rage::scrThread::GetActiveThread = (decltype(rage::scrThread::GetActiveThread))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+
+        pattern = find_pattern("8B 54 24 ? 85 D2 75 ? 33 C0", "56 8B 74 24 ? 33 C0 85 F6");
+        rage::scrThread::GetThread = (decltype(rage::scrThread::GetThread))pattern.get_first(0);
+        
+        pattern = find_pattern("FF 74 24 ? FF 74 24 ? E8 ? ? ? ? 84 C0 75 ? 6A ? FF 74 24 ? 68", "8B 44 24 ? 56 8B 74 24 ? 50 56 E8 ? ? ? ? 84 C0");
+        rage::scrThread::RegisterCommand = (decltype(rage::scrThread::RegisterCommand))pattern.get_first(0);
     }
 } Common;

@@ -206,6 +206,15 @@ public:
 
         if (CTimer::m_CodePause && !*CTimer::m_CodePause)
         {
+            auto currThread = *rage::scrThread::s_CurrentThread;
+
+            if (!currThread)
+            {
+                static rage::scrThread dummyThread;
+                memset(&dummyThread, 0, sizeof(rage::scrThread));
+                *rage::scrThread::s_CurrentThread = &dummyThread;
+            }
+
             if (!m_IndexTable[Index])
             {
                 auto fn = GetNativeHandler(Hash);
@@ -218,6 +227,9 @@ public:
             {
                 m_IndexTable[Index](&cxt);
             }
+
+            if (!currThread)
+                *rage::scrThread::s_CurrentThread = currThread;
         }
 
         if constexpr (!std::is_void_v<R>)
