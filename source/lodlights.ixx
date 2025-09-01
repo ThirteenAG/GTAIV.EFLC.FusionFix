@@ -720,18 +720,21 @@ public:
             else
             {
                 pattern = hook::pattern("0F 8C ? ? ? ? 83 3D ? ? ? ? ? 75 ? F3 0F 10 05");
-                if (bDisableDefaultLodLights)
+                if (!pattern.empty())
                 {
-                    static uintptr_t loc_D658B0 = resolve_displacement(pattern.get_first(0)).value();
-                    struct DisableDefaultLodLights
+                    if (bDisableDefaultLodLights)
                     {
-                        void operator()(injector::reg_pack& regs)
+                        static uintptr_t loc_D658B0 = resolve_displacement(pattern.get_first(0)).value();
+                        struct DisableDefaultLodLights
                         {
-                            static auto dl = FusionFixSettings.GetRef("PREF_DISTANTLIGHTS");
-                            if (!dl->get() && regs.ebx < 8)
-                                force_return_address(loc_D658B0);
-                        }
-                    }; injector::MakeInline<DisableDefaultLodLights>(pattern.get_first(0), pattern.get_first(6));
+                            void operator()(injector::reg_pack& regs)
+                            {
+                                static auto dl = FusionFixSettings.GetRef("PREF_DISTANTLIGHTS");
+                                if (!dl->get() && regs.ebx < 8)
+                                    force_return_address(loc_D658B0);
+                            }
+                        }; injector::MakeInline<DisableDefaultLodLights>(pattern.get_first(0), pattern.get_first(6));
+                    }
                 }
             }
 
