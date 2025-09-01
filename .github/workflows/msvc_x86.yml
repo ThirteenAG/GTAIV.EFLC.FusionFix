@@ -87,6 +87,13 @@ jobs:
         latest: true
         fileName: "dxvk-*.tar.gz"
 
+    - name: Download Legacy Package
+      uses: robinraju/release-downloader@v1.12
+      with:
+        repository: "GTAmodding/XLivelessAddon"
+        tag: "latest"
+        fileName: "XLivelessAddon.zip"
+
     - name: Unpack dependencies
       shell: cmd
       run: |
@@ -100,6 +107,13 @@ jobs:
     - name: Pack binaries
       run: |
         ./release.bat
+
+    - name: Pack Legacy
+      shell: cmd
+      run: |
+        7z e XLivelessAddon.zip plugins/XLivelessAddon.asi -y
+        7z a GTAIV.EFLC.FusionFixLegacyAddon.zip -i!XLivelessAddon.asi@plugins/XLivelessAddon.asi -i!data\dinput8.dll@xlive.dll
+        del XLivelessAddon.asi
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
@@ -128,6 +142,12 @@ jobs:
         name: GTAIV.EFLC.FusionFixOfflineInstaller.exe
         path: GTAIV.EFLC.FusionFixOfflineInstaller.exe
 
+    - name: Upload Legacy Addon
+      uses: actions/upload-artifact@v4
+      with:
+        name: GTAIV.EFLC.FusionFixLegacyAddon.zip
+        path: GTAIV.EFLC.FusionFixLegacyAddon.zip
+
     - name: Upload Release
       if: |
         github.event.inputs.release == 'true' &&
@@ -141,5 +161,5 @@ jobs:
         name: GTAIV.EFLC.FusionFix v${{ steps.versioning.outputs.version }}
         body: "[README](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix#readme)"
         tag: v${{ steps.versioning.outputs.version }}
-        artifacts: GTAIV.EFLC.FusionFix.zip, GTAIV.EFLC.FusionFixWebInstaller.exe, GTAIV.EFLC.FusionFixOfflineInstaller.exe
+        artifacts: GTAIV.EFLC.FusionFix.zip, GTAIV.EFLC.FusionFixWebInstaller.exe, GTAIV.EFLC.FusionFixOfflineInstaller.exe, GTAIV.EFLC.FusionFixLegacyAddon.zip
 
