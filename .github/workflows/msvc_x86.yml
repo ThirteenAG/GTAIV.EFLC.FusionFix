@@ -112,7 +112,14 @@ jobs:
       shell: cmd
       run: |
         7z e XLivelessAddon.zip plugins/XLivelessAddon.asi -y
-        7z a GTAIV.EFLC.FusionFixLegacyAddon.zip -i!XLivelessAddon.asi@plugins/XLivelessAddon.asi -i!data\dinput8.dll@xlive.dll
+        mkdir legacy
+        copy data\dinput8.dll legacy\xlive.dll
+        mkdir legacy\plugins
+        copy XLivelessAddon.asi legacy\plugins\
+        cd legacy
+        7z a -tzip ..\GTAIV.EFLC.FusionFixLegacyAddon.zip *
+        cd ..
+        rmdir /s /q legacy
         del XLivelessAddon.asi
 
     - name: Upload artifact
