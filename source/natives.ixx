@@ -206,9 +206,7 @@ public:
 
         if (CTimer::m_CodePause && !*CTimer::m_CodePause)
         {
-            auto currThread = *rage::scrThread::s_CurrentThread;
-
-            if (!currThread)
+            if (!*rage::scrThread::s_CurrentThread)
             {
                 static rage::scrThread dummyThread;
                 memset(&dummyThread, 0, sizeof(rage::scrThread));
@@ -227,9 +225,6 @@ public:
             {
                 m_IndexTable[Index](&cxt);
             }
-
-            if (!currThread)
-                *rage::scrThread::s_CurrentThread = currThread;
         }
 
         if constexpr (!std::is_void_v<R>)
