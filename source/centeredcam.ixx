@@ -83,7 +83,7 @@ public:
             else
             {
                 pattern = hook::pattern("55 8B EC 83 E4 ? 83 EC ? 56 8B 75 ? F7 86");
-                ptrdiff_t VehicleTypeOffset = 0x1350;
+                VehicleTypeOffset = 0x1350;
                 GetVehiclePedWouldEnter = (decltype(GetVehiclePedWouldEnter))pattern.get_first();
             }
 
