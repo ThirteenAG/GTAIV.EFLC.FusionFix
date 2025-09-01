@@ -145,6 +145,7 @@ public:
             else
             {
                 pattern = find_pattern("55 8B EC 83 E4 ? 8B 45 ? 83 EC ? 53 8B 5D ? 56 8B F1 8B 88");
+                sh_sub_A3FF30 = safetyhook::create_inline(pattern.get_first(0), sub_A3FF30);
                 SteerAngleOffset = 0x10D8;
             }
 
