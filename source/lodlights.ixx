@@ -676,13 +676,29 @@ public:
 
             static raw_mem LoadObjectInstanceHookAddr(pattern.get_first(0), { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
 
-            pattern = find_pattern("F3 0F 59 45 ? F3 0F 11 45 ? 0F 28 85", "F3 0F 10 05 ? ? ? ? F3 0F 59 C4 F3 0F 11 45");
-            static auto WaterMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+            static SafetyHookMid WaterMultiplierHook = {};
+            pattern = find_pattern("F3 0F 59 45 ? F3 0F 11 45 ? 0F 28 85");
+            if (!pattern.empty())
             {
-                static auto dl = FusionFixSettings.GetRef("PREF_DISTANTLIGHTS");
-                if (dl->get())
-                    regs.xmm0.f32[0] = 1.0f;
-            });
+                WaterMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs) {
+                    static auto dl = FusionFixSettings.GetRef("PREF_DISTANTLIGHTS");
+                    if (dl->get())
+                        regs.xmm0.f32[0] = 1.0f;
+                });
+            }
+            else
+            {
+                pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 C4 F3 0F 11 45");
+                static float* dword_F17AA8 = *pattern.get_first<float*>(4);
+                injector::MakeNOP(pattern.get_first(0), 12, true);
+                WaterMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs) {
+                    regs.xmm0.f32[0] = *dword_F17AA8;
+                    static auto dl = FusionFixSettings.GetRef("PREF_DISTANTLIGHTS");
+                    if (dl->get())
+                        regs.xmm0.f32[0] = 1.0f;
+                    regs.xmm0.f32[0] *= regs.xmm4.f32[0];
+                });
+            }
 
             pattern = hook::pattern("83 F8 08 0F 8C ? ? ? ? 83 3D");
             if (!pattern.empty())
