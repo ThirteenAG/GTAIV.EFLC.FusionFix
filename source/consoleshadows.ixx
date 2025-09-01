@@ -263,7 +263,7 @@ public:
                 else
                 {
                     pattern = find_pattern("F3 0F 11 54 24 ? D9 45 ? D9 1C 24");
-                    static auto CarStaticShadowIntensityHook = safetyhook::create_mid(pattern.get_first(12), [](SafetyHookContext& regs) {
+                    static auto CarStaticShadowIntensityHook = safetyhook::create_mid(pattern.get_first(9), [](SafetyHookContext& regs) {
                         if (bHeadlightShadows)
                             *(float*)regs.esp *= 3.0f;
                     });
