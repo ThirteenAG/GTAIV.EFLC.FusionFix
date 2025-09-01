@@ -19,14 +19,11 @@ float fScriptCutsceneFovLimit;
 float fLoadingFpsLimit;
 float fMinigamesFpsLimit;
 
-std::vector<std::string> minigamesNames = { //TODO
-    "ambcabaret", "ambcomedyclub", "ambstripclub", "ambtv", "ambwardrobe", "ambwindowlift", "atmobj",
-    "binco_brook_s", "boating", "carwash", "computerstreamed", "darts", "dating_alex", "dating_carmen",
-    "dating_kate", "dating_kiki", "dating_michelle", "empiredown", "empiretelescope", "happytshirt",
-    "helicopter", "jacob_gun_car", "modo_manhat_5", "perseus_manhat_8", "policetest", "pool_game",
-    "puzzle", "ray6", "telescope", "tenpinbowl", "window_lift_launcher", "ability_gun_car", "air_hockey",
-    "ambdrinking", "ambfoodeating", "burgervendor", "cablecars", "foodserver", "golf", "gunlockup", "gunlockupct",
-    "magvendor", "nutvendor", "sprunk", "vendor", "arm_wrestling", "hi_lo_cards",
+std::vector<std::string> minigamesNames = {
+    "pool_game",
+    "air_hockey",
+    "arm_wrestling",
+    "tenpinbowl",
 };
 
 class FrameLimiter
