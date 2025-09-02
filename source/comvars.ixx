@@ -1753,6 +1753,11 @@ export namespace rage
             }
             shsub_436D70.unsafe_fastcall(_this, edx, a2, index, pDataArr, nArrSize, a6, a7);
         }
+
+        static void __fastcall setShaderParamOriginal(grmShaderInfo* _this, void* edx, void* a2, int index, void* pDataArr, int nArrSize, int a6, int a7)
+        {
+            shsub_436D70.unsafe_fastcall(_this, edx, a2, index, pDataArr, nArrSize, a6, a7);
+        }
     };
 }
 
@@ -2304,6 +2309,13 @@ public:
 
         pattern = find_pattern("8B 54 24 08 85 D2 74 62", "56 8B 74 24 0C 85 F6 74 62");
         rage::grmShaderInfo::shsub_436D70 = safetyhook::create_inline(pattern.get_first(0), rage::grmShaderInfo::setShaderParam);
+
+        pattern = find_pattern("F3 0F 11 44 24 ? E8 ? ? ? ? 83 C6 ? 3B F3");
+        if (!pattern.empty())
+        {
+            // workaround for car reflections
+            injector::MakeCALL(pattern.get_first(6), rage::grmShaderInfo::setShaderParamOriginal, true);
+        }
 
         pattern = find_pattern("55 8B EC 83 E4 F0 81 EC ? ? ? ? 53 8B D9 56 F7 83", "55 8B EC 83 E4 F0 81 EC ? ? ? ? 53 56 57 8B F9 33 DB");
         CRenderPhaseDeferredLighting_LightsToScreen::shBuildRenderList = safetyhook::create_inline(pattern.get_first(), CRenderPhaseDeferredLighting_LightsToScreen::BuildRenderList);
