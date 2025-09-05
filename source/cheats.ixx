@@ -19,6 +19,27 @@ std::vector<std::pair<const char*, std::function<void()>>> ReversedCheats =
     { "ecafyracs", []() { HallCheat(); }}, // scaryface
 };
 
+char VirtualKeyToChar(int vkCode)
+{
+    if (vkCode >= 'A' && vkCode <= 'Z')
+    {
+        return static_cast<char>(vkCode + 32);
+    }
+
+    if (vkCode >= '0' && vkCode <= '9')
+    {
+        return static_cast<char>(vkCode);
+    }
+
+    switch (vkCode)
+    {
+    case VK_SPACE:
+        return ' ';
+    default:
+        return '\0';
+    }
+}
+
 class Cheats
 {
 public:
@@ -38,7 +59,7 @@ public:
                         if (keyIndex != 8 && Natives::GetAsciiJustPressed(keyIndex, &pressedKey))
                         {
                             memmove(CheatString + 1, CheatString, MAX_CHEAT_LENGTH - 2);
-                            CheatString[0] = static_cast<char>(pressedKey);
+                            CheatString[0] = VirtualKeyToChar(keyIndex);
                             CheatString[MAX_CHEAT_LENGTH - 1] = '\0';
                         }
 
