@@ -16,23 +16,48 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 ## Installation:
 
 > [!NOTE]
-> Install Grand Theft Auto IV: The Complete Edition (v1.2.0.30 and above required)
+> Install **Grand Theft Auto IV: The Complete Edition** from your library, then:
 >
-> **Download**: [GTAIV.EFLC.FusionFix.zip](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFix.zip)
+> * Download [GTAIV.EFLC.FusionFix.zip](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFix.zip) and unpack its contents to the game's root directory, where the exe is located.
+> * Or alternatively download [GTAIV.EFLC.FusionFixWebInstaller.exe](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFixWebInstaller.exe) or [GTAIV.EFLC.FusionFixOfflineInstaller.exe](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFixOfflineInstaller.exe), open it, select the game's directory and wait for it to finish.
 >
-> Unpack content of the archive to your **GTAIV: The Complete Edition** root directory, where the exe is located.
 
 > [!WARNING]
-> Non-Windows users (Proton/Wine) need to perform a [DLL override](https://cookieplmonster.github.io/setup-instructions/#proton-wine).
-> 
+> Non-Windows users (Proton/Wine) need to perform a **DLL override**.
+>
+> <details>
+> <summary>Click here for details</summary>
+> <br>
+> You need to tell Wine explicitly that the `dinput8.dll` file is to be used. There's more than one way to achieve it. Note that Proton Experimental already loads it by default, so you may skip this step.
+>
+> ###
+>
+> **Method 1**: `WINEDLLOVERRIDES` variable lets you temporarily specify DLL overrides. It can be used from a command line as well as in the Steam launcher. In case of command line, simply prepend the usual start command with `WINEDLLOVERRIDES="dinput8=n,b"` . For Steam, head to game’s properties and set `LAUNCH OPTIONS` to `WINEDLLOVERRIDES="dinput8=n,b" %command%`.
+>
+>  ![steam-wine-dll-override](https://cookieplmonster.github.io/assets/img/setup/steam-wine-dll-override.png)
+>
+> **Method 2**: Use `winecfg` tool to make a permanent override for a specific Wine prefix. In case of Proton, Steam creates the Wine prefix for Grand Theft Auto IV: The Complete Edition in `$HOME/.steam/steam/steamapps/compatdata/12210/pfx`. Then you need to run `winecfg` with that path:
+> ```
+> WINEPREFIX="$HOME/.steam/steam/steamapps/compatdata/12210/pfx" winecfg
+> ```
+> Select `Libraries` tab and fill the combo box with the name of the library you wish to override and hit `Add`. You can verify that it’s been added to the list below with `(native, builtin)` suffix. Then close the window with `OK` button.
+>
+> ![winecfg-dll-override](https://cookieplmonster.github.io/assets/img/setup/winecfg-dll-override.png)
+>
+> Related Wine documentation:
+> * [More on DLL overrides](https://wiki.winehq.org/Wine_User's_Guide#DLL_Overrides)
+> * [More on WINEDLLOVERRIDES method](https://wiki.winehq.org/Wine_User's_Guide#WINEDLLOVERRIDES.3DDLL_Overrides)
+> </details>
+>
 > Additionally:
 > * Install and run Protontricks.
 > * Select "Grand Theft Auto IV" -> "Select the default Wineprefix" -> "Install a Windows DLL or component".
 > * Search for "d3dx9_43", select it and click OK.
 
 > [!IMPORTANT]
-> This fix was tested only with latest official update and latest [ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/latest/download/Ultimate-ASI-Loader.zip) (included in the archive).
-> Also, it is designed to run without any commandline or launch parameters whatsoever, as it handles everything automatically. Adding unnecessary parameters may lead to crashes or other issues.
+> Only The Complete Edition is fully supported. Legacy versions of the game additionally require the installation of the [Legacy Addon](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFixLegacyAddon.zip), which is done by unpacking its contents to the game's root directory. Multiplayer is not supported.
+> 
+> No support will be provided for illegal copies of the game. Purchase an official copy from either [Steam](https://store.steampowered.com/app/12210/) or [Rockstar Games Launcher](https://store.rockstargames.com/game/buy-grand-theft-auto-iv).
 
 ## Donation links
 
