@@ -28,22 +28,20 @@ export void CompatibilityWarnings()
     TASKDIALOGCONFIG tdc = { sizeof(TASKDIALOGCONFIG) };
     int nClickedBtn;
     BOOL bCheckboxChecked;
-    LPCWSTR szTitle = L"", szHeader = L"", szContent = L"";
+    LPCWSTR szTitle = L"GTAIV.EFLC.FusionFix", szHeader = L"", szContent = L"";
     TASKDIALOG_BUTTON aCustomButtons[] = { { 1000, L"Close the program" }, { 1001, L"Continue" } };
 
     if (GetModuleHandleW(L"d3dx9_43.dll") == NULL)
     {
-        szTitle = L"GTAIV.EFLC.FusionFix",
-            szHeader = L"You are missing a DirectX 9 component.",
-            szContent = L"It requires the latest version of " \
+        szHeader = L"You are missing a DirectX 9 component.";
+        szContent = L"It requires the latest version of " \
             L"<a href=\"https://www.microsoft.com/en-us/download/details.aspx?id=35\">DirectX End-User Runtimes</a>\n\n" \
             L"<a href=\"https://www.microsoft.com/en-us/download/details.aspx?id=35\">https://www.microsoft.com/en-us/download/details.aspx?id=35</a>";
     }
     else if (!IsUALPresent())
     {
-        szTitle = L"GTAIV.EFLC.FusionFix",
-            szHeader = L"You are running GTA IV The Complete Edition Fusion Fix with an incompatible version of ASI Loader",
-            szContent = L"It requires the latest version of " \
+        szHeader = L"You are running GTA IV The Complete Edition Fusion Fix with an incompatible version of ASI Loader";
+        szContent = L"It requires the latest version of " \
             L"<a href=\"https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/latest\">Ultimate ASI Loader</a>\n\n" \
             L"<a href=\"https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/latest\">https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/latest</a>";
     }
@@ -52,13 +50,12 @@ export void CompatibilityWarnings()
         if (IsModuleUAL(GetModuleHandleW(L"xlive")))
             return;
 
-        szTitle = L"GTAIV.EFLC.FusionFix",
-            szHeader = L"You are running GTA IV The Complete Edition Fusion Fix in backwards compatibility mode.",
-            szContent = L"It requires the latest version of " \
-            L"<a href=\"https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/latest\">Ultimate ASI Loader</a>" \
-            L" as xlive.dll and " \
-            L"<a href=\"https://github.com/GTAmodding/XLivelessAddon/releases/tag/latest\">XLivelessAddon</a>.";
+        szHeader = L"You are running GTA IV The Complete Edition Fusion Fix in backwards compatibility mode.";
+        szContent = L"It requires the latest version of " \
+            L"<a href=\"https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFixLegacyAddon.zip\">Fusion Fix Legacy Addon</a>.";
     }
+    else
+        return;
 
     tdc.hwndParent = gWnd;
     tdc.dwFlags = TDF_USE_COMMAND_LINKS | TDF_ENABLE_HYPERLINKS | TDF_SIZE_TO_CONTENT | TDF_CAN_BE_MINIMIZED;
