@@ -25,29 +25,29 @@ HRESULT CALLBACK TaskDialogCallbackProc(HWND hwnd, UINT uNotification, WPARAM wP
 
 export void CompatibilityWarnings()
 {
-    auto bUAL = IsUALPresent();
-    std::filesystem::path dllName;
-
-    if (GetModuleHandleW(L"xlive"))
-        dllName = L"xlive";
-    else
-        return;
-
     TASKDIALOGCONFIG tdc = { sizeof(TASKDIALOGCONFIG) };
     int nClickedBtn;
     BOOL bCheckboxChecked;
     LPCWSTR szTitle = L"", szHeader = L"", szContent = L"";
     TASKDIALOG_BUTTON aCustomButtons[] = { { 1000, L"Close the program" }, { 1001, L"Continue" } };
 
-    if (!bUAL)
+    if (GetModuleHandleW(L"d3dx9_43.dll") == NULL)
     {
         szTitle = L"GTAIV.EFLC.FusionFix",
-        szHeader = L"You are running GTA IV The Complete Edition Fusion Fix with an incompatible version of ASI Loader",
-        szContent = L"It requires the latest version of " \
-        L"<a href=\"https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/latest\">Ultimate ASI Loader</a>\n\n" \
-        L"<a href=\"https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/latest\">https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/latest</a>";
+            szHeader = L"You are missing a DirectX 9 component.",
+            szContent = L"It requires the latest version of " \
+            L"<a href=\"https://www.microsoft.com/en-us/download/details.aspx?id=35\">DirectX End-User Runtimes</a>\n\n" \
+            L"<a href=\"https://www.microsoft.com/en-us/download/details.aspx?id=35\">https://www.microsoft.com/en-us/download/details.aspx?id=35</a>";
     }
-    else if (iequals(dllName.stem().wstring(), L"xlive"))
+    else if (!IsUALPresent())
+    {
+        szTitle = L"GTAIV.EFLC.FusionFix",
+            szHeader = L"You are running GTA IV The Complete Edition Fusion Fix with an incompatible version of ASI Loader",
+            szContent = L"It requires the latest version of " \
+            L"<a href=\"https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/latest\">Ultimate ASI Loader</a>\n\n" \
+            L"<a href=\"https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/latest\">https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/latest</a>";
+    }
+    else if (GetModuleHandleW(L"xlive"))
     {
         if (IsModuleUAL(GetModuleHandleW(L"xlive")))
             return;
