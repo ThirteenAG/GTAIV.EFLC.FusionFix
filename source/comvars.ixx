@@ -1963,6 +1963,8 @@ export namespace CCamera
 export namespace CTimer
 {
     float* fTimeStep;
+    float* fTimeScale1;
+    float* fTimeScale2;
     uint8_t* m_UserPause = nullptr;
     uint8_t* m_CodePause = nullptr;
     int32_t* m_snTimeInMilliseconds = nullptr;
@@ -2257,9 +2259,14 @@ public:
         pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? 8B 43 20 53", "F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? 83 C4 04 83 7C 24");
         CTimer::fTimeStep = *pattern.get_first<float*>(4);
 
+        pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 10 0D ? ? ? ? 0F 2F C8 F3 0F 11 44 24", "F3 0F 10 05 ? ? ? ? 0F 2F C8 77 ? F3 0F 10 05");
+        CTimer::fTimeScale1 = *pattern.get_first<float*>(4);
+
+        pattern = find_pattern("F3 0F 11 05 ? ? ? ? EB ? F3 0F 10 05 ? ? ? ? 0F 2F C8 F3 0F 11 44 24", "F3 0F 11 05 ? ? ? ? F3 0F 10 05 ? ? ? ? 56 F3 0F 11 44 24 ? E8 ? ? ? ? 8B 0D");
+        CTimer::fTimeScale2 = *pattern.get_first<float*>(4);
+
         pattern = find_pattern("BE ? ? ? ? 8D 44 24 0C 50 8D 46 10 50", "BE ? ? ? ? 8D 44 24 0C 50 8D 4E 10 51");
-        if (!pattern.empty())
-            CGameConfigReader::ms_imgFiles = *pattern.get_first<decltype(CGameConfigReader::ms_imgFiles)>(1);
+        CGameConfigReader::ms_imgFiles = *pattern.get_first<decltype(CGameConfigReader::ms_imgFiles)>(1);
 
         pattern = hook::pattern("A1 ? ? ? ? 83 F8 08 74 05");
         CCutscenes::m_dwCutsceneState = *pattern.get_first<uint32_t*>(1);
