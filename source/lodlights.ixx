@@ -629,9 +629,11 @@ public:
             static raw_mem RegisterLODLightsAddr(pattern.get_first(0), { 0x90, 0x90, 0x90, 0x90, 0x90 });
             injector::MakeCALL(pattern.get_first(0), RegisterLODLights, true);
 
+            static std::optional<raw_mem> LoadObjectInstanceHookAddr;
             pattern = hook::pattern("8B 75 08 8D 44 24 1C 50 FF 76 1C C6 44 24");
             if (!pattern.empty())
             {
+                LoadObjectInstanceHookAddr = raw_mem(pattern.get_first(0), { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
                 struct LoadObjectInstanceHook
                 {
                     void operator()(injector::reg_pack& regs)
@@ -654,6 +656,7 @@ public:
             else
             {
                 pattern = hook::pattern("8B 5D 08 8B 4B 1C 8D 44 24 14 50 51");
+                LoadObjectInstanceHookAddr = raw_mem(pattern.get_first(0), { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
                 struct LoadObjectInstanceHook
                 {
                     void operator()(injector::reg_pack& regs)
@@ -673,8 +676,6 @@ public:
                     }
                 }; injector::MakeInline<LoadObjectInstanceHook>(pattern.get_first(0), pattern.get_first(6));
             }
-
-            static raw_mem LoadObjectInstanceHookAddr(pattern.get_first(0), { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
 
             static SafetyHookMid WaterMultiplierHook = {};
             pattern = find_pattern("F3 0F 59 45 ? F3 0F 11 45 ? 0F 28 85");
@@ -700,9 +701,11 @@ public:
                 });
             }
 
+            static std::optional<raw_mem> DisableDefaultLodLightsHookAddr;
             pattern = hook::pattern("83 F8 08 0F 8C ? ? ? ? 83 3D");
             if (!pattern.empty())
             {
+                DisableDefaultLodLightsHookAddr = raw_mem(pattern.get_first(0), { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
                 if (bDisableDefaultLodLights)
                 {
                     static uintptr_t loc_D658B0 = resolve_next_displacement(pattern.get_first(0)).value();
@@ -722,6 +725,7 @@ public:
                 pattern = hook::pattern("0F 8C ? ? ? ? 83 3D ? ? ? ? ? 75 ? F3 0F 10 05");
                 if (!pattern.empty())
                 {
+                    DisableDefaultLodLightsHookAddr = raw_mem(pattern.get_first(0), { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
                     if (bDisableDefaultLodLights)
                     {
                         static uintptr_t loc_D658B0 = resolve_displacement(pattern.get_first(0)).value();
@@ -738,8 +742,6 @@ public:
                 }
             }
 
-            static raw_mem DisableDefaultLodLightsHookAddr(pattern.get_first(0), { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
-
             static float f0 = 0.0f;
             pattern = find_pattern("F3 0F 5C 0D ? ? ? ? F3 0F 11 84 24 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 0D ? ? ? ? 0F 2F C8 F3 0F 11 4C 24", "F3 0F 5C 05 ? ? ? ? F3 0F 59 05 ? ? ? ? 0F 2F C1 76 08 F3 0F 11 4C 24 ? EB 06");
             injector::WriteMemory(pattern.get_first(4), &f0, true);
@@ -747,8 +749,8 @@ public:
             auto InitIVLodLights = []()
             {
                 RegisterLODLightsAddr.Restore();
-                LoadObjectInstanceHookAddr.Restore();
-                DisableDefaultLodLightsHookAddr.Restore();
+                LoadObjectInstanceHookAddr->Restore();
+                DisableDefaultLodLightsHookAddr->Restore();
                 WaterMultiplierHook.reset();
 
                 FileContent.clear();
