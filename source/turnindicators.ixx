@@ -198,6 +198,41 @@ public:
                 });
             }
 
+            pattern = hook::pattern("C7 81 ? ? ? ? ? ? ? ? C7 81 ? ? ? ? ? ? ? ? C7 81 ? ? ? ? ? ? ? ? C7 81 ? ? ? ? ? ? ? ? A1");
+            if (!pattern.empty())
+            {
+                injector::MakeNOP(pattern.get_first(), 10, true);
+            }
+            else
+            {
+                pattern = hook::pattern("F3 0F 11 86 ? ? ? ? F3 0F 11 86 ? ? ? ? F3 0F 10 05 ? ? ? ? 33 C0");
+                injector::MakeNOP(pattern.get_first(), 8, true);
+            }
+
+            if (!pattern.empty())
+            {
+                static auto WheelResetHook3 = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                {
+                    uintptr_t& pEntity = (SteerAngleOffset == 0x1088) ? regs.ecx : regs.esi;
+                    Ped PlayerPed = 0;
+                    Vehicle PlayerCar = 0;
+                    Natives::GetPlayerChar(Natives::ConvertIntToPlayerindex(Natives::GetPlayerId()), &PlayerPed);
+                    if (PlayerPed)
+                    {
+                        Natives::GetCarCharIsUsing(PlayerPed, &PlayerCar);
+
+                        static auto ti = FusionFixSettings.GetRef("PREF_TURNINDICATORS");
+                        if (ti->get() && PlayerCar == CVehicle::GetVehiclePool()->GetIndex((void*)pEntity))
+                        {
+                            prev_player_car = PlayerCar;
+                            return;
+                        }
+                    }
+
+                    *(float*)(pEntity + SteerAngleOffset) = 0.0f;
+                });
+            }
+
             pattern = find_pattern("E8 ? ? ? ? 84 C0 0F 84 ? ? ? ? 8B 07 8B CF 8B 80 ? ? ? ? FF D0 D9 5C 24", "E8 ? ? ? ? 84 C0 0F 84 ? ? ? ? 8B 16 8B 82 ? ? ? ? 8B CE FF D0 D8 25");
             static auto FlyThroughWindscreenHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
             {
