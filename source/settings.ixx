@@ -1021,7 +1021,7 @@ public:
             FusionFix::onEndScene() += []()
             {
                 static auto fpsc = FusionFixSettings.GetRef("PREF_FPSCOUNTER");
-                if (pMenuTab && *pMenuTab == 8 || *pMenuTab == 49 || (*pMenuTab == 0 && CMenu::getSelectedItem() == 15) || fpsc->get())
+                if (pMenuTab && *pMenuTab == 8 || *pMenuTab == 49 || (*pMenuTab == 0 && CMenu::getSelectedItem() == 13) || fpsc->get())
                 {
                     static std::list<int> m_times;
                     static int fontSize = 0;
