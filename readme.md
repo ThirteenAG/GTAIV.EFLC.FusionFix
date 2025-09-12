@@ -55,7 +55,10 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 > * Search for "d3dx9_43", select it and click OK.
 
 > [!IMPORTANT]
-> Only The Complete Edition is fully supported. Legacy versions of the game additionally require the installation of the [Legacy Addon](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFixLegacyAddon.zip), which is done by unpacking its contents to the game's root directory. Multiplayer is not supported.
+> Only The Complete Edition is fully supported. Legacy versions of the game (e.g., v1.0.7.0 or v1.0.8.0) additionally require the installation of the [Legacy Addon](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFixLegacyAddon.zip), which is done by unpacking its contents to the game's root directory.
+>
+> Multiplayer is not supported. [Take-Two has agreed that it generally will not take legal action against third-party projects involving Rockstar’s PC games that are single-player, non-commercial, and respect the intellectual property (IP) rights of third parties. This does not apply to (i) multiplayer or online services; (ii) tools, files, libraries, or functions that could be used to impact multiplayer or online services, or (iii) use or importation of other IP (including other Rockstar IP) in the project; or (iv) making new games, stories, missions, or maps.](https://support.rockstargames.com/articles/5NVOAYjcTomO8v6SX2k76k/pc-single-player-mods)
+> Forking this project or creating any derivative software intended for use with multiplayer of any kind is forbidden. Any persons or entities who do so are not associated with this project.
 > 
 > No support will be provided for illegal copies of the game. Purchase an official copy from either [Steam](https://store.steampowered.com/app/12210/) or [Rockstar Games Launcher](https://store.rockstargames.com/game/buy-grand-theft-auto-iv).
 
