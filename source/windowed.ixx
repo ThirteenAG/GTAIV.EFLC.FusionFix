@@ -48,7 +48,7 @@ void SwitchWindowStyle()
         AdjustWindowRect(&rect, lStyle, FALSE);
         SetWindowLong(gWnd, GWL_STYLE, lStyle);
         MoveWindow_Hook(gWnd, 0, 0, rect.right - rect.left, rect.bottom - rect.top, TRUE);
-        SetFocus(gWnd);
+        ShowWindow(gWnd, SW_SHOW);
     }
 }
 

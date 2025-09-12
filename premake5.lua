@@ -2,7 +2,7 @@ newoption {
     trigger     = "with-version",
     value       = "STRING",
     description = "Current version",
-    default     = "2.0",
+    default     = "4.0",
 }
 
 workspace "GTAIV.EFLC.FusionFix"
@@ -17,6 +17,7 @@ workspace "GTAIV.EFLC.FusionFix"
    buildoptions { "/dxifcInlineFunctions- /Zc:__cplusplus /utf-8" }
    staticruntime "On"
    characterset ("Unicode")
+   flags { "MultiProcessorCompile" }
 
    defines { "rsc_CompanyName=\"GTAIV.EFLC.FusionFix\"" }
    defines { "rsc_LegalCopyright=\"GTAIV.EFLC.FusionFix\""} 
@@ -46,6 +47,16 @@ workspace "GTAIV.EFLC.FusionFix"
    defines { "rsc_FileVersion=\"" .. major .. "." .. minor .. "." .. build .. "\"" }
    defines { "rsc_ProductVersion=\"" .. major .. "." .. minor .. "." .. build .. "\"" }
 
+   local githash = ""
+   local f = io.popen("git rev-parse --short HEAD")
+   if f then
+      githash = f:read("*a"):gsub("%s+", "")
+      f:close()
+   end
+
+   defines { "rsc_GitSHA1=\"" .. githash .. "\"" }
+   defines { "rsc_GitSHA1W=L\"" .. githash .. "\"" }
+
    defines { "_CRT_SECURE_NO_WARNINGS" }
 
    includedirs { "source" }
@@ -57,6 +68,7 @@ workspace "GTAIV.EFLC.FusionFix"
    files { "source/*.h", "source/*.hpp", "source/*.cpp", "source/*.hxx", "source/*.ixx", "source/snow/*.ixx" }
    files { "source/resources/Versioninfo.rc" }
    files { "source/resources/Shaders.rc" }
+   files { "source/resources/LODLights.rc" }
    files { "source/snow/*.rc" }
    links { "LogitechLEDLib.lib" }
 
@@ -117,3 +129,44 @@ workspace "GTAIV.EFLC.FusionFix"
       
 project "GTAIV.EFLC.FusionFix"
    setpaths("H:/SteamLibrary/steamapps/common/Grand Theft Auto IV/GTAIV/", "GTAIV.exe", "plugins/")
+
+project "GTAIV.EFLC.FusionFixInstaller"
+   kind "WindowedApp"
+   language "C++"
+   targetdir "bin/%{cfg.buildcfg}"
+   targetextension ".exe"
+   staticruntime "On"
+
+   files { "installer/*.rc" }
+   files { "installer/main.cpp" }
+   removefiles { "source/**" }
+   removefiles { "external/**" }
+   files { "source/resources/Versioninfo.rc" }
+
+   filter "configurations:Debug"
+      defines { "DEBUG" }
+      symbols "On"
+
+   filter "configurations:Release"
+      defines { "NDEBUG" }
+      optimize "On"
+
+project "d3d9"
+   language "C++"
+   targetdir "bin"
+   targetextension ".dll"
+   staticruntime "On"
+
+   removefiles { "source/**" }
+   removefiles { "external/**" }
+   files { "source/d3d9/d3d9.def" }
+   files { "source/d3d9/d3d9.cpp" }
+   files { "source/resources/Versioninfo.rc" }
+
+   filter "configurations:Debug"
+      defines { "DEBUG" }
+      symbols "On"
+
+   filter "configurations:Release"
+      defines { "NDEBUG" }
+      optimize "On"

@@ -55,6 +55,9 @@ Bloom
 [Console Gamma]
 Console Gamma
 
+[Auto Exposure]
+Console Auto Exposure
+
 [Screen Filter]
 Screen Filter
 
@@ -73,17 +76,98 @@ Anti-aliasing
 [FPS Limiter]
 FPS Limiter
 
-[LamppostShadows]
-Lamppost Shadows
+[ExtraNightShad]
+Extra Night Shadows
+
+[Lampposts]
+Lampposts
+
+[LampostsHeadl]
+Lampposts and Headlights
+
+[LampHeadlVNS]
+Lampposts and Headlights + Vehicle Night Shadows
 
 [Tree Alpha]
 Tree Alpha
+
+[UnclampLighting]
+Extended Sunlight Reach
 
 [Shadow Filter]
 Shadow Filter
 
 [HeadlightShadow]
 Headlight Shadows
+
+[Timed Events]
+Seasonal Events
+
+[Tone Mapping]
+Tone Mapping
+
+[Volumetric Fog]
+Volumetric Fog
+
+[Zoomed Movement]
+Allow Movement When Zoomed
+
+[Distant Lights]
+Distant Lights
+
+[CenteredVehCam]
+Centered Vehicle Camera
+
+[CenteredFootCam]
+Centered On Foot Camera
+
+[Camera Shake]
+Camera Shake
+
+[CutscAudioSync]
+Cutscene Audio Sync
+
+[CutscAudioSync0]
+Cutscene Audio Sync deactivated
+
+[CutscAudioSync1]
+Cutscene Audio Sync activated
+
+[Turn Indicators]
+Turn Indicators
+
+[WinterEvent0]
+Winter event deactivated
+
+[WinterEvent1]
+Winter event activated
+
+[HalloweenEvent0]
+Halloween event deactivated
+
+[HalloweenEvent1]
+Halloween event activated
+
+[TranspMapMenu]
+Transparent Map Menu
+
+[Extra Streaming]
+Extra Streaming Memory
+
+[FF_SM]
+Streaming budget
+
+[Graphics API]
+Graphics API
+
+[FF_RESTART]
+GTA IV must be restarted in order to apply settings.
+
+[Extended Sniper]
+Extended Sniper Controls
+
+[Bullet Traces]
+Always Show Bullet Traces
 
 [FF_WARN0]
 ~p~IMG Files:
@@ -92,7 +176,7 @@ Headlight Shadows
 ; ~r~WARNING: 255 IMG limit exceeded, will cause streaming issues.
 
 [FF_WARN2]
-~r~WARNING: Lamppost shadows may cause visual artifacts and performance issues.
+~r~WARNING: Extra Night Shadows is an original PC option by Rockstar. Extremely broken, not recommended.
 
 [FF_WARN3]
 ~r~WARNING: View Distance slider above 25 and Detail Distance slider above 31 may cause object pop-in.
@@ -105,6 +189,9 @@ Headlight Shadows
 
 [FF_WARN6]
 ~r~WARNING: CHSS only takes effect with Shadow Quality set to Very High.
+
+[FF_WARN7]
+~r~WARNING: Set Cutscene Audio Sync ON if you have audio desynchronization, OFF for animation smoothness. It can be toggled in a cutscene via ~PAD_UP~
 
 [DUMMY_l11]
 Dummy label.

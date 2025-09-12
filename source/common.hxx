@@ -18,3 +18,7 @@
 #include <array>
 #include <future>
 #include <d3d9.h>
+#include <maths.hxx>
+
+#define force_return_address(addr) (*(uintptr_t*)(regs.esp - 4) = (addr))
+#define return_to(addr) do { force_return_address(addr); return; } while (0)

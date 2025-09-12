@@ -55,6 +55,9 @@ Resplandor
 [Console Gamma]
 Gamma de consola
 
+[Auto Exposure]
+Exposición automática de consola
+
 [Screen Filter]
 Filtro de pantalla
 
@@ -73,17 +76,98 @@ Suavizado de líneas
 [FPS Limiter]
 Limitador de FPS
 
-[LamppostShadows]
-Sombras de farolas
+[ExtraNightShad]
+Sombras nocturnas adicionales
+
+[Lampposts]
+Farolas
+
+[LampostsHeadl]
+Farolas y faros
+
+[LampHeadlVNS]
+Farolas, faros y sombras nocturnas del vehículo 
 
 [Tree Alpha]
 Transparencia de árboles
+
+[UnclampLighting]
+Mayor alcance de la luz solar
 
 [Shadow Filter]
 Filtro de sombras
 
 [HeadlightShadow]
 Sombras de faros
+
+[Timed Events]
+Eventos estacionales
+
+[Tone Mapping]
+Mapeo tonal
+
+[Volumetric Fog]
+Niebla volumétrica
+
+[Zoomed Movement]
+Permitir movimiento con zoom
+
+[Distant Lights]
+Luces lejanas
+
+[CenteredVehCam]
+Cámara de vehículo centrada
+
+[CenteredFootCam]
+Cámara a pie centrada
+
+[Camera Shake]
+Temblor de cámara
+
+[CutscAudioSync]
+Sincronización de audio en escenas
+
+[CutscAudioSync0]
+Sincronización de audio en escenas desactivada
+
+[CutscAudioSync1]
+Sincronización de audio en escenas activada
+
+[Turn Indicators]
+Indicadores de giro
+
+[WinterEvent0]
+Evento de invierno desactivado
+
+[WinterEvent1]
+Evento de invierno activado
+
+[HalloweenEvent0]
+Evento de Halloween desactivado
+
+[HalloweenEvent1]
+Evento de Halloween activado
+
+[TranspMapMenu]
+Menú del mapa transparente
+
+[Extra Streaming]
+Memoria de streaming adicional
+
+[FF_SM]
+Presupuesto de streaming
+
+[Graphics API]
+API gráfica
+
+[FF_RESTART]
+Se debe reiniciar el juego para aplicar la configuración.
+
+[Extended Sniper]
+Controles extendidos del rifle de francotirador
+
+[Bullet Traces]
+Mostrar siempre las trazas de balas
 
 [FF_WARN0]
 ~p~Archivos IMG:
@@ -92,7 +176,7 @@ Sombras de faros
 ; ~r~ATENCIÓN: Se ha sobrepasado el límite de 255 archivos IMG y causará problemas de carga ("streaming"). 
 
 [FF_WARN2]
-~r~ATENCIÓN: Las sombras de farolas pueden causar errores visuales y problemas de rendimiento.
+~r~ATENCIÓN: "Sombras nocturnas adicionales" es una opción original de PC hecho por Rockstar. Muy defectuosa, no recomendada.
 
 [FF_WARN3]
 ~r~ATENCIÓN: Los valores de distancia visible superiores a 25 y los valores de detalle de distancia superiores a 31 pueden causar que los objetos se dibujen bruscamente ("pop-in").
@@ -105,6 +189,9 @@ Sombras de faros
 
 [FF_WARN6]
 ~r~ATENCIÓN: CHSS se activa solamente con la calidad de las sombras puesta en "Muy alta".
+
+[FF_WARN7]
+~r~ATENCIÓN: Activa la sincronización de audio si tienes desincronización del audio en escenas, desactívala para animaciones fluidas. Se puede cambiar en una escena con ~PAD_UP~.
 
 [DUMMY_l11]
 Dummy label.

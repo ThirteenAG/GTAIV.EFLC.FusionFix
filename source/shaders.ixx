@@ -10,6 +10,8 @@ import comvars;
 import settings;
 import natives;
 import shadows;
+import timecycext;
+import d3dx9_43;
 
 template<typename T, typename ... U>
 concept IsAnyOf = (std::same_as<T, U> || ...);
@@ -43,13 +45,98 @@ int GetFusionShaderID(T pShader)
 
 class Shaders
 {
+    static void OnBeforeLighting()
+    {
+        auto pDevice = rage::grcDevice::GetD3DDevice();
+
+        {
+            static auto AzimuthColorIdx = rage::grmShaderInfo::registerShaderParam("gta_atmoscatt_clouds.fxc", "AzimuthColor");
+            static auto AzimuthHeightIdx = rage::grmShaderInfo::registerShaderParam("gta_atmoscatt_clouds.fxc", "AzimuthHeight");
+            auto& AzimuthColor = rage::grmShaderInfo::getShaderParamData(AzimuthColorIdx);
+            auto& AzimuthHeight = rage::grmShaderInfo::getShaderParamData(AzimuthHeightIdx);
+            
+            static float arr[4];
+            arr[0] = AzimuthColor[0];
+            arr[1] = AzimuthColor[1];
+            arr[2] = AzimuthColor[2];
+            arr[3] = AzimuthHeight[0];
+
+            pDevice->SetPixelShaderConstantF(212, &arr[0], 1);
+            pDevice->SetVertexShaderConstantF(228, &arr[0], 1);
+        }
+
+        {
+            static auto AzimuthColorEastIdx = rage::grmShaderInfo::registerShaderParam("gta_atmoscatt_clouds.fxc", "AzimuthColorEast");
+            static auto AzimuthStrengthIdx = rage::grmShaderInfo::registerShaderParam("gta_atmoscatt_clouds.fxc", "AzimuthStrength");
+            auto& AzimuthColorEast = rage::grmShaderInfo::getShaderParamData(AzimuthColorEastIdx);
+            auto& AzimuthStrength = rage::grmShaderInfo::getShaderParamData(AzimuthStrengthIdx);
+            
+            static float arr[4];
+            arr[0] = AzimuthColorEast[0];
+            arr[1] = AzimuthColorEast[1];
+            arr[2] = AzimuthColorEast[2];
+            arr[3] = AzimuthStrength[0];
+
+            pDevice->SetPixelShaderConstantF(213, &arr[0], 1);
+            pDevice->SetVertexShaderConstantF(229, &arr[0], 1);
+        }
+        
+        {
+            static auto SkyColorIdx = rage::grmShaderInfo::registerShaderParam("gta_atmoscatt_clouds.fxc", "SkyColor");
+            static auto HDRExposureIdx = rage::grmShaderInfo::registerShaderParam("gta_atmoscatt_clouds.fxc", "HDRExposure");
+            auto& SkyColor = rage::grmShaderInfo::getShaderParamData(SkyColorIdx);
+            auto& HDRExposure = rage::grmShaderInfo::getShaderParamData(HDRExposureIdx);
+        
+            static float arr[4];
+            arr[0] = SkyColor[0];
+            arr[1] = SkyColor[1];
+            arr[2] = SkyColor[2];
+            arr[3] = HDRExposure[0];
+
+            pDevice->SetPixelShaderConstantF(214, &arr[0], 1);
+            pDevice->SetVertexShaderConstantF(234, &arr[0], 1);
+        }
+        
+        {
+            static auto SunColorIdx = rage::grmShaderInfo::registerShaderParam("gta_atmoscatt_clouds.fxc", "SunColor");
+            static auto HDRSunExposureIdx = rage::grmShaderInfo::registerShaderParam("gta_atmoscatt_clouds.fxc", "HDRSunExposure");
+            auto& SunColor = rage::grmShaderInfo::getShaderParamData(SunColorIdx);
+            auto& HDRSunExposure = rage::grmShaderInfo::getShaderParamData(HDRSunExposureIdx);
+            
+            static float arr[4];
+            arr[0] = SunColor[0];
+            arr[1] = SunColor[1];
+            arr[2] = SunColor[2];
+            arr[3] = HDRSunExposure[0];
+
+            pDevice->SetPixelShaderConstantF(215, &arr[0], 1);
+            pDevice->SetVertexShaderConstantF(231, &arr[0], 1);
+        }
+        
+        {
+            static auto SunDirectionIdx = rage::grmShaderInfo::registerShaderParam("gta_atmoscatt_clouds.fxc", "SunDirection");
+            auto& SunDirection = rage::grmShaderInfo::getShaderParamData(SunDirectionIdx);
+        
+            static float arr[4];
+            arr[0] = SunDirection[0];
+            arr[1] = (-1.0f * SunDirection[2]);
+            arr[2] = SunDirection[1];
+            arr[3] = 0.0f;
+
+            pDevice->SetPixelShaderConstantF(216, &arr[0], 1);
+            pDevice->SetVertexShaderConstantF(232, &arr[0], 1);
+        }
+    }
+
+    //static void OnBeforeGBuffer()
+    //{
+    //
+    //}
 public:
     Shaders()
     {
-        static IDirect3DTexture9* pHDRTexQuarter = nullptr;
-        static float fTreeAlphaPC = 0.625f;
-        static float fTreeAlphaConsole = 4.0f;
-        static float fCoronaReflectionIntensity = 1.0f;
+        static rage::grcRenderTargetPC* pHDRTexQuarter = nullptr;
+        static float fOverrideTreeAlpha = 0.0f;
 
         static float fSHADOWFILTERSHARPShadowSoftness = 1.5f;
         static float fSHADOWFILTERSHARPShadowBias = 5.0f;
@@ -60,23 +147,28 @@ public:
         static float fSHADOWFILTERCHSSShadowSoftness = 1.5f;
         static float fSHADOWFILTERCHSSShadowBias = 5.0f;
         static float fSHADOWFILTERCHSSMaxSoftness = 10.0f;
-        static float fSHADOWFILTERCHSSLightSize = 500.0f;
-        static float fSHADOWFILTERCHSSExtraBias = 2.0f;
 
-        static float fShadowSoftnessBlendRange = 0.3f;
-        static float fShadowBiasBlendRange = 0.3f;
+        static float fSSDensity = 0.9f;
+        static float fSSDecay = 0.95f;
+
+        static float fCascadeBlendSize = 0.1f;
+
+        static float fMaxPQValue = 100.0f;
 
         static int nForceShadowFilter = 0;
 
         static bool bSmoothShorelines = true;
+        
+        static bool bSmoothLightVolumes = true;
+
+        static bool bNoBloomColorShift = true;
+
+        static auto bNoWindSway = false;
 
         FusionFix::onInitEvent() += []()
         {
             CIniReader iniReader("");
-            bFixAutoExposure = iniReader.ReadInteger("MISC", "FixAutoExposure", 1) != 0;
-            fTreeAlphaPC = std::clamp(iniReader.ReadFloat("MISC", "TreeAlphaPC", 0.625f), 0.0f, 10.0f);
-            fTreeAlphaConsole = std::clamp(iniReader.ReadFloat("MISC", "TreeAlphaConsole", 4.0f), 0.0f, 10.0f);
-            fCoronaReflectionIntensity = iniReader.ReadFloat("MISC", "CoronaReflectionIntensity", 1.0f);
+            fOverrideTreeAlpha = std::clamp(iniReader.ReadFloat("MISC", "OverrideTreeAlpha", 0.0f), 0.0f, 255.0f);
             fSHADOWFILTERSHARPShadowSoftness = iniReader.ReadFloat("SHADOWFILTERSHARP", "ShadowSoftness", 1.5f);
             fSHADOWFILTERSHARPShadowBias = iniReader.ReadFloat("SHADOWFILTERSHARP", "ShadowBias", 5.0f);
             fSHADOWFILTERSOFTShadowSoftness = iniReader.ReadFloat("SHADOWFILTERSOFT", "ShadowSoftness", 3.0f);
@@ -85,14 +177,18 @@ public:
             fSHADOWFILTERCHSSShadowSoftness = iniReader.ReadFloat("SHADOWFILTERCHSS", "ShadowSoftness", 1.5f);
             fSHADOWFILTERCHSSShadowBias = iniReader.ReadFloat("SHADOWFILTERCHSS", "ShadowBias", 5.0f);
             fSHADOWFILTERCHSSMaxSoftness = iniReader.ReadFloat("SHADOWFILTERCHSS", "MaxSoftness", 10.0f);
-            fSHADOWFILTERCHSSLightSize = iniReader.ReadFloat("SHADOWFILTERCHSS", "LightSize", 500.0f);
-            fSHADOWFILTERCHSSExtraBias = iniReader.ReadFloat("SHADOWFILTERCHSS", "ExtraBias", 2.0f);
 
-            fShadowSoftnessBlendRange = std::clamp(iniReader.ReadFloat("SHADOWS", "ShadowSoftnessBlendRange", 0.3f), 0.0f, 1.0f);
-            fShadowBiasBlendRange = std::clamp(iniReader.ReadFloat("SHADOWS", "ShadowBiasBlendRange", 0.3f), 0.0f, 1.0f);
+            fSSDensity = std::clamp(iniReader.ReadFloat("SUNSHAFTS", "SunShaftsDensity", 0.9f), 0.0f, 1.0f);
+            fSSDecay = std::clamp(iniReader.ReadFloat("SUNSHAFTS", "SunShaftsDecay", 0.95f), 0.0f, 1.0f);
+
+            fCascadeBlendSize = std::clamp(iniReader.ReadFloat("SHADOWS", "CascadeBlendSize", 0.1f), 0.0f, 1.0f);
             nForceShadowFilter = std::clamp(iniReader.ReadInteger("SHADOWS", "ForceShadowFilter", 0), 0, 2);
             bool bConsoleCarReflectionsAndDirt = iniReader.ReadInteger("MISC", "ConsoleCarReflectionsAndDirt", 1) != 0;
             bSmoothShorelines = iniReader.ReadInteger("MISC", "SmoothShorelines", 1) != 0;
+            bSmoothLightVolumes = iniReader.ReadInteger("MISC", "SmoothLightVolumes", 1) != 0;
+
+            bNoBloomColorShift = iniReader.ReadInteger("MISC", "NoBloomColorShift", 1) != 0;
+            fMaxPQValue = max(iniReader.ReadFloat("MISC", "MaxPQValue", 100.0f), 0.0000001f);
 
             // Redirect path to one unified folder
             auto pattern = hook::pattern("8B 04 8D ? ? ? ? A3 ? ? ? ? 8B 44 24 04");
@@ -120,6 +216,33 @@ public:
                         *(const char**)&regs.edx = *off_1045520;
                     }
                 }; injector::MakeInline<ShaderPathHook>(pattern.get_first(0), pattern.get_first(7));
+            }
+
+            // Redirect common\shaders\win32_30\rage_perlinnoise.fxc
+            {
+                std::ifstream is(GetModulePath(GetModuleHandleW(NULL)).parent_path() / "common" / "shaders" / "win32_30" / "rage_perlinnoise.fxc", std::ios::binary);
+                if (is)
+                {
+                    static std::string rage_perlinnoise((std::istreambuf_iterator<char>(is)), std::istreambuf_iterator<char>());
+
+                    auto pattern = hook::pattern("A1 ? ? ? ? A3 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? C3");
+                    for (size_t i = 0; i < pattern.size(); ++i)
+                    {
+                        auto off_110ECB0 = *pattern.get(i).get<void***>(16);
+                        if (!IsBadReadPtr(off_110ECB0, sizeof(uint32_t)))
+                        {
+                            if (!IsBadReadPtr(off_110ECB0[0], strlen("win32_30/rage_perlinnoise.fxc")))
+                            {
+                                auto str = std::string_view((const char*)off_110ECB0[0]);
+                                if (str == "win32_30/rage_perlinnoise.fxc")
+                                {
+                                    injector::WriteMemory(&off_110ECB0[1], rage_perlinnoise.data(), true);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             // Actually read the rain lighting settings in the visualsettings.dat
@@ -165,6 +288,78 @@ public:
                 pattern = find_pattern("75 37 C7 47 ? ? ? ? ? C7 87 ? ? ? ? ? ? ? ? C7 87", "75 3A F3 0F 10 05 ? ? ? ? F3 0F 11 46 ? F3 0F 11 86");
                 injector::MakeNOP(pattern.get_first(0), 2, true);
             }
+
+            // Adjust mirror plane offset, fixes stuff like the graffiti decals not appearing on the mirror in the Middle Park public toilet.
+            {
+                static float dwMirrorOffset = 0.0125f; // 0.035 (PC) -> 0.0125 (Xbox)
+                auto pattern = find_pattern("F3 0F 10 15 ? ? ? ? 0F 28 CC F3 0F 59 CB", "F3 0F 10 0D ? ? ? ? 8B 0D ? ? ? ? 0F 28 D0 F3 0F 59 D3");
+                injector::WriteMemory(pattern.get_first(4), &dwMirrorOffset, true);
+            }
+
+            // Contrast slider value is actually one tick lower internally on the Xbox 360 version (n ticks visually, actually n-1 in game code). Implement this behavior to get proper console gamma w/ FusionShaders
+            {
+                auto pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 C6 F3 0F 11 4C 24", "F3 0F 10 05 ? ? ? ? F3 0F 59 C6 F3 0F 11 44 24 ? F3 0F 10 05");
+                static auto PostFXContrastHook = safetyhook::create_mid(pattern.get_first(8), [](SafetyHookContext& regs)
+                {
+                    static auto consolegamma = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA");
+                    regs.xmm0.f32[0] += regs.xmm0.f32[0] >= 1.3f ? 0.0f : (consolegamma->get() ? 0.06f : 0.0f);
+                });
+            }
+
+            // Force the water surface render target resolution to always be 256x256. This matches the water tiling on the console versions.
+            {
+                static uint32_t dwWaterQuality = 1; // MO_MED?
+
+                auto pattern = find_pattern("8B 0D ? ? ? ? 53 BB ? ? ? ? D3 E3 85 D2 0F 85", "8B 0D ? ? ? ? BF ? ? ? ? D3 E7 85 C0 0F 85");
+                if (!pattern.empty())
+                {
+                    injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true); // MO_LOW?
+
+                    pattern = find_pattern("8B 0D ? ? ? ? F3 0F 10 0D ? ? ? ? B8 ? ? ? ? D3 E0 8B 0D", "8B 0D ? ? ? ? F3 0F 10 05 ? ? ? ? 6A 02 6A 01 BA");
+                    injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true); // MO_HIGH?
+
+                    pattern = find_pattern("8B 0D ? ? ? ? BE ? ? ? ? D3 E6 83 3D", "8B 0D ? ? ? ? F3 0F 11 0D ? ? ? ? F3 0F 10 0D");
+                    injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true); // MO_VHIGH?
+                }
+            }
+
+            // z-fighting fix helpers
+            {
+                auto pattern = find_pattern("75 ? 8B CE E8 ? ? ? ? 5E 8B E5 5D C3", "? 75 ? 56 E8 ? ? ? ? 8B E5");
+                static auto grcViewPortUpdateTransformHook = safetyhook::create_mid(pattern.get_first(4), [](SafetyHookContext& regs)
+                {
+                    auto pDevice = rage::grcDevice::GetD3DDevice();
+
+                    if (pDevice)
+                    {
+                        auto viewport = rage::GetCurrentViewport();
+                        if (viewport)
+                        {
+                            static float arr[4];
+                            static float cachedNearClip = 0.0f;
+                            static float cachedFarClip = 0.0f;
+                            static float cachedLog2Value = 0.0f;
+
+                            arr[0] = 1.0f / viewport->mNearClip;
+
+                            // Only recalculate log2 if clip planes have changed
+                            if (viewport->mNearClip != cachedNearClip || viewport->mFarClip != cachedFarClip)
+                            {
+                                cachedNearClip = viewport->mNearClip;
+                                cachedFarClip = viewport->mFarClip;
+                                cachedLog2Value = 1.0f / log2(viewport->mFarClip / viewport->mNearClip);
+                            }
+
+                            arr[1] = cachedLog2Value;
+                            arr[2] = viewport->mFarClip / viewport->mNearClip;
+                            arr[3] = viewport->mNearClip;
+
+                            pDevice->SetVertexShaderConstantF(227, &arr[0], 1);
+                            pDevice->SetPixelShaderConstantF(209, &arr[0], 1);
+                        }
+                    }
+                });
+            }
         };
 
         FusionFix::onGameInitEvent() += []()
@@ -181,30 +376,30 @@ public:
 
                 if (*dw103E49C && !bLoadscreenActive)
                 {
-                    static Cam cam = 0;
-                    Natives::GetRootCam(&cam);
-                    if (cam)
-                    {
-                        static float farclip;
-                        static float nearclip;
-
-                        Natives::GetCamFarClip(cam, &farclip);
-                        Natives::GetCamNearClip(cam, &nearclip);
-
-                        static float arr[4];
-                        arr[0] = nearclip;
-                        arr[1] = farclip;
-                        arr[2] = 0.0f;
-                        arr[3] = 0.0f;
-                        pDevice->SetVertexShaderConstantF(227, &arr[0], 1);
-                    }
+                    //static Cam cam = 0;
+                    //Natives::GetRootCam(&cam);
+                    //if (cam)
+                    //{
+                    //    static float farclip;
+                    //    static float nearclip;
+                    //
+                    //    Natives::GetCamFarClip(cam, &farclip);
+                    //    Natives::GetCamNearClip(cam, &nearclip);
+                    //
+                    //    static float arr[4];
+                    //    arr[0] = nearclip;
+                    //    arr[1] = farclip;
+                    //    arr[2] = 0.0f;
+                    //    arr[3] = 0.0f;
+                    //    pDevice->SetVertexShaderConstantF(227, &arr[0], 1);
+                    //}
 
                     // DynamicShadowForTrees Wind Sway
                     {
                         static float arr2[4];
-                        arr2[0] = Natives::IsInteriorScene() ? 0.0f : *dw11A2948;
-                        arr2[1] = bEnableSnow ? 0.005f : 0.015f;
-                        arr2[2] = fCoronaReflectionIntensity;
+                        arr2[0] = (Natives::IsInteriorScene() || bNoWindSway) ? 0.0f : *dw11A2948;
+                        arr2[1] = bEnableSnow ? 0.005f : std::clamp(*CTimer::fTimeScale2 * 0.015f, 0.0015f, 0.015f);
+                        arr2[2] = 0.0f;
                         arr2[3] = 0.0f;
                         pDevice->SetVertexShaderConstantF(233, &arr2[0], 1);
                     }
@@ -231,62 +426,60 @@ public:
                             arr7[1] = fSHADOWFILTERCHSSShadowBias;
                         }
 
-                        arr7[2] = (fShadowBiasBlendRange < fShadowSoftnessBlendRange) ? fShadowSoftnessBlendRange : fShadowBiasBlendRange;
-                        arr7[3] = fShadowSoftnessBlendRange;
+                        static auto sq = FusionFixSettings.GetRef("PREF_SHADOW_QUALITY");
+                        if (sq->get() >= 4) // Very High
+                            arr7[2] = shadowFilter->get() == FusionFixSettings.ShadowFilterText.eCHSS ? 1.0f : 0.0f;
+                        else
+                            arr7[2] = 0.0f;
+
+                        arr7[3] = fCascadeBlendSize;
 
                         pDevice->SetPixelShaderConstantF(218, &arr7[0], 1);
 
                         arr9[0] = bHighResolutionShadows ? fSHADOWFILTERCHSSMaxSoftness * 2.0f : fSHADOWFILTERCHSSMaxSoftness;
-                        arr9[1] = bHighResolutionShadows ? fSHADOWFILTERCHSSLightSize * 2.0f : fSHADOWFILTERCHSSLightSize;
-                        arr9[2] = fSHADOWFILTERCHSSExtraBias;
-                        if (FusionFixSettings.Get("PREF_SHADOW_QUALITY") >= 4) // Very High
-                            arr9[3] = shadowFilter->get() == FusionFixSettings.ShadowFilterText.eCHSS ? 1.0f : 0.0f;
-                        else
-                            arr9[3] = 0.0f;
+                        arr9[1] = bHighResolutionShadows ? CTimeCycleExt::GetCHSSLightSize() * 2.0f : CTimeCycleExt::GetCHSSLightSize();
+                        
+                        static auto tm = FusionFixSettings.GetRef("PREF_TONEMAPPING");
+                        arr9[2] = static_cast<float>(tm->get());
+
+                        arr9[3] = bNoBloomColorShift && tm->get() ? 1.0f : 0.0f;
+                        
+
 
                         pDevice->SetPixelShaderConstantF(217, &arr9[0], 1);
                     }
 
-                    // Shadow Quality
+                    // Water reflection half-pixel offset
                     {
-                        static float arr6[4];
-
-                        switch (FusionFixSettings.Get("PREF_SHADOW_QUALITY"))
+                        static float arr[4];
+                        static auto wq = FusionFixSettings.GetRef("PREF_WATER_QUALITY");
+                        switch (wq->get())
                         {
-                        case 0:
-                            arr6[0] = 0.0f;
-                            arr6[1] = 0.0f;
-                            arr6[2] = 0.0f;
-                            arr6[3] = 0.0f;
-                            break;
-                        case 1:
-                            arr6[0] = 0.0f;
-                            arr6[1] = 0.0f;
-                            arr6[2] = 0.0f;
-                            arr6[3] = 1.0f;
-                            break;
-                        case 2:
-                            arr6[0] = 0.0f;
-                            arr6[1] = 0.0f;
-                            arr6[2] = 1.0f;
-                            arr6[3] = 0.0f;
-                            break;
-                        case 3:
-                            arr6[0] = 0.0f;
-                            arr6[1] = 1.0f;
-                            arr6[2] = 0.0f;
-                            arr6[3] = 0.0f;
-                            break;
-                        case 4:
-                        default:
-                            arr6[0] = 1.0f;
-                            arr6[1] = 0.0f;
-                            arr6[2] = 0.0f;
-                            arr6[3] = 0.0f;
-                            break;
+                            case 0:
+                                arr[0] = (0.5f / 160.0f);
+                                arr[1] = (0.5f / 64.0f);
+                                break;
+                            case 1:
+                                arr[0] = (0.5f / 320.0f);
+                                arr[1] = (0.5f / 128.0f);
+                                break;
+                            case 2:
+                                arr[0] = (0.5f / 640);
+                                arr[1] = (0.5f / 256.0f);
+                                break;
+                            case 3:
+                            default:
+                                arr[0] = (0.5f / 1280.0f);
+                                arr[1] = (0.5f / 512.0f);
+                                break;
                         }
+                        
+                        static auto unclamplighting = FusionFixSettings.GetRef("PREF_UNCLAMPLIGHTING");
+                        
+                        arr[2] = unclamplighting->get() ? 1.0f : 4.0f / 3.0f;
+                        arr[3] = unclamplighting->get() ? 0.0f : -1.0f / 3.0f;
 
-                        pDevice->SetPixelShaderConstantF(220, &arr6[0], 1);
+                        pDevice->SetPixelShaderConstantF(220, &arr[0], 1);
                     }
 
                     // Current Settings
@@ -309,8 +502,22 @@ public:
                         }
 
                         arr5[1] = bEnableSnow ? 1.0f : 0.0f;
-                        arr5[2] = 1.0f / (30.0f * Natives::Timestep());
-                        arr5[3] = treealpha->get() == FusionFixSettings.TreeAlphaText.eConsole ? fTreeAlphaConsole : fTreeAlphaPC;
+                        arr5[2] = fMenuBlur;
+
+                        static float alphamul = 4.0f;
+                        if (fOverrideTreeAlpha == 0.0f)
+                        {
+                            switch (treealpha->get())
+                            {
+                            case FusionFixSettings.TreeFxText.ePC: alphamul = 0.625f; break;
+                            case FusionFixSettings.TreeFxText.ePCPlus: alphamul = 1.0f; break;
+                            case FusionFixSettings.TreeFxText.eConsole: alphamul = 4.0f; break;
+                            }
+                        }
+                        else
+                            alphamul = fOverrideTreeAlpha;
+
+                        arr5[3] = alphamul;
                         pDevice->SetPixelShaderConstantF(221, &arr5[0], 1);
                     }
 
@@ -318,11 +525,22 @@ public:
                     {
                         static auto gamma = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA");
                         static auto mblur = FusionFixSettings.GetRef("PREF_MOTIONBLUR");
+                        static auto ae = FusionFixSettings.GetRef("PREF_AUTOEXPOSURE");
                         static float arr3[4];
-                        arr3[0] = (bFixAutoExposure ? 1.0f : 0.0f);
+                        arr3[0] = (ae->get() ? 1.0f / 9.0f : 1.0f / 16.0f);
                         arr3[1] = (bSmoothShorelines ? 1.0f : 0.0f);
                         arr3[2] = static_cast<float>(gamma->get());
-                        arr3[3] = static_cast<float>(mblur->get());
+                        static float mblurscale = 1.0f;
+                        switch(mblur->get())
+                        {
+                            case 0: mblurscale = 0.0f; break;
+                            case 1: mblurscale = 0.125f; break;
+                            case 2: mblurscale = 0.25f; break;
+                            case 3: mblurscale = 0.5f; break;
+                            case 4: mblurscale = 1.0f; break;
+                            default: mblurscale = 1.0f; break;
+                        }
+                        arr3[3] = mblurscale / (30.0f * Natives::Timestep());
                         pDevice->SetPixelShaderConstantF(222, &arr3[0], 1);
                     }
 
@@ -348,46 +566,121 @@ public:
                             pDevice->SetPixelShaderConstantF(223, &arr4[0], 1);
                         }
                     }
+
+                    {
+                        static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
+
+                        static float arr10[4];
+                        arr10[0] = max(CTimeCycleExt::GetVolFogDensity(), 0.0f);
+                        arr10[1] = max(CTimeCycleExt::GetVolFogHeightFalloff(), 0.0000001f);
+                        arr10[2] = max(CTimeCycleExt::GetVolFogPower(), 0.0f);
+                        arr10[3] = std::clamp(CTimeCycleExt::GetVolFogAltitudeTweak(), 0.0f, 1.0f);
+                        pDevice->SetPixelShaderConstantF(211, &arr10[0], 1);
+                        pDevice->SetVertexShaderConstantF(235, &arr10[0], 1);
+
+                        static float arr11[4];
+                        arr11[0] = 1.0f / fMaxPQValue;
+                        arr11[1] = static_cast<float>(fog->get());
+                        arr11[2] = bSmoothLightVolumes ? 1.0f : 0.0f;
+                        arr11[3] = 0.0f;
+
+                        if (bIsQUB3D)
+                            arr11[1] = 0.0f;
+
+                        static float arr12[4];
+                        arr12[0] = CTimeCycleExt::GetDirLightColorR();
+                        arr12[1] = CTimeCycleExt::GetDirLightColorG();
+                        arr12[2] = CTimeCycleExt::GetDirLightColorB();
+                        arr12[3] = CTimeCycleExt::GetDirLightMultiplier();
+
+                        pDevice->SetPixelShaderConstantF(210, &arr11[0], 1);
+                        pDevice->SetVertexShaderConstantF(236, &arr11[0], 1);
+                        pDevice->SetVertexShaderConstantF(237, &arr12[0], 1);
+
+                        static float arr13[4];
+                        arr13[0] = max(CTimeCycleExt::GetSSIntensity(), 0.0f);
+                        arr13[1] = fSSDensity;
+                        arr13[2] = fSSDecay;
+                        arr13[3] = 0.0f;
+
+                        pDevice->SetPixelShaderConstantF(208, &arr13[0], 1);
+                    }
                 }
             });
         };
 
         FusionFix::onInitEventAsync() += []()
         {
-            CIniReader iniReader("");
-            static auto bFixRainDrops = iniReader.ReadInteger("MISC", "FixRainDrops", 1) != 0;
-
-            //SetRenderState D3DRS_ADAPTIVETESS_X
-            auto pattern = hook::pattern("74 ? 68 4E 56 44 42 68");
+            // Skip SetRenderState D3DRS_ADAPTIVETESS_* entirely (silences warnings in DXVK logs)
+            auto pattern = find_pattern("74 24 F3 0F 10 44 24 ? 51 8D 44 24 44", "74 1C D9 44 24 14 51 8D 4C 24 44");
             injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
 
-            pattern = find_pattern<2>("89 3C B5 ? ? ? ? 8B 82 ? ? ? ? 57 8B 08 56 50 FF 91 ? ? ? ? 5F 5E C2 0C 00", "89 14 8D ? ? ? ? 8B 80 ? ? ? ? 8B 30 52 8B 96 ? ? ? ? 51 50 FF D2 5E C2 0C 00");
-            static auto reg = *pattern.get(1).get<uint8_t>(1);
-            static auto SetTextureHook = safetyhook::create_mid(pattern.get(1).get<void>(0), [](SafetyHookContext& regs)
+            pattern = find_pattern("74 0A 6A 00 E8 ? ? ? ? 83 C4 04 8B 7C 24 1C 83 EF 80", "74 0A 6A 00 E8 ? ? ? ? 83 C4 04 8B 5C 24 20 81 C6");
+            injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
+
+            //rain drop refraction fix
+            pattern = find_pattern("E8 ? ? ? ? 8B 5E 74 8B 46 0C", "E8 ? ? ? ? 8B 4D 50 85 C9 5F 5E");
+            static auto grcEffect__SetTexture = static_cast<void(__thiscall*)(uintptr_t, uintptr_t, uint32_t, rage::grcTexturePC*)>(injector::GetBranchDestination(pattern.get_first(0)).get());
+
+            pattern = find_pattern("55 8B EC 83 E4 F8 83 EC 18 56 57 8B F9 83 7F 04 00", "55 8B EC 83 E4 F8 83 EC 10 56 8B F0");
+            static auto stackSize = *pattern.get_first<uint8_t>(8);
+            static auto SetCommonParticleVarsHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
             {
-                if (bFixRainDrops && ((reg == 0x3C && regs.esi == 1 && regs.edi == 0) || (reg != 0x3C && regs.ecx == 1 && regs.edx == 0)))
+                if (!pHDRTexQuarter)
                 {
-                    if (!pHDRTexQuarter)
-                    {
-                        auto qs0 = rage::grcTextureFactoryPC::GetRTByName("Quarter Screen 0");
-                        if (qs0)
-                            pHDRTexQuarter = qs0->mD3DTexture;
-                    }
+                    pHDRTexQuarter = rage::grcTextureFactoryPC::GetRTByName("Quarter Screen 0");
+                }
                 
-                    if (pHDRTexQuarter)
-                    {
-                        if (reg == 0x3C)
-                            regs.edi = (uintptr_t)pHDRTexQuarter;
-                        else
-                            regs.edx = (uintptr_t)pHDRTexQuarter;
-                    }
+                uintptr_t thisPtr;
+                if (stackSize == 0x10)
+                {
+                    thisPtr = regs.eax;
+                }
+                else
+                {
+                    thisPtr = regs.ecx;
+                }
+                
+                uint32_t frameMapVar = *(uint32_t*)(thisPtr + 0xA0);
+                uintptr_t shaderFx = *(uintptr_t*)(thisPtr + 0x4);
+                uintptr_t instanceData = shaderFx + 0x14;
+                uintptr_t effect = *(uintptr_t*)(instanceData + 0x4);
+
+                if (frameMapVar)
+                {
+                    grcEffect__SetTexture(effect, instanceData, frameMapVar, reinterpret_cast<rage::grcTexturePC*>(pHDRTexQuarter));
                 }
             });
+
+            FusionFix::onGameInitEvent() += []()
+            {
+                if (CText::hasViceCityStrings())
+                {
+                    bNoWindSway = true;
+                }
+            };
 
             FusionFix::onBeforeReset() += []()
             {
                 pHDRTexQuarter = nullptr;
             };
+
+            if (GetD3DX9_43DLL())
+            {
+                CRenderPhaseDeferredLighting_LightsToScreen::OnBuildRenderList() += []()
+                {
+                    auto mBeforeLightingCB = new T_CB_Generic_NoArgs(OnBeforeLighting);
+                    if (mBeforeLightingCB)
+                        mBeforeLightingCB->Append();
+                };
+
+                //CRenderPhaseDeferredLighting_SceneToGBuffer::OnBuildRenderList() += []()
+                //{
+                //    auto mBeforeGBuffer = new T_CB_Generic_NoArgs(OnBeforeGBuffer);
+                //    if (mBeforeGBuffer)
+                //        mBeforeGBuffer->Append();
+                //};
+            }
         };
     };
 } Shaders;

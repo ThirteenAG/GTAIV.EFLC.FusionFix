@@ -1,10 +1,12 @@
 module;
 
 #include <common.hxx>
+#include <Zydis.h>
 
 export module common;
 
 import <stacktrace>;
+import <optional>;
 
 export class FusionFix
 {
@@ -58,10 +60,6 @@ public:
         static Event<> InitEventAsync;
         return InitEventAsync;
     }
-    static Event<>& onAfterUALRestoredIATEvent() {
-        static Event<> AfterUALRestoredIATEvent;
-        return AfterUALRestoredIATEvent;
-    }
     static Event<>& onShutdownEvent() {
         static Event<> ShutdownEvent;
         return ShutdownEvent;
@@ -97,6 +95,11 @@ public:
     static Event<>& onEndScene() {
         static Event<> EndScene;
         return EndScene;
+    }
+    static Event<>& onReadGameConfig()
+    {
+        static Event<> ReadGameConfig;
+        return ReadGameConfig;
     }
     //static Event<>& onAfterReset() {
     //    static Event<> AfterReset;
@@ -316,14 +319,93 @@ T GetExeModuleName()
         return moduleFileName.substr(moduleFileName.find_last_of(L"/\\") + 1);
 }
 
-export template <typename T, typename V>
-bool iequals(const T& s1, const V& s2)
+export bool iequals(std::string_view s1, std::string_view s2)
 {
-    T str1(s1); T str2(s2);
-    std::transform(str1.begin(), str1.end(), str1.begin(), ::tolower);
-    std::transform(str2.begin(), str2.end(), str2.begin(), ::tolower);
-    return (str1 == str2);
+    if (s1.size() != s2.size()) return false;
+    return std::equal(s1.begin(), s1.end(), s2.begin(), s2.end(),
+        [](char a, char b) { return ::tolower(a) == ::tolower(b); });
 }
+
+export bool iequals(std::wstring_view s1, std::wstring_view s2)
+{
+    if (s1.size() != s2.size()) return false;
+    return std::equal(s1.begin(), s1.end(), s2.begin(), s2.end(),
+        [](wchar_t a, wchar_t b) { return ::towlower(a) == ::towlower(b); });
+}
+
+export std::filesystem::path lexicallyRelativeCaseIns(const std::filesystem::path& path, const std::filesystem::path& base)
+{
+    class input_iterator_range
+    {
+    public:
+        input_iterator_range(const std::filesystem::path::const_iterator& first, const std::filesystem::path::const_iterator& last)
+            : _first(first)
+            , _last(last)
+        {
+        }
+        std::filesystem::path::const_iterator begin() const
+        {
+            return _first;
+        }
+        std::filesystem::path::const_iterator end() const
+        {
+            return _last;
+        }
+    private:
+        std::filesystem::path::const_iterator _first;
+        std::filesystem::path::const_iterator _last;
+    };
+
+    if (!iequals(path.root_name().wstring(), base.root_name().wstring()) || path.is_absolute() != base.is_absolute() || (!path.has_root_directory() && base.has_root_directory()))
+    {
+        return std::filesystem::path();
+    }
+
+    std::filesystem::path::const_iterator a = path.begin(), b = base.begin();
+
+    while (a != path.end() && b != base.end() && iequals(a->wstring(), b->wstring()))
+    {
+        ++a;
+        ++b;
+    }
+
+    if (a == path.end() && b == base.end())
+    {
+        return std::filesystem::path(".");
+    }
+
+    int count = 0;
+
+    for (const auto& element : input_iterator_range(b, base.end()))
+    {
+        if (element != "." && element != "" && element != "..")
+        {
+            ++count;
+        }
+        else if (element == "..")
+        {
+            --count;
+        }
+    }
+
+    if (count < 0)
+    {
+        return std::filesystem::path();
+    }
+
+    std::filesystem::path result;
+    for (int i = 0; i < count; ++i)
+    {
+        result /= "..";
+    }
+
+    for (const auto& element : input_iterator_range(a, path.end()))
+    {
+        result /= element;
+    }
+
+    return result;
+};
 
 export inline void CreateThreadAutoClose(LPSECURITY_ATTRIBUTES lpThreadAttributes, SIZE_T dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress, LPVOID lpParameter, DWORD dwCreationFlags, LPDWORD lpThreadId)
 {
@@ -757,78 +839,216 @@ export class IATHook
 {
 public:
     template <class... Ts>
-    static void Replace(HMODULE target_module, std::string_view dll_name, Ts&& ... inputs)
+    static auto Replace(HMODULE target_module, std::string_view dll_name, Ts&& ... inputs)
     {
-        auto hExecutableInstance = (size_t)target_module;
-        IMAGE_NT_HEADERS* ntHeader = (IMAGE_NT_HEADERS*)(hExecutableInstance + ((IMAGE_DOS_HEADER*)hExecutableInstance)->e_lfanew);
-        IMAGE_IMPORT_DESCRIPTOR* pImports = (IMAGE_IMPORT_DESCRIPTOR*)(hExecutableInstance + ntHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress);
-        size_t nNumImports = ntHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].Size / sizeof(IMAGE_IMPORT_DESCRIPTOR) - 1;
-    
-        auto PatchIAT = [&](size_t start, size_t end, size_t exe_end)
-        {
-            for (size_t i = 0; i < nNumImports; i++)
-            {
-                if (hExecutableInstance + (pImports + i)->FirstThunk > start && !(end && hExecutableInstance + (pImports + i)->FirstThunk > end))
-                    end = hExecutableInstance + (pImports + i)->FirstThunk;
-            }
-    
-            if (!end) { end = start + 0x100; }
-            if (end > exe_end)
-            {
-                start = hExecutableInstance;
-                end = exe_end;
-            }
-    
-            for (auto i = start; i < end; i += sizeof(size_t))
-            {
-                DWORD dwProtect[2];
-                VirtualProtect((size_t*)i, sizeof(size_t), PAGE_EXECUTE_READWRITE, &dwProtect[0]);
-    
-                auto ptr = *(size_t*)i;
-                if (!ptr)
-                    continue;
-    
-                ([&]
-                {
-                    auto func_name = std::get<0>(inputs);
-                    auto func_hook = std::get<1>(inputs);
-                    if (func_hook && ptr == (size_t)GetProcAddress(GetModuleHandleA(dll_name.data()), func_name))
-                        *(size_t*)i = (size_t)func_hook;
-                } (), ...);
+        std::map<std::string, std::future<void*>> originalPtrs;
 
-                VirtualProtect((size_t*)i, sizeof(size_t), dwProtect[0], &dwProtect[1]);
-            }
-        };
-    
-        static auto getSection = [](const PIMAGE_NT_HEADERS nt_headers, unsigned section) -> PIMAGE_SECTION_HEADER
+        const DWORD_PTR instance = reinterpret_cast<DWORD_PTR>(target_module);
+        const PIMAGE_NT_HEADERS ntHeader = reinterpret_cast<PIMAGE_NT_HEADERS>(instance + reinterpret_cast<PIMAGE_DOS_HEADER>(instance)->e_lfanew);
+        PIMAGE_IMPORT_DESCRIPTOR pImports = reinterpret_cast<PIMAGE_IMPORT_DESCRIPTOR>(instance + ntHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress);
+        DWORD dwProtect[2];
+
+        for (; pImports->Name != 0; pImports++)
         {
-            return reinterpret_cast<PIMAGE_SECTION_HEADER>(
-                (UCHAR*)nt_headers->OptionalHeader.DataDirectory +
-                nt_headers->OptionalHeader.NumberOfRvaAndSizes * sizeof(IMAGE_DATA_DIRECTORY) +
-                section * sizeof(IMAGE_SECTION_HEADER));
-        };
-    
-        static auto getSectionEnd = [](IMAGE_NT_HEADERS* ntHeader, size_t inst) -> auto
-        {
-            auto sec = getSection(ntHeader, ntHeader->FileHeader.NumberOfSections - 1);
-            while (sec->Misc.VirtualSize == 0) sec--;
-    
-            auto secSize = max(sec->SizeOfRawData, sec->Misc.VirtualSize);
-            auto end = inst + max(sec->PointerToRawData, sec->VirtualAddress) + secSize;
-            return end;
-        };
-    
-        auto hExecutableInstance_end = getSectionEnd(ntHeader, hExecutableInstance);
-    
-        // Find DLL
-        for (size_t i = 0; i < nNumImports; i++)
-        {
-            if ((size_t)(hExecutableInstance + (pImports + i)->Name) < hExecutableInstance_end)
+            if (_stricmp(reinterpret_cast<const char*>(instance + pImports->Name), dll_name.data()) == 0)
             {
-                if (!_stricmp((const char*)(hExecutableInstance + (pImports + i)->Name), dll_name.data()))
-                    PatchIAT(hExecutableInstance + (pImports + i)->FirstThunk, 0, hExecutableInstance_end);
+                if (pImports->OriginalFirstThunk != 0)
+                {
+                    const PIMAGE_THUNK_DATA pThunk = reinterpret_cast<PIMAGE_THUNK_DATA>(instance + pImports->OriginalFirstThunk);
+
+                    for (ptrdiff_t j = 0; pThunk[j].u1.AddressOfData != 0; j++)
+                    {
+                        auto pAddress = reinterpret_cast<void**>(instance + pImports->FirstThunk) + j;
+                        if (!pAddress) continue;
+                        VirtualProtect(pAddress, sizeof(pAddress), PAGE_EXECUTE_READWRITE, &dwProtect[0]);
+                        ([&]
+                        {
+                            auto name = std::string_view(std::get<0>(inputs));
+                            auto num = std::string("-1");
+                            if (name.contains("@")) {
+                                num = name.substr(name.find_last_of("@") + 1);
+                                name = name.substr(0, name.find_last_of("@"));
+                            }
+
+                            if (pThunk[j].u1.Ordinal & IMAGE_ORDINAL_FLAG)
+                            {
+                                try
+                                {
+                                    if (IMAGE_ORDINAL(pThunk[j].u1.Ordinal) == std::stoi(num.data()))
+                                    {
+                                        originalPtrs[std::get<0>(inputs)] = std::async(std::launch::deferred, [&]() -> void* { return *pAddress; });
+                                        originalPtrs[std::get<0>(inputs)].wait();
+                                        *pAddress = std::get<1>(inputs);
+                                    }
+                                }
+                                catch (...) {}
+                            }
+                            else if ((*pAddress && *pAddress == (void*)GetProcAddress(GetModuleHandleA(dll_name.data()), name.data())) ||
+                            (strcmp(reinterpret_cast<PIMAGE_IMPORT_BY_NAME>(instance + pThunk[j].u1.AddressOfData)->Name, name.data()) == 0))
+                            {
+                                originalPtrs[std::get<0>(inputs)] = std::async(std::launch::deferred, [&]() -> void* { return *pAddress; });
+                                originalPtrs[std::get<0>(inputs)].wait();
+                                *pAddress = std::get<1>(inputs);
+                            }
+                        } (), ...);
+                        VirtualProtect(pAddress, sizeof(pAddress), dwProtect[0], &dwProtect[1]);
+                    }
+                }
+                else
+                {
+                    auto pFunctions = reinterpret_cast<void**>(instance + pImports->FirstThunk);
+
+                    for (ptrdiff_t j = 0; pFunctions[j] != nullptr; j++)
+                    {
+                        auto pAddress = reinterpret_cast<void**>(pFunctions[j]);
+                        VirtualProtect(pAddress, sizeof(pAddress), PAGE_EXECUTE_READWRITE, &dwProtect[0]);
+                        ([&]
+                        {
+                            if (*pAddress && *pAddress == (void*)GetProcAddress(GetModuleHandleA(dll_name.data()), std::get<0>(inputs)))
+                            {
+                                originalPtrs[std::get<0>(inputs)] = std::async(std::launch::deferred, [&]() -> void* { return *pAddress; });
+                                originalPtrs[std::get<0>(inputs)].wait();
+                                *pAddress = std::get<1>(inputs);
+                            }
+                        } (), ...);
+                        VirtualProtect(pAddress, sizeof(pAddress), dwProtect[0], &dwProtect[1]);
+                    }
+                }
             }
         }
+
+        if (originalPtrs.empty())
+        {
+            PIMAGE_DELAYLOAD_DESCRIPTOR pDelayed = reinterpret_cast<PIMAGE_DELAYLOAD_DESCRIPTOR>(instance + ntHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT].VirtualAddress);
+            if (pDelayed)
+            {
+                for (; pDelayed->DllNameRVA != 0; pDelayed++)
+                {
+                    if (_stricmp(reinterpret_cast<const char*>(instance + pDelayed->DllNameRVA), dll_name.data()) == 0)
+                    {
+                        if (pDelayed->ImportAddressTableRVA != 0)
+                        {
+                            const PIMAGE_THUNK_DATA pThunk = reinterpret_cast<PIMAGE_THUNK_DATA>(instance + pDelayed->ImportNameTableRVA);
+                            const PIMAGE_THUNK_DATA pFThunk = reinterpret_cast<PIMAGE_THUNK_DATA>(instance + pDelayed->ImportAddressTableRVA);
+
+                            for (ptrdiff_t j = 0; pThunk[j].u1.AddressOfData != 0; j++)
+                            {
+                                auto pAddress = reinterpret_cast<void**>(pFThunk[j].u1.Function);
+                                if (!pAddress) continue;
+                                if (pThunk[j].u1.Ordinal & IMAGE_ORDINAL_FLAG)
+                                    pAddress = *reinterpret_cast<void***>(pFThunk[j].u1.Function + 1); // mov     eax, offset *
+
+                                VirtualProtect(pAddress, sizeof(pAddress), PAGE_EXECUTE_READWRITE, &dwProtect[0]);
+                                ([&]
+                                {
+                                    auto name = std::string_view(std::get<0>(inputs));
+                                    auto num = std::string("-1");
+                                    if (name.contains("@")) {
+                                        num = name.substr(name.find_last_of("@") + 1);
+                                        name = name.substr(0, name.find_last_of("@"));
+                                    }
+
+                                    if (pThunk[j].u1.Ordinal & IMAGE_ORDINAL_FLAG)
+                                    {
+                                        try
+                                        {
+                                            if (IMAGE_ORDINAL(pThunk[j].u1.Ordinal) == std::stoi(num.data()))
+                                            {
+                                                originalPtrs[std::get<0>(inputs)] = std::async(std::launch::async,
+                                                [](void** pAddress, void* value, PVOID instance) -> void*
+                                                {
+                                                    DWORD dwProtect[2];
+                                                    VirtualProtect(pAddress, sizeof(pAddress), PAGE_EXECUTE_READWRITE, &dwProtect[0]);
+                                                    MEMORY_BASIC_INFORMATION mbi;
+                                                    mbi.AllocationBase = instance;
+                                                    do
+                                                    {
+                                                        VirtualQuery(*pAddress, &mbi, sizeof(MEMORY_BASIC_INFORMATION));
+                                                        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                                                    } while (mbi.AllocationBase == instance);
+                                                    auto r = *pAddress;
+                                                    *pAddress = value;
+                                                    VirtualProtect(pAddress, sizeof(pAddress), dwProtect[0], &dwProtect[1]);
+                                                    return r;
+                                                }, pAddress, std::get<1>(inputs), (PVOID)instance);
+                                            }
+                                        }
+                                        catch (...) {}
+                                    }
+                                    else if ((*pAddress && *pAddress == (void*)GetProcAddress(GetModuleHandleA(dll_name.data()), name.data())) ||
+                                    (strcmp(reinterpret_cast<PIMAGE_IMPORT_BY_NAME>(instance + pThunk[j].u1.AddressOfData)->Name, name.data()) == 0))
+                                    {
+                                        originalPtrs[std::get<0>(inputs)] = std::async(std::launch::async,
+                                        [](void** pAddress, void* value, PVOID instance) -> void*
+                                        {
+                                            DWORD dwProtect[2];
+                                            VirtualProtect(pAddress, sizeof(pAddress), PAGE_EXECUTE_READWRITE, &dwProtect[0]);
+                                            MEMORY_BASIC_INFORMATION mbi;
+                                            mbi.AllocationBase = instance;
+                                            do
+                                            {
+                                                VirtualQuery(*pAddress, &mbi, sizeof(MEMORY_BASIC_INFORMATION));
+                                                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                                            } while (mbi.AllocationBase == instance);
+                                            auto r = *pAddress;
+                                            *pAddress = value;
+                                            VirtualProtect(pAddress, sizeof(pAddress), dwProtect[0], &dwProtect[1]);
+                                            return r;
+                                        }, pAddress, std::get<1>(inputs), (PVOID)instance);
+                                    }
+                                } (), ...);
+                                VirtualProtect(pAddress, sizeof(pAddress), dwProtect[0], &dwProtect[1]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (originalPtrs.empty()) // e.g. re5dx9.exe steam
+        {
+            static auto getSection = [](const PIMAGE_NT_HEADERS nt_headers, unsigned section) -> PIMAGE_SECTION_HEADER
+            {
+                return reinterpret_cast<PIMAGE_SECTION_HEADER>(
+                    (UCHAR*)nt_headers->OptionalHeader.DataDirectory +
+                    nt_headers->OptionalHeader.NumberOfRvaAndSizes * sizeof(IMAGE_DATA_DIRECTORY) +
+                    section * sizeof(IMAGE_SECTION_HEADER));
+            };
+
+            for (auto i = 0; i < ntHeader->FileHeader.NumberOfSections; i++)
+            {
+                auto sec = getSection(ntHeader, i);
+                auto pFunctions = reinterpret_cast<void**>(instance + max(sec->PointerToRawData, sec->VirtualAddress));
+
+                for (ptrdiff_t j = 0; j < 300; j++)
+                {
+                    auto pAddress = reinterpret_cast<void**>(&pFunctions[j]);
+                    VirtualProtect(pAddress, sizeof(pAddress), PAGE_EXECUTE_READWRITE, &dwProtect[0]);
+                    ([&]
+                    {
+                        auto name = std::string_view(std::get<0>(inputs));
+                        auto num = std::string("-1");
+                        if (name.contains("@")) {
+                            num = name.substr(name.find_last_of("@") + 1);
+                            name = name.substr(0, name.find_last_of("@"));
+                        }
+
+                        if (*pAddress && *pAddress == (void*)GetProcAddress(GetModuleHandleA(dll_name.data()), name.data()))
+                        {
+                            originalPtrs[std::get<0>(inputs)] = std::async(std::launch::deferred, [&]() -> void* { return *pAddress; });
+                            originalPtrs[std::get<0>(inputs)].wait();
+                            *pAddress = std::get<1>(inputs);
+                        }
+                    } (), ...);
+                    VirtualProtect(pAddress, sizeof(pAddress), dwProtect[0], &dwProtect[1]);
+                }
+
+                if (!originalPtrs.empty())
+                    return originalPtrs;
+            }
+        }
+
+        return originalPtrs;
     }
 };
 
@@ -863,3 +1083,142 @@ private:
     std::vector<uint8_t> old_code;
     std::vector<uint8_t> new_code;
 };
+
+export std::optional<uintptr_t> resolve_displacement(auto ip)
+{
+    ZydisDecoder decoder;
+    #if defined(_M_X64) || defined(__x86_64__)
+    ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_STACK_WIDTH_64);
+    #else
+    ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LEGACY_32, ZYDIS_STACK_WIDTH_32);
+    #endif
+
+    ZydisDecodedInstruction instruction;
+    ZydisDecodedOperand operands[ZYDIS_MAX_OPERAND_COUNT];
+
+    ZyanStatus status = ZydisDecoderDecodeFull(
+        &decoder,
+        (void*)ip,
+        ZYDIS_MAX_INSTRUCTION_LENGTH,
+        &instruction,
+        operands
+    );
+
+    if (!ZYAN_SUCCESS(status))
+    {
+        return std::nullopt;
+    }
+
+    for (uint32_t i = 0; i < instruction.operand_count_visible; ++i)
+    {
+        const auto& operand = operands[i];
+
+        if (operand.type == ZYDIS_OPERAND_TYPE_MEMORY)
+        {
+            if (operand.mem.disp.has_displacement)
+            {
+                #if defined(_M_X64) || defined(__x86_64__)
+                if (operand.mem.is_rip_relative)
+                {
+                    return (uintptr_t)ip + instruction.length + operand.mem.disp.value;
+                }
+                #else
+                return static_cast<uintptr_t>(operand.mem.disp.value);
+                #endif
+            }
+        }
+        else if (operand.type == ZYDIS_OPERAND_TYPE_IMMEDIATE)
+        {
+            if (operand.imm.is_relative)
+            {
+                return (uintptr_t)ip + instruction.length + ZyanISize(operand.imm.value.s);
+            }
+        }
+    }
+
+    if (instruction.attributes & ZYDIS_ATTRIB_IS_RELATIVE && instruction.raw.disp.size > 0)
+    {
+        return (uintptr_t)ip + instruction.length + ZyanISize(instruction.raw.disp.value);
+    }
+
+    return std::nullopt;
+}
+
+export std::optional<uintptr_t> resolve_next_displacement(auto ip)
+{
+    ZydisDecoder decoder;
+    #if defined(_M_X64) || defined(__x86_64__)
+    ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_STACK_WIDTH_64);
+    #else
+    ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LEGACY_32, ZYDIS_STACK_WIDTH_32);
+    #endif
+
+    ZydisDecodedInstruction instruction;
+    ZydisDecodedOperand operands[ZYDIS_MAX_OPERAND_COUNT];
+
+    uintptr_t current_ip = (uintptr_t)ip;
+    size_t instruction_count = 0;
+
+    while (true)
+    {
+        ZyanStatus status = ZydisDecoderDecodeFull(
+            &decoder,
+            (void*)current_ip,
+            ZYDIS_MAX_INSTRUCTION_LENGTH,
+            &instruction,
+            operands
+        );
+
+        if (!ZYAN_SUCCESS(status))
+        {
+            return std::nullopt;
+        }
+
+        if (instruction.meta.category == ZYDIS_CATEGORY_COND_BR)
+        {
+            for (uint32_t i = 0; i < instruction.operand_count_visible; ++i)
+            {
+                const auto& operand = operands[i];
+
+                if (operand.type == ZYDIS_OPERAND_TYPE_MEMORY)
+                {
+                    if (operand.mem.disp.has_displacement)
+                    {
+                        #if defined(_M_X64) || defined(__x86_64__)
+                        if (operand.mem.is_rip_relative)
+                        {
+                            return current_ip + instruction.length + operand.mem.disp.value;
+                        }
+                        #else
+                        return static_cast<uintptr_t>(operand.mem.disp.value);
+                        #endif
+                    }
+                }
+                else if (operand.type == ZYDIS_OPERAND_TYPE_IMMEDIATE)
+                {
+                    if (operand.imm.is_relative)
+                    {
+                        return current_ip + instruction.length + ZyanISize(operand.imm.value.s);
+                    }
+                }
+            }
+
+            if (instruction.attributes & ZYDIS_ATTRIB_IS_RELATIVE && instruction.raw.disp.size > 0)
+            {
+                return current_ip + instruction.length + ZyanISize(instruction.raw.disp.value);
+            }
+
+            return std::nullopt;
+        }
+
+        current_ip += instruction.length;
+
+        constexpr size_t MAX_INSTRUCTIONS = 20;
+        if (++instruction_count >= MAX_INSTRUCTIONS)
+        {
+            return std::nullopt;
+        }
+    }
+
+    return std::nullopt;
+}

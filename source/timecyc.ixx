@@ -8,11 +8,12 @@ import common;
 import settings;
 import comvars;
 import natives;
+import timecycext;
 
-#define IDR_SNOWTC 205
-#define IDR_HALLTC 206
 std::vector<std::string> snowTC;
 std::vector<std::string> hallTC;
+
+float fVolFogFarClip = 4500.0f;
 
 int scanfCount = 0;
 int timecyc_scanf(const char* i, const char* fmt, int* mAmbient0ColorR, int* mAmbient0ColorG, int* mAmbient0ColorB, int* mAmbient1ColorR, int* mAmbient1ColorG, int* mAmbient1ColorB,
@@ -37,6 +38,9 @@ int timecyc_scanf(const char* i, const char* fmt, int* mAmbient0ColorR, int* mAm
     float* mCoronaSize, float* mSkyBrightness, float* mAOStrength, float* mRimLightingMultiplier, float* mDistantCoronaBrightness, float* mDistantCoronaSize,
     float* mPedAOStrength)
 {
+    if (!i)
+        return 0;
+
     if (bEnableSnow)
     {
         if (snowTC.size() == 99)
@@ -68,6 +72,9 @@ int timecyc_scanf(const char* i, const char* fmt, int* mAmbient0ColorR, int* mAm
     if (!FusionFixSettings("PREF_BLOOM"))
         *mBloomIntensity = 0.0f;
 
+    if (FusionFixSettings("PREF_VOLUMETRICFOG"))
+        *mFarClip = fVolFogFarClip;
+
     switch (FusionFixSettings("PREF_TCYC_DOF"))
     {
     case FusionFixSettings.DofText.eOff:
@@ -92,10 +99,6 @@ int timecyc_scanf(const char* i, const char* fmt, int* mAmbient0ColorR, int* mAm
     default:
         break;
     }
-
-    if (bFixAutoExposure)
-        if (*mLumDelay < 0.1f)
-            *mLumDelay = 0.1f;
 
     {
         static int IV2TLAD[3][100] =
@@ -238,6 +241,16 @@ int timecyc_scanf(const char* i, const char* fmt, int* mAmbient0ColorR, int* mAm
         }
     }
 
+    {
+        int h = scanfCount % NUMHOURS;
+        int w = scanfCount / NUMHOURS;
+
+        CTimeCycleExt::tmp_fDirLightColorR[h][w] = (float)(*mDirLightColorR) / 255.0f;
+        CTimeCycleExt::tmp_fDirLightColorG[h][w] = (float)(*mDirLightColorG) / 255.0f;
+        CTimeCycleExt::tmp_fDirLightColorB[h][w] = (float)(*mDirLightColorB) / 255.0f;
+        CTimeCycleExt::tmp_fDirLightMultiplier[h][w] = *mDirLightMultiplier;
+    }
+
     scanfCount++;
 
     if (scanfCount >= 99)
@@ -250,8 +263,11 @@ int cutsc_scanf(const char* i, const char* fmt, int* keyframe, float* farclip, f
 {
     auto res = sscanf(i, fmt, keyframe, farclip, nearclip);
 
-    *farclip = 0.0f;
-    *nearclip = -1.0f;
+    if (FusionFixSettings("PREF_VOLUMETRICFOG"))
+    {
+        *farclip = 0.0f;
+        //*nearclip = -1.0f;
+    }
 
     return res;
 }
@@ -279,8 +295,20 @@ int timecyclemodifiers_scanf(const char* i, const char* fmt, char* Name, float* 
     if (std::string_view(Name) == "Police" || std::string_view(Name) == "intro")
         return res;
 
-    *MinFarClip = -1.0f;
-    *MaxFarClip = -1.0f;
+    if (FusionFixSettings("PREF_VOLUMETRICFOG"))
+    {
+        *MinFarClip = -1.0f;
+        *MaxFarClip = -1.0f;
+    }
+    //else // handled in shaders module now
+    //{
+    //    // Workaround for phone screen depth issues.
+    //    //if (*MinFarClip != -1.0f && *MinFarClip < 205.0f)
+    //    //    *MinFarClip = 205.0f;
+    //    //
+    //    //if (*MaxFarClip != -1.0f && *MaxFarClip < 205.0f)
+    //    //    *MaxFarClip = 205.0f;
+    //}
 
     return res;
 }
@@ -292,12 +320,15 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
+            CIniReader iniReader("");
+            fVolFogFarClip = iniReader.ReadFloat("FOG", "VolFogFarClip", 4500.0f);
+
             FusionFixSettings.SetCallback("PREF_TIMECYC", [](int32_t value) {
                 CTimeCycle::Initialise();
                 bMenuNeedsUpdate = 200;
             });
 
-            // make timecyc changes visible in menu
+            // Make timecyc changes visible in menu
             auto pattern = hook::pattern("0A 05 ? ? ? ? 0A 05 ? ? ? ? 0F 85 ? ? ? ? E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 11 04 24");
             if (!pattern.empty())
             {
@@ -320,9 +351,7 @@ public:
             }
             else
             {
-                pattern = hook::pattern("E8 ? ? ? ? 84 C0 74 1F A1 ? ? ? ? 69 C0");
                 static injector::hook_back<int(*)()> hbsub_4B18F0;
-                hbsub_4B18F0.fun = injector::GetBranchDestination(pattern.get_first()).get();
                 static auto MenuTimecycHook = []() -> int
                 {
                     if (bMenuNeedsUpdate > 0) {
@@ -330,11 +359,29 @@ public:
                         return 0;
                     }
                     return hbsub_4B18F0.fun();
-                }; hbsub_4B18F0.fun = injector::MakeCALL(pattern.get_first(), static_cast<int(*)()>(MenuTimecycHook), true).get();
+                };
+                
+                pattern = hook::pattern("E8 ? ? ? ? 84 C0 5F 0F 85");
+                hbsub_4B18F0.fun = injector::MakeCALL(pattern.get_first(), static_cast<int(*)()>(MenuTimecycHook), true).get();
 
-                pattern = hook::pattern("0F 85 ? ? ? ? E8 ? ? ? ? 84 C0 75 7C");
-                injector::MakeNOP(pattern.get_first(0), 6, true);
-                injector::MakeNOP(pattern.get_first(13), 2, true);
+                pattern = hook::pattern("E8 ? ? ? ? 84 C0 74 ? A1 ? ? ? ? 69 C0");
+                hbsub_4B18F0.fun = injector::MakeCALL(pattern.get_first(), static_cast<int(*)()>(MenuTimecycHook), true).get();
+
+                static injector::hook_back<char(*)()> hbsub_8AC010;
+                static auto MenuTimecycHook2 = []() -> char {
+                    if (bMenuNeedsUpdate > 0)
+                    {
+                        bMenuNeedsUpdate--;
+                        return 0;
+                    }
+                    return hbsub_8AC010.fun();
+                };
+
+                pattern = hook::pattern("E8 ? ? ? ? 84 C0 74 ? 38 1D ? ? ? ? 75 ? B3");
+                hbsub_8AC010.fun = injector::MakeCALL(pattern.get_first(), static_cast<char(*)()>(MenuTimecycHook2), true).get();
+
+                pattern = hook::pattern("80 3D ? ? ? ? ? 74 ? 84 DB 74 ? 8B 06");
+                injector::MakeNOP(pattern.get_first(0), 9, true);
             }
 
             pattern = find_pattern("E8 ? ? ? ? 0F B6 8C 24 ? ? ? ? 0F B6 84 24", "E8 ? ? ? ? 0F B6 84 24 ? ? ? ? 0F B6 8C 24");
@@ -354,73 +401,39 @@ public:
                 bMenuNeedsUpdate = 200;
             });
 
+            FusionFixSettings.SetCallback("PREF_VOLUMETRICFOG", [](int32_t value) {
+                CTimeCycle::Initialise();
+                CTimeCycle::InitialiseModifiers();
+                bMenuNeedsUpdate = 200;
+            });
+
             // z-fighting fix helpers
             {
                 auto pattern = hook::pattern("E8 ? ? ? ? 6A 0C E8 ? ? ? ? 8B 0D");
                 injector::MakeCALL(pattern.get_first(0), cutsc_scanf, true);
-
+            
                 pattern = hook::pattern("E8 ? ? ? ? 69 F6 ? ? ? ? 8D 84 24");
                 injector::MakeCALL(pattern.get_first(0), timecyclemodifiers_scanf, true);
             }
 
             {
-                HMODULE hm = NULL;
-                GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)&timecyc_scanf, &hm);
-                auto hResource = FindResource(hm, MAKEINTRESOURCE(IDR_SNOWTC), RT_RCDATA);
-
-                if (hResource)
+                auto filePath = GetModulePath(GetModuleHandleW(NULL)).parent_path() / "pc" / "data";
+                std::string line;
+                std::ifstream istr_snow(filePath / "snow.dat");
+                while (std::getline(istr_snow, line))
                 {
-                    auto hLoadedResource = LoadResource(hm, hResource);
-                    if (hLoadedResource)
-                    {
-                        auto pLockedResource = LockResource(hLoadedResource);
-                        if (pLockedResource)
-                        {
-                            auto dwResourceSize = SizeofResource(hm, hResource);
-                            if (dwResourceSize)
-                            {
-                                std::string line;
-                                std::istringstream str((char*)pLockedResource, dwResourceSize);
-                                while (getline(str, line))
-                                {
-                                    if (*line.begin() != '\r' && !line.empty() && !line.contains("/"))
-                                        snowTC.emplace_back(line);
-                                }
-                                assert(snowTC.size() == 99);
-                            }
-                        }
-                    }
+                    if (line.find_first_not_of(" \t\r\n") != std::string::npos && !line.contains('/'))
+                        snowTC.emplace_back(line);
                 }
-            }
+                //assert(snowTC.size() == 99);
 
-            {
-                HMODULE hm = NULL;
-                GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)&timecyc_scanf, &hm);
-                auto hResource = FindResource(hm, MAKEINTRESOURCE(IDR_HALLTC), RT_RCDATA);
-
-                if (hResource)
+                std::ifstream istr_hall(filePath / "halloween.dat");
+                while (std::getline(istr_hall, line))
                 {
-                    auto hLoadedResource = LoadResource(hm, hResource);
-                    if (hLoadedResource)
-                    {
-                        auto pLockedResource = LockResource(hLoadedResource);
-                        if (pLockedResource)
-                        {
-                            auto dwResourceSize = SizeofResource(hm, hResource);
-                            if (dwResourceSize)
-                            {
-                                std::string line;
-                                std::istringstream str((char*)pLockedResource, dwResourceSize);
-                                while (getline(str, line))
-                                {
-                                    if (*line.begin() != '\r' && !line.empty() && !line.contains("/"))
-                                        hallTC.emplace_back(line);
-                                }
-                                assert(hallTC.size() == 99);
-                            }
-                        }
-                    }
+                    if (line.find_first_not_of(" \t\r\n") != std::string::npos && !line.contains('/'))
+                        hallTC.emplace_back(line);
                 }
+                //assert(hallTC.size() == 99);
             }
         };
     }

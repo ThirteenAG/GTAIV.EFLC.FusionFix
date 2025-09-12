@@ -55,6 +55,9 @@ Bloom-Effekt
 [Console Gamma]
 Konsolengamma
 
+[Auto Exposure]
+Konsolen-Belichtungsautomatik
+
 [Screen Filter]
 Bildschirmfilter
 
@@ -73,17 +76,98 @@ Kantenglättung
 [FPS Limiter]
 FPS-Begrenzung
 
-[LamppostShadows]
-Straßenlaternen-Schatten
+[ExtraNightShad]
+Zusätzliche Nachtschatten
+
+[Lampposts]
+Straßenlaternen
+
+[LampostsHeadl]
+Straßenlaternen und Scheinwerfer
+
+[LampHeadlVNS]
+Straßenlaternen und Scheinwerfer + Fahrzeug-Nachtschatten
 
 [Tree Alpha]
 Baumtransparenz
+
+[UnclampLighting]
+Erweiterte Sonnenlicht-Reichweite
 
 [Shadow Filter]
 Schattenfilter
 
 [HeadlightShadow]
 Scheinwerfer-Schatten
+
+[Timed Events]
+Saisonale Ereignisse
+
+[Tone Mapping]
+Tone Mapping
+
+[Volumetric Fog]
+Volumetrischer Nebel
+
+[Zoomed Movement]
+Bewegung beim Zoomen erlauben
+
+[Distant Lights]
+Ferne Lichter
+
+[CenteredVehCam]
+Zentrierte Fahrzeugkamera
+
+[CenteredFootCam]
+Zentrierte Zu-Fuß-Kamera
+
+[Camera Shake]
+Kamerawackeln
+
+[CutscAudioSync]
+Synchronen Ton in Zwischensequenzen erzwingen
+
+[CutscAudioSync0]
+Synchroner Zwischensequenzton deaktiviert
+
+[CutscAudioSync1]
+Synchroner Zwischensequenzton aktiviert
+
+[Turn Indicators]
+Blinker
+
+[WinterEvent0]
+Winterevent deaktiviert
+
+[WinterEvent1]
+Winterevent aktiviert
+
+[HalloweenEvent0]
+Halloween-Event deaktiviert
+
+[HalloweenEvent1]
+Halloween-Event aktiviert
+
+[TranspMapMenu]
+Transparenter Kartenhintergrund im Menü
+
+[Extra Streaming]
+Zusätzlicher Streaming-Speicher
+
+[FF_SM]
+Streaming-Budget
+
+[Graphics API]
+Grafik-API
+
+[FF_RESTART]
+GTA IV muss neu gestartet werden, um die Einstellungen anzuwenden.
+
+[Extended Sniper]
+Erweiterte Sniper-Steuerung
+
+[Bullet Traces]
+Schussspuren immer sichtbar
 
 [FF_WARN0]
 ~p~IMG-Dateien:
@@ -92,7 +176,7 @@ Scheinwerfer-Schatten
 ; ~r~ACHTUNG: Obergrenze von 255 IMG-Dateien überschritten, was zu Streaming-Problemen führt.
 
 [FF_WARN2]
-~r~ACHTUNG: Straßenlaternen-Schatten können zu Artefakten und Performance-Problemen führen.
+~r~ACHTUNG: "Zusätzliche Nachtschatten" ist eine extrem fehlerbehaftete PC-Option von Rockstar. Aktivieren nicht empfohlen.
 
 [FF_WARN3]
 ~r~ACHTUNG: Bei Werten von über 25 für die Sichtdistanz und über 31 für die Detaildistanz kann es zu Pop-in von Objekten kommen.
@@ -105,6 +189,9 @@ Scheinwerfer-Schatten
 
 [FF_WARN6]
 ~r~ACHTUNG: CHSS bewirkt nur etwas, wenn die Schattenqualität auf "Sehr hoch" eingestellt ist.
+
+[FF_WARN7]
+~r~ACHTUNG: "Synchronen Ton in Zwischensequenzen erzwingen" nur bei auffallend asynchronem Ton aktivieren, für flüssige Animationen deaktiviert lassen. Kann während Zwischensequenzen mit ~PAD_UP~ ein- und ausgeschaltet werden.
 
 [DUMMY_l11]
 Dummy label.

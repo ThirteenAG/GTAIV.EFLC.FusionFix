@@ -1,3 +1,5 @@
+// Changes summary: scaled text to fit more options; added faster fade time from consoles.
+
 [HD]
 
 TOP_position_of_top_line 0.19200 0.00000
@@ -8,28 +10,28 @@ TOP_logo_pos 1.00000 0.08100
 TOP_logo_size 0.06800 0.08900
 SAV_COL_SIZE_SAVEGAME 0.71200 0.48100
 MID_middle_text_position 0.08800 0.17300
-MID_middle_text_size 0.2175 0.36
+MID_middle_text_size 0.21500 0.33250
 MID_2nd_menu_middle_text_size 0.23660 0.35980
 MID_column_size_of_middle_text 0.28900 0.92400
-MID_spacing_between_middle_text 0.024375 0.0241875
+MID_spacing_between_middle_text 0.02150 0.02150
 MID_background_opacity 160.00000 0.00000
 MID_background_position 1.00000 1.00000
 MID_background_size 0.95600 0.61500
-MID_slider_bar_offset 0.00000 0.01700
-MID_slider_bar_size 0.11925 0.01125
+MID_slider_bar_offset 0.00000 0.02475
+MID_slider_bar_size 0.15900 0.01050
 HLP_helper_text_position 0.91000 0.83600
 HLP_help_text_size 0.19800 0.30000
 HLP_help_text_spacing 0.01875 0.03650
 HLP_help_but_size 0.46050 0.39750
 HLP_help_but_spacing 0.01350 0.00600
-BOT_position_of_bottom_line 0.80800 0.80000
+BOT_position_of_bottom_line 0.80800 0.77800
 BOT_clock_position 0.08900 0.83500
 BOT_clock_size 0.23625 0.32200
 BOT_clock_icon_pos -0.50000 0.00000
 BOT_clock_icon_size 0.01275 0.01725
 BOT_arrow_position 0.87500 0.69000
 BOT_arrow_size 0.02250 0.03150
-FAD_main_fade_time 500.00000 0.00000
+FAD_main_fade_time 200.00000 0.00000
 BRI_brief_text_size 0.25400 0.43000
 BRI_brief_text_pos 0.08800 0.21400
 BRI_brief_text_spacing 0.01725 0.11400
@@ -290,28 +292,28 @@ TOP_logo_pos 1.00000 0.08100
 TOP_logo_size 0.06800 0.08900
 SAV_COL_SIZE_SAVEGAME 0.75400 0.33900
 MID_middle_text_position 0.09600 0.17000
-MID_middle_text_size 0.1875 0.32235
+MID_middle_text_size 0.21500 0.33250
 MID_2nd_menu_middle_text_size 0.27440 0.43260
 MID_column_size_of_middle_text 0.27100 0.90400
-MID_spacing_between_middle_text 0.021525 0.021525
+MID_spacing_between_middle_text 0.02150 0.02150
 MID_background_opacity 160.00000 0.00000
 MID_background_position 1.00000 1.00000
 MID_background_size 0.95600 0.61500
-MID_slider_bar_offset 0.00000 0.02150
-MID_slider_bar_size 0.11775 0.009
+MID_slider_bar_offset 0.00000 0.02475
+MID_slider_bar_size 0.15700 0.01050
 HLP_helper_text_position 0.90100 0.83700
 HLP_help_text_size 0.21400 0.29200
 HLP_help_text_spacing 0.01875 0.03650
 HLP_help_but_size 0.46050 0.42000
 HLP_help_but_spacing 0.01350 0.00600
-BOT_position_of_bottom_line 0.80800 0.80000
+BOT_position_of_bottom_line 0.80800 0.79200
 BOT_clock_position 0.09700 0.83500
 BOT_clock_size 0.24750 0.33750
 BOT_clock_icon_pos -0.50000 0.00000
 BOT_clock_icon_size 0.00600 0.02400
 BOT_arrow_position 0.87500 0.69000
 BOT_arrow_size 0.02250 0.03150
-FAD_main_fade_time 500.00000 0.00000
+FAD_main_fade_time 200.00000 0.00000
 BRI_brief_text_size 0.24700 0.42000
 BRI_brief_text_pos 0.09600 0.20400
 BRI_brief_text_spacing 0.01725 -0.03000

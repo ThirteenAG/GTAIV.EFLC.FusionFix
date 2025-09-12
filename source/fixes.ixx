@@ -9,7 +9,6 @@ import comvars;
 import settings;
 import natives;
 import shaders;
-import fusiondxhook;
 
 class Fixes
 {
@@ -56,21 +55,124 @@ public:
         return r;
     }
 
+    static inline injector::hook_back<void(*)()> hbsub_AD1240;
+    static void sub_AD1240()
+    {
+        Cam rootCam = 0;
+        Natives::GetRootCam(&rootCam);
+        auto ccam = CCam::GetCamPool()->GetAt(rootCam);
+        if (ccam)
+        {
+            auto ptr = *(uintptr_t*)((uintptr_t)ccam + 0x110);
+
+            if (ptr)
+            {
+                if (*(uint8_t*)(ptr + 0x27C) == 1)
+                    return;
+            }
+        }
+
+        return hbsub_AD1240.fun();
+    }
+
+    static inline uint32_t* dword_1670CD0 = nullptr;
+    static inline uint32_t* dwFrameCount = nullptr;
+    static inline void* g_pSearchlightHeli = nullptr; // Pointer to the helicopter that has the light
+    static inline int32_t g_dwSearchlightLockTime = 0; // Timestamp of when the lock expires
+    static inline SafetyHookInline shCHelisub_B69D80 = {};
+    static void __fastcall CHelisub_B69D80(void* _this, void* edx)
+    {
+        // Check if this helicopter's searchlight is supposed to be on.
+        // This mirrors the check inside the original function.
+        bool isLightActive = (*(int8_t*)((uintptr_t)_this + 8044) && *(float*)((uintptr_t)_this + 8036) > 0.0 && !*(int8_t*)((uintptr_t)_this + 8240));
+
+        if (isLightActive)
+        {
+            auto currentTime = *CTimer::m_snTimeInMilliseconds;
+
+            // A helicopter can acquire the lock if:
+            // 1. No one has it (g_pSearchlightHeli is nullptr).
+            // 2. This helicopter already has it.
+            // 3. The lock from another helicopter has expired.
+            if (g_pSearchlightHeli == nullptr || g_pSearchlightHeli == _this || currentTime > g_dwSearchlightLockTime)
+            {
+                // This helicopter gets the lock.
+                g_pSearchlightHeli = _this;
+                g_dwSearchlightLockTime = currentTime + 10000; // Lock it for 10 seconds.
+
+                // To allow the original function to draw the light, we make sure its
+                // "once-per-frame" check will pass. We do this by setting the "last drawn frame"
+                // variable to something different than the current frame counter.
+                *dword_1670CD0 = *dwFrameCount - 1;
+            }
+            else
+            {
+                // Another helicopter has the lock and it's not expired.
+                // To prevent the original function from drawing, we make its
+                // "once-per-frame" check fail by setting the variables to be equal.
+                *dword_1670CD0 = *dwFrameCount;
+            }
+        }
+        else
+        {
+            // If this helicopter's light is off and it owned the lock, release it.
+            if (g_pSearchlightHeli == _this)
+            {
+                g_pSearchlightHeli = nullptr;
+            }
+        }
+
+        // Finally, call the original function. It will now behave correctly based on
+        // how we manipulated the global lock variable.
+        shCHelisub_B69D80.unsafe_fastcall(_this, edx);
+    }
+
+    static inline int32_t nRadarZoomDelay = 0;
+    static inline injector::hook_back<bool(*)()> hbsub_5DCA80;
+    static bool sub_5DCA80()
+    {
+        static int32_t zoomOutEndTime = 0;
+        auto currentTime = *CTimer::m_snTimeInMilliseconds;
+
+        // Call the original function to check the actual key state.
+        if (hbsub_5DCA80.fun())
+        {
+            // The key is pressed. Set our timer to end 3 seconds from now.
+            zoomOutEndTime = currentTime + nRadarZoomDelay;
+            return true; // Return true to zoom out.
+        }
+
+        // The key is not pressed. Check if we are within the 3-second delay period.
+        if (currentTime < zoomOutEndTime)
+        {
+            // The timer has not expired yet, so we keep returning true.
+            return true;
+        }
+
+        // The key is not pressed and the timer has expired.
+        return false; // Return false to allow the zoom to return to normal.
+    }
+
     Fixes()
     {
         FusionFix::onInitEventAsync() += []()
         {
             CIniReader iniReader("");
 
+            // [MAIN]
             int32_t nAimingZoomFix = iniReader.ReadInteger("MAIN", "AimingZoomFix", 1);
             bool bRecoilFix = iniReader.ReadInteger("MAIN", "RecoilFix", 1) != 0;
-            bool bForceNoMemRestrict = iniReader.ReadInteger("MAIN", "ForceNoMemRestrict", 1) != 0;
+            //bool bForceNoMemRestrict = iniReader.ReadInteger("MAIN", "ForceNoMemRestrict", 1) != 0;
 
-            //[MISC]
-            bool bDefaultCameraAngleInTLAD = iniReader.ReadInteger("MISC", "DefaultCameraAngleInTLAD", 0) != 0;
-            bool bPedDeathAnimFixFromTBOGT = iniReader.ReadInteger("MISC", "PedDeathAnimFixFromTBOGT", 1) != 0;
-
-            bool bAlwaysDisplayHealthOnReticle = iniReader.ReadInteger("MISC", "AlwaysDisplayHealthOnReticle", 0) != 0;
+            // [MISC]
+            bool bDefaultCameraAngleInTLaD = iniReader.ReadInteger("MISC", "DefaultCameraAngleInTLaD", 0) != 0;
+            bool bPedDeathAnimFixFromTBoGT = iniReader.ReadInteger("MISC", "PedDeathAnimFixFromTBoGT", 1) != 0;
+            bool bDisableCameraCenteringInCover = iniReader.ReadInteger("MISC", "DisableCameraCenteringInCover", 1) != 0;
+            bool bAlwaysDisplayHealthOnReticle = iniReader.ReadInteger("MISC", "AlwaysDisplayHealthOnReticle", 1) != 0;
+            int nMenuEnteringDelay = std::clamp(iniReader.ReadInteger("MISC", "MenuEnteringDelay", 0), 20, 400);
+            int nMenuExitingDelay = std::clamp(iniReader.ReadInteger("MISC", "MenuExitingDelay", 0), 0, 800);
+            int nMenuAccessDelayOnStartup = std::clamp(iniReader.ReadInteger("MISC", "MenuAccessDelayOnStartup", 0), 300, 3000);
+            nRadarZoomDelay = std::clamp(iniReader.ReadInteger("MISC", "RadarZoomDelay", 3000), 0, 60000);
 
             //fix for zoom flag in tbogt
             if (nAimingZoomFix)
@@ -145,14 +247,14 @@ public:
                 injector::WriteMemory(pattern.get_first(10), &fRecMult, true);
             }
 
-            if (bDefaultCameraAngleInTLAD)
+            if (bDefaultCameraAngleInTLaD)
             {
                 static uint32_t episode_id = 0;
                 auto pattern = find_pattern<2>("83 3D ? ? ? ? ? 8B 01 0F 44 C2 89 01 B0 01 C2 08 00", "83 3D ? ? ? ? ? 75 06 C7 00 ? ? ? ? B0 01 C2 08 00");
                 injector::WriteMemory(pattern.count(2).get(0).get<void>(2), &episode_id, true);
             }
 
-            if (bPedDeathAnimFixFromTBOGT)
+            if (bPedDeathAnimFixFromTBoGT)
             {
                 auto pattern = hook::pattern("8B D9 75 2E");
                 if (!pattern.empty())
@@ -165,24 +267,31 @@ public:
             }
 
             {
-                static constexpr float xmm_0 = FLT_MAX / 2.0f;
-                unsigned char bytes[4];
-                auto n = (uint32_t)&xmm_0;
-                bytes[0] = (n >> 24) & 0xFF;
-                bytes[1] = (n >> 16) & 0xFF;
-                bytes[2] = (n >> 8) & 0xFF;
-                bytes[3] = (n >> 0) & 0xFF;
+                // static constexpr float xmm_0 = FLT_MAX / 2.0f;
+                // unsigned char bytes[4];
+                // auto n = (uint32_t)&xmm_0;
+                // bytes[0] = (n >> 24) & 0xFF;
+                // bytes[1] = (n >> 16) & 0xFF;
+                // bytes[2] = (n >> 8) & 0xFF;
+                // bytes[3] = (n >> 0) & 0xFF;
+                // 
+                // auto pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 47 ? F3 0F 11 47 ? 8B D1 89 54 24 10", "F3 0F 10 05 ? ? ? ? F3 0F 58 46 ? 89 8C 24");
+                // static raw_mem CoverCB(pattern.get_first(4), { bytes[3], bytes[2], bytes[1], bytes[0] });
+                // FusionFixSettings.SetCallback("PREF_COVERCENTERING", [](int32_t value) {
+                //     if (value)
+                //         CoverCB.Restore();
+                //     else
+                //         CoverCB.Write();
+                // });
+                // if (!FusionFixSettings("PREF_COVERCENTERING"))
+                //     CoverCB.Write();
 
-                auto pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 47 ? F3 0F 11 47 ? 8B D1 89 54 24 10", "F3 0F 10 05 ? ? ? ? F3 0F 58 46 ? 89 8C 24");
-                static raw_mem CoverCB(pattern.get_first(4), { bytes[3], bytes[2], bytes[1], bytes[0] });
-                FusionFixSettings.SetCallback("PREF_COVERCENTERING", [](int32_t value) {
-                    if (value)
-                        CoverCB.Restore();
-                    else
-                        CoverCB.Write();
-                });
-                if (!FusionFixSettings("PREF_COVERCENTERING"))
-                    CoverCB.Write();
+                if (bDisableCameraCenteringInCover)
+                {
+                    static constexpr float xmm_0 = FLT_MAX / 2.0f;
+                    auto pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 47 ? F3 0F 11 47 ? 8B D1 89 54 24 10", "F3 0F 10 05 ? ? ? ? F3 0F 58 46 ? 89 8C 24");
+                    injector::WriteMemory(pattern.get_first(4), &xmm_0, true);
+                }
             }
 
             // reverse lights fix
@@ -210,20 +319,20 @@ public:
                 injector::MakeCALL(pattern.get_first(0), sub_477300, true);
 
                 // related to the same issue
-                if (bForceNoMemRestrict)
-                {
-                    pattern = find_pattern("0F 85 ? ? ? ? A1 ? ? ? ? 85 C0 74 5C", "0F 85 ? ? ? ? A1 ? ? ? ? 85 C0 74 5A");
-                    if (!pattern.empty())
-                    {
-                        injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jnz -> jmp
-                    }
-                    else
-                    {
-                        pattern = find_pattern("75 7E A1 ? ? ? ? 85 C0");
-                        if (!pattern.empty())
-                            injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz -> jmp
-                    }
-                }
+                //if (bForceNoMemRestrict)
+                //{
+                //    pattern = find_pattern("0F 85 ? ? ? ? A1 ? ? ? ? 85 C0 74 5C", "0F 85 ? ? ? ? A1 ? ? ? ? 85 C0 74 5A");
+                //    if (!pattern.empty())
+                //    {
+                //        injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jnz -> jmp
+                //    }
+                //    else
+                //    {
+                //        pattern = find_pattern("75 7E A1 ? ? ? ? 85 C0");
+                //        if (!pattern.empty())
+                //            injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz -> jmp
+                //    }
+                //}
             }
 
             // Make LOD lights appear at the appropriate time like on the console version (consoles: 7 PM, pc: 10 PM)
@@ -317,26 +426,50 @@ public:
             // Fix mouse cursor scale
             {
                 auto pattern = hook::pattern("F3 0F 11 44 24 ? E8 ? ? ? ? D9 5C 24 20 80 3D");
-                struct MouseHeightHook 
-                {
-                    void operator()(injector::reg_pack& regs) 
-                    {
-                        *(float*)(regs.esp + 0x40 - 0x24) = 30.0f * (1.0f / 768.0f);
-                    }
-                };
                 if (!pattern.empty())
-                    injector::MakeInline<MouseHeightHook>(pattern.get_first(0), pattern.get_first(6));
+                {
+                    struct MouseHeightHook
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            *(float*)(regs.esp + 0x40 - 0x24) = 30.0f * (1.0f / 768.0f);
+                        }
+                    }; injector::MakeInline<MouseHeightHook>(pattern.get_first(0), pattern.get_first(6));
+                }
+                else
+                {
+                    pattern = hook::pattern("F3 0F 11 44 24 ? E8 ? ? ? ? D9 5C 24 1C 80 3D");
+                    struct MouseHeightHook
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            *(float*)(regs.esp + 0x40 - 0x18) = 30.0f * (1.0f / 768.0f);
+                        }
+                    }; injector::MakeInline<MouseHeightHook>(pattern.get_first(0), pattern.get_first(6));
+                }
 
                 pattern = hook::pattern("F3 0F 11 44 24 ? FF 50 24 66 0F 6E C0 0F 5B C0 6A 01");
-                struct MouseWidthHook 
-                {
-                    void operator()(injector::reg_pack& regs) 
-                    {
-                        *(float*)(regs.esp + 0x10) = 30.0f * (1.0f / 1024.0f);
-                    }
-                };
                 if (!pattern.empty())
-                    injector::MakeInline<MouseWidthHook>(pattern.get_first(0), pattern.get_first(6));
+                {
+                    struct MouseWidthHook
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            *(float*)(regs.esp + 0x10) = 30.0f * (1.0f / 1024.0f);
+                        }
+                    }; injector::MakeInline<MouseWidthHook>(pattern.get_first(0), pattern.get_first(6));
+                }
+                else
+                {
+                    pattern = hook::pattern("F3 0F 11 44 24 ? FF D2 F3 0F 2A C0 F3 0F 59 05 ? ? ? ? 6A 01");
+                    struct MouseWidthHook
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            *(float*)(regs.esp + 0x20) = 30.0f * (1.0f / 1024.0f);
+                        }
+                    }; injector::MakeInline<MouseWidthHook>(pattern.get_first(0), pattern.get_first(6));
+                }
             }
 
             // Restored a small detail regarding pedprops from the console versions that was changed on PC. Regular cops & fat cops will now spawn with their hat prop disabled when in a vehicle.
@@ -377,16 +510,16 @@ public:
                 }
             }
 
-            // Glass Shards Color Fix
+            // Glass shards color fix
             {
-                static auto veh_glass_red = "veh_glass_red";
+                static auto veh_glass_red   = "veh_glass_red";
                 static auto veh_glass_amber = "veh_glass_amber";
 
-                auto pattern = hook::pattern("68 ? ? ? ? EB E2 6A 00 68");
+                auto pattern = find_pattern("68 ? ? ? ? EB E2 6A 00 68", "68 ? ? ? ? EB 07 6A 00 68 ? ? ? ? E8 ? ? ? ? 83 C4 08");
                 if (!pattern.empty())
                     injector::WriteMemory(pattern.get_first(1), &veh_glass_red[0], true);
 
-                pattern = hook::pattern("68 ? ? ? ? E8 ? ? ? ? 83 C4 08 89 44 24 0C 6A 00 6A 00");
+                pattern = find_pattern("68 ? ? ? ? E8 ? ? ? ? 83 C4 08 89 44 24 0C 6A 00 6A 00", "68 ? ? ? ? E8 ? ? ? ? 83 C4 08 6A 00 6A 00 50 B9 ? ? ? ? 89 44 24 18 E8 ? ? ? ? 8B F0 85 F6 0F 84");
                 if (!pattern.empty())
                     injector::WriteMemory(pattern.get_first(1), &veh_glass_amber[0], true);
             }
@@ -402,20 +535,32 @@ public:
             {
                 static uint32_t* dwEFB1B8 = *hook::pattern("6A 01 6A 10 89 3D").get_first<uint32_t*>(6);
                 auto pattern = find_pattern("83 FF 05 74 05 83 FF 04 75 26 6A 00 6A 0C E8 ? ? ? ? 83 C4 08 85 C0 74 0B 6A 01 8B C8 E8", "83 FF 05 74 05");
-                static uintptr_t loc_6E39F3 = (uintptr_t)find_pattern("8B 45 0C 8B 4C 24 18 33 F6 33 D2 89 74 24 1C 66 3B 54 C1", "8B 4D 0C 66 83 7C CE").get_first(0);
+                static auto loc_AE39F3 = resolve_next_displacement(pattern.get_first(5)).value();
                 struct EmissiveDepthWriteHook
                 {
                     void operator()(injector::reg_pack& regs)
                     {
                         // Fix for visual bugs in QUB3D that will occur with this fix. Only enable z-write for emissives shaders when the camera/player height is 3000 or higher.
                         // This height check was present in patch 1.0.4.0 and was removed in patch 1.0.6.0+, in addition Z-write for emissive shaders was enabled permanently.
-                        if ((regs.edi == 5 || regs.edi == 4) && *(float*)(*dwEFB1B8 + 296) < 3000.0f)
+                        const bool isEmissiveShader = regs.edi == 5 || regs.edi == 4;
+                        const float cameraHeight = *(float*)(*dwEFB1B8 + 296);
+
+                        if (!_stricmp(pszCurrentCutsceneName, "intro"))
                         {
+                            return_to(loc_AE39F3);
                         }
-                        else
+
+                        if (isEmissiveShader && cameraHeight < 3000.0f)
                         {
-                            *(uintptr_t*)(regs.esp - 4) = loc_6E39F3;
+                            return;
                         }
+
+                        if (isEmissiveShader && cameraHeight >= 3000.0f)
+                        {
+                            bIsQUB3D = true;
+                        }
+
+                        return_to(loc_AE39F3);
                     }
                 }; injector::MakeInline<EmissiveDepthWriteHook>(pattern.get_first(0), pattern.get_first(10));
 
@@ -423,13 +568,6 @@ public:
                 injector::WriteMemory<uint8_t>(pattern.get_first(1), 0, true);
             }
 
-            // Water Foam Height Weirdness
-            //{
-            //    auto pattern = hook::pattern("F3 0F 58 0D ? ? ? ? 83 EC 08 F3 0F 59 05");
-            //    if (!pattern.empty())
-            //        injector::MakeNOP(pattern.get_first(0), 8, true);
-            //}
-            
             // Render LOD lights during cutscenes (console behavior)
             {
                 auto pattern = hook::pattern("E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? A1 ? ? ? ? 83 F8 02 0F 84");
@@ -508,18 +646,16 @@ public:
             // Always display the ped health on the reticle with free-aim while on foot, used to be a gamepad + multiplayer only feature (PC is always free-aim unless it's melee combat).
             if (bAlwaysDisplayHealthOnReticle)
             {
-                auto pattern = hook::pattern("80 3D ? ? ? ? ? 75 64 A1 ? ? ? ? 8B 0C 85");
+                auto pattern = hook::pattern("80 BB ? ? ? ? ? 74 61 56 57 E8");
                 if (!pattern.empty())
                 {
-                    static auto loc_5C8E93 = (uintptr_t)pattern.get_first(0);
-                    
-                    pattern = hook::pattern("80 BB ? ? ? ? ? 74 61 56 57 E8");
+                    static auto loc_5C8E93 = resolve_next_displacement(pattern.get_first(0)).value();
                     struct ReticleHealthHook
                     {
                         void operator()(injector::reg_pack& regs)
                         {
                             if (!(*(uint8_t*)(regs.ebx + 12941)) || !(*(uint8_t*)(regs.ebx + 12940)))
-                                *(uintptr_t*)(regs.esp - 4) = loc_5C8E93;
+                                force_return_address(loc_5C8E93);
                         }
                     }; injector::MakeInline<ReticleHealthHook>(pattern.get_first(0), pattern.get_first(9));
 
@@ -528,15 +664,14 @@ public:
                 }
                 else
                 {
-                    static auto loc_5C8E93 = (uintptr_t)hook::get_pattern("80 3D ? ? ? ? ? 75 6A A1 ? ? ? ? 8B 04 85");
-
                     pattern = hook::pattern("80 B9 ? ? ? ? ? 74 6D 56 57 E8");
+                    static auto loc_5C8E93 = resolve_next_displacement(pattern.get_first(0)).value();
                     struct ReticleHealthHook
                     {
                         void operator()(injector::reg_pack& regs)
                         {
                             if (!(*(uint8_t*)(regs.ecx + 12941)) || !(*(uint8_t*)(regs.ecx + 12940)))
-                                *(uintptr_t*)(regs.esp - 4) = loc_5C8E93;
+                                force_return_address(loc_5C8E93);
                         }
                     }; injector::MakeInline<ReticleHealthHook>(pattern.get_first(0), pattern.get_first(9));
 
@@ -547,21 +682,104 @@ public:
 
             // Radio reset fix
             {
-                auto pattern = hook::pattern("74 ? 85 C9 75 ? 32 C0 50");
+                auto pattern = find_pattern("74 ? 85 C9 75 ? 32 C0 50", "74 16 85 C0 75 12 D9 EE");
                 if (!pattern.empty())
                     injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jz -> jmp
             }
 
-            // Subtract Contrast slider value by 1 internally, same as on Xbox 360
+            // Radar zoom (T hotkey) 30fps cap fix
             {
-                auto pattern = find_pattern("F3 0F 59 C7 0F 2F C8 76 05 0F 28 C1 EB 05 0F 2F E0 76 16", "F3 0F 59 C6 0F 2F E8 76 05 0F 28 C5 EB 05 0F 2F D8 76 16");
+                auto pattern = find_pattern("83 F9 ? 0F 86 ? ? ? ? F3 0F 10 15", "83 F8 1E 0F 86 ? ? ? ? F3 0F 10 0D ? ? ? ? 0F 2E C1");
+                if (!pattern.empty())
+                    injector::WriteMemory<uint8_t>(pattern.get_first(2), 15, true);
+            }
+
+            // Radar zoom stays for a bit
+            {
+                auto pattern = find_pattern("E8 ? ? ? ? 84 C0 74 ? F3 0F 10 05 ? ? ? ? F3 0F 11 44 24 ? 6A");
+                if (!pattern.empty())
+                    hbsub_5DCA80.fun = injector::MakeCALL(pattern.get_first(0), sub_5DCA80, true).get();
+            }
+
+            // Workaround for drunk cam lights issue
+            {
+                auto pattern = find_pattern("E8 ? ? ? ? 6A ? FF 74 24 ? FF 74 24 ? 6A", "E8 ? ? ? ? 83 FF ? 6A");
+                if (!pattern.empty())
+                    hbsub_AD1240.fun = injector::MakeCALL(pattern.get_first(0), sub_AD1240, true).get();
+            }
+
+            // Helicopter lights fix
+            {
+                auto pattern = find_pattern("8B 0D ? ? ? ? 84 C0 8B 47", "8B 15 ? ? ? ? 3B 15 ? ? ? ? 0F 84 ? ? ? ? E8");
+                dword_1670CD0 = *pattern.get_first<uint32_t*>(2);
+
+                pattern = find_pattern("3B 05 ? ? ? ? 0F 84 ? ? ? ? E8 ? ? ? ? F3 0F 10 87", "3B 15 ? ? ? ? 0F 84 ? ? ? ? E8");
+                dwFrameCount = *pattern.get_first<uint32_t*>(2);
+
+                pattern = find_pattern("55 8B EC 83 E4 ? 81 EC ? ? ? ? 57 8B F9", "55 8B EC 83 E4 ? 81 EC ? ? ? ? 56 57 8B F1 E8 ? ? ? ? 8B 46");
+                shCHelisub_B69D80 = safetyhook::create_inline(pattern.get_first(), CHelisub_B69D80);
+            }
+
+            // Menu input lag
+            {
+                auto pattern = hook::pattern("EB 05 68 ? ? ? ? E8 ? ? ? ? 6A 08");
+                if (!pattern.empty())
+                    injector::WriteMemory(pattern.get_first(3), nMenuEnteringDelay, true);
+
+                pattern = hook::pattern("68 ? ? ? ? EB ? 6A ? 68 ? ? ? ? 6A");
+                if (!pattern.empty())
+                    injector::WriteMemory(pattern.get_first(1), nMenuExitingDelay, true);
+
+                pattern = hook::pattern("81 F9 ? ? ? ? 72 ? EB ? E8");
+                if (!pattern.empty())
+                    injector::WriteMemory(pattern.get_first(2), nMenuAccessDelayOnStartup, true);
+            }
+
+            // Bullet traces
+            {
+                auto pattern = find_pattern("0F 2F C8 72 ? FF 76");
                 if (!pattern.empty())
                 {
-                    static auto ContrastSliderHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto loc_B5D8D8 = resolve_next_displacement(pattern.get_first(0)).value();
+                    injector::MakeNOP(pattern.get_first(0), 5);
+                    static auto BulletTracesHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm0.f32[0] -= 1.0f;
+                        static auto esc = FusionFixSettings.GetRef("PREF_BULLETTRACES");
+                        if (esc->get())
+                        {
+                            return;
+                        }
+
+                        if (regs.xmm0.f32[0] >= regs.xmm1.f32[0])
+                            return_to(loc_B5D8D8);
                     });
                 }
+                else
+                {
+                    pattern = find_pattern("72 ? 8B 56 ? 52");
+                    static auto loc_B5D8D8 = resolve_displacement(pattern.get_first(0)).value();
+                    injector::MakeNOP(pattern.get_first(0), 5);
+                    static auto BulletTracesHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs) {
+                        static auto esc = FusionFixSettings.GetRef("PREF_BULLETTRACES");
+                        if (esc->get())
+                        {
+                            regs.edx = *(uint32_t*)(regs.esi + 0x18);
+                            return;
+                        }
+
+                        //fcomip  st, st(1)
+                        constexpr uint32_t FLAG_CF = 1u << 0;
+                        if (regs.eflags & FLAG_CF)
+                            return_to(loc_B5D8D8);
+
+                        regs.edx = *(uint32_t*)(regs.esi + 0x18);
+                    });
+                }
+
+                // Force IV/TLAD bullet tracer particles, TBoGT tracer particles have weird/wrong positioning
+                pattern = find_pattern("75 ? 68 ? ? ? ? EB ? 68 ? ? ? ? E8 ? ? ? ? 83 C4 ? 8B F8", "75 07 68 ? ? ? ? EB 05 68 ? ? ? ? E8 ? ? ? ? 83 C4 08 6A 00 6A 00 8B F8 57");
+                if (!pattern.empty())
+                    injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz -> jmp
             }
         };
     }

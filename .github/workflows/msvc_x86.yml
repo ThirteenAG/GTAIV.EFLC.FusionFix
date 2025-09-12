@@ -47,7 +47,7 @@ jobs:
 
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         submodules: recursive
 
@@ -67,24 +67,60 @@ jobs:
 
     - name: Build
       run: |
+        Push-Location external\modupdater
+        & .\premake5.bat
+        & .\builddist.bat
+        Pop-Location
         msbuild -m build/GTAIV.EFLC.FusionFix.sln /property:Configuration=Release /property:Platform=Win32
 
     - name: Download Ultimate ASI Loader x86
-      uses: robinraju/release-downloader@v1.11
+      uses: robinraju/release-downloader@v1.12
       with:
         repository: "ThirteenAG/Ultimate-ASI-Loader"
         tag: "Win32-latest"
         fileName: "dinput8-Win32.zip"
 
+    - name: Download DXVK
+      uses: robinraju/release-downloader@v1.12
+      with:
+        repository: "doitsujin/dxvk"
+        latest: true
+        fileName: "dxvk-*.tar.gz"
+
+    - name: Download Legacy Package
+      uses: robinraju/release-downloader@v1.12
+      with:
+        repository: "GTAmodding/XLivelessAddon"
+        tag: "latest"
+        fileName: "XLivelessAddon.zip"
+
     - name: Unpack dependencies
+      shell: cmd
       run: |
           7z x dinput8-Win32.zip -odata/ -y
           del dinput8-Win32.zip
           del data\dinput8-Win32.SHA512
+          for %%f in (dxvk-*.tar.gz) do 7z x -so "%%f" | 7z x -si -ttar -odxvk
+          for /d %%d in (dxvk\dxvk-*) do if exist "%%d\x32\d3d9.dll" copy "%%d\x32\d3d9.dll" "data\vulkan.dll"
+          rmdir /s /q dxvk
 
     - name: Pack binaries
       run: |
         ./release.bat
+
+    - name: Pack Legacy
+      shell: cmd
+      run: |
+        7z e XLivelessAddon.zip plugins/XLivelessAddon.asi -y
+        mkdir legacy
+        copy data\dinput8.dll legacy\xlive.dll
+        mkdir legacy\plugins
+        copy XLivelessAddon.asi legacy\plugins\
+        cd legacy
+        7z a -tzip ..\GTAIV.EFLC.FusionFixLegacyAddon.zip *
+        cd ..
+        rmdir /s /q legacy
+        del XLivelessAddon.asi
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
@@ -101,6 +137,24 @@ jobs:
           !data/update/GTAIV.EFLC.FusionFix/cdimagemake.ims
           !**/.gitkeep
 
+    - name: Upload Web Installer
+      uses: actions/upload-artifact@v4
+      with:
+        name: GTAIV.EFLC.FusionFixWebInstaller.exe
+        path: GTAIV.EFLC.FusionFixWebInstaller.exe
+
+    - name: Upload Offline Installer
+      uses: actions/upload-artifact@v4
+      with:
+        name: GTAIV.EFLC.FusionFixOfflineInstaller.exe
+        path: GTAIV.EFLC.FusionFixOfflineInstaller.exe
+
+    - name: Upload Legacy Addon
+      uses: actions/upload-artifact@v4
+      with:
+        name: GTAIV.EFLC.FusionFixLegacyAddon.zip
+        path: GTAIV.EFLC.FusionFixLegacyAddon.zip
+
     - name: Upload Release
       if: |
         github.event.inputs.release == 'true' &&
@@ -114,5 +168,5 @@ jobs:
         name: GTAIV.EFLC.FusionFix v${{ steps.versioning.outputs.version }}
         body: "[README](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix#readme)"
         tag: v${{ steps.versioning.outputs.version }}
-        artifacts: GTAIV.EFLC.FusionFix.zip
+        artifacts: GTAIV.EFLC.FusionFix.zip, GTAIV.EFLC.FusionFixWebInstaller.exe, GTAIV.EFLC.FusionFixOfflineInstaller.exe, GTAIV.EFLC.FusionFixLegacyAddon.zip
 

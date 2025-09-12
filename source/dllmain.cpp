@@ -2,40 +2,36 @@
 
 import common;
 import comvars;
-import dllblacklist;
+import compat;
 import fusiondxhook;
 
 injector::hook_back<void(*)()> hbCGameProcess;
 void CGameProcessHook()
 {
-    static std::once_flag of;
-    std::call_once(of, []()
-    {
-        FusionFix::onGameInitEvent().executeAll();
-    });
-
     if (CTimer::m_UserPause && CTimer::m_CodePause)
     {
-        static auto oldMenuState = 0;
-
         if (!*CTimer::m_UserPause && !*CTimer::m_CodePause)
         {
-            uint32_t curMenuState = false;
-            if (curMenuState != oldMenuState) {
-                FusionFix::onMenuExitEvent().executeAll();
-            }
-            oldMenuState = curMenuState;
+            static std::once_flag of;
+            std::call_once(of, []() {
+                FusionFix::onGameInitEvent().executeAll();
+            });
+
             FusionFix::onGameProcessEvent().executeAll();
         }
-        else
+
+        static bool oldMenuState = false;
+        bool curMenuState = CMenuManager::m_MenuActive && *CMenuManager::m_MenuActive;
+        if (curMenuState != oldMenuState)
         {
-            uint32_t curMenuState = true;
-            if (curMenuState != oldMenuState) {
+            if (curMenuState)
                 FusionFix::onMenuEnterEvent().executeAll();
-            }
-            oldMenuState = curMenuState;
-            FusionFix::onMenuDrawingEvent().executeAll();
+            else
+                FusionFix::onMenuExitEvent().executeAll();
         }
+        oldMenuState = curMenuState;
+        if (curMenuState)
+            FusionFix::onMenuDrawingEvent().executeAll();
     }
 
     return hbCGameProcess.fun();
@@ -118,6 +114,12 @@ void Init()
     static auto DeactivateAppHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
     {
         FusionFix::onActivateApp().executeAll(false);
+    });
+
+    pattern = find_pattern("81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 8B 84 24 ? ? ? ? 53 56 68", "81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 8B 84 24 ? ? ? ? 53 55 56 68 ? ? ? ? 50 E8");
+    static auto ReadGameConfigHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+    {
+        FusionFix::onReadGameConfig().executeAll();
     });
 
     static auto futures = FusionFix::onInitEventAsync().executeAllAsync();

@@ -11,6 +11,7 @@ export module snow;
 import common;
 import comvars;
 import natives;
+import settings;
 import d3dx9_43;
 import fusiondxhook;
 
@@ -35,7 +36,7 @@ rage::grcTexturePC* vehicle_genericmud_truck_snow;
 static SafetyHookInline shsub_41B920{};
 rage::grcTexturePC* __fastcall sub_41B920(rage::grcTextureReference* tex, void* edx)
 {
-    if (bEnableSnow && *CWeather::CurrentWeather != CWeather::LIGHTNING)
+    if (bEnableSnow)
     {
         if (!vehicle_generic_glasswindows2)
         {
@@ -78,7 +79,7 @@ rage::grcTexturePC* __fastcall sub_41B920(rage::grcTextureReference* tex, void* 
             return vehicle_genericmud_truck_snow;
     }
 
-    return shsub_41B920.fastcall<rage::grcTexturePC*>(tex, edx);
+    return shsub_41B920.unsafe_fastcall<rage::grcTexturePC*>(tex, edx);
 }
 
 class Snow
@@ -89,10 +90,6 @@ private:
         float Pos[3];
         float TexCoord[2];
     };
-
-    static inline float mCfgVolumetricIntensityMultiplier = 1.0f;
-
-    static inline float mVolumeIntensity = 1.0f;
 
     static inline IDirect3DVertexBuffer9* mQuadVertexBuffer;
     static inline IDirect3DVertexDeclaration9* mQuadVertexDecl;
@@ -129,7 +126,7 @@ private:
         if (mQuadVertexDecl)
         {
             mQuadVertexDecl->Release();
-            mQuadVertexBuffer = nullptr;
+            mQuadVertexDecl = nullptr;
         }
 
         if (mSnowTexture)
@@ -242,20 +239,18 @@ private:
 
         auto HasSnow = [](CWeather::eWeatherType type) -> bool
         {
-            if (type == CWeather::LIGHTNING)
-                return false;
+            //if (type == CWeather::LIGHTNING)
+            //    return false;
             return true;
         };
 
-        IDirect3DDevice9* device = rage::grcDevice::GetD3DDevice();
-
-        mVolumeIntensity = 1.0f;
+        auto device = rage::grcDevice::GetD3DDevice();
 
         static CWeather::eWeatherType currWeather;
 
         auto prevWeather = currWeather;
-        currWeather = *CWeather::CurrentWeather;
-        auto nextWeather = *CWeather::NextWeather;
+        currWeather = *CWeather::OldWeatherType;
+        auto nextWeather = *CWeather::NewWeatherType;
 
         if (HasSnow(prevWeather) || HasSnow(currWeather) || HasSnow(nextWeather))
         {
@@ -317,15 +312,13 @@ private:
 
             rage::Vector4 threshold;
             if (!HasSnow(currWeather) && HasSnow(nextWeather))
-                threshold.y = *CWeather::NextWeatherPercentage;
+                threshold.y = *CWeather::InterpolationValue;
             else if (HasSnow(currWeather) && !HasSnow(nextWeather))
-                threshold.y = 0.9999f - *CWeather::NextWeatherPercentage;
+                threshold.y = 0.9999f - *CWeather::InterpolationValue;
             else if (!HasSnow(currWeather) && !HasSnow(nextWeather))
                 threshold.y = 0.0f;
             else
                 threshold.y = 0.9999f;
-
-            mVolumeIntensity = threshold.y * 4.0f * mCfgVolumetricIntensityMultiplier;
 
             threshold.y = pow(threshold.y, 0.20f);
             threshold.x = max(0.9999f, (threshold.y / (threshold.y + 0.15f)) * 1.15f);
@@ -469,6 +462,11 @@ private:
     static inline gtaRainRender RainRenderCopy;
     static inline gtaRainEmitter RainEmitterCopy;
 
+    static inline gtaRainRender* pStormRender = nullptr;
+    static inline gtaRainEmitter* pStormEmitter = nullptr;
+    static inline gtaRainRender StormRenderCopy;
+    static inline gtaRainEmitter StormEmitterCopy;
+
     static void SetRainRenderParams()
     {
         if (bEnableSnow)
@@ -476,12 +474,15 @@ private:
             RainRenderCopy = *pRainRender;
             RainEmitterCopy = *pRainEmitter;
 
+            StormRenderCopy = *pStormRender;
+            StormEmitterCopy = *pStormEmitter;
+
             pRainRender->motionBlurAmt = 0.01f;
             pRainRender->radius = 0.042f;
             pRainRender->radius2 = 0.0f;
-            pRainRender->tintColorX = 30.0f;
-            pRainRender->tintColorY = 30.0f;
-            pRainRender->tintColorZ = 30.0f;
+            pRainRender->tintColorX = 10.0f;
+            pRainRender->tintColorY = 10.0f;
+            pRainRender->tintColorZ = 10.0f;
             pRainRender->tintColorW = 0.15f;
             pRainRender->tintColorPhase2X = 1.0f;
             pRainRender->tintColorPhase2Y = 1.0f;
@@ -495,11 +496,34 @@ private:
             pRainEmitter->velRangeY = 4.0f;
             pRainEmitter->velRangeZ = -2.2f;
             pRainEmitter->probablityPhase2 = 0.1f;
+
+            pStormRender->motionBlurAmt = 0.01f;
+            pStormRender->radius = 0.042f;
+            pStormRender->radius2 = 0.0f;
+            pStormRender->tintColorX = 10.0f;
+            pStormRender->tintColorY = 10.0f;
+            pStormRender->tintColorZ = 10.0f;
+            pStormRender->tintColorW = 0.15f;
+            pStormRender->tintColorPhase2X = 1.0f;
+            pStormRender->tintColorPhase2Y = 1.0f;
+            pStormRender->tintColorPhase2Z = 1.0f;
+            pStormRender->tintColorPhase2W = 1.0f;
+
+            pStormEmitter->velX = -10.0f;
+            pStormEmitter->velY = -10.0f;
+            pStormEmitter->velZ = -5.0f;
+            pStormEmitter->velRangeX = 4.0f;
+            pStormEmitter->velRangeY = 4.0f;
+            pStormEmitter->velRangeZ = -2.2f;
+            pStormEmitter->probablityPhase2 = 0.1f;
         }
         else
         {
              *pRainRender = RainRenderCopy;
              *pRainEmitter = RainEmitterCopy;
+
+             *pStormRender = StormRenderCopy;
+             *pStormEmitter = StormEmitterCopy;
         }
     }
 
@@ -525,26 +549,63 @@ public:
                 {
                     FusionFix::onGameProcessEvent() += []()
                     {
-                        auto now = std::chrono::system_clock::now();
-                        auto now_c = std::chrono::system_clock::to_time_t(now);
-                        auto date = std::localtime(&now_c);
-
-                        if ((date->tm_mon == 0 && date->tm_mday <= 2) || (date->tm_mon == 11 && date->tm_mday >= 30))
+                        if (FusionFixSettings("PREF_TIMEDEVENTS"))
                         {
-                            static bool bOnce = false;
-                            if (!bOnce)
+                            auto now = std::chrono::system_clock::now();
+                            auto now_c = std::chrono::system_clock::to_time_t(now);
+                            auto date = std::localtime(&now_c);
+                        
+                            if ((date->tm_mon == 0 && date->tm_mday <= 2) || (date->tm_mon == 11 && date->tm_mday >= 30))
                             {
-                                bOnce = true;
-                                ToggleSnow(true);
+                                static bool bOnce = false;
+                                if (!bOnce)
+                                {
+                                    bOnce = true;
+                                    ToggleSnow(true);
+                                }
+                            }
+                            else if (bEnableSnow)
+                            {
+                                static bool bOnce = false;
+                                if (!bOnce)
+                                {
+                                    bOnce = true;
+                                    ToggleSnow(false);
+                                }
                             }
                         }
-                        else if (bEnableSnow)
+                    };
+                }
+
+                if (date->tm_mon == 9 && date->tm_mday == 31)
+                {
+                    FusionFix::onGameProcessEvent() += []()
+                    {
+                        if (FusionFixSettings("PREF_TIMEDEVENTS"))
                         {
-                            static bool bOnce = false;
-                            if (!bOnce)
+                            auto now = std::chrono::system_clock::now();
+                            auto now_c = std::chrono::system_clock::to_time_t(now);
+                            auto date = std::localtime(&now_c);
+                        
+                            if ((date->tm_mon == 10 && date->tm_mday <= 1) || (date->tm_mon == 9 && date->tm_mday >= 30))
                             {
-                                bOnce = true;
-                                ToggleSnow(false);
+                                static bool bOnce = false;
+                                if (!bOnce)
+                                {
+                                    bOnce = true;
+                                    bEnableHall = !bEnableHall;
+                                    ToggleSnow(false);
+                                }
+                            }
+                            else if (bEnableHall)
+                            {
+                                static bool bOnce = false;
+                                if (!bOnce)
+                                {
+                                    bOnce = true;
+                                    bEnableHall = !bEnableHall;
+                                    ToggleSnow(false);
+                                }
                             }
                         }
                     };
@@ -571,72 +632,66 @@ public:
                         mBeforeLightingCB->Append();
                 };
 
-                struct hash_tuple
-                {
-                    size_t operator()(const std::tuple<int, int, int>& t) const
-                    {
-                        return get<0>(t) ^ get<1>(t) ^ get<2>(t);
-                    }
-                };
+                //struct hash_tuple
+                //{
+                //    size_t operator()(const std::tuple<int, int, int>& t) const
+                //    {
+                //        return get<0>(t) ^ get<1>(t) ^ get<2>(t);
+                //    }
+                //};
 
-                static std::unordered_map<std::tuple<int, int, int>, float, hash_tuple> LightVolumeIntensity;
+                //static std::unordered_map<std::tuple<int, int, int>, float, hash_tuple> LightVolumeIntensity;
+
                 CRenderPhaseDeferredLighting_LightsToScreen::OnAfterCopyLight() += [](rage::CLightSource* light)
                 {
                     if (bEnableSnow)
                     {
-                        if (light->mFlags & 8 /*volumetric*/)
+                        if (light->mType == rage::LT_SPOT && light->mRadius < 35.0f && !(light->mFlags & 8) /* Exclude lights previously volumetric */ && !(light->mFlags & 0x300) /* Exclude vehicle lights and traffic lights */)
                         {
-                            LightVolumeIntensity[std::make_tuple(static_cast<int>(light->mPosition.x), static_cast<int>(light->mPosition.y), static_cast<int>(light->mPosition.z))] = 1.0f;
-                        }
-                        else if (light->mType == rage::LT_SPOT && !(light->mFlags & 0x300)/*vehicles and traffic lights*/)
-                        {
-                            if (mVolumeIntensity > 0.0f && light->mRadius < 50.0f)
-                            {
-                                light->mVolumeSize = 1.0f;
-                                light->mVolumeScale = 0.5f;
-                                light->mFlags |= 8;
-                                LightVolumeIntensity[std::make_tuple(static_cast<int>(light->mPosition.x), static_cast<int>(light->mPosition.y), static_cast<int>(light->mPosition.z))] = mVolumeIntensity;
-                            }
+                            light->mFlags |= 8;
+                            light->mVolumeSize  = 4.0f;
+                            light->mVolumeScale = 0.5f;
                         }
                     }
                 };
 
-                auto pattern = hook::pattern("C7 84 24 ? ? ? ? ? ? ? ? FF 74 06 44");
-                if (!pattern.empty())
-                {
-                    struct LightsHook
-                    {
-                        void operator()(injector::reg_pack& regs)
-                        {
-                            if (bEnableSnow)
-                            {
-                                auto light = (rage::CLightSource*)(regs.esi + regs.eax);
-                                *(float*)(regs.esp + 0xEC) = LightVolumeIntensity[std::make_tuple(static_cast<int>(light->mPosition.x), static_cast<int>(light->mPosition.y), static_cast<int>(light->mPosition.z))];
-                            }
-                            else
-                                *(float*)(regs.esp + 0xEC) = 1.0f;
-                        }
-                    }; injector::MakeInline<LightsHook>(pattern.get_first(0), pattern.get_first(11));
-                }
-                else
-                {
-                    pattern = hook::pattern("F3 0F 11 44 24 ? 8B 54 06 44");
-                    struct LightsHook
-                    {
-                        void operator()(injector::reg_pack& regs)
-                        {
-                            if (bEnableSnow)
-                            {
-                                auto light = (rage::CLightSource*)(regs.esi + regs.eax * 1);
-                                *(float*)(regs.esp + 0xEC) = LightVolumeIntensity[std::make_tuple(static_cast<int>(light->mPosition.x), static_cast<int>(light->mPosition.y), static_cast<int>(light->mPosition.z))];
-                            }
-                            else
-                                *(float*)(regs.esp + 0x68) = 1.0f;
-                        }
-                    }; injector::MakeInline<LightsHook>(pattern.get_first(0), pattern.get_first(6));
-                }
+                // Causes volumes to flicker and is not really needed
+                //auto pattern = hook::pattern("C7 84 24 ? ? ? ? ? ? ? ? FF 74 06 44");
+                //if (!pattern.empty())
+                //{
+                //    struct LightsHook
+                //    {
+                //        void operator()(injector::reg_pack& regs)
+                //        {
+                //            if (bEnableSnow)
+                //            {
+                //                auto light = (rage::CLightSource*)(regs.esi + regs.eax);
+                //               *(float*)(regs.esp + 0xEC) = LightVolumeIntensity[std::make_tuple(static_cast<int>(light->mPosition.x), static_cast<int>(light->mPosition.y), static_cast<int>(light->mPosition.z))];
+                //            }
+                //            else
+                //                *(float*)(regs.esp + 0xEC) = 1.0f;
+                //        }
+                //    }; injector::MakeInline<LightsHook>(pattern.get_first(0), pattern.get_first(11));
+                //}
+                //else
+                //{
+                //    pattern = hook::pattern("F3 0F 11 44 24 ? 8B 54 06 44");
+                //    struct LightsHook
+                //    {
+                //        void operator()(injector::reg_pack& regs)
+                //        {
+                //            if (bEnableSnow)
+                //            {
+                //                auto light = (rage::CLightSource*)(regs.esi + regs.eax * 1);
+                //                *(float*)(regs.esp + 0x68) = LightVolumeIntensity[std::make_tuple(static_cast<int>(light->mPosition.x), static_cast<int>(light->mPosition.y), static_cast<int>(light->mPosition.z))];
+                //            }
+                //            else
+                //                *(float*)(regs.esp + 0x68) = 1.0f;
+                //        }
+                //    }; injector::MakeInline<LightsHook>(pattern.get_first(0), pattern.get_first(6));
+                //}
 
-                pattern = find_pattern("B9 ? ? ? ? E8 ? ? ? ? 8B 4D 0C 51 F3 0F 10 41 ? 8D 41 20", "B9 ? ? ? ? D9 44 24 1C D9 5C 24 04");
+                auto pattern = find_pattern("B9 ? ? ? ? E8 ? ? ? ? 8B 4D 0C 51 F3 0F 10 41 ? 8D 41 20", "B9 ? ? ? ? D9 44 24 1C D9 5C 24 04");
                 byte_1723BB0 = *pattern.get_first<uint8_t*>(1);
 
                 pattern = find_pattern("89 41 28 F3 0F 10 0D", "50 24 8B 0D ? ? ? ? 89 48 28 F3 0F 10 0D");
@@ -645,16 +700,8 @@ public:
                 pattern = find_pattern("88 41 61 F3 0F 10 0D", "48 60 8A 15 ? ? ? ? 88 50 61");
                 pRainEmitter = *pattern.get_first<gtaRainEmitter*>(15);
 
-                NativeOverride::RegisterPhoneCheat("7665550100", []
-                {
-                    ToggleSnow(!bEnableSnow);
-                });
-
-                NativeOverride::RegisterPhoneCheat("2665550100", []
-                {
-                    bEnableHall = !bEnableHall;
-                    ToggleSnow(false);
-                });
+                pStormRender = reinterpret_cast<gtaRainRender*>((uintptr_t)pRainRender + 0x60);
+                pStormEmitter = reinterpret_cast<gtaRainEmitter*>((uintptr_t)pRainEmitter + 0xD0);
 
                 // Snow on vehicles: load textures
                 pattern = find_pattern("E8 ? ? ? ? 8B 0D ? ? ? ? 83 C4 18 8B 01 6A 00", "E8 ? ? ? ? 83 C4 18 8B 0D");
@@ -688,6 +735,35 @@ public:
     }
 } Snow;
 
+export void SnowCheat(bool bPrintHelp = true)
+{
+    bEnableHall = false;
+    bEnableSnow = !bEnableSnow;
+    Snow::ToggleSnow(bEnableSnow);
+
+    if (bPrintHelp)
+    {
+        if (bEnableSnow)
+            Natives::PrintHelp((char*)"WinterEvent1");
+        else
+            Natives::PrintHelp((char*)"WinterEvent0");
+    }
+}
+
+export void HallCheat(bool bPrintHelp = true)
+{
+    bEnableHall = !bEnableHall;
+    Snow::ToggleSnow(false);
+
+    if (bPrintHelp)
+    {
+        if (bEnableHall)
+            Natives::PrintHelp((char*)"HalloweenEvent1");
+        else
+            Natives::PrintHelp((char*)"HalloweenEvent0");
+    }
+}
+
 extern "C"
 {
     bool __declspec(dllexport) IsSnowEnabled()
@@ -697,7 +773,7 @@ extern "C"
 
     bool __declspec(dllexport) IsWeatherSnow()
     {
-        return CWeather::CurrentWeather && *CWeather::CurrentWeather != CWeather::LIGHTNING;
+        return true; //CWeather::OldWeatherType && *CWeather::OldWeatherType != CWeather::LIGHTNING;
     }
 
     void __declspec(dllexport) ToggleSnow()

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<rage__ptxSimpleEmitter>
+	<pos x="0.000000" y="28.000000" z="10.000000"/>
+	<posRange x="28.000000" y="28.000000" z="10.000000"/>
+	<LifeRangeOffset x="0.000000" y="0.600000"/>
+	<vel x="0.000000" y="0.000000" z="-25.000000"/>
+	<velRange x="1.500000" y="1.500000" z="2.000000"/>
+	<posRelative value="false"/>
+	<AddCameraOffset value="true"/>
+	<collisionVelocityModifier x="0.000000" y="0.000000" z="0.000000"/>
+	<collisionLifeModifier x="0.100000" y="0.050000"/>
+	<collisionPositionModifier x="0.000000" y="0.000000" z="0.020000"/>
+	<gustSpacing x="0.000000" y="0.000000"/>
+	<gustForceAmplifier x="0.000000" y="0.000000" z="0.000000"/>
+	<disperseRange value="15.000000"/>
+	<disperseAmt value="0.020000"/>
+	<inertia value="5.000000"/>
+	<probablityPhase2 value="0.000000"/>
+</rage__ptxSimpleEmitter>

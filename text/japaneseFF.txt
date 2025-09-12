@@ -14,58 +14,61 @@
 フォーカスの喪失時にゲームをポーズ
 
 [LightSyncRGB]
-Logitech LightSync RGB
+ロジクール LIGHTSYNC RGB
 
 [FPS Counter]
-FPSカウンター
+フレームレートの表示
 
 [Letterbox]
-カットシーン レターボックス
+カットシーンのレターボックス
 
 [Pillarbox]
-カットシーン ピラーボックス
+カットシーンのピラーボックス
 
 [Alt. Dialogues]
-代替対話
+代替台詞
 
 [Check Updates]
-Fusion Fixアップデートを確認する
+FusionFixのアップデートを確認する
 
 [Raw Input]
 Raw Input
 
 [Always Run]
-常に実行
+常に走る
 
 [Cover Centering]
-カバーのセンタリング
+カバー時カメラのセンタリング
 
 [Centering Delay]
-センタリング遅延
+センタリングの遅延
 
 [Gamepad Icons]
-コントローラーアイコン
+コントローラーのアイコン
 
 [Motion Blur]
 モーションブラー
 
 [Bloom]
-ライトブルーム
+ブルーム効果
 
 [Console Gamma]
-コンソールガンマ
+コンソール風のガンマ
+
+[Auto Exposure]
+コンソール風の自動露出
 
 [Screen Filter]
-スクリーンフィルター
+画面フィルター
 
 [Depth of Field]
 背景ぼかし
 
 [TreeFX]
-ツリーライティング
+木のライティング
 
 [Sun Shafts]
-サンシャフト
+薄明光線(ゴッドレイ)
 
 [Antialiasing]
 アンチエイリアシング
@@ -73,38 +76,122 @@ Raw Input
 [FPS Limiter]
 FPSリミッター
 
-[LamppostShadows]
-街灯の影
+[ExtraNightShad]
+夜間時の追加シャドウ
+
+[Lampposts]
+街灯
+
+[LampostsHeadl]
+街灯とヘッドライト
+
+[LampHeadlVNS]
+街灯とヘッドライト + 車両の影
 
 [Tree Alpha]
-ツリー アルファ
+木の透過
+
+[UnclampLighting]
+日照範囲の拡大
 
 [Shadow Filter]
-シャドウフィルター
+ソフトシャドウ
 
 [HeadlightShadow]
 ヘッドライトの影
 
+[Timed Events]
+季節イベント
+
+[Tone Mapping]
+トーンマッピング
+
+[Volumetric Fog]
+ボリュメトリックフォグ
+
+[Zoomed Movement]
+ズーム中の移動を許可
+
+[Distant Lights]
+遠くの光
+
+[CenteredVehCam]
+乗車時カメラのセンタリング
+
+[CenteredFootCam]
+歩行時カメラのセンタリング
+
+[Camera Shake]
+カメラの振動
+
+[CutscAudioSync]
+カットシーンの音声同期
+
+[CutscAudioSync0]
+カットシーンの音声同期が無効化されました
+
+[CutscAudioSync1]
+カットシーンの音声同期が有効化されました
+
+[Turn Indicators]
+ウィンカー
+
+[WinterEvent0]
+ウィンターイベントが無効化されました
+
+[WinterEvent1]
+ウィンターイベントが有効化されました
+
+[HalloweenEvent0]
+ハロウィーンイベントが無効化されました
+
+[HalloweenEvent1]
+ハロウィーンイベントが有効化されました
+
+[TranspMapMenu]
+マップメニューの透過
+
+[Extra Streaming]
+ストリーミングメモリの追加割り当て
+
+[FF_SM]
+ストリーミングメモリの割り当て
+
+[Graphics API]
+グラフィックスAPI
+
+[FF_RESTART]
+設定を適用するにはGTA IVを再起動する必要があります。
+
+[Extended Sniper]
+スナイパーライフルの追加操作
+
+[Bullet Traces]
+常に弾道を表示する
+
 [FF_WARN0]
-~p~IMG ファイル:
+~p~IMGファイル:
 
 [FF_WARN1]
-; ~r~警告: 255 制限を超えると、ストリーミングに問題が発生します。
+; ~r~警告: IMGファイルの個数が制限の255個を超過しています。ストリーミング関連の不具合が発生する可能性があります。
 
 [FF_WARN2]
-~r~警告: 街灯の影により、視覚的なアーティファクトやパフォーマンスの問題が発生する可能性があります。
+~r~警告: 夜間時の追加シャドウはロックスター製のオプションです。深刻な不具合があるため、推奨されません。
 
 [FF_WARN3]
-~r~警告: 表示距離スライダーが 25 を超え、詳細距離スライダーが 31 を超えると、オブジェクトがポップインする可能性があります。
+~r~警告: 視界範囲を25以上、詳細表示距離を31以上に設定すると、オブジェクトが突然表示される等の不具合が発生する可能性があります。
 
 [FF_WARN4]
-~r~警告: 表示距離スライダーが 25 を超えると、オブジェクトがポップインする可能性があります。
+~r~警告: 視界範囲を25以上に設定すると、オブジェクトが突然表示される等の不具合が発生する可能性があります。
 
 [FF_WARN5]
-~r~警告: 詳細距離スライダーを 31 より上にすると、オブジェクトがポップインする可能性があります。
+~r~警告: 詳細表示距離を31以上に設定すると、オブジェクトが突然表示される等の不具合が発生する可能性があります。
 
 [FF_WARN6]
-~r~警告: CHSS は影の品質を「最高」に設定した場合のみ有効になります。
+~r~警告: CHSSは影表現の設定を「非常に高い」に設定した場合のみ有効になります。
+
+[FF_WARN7]
+~r~警告: 音ズレが発生する場合はカットシーンの音声同期をONに、アニメーションを滑らかにするにはOFFにしてください。カットシーン中に~PAD_UP~で切り替えられます。
 
 [DUMMY_l11]
 Dummy label.

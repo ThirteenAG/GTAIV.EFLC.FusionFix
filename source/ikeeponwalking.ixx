@@ -35,13 +35,14 @@ public:
                         if (*(float*)(regs.esp + (flag ? 0x14 : 0x1C)) > 1.0f)
                             *(float*)(regs.esp + (flag ? 0x18 : 0x1C)) = 1.0f;
 
-                        *(uintptr_t*)(regs.esp - 4) = loc_A2A60F;
+                        force_return_address(loc_A2A60F);
                     }
-                    auto alwaysrunPref = FusionFixSettings.GetRef("PREF_ALWAYSRUN"); 
+                    static auto alwaysrunPref = FusionFixSettings.GetRef("PREF_ALWAYSRUN"); 
+                    static auto sprintPref = FusionFixSettings.GetRef("PREF_SPRINT"); 
                     auto bShouldRun = alwaysrunPref->get();
                     auto bDontRunNow = bShouldRun && bDoNotRunInside && Natives::IsInteriorScene();
 
-                    if (!FusionFixSettings.Get("PREF_SPRINT")) // toggle
+                    if (!sprintPref->get()) // toggle
                     {
                         if (bShouldRun)
                         {
