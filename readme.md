@@ -35,6 +35,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 > <details>
 > <summary>Click here for details</summary>
 > <br>
+>
 > You need to tell Wine explicitly that the `dinput8.dll` file is to be used. There's more than one way to achieve it. Note that Proton Experimental already loads it by default, so you may skip this step.
 >
 > ###
