@@ -124,7 +124,7 @@ public:
         { float fLen = Magnitude(); float fInvLen = 1.0f / fLen; x *= fInvLen; y *= fInvLen; z *= fInvLen; return fLen; }
 
     friend inline float DotProduct(const CVector& vec1, const CVector& vec2)
-        { return vec1.x * vec2.x + vec1.x * vec2.y + vec1.z * vec2.z; }
+        { return vec1.x * vec2.x + vec1.y * vec2.y + vec1.z * vec2.z; }
     friend inline CVector CrossProduct(const CVector& vec1, const CVector& vec2)
         { return CVector(	vec1.y * vec2.z - vec1.z * vec2.y,
                             vec1.z * vec2.x - vec1.x * vec2.z,
@@ -180,7 +180,7 @@ public:
         { float fLen = Magnitude(); float fInvLen = 1.0f / fLen; x *= fInvLen; y *= fInvLen; return fLen; }
 
     friend inline float DotProduct(const CVector2D& vec1, const CVector2D& vec2)
-        { return vec1.x * vec2.x + vec1.x * vec2.y; }
+        { return vec1.x * vec2.x + vec1.y * vec2.y; }
     friend inline float CrossProduct(const CVector2D& vec1, const CVector2D& vec2)
         { return vec1.x * vec2.y - vec1.y * vec2.x; }
 
