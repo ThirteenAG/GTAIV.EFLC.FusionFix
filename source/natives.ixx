@@ -3658,7 +3658,7 @@ public:
     static inline auto CompareTwoDates(int32_t date0_0, int32_t date0_1, int32_t date1_0, int32_t date1_1) { return NativeInvoke::Invoke<301, std::to_underlying(NativeHashes::COMPARE_TWO_DATES), int32_t>(date0_0, date0_1, date1_0, date1_1); }
     static inline auto ConnectLods(Object obj0, Object obj1) { return NativeInvoke::Invoke<302, std::to_underlying(NativeHashes::CONNECT_LODS), void>(obj0, obj1); }
     static inline auto ControlCarDoor(Vehicle vehicle, uint32_t door, uint32_t unknown_maybe_open, float angle) { return NativeInvoke::Invoke<303, std::to_underlying(NativeHashes::CONTROL_CAR_DOOR), void>(vehicle, door, unknown_maybe_open, angle); }
-    static inline auto ConvertIntToPlayerindex(uint32_t playerId) { return NativeInvoke::Invoke<304, std::to_underlying(NativeHashes::CONVERT_INT_TO_PLAYERINDEX), Player>(playerId); }
+    static inline auto ConvertIntToPlayerIndex(uint32_t playerId) { return NativeInvoke::Invoke<304, std::to_underlying(NativeHashes::CONVERT_INT_TO_PLAYERINDEX), Player>(playerId); }
     static inline auto ConvertMetresToFeet(float metres) { return NativeInvoke::Invoke<305, std::to_underlying(NativeHashes::CONVERT_METRES_TO_FEET), float>(metres); }
     static inline auto ConvertMetresToFeetInt(int32_t metres) { return NativeInvoke::Invoke<306, std::to_underlying(NativeHashes::CONVERT_METRES_TO_FEET_INT), int32_t>(metres); }
     static inline auto ConvertThenAddStringToHtmlScriptObject(int32_t htmlobj, char* strgxtkey) { return NativeInvoke::Invoke<307, std::to_underlying(NativeHashes::CONVERT_THEN_ADD_STRING_TO_HTML_SCRIPT_OBJECT), void>(htmlobj, strgxtkey); }

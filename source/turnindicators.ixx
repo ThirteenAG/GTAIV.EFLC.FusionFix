@@ -135,41 +135,54 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
+            struct VehicleFlags
+            {
+                unsigned char takesLessDamage : 1;
+                unsigned char hasBeenOwnedByPlayer : 1;
+                unsigned char needsHotWired : 1;
+                unsigned char : 5;
+            };
+
             static ptrdiff_t SteerAngleOffset = 0x1088;
+            static ptrdiff_t pDriverOffset = 0xF50;
+            static ptrdiff_t VehicleFlagsOffset = 0xF16;
             auto pattern = find_pattern("55 8B EC 83 E4 ? 8B 45 ? 83 EC ? 8B 80");
             if (!pattern.empty())
             {
                 sh_sub_A3FF30 = safetyhook::create_inline(pattern.get_first(0), sub_A3FF30);
                 SteerAngleOffset = 0x1088;
+                pDriverOffset = 0xF50;
+                VehicleFlagsOffset = 0xF16;
             }
             else
             {
                 pattern = find_pattern("55 8B EC 83 E4 ? 8B 45 ? 83 EC ? 53 8B 5D ? 56 8B F1 8B 88");
                 sh_sub_A3FF30 = safetyhook::create_inline(pattern.get_first(0), sub_A3FF30);
                 SteerAngleOffset = 0x10D8;
+                pDriverOffset = 0xFA0;
+                VehicleFlagsOffset = 0xF66;
             }
 
-            static Vehicle prev_player_car = 0;
+            static uintptr_t prev_player_car = 0;
             pattern = find_pattern("F3 0F 11 82 ? ? ? ? 8A 44 24", "F3 0F 11 81 ? ? ? ? 8A 54 24");
-
             if (!pattern.empty())
             {
                 injector::MakeNOP(pattern.get_first(), 8, true);
                 static auto WheelResetHook1 = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                 {
                     uintptr_t& pEntity = (SteerAngleOffset == 0x1088) ? regs.edx : regs.ecx;
-                    Ped PlayerPed = 0;
-                    Vehicle PlayerCar = 0;
-                    Natives::GetPlayerChar(Natives::ConvertIntToPlayerindex(Natives::GetPlayerId()), &PlayerPed);
-                    if (PlayerPed)
+                    static auto ti = FusionFixSettings.GetRef("PREF_TURNINDICATORS");
+                    if (ti->get())
                     {
-                        Natives::GetCarCharIsUsing(PlayerPed, &PlayerCar);
-
-                        static auto ti = FusionFixSettings.GetRef("PREF_TURNINDICATORS");
-                        if (ti->get() && PlayerCar == CVehicle::GetVehiclePool()->GetIndex((void*)pEntity))
+                        auto Driver = *(uintptr_t*)(pEntity + pDriverOffset);
+                        if (!Driver || Driver == CPlayer::getLocalPlayerPed())
                         {
-                            prev_player_car = PlayerCar;
-                            return;
+                            VehicleFlags* flags = reinterpret_cast<VehicleFlags*>(pEntity + VehicleFlagsOffset);
+                            if (flags->hasBeenOwnedByPlayer)
+                            {
+                                prev_player_car = pEntity;
+                                return;
+                            }
                         }
                     }
 
@@ -190,11 +203,20 @@ public:
             {
                 static auto WheelResetHook2 = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                 {
+                    uintptr_t& pEntity = regs.esi;
                     static auto ti = FusionFixSettings.GetRef("PREF_TURNINDICATORS");
-                    if (ti->get() && prev_player_car == CVehicle::GetVehiclePool()->GetIndex((void*)regs.esi))
-                        return;
+                    if (ti->get() && prev_player_car == pEntity)
+                    {
+                        auto Driver = *(uintptr_t*)(pEntity + pDriverOffset);
+                        if (!Driver || Driver == CPlayer::getLocalPlayerPed())
+                        {
+                            VehicleFlags* flags = reinterpret_cast<VehicleFlags*>(pEntity + VehicleFlagsOffset);
+                            if (flags->hasBeenOwnedByPlayer)
+                                return;
+                        }
+                    }
 
-                    *(float*)(regs.esi + SteerAngleOffset) = 0.0f;
+                    *(float*)(pEntity + SteerAngleOffset) = 0.0f;
                 });
             }
 
@@ -214,22 +236,107 @@ public:
                 static auto WheelResetHook3 = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                 {
                     uintptr_t& pEntity = (SteerAngleOffset == 0x1088) ? regs.ecx : regs.esi;
-                    Ped PlayerPed = 0;
-                    Vehicle PlayerCar = 0;
-                    Natives::GetPlayerChar(Natives::ConvertIntToPlayerindex(Natives::GetPlayerId()), &PlayerPed);
-                    if (PlayerPed)
+                    static auto ti = FusionFixSettings.GetRef("PREF_TURNINDICATORS");
+                    if (ti->get())
                     {
-                        Natives::GetCarCharIsUsing(PlayerPed, &PlayerCar);
-
-                        static auto ti = FusionFixSettings.GetRef("PREF_TURNINDICATORS");
-                        if (ti->get() && PlayerCar == CVehicle::GetVehiclePool()->GetIndex((void*)pEntity))
+                        auto Driver = *(uintptr_t*)(pEntity + pDriverOffset);
+                        if (!Driver || Driver == CPlayer::getLocalPlayerPed())
                         {
-                            prev_player_car = PlayerCar;
-                            return;
+                            VehicleFlags* flags = reinterpret_cast<VehicleFlags*>(pEntity + VehicleFlagsOffset);
+                            if (flags->hasBeenOwnedByPlayer)
+                            {
+                                prev_player_car = pEntity;
+                                return;
+                            }
                         }
                     }
 
                     *(float*)(pEntity + SteerAngleOffset) = 0.0f;
+                });
+            }
+
+            // CBike
+            pattern = hook::pattern("C7 86 ? ? ? ? ? ? ? ? C7 86 ? ? ? ? ? ? ? ? FF 90");
+            if (!pattern.empty())
+            {
+                injector::MakeNOP(pattern.get_first(), 10, true);
+            }
+            else
+            {
+                pattern = hook::pattern("F3 0F 11 86 ? ? ? ? F3 0F 11 86 ? ? ? ? FF D2 F3 0F 10 10");
+                injector::MakeNOP(pattern.get_first(), 8, true);
+            }
+
+            if (!pattern.empty())
+            {
+                static auto WheelResetHook4 = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                {
+                    uintptr_t& pEntity = regs.esi;
+                    static auto ti = FusionFixSettings.GetRef("PREF_TURNINDICATORS");
+                    if (ti->get())
+                    {
+                        auto Driver = *(uintptr_t*)(pEntity + pDriverOffset);
+                        if (!Driver || Driver == CPlayer::getLocalPlayerPed())
+                        {
+                            VehicleFlags* flags = reinterpret_cast<VehicleFlags*>(pEntity + VehicleFlagsOffset);
+                            if (flags->hasBeenOwnedByPlayer)
+                            {
+                                return;
+                            }
+                        }
+                    }
+
+                    *(float*)(pEntity + SteerAngleOffset) = 0.0f;
+                });
+            }
+
+            pattern = find_pattern("F3 0F 11 86 ? ? ? ? 24 ? C7 86", "F3 0F 11 86 ? ? ? ? EB ? 0F 57 C9");
+            if (!pattern.empty())
+            {
+                injector::MakeNOP(pattern.get_first(), 8, true);
+                static auto WheelResetHook5 = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                {
+                    uintptr_t& pEntity = regs.esi;
+                    static auto ti = FusionFixSettings.GetRef("PREF_TURNINDICATORS");
+                    if (ti->get())
+                    {
+                        auto Driver = *(uintptr_t*)(pEntity + pDriverOffset);
+                        if (!Driver || Driver == CPlayer::getLocalPlayerPed())
+                        {
+                            VehicleFlags* flags = reinterpret_cast<VehicleFlags*>(pEntity + VehicleFlagsOffset);
+                            if (flags->hasBeenOwnedByPlayer)
+                            {
+                                return;
+                            }
+                        }
+                    }
+
+                    *(float*)(pEntity + SteerAngleOffset) = regs.xmm0.f32[0];
+                });
+            }
+
+            pattern = find_pattern("F3 0F 11 82 ? ? ? ? 8A 44 24", "F3 0F 11 86 ? ? ? ? F3 0F 11 86 ? ? ? ? F3 0F 10 05 ? ? ? ? 33 C0");
+            if (!pattern.empty())
+            {
+                injector::MakeNOP(pattern.get_first(), 8, true);
+                static auto WheelResetHook6 = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                {
+                    uintptr_t& pEntity = (SteerAngleOffset == 0x1088) ? regs.edx : regs.esi;
+                    static auto ti = FusionFixSettings.GetRef("PREF_TURNINDICATORS");
+                    if (ti->get())
+                    {
+                        auto Driver = *(uintptr_t*)(pEntity + pDriverOffset);
+                        if (!Driver || Driver == CPlayer::getLocalPlayerPed())
+                        {
+                            VehicleFlags* flags = reinterpret_cast<VehicleFlags*>(pEntity + VehicleFlagsOffset);
+                            if (flags->hasBeenOwnedByPlayer)
+                            {
+                                return;
+                            }
+                        }
+                    }
+
+                    *(float*)(pEntity + SteerAngleOffset) = regs.xmm0.f32[0];
                 });
             }
 
@@ -248,7 +355,7 @@ public:
                         {
                             VehicleState* state = addOrUpdateVehicle(Car);
                             Ped PlayerPed = 0;
-                            Natives::GetPlayerChar(Natives::ConvertIntToPlayerindex(Natives::GetPlayerId()), &PlayerPed);
+                            Natives::GetPlayerChar(Natives::ConvertIntToPlayerIndex(Natives::GetPlayerId()), &PlayerPed);
 
                             if (CrashedPed == PlayerPed)
                             {
@@ -275,7 +382,7 @@ public:
                 // Get current player vehicle
                 Ped PlayerPed = 0;
                 Vehicle PlayerCar = 0;
-                Natives::GetPlayerChar(Natives::ConvertIntToPlayerindex(Natives::GetPlayerId()), &PlayerPed);
+                Natives::GetPlayerChar(Natives::ConvertIntToPlayerIndex(Natives::GetPlayerId()), &PlayerPed);
                 if (PlayerPed)
                 {
                     Natives::GetCarCharIsUsing(PlayerPed, &PlayerCar);

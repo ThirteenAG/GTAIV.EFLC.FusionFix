@@ -75,7 +75,7 @@ void WantedLevelSiren(bool bForce = false)
     bool bCarSirenActive = false;
     Ped pPlayerPed = 0;
     Vehicle pPlayerCar = 0;
-    Natives::GetPlayerChar(Natives::ConvertIntToPlayerindex(Natives::GetPlayerId()), &pPlayerPed);
+    Natives::GetPlayerChar(Natives::ConvertIntToPlayerIndex(Natives::GetPlayerId()), &pPlayerPed);
     if (pPlayerPed) {
         Natives::GetCarCharIsUsing(pPlayerPed, &pPlayerCar);
         if (pPlayerCar)
@@ -197,7 +197,7 @@ void AmmoInClip()
 
     Ped pPlayerPed = 0;
     uint32_t pPlayerWeapon = 0;
-    Natives::GetPlayerChar(Natives::ConvertIntToPlayerindex(Natives::GetPlayerId()), &pPlayerPed);
+    Natives::GetPlayerChar(Natives::ConvertIntToPlayerIndex(Natives::GetPlayerId()), &pPlayerPed);
     if (pPlayerPed)
         Natives::GetCurrentCharWeapon(pPlayerPed, &pPlayerWeapon);
     
@@ -235,7 +235,7 @@ void CurrentHealth(bool bForce = false)
 
     Ped pPlayerPed = 0;
     uint32_t pPlayerHealth = 0;
-    Natives::GetPlayerChar(Natives::ConvertIntToPlayerindex(Natives::GetPlayerId()), &pPlayerPed);
+    Natives::GetPlayerChar(Natives::ConvertIntToPlayerIndex(Natives::GetPlayerId()), &pPlayerPed);
     if (pPlayerPed)
     {
         Natives::GetCharHealth(pPlayerPed, &pPlayerHealth);

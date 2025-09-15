@@ -126,7 +126,7 @@ public:
                 if (*_dwCurrentEpisode == 0)
                 {
                     Ped PlayerPed = 0;
-                    Natives::GetPlayerChar(Natives::ConvertIntToPlayerindex(Natives::GetPlayerId()), &PlayerPed);
+                    Natives::GetPlayerChar(Natives::ConvertIntToPlayerIndex(Natives::GetPlayerId()), &PlayerPed);
                     if (PlayerPed)
                     {
                         auto Gloves = Natives::GetCharDrawableVariation(PlayerPed, PED_COMPONENT_HAND);
@@ -150,7 +150,7 @@ public:
                 if (*_dwCurrentEpisode == 0)
                 {
                     Ped PlayerPed = 0;
-                    Natives::GetPlayerChar(Natives::ConvertIntToPlayerindex(Natives::GetPlayerId()), &PlayerPed);
+                    Natives::GetPlayerChar(Natives::ConvertIntToPlayerIndex(Natives::GetPlayerId()), &PlayerPed);
                     if (PlayerPed)
                     {
                         auto Hair = Natives::GetCharDrawableVariation(PlayerPed, PED_COMPONENT_HAIR);
