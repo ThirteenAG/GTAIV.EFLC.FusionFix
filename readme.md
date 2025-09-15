@@ -26,7 +26,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 > Install **Grand Theft Auto IV: The Complete Edition** from your library, then:
 >
 > * Download [GTAIV.EFLC.FusionFix.zip](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFix.zip) and unpack its contents to the game's root directory, where the exe is located.
-> * Or alternatively download [GTAIV.EFLC.FusionFixWebInstaller.exe](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFixWebInstaller.exe) or [GTAIV.EFLC.FusionFixOfflineInstaller.exe](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFixOfflineInstaller.exe), open it, select the game's directory and wait for it to finish.
+> * Or alternatively download [GTAIV.EFLC.FusionFixWebInstaller.exe](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFixWebInstaller.exe) or [GTAIV.EFLC.FusionFixOfflineInstaller.exe](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFixOfflineInstaller.exe), open it, select the game's directory and wait for it to finish. Note: If you get an error while installing, this is likely due to the installer not having write access. Go into the properties of the games directory and change your system's users to have write permission and hit apply, now installation should work. 
 >
 
 > [!WARNING]
