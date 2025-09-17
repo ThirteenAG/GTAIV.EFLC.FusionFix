@@ -183,9 +183,9 @@ public:
             if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, szPath)))
                 d3d9cfgPaths.emplace_back(std::filesystem::path(szPath) / L"Rockstar Games\\GTA IV\\" / cfgName);
             if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, szPath)))
-                d3d9cfgPaths.emplace_back(std::filesystem::path(szPath) / L"d3d9.cfg" / cfgName);
+                d3d9cfgPaths.emplace_back(std::filesystem::path(szPath) / cfgName);
             if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_MYDOCUMENTS, NULL, 0, szPath)))
-                d3d9cfgPaths.emplace_back(std::filesystem::path(szPath) / L"d3d9.cfg" / cfgName);
+                d3d9cfgPaths.emplace_back(std::filesystem::path(szPath) / cfgName);
 
             d3d9cfgPath = d3d9cfgPaths.front();
             for (auto& it : d3d9cfgPaths)
