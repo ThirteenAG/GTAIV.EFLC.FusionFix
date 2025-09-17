@@ -187,27 +187,59 @@ public:
             if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_MYDOCUMENTS, NULL, 0, szPath)))
                 d3d9cfgPaths.emplace_back(std::filesystem::path(szPath) / cfgName);
 
-            d3d9cfgPath = d3d9cfgPaths.front();
+            // First, try to find an existing readable file
             for (auto& it : d3d9cfgPaths)
             {
-                auto status = std::filesystem::status(it).permissions();
-                if (status == std::filesystem::perms::unknown)
+                std::error_code ec;
+                if (std::filesystem::exists(it, ec) && !ec)
                 {
-                    std::ofstream ofile;
-                    ofile.open(it, std::ios::binary);
-                    if (ofile.is_open())
+                    auto status = std::filesystem::status(it, ec);
+                    if (!ec && status.type() == std::filesystem::file_type::regular)
+                    {
+                        // Check if we can read from this file
+                        std::ifstream testFile(it);
+                        if (testFile.good())
+                        {
+                            d3d9cfgPath = it;
+                            testFile.close();
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // If no existing readable file found, find a writable location for new file creation
+            if (d3d9cfgPath.empty())
+            {
+                for (auto& it : d3d9cfgPaths)
+                {
+                    std::error_code ec;
+                    auto status = std::filesystem::status(it, ec);
+
+                    if (ec && ec.value() == 2) // File doesn't exist, check if directory is writable
+                    {
+                        std::ofstream ofile;
+                        ofile.open(it, std::ios::binary);
+                        if (ofile.is_open())
+                        {
+                            d3d9cfgPath = it;
+                            ofile.close();
+                            break;
+                        }
+                    }
+                    else if (!ec && ((std::filesystem::perms::owner_read & status.permissions()) == std::filesystem::perms::owner_read &&
+                        (std::filesystem::perms::owner_write & status.permissions()) == std::filesystem::perms::owner_write))
                     {
                         d3d9cfgPath = it;
-                        ofile.close();
                         break;
                     }
                 }
-                else if ((std::filesystem::perms::owner_read & status) == std::filesystem::perms::owner_read &&
-                    (std::filesystem::perms::owner_write & status) == std::filesystem::perms::owner_write)
-                {
-                    d3d9cfgPath = it;
-                    break;
-                }
+            }
+
+            // Fallback to first path if nothing else worked
+            if (d3d9cfgPath.empty())
+            {
+                d3d9cfgPath = d3d9cfgPaths.front();
             }
         }
 

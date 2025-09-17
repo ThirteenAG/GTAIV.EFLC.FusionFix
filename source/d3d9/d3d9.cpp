@@ -127,7 +127,7 @@ std::filesystem::path GetModulePath(HMODULE hModule)
             bufferSize *= 2;
         }
     }
-    
+
     return {};
 }
 
@@ -158,27 +158,61 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
             if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_MYDOCUMENTS, NULL, 0, path)))
                 cfgPaths.emplace_back(std::filesystem::path(path) / cfgName);
 
-            auto cfgPath = cfgPaths.front();
+            std::filesystem::path cfgPath;
+
+            // First, try to find an existing readable file
             for (auto& it : cfgPaths)
             {
-                auto status = std::filesystem::status(it).permissions();
-                if (status == std::filesystem::perms::unknown)
+                std::error_code ec;
+                if (std::filesystem::exists(it, ec) && !ec)
                 {
-                    std::ofstream ofile;
-                    ofile.open(it, std::ios::binary);
-                    if (ofile.is_open())
+                    auto status = std::filesystem::status(it, ec);
+                    if (!ec && status.type() == std::filesystem::file_type::regular)
+                    {
+                        // Check if we can read from this file
+                        std::ifstream testFile(it);
+                        if (testFile.good())
+                        {
+                            cfgPath = it;
+                            testFile.close();
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // If no existing readable file found, find a writable location for new file creation
+            if (cfgPath.empty())
+            {
+                for (auto& it : cfgPaths)
+                {
+                    std::error_code ec;
+                    auto status = std::filesystem::status(it, ec);
+
+                    if (ec && ec.value() == 2) // File doesn't exist, check if directory is writable
+                    {
+                        std::ofstream ofile;
+                        ofile.open(it, std::ios::binary);
+                        if (ofile.is_open())
+                        {
+                            cfgPath = it;
+                            ofile.close();
+                            break;
+                        }
+                    }
+                    else if (!ec && ((std::filesystem::perms::owner_read & status.permissions()) == std::filesystem::perms::owner_read &&
+                        (std::filesystem::perms::owner_write & status.permissions()) == std::filesystem::perms::owner_write))
                     {
                         cfgPath = it;
-                        ofile.close();
                         break;
                     }
                 }
-                else if ((std::filesystem::perms::owner_read & status) == std::filesystem::perms::owner_read &&
-                    (std::filesystem::perms::owner_write & status) == std::filesystem::perms::owner_write)
-                {
-                    cfgPath = it;
-                    break;
-                }
+            }
+
+            // Fallback to first path if nothing else worked
+            if (cfgPath.empty())
+            {
+                cfgPath = cfgPaths.front();
             }
 
             apiValue = GetPrivateProfileIntW(L"MAIN", L"API", 0, cfgPath.c_str());
