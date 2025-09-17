@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <vector>
 #include <string>
+#include <fstream>
 #include <filesystem>
 #include <shlobj.h>
 
@@ -153,15 +154,26 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
             if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, path)))
                 cfgPaths.emplace_back(std::filesystem::path(path) / L"Rockstar Games\\GTA IV\\" / cfgName);
             if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, path)))
-                cfgPaths.emplace_back(std::filesystem::path(path) / L"d3d9.cfg" / cfgName);
+                cfgPaths.emplace_back(std::filesystem::path(path) / cfgName);
             if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_MYDOCUMENTS, NULL, 0, path)))
-                cfgPaths.emplace_back(std::filesystem::path(path) / L"d3d9.cfg" / cfgName);
+                cfgPaths.emplace_back(std::filesystem::path(path) / cfgName);
 
             auto cfgPath = cfgPaths.front();
             for (auto& it : cfgPaths)
             {
                 auto status = std::filesystem::status(it).permissions();
-                if ((std::filesystem::perms::owner_read & status) == std::filesystem::perms::owner_read &&
+                if (status == std::filesystem::perms::unknown)
+                {
+                    std::ofstream ofile;
+                    ofile.open(it, std::ios::binary);
+                    if (ofile.is_open())
+                    {
+                        cfgPath = it;
+                        ofile.close();
+                        break;
+                    }
+                }
+                else if ((std::filesystem::perms::owner_read & status) == std::filesystem::perms::owner_read &&
                     (std::filesystem::perms::owner_write & status) == std::filesystem::perms::owner_write)
                 {
                     cfgPath = it;
