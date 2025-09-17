@@ -258,7 +258,7 @@ public:
                     }
                     else
                     {
-                        pattern = hook::pattern("8B 94 8B ? ? ? ? 0F BF 43 48 52 50 E9 ? ? ? ? 0F BE 8B ? ? ? ? 51");
+                        pattern = hook::pattern("8B 94 8B ? ? ? ? 0F BF 43");
                         struct LiveryAccessHook
                         {
                             void operator()(injector::reg_pack& regs)
@@ -277,7 +277,43 @@ public:
                             }
                         }; injector::MakeInline<LiveryAccessHook>(pattern.get_first(0), pattern.get_first(7));
 
-                        injector::WriteMemory<uint8_t>(pattern.get_first(6), 0x50, true); // push eax
+                        pattern = hook::pattern("8B 94 83 ? ? ? ? 0F BF 43");
+                        struct LiveryAccessHook2
+                        {
+                            void operator()(injector::reg_pack& regs)
+                            {
+                                auto arr = (uint32_t**)(regs.ebx + 0x13C);
+                                if (arr)
+                                {
+                                    auto ptr = *arr;
+                                    if (ptr && (int)ptr != -1)
+                                    {
+                                        regs.edx = ptr[regs.eax];
+                                        return;
+                                    }
+                                }
+                                regs.edx = 0;
+                            }
+                        }; injector::MakeInline<LiveryAccessHook2>(pattern.get_first(0), pattern.get_first(7));
+
+                        pattern = hook::pattern("8B 8C 83 ? ? ? ? 0F BF 53");
+                        struct LiveryAccessHook3
+                        {
+                            void operator()(injector::reg_pack& regs)
+                            {
+                                auto arr = (uint32_t**)(regs.ebx + 0x13C);
+                                if (arr)
+                                {
+                                    auto ptr = *arr;
+                                    if (ptr && (int)ptr != -1)
+                                    {
+                                        regs.ecx = ptr[regs.eax];
+                                        return;
+                                    }
+                                }
+                                regs.ecx = 0;
+                            }
+                        }; injector::MakeInline<LiveryAccessHook3>(pattern.get_first(0), pattern.get_first(7));
                     }
                 }
 
