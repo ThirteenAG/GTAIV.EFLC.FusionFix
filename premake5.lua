@@ -85,10 +85,22 @@ workspace "GTAIV.EFLC.FusionFix"
    files { "external/injector/zydis/**.h", "external/injector/zydis/**.c" }
    files { "source/gxt/src/**.h", "source/gxt/src/**.cpp" }
 
-    prebuildcommands {
-        "for /R \"../source/snow/\" %%f in (*.ps) do (\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E main /Fo \"../source/snow/%%~nfps.cso\" %%f)",
-        "for /R \"../source/snow/\" %%f in (*.vs) do (\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E main /Fo \"../source/snow/%%~nfvs.cso\" %%f)",
-    }
+   prebuildcommands {
+      "for /R \"../source/snow/\" %%f in (*.ps) do (\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E main /Fo \"../source/snow/%%~nfps.pso\" %%f)",
+      "for /R \"../source/snow/\" %%f in (*.vs) do (\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E main /Fo \"../source/snow/%%~nfvs.vso\" %%f)",
+      
+      -- Compile HLSL shaders to .pso/.vso (output to ../source/resources/)
+      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E SSDraw /Fo \"../source/resources/SSDraw_PS.pso\" \"../source/resources/SunShafts_PS.hlsl\"",
+      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E SSPrepass /Fo \"../source/resources/SSPrepass_PS.pso\" \"../source/resources/SunShafts_PS.hlsl\"",
+      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E SSAdd /Fo \"../source/resources/SSAdd_PS.pso\" \"../source/resources/SunShafts_PS.hlsl\"",
+      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E ApplyFXAA /Fo \"../source/resources/FxaaPS.pso\" \"../source/resources/FXAA3_11.h\"",
+      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E DX9_SMAALumaEdgeDetectionPS /Fo \"../source/resources/SMAA_EdgeDetection.pso\" \"../source/resources/SMAA.hlsl\"",
+      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E DX9_SMAABlendingWeightCalculationPS /Fo \"../source/resources/SMAA_BlendingWeightsCalculation.pso\" \"../source/resources/SMAA.hlsl\"",
+      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E DX9_SMAANeighborhoodBlendingPS /Fo \"../source/resources/SMAA_NeighborhoodBlending.pso\" \"../source/resources/SMAA.hlsl\"",
+      "\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E DX9_SMAAEdgeDetectionVS /Fo \"../source/resources/SMAA_EdgeDetectionVS.vso\" \"../source/resources/SMAA.hlsl\"",
+      "\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E DX9_SMAABlendingWeightCalculationVS /Fo \"../source/resources/SMAA_BlendingWeightsCalculationVS.vso\" \"../source/resources/SMAA.hlsl\"",
+      "\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E DX9_SMAANeighborhoodBlendingVS /Fo \"../source/resources/SMAA_NeighborhoodBlendingVS.vso\" \"../source/resources/SMAA.hlsl\"",
+   }
    
    pbcommands = { 
       "setlocal EnableDelayedExpansion",

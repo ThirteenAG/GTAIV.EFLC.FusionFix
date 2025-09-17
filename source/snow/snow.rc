@@ -5,7 +5,7 @@
 #define IDR_SNOWVS 204
 
 IDR_SNOWTX RCDATA "snow.dds"
-IDR_BLITPS RCDATA "blitps.cso"
-IDR_BLITVS RCDATA "blitvs.cso"
-IDR_SNOWPS RCDATA "snowps.cso"
-IDR_SNOWVS RCDATA "snowvs.cso"
+IDR_BLITPS RCDATA "blitps.pso"
+IDR_BLITVS RCDATA "blitvs.vso"
+IDR_SNOWPS RCDATA "snowps.pso"
+IDR_SNOWVS RCDATA "snowvs.vso"

@@ -98,7 +98,7 @@ float4 SSPrepass(PS_IN i) : COLOR
 {
     float2 uv = FixHalfPixelOffset(i.texcoord.xy);
     
-    float3 color = tex2D(HDRSampler, uv);
+    float3 color = tex2D(HDRSampler, uv).xyz;
     float depth = tex2D(GBufferTextureSampler3, uv).x;
     
     // Restrict to sky.
@@ -144,7 +144,7 @@ float4 SSDraw(PS_IN i) : COLOR
         // Step sample location along ray.
         uv -= deltaTexCoord;
         // Retrieve sample at new location.
-        float3 sample = tex2D(pHDRDownsampleTex, uv);
+        float3 sample = tex2D(pHDRDownsampleTex, uv).xyz;
         // Apply sample attenuation scale/decay factors.
         sample *= illuminationDecay * Weight;
         // Accumulate combined color.

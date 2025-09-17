@@ -33,6 +33,17 @@ import d3dx9_43;
 #define IDR_SunShafts_PS                         127
 #define IDR_CascadeAtlasGen                      128
 
+#define IDR_SSDraw_PS_compiled                   2127
+#define IDR_SSPrepass_PS_compiled                2128
+#define IDR_SSAdd_PS_compiled                    2129
+#define IDR_FxaaPS_compiled                      2101
+#define IDR_SMAA_EdgeDetection_compiled          2102
+#define IDR_SMAA_BlendingWeightsCalculation_compiled 2103
+#define IDR_SMAA_NeighborhoodBlending_compiled   2104
+#define IDR_SMAA_EdgeDetectionVS_compiled        2105
+#define IDR_SMAA_BlendingWeightsCalculationVS_compiled 2106
+#define IDR_SMAA_NeighborhoodBlendingVS_compiled 2107
+
 #ifndef SAFE_RELEASE
 #define SAFE_RELEASE(p) { if (p) { (p)->Release(); (p)=NULL; } }
 #endif
@@ -159,30 +170,238 @@ public:
 
     bool shadersLoaded = false;
 
-    bool loadShaders(LPDIRECT3DDEVICE9 pDevice, HMODULE hm) {
+    bool loadShaders(LPDIRECT3DDEVICE9 pDevice, HMODULE hm)
+    {
         ID3DXBuffer* bf1 = nullptr;
         ID3DXBuffer* bf2 = nullptr;
         ID3DXConstantTable* ppConstantTable = nullptr;
 
+        // Lambda helper to load compiled shader bytecode from resource
+        auto loadCompiledShader = [&](int resourceID, auto& shader) -> bool {
+            HRSRC hRes = FindResourceW(hm, MAKEINTRESOURCEW(resourceID), RT_RCDATA);
+            if (!hRes) return false;
+            HGLOBAL hGlob = LoadResource(hm, hRes);
+            if (!hGlob) return false;
+            void* buffer = LockResource(hGlob);
+            if (!buffer) return false;
+            using ShaderType = std::remove_reference_t<decltype(shader)>;
+            if constexpr (std::is_same_v<ShaderType, IDirect3DPixelShader9*>)
+            {
+                return pDevice->CreatePixelShader((DWORD*)buffer, &shader) == S_OK && shader;
+            }
+            else if constexpr (std::is_same_v<ShaderType, IDirect3DVertexShader9*>)
+            {
+                return pDevice->CreateVertexShader((DWORD*)buffer, &shader) == S_OK && shader;
+            }
+            return false;
+        };
+
         //asm
-        if(!dof_blur_ps && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_dof_blur_ps), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                                                 if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &dof_blur_ps) != S_OK || !dof_blur_ps) SAFE_RELEASE(dof_blur_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
-        if(!dof_coc_ps && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_dof_coc_ps), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                                                   if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &dof_coc_ps) != S_OK || !dof_coc_ps) SAFE_RELEASE(dof_coc_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
-        if(!depth_of_field_tent_ps && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_depth_of_field_tent_ps), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                           if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &depth_of_field_tent_ps) != S_OK || !depth_of_field_tent_ps) SAFE_RELEASE(depth_of_field_tent_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
-        if(!stipple_filter_ps && D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_stipple_filter_ps), NULL, NULL, 0, &bf1, &bf2) == S_OK) {                                                                     if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &stipple_filter_ps) != S_OK || !stipple_filter_ps) SAFE_RELEASE(stipple_filter_ps); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); }
+        if (!dof_blur_ps)
+        {
+            if (D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_dof_blur_ps), NULL, NULL, 0, &bf1, &bf2) == S_OK)
+            {
+                if (pDevice->CreatePixelShader((DWORD*)bf1->GetBufferPointer(), &dof_blur_ps) != S_OK || !dof_blur_ps)
+                    SAFE_RELEASE(dof_blur_ps);
+                SAFE_RELEASE(bf1);
+                SAFE_RELEASE(bf2);
+            }
+        }
+
+        if (!dof_coc_ps)
+        {
+            if (D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_dof_coc_ps), NULL, NULL, 0, &bf1, &bf2) == S_OK)
+            {
+                if (pDevice->CreatePixelShader((DWORD*)bf1->GetBufferPointer(), &dof_coc_ps) != S_OK || !dof_coc_ps)
+                    SAFE_RELEASE(dof_coc_ps);
+                SAFE_RELEASE(bf1);
+                SAFE_RELEASE(bf2);
+            }
+        }
+
+        if (!depth_of_field_tent_ps)
+        {
+            if (D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_depth_of_field_tent_ps), NULL, NULL, 0, &bf1, &bf2) == S_OK)
+            {
+                if (pDevice->CreatePixelShader((DWORD*)bf1->GetBufferPointer(), &depth_of_field_tent_ps) != S_OK || !depth_of_field_tent_ps)
+                    SAFE_RELEASE(depth_of_field_tent_ps);
+                SAFE_RELEASE(bf1);
+                SAFE_RELEASE(bf2);
+            }
+        }
+
+        if (!stipple_filter_ps)
+        {
+            if (D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_stipple_filter_ps), NULL, NULL, 0, &bf1, &bf2) == S_OK)
+            {
+                if (pDevice->CreatePixelShader((DWORD*)bf1->GetBufferPointer(), &stipple_filter_ps) != S_OK || !stipple_filter_ps)
+                    SAFE_RELEASE(stipple_filter_ps);
+                SAFE_RELEASE(bf1);
+                SAFE_RELEASE(bf2);
+            }
+        }
 
         //hlsl
-        if(!SSDraw_PS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SunShafts_PS), NULL, NULL, "SSDraw", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                                             if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SSDraw_PS) != S_OK || !SSDraw_PS) SAFE_RELEASE(SSDraw_PS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
-        if(!SSPrepass_PS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SunShafts_PS), NULL, NULL, "SSPrepass", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                                       if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SSPrepass_PS) != S_OK || !SSPrepass_PS) SAFE_RELEASE(SSPrepass_PS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
+        if (!SSDraw_PS)
+        {
+            if (D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SunShafts_PS), NULL, NULL, "SSDraw", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK)
+            {
+                if (pDevice->CreatePixelShader((DWORD*)bf1->GetBufferPointer(), &SSDraw_PS) != S_OK || !SSDraw_PS)
+                    SAFE_RELEASE(SSDraw_PS);
+            }
+            else
+            {
+                loadCompiledShader(IDR_SSDraw_PS_compiled, SSDraw_PS);
+            }
+            SAFE_RELEASE(bf1);
+            SAFE_RELEASE(bf2);
+            SAFE_RELEASE(ppConstantTable);
+        }
 
-        if(!SSAdd_PS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SunShafts_PS), NULL, NULL, "SSAdd", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                                               if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SSAdd_PS) != S_OK || !SSAdd_PS) SAFE_RELEASE(SSAdd_PS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
-        if(!FxaaPS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_FXAA), NULL, NULL, "ApplyFXAA", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                                                     if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &FxaaPS) != S_OK || !FxaaPS) SAFE_RELEASE(FxaaPS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
+        if (!SSPrepass_PS)
+        {
+            if (D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SunShafts_PS), NULL, NULL, "SSPrepass", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK)
+            {
+                if (pDevice->CreatePixelShader((DWORD*)bf1->GetBufferPointer(), &SSPrepass_PS) != S_OK || !SSPrepass_PS)
+                    SAFE_RELEASE(SSPrepass_PS);
+            }
+            else
+            {
+                loadCompiledShader(IDR_SSPrepass_PS_compiled, SSPrepass_PS);
+            }
+            SAFE_RELEASE(bf1);
+            SAFE_RELEASE(bf2);
+            SAFE_RELEASE(ppConstantTable);
+        }
 
-        if(!SMAA_EdgeDetection && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "DX9_SMAALumaEdgeDetectionPS", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                          if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SMAA_EdgeDetection) != S_OK || !SMAA_EdgeDetection) SAFE_RELEASE(SMAA_EdgeDetection); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
-        if(!SMAA_BlendingWeightsCalculation && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "DX9_SMAABlendingWeightCalculationPS", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {      if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SMAA_BlendingWeightsCalculation) != S_OK || !SMAA_BlendingWeightsCalculation) SAFE_RELEASE(SMAA_BlendingWeightsCalculation); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
-        if(!SMAA_NeighborhoodBlending && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "DX9_SMAANeighborhoodBlendingPS", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                 if(pDevice->CreatePixelShader( (DWORD*) bf1->GetBufferPointer(), &SMAA_NeighborhoodBlending) != S_OK || !SMAA_NeighborhoodBlending) SAFE_RELEASE(SMAA_NeighborhoodBlending); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
-        if(!SMAA_EdgeDetectionVS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "DX9_SMAAEdgeDetectionVS", "vs_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {                             if(pDevice->CreateVertexShader((DWORD*) bf1->GetBufferPointer(), &SMAA_EdgeDetectionVS) != S_OK || !SMAA_EdgeDetectionVS) SAFE_RELEASE(SMAA_EdgeDetectionVS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
-        if(!SMAA_BlendingWeightsCalculationVS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "DX9_SMAABlendingWeightCalculationVS", "vs_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {    if(pDevice->CreateVertexShader((DWORD*) bf1->GetBufferPointer(), &SMAA_BlendingWeightsCalculationVS) != S_OK || !SMAA_BlendingWeightsCalculationVS) SAFE_RELEASE(SMAA_BlendingWeightsCalculationVS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
-        if(!SMAA_NeighborhoodBlendingVS && D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "DX9_SMAANeighborhoodBlendingVS", "vs_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK) {               if(pDevice->CreateVertexShader((DWORD*) bf1->GetBufferPointer(), &SMAA_NeighborhoodBlendingVS) != S_OK || !SMAA_NeighborhoodBlendingVS) SAFE_RELEASE(SMAA_NeighborhoodBlendingVS); SAFE_RELEASE(bf1); SAFE_RELEASE(bf2); SAFE_RELEASE(ppConstantTable); }
+        if (!SSAdd_PS)
+        {
+            if (D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SunShafts_PS), NULL, NULL, "SSAdd", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK)
+            {
+                if (pDevice->CreatePixelShader((DWORD*)bf1->GetBufferPointer(), &SSAdd_PS) != S_OK || !SSAdd_PS)
+                    SAFE_RELEASE(SSAdd_PS);
+            }
+            else
+            {
+                loadCompiledShader(IDR_SSAdd_PS_compiled, SSAdd_PS);
+            }
+            SAFE_RELEASE(bf1);
+            SAFE_RELEASE(bf2);
+            SAFE_RELEASE(ppConstantTable);
+        }
+
+        if (!FxaaPS)
+        {
+            if (D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_FXAA), NULL, NULL, "ApplyFXAA", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK)
+            {
+                if (pDevice->CreatePixelShader((DWORD*)bf1->GetBufferPointer(), &FxaaPS) != S_OK || !FxaaPS)
+                    SAFE_RELEASE(FxaaPS);
+            }
+            else
+            {
+                loadCompiledShader(IDR_FxaaPS_compiled, FxaaPS);
+            }
+            SAFE_RELEASE(bf1);
+            SAFE_RELEASE(bf2);
+            SAFE_RELEASE(ppConstantTable);
+        }
+
+        if (!SMAA_EdgeDetection)
+        {
+            if (D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "DX9_SMAALumaEdgeDetectionPS", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK)
+            {
+                if (pDevice->CreatePixelShader((DWORD*)bf1->GetBufferPointer(), &SMAA_EdgeDetection) != S_OK || !SMAA_EdgeDetection)
+                    SAFE_RELEASE(SMAA_EdgeDetection);
+            }
+            else
+            {
+                loadCompiledShader(IDR_SMAA_EdgeDetection_compiled, SMAA_EdgeDetection);
+            }
+            SAFE_RELEASE(bf1);
+            SAFE_RELEASE(bf2);
+            SAFE_RELEASE(ppConstantTable);
+        }
+
+        if (!SMAA_BlendingWeightsCalculation)
+        {
+            if (D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "DX9_SMAABlendingWeightCalculationPS", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK)
+            {
+                if (pDevice->CreatePixelShader((DWORD*)bf1->GetBufferPointer(), &SMAA_BlendingWeightsCalculation) != S_OK || !SMAA_BlendingWeightsCalculation)
+                    SAFE_RELEASE(SMAA_BlendingWeightsCalculation);
+            }
+            else
+            {
+                loadCompiledShader(IDR_SMAA_BlendingWeightsCalculation_compiled, SMAA_BlendingWeightsCalculation);
+            }
+            SAFE_RELEASE(bf1);
+            SAFE_RELEASE(bf2);
+            SAFE_RELEASE(ppConstantTable);
+        }
+
+        if (!SMAA_NeighborhoodBlending)
+        {
+            if (D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "DX9_SMAANeighborhoodBlendingPS", "ps_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK)
+            {
+                if (pDevice->CreatePixelShader((DWORD*)bf1->GetBufferPointer(), &SMAA_NeighborhoodBlending) != S_OK || !SMAA_NeighborhoodBlending)
+                    SAFE_RELEASE(SMAA_NeighborhoodBlending);
+            }
+            else
+            {
+                loadCompiledShader(IDR_SMAA_NeighborhoodBlending_compiled, SMAA_NeighborhoodBlending);
+            }
+            SAFE_RELEASE(bf1);
+            SAFE_RELEASE(bf2);
+            SAFE_RELEASE(ppConstantTable);
+        }
+
+        if (!SMAA_EdgeDetectionVS)
+        {
+            if (D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "DX9_SMAAEdgeDetectionVS", "vs_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK)
+            {
+                if (pDevice->CreateVertexShader((DWORD*)bf1->GetBufferPointer(), &SMAA_EdgeDetectionVS) != S_OK || !SMAA_EdgeDetectionVS)
+                    SAFE_RELEASE(SMAA_EdgeDetectionVS);
+            }
+            else
+            {
+                loadCompiledShader(IDR_SMAA_EdgeDetectionVS_compiled, SMAA_EdgeDetectionVS);
+            }
+            SAFE_RELEASE(bf1);
+            SAFE_RELEASE(bf2);
+            SAFE_RELEASE(ppConstantTable);
+        }
+
+        if (!SMAA_BlendingWeightsCalculationVS)
+        {
+            if (D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "DX9_SMAABlendingWeightCalculationVS", "vs_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK)
+            {
+                if (pDevice->CreateVertexShader((DWORD*)bf1->GetBufferPointer(), &SMAA_BlendingWeightsCalculationVS) != S_OK || !SMAA_BlendingWeightsCalculationVS)
+                    SAFE_RELEASE(SMAA_BlendingWeightsCalculationVS);
+            }
+            else
+            {
+                loadCompiledShader(IDR_SMAA_BlendingWeightsCalculationVS_compiled, SMAA_BlendingWeightsCalculationVS);
+            }
+            SAFE_RELEASE(bf1);
+            SAFE_RELEASE(bf2);
+            SAFE_RELEASE(ppConstantTable);
+        }
+
+        if (!SMAA_NeighborhoodBlendingVS)
+        {
+            if (D3DXCompileShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_SMAA), NULL, NULL, "DX9_SMAANeighborhoodBlendingVS", "vs_3_0", 0, &bf1, &bf2, &ppConstantTable) == S_OK)
+            {
+                if (pDevice->CreateVertexShader((DWORD*)bf1->GetBufferPointer(), &SMAA_NeighborhoodBlendingVS) != S_OK || !SMAA_NeighborhoodBlendingVS)
+                    SAFE_RELEASE(SMAA_NeighborhoodBlendingVS);
+            }
+            else
+            {
+                loadCompiledShader(IDR_SMAA_NeighborhoodBlendingVS_compiled, SMAA_NeighborhoodBlendingVS);
+            }
+            SAFE_RELEASE(bf1);
+            SAFE_RELEASE(bf2);
+            SAFE_RELEASE(ppConstantTable);
+        }
+
         return ShadersFinishedLoading();
     }
 

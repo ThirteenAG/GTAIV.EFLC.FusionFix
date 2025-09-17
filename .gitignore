@@ -333,6 +333,8 @@ ASALocalRun/
 data/**/*.img
 data/update/common/shaders/**/*.fxc
 source/**/*.cso
+source/**/*.pso
+source/**/*.vso
 !source/dxsdk/**
 
 data/update/common/shaders/db/gta_trees_extended.sps
