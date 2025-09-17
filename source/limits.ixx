@@ -128,6 +128,17 @@ public:
             //[BudgetedIV]
             uint32_t nVehicleBudget = iniReader.ReadInteger("BudgetedIV", "VehicleBudget", 0);
             uint32_t nPedBudget = iniReader.ReadInteger("BudgetedIV", "PedBudget", 0);
+            auto bExtendedLimits = iniReader.ReadInteger("BudgetedIV", "ExtendedLimits", 0);
+
+            if (bExtendedLimits)
+            {
+                poolNames.push_back("TxdStore");
+                poolNames.push_back("Anim Manager");
+                poolNames.push_back("PhysicsStore");
+                poolNames.push_back("BoundsStore");
+                poolNames.push_back("DrawblDictStore");
+                poolNames.push_back("IplStore");
+            }
 
             if (nVehicleBudget)
             {
