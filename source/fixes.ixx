@@ -781,6 +781,13 @@ public:
                 if (!pattern.empty())
                     injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz -> jmp
             }
+
+            // Enable the "first person" reticle (Annihilator, Buzzard) on gamepads as well, this used to be a keyboard & mouse only feature.
+            {
+                auto pattern = find_pattern("0F 84 ? ? ? ? 85 C9 0F 84 ? ? ? ? 8B 89", "0F 84 ? ? ? ? 85 C0 0F 84 ? ? ? ? 8B 88");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(0), 6, true);
+            }
         };
     }
 } Fixes;
