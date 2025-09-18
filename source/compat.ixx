@@ -35,8 +35,9 @@ export void CompatibilityWarnings()
     {
         szHeader = L"You are missing a DirectX 9 component.";
         szContent = L"It requires the latest version of " \
-            L"<a href=\"https://www.microsoft.com/en-us/download/details.aspx?id=35\">DirectX End-User Runtimes</a>\n\n" \
-            L"<a href=\"https://www.microsoft.com/en-us/download/details.aspx?id=35\">https://www.microsoft.com/en-us/download/details.aspx?id=35</a>";
+            L"<a href=\"https://www.microsoft.com/en-us/download/details.aspx?id=35\">DirectX End-User Runtimes</a>.\n\n" \
+            L"<a href=\"https://www.microsoft.com/en-us/download/details.aspx?id=35\">https://www.microsoft.com/en-us/download/details.aspx?id=35</a>\n\n" \
+            L"If this message keeps appearing, delete \n\nC:\\Windows\\System32\\D3DX9_43.dll\n\nC:\\Windows\\SysWOW64\\D3DX9_43.dll\n\n and install DirectX End-User Runtimes again.";
     }
     else if (!IsUALPresent())
     {
