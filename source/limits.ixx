@@ -473,7 +473,7 @@ public:
 
                 {
                     auto pattern = hook::pattern("81 C7 ? ? ? ? 83 BB");
-                    auto VehOff = LimitAdjuster(*pattern.get_first<uintptr_t>(2), 640, 205, 4).ReplaceXrefs(0);
+                    auto VehOff = LimitAdjuster(*pattern.get_first<uintptr_t>(2), 640, 205, 4).ReplaceXrefs(0, 0x1C0, 0x1E0);
                 }
             }
         };
