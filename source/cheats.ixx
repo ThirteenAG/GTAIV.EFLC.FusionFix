@@ -180,16 +180,16 @@ public:
                     Natives::GetPlayerChar(Natives::ConvertIntToPlayerIndex(Natives::GetPlayerId()), &PlayerPed);
                     if (PlayerPed)
                     {
-                        auto Hair = Natives::GetCharDrawableVariation(PlayerPed, PED_COMPONENT_LOWER);
+                        auto Pants = Natives::GetCharDrawableVariation(PlayerPed, PED_COMPONENT_LOWER);
 
-                        if (!Hair)
+                        if (!Pants)
                         {
-                            Natives::SetCharComponentVariation(PlayerPed, PED_COMPONENT_LOWER, 0, 0);
+                            Natives::SetCharComponentVariation(PlayerPed, PED_COMPONENT_LOWER, 0, 1);
                             Natives::PrintHelp((char*)"CHEAT1");
                         }
                         else
                         {
-                            Natives::SetCharComponentVariation(PlayerPed, PED_COMPONENT_LOWER, 0, 1);
+                            Natives::SetCharComponentVariation(PlayerPed, PED_COMPONENT_LOWER, 0, 0);
                             Natives::PrintHelp((char*)"CHEAT2");
                         }
                     }
