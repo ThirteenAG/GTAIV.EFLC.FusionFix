@@ -462,18 +462,20 @@ public:
                     auto adwPoliceScannerCarColors = LimitAdjuster(*pattern.get_first<uintptr_t>(3), 4, 196, 3).ReplaceXrefs(0);
                 }
 
-                //{         //breaks buzzard rockets
-                //    auto pattern = hook::pattern("81 C3 ? ? ? ? 89 03");
-                //    auto ref1 = (intptr_t)hook::get_pattern("BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 81 C6 ? ? ? ? 4F 79 F0 68 ? ? ? ? E8 ? ? ? ? 83 C4 04 5F 5E C3 56", 1);
-                //    auto ref2 = (intptr_t)hook::get_pattern("83 F8 3C 7C F1", 2);
-                //    auto WeaponInfo = LimitAdjuster(*pattern.get_first<uintptr_t>(2), 0x110, 60, 4).ReplaceXrefs(0).ReplaceNumericRefs(ref1, ref2);
-                //    pattern = hook::pattern("7D 0C 69 C0");
-                //    injector::MakeNOP(pattern.get_first(), 2);
-                //}
+                //WeaponInfo
+                {
+                    auto pattern = hook::pattern("81 C3 ? ? ? ? 89 03");
+                    auto ref1 = (intptr_t)hook::get_pattern("BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 81 C6 ? ? ? ? 4F 79 F0 68 ? ? ? ? E8 ? ? ? ? 83 C4 04 5F 5E C3 56", 1);
+                    auto ref2 = (intptr_t)hook::get_pattern("83 F8 3C 7C F1", 2);
+                    auto WeaponInfo = LimitAdjuster(*pattern.get_first<uintptr_t>(2), 0x110, 60, 16).ReplaceXrefs(0, 0x24, 0x1A98, 0x1A9C, 0x1AB4, 0x1B30, 0x3430, 0x3540, 0x363C, 0x3870, 0x3980, 0x3DC0).ReplaceNumericRefs(ref1, ref2);
+                    pattern = hook::pattern("7D 0C 69 C0");
+                    injector::MakeNOP(pattern.get_first(), 2);
+                }
 
+                //VehOff
                 {
                     auto pattern = hook::pattern("81 C7 ? ? ? ? 83 BB");
-                    auto VehOff = LimitAdjuster(*pattern.get_first<uintptr_t>(2), 640, 205, 4).ReplaceXrefs(0, 0x1C0, 0x1E0);
+                    auto VehOff = LimitAdjuster(*pattern.get_first<uintptr_t>(2), 640, 205, 6).ReplaceXrefs(0, 0x1C0, 0x1E0);
                 }
             }
         };
