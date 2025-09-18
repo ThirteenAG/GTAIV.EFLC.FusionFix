@@ -180,7 +180,7 @@ public:
                     Natives::GetPlayerChar(Natives::ConvertIntToPlayerIndex(Natives::GetPlayerId()), &PlayerPed);
                     if (PlayerPed)
                     {
-                        auto Pants = Natives::GetCharDrawableVariation(PlayerPed, PED_COMPONENT_LOWER);
+                        auto Pants = Natives::GetCharTextureVariation(PlayerPed, PED_COMPONENT_LOWER);
 
                         if (!Pants)
                         {
