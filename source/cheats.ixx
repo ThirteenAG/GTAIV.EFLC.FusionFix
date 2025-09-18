@@ -121,6 +121,7 @@ public:
                 PED_COMPONENT_FACE,
             };
 
+            //IV Beta Gloves
             NativeOverride::RegisterPhoneCheat("4585550100", []
             {
                 if (*_dwCurrentEpisode == 0)
@@ -145,6 +146,7 @@ public:
                 }
             });
 
+            //IV Beta Hair
             NativeOverride::RegisterPhoneCheat("2885550100", []
             {
                 if (*_dwCurrentEpisode == 0)
@@ -163,6 +165,31 @@ public:
                         else
                         {
                             Natives::SetCharComponentVariation(PlayerPed, PED_COMPONENT_HAIR, 0, 0);
+                            Natives::PrintHelp((char*)"CHEAT2");
+                        }
+                    }
+                }
+            });
+
+            //TLAD Pants
+            NativeOverride::RegisterPhoneCheat("7265550100", []
+            {
+                if (*_dwCurrentEpisode == 1)
+                {
+                    Ped PlayerPed = 0;
+                    Natives::GetPlayerChar(Natives::ConvertIntToPlayerIndex(Natives::GetPlayerId()), &PlayerPed);
+                    if (PlayerPed)
+                    {
+                        auto Hair = Natives::GetCharDrawableVariation(PlayerPed, PED_COMPONENT_LOWER);
+
+                        if (!Hair)
+                        {
+                            Natives::SetCharComponentVariation(PlayerPed, PED_COMPONENT_LOWER, 0, 0);
+                            Natives::PrintHelp((char*)"CHEAT1");
+                        }
+                        else
+                        {
+                            Natives::SetCharComponentVariation(PlayerPed, PED_COMPONENT_LOWER, 0, 1);
                             Natives::PrintHelp((char*)"CHEAT2");
                         }
                     }
