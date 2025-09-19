@@ -129,6 +129,7 @@ public:
             uint32_t nVehicleBudget = iniReader.ReadInteger("BudgetedIV", "VehicleBudget", 0);
             uint32_t nPedBudget = iniReader.ReadInteger("BudgetedIV", "PedBudget", 0);
             auto bExtendedLimits = iniReader.ReadInteger("BudgetedIV", "ExtendedLimits", 0);
+            auto nLiveriesLimit = std::clamp(iniReader.ReadInteger("BudgetedIV", "LiveriesLimit", CHAR_MAX), 0, CHAR_MAX);
 
             if (bExtendedLimits)
             {
@@ -192,6 +193,7 @@ public:
             }
 
             // Liveries
+            if (nLiveriesLimit)
             {
                 static std::unordered_map<uint32_t, std::array<uint32_t, CHAR_MAX + 1>> liveries;
 
@@ -330,7 +332,7 @@ public:
 
                 pattern = find_pattern("83 FB 04 7D 45 8D 44 24 24 6A 00", "83 FB 04 7D 47 8D 54 24 20 6A 00");
                 if (!pattern.empty())
-                    injector::WriteMemory<uint8_t>(pattern.get_first(2), CHAR_MAX, true);
+                    injector::WriteMemory<uint8_t>(pattern.get_first(2), nLiveriesLimit, true);
             }
         };
     }

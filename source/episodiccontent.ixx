@@ -558,6 +558,16 @@ public:
                     pattern = hook::pattern("39 3D ? ? ? ? 0F 85 ? ? ? ? 66 83 7E");
                     injector::MakeNOP(pattern.get_first(6), 6, true);
                 }
+
+                pattern = find_pattern("7E ? 8D 7C 24 ? 57", "7E ? 8D 7C 24 ? 8B FF");
+                static auto loc_9BB987 = resolve_displacement(pattern.get_first(0)).value();
+
+                pattern = find_pattern("8B 48 ? 85 C9 74 ? 8B 81 ? ? ? ? EB ? 8B 40 ? 85 C0 74 ? 8B 00 89 04 B5", "8B 48 ? 83 C4 ? 85 C9 74 ? 8B 81");
+                static auto NoAssetsCrashWorkaround = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                {
+                    if (!regs.eax)
+                        return_to(loc_9BB987);
+                });
             }
 
             if (bTBoGTHelicopterHeightLimit)
