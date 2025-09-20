@@ -76,6 +76,20 @@ SIZE_T GetProcessPreferredGPUMemory()
     return memory;
 }
 
+SafetyHookInline shgetAvailableVidMem = {};
+int64_t getAvailableVidMem()
+{
+    auto ret = shgetAvailableVidMem.call<int64_t>();
+    if (ret < _2048mb)
+    {
+        static auto vram = GetProcessPreferredGPUMemory();
+        static auto d3d9vram = rage::grcDevice::GetD3DDevice()->GetAvailableTextureMem();
+        static auto totalVRAM = max(max(vram, d3d9vram), _2048mb);
+        ret = totalVRAM;
+    }
+    return ret;
+}
+
 class ExtraStreamingMemory
 {
 private:
@@ -153,17 +167,10 @@ public:
             bEnableHighDetailReflections = iniReader.ReadInteger("EXPERIMENTAL", "EnableHighDetailReflections", 0) != 0;
             bool bRemoveBBoxCulling = iniReader.ReadInteger("EXPERIMENTAL", "RemoveBBoxCulling", 0) != 0;
 
-            auto pattern = find_pattern("B8 ? ? ? ? 33 D2 83 C4");
+            auto pattern = find_pattern("8B 0D ? ? ? ? 83 EC ? 33 C0", "A1 ? ? ? ? 8B 08 83 EC ? 56 57");
             if (!pattern.empty())
             {
-                injector::MakeNOP(pattern.get_first(0), 5, true);
-                static auto DefaultVRAMHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                {
-                    static auto vram = GetProcessPreferredGPUMemory();
-                    static auto d3d9vram = rage::grcDevice::GetD3DDevice()->GetAvailableTextureMem();
-                    static auto totalVRAM = max(max(vram, d3d9vram), _2048mb);
-                    regs.eax = totalVRAM;
-                });
+                shgetAvailableVidMem = safetyhook::create_inline(pattern.get_first(), getAvailableVidMem);
             }
 
             pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? A1 ? ? ? ? 85 C0 74");
