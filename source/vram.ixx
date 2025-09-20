@@ -1,7 +1,7 @@
 module;
 
 #include <common.hxx>
-#include <dxgi1_6.h>
+#include <dxgi1_4.h>
 #include <psapi.h>
 
 export module vram;
@@ -12,11 +12,11 @@ import settings;
 
 export unsigned int nStreamingMemory = 0;
 
-constexpr SIZE_T _2048mb = 2147483648u;
+constexpr uint64_t _2048mb = 2147483648ull;
 
-SIZE_T GetProcessPreferredGPUMemory()
+uint64_t GetProcessPreferredGPUMemory()
 {
-    SIZE_T memory = _2048mb;
+    uint64_t memory = _2048mb;
 
     typedef HRESULT(WINAPI* CreateDXGIFactory2_t)(UINT Flags, REFIID riid, void** ppFactory);
     typedef HRESULT(WINAPI* CreateDXGIFactory_t)(REFIID riid, void** ppFactory);
@@ -25,50 +25,82 @@ SIZE_T GetProcessPreferredGPUMemory()
     if (!hDxgi)
         return memory;
 
-    IDXGIAdapter1* adapter = nullptr;
-
-    // Try CreateDXGIFactory2 with IDXGIFactory6 (Windows 10 1803+)
+    // Try CreateDXGIFactory2 with IDXGIFactory3
     CreateDXGIFactory2_t CreateDXGIFactory2_fn = (CreateDXGIFactory2_t)GetProcAddress(hDxgi, "CreateDXGIFactory2");
-
+    bool usedFactory3 = false;
     if (CreateDXGIFactory2_fn)
     {
-        IDXGIFactory6* factory6 = nullptr;
-        if (SUCCEEDED(CreateDXGIFactory2_fn(0, __uuidof(IDXGIFactory6), (void**)&factory6)))
+        IDXGIFactory3* factory3 = nullptr;
+        if (SUCCEEDED(CreateDXGIFactory2_fn(0, __uuidof(IDXGIFactory3), (void**)&factory3)))
         {
-            if (SUCCEEDED(factory6->EnumAdapterByGpuPreference(0, DXGI_GPU_PREFERENCE_UNSPECIFIED, __uuidof(IDXGIAdapter1), (void**)&adapter)))
+            usedFactory3 = true;
+            IDXGIAdapter* adapter = nullptr;
+            if (SUCCEEDED(factory3->EnumAdapters(0, &adapter)))
             {
-                DXGI_ADAPTER_DESC1 desc;
-                if (SUCCEEDED(adapter->GetDesc1(&desc)))
+                uint64_t current_memory = 0;
+                IDXGIAdapter3* adapter3 = nullptr;
+                if (SUCCEEDED(adapter->QueryInterface(__uuidof(IDXGIAdapter3), (void**)&adapter3)))
                 {
-                    memory = desc.DedicatedVideoMemory;
+                    DXGI_QUERY_VIDEO_MEMORY_INFO videoMemoryInfo;
+                    if (SUCCEEDED(adapter3->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &videoMemoryInfo)))
+                    {
+                        current_memory = videoMemoryInfo.Budget;
+                    }
+                    adapter3->Release();
+                }
+                else
+                {
+                    // Fallback to DXGI 1.0
+                    DXGI_ADAPTER_DESC desc;
+                    if (SUCCEEDED(adapter->GetDesc(&desc)))
+                    {
+                        current_memory = static_cast<uint64_t>(desc.DedicatedVideoMemory);
+                    }
                 }
                 adapter->Release();
+                memory = max(current_memory, _2048mb);
             }
-            factory6->Release();
-            FreeLibrary(hDxgi);
-            return memory;
+            factory3->Release();
         }
     }
 
-    // Fallback to regular factory if Factory6 not available
-    CreateDXGIFactory_t CreateDXGIFactory_fn = (CreateDXGIFactory_t)GetProcAddress(hDxgi, "CreateDXGIFactory");
-
-    if (CreateDXGIFactory_fn)
+    // Fallback to regular factory if Factory3 not available
+    if (!usedFactory3)
     {
-        IDXGIFactory* factory = nullptr;
-        if (SUCCEEDED(CreateDXGIFactory_fn(__uuidof(IDXGIFactory), (void**)&factory)))
+        CreateDXGIFactory_t CreateDXGIFactory_fn = (CreateDXGIFactory_t)GetProcAddress(hDxgi, "CreateDXGIFactory");
+        if (CreateDXGIFactory_fn)
         {
-            IDXGIAdapter* basicAdapter = nullptr;
-            if (SUCCEEDED(factory->EnumAdapters(0, &basicAdapter)))
+            IDXGIFactory* factory = nullptr;
+            if (SUCCEEDED(CreateDXGIFactory_fn(__uuidof(IDXGIFactory), (void**)&factory)))
             {
-                DXGI_ADAPTER_DESC desc;
-                if (SUCCEEDED(basicAdapter->GetDesc(&desc)))
+                IDXGIAdapter* adapter = nullptr;
+                if (SUCCEEDED(factory->EnumAdapters(0, &adapter)))
                 {
-                    memory = desc.DedicatedVideoMemory;
+                    uint64_t current_memory = 0;
+                    IDXGIAdapter2* adapter2 = nullptr;
+                    if (SUCCEEDED(adapter->QueryInterface(__uuidof(IDXGIAdapter2), (void**)&adapter2)))
+                    {
+                        DXGI_ADAPTER_DESC2 desc2;
+                        if (SUCCEEDED(adapter2->GetDesc2(&desc2)))
+                        {
+                            current_memory = desc2.DedicatedVideoMemory;
+                        }
+                        adapter2->Release();
+                    }
+                    else
+                    {
+                        // Fallback to DXGI 1.0
+                        DXGI_ADAPTER_DESC desc;
+                        if (SUCCEEDED(adapter->GetDesc(&desc)))
+                        {
+                            current_memory = static_cast<uint64_t>(desc.DedicatedVideoMemory);
+                        }
+                    }
+                    adapter->Release();
+                    memory = max(current_memory, _2048mb);
                 }
-                basicAdapter->Release();
+                factory->Release();
             }
-            factory->Release();
         }
     }
 
@@ -80,12 +112,12 @@ SafetyHookInline shgetAvailableVidMem = {};
 int64_t getAvailableVidMem()
 {
     auto ret = shgetAvailableVidMem.call<int64_t>();
-    if (ret < _2048mb)
+    if (ret < static_cast<int64_t>(_2048mb))
     {
         static auto vram = GetProcessPreferredGPUMemory();
-        static auto d3d9vram = rage::grcDevice::GetD3DDevice()->GetAvailableTextureMem();
+        static auto d3d9vram = static_cast<uint64_t>(rage::grcDevice::GetD3DDevice()->GetAvailableTextureMem());
         static auto totalVRAM = max(max(vram, d3d9vram), _2048mb);
-        ret = totalVRAM;
+        ret = static_cast<int64_t>(totalVRAM);
     }
     return ret;
 }
@@ -160,8 +192,7 @@ class VRam
 public:
     VRam()
     {
-        FusionFix::onInitEvent() += []()
-        {
+        FusionFix::onInitEvent() += []() {
             CIniReader iniReader("");
             bExtraStreamingMemory = iniReader.ReadInteger("EXPERIMENTAL", "ExtraStreamingMemory", 0) != 0;
             bEnableHighDetailReflections = iniReader.ReadInteger("EXPERIMENTAL", "EnableHighDetailReflections", 0) != 0;
@@ -213,7 +244,7 @@ public:
 
             if (bEnableHighDetailReflections)
             {
-                auto pattern = find_pattern("FF B6 ? ? ? ? E8 ? ? ? ? 6A ? 6A ? E8 ? ? ? ? 83 C4 ? 85 C0 74 ? 6A ? 6A", "E8 ? ? ? ? 6A ? 6A ? E8 ? ? ? ? 83 C4 ? 85 C0 74 ? 6A ? 6A ? 8B C8 E8 ? ? ? ? EB ? 33 C0 8B C8 E8 ? ? ? ? 6A ? 6A ? E8 ? ? ? ? 83 C4 ? 85 C0 74 ? 55");
+                auto pattern = find_pattern("FF B6 ? ? ? ? E8 ? ? ? ? 6A ? ? 6A ? E8 ? ? ? ? 83 C4 ? 85 C0 74 ? 6A ? 6A", "E8 ? ? ? ? 6A ? 6A ? E8 ? ? ? ? 83 C4 ? 85 C0 74 ? 6A ? 6A ? 8B C8 E8 ? ? ? ? EB ? 33 C0 8B C8 E8 ? ? ? ? 6A ? 6A ? E8 ? ? ? ? 83 C4 ? 85 C0 74 ? 55");
                 if (!pattern.empty())
                 {
                     hbsub_B1DEE0.fun = injector::MakeCALL(pattern.get_first(6), sub_B1DEE0, true).get();
