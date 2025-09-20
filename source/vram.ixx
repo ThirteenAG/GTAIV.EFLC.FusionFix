@@ -128,6 +128,19 @@ static unsigned int __fastcall CalculateStreamingMemoryBudget(void* _this, void*
     return nStreamingMemory;
 }
 
+bool bEnableHighDetailReflections = false;
+injector::hook_back<void(__cdecl*)(int, int16_t, int)> hbsub_B1DEE0;
+void __cdecl sub_B1DEE0(int a1, int16_t a2, int a3)
+{
+    if (bEnableHighDetailReflections)
+    {
+        for (int i = 0; i <= 11; ++i)
+            hbsub_B1DEE0.fun(i, 285, 0);
+        return;
+    }
+    return hbsub_B1DEE0.fun(a1, a2, a3);
+}
+
 class VRam
 {
 public:
@@ -136,7 +149,9 @@ public:
         FusionFix::onInitEvent() += []()
         {
             CIniReader iniReader("");
-            bExtraStreamingMemory = iniReader.ReadInteger("MISC", "ExtraStreamingMemory", 0);
+            bExtraStreamingMemory = iniReader.ReadInteger("EXPERIMENTAL", "ExtraStreamingMemory", 0) != 0;
+            bEnableHighDetailReflections = iniReader.ReadInteger("EXPERIMENTAL", "EnableHighDetailReflections", 0) != 0;
+            bool bRemoveBBoxCulling = iniReader.ReadInteger("EXPERIMENTAL", "RemoveBBoxCulling", 0) != 0;
 
             auto pattern = find_pattern("B8 ? ? ? ? 33 D2 83 C4");
             if (!pattern.empty())
@@ -187,6 +202,22 @@ public:
                 pattern = find_pattern("55 8B EC 83 E4 ? F3 0F 10 55 ? 83 EC");
                 if (!pattern.empty())
                     streamingBudgetHook = safetyhook::create_inline(pattern.get_first(0), CalculateStreamingMemoryBudget);
+            }
+
+            if (bEnableHighDetailReflections)
+            {
+                auto pattern = find_pattern("FF B6 ? ? ? ? E8 ? ? ? ? 6A ? 6A ? E8 ? ? ? ? 83 C4 ? 85 C0 74 ? 6A ? 6A", "E8 ? ? ? ? 6A ? 6A ? E8 ? ? ? ? 83 C4 ? 85 C0 74 ? 6A ? 6A ? 8B C8 E8 ? ? ? ? EB ? 33 C0 8B C8 E8 ? ? ? ? 6A ? 6A ? E8 ? ? ? ? 83 C4 ? 85 C0 74 ? 55");
+                if (!pattern.empty())
+                {
+                    hbsub_B1DEE0.fun = injector::MakeCALL(pattern.get_first(6), sub_B1DEE0, true).get();
+
+                    if (bRemoveBBoxCulling)
+                    {
+                        auto pattern = hook::pattern("0F 85 ? ? ? ? E8 ? ? ? ? 80 3D ? ? ? ? ? 8B 75");
+                        if (!pattern.empty())
+                            injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true);
+                    }
+                }
             }
         };
     }
