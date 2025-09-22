@@ -514,7 +514,7 @@
             <options action="MENUOPT_ADJUST_SPEAKER_OUTPUT" label="MO_OUTP" value="PREF_SPEAKER_OUTPUT" scaler="2" displayValue="MENU_DISPLAY_SPEAKER_OUTPUT_STEREO" />
             <options action="MENUOPT_ADJUST_RADIO_STATION" label="MO_RST" value="PREF_RADIO_STATION" scaler="0" displayValue="MENU_DISPLAY_RADIO_STATIONS" />
             <options action="MENUOPT_ADJUST_VOICE_OUTPUT" label="MO_VOUT" value="PREF_VOICE_OUTPUT" scaler="2" displayValue="MENU_DISPLAY_VOICE_OUTPUT" />
-            <options action="MENUOPT_ADJUST" label="MO_VMIC" value="PREF_MICROPHONE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <!--<options action="MENUOPT_ADJUST" label="MO_VMIC" value="PREF_MICROPHONE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />-->
             <options action="MENUOPT_ADJUST" label="ME_IND_FM_17" value="PREF_PLAYMODE" scaler="3" displayValue="MENU_DISPLAY_PLAYMODE" />
             <options action="MENUOPT_ADJUST" label="ME_IND_FM_02" value="PREF_AUTOSCAN" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <options action="MENUOPT_QUICKSCAN" label="ME_IND_FM_03" value="SET_SCAN" scaler="0" displayValue="MENU_DISPLAY_NONE" />
@@ -938,7 +938,7 @@
             <options action="MENUOPT_ADJUST" label="MO_GPS" value="PREF_GPS_SPEECH" scaler="3" displayValue="MENU_DISPLAY_GPS_SPEECH" />
             <options action="MENUOPT_ADJUST_SPEAKER_OUTPUT" label="MO_OUTP" value="PREF_SPEAKER_OUTPUT" scaler="2" displayValue="MENU_DISPLAY_SPEAKER_OUTPUT_STEREO" />
             <options action="MENUOPT_ADJUST_VOICE_OUTPUT" label="MO_VOUT" value="PREF_VOICE_OUTPUT" scaler="2" displayValue="MENU_DISPLAY_VOICE_OUTPUT" />
-            <options action="MENUOPT_ADJUST" label="MO_VMIC" value="PREF_MICROPHONE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <!--<options action="MENUOPT_ADJUST" label="MO_VMIC" value="PREF_MICROPHONE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />-->
             <options action="MENUOPT_ADJUST" label="ME_IND_FM_17" value="PREF_PLAYMODE" scaler="3" displayValue="MENU_DISPLAY_PLAYMODE" />
             <options action="MENUOPT_ADJUST" label="ME_IND_FM_02" value="PREF_AUTOSCAN" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <options action="MENUOPT_QUICKSCAN" label="ME_IND_FM_03" value="SET_SCAN" scaler="0" displayValue="MENU_DISPLAY_NONE" />
