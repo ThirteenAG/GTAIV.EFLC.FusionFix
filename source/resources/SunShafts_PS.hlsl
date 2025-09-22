@@ -21,16 +21,16 @@
 uniform row_major float4x4 gWorldViewProj : register(c8);
 uniform row_major float4x4 gViewInverse   : register(c12);
 uniform float4 globalScreenSize           : register(c44);     // This is at full resolution.
-sampler2D GBufferTextureSampler3          : register(ps, s1);
-sampler2D HDRSampler                      : register(ps, s2);
+sampler2D GBufferTextureSampler3          : register(s1);
+sampler2D HDRSampler                      : register(s2);
 
 // Custom resources
 uniform float4 FusionPS208                : register(c208);
 uniform float4 FusionPS209                : register(c209);
 uniform float4 FusionPS210                : register(c210);
 uniform float4 FusionPS216                : register(c216);
-sampler2D pHDRDownsampleTex               : register(ps, s11); // Custom downsample.
-sampler2D DiffuseTex                      : register(ps, s13); // Diffuse; cloud mask.
+sampler2D pHDRDownsampleTex               : register(s11);     // Custom downsample.
+sampler2D DiffuseTex                      : register(s13);     // Diffuse; cloud mask.
 
 // From rage_postfxVS0.
 struct PS_IN
