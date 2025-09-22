@@ -240,6 +240,68 @@ namespace phMaterialGta
     }
 }
 
+namespace ShockingEvents
+{
+    enum eShockingEvents
+    {
+        SexyCar,
+        RunningPed,
+        VisibleWeapon,
+        VisibleWeaponMELEE,
+        VisibleWeaponTHROWN,
+        VisibleWeaponHANDGUN,
+        VisibleWeaponSHOTGUN,
+        VisibleWeaponSMG,
+        VisibleWeaponSNIPER,
+        VisibleWeaponRIFLE,
+        VisibleWeaponHEAVY,
+        HornSounded,
+        PlaneFlyby,
+        SeenCarStolen,
+        HelicopterOverhead,
+        SeenMeleeAction,
+        SeenGangFight,
+        PedRunOver,
+        PanickedPed,
+        InjuredPed,
+        DeadBody,
+        DrivingOnPavement,
+        MadDriver,
+        CarCrash,
+        CarPileUp,
+        Fire,
+        GunshotFired,
+        PedShot,
+        GunFight,
+        Explosion,
+    };
+
+    constexpr auto ShockingEventIndexSize = 4;
+    constexpr auto ShockingEventDataFullSize = 52;
+    constexpr auto ShockingEventSize = ShockingEventDataFullSize - ShockingEventIndexSize;
+
+    void** pShockingEvents = nullptr;
+    static std::array<uint8_t, ShockingEventSize> originalDrivingOnPavement;
+    static std::array<uint8_t, ShockingEventSize> originalMadDriver;
+
+    static void SetShockingEventsParams()
+    {
+        if (bEnableSnow)
+        {
+            memcpy(originalDrivingOnPavement.data(), pShockingEvents + ((ShockingEventDataFullSize * DrivingOnPavement) / sizeof(void*)) + (ShockingEventIndexSize / sizeof(void*)), ShockingEventSize);
+            memcpy(originalMadDriver.data(), pShockingEvents + ((ShockingEventDataFullSize * MadDriver) / sizeof(void*)) + (ShockingEventIndexSize / sizeof(void*)), ShockingEventSize);
+
+            memset(pShockingEvents + ((ShockingEventDataFullSize * DrivingOnPavement) / sizeof(void*)) + (ShockingEventIndexSize / sizeof(void*)), 0, ShockingEventSize);
+            memset(pShockingEvents + ((ShockingEventDataFullSize * MadDriver) / sizeof(void*)) + (ShockingEventIndexSize / sizeof(void*)), 0, ShockingEventSize);
+        }
+        else
+        {
+            memcpy(pShockingEvents + ((ShockingEventDataFullSize * DrivingOnPavement) / sizeof(void*)) + (ShockingEventIndexSize / sizeof(void*)), originalDrivingOnPavement.data(), ShockingEventSize);
+            memcpy(pShockingEvents + ((ShockingEventDataFullSize * MadDriver) / sizeof(void*)) + (ShockingEventIndexSize / sizeof(void*)), originalMadDriver.data(), ShockingEventSize);
+        }
+    }
+}
+
 class Snow
 {
 private:
@@ -692,6 +754,7 @@ public:
         CTimeCycle::Initialise();
         SetRainRenderParams();
         phMaterialGta::SetMaterialsDatParams();
+        ShockingEvents::SetShockingEventsParams();
     }
 
     Snow()
@@ -890,6 +953,9 @@ public:
 
                 pattern = find_pattern("81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 56 8B F1 8D 4C 24", "81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 56 F3 0F 10 84 24");
                 phMaterialGta::shparse = safetyhook::create_inline(pattern.get_first(), phMaterialGta::parse);
+
+                pattern = find_pattern("34 05 ? ? ? ? 56 8B C8 E8 ? ? ? ? 6A", "81 C1 ? ? ? ? E8 ? ? ? ? 6A ? 55");
+                ShockingEvents::pShockingEvents = *pattern.get_first<void**>(2);
                 
                 // LCS Snow test
                 //CRenderPhaseDrawScene::onBeforePostFX() += []()
