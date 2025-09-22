@@ -69,7 +69,8 @@ uint64_t GetProcessPreferredGPUMemory()
                     desc.SubSysId == identifier.SubSysId &&
                     desc.Revision == identifier.Revision)
                 {
-                    if (selected_adapter) selected_adapter->Release();
+                    if (selected_adapter)
+                        selected_adapter->Release();
                     selected_adapter = adapter;
                     selected_adapter->AddRef();
                     adapter->Release();  // Release the Enum ref
@@ -79,7 +80,8 @@ uint64_t GetProcessPreferredGPUMemory()
                 if (desc.DedicatedVideoMemory > max_dedicated)
                 {
                     max_dedicated = desc.DedicatedVideoMemory;
-                    if (selected_adapter) selected_adapter->Release();
+                    if (selected_adapter)
+                        selected_adapter->Release();
                     selected_adapter = adapter;
                     selected_adapter->AddRef();
                 }
@@ -125,10 +127,11 @@ uint64_t GetProcessPreferredGPUMemory()
         factory_to_use->Release();
     }
 
-    FreeLibrary(hDxgi);
-
     if (!selected_adapter)
+    {
+        FreeLibrary(hDxgi);
         return memory;
+    }
 
     // Now query the selected adapter
     uint64_t dedicated = 0;
@@ -168,6 +171,8 @@ uint64_t GetProcessPreferredGPUMemory()
     }
 
     selected_adapter->Release();
+
+    FreeLibrary(hDxgi);  // Free only after all interfaces are released
 
     // Safety caps
     memory = max(max(budget, dedicated), _2048mb);
