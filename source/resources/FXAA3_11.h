@@ -7,7 +7,7 @@
 #define QUALITY_EDGE_THRESHOLD_MIN 0.0312
 
 uniform float4 globalScreenSize : register(c44);
-sampler2D HDRSampler : register(ps, s2);
+sampler2D HDRSampler            : register(s2);
 
 struct PS_IN
 {
