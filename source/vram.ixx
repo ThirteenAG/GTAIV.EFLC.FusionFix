@@ -3,6 +3,7 @@ module;
 #include <common.hxx>
 #include <dxgi1_4.h>
 #include <psapi.h>
+#include <D3D9Types.h>
 
 export module vram;
 
@@ -18,93 +19,160 @@ uint64_t GetProcessPreferredGPUMemory()
 {
     uint64_t memory = _2048mb;
 
-    typedef HRESULT(WINAPI* CreateDXGIFactory2_t)(UINT Flags, REFIID riid, void** ppFactory);
-    typedef HRESULT(WINAPI* CreateDXGIFactory_t)(REFIID riid, void** ppFactory);
+    IDirect3DDevice9* device = rage::grcDevice::GetD3DDevice();
+    if (!device)
+        return memory;
+
+    // Get D3D9 adapter details
+    D3DDEVICE_CREATION_PARAMETERS params;
+    if (FAILED(device->GetCreationParameters(&params)))
+        return memory;
+
+    IDirect3D9* d3d9 = nullptr;
+    if (FAILED(device->GetDirect3D(&d3d9)) || !d3d9)
+        return memory;
+
+    D3DADAPTER_IDENTIFIER9 identifier;
+    if (FAILED(d3d9->GetAdapterIdentifier(params.AdapterOrdinal, 0, &identifier)))
+    {
+        d3d9->Release();
+        return memory;
+    }
+    d3d9->Release();
 
     HMODULE hDxgi = LoadLibraryA("dxgi.dll");
     if (!hDxgi)
         return memory;
 
-    // Try CreateDXGIFactory2 with IDXGIFactory3
+    // Helper to get system RAM
+    MEMORYSTATUSEX memInfo;
+    memInfo.dwLength = sizeof(MEMORYSTATUSEX);
+    GlobalMemoryStatusEx(&memInfo);
+    uint64_t total_system_ram = memInfo.ullTotalPhys;
+
+    IDXGIAdapter* selected_adapter = nullptr;
+    uint64_t max_dedicated = 0;
+
+    auto EnumerateAdapters = [&](IDXGIFactory* factory) -> bool {
+        if (!factory) return false;
+
+        UINT adapter_index = 0;
+        IDXGIAdapter* adapter = nullptr;
+        while (SUCCEEDED(factory->EnumAdapters(adapter_index, &adapter)))
+        {
+            DXGI_ADAPTER_DESC desc;
+            if (SUCCEEDED(adapter->GetDesc(&desc)))
+            {
+                // Match with D3D9 identifier
+                if (desc.VendorId == identifier.VendorId &&
+                    desc.DeviceId == identifier.DeviceId &&
+                    desc.SubSysId == identifier.SubSysId &&
+                    desc.Revision == identifier.Revision)
+                {
+                    if (selected_adapter) selected_adapter->Release();
+                    selected_adapter = adapter;
+                    selected_adapter->AddRef();
+                    adapter->Release();  // Release the Enum ref
+                    return true;  // Found match, done
+                }
+                // Track max dedicated as fallback
+                if (desc.DedicatedVideoMemory > max_dedicated)
+                {
+                    max_dedicated = desc.DedicatedVideoMemory;
+                    if (selected_adapter) selected_adapter->Release();
+                    selected_adapter = adapter;
+                    selected_adapter->AddRef();
+                }
+            }
+            adapter->Release();
+            adapter_index++;
+        }
+        return false;  // No match found
+    };
+
+    // Prefer CreateDXGIFactory2 with IDXGIFactory3
+    IDXGIFactory* factory_to_use = nullptr;
+    typedef HRESULT(WINAPI* CreateDXGIFactory2_t)(UINT Flags, REFIID riid, void** ppFactory);
     CreateDXGIFactory2_t CreateDXGIFactory2_fn = (CreateDXGIFactory2_t)GetProcAddress(hDxgi, "CreateDXGIFactory2");
-    bool usedFactory3 = false;
     if (CreateDXGIFactory2_fn)
     {
         IDXGIFactory3* factory3 = nullptr;
         if (SUCCEEDED(CreateDXGIFactory2_fn(0, __uuidof(IDXGIFactory3), (void**)&factory3)))
         {
-            usedFactory3 = true;
-            IDXGIAdapter* adapter = nullptr;
-            if (SUCCEEDED(factory3->EnumAdapters(0, &adapter)))
-            {
-                uint64_t current_memory = 0;
-                IDXGIAdapter3* adapter3 = nullptr;
-                if (SUCCEEDED(adapter->QueryInterface(__uuidof(IDXGIAdapter3), (void**)&adapter3)))
-                {
-                    DXGI_QUERY_VIDEO_MEMORY_INFO videoMemoryInfo;
-                    if (SUCCEEDED(adapter3->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &videoMemoryInfo)))
-                    {
-                        current_memory = videoMemoryInfo.Budget;
-                    }
-                    adapter3->Release();
-                }
-                else
-                {
-                    // Fallback to DXGI 1.0
-                    DXGI_ADAPTER_DESC desc;
-                    if (SUCCEEDED(adapter->GetDesc(&desc)))
-                    {
-                        current_memory = static_cast<uint64_t>(desc.DedicatedVideoMemory);
-                    }
-                }
-                adapter->Release();
-                memory = max(current_memory, _2048mb);
-            }
-            factory3->Release();
+            factory_to_use = static_cast<IDXGIFactory*>(factory3);
         }
     }
 
-    // Fallback to regular factory if Factory3 not available
-    if (!usedFactory3)
+    // Fallback to CreateDXGIFactory if Factory2 not available
+    if (!factory_to_use)
     {
+        typedef HRESULT(WINAPI* CreateDXGIFactory_t)(REFIID riid, void** ppFactory);
         CreateDXGIFactory_t CreateDXGIFactory_fn = (CreateDXGIFactory_t)GetProcAddress(hDxgi, "CreateDXGIFactory");
         if (CreateDXGIFactory_fn)
         {
             IDXGIFactory* factory = nullptr;
             if (SUCCEEDED(CreateDXGIFactory_fn(__uuidof(IDXGIFactory), (void**)&factory)))
             {
-                IDXGIAdapter* adapter = nullptr;
-                if (SUCCEEDED(factory->EnumAdapters(0, &adapter)))
-                {
-                    uint64_t current_memory = 0;
-                    IDXGIAdapter2* adapter2 = nullptr;
-                    if (SUCCEEDED(adapter->QueryInterface(__uuidof(IDXGIAdapter2), (void**)&adapter2)))
-                    {
-                        DXGI_ADAPTER_DESC2 desc2;
-                        if (SUCCEEDED(adapter2->GetDesc2(&desc2)))
-                        {
-                            current_memory = desc2.DedicatedVideoMemory;
-                        }
-                        adapter2->Release();
-                    }
-                    else
-                    {
-                        // Fallback to DXGI 1.0
-                        DXGI_ADAPTER_DESC desc;
-                        if (SUCCEEDED(adapter->GetDesc(&desc)))
-                        {
-                            current_memory = static_cast<uint64_t>(desc.DedicatedVideoMemory);
-                        }
-                    }
-                    adapter->Release();
-                    memory = max(current_memory, _2048mb);
-                }
-                factory->Release();
+                factory_to_use = factory;
             }
         }
     }
 
+    // Enumerate using the preferred factory
+    if (factory_to_use)
+    {
+        EnumerateAdapters(factory_to_use);
+        factory_to_use->Release();
+    }
+
     FreeLibrary(hDxgi);
+
+    if (!selected_adapter)
+        return memory;
+
+    // Now query the selected adapter
+    uint64_t dedicated = 0;
+    uint64_t shared = 0;
+    uint64_t budget = 0;
+
+    DXGI_ADAPTER_DESC desc;
+    if (SUCCEEDED(selected_adapter->GetDesc(&desc)))
+    {
+        dedicated = desc.DedicatedVideoMemory;
+        shared = desc.SharedSystemMemory;
+    }
+
+    IDXGIAdapter3* adapter3 = nullptr;
+    if (SUCCEEDED(selected_adapter->QueryInterface(__uuidof(IDXGIAdapter3), (void**)&adapter3)))
+    {
+        DXGI_QUERY_VIDEO_MEMORY_INFO videoMemoryInfo;
+        if (SUCCEEDED(adapter3->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &videoMemoryInfo)))
+        {
+            budget = videoMemoryInfo.Budget;
+        }
+        adapter3->Release();
+    }
+    else
+    {
+        IDXGIAdapter2* adapter2 = nullptr;
+        if (SUCCEEDED(selected_adapter->QueryInterface(__uuidof(IDXGIAdapter2), (void**)&adapter2)))
+        {
+            DXGI_ADAPTER_DESC2 desc2;
+            if (SUCCEEDED(adapter2->GetDesc2(&desc2)))
+            {
+                dedicated = desc2.DedicatedVideoMemory;
+                shared = desc2.SharedSystemMemory;
+            }
+            adapter2->Release();
+        }
+    }
+
+    selected_adapter->Release();
+
+    // Safety caps
+    memory = max(max(budget, dedicated), _2048mb);
+    memory = min(memory, total_system_ram / 2);
+
     return memory;
 }
 
