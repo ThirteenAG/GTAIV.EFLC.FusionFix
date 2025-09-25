@@ -355,6 +355,15 @@ public:
             hbSLIDE_OBJECT.fun = NativeOverride::Register(Natives::NativeHashes::SLIDE_OBJECT, NATIVE_SLIDE_OBJECT, "E8 ? ? ? ? 0F B6 C8", 107);
             if (!hbSLIDE_OBJECT.fun)
                 hbSLIDE_OBJECT.fun = NativeOverride::Register(Natives::NativeHashes::SLIDE_OBJECT, NATIVE_SLIDE_OBJECT, "E8 ? ? ? ? 83 C4 ? C3", 30);
+
+            // CCamFollowVehicle
+            pattern = find_pattern("77 ? 0F 28 C2 F3 0F 5C 8F", "77 ? 0F 28 D3 F3 0F 10 8E");
+            if (!pattern.empty())
+                injector::MakeNOP(pattern.get_first(0), 2, true);
+
+            pattern = find_pattern("76 ? 0F 28 C8 EB ? F3 0F 10 4C 24", "76 ? 0F 28 CE EB ? 0F 28 CF 84 D2");
+            if (!pattern.empty())
+                injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
         };
     }
 } FramerateVigilante;
