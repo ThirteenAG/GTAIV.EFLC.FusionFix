@@ -1367,32 +1367,27 @@ public:
 
                     if (std::filesystem::exists(updatePath, ec))
                     {
-                        constexpr auto perms = std::filesystem::directory_options::skip_permission_denied | std::filesystem::directory_options::follow_directory_symlink;
+                        // Collect all IMG files first
+                        std::vector<std::filesystem::path> imgFiles;
+
+                        constexpr auto perms = std::filesystem::directory_options::skip_permission_denied |
+                            std::filesystem::directory_options::follow_directory_symlink;
+
                         for (const auto& file : std::filesystem::recursive_directory_iterator(updatePath, perms, ec))
                         {
+                            if (ec) continue;
+
                             auto filePath = std::filesystem::path(file.path());
 
                             if (iequals(filePath.extension().native(), L".img"))
                             {
-                                auto contains_subfolder = [](const std::filesystem::path& path, const std::filesystem::path& base) -> bool {
-                                    for (auto& p : path)
-                                    {
-                                        if (p == *path.begin())
-                                            continue;
-
-                                        if (iequals(p.native(), base.native()))
-                                            return true;
-                                    }
-                                    return false;
-                                };
-
                                 if ((!bLoadIMG || !UAL::AddVirtualFileForOverloadW) && std::filesystem::is_directory(file, ec))
                                     continue;
 
                                 auto relativePath = lexicallyRelativeCaseIns(filePath, gamePath);
                                 auto imgPath = relativePath.string();
                                 std::replace(std::begin(imgPath), std::end(imgPath), '\\', '/');
-                                auto pos = imgPath.find(L'/');
+                                auto pos = imgPath.find('/');
 
                                 if (pos != imgPath.npos)
                                 {
@@ -1404,20 +1399,103 @@ public:
                                     if (CText::hasViceCityStrings() && imgPath == "GTAIV.EFLC.FusionFix/GTAIV.EFLC.FusionFix.img")
                                         continue;
 
-                                    imgPath = "update:/" + imgPath;
+                                    imgFiles.push_back(relativePath);
+                                }
+                            }
+                        }
 
-                                    if (std::any_of(std::begin(episodicPaths), std::end(episodicPaths), [&](auto& it) { return contains_subfolder(relativePath, it); }))
+                        // Sort IMG files hierarchically: by depth first, then alphabetically
+                        std::sort(imgFiles.begin(), imgFiles.end(), [](const std::filesystem::path& a, const std::filesystem::path& b) {
+                            // Convert paths to strings for comparison
+                            std::string pathA = a.string();
+                            std::string pathB = b.string();
+
+                            // Replace backslashes with forward slashes for consistent comparison
+                            std::replace(pathA.begin(), pathA.end(), '\\', '/');
+                            std::replace(pathB.begin(), pathB.end(), '\\', '/');
+
+                            // Split paths into components
+                            std::vector<std::string> componentsA;
+                            std::vector<std::string> componentsB;
+
+                            auto splitPath = [](const std::string& path) -> std::vector<std::string> {
+                                std::vector<std::string> components;
+                                std::stringstream ss(path);
+                                std::string component;
+                                while (std::getline(ss, component, '/'))
+                                {
+                                    if (!component.empty())
                                     {
-                                        auto curEp = *_dwCurrentEpisode;
-                                        if (CText::hasViceCityStrings())
-                                            curEp = episodicPaths.size() - 1;
-
-                                        if (curEp < int32_t(episodicPaths.size()) && contains_subfolder(relativePath, episodicPaths[curEp]))
-                                            CImgManager__addImgFile(imgPath.data(), 1, -1);
+                                        components.push_back(component);
                                     }
-                                    else
+                                }
+                                return components;
+                            };
+
+                            componentsA = splitPath(pathA);
+                            componentsB = splitPath(pathB);
+
+                            // First, compare by depth (number of path components)
+                            // Shallower paths (fewer components) come first
+                            if (componentsA.size() != componentsB.size())
+                            {
+                                return componentsA.size() < componentsB.size();
+                            }
+
+                            // If depths are equal, compare components lexicographically
+                            for (size_t i = 0; i < componentsA.size(); ++i)
+                            {
+                                // Case-insensitive comparison
+                                std::string compA = componentsA[i];
+                                std::string compB = componentsB[i];
+                                std::transform(compA.begin(), compA.end(), compA.begin(), ::tolower);
+                                std::transform(compB.begin(), compB.end(), compB.begin(), ::tolower);
+
+                                if (compA != compB)
+                                {
+                                    return compA < compB;
+                                }
+                            }
+
+                            // If all components are equal, paths are considered equal
+                            return false;
+                        });
+
+                        // Load sorted IMG files
+                        auto contains_subfolder = [](const std::filesystem::path& path, const std::filesystem::path& base) -> bool {
+                            for (auto& p : path)
+                            {
+                                if (p == *path.begin())
+                                    continue;
+
+                                if (iequals(p.native(), base.native()))
+                                    return true;
+                            }
+                            return false;
+                        };
+
+                        for (const auto& relativePath : imgFiles)
+                        {
+                            auto imgPath = relativePath.string();
+                            std::replace(std::begin(imgPath), std::end(imgPath), '\\', '/');
+                            auto pos = imgPath.find('/');
+
+                            if (pos != imgPath.npos)
+                            {
+                                imgPath = imgPath.substr(pos + 1);
+                                imgPath = "update:/" + imgPath;
+
+                                if (std::any_of(std::begin(episodicPaths), std::end(episodicPaths), [&](auto& it) { return contains_subfolder(relativePath, it); }))
+                                {
+                                    auto curEp = *_dwCurrentEpisode;
+                                    if (CText::hasViceCityStrings())
+                                        curEp = episodicPaths.size() - 1;
+
+                                    if (curEp < int32_t(episodicPaths.size()) && contains_subfolder(relativePath, episodicPaths[curEp]))
                                         CImgManager__addImgFile(imgPath.data(), 1, -1);
                                 }
+                                else
+                                    CImgManager__addImgFile(imgPath.data(), 1, -1);
                             }
                         }
                     }
