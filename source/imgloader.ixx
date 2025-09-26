@@ -1404,7 +1404,7 @@ public:
                             }
                         }
 
-                        // Sort IMG files hierarchically: by depth first, then alphabetically
+                        // Sort IMG files hierarchically: deeper files first, then sequentially within parent folders
                         std::sort(imgFiles.begin(), imgFiles.end(), [](const std::filesystem::path& a, const std::filesystem::path& b) {
                             // Convert paths to strings for comparison
                             std::string pathA = a.string();
@@ -1415,9 +1415,6 @@ public:
                             std::replace(pathB.begin(), pathB.end(), '\\', '/');
 
                             // Split paths into components
-                            std::vector<std::string> componentsA;
-                            std::vector<std::string> componentsB;
-
                             auto splitPath = [](const std::string& path) -> std::vector<std::string> {
                                 std::vector<std::string> components;
                                 std::stringstream ss(path);
@@ -1432,20 +1429,21 @@ public:
                                 return components;
                             };
 
-                            componentsA = splitPath(pathA);
-                            componentsB = splitPath(pathB);
+                            std::vector<std::string> componentsA = splitPath(pathA);
+                            std::vector<std::string> componentsB = splitPath(pathB);
 
                             // First, compare by depth (number of path components)
-                            // Shallower paths (fewer components) come first
                             if (componentsA.size() != componentsB.size())
                             {
-                                return componentsA.size() < componentsB.size();
+                                return componentsA.size() > componentsB.size();
                             }
 
-                            // If depths are equal, compare components lexicographically
-                            for (size_t i = 0; i < componentsA.size(); ++i)
+                            // If depths are equal, compare parent directories first
+                            size_t minSize = min(componentsA.size(), componentsB.size());
+
+                            // Compare all parent directory components (excluding the filename)
+                            for (size_t i = 0; i < minSize - 1; ++i)
                             {
-                                // Case-insensitive comparison
                                 std::string compA = componentsA[i];
                                 std::string compB = componentsB[i];
                                 std::transform(compA.begin(), compA.end(), compA.begin(), ::tolower);
@@ -1453,11 +1451,20 @@ public:
 
                                 if (compA != compB)
                                 {
-                                    return compA < compB;
+                                    return compA < compB; // Alphabetical order within same parent
                                 }
                             }
 
-                            // If all components are equal, paths are considered equal
+                            // If all parent components are equal, compare filenames
+                            if (minSize > 0)
+                            {
+                                std::string fileA = componentsA.back();
+                                std::string fileB = componentsB.back();
+                                std::transform(fileA.begin(), fileA.end(), fileA.begin(), ::tolower);
+                                std::transform(fileB.begin(), fileB.end(), fileB.begin(), ::tolower);
+                                return fileA < fileB;
+                            }
+
                             return false;
                         });
 
