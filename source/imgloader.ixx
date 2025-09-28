@@ -1,5 +1,6 @@
 module;
 
+#define NOMINMAX
 #include <common.hxx>
 #include <filesystem>
 #include <vector>
@@ -9,6 +10,7 @@ module;
 #include <cstring>
 #include <algorithm>
 #include <unordered_set>
+#include <cwctype>
 #include <wincrypt.h>
 #pragma comment(lib, "crypt32.lib")
 
@@ -1404,68 +1406,94 @@ public:
                             }
                         }
 
-                        // Sort IMG files hierarchically: deeper files first, then sequentially within parent folders
-                        std::sort(imgFiles.begin(), imgFiles.end(), [](const std::filesystem::path& a, const std::filesystem::path& b) {
-                            // Convert paths to strings for comparison
-                            std::string pathA = a.string();
-                            std::string pathB = b.string();
+                        static auto StrCmpLogicalW = [](const wchar_t* str1, const wchar_t* str2) -> int {
+                            if (!str1 || !str2) return str1 ? 1 : (str2 ? -1 : 0);
 
-                            // Replace backslashes with forward slashes for consistent comparison
-                            std::replace(pathA.begin(), pathA.end(), '\\', '/');
-                            std::replace(pathB.begin(), pathB.end(), '\\', '/');
-
-                            // Split paths into components
-                            auto splitPath = [](const std::string& path) -> std::vector<std::string> {
-                                std::vector<std::string> components;
-                                std::stringstream ss(path);
-                                std::string component;
-                                while (std::getline(ss, component, '/'))
+                            while (*str1 || *str2)
+                            {
+                                // Handle numeric sequences
+                                if (std::iswdigit(*str1) && std::iswdigit(*str2))
                                 {
-                                    if (!component.empty())
+                                    // Skip leading zeros
+                                    while (*str1 == L'0') str1++;
+                                    while (*str2 == L'0') str2++;
+
+                                    // Count digits
+                                    int len1 = 0, len2 = 0;
+                                    const wchar_t* p1 = str1;
+                                    const wchar_t* p2 = str2;
+
+                                    while (std::iswdigit(*p1))
                                     {
-                                        components.push_back(component);
+                                        p1++; len1++;
                                     }
+                                    while (std::iswdigit(*p2))
+                                    {
+                                        p2++; len2++;
+                                    }
+
+                                    // Compare by length first (longer number is greater)
+                                    if (len1 != len2) return len1 - len2;
+
+                                    // Same length, compare digit by digit
+                                    for (int i = 0; i < len1; i++)
+                                    {
+                                        if (str1[i] != str2[i]) return str1[i] - str2[i];
+                                    }
+
+                                    str1 += len1;
+                                    str2 += len2;
                                 }
-                                return components;
-                            };
-
-                            std::vector<std::string> componentsA = splitPath(pathA);
-                            std::vector<std::string> componentsB = splitPath(pathB);
-
-                            // First, compare by depth (number of path components)
-                            if (componentsA.size() != componentsB.size())
-                            {
-                                return componentsA.size() > componentsB.size();
-                            }
-
-                            // If depths are equal, compare parent directories first
-                            size_t minSize = min(componentsA.size(), componentsB.size());
-
-                            // Compare all parent directory components (excluding the filename)
-                            for (size_t i = 0; i < minSize - 1; ++i)
-                            {
-                                std::string compA = componentsA[i];
-                                std::string compB = componentsB[i];
-                                std::transform(compA.begin(), compA.end(), compA.begin(), ::tolower);
-                                std::transform(compB.begin(), compB.end(), compB.begin(), ::tolower);
-
-                                if (compA != compB)
+                                else
                                 {
-                                    return compA < compB; // Alphabetical order within same parent
+                                    // Regular character comparison (case-insensitive)
+                                    wchar_t c1 = std::towlower(*str1);
+                                    wchar_t c2 = std::towlower(*str2);
+
+                                    if (c1 != c2) return c1 - c2;
+
+                                    if (*str1) str1++;
+                                    if (*str2) str2++;
                                 }
                             }
 
-                            // If all parent components are equal, compare filenames
-                            if (minSize > 0)
-                            {
-                                std::string fileA = componentsA.back();
-                                std::string fileB = componentsB.back();
-                                std::transform(fileA.begin(), fileA.end(), fileA.begin(), ::tolower);
-                                std::transform(fileB.begin(), fileB.end(), fileB.begin(), ::tolower);
-                                return fileA < fileB;
-                            }
+                            return 0;
+                        };
 
-                            return false;
+                        // Sort IMG files: group by root directory, then by depth within each group, then alphabetically
+                        std::sort(imgFiles.begin(), imgFiles.end(), [](const std::filesystem::path& a, const std::filesystem::path& b) {
+                            // Get the first directory after "update" for both paths
+                            std::filesystem::path rootDirA, rootDirB;
+
+                            auto itA = a.begin();
+                            auto itB = b.begin();
+
+                            // Skip "update" and get the first subdirectory
+                            if (itA != a.end()) ++itA; // Skip "update"
+                            if (itB != b.end()) ++itB; // Skip "update"
+
+                            if (itA != a.end()) rootDirA = *itA;
+                            if (itB != b.end()) rootDirB = *itB;
+
+                            // Compare root directories first (case-insensitive)
+                            std::wstring rootA = rootDirA.wstring();
+                            std::wstring rootB = rootDirB.wstring();
+                            std::transform(rootA.begin(), rootA.end(), rootA.begin(), ::towlower);
+                            std::transform(rootB.begin(), rootB.end(), rootB.begin(), ::towlower);
+
+                            int rootCompare = rootA.compare(rootB);
+                            if (rootCompare != 0)
+                                return rootCompare < 0;
+
+                            // If same root directory, then sort by depth
+                            size_t depthA = std::distance(a.begin(), a.end()) - 1; // -1 to exclude filename
+                            size_t depthB = std::distance(b.begin(), b.end()) - 1; // -1 to exclude filename
+
+                            if (depthA != depthB)
+                                return depthA < depthB;
+
+                            // If same root directory and same depth, use logical string comparison
+                            return StrCmpLogicalW(a.c_str(), b.c_str()) < 0;
                         });
 
                         // Load sorted IMG files
