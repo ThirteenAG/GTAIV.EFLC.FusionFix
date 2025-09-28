@@ -136,6 +136,7 @@ workspace "GTAIV.EFLC.FusionFix"
 
    filter "configurations:Release"
       defines { "NDEBUG" }
+      linktimeoptimization "On"
       optimize "On"
       links { "libmodupdater_release_win32.lib" }
       
@@ -161,6 +162,7 @@ project "GTAIV.EFLC.FusionFixInstaller"
 
    filter "configurations:Release"
       defines { "NDEBUG" }
+      linktimeoptimization "On"
       optimize "On"
 
 project "d3d9"
@@ -181,4 +183,5 @@ project "d3d9"
 
    filter "configurations:Release"
       defines { "NDEBUG" }
+      linktimeoptimization "On"
       optimize "On"
