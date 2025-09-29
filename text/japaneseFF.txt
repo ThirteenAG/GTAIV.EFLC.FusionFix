@@ -40,8 +40,11 @@ Raw Input
 [Cover Centering]
 カバー時カメラのセンタリング
 
-[Centering Delay]
-センタリングの遅延
+[CenterDelayFoot]
+徒歩時のカメラセンタリング遅延
+
+[CenterDelayVeh]
+乗り物搭乗時のカメラセンタリング遅延
 
 [Gamepad Icons]
 コントローラーのアイコン
