@@ -381,7 +381,7 @@ public:
                             Natives::GetMouseInput(&x, &y);
 
                         if (x || y)
-                            nTimeToPassBeforeCenteringCameraOnFoot = *CTimer::m_snTimeInMilliseconds + ((pad ? nTimeToWaitBeforeCenteringCameraOnFootPad->get() : nTimeToWaitBeforeCenteringCameraOnFootKB->get()) * 1000);
+                            nTimeToPassBeforeCenteringCameraOnFoot = *CTimer::m_snTimeInMilliseconds + ((pad ? nTimeToWaitBeforeCenteringCameraOnFootPad->get() : nTimeToWaitBeforeCenteringCameraOnFootKB->get()) * 500);
 
                         if (pad && !nTimeToWaitBeforeCenteringCameraOnFootPad->get())
                             nTimeToPassBeforeCenteringCameraOnFoot = 0;
@@ -426,7 +426,7 @@ public:
                             Natives::GetMouseInput(&x, &y);
 
                         if (x || y)
-                            nTimeToPassBeforeCenteringCameraInVehicle = *CTimer::m_snTimeInMilliseconds + ((pad ? nTimeToWaitBeforeCenteringCameraOnFootPadInCar->get() : nTimeToWaitBeforeCenteringCameraOnFootKBInCar->get()) * 1000);
+                            nTimeToPassBeforeCenteringCameraInVehicle = *CTimer::m_snTimeInMilliseconds + ((pad ? nTimeToWaitBeforeCenteringCameraOnFootPadInCar->get() : nTimeToWaitBeforeCenteringCameraOnFootKBInCar->get()) * 500);
 
                         if (pad && !nTimeToWaitBeforeCenteringCameraOnFootPadInCar->get())
                             nTimeToPassBeforeCenteringCameraInVehicle = 0;
@@ -464,7 +464,7 @@ public:
                             Natives::GetMouseInput(&x, &y);
 
                         if (x || y)
-                            nTimeToPassBeforeCenteringCameraInVehicle = *CTimer::m_snTimeInMilliseconds + ((pad ? nTimeToWaitBeforeCenteringCameraOnFootPadInCar->get() : nTimeToWaitBeforeCenteringCameraOnFootKBInCar->get()) * 1000);
+                            nTimeToPassBeforeCenteringCameraInVehicle = *CTimer::m_snTimeInMilliseconds + ((pad ? nTimeToWaitBeforeCenteringCameraOnFootPadInCar->get() : nTimeToWaitBeforeCenteringCameraOnFootKBInCar->get()) * 500);
 
                         if (pad && !nTimeToWaitBeforeCenteringCameraOnFootPadInCar->get())
                             nTimeToPassBeforeCenteringCameraInVehicle = 0;
