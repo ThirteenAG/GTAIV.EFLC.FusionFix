@@ -46,6 +46,9 @@ Ritardo centramento camera a piedi
 [CenterDelayVeh]
 Ritardo centramento camera veicolo
 
+[CamTurnSpeedVeh]
+Velocità rotazione camera veicolo
+
 [Gamepad Icons]
 Icone del gamepad
 

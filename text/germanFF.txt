@@ -46,6 +46,9 @@ Zentrierungsverzögerung (zu Fuß)
 [CenterDelayVeh]
 Zentrierungsverzögerung (Fahrzeug)
 
+[CamTurnSpeedVeh]
+Kamera-Drehgeschwindigkeit (Fahrzeug)
+
 [Gamepad Icons]
 Controllersymbole
 

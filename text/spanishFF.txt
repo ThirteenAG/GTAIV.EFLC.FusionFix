@@ -46,6 +46,9 @@ Demora al centrar cámara a pie
 [CenterDelayVeh]
 Demora al centrar cámara en vehículo
 
+[CamTurnSpeedVeh]
+Velocidad de giro de la cámara en vehículo
+
 [Gamepad Icons]
 Iconos del mando
 

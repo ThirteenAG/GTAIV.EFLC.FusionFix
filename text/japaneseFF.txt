@@ -46,6 +46,9 @@ Raw Input
 [CenterDelayVeh]
 乗り物搭乗時のカメラセンタリング遅延
 
+[CamTurnSpeedVeh]
+乗り物搭乗時のカメラ旋回速度
+
 [Gamepad Icons]
 コントローラーのアイコン
 

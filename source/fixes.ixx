@@ -409,17 +409,19 @@ public:
             }
 
             {
-                auto pattern = find_pattern("F3 0F 11 44 24 ? 0F 84 ? ? ? ? 80 3D", "F3 0F 11 44 24 ? 0F 84 ? ? ? ? 80 3D");
+                auto pattern = find_pattern("F3 0F 11 44 24 ? 0F 84 ? ? ? ? 80 3D");
                 static auto reg = *pattern.get_first<uint8_t>(5);
                 static auto nTimeToWaitBeforeCenteringCameraOnFootKBInCar = FusionFixSettings.GetRef("PREF_KBCAMCENTERDELAYVEH");
                 static auto nTimeToWaitBeforeCenteringCameraOnFootPadInCar = FusionFixSettings.GetRef("PREF_PADCAMCENTERDELAYVEH");
+                static auto nCameraTurnSpeedKBInCar = FusionFixSettings.GetRef("PREF_KBCAMTURNSPEEDVEH");
+                static auto nCameraTurnSpeedPadInCar = FusionFixSettings.GetRef("PREF_PADCAMTURNSPEEDVEH");
                 struct InVehicleHorizontalCamCenteringHook
                 {
                     void operator()(injector::reg_pack& regs)
                     {
-                        float f = regs.xmm0.f32[0];
-                        float& posX = *(float*)(regs.esp + reg);
                         bool pad = Natives::IsUsingController();
+                        float f = regs.xmm0.f32[0] / (regs.xmm1.f32[0] * (1.0f - (pad ? nCameraTurnSpeedPadInCar->get() : nCameraTurnSpeedKBInCar->get()) * (0.9f / 9.0f)));
+                        float& posX = *(float*)(regs.esp + reg);
                         int32_t x = 0;
                         int32_t y = 0;
 
@@ -442,7 +444,7 @@ public:
                         else
                             posX = 0.0f;
                     }
-                }; injector::MakeInline<InVehicleHorizontalCamCenteringHook>(pattern.get_first(0), pattern.get_first(6));
+                }; injector::MakeInline<InVehicleHorizontalCamCenteringHook>(pattern.get_first(-4), pattern.get_first(6));
 
                 pattern = find_pattern("F3 0F 11 8C 24 ? ? ? ? 0F 28 CA E8", "F3 0F 11 84 24 ? ? ? ? F3 0F 10 43 ? F3 0F 11 8C 24");
                 static auto reg2 = *pattern.get_first<uint8_t>(5);

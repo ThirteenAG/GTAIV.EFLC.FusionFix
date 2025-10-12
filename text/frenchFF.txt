@@ -46,6 +46,9 @@ Délai de recentrage caméra à pied
 [CenterDelayVeh]
 Délai de recentrage caméra en véhicule
 
+[CamTurnSpeedVeh]
+Vitesse de rotation de la caméra en véhicule
+
 [Gamepad Icons]
 Icônes de la manette de jeu
 
