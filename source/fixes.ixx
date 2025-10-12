@@ -153,6 +153,12 @@ public:
         return false; // Return false to allow the zoom to return to normal.
     }
 
+    static inline injector::hook_back<decltype(&Natives::CompareString)> hbCOMPARE_STRING;
+    static bool __cdecl NATIVE_COMPARE_STRING(const char* a1, const char* a2)
+    {
+        return a1 && a2 && IsBadReadPtr(a1, 1) == 0 && IsBadReadPtr(a2, 1) == 0 && strcmp(a1, a2) == 0;
+    }
+
     Fixes()
     {
         FusionFix::onInitEventAsync() += []()
@@ -862,6 +868,11 @@ public:
                 auto pattern = find_pattern("0F 84 ? ? ? ? 85 C9 0F 84 ? ? ? ? 8B 89", "0F 84 ? ? ? ? 85 C0 0F 84 ? ? ? ? 8B 88");
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(0), 6, true);
+            }
+
+            // TLAD phone calls crashing (https://github.com/GTAmodding/GTAIV-Issues-List/issues/232)
+            {
+                hbCOMPARE_STRING.fun = NativeOverride::Register(Natives::NativeHashes::COMPARE_STRING, NATIVE_COMPARE_STRING, "E8 ? ? ? ? ? ? ? ? ? 83 C4 ? 89 ? 5E C3", 30);
             }
         };
     }
