@@ -420,7 +420,7 @@ public:
                     void operator()(injector::reg_pack& regs)
                     {
                         bool pad = Natives::IsUsingController();
-                        float f = regs.xmm0.f32[0] / (regs.xmm1.f32[0] * (1.0f - (pad ? nCameraTurnSpeedPadInCar->get() : nCameraTurnSpeedKBInCar->get()) * (0.9f / 9.0f)));
+                        float f = regs.xmm0.f32[0] / (regs.xmm1.f32[0] * (1.0f - (pad ? nCameraTurnSpeedPadInCar->get() : nCameraTurnSpeedKBInCar->get()) * 0.1f));
                         float& posX = *(float*)(regs.esp + reg);
                         int32_t x = 0;
                         int32_t y = 0;
