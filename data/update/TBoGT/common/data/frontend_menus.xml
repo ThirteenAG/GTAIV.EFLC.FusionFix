@@ -1140,14 +1140,14 @@
         value="PREF_ANISO_QUALITY" scaler="5"
         displayValue="MENU_TEXTURE_QUALITY_SETTINGS" />
       <optionspc action="MENUOPT_ADJUST" label="MO_VIEWDIST"
-        value="PREF_VIEW_DISTANCE" scaler="100"
-        displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
+        value="PREF_VIEW_DISTANCE" scaler="50"
+        displayValue="MENU_DISPLAY_SLIDERBAR" />
       <optionspc action="MENUOPT_ADJUST" label="MO_DETAIL"
-        value="PREF_DETAIL_QUALITY" scaler="100"
-        displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
+        value="PREF_DETAIL_QUALITY" scaler="50"
+        displayValue="MENU_DISPLAY_SLIDERBAR" />
       <optionspc action="MENUOPT_ADJUST" label="MO_CARS"
         value="PREF_CAR_DENSITY" scaler="100"
-        displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
+        displayValue="MENU_DISPLAY_SLIDERBAR" />
       <!--optionspc action="MENUOPT_ADJUST" label="MO_DOF"
       value="PREF_DOF" scaler="2"
       displayValue="MENU_DISPLAY_ON_OFF" /-->
@@ -1203,14 +1203,14 @@
         value="PREF_ANISO_QUALITY" scaler="5"
         displayValue="MENU_TEXTURE_QUALITY_SETTINGS" />
       <optionspc action="MENUOPT_ADJUST" label="MO_VIEWDIST"
-        value="PREF_VIEW_DISTANCE" scaler="100"
-        displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
+        value="PREF_VIEW_DISTANCE" scaler="50"
+        displayValue="MENU_DISPLAY_SLIDERBAR" />
       <optionspc action="MENUOPT_ADJUST" label="MO_DETAIL"
-        value="PREF_DETAIL_QUALITY" scaler="100"
-        displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
+        value="PREF_DETAIL_QUALITY" scaler="50"
+        displayValue="MENU_DISPLAY_SLIDERBAR" />
       <optionspc action="MENUOPT_ADJUST" label="MO_CARS"
         value="PREF_CAR_DENSITY" scaler="100"
-        displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
+        displayValue="MENU_DISPLAY_SLIDERBAR" />
       <!--optionspc action="MENUOPT_ADJUST" label="MO_DOF"
       value="PREF_DOF" scaler="2"
       displayValue="MENU_DISPLAY_ON_OFF" /-->

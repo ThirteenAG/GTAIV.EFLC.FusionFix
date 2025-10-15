@@ -1204,9 +1204,9 @@
       <optionspc action="MENUOPT_ADJUST" label="MO_SDW" value="PREF_SHADOW_QUALITY" scaler="5" displayValue="MENU_DISPLAY_SHADOW_QUALITY" />
       <optionspc action="MENUOPT_ADJUST" label="MO_SHADOWDEN" value="PREF_SHADOW_DENSITY" scaler="4" displayValue="MENU_DISPLAY_SHADOW_DENSITY" />
       <optionspc action="MENUOPT_ADJUST" label="MO_ANISO" value="PREF_ANISO_QUALITY" scaler="5" displayValue="MENU_TEXTURE_QUALITY_SETTINGS" />
-      <optionspc action="MENUOPT_ADJUST" label="MO_VIEWDIST" value="PREF_VIEW_DISTANCE" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
-      <optionspc action="MENUOPT_ADJUST" label="MO_DETAIL" value="PREF_DETAIL_QUALITY" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
-      <optionspc action="MENUOPT_ADJUST" label="MO_CARS" value="PREF_CAR_DENSITY" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
+      <optionspc action="MENUOPT_ADJUST" label="MO_VIEWDIST" value="PREF_VIEW_DISTANCE" scaler="50" displayValue="MENU_DISPLAY_SLIDERBAR" />
+      <optionspc action="MENUOPT_ADJUST" label="MO_DETAIL" value="PREF_DETAIL_QUALITY" scaler="50" displayValue="MENU_DISPLAY_SLIDERBAR" />
+      <optionspc action="MENUOPT_ADJUST" label="MO_CARS" value="PREF_CAR_DENSITY" scaler="100" displayValue="MENU_DISPLAY_SLIDERBAR" />
       <!--optionspc action="MENUOPT_ADJUST" label="MO_DOF" value="PREF_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" /-->
       <optionspc action="MENUOPT_ADJUST" label="MO_VSYNC" value="PREF_VSYNC" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       
@@ -1235,9 +1235,9 @@
       <optionspc action="MENUOPT_ADJUST" label="MO_SDW" value="PREF_SHADOW_QUALITY" scaler="5" displayValue="MENU_DISPLAY_SHADOW_QUALITY" />
       <optionspc action="MENUOPT_ADJUST" label="MO_SHADOWDEN" value="PREF_SHADOW_DENSITY" scaler="4" displayValue="MENU_DISPLAY_SHADOW_DENSITY" />
       <optionspc action="MENUOPT_ADJUST" label="MO_ANISO" value="PREF_ANISO_QUALITY" scaler="5" displayValue="MENU_TEXTURE_QUALITY_SETTINGS" />
-      <optionspc action="MENUOPT_ADJUST" label="MO_VIEWDIST" value="PREF_VIEW_DISTANCE" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
-      <optionspc action="MENUOPT_ADJUST" label="MO_DETAIL" value="PREF_DETAIL_QUALITY" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
-      <optionspc action="MENUOPT_ADJUST" label="MO_CARS" value="PREF_CAR_DENSITY" scaler="100" displayValue="MENU_DISPLAY_VALUE_SLIDERBAR" />
+      <optionspc action="MENUOPT_ADJUST" label="MO_VIEWDIST" value="PREF_VIEW_DISTANCE" scaler="50" displayValue="MENU_DISPLAY_SLIDERBAR" />
+      <optionspc action="MENUOPT_ADJUST" label="MO_DETAIL" value="PREF_DETAIL_QUALITY" scaler="50" displayValue="MENU_DISPLAY_SLIDERBAR" />
+      <optionspc action="MENUOPT_ADJUST" label="MO_CARS" value="PREF_CAR_DENSITY" scaler="100" displayValue="MENU_DISPLAY_SLIDERBAR" />
       <!--optionspc action="MENUOPT_ADJUST" label="MO_DOF" value="PREF_DOF" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" /-->
       <optionspc action="MENUOPT_ADJUST" label="MO_VSYNC" value="PREF_VSYNC" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       
