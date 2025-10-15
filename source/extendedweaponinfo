@@ -77,7 +77,7 @@ public:
 				//auto pattern = hook::pattern("8B 44 24 04 83 F8 ?? 7D 0C 69 C0 ? ? ? ? 05 ? ? ? ? C3 B8 ? ? ? ? C3 ");
 				auto pattern = hook::pattern("? ? ? ? ? ? ? 7D 0C 69 C0 ? ? ? ? 05 ? ? ? ? C3 B8 ? ? ? ? C3 "); // CE/<CE
 				if (!pattern.empty()) 
-        {
+				{
 					injector::WriteMemory(pattern.get_first(0xF + 1), pWeap, true);
 					injector::WriteMemory(pattern.get_first(0x15 + 1), pWeap, true);
 				}
@@ -97,7 +97,7 @@ public:
 				if (pattern.empty())
 					pattern = hook::pattern("BE ? ? ? ? BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 81 C6 10 01 00 00 4F 79 F0 68 ? ? ? ? E8 ? ? ? ? 83 C4 04 5F 5E C3 "); // CE
 				if (!pattern.empty()) 
-        {
+				{
 					injector::WriteMemory(pattern.get_first(1), pWeap, true);
 					injector::WriteMemory<size_t>(pattern.get_first(6), sizeof g_weapInfo / sizeof * g_weapInfo, true);
 				}
@@ -117,7 +117,7 @@ public:
 				void* ptr = 0;
 				pattern = hook::pattern("? ? ? ? ? F8 ? 7D 0C 69 C0 ? ? ? ? 05 ? ? ? ? C3 "); // CE/<CE
 				if (pattern.empty()) 
-        {
+				{
 					pattern = hook::pattern("E8 ? ? ? ? 8B 48 04 8A 47 1C 83 C4 04 3A 46 1C "); // CE second. unused now
 					if (!pattern.empty())
 						ptr = injector::GetBranchDestination(pattern.get_first()).get_raw<void>();
