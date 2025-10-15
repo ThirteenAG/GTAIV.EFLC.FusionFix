@@ -878,20 +878,20 @@ public:
             }
 
             // Water flicker mitigation
-            {
-                auto pattern = find_pattern("A8 ? 0F 84 ? ? ? ? 8B C8");
-                static auto loc_927DE0 = resolve_next_displacement(pattern.get_first(0)).value();
-                injector::MakeNOP(pattern.get_first(2), 6);
-                static auto LightCounterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                {
-                    if ((regs.eax & 6) != 0 && Natives::IsInteriorScene())
-                    {
-                        return;
-                    }
-
-                    return_to(loc_927DE0);
-                });
-            }
+            //{
+            //    auto pattern = find_pattern("A8 ? 0F 84 ? ? ? ? 8B C8");
+            //    static auto loc_927DE0 = resolve_next_displacement(pattern.get_first(0)).value();
+            //    injector::MakeNOP(pattern.get_first(2), 6);
+            //    static auto LightCounterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+            //    {
+            //        if ((regs.eax & 6) != 0 && Natives::IsInteriorScene())
+            //        {
+            //            return;
+            //        }
+            //
+            //        return_to(loc_927DE0);
+            //    });
+            //}
         };
     }
 } Fixes;
