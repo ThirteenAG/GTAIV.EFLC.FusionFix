@@ -12,65 +12,66 @@ import settings;
 
 // An array of hashes. Initially, it contains only those available in the vanilla game. 
 // It can be expanded during weaponinfo loading, allowing modders to add NEW names instead of EPISODIC_# and use them in the game.
-std::vector<uint32_t> g_names{
+std::vector<uint32_t> g_names
+{
 	0xE2E6A20D,
-0xC5654B8F,
-0xF2A9E465,
-0xB6A08329,
-0xB6504BD2,
-0xFC5A2DD3,
-0x2F9D95AA,
-0x797EF586,
-0xCFE55989,
-0x15CD64E0,
-0xB4868845,
-0xC0C44071,
-0x73D49E1D,
-0x32D7583F,
-0x18284ACE,
-0xD590B003,
-0x9496FB0A,
-0xFB2D1849,
-0xA77DE1A9,
-0xC49CC444,
-0x6A2A4A2A,
-0x56062702,
-0xAEB1D854,
-0x5D123516,
-0x4B54919B,
-0x699CCE2B,
-0x1995AE1E,
-0x07ED0ACD,
-0x36336759,
-0x30A15C35,
-0xACEBDDBE,
-0x7EA2812C,
-0x8F5E22A3,
-0x612F4646,
-0xC36C8AC3,
-0xD5422E6E,
-0xA8EFD5CA,
-0xBA5DF8A6,
-0x3C287C39,
-0x0FF923DB,
-0x7A6F0B79,
-0x9EB75409,
-0xD60E42B2,
-0xEC156EC0,
-0x520BBAB3,
-0x25584DB6,
-0x39958261,
-0xC84C7DCB,
-0xE8F61E78,
-0x2EF09AF6,
-0xEF060FC9,
-0xDD91088F,
-0xF9E20D15,
-0xEC0C1BE6,
-0xAA4896AA,
-0xE0D47482,
-0xC3F9EEC6,
-0xE0CD70F2,
+	0xC5654B8F,
+	0xF2A9E465,
+	0xB6A08329,
+	0xB6504BD2,
+	0xFC5A2DD3,
+	0x2F9D95AA,
+	0x797EF586,
+	0xCFE55989,
+	0x15CD64E0,
+	0xB4868845,
+	0xC0C44071,
+	0x73D49E1D,
+	0x32D7583F,
+	0x18284ACE,
+	0xD590B003,
+	0x9496FB0A,
+	0xFB2D1849,
+	0xA77DE1A9,
+	0xC49CC444,
+	0x6A2A4A2A,
+	0x56062702,
+	0xAEB1D854,
+	0x5D123516,
+	0x4B54919B,
+	0x699CCE2B,
+	0x1995AE1E,
+	0x07ED0ACD,
+	0x36336759,
+	0x30A15C35,
+	0xACEBDDBE,
+	0x7EA2812C,
+	0x8F5E22A3,
+	0x612F4646,
+	0xC36C8AC3,
+	0xD5422E6E,
+	0xA8EFD5CA,
+	0xBA5DF8A6,
+	0x3C287C39,
+	0x0FF923DB,
+	0x7A6F0B79,
+	0x9EB75409,
+	0xD60E42B2,
+	0xEC156EC0,
+	0x520BBAB3,
+	0x25584DB6,
+	0x39958261,
+	0xC84C7DCB,
+	0xE8F61E78,
+	0x2EF09AF6,
+	0xEF060FC9,
+	0xDD91088F,
+	0xF9E20D15,
+	0xEC0C1BE6,
+	0xAA4896AA,
+	0xE0D47482,
+	0xC3F9EEC6,
+	0xE0CD70F2,
 };
 
 // Returns the weapon's ID using its hash. 
@@ -98,15 +99,16 @@ public:
 	{
 		FusionFix::onInitEvent() += []()
 			{
-            CIniReader iniReader("");
-            auto bExtendedLimits = iniReader.ReadInteger("BudgetedIV", "ExtendedLimits", 0);
-            if (bExtendedLimits) {
-				auto pattern = hook::pattern("? ? ? ? ? C0 3B 0C 85 ? ? ? ? 74 0C ");
-				if (pattern.empty())
-					pattern = hook::pattern("? ? ? ? ? C0 3B 0C 85 ? ? ? ? 74 0A 40 ");
-				if (!pattern.empty())
-					injector::MakeJMP(pattern.get_first(), reinterpret_cast<size_t>(getWeaponInfoIdByHash), true);
-			}
+				CIniReader iniReader("");
+				auto bExtendedLimits = iniReader.ReadInteger("BudgetedIV", "ExtendedLimits", 0);
+				if (bExtendedLimits)
+				{
+					auto pattern = hook::pattern("? ? ? ? ? C0 3B 0C 85 ? ? ? ? 74 0C ");
+					if (pattern.empty())
+						pattern = hook::pattern("? ? ? ? ? C0 3B 0C 85 ? ? ? ? 74 0A 40 ");
+					if (!pattern.empty())
+						injector::MakeJMP(pattern.get_first(), reinterpret_cast<size_t>(getWeaponInfoIdByHash), true);
+				}
 
 			
 
