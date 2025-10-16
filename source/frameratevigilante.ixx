@@ -14,7 +14,7 @@ double __fastcall sub_A18510(void* _this, void* edx, void* a2, void* a3)
 {
     float f = 1.0f;
     if (!Natives::IsUsingController())
-        f = 5.0f;
+        f = 3.0f;
 
     return hbsub_A18510.fun(_this, edx, a2, a3) * (*CTimer::fTimeStep / (1.0f / 30.0f)) * f;
 }
