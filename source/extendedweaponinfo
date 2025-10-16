@@ -51,7 +51,7 @@ public:
 					if (pattern.empty())
 						pattern = hook::pattern("C0 3B 0C 85 ? ? ? ? 74 0A 40 ");
 					if (!pattern.empty())
-						shGetWeaponInfoIdByHash = safetyhook::create_inline(pattern.get_first(5), getWeaponInfoIdByHash);
+						shGetWeaponInfoIdByHash = safetyhook::create_inline(pattern.get_first(-5), getWeaponInfoIdByHash);
 
 				}
 
