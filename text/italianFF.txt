@@ -40,8 +40,14 @@ Corri sempre
 [Cover Centering]
 Centra camera al riparo
 
-[Centering Delay]
-Ritarda centramento della camera
+[CenterDelayFoot]
+Ritardo centramento camera a piedi
+
+[CenterDelayVeh]
+Ritardo centramento camera veicolo
+
+[CamTurnSpeedVeh]
+Velocità rotazione camera veicolo
 
 [Gamepad Icons]
 Icone del gamepad

@@ -513,7 +513,9 @@
       <optionspc action="MENUOPT_ADJUST" label="MO_HELIKB" value="PREF_HELIKB" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       
             <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-            <optionspc action="MENUOPT_ADJUST" label="Centering Delay" value="PREF_EPISODIC_RACECLASS_RACE_4" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
+            <optionspc action="MENUOPT_ADJUST" label="CenterDelayFoot" value="PREF_EPISODIC_RACECLASS_RACE_4" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
+            <optionspc action="MENUOPT_ADJUST" label="CenterDelayVeh" value="PREF_EPISODIC_RACECLASS_RACE_1" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
+            <optionspc action="MENUOPT_ADJUST" label="CamTurnSpeedVeh" value="PREF_EPISODIC_RACECLASS_RACE_0" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
             <optionspc action="MENUOPT_ADJUST" label="Raw Input" value="PREF_RAWINPUT" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       
       <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
@@ -529,7 +531,9 @@
       <options action="MENUOPT_ADJUST" label="MO_SENS" value="PREF_CONTROLLER_SENSITIVITY" scaler="3" displayValue="MENU_DISPLAY_CONTROLLER_SENSITIVITY" />
       
             <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-            <optionspc action="MENUOPT_ADJUST" label="Centering Delay" value="PREF_EPISODIC_RACECLASS_RACE_5" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
+            <optionspc action="MENUOPT_ADJUST" label="CenterDelayFoot" value="PREF_EPISODIC_RACECLASS_RACE_5" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
+            <optionspc action="MENUOPT_ADJUST" label="CenterDelayVeh" value="PREF_EPISODIC_RACECLASS_RACE_2" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
+            <optionspc action="MENUOPT_ADJUST" label="CamTurnSpeedVeh" value="PREF_EPISODIC_RACENAME_RACE_5" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
             <optionspc action="MENUOPT_ADJUST" label="Gamepad Icons" value="PREF_BUTTONS" scaler="13" displayValue="MENU_DISPLAY_BUTTONS" />
       
       <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
@@ -574,9 +578,9 @@
       <options action="MENUOPT_ADJUST_VOICE_OUTPUT" label="MO_VOUT"
         value="PREF_VOICE_OUTPUT" scaler="2"
         displayValue="MENU_DISPLAY_VOICE_OUTPUT" />
-      <optionspc action="MENUOPT_ADJUST" label="MO_VMIC"
+      <!--<optionspc action="MENUOPT_ADJUST" label="MO_VMIC"
         value="PREF_MICROPHONE" scaler="2"
-        displayValue="MENU_DISPLAY_ON_OFF" />
+        displayValue="MENU_DISPLAY_ON_OFF" />-->
       <optionspc action="MENUOPT_ADJUST" label="ME_IND_FM_17"
         value="PREF_PLAYMODE" scaler="3"
         displayValue="MENU_DISPLAY_PLAYMODE" />
@@ -1339,9 +1343,9 @@
       <options action="MENUOPT_ADJUST_VOICE_OUTPUT" label="MO_VOUT"
         value="PREF_VOICE_OUTPUT" scaler="2"
         displayValue="MENU_DISPLAY_VOICE_OUTPUT" />
-      <options action="MENUOPT_ADJUST" label="MO_VMIC"
+      <!--<options action="MENUOPT_ADJUST" label="MO_VMIC"
         value="PREF_MICROPHONE" scaler="2"
-        displayValue="MENU_DISPLAY_ON_OFF" />
+        displayValue="MENU_DISPLAY_ON_OFF" />-->
       <options action="MENUOPT_ADJUST" label="ME_IND_FM_17"
         value="PREF_PLAYMODE" scaler="3"
         displayValue="MENU_DISPLAY_PLAYMODE" />

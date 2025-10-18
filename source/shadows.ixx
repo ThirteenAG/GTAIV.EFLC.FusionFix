@@ -209,7 +209,9 @@ public:
                         "road_37_mh2", "road_37_mh5", "road_40_mh5", "road_49_mh5", "road_55_mh5", "road_56_mtf8", "road_59_mh7", "cppave09_mh8", "smordmanh03_mxr15",
                         "ts_roads04_dc9", "ts_roads27_dc9",
                         "newj4e_road07", "newj4e_road15", "nj01_08road", "nj01_24road", "nj01_31road", "nj02road_02", "nj03hiway08", "nj03hiway09",
-                        "nj03road05", "nj03road06", "nj03road12", "nj03road16", "nj03road32", "nj03road33", "nj03road51"
+                        "nj03road05", "nj03road06", "nj03road12", "nj03road16", "nj03road32", "nj03road33", "nj03road51",
+						"embankment1d_mh8", "embankment2d_mh8", "embankment4d_mh8",
+						"dr_mh2_07_terrain_mh2"
                     };
 
                     modelNames.insert(modelNames.end(), miscNames.begin(), miscNames.end());
@@ -218,7 +220,7 @@ public:
                 if (bExtraDynamicShadows >= 3)
                 {
                     std::vector<std::string> roadNames = {
-                        "road"
+                        "road", "terrain"
                     };
 
                     modelNames.insert(modelNames.end(), roadNames.begin(), roadNames.end());

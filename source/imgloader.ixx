@@ -1,5 +1,6 @@
 module;
 
+#define NOMINMAX
 #include <common.hxx>
 #include <filesystem>
 #include <vector>
@@ -9,6 +10,7 @@ module;
 #include <cstring>
 #include <algorithm>
 #include <unordered_set>
+#include <cwctype>
 #include <wincrypt.h>
 #pragma comment(lib, "crypt32.lib")
 
@@ -1367,32 +1369,27 @@ public:
 
                     if (std::filesystem::exists(updatePath, ec))
                     {
-                        constexpr auto perms = std::filesystem::directory_options::skip_permission_denied | std::filesystem::directory_options::follow_directory_symlink;
+                        // Collect all IMG files first
+                        std::vector<std::filesystem::path> imgFiles;
+
+                        constexpr auto perms = std::filesystem::directory_options::skip_permission_denied |
+                            std::filesystem::directory_options::follow_directory_symlink;
+
                         for (const auto& file : std::filesystem::recursive_directory_iterator(updatePath, perms, ec))
                         {
+                            if (ec) continue;
+
                             auto filePath = std::filesystem::path(file.path());
 
                             if (iequals(filePath.extension().native(), L".img"))
                             {
-                                auto contains_subfolder = [](const std::filesystem::path& path, const std::filesystem::path& base) -> bool {
-                                    for (auto& p : path)
-                                    {
-                                        if (p == *path.begin())
-                                            continue;
-
-                                        if (iequals(p.native(), base.native()))
-                                            return true;
-                                    }
-                                    return false;
-                                };
-
                                 if ((!bLoadIMG || !UAL::AddVirtualFileForOverloadW) && std::filesystem::is_directory(file, ec))
                                     continue;
 
                                 auto relativePath = lexicallyRelativeCaseIns(filePath, gamePath);
                                 auto imgPath = relativePath.string();
                                 std::replace(std::begin(imgPath), std::end(imgPath), '\\', '/');
-                                auto pos = imgPath.find(L'/');
+                                auto pos = imgPath.find('/');
 
                                 if (pos != imgPath.npos)
                                 {
@@ -1404,20 +1401,136 @@ public:
                                     if (CText::hasViceCityStrings() && imgPath == "GTAIV.EFLC.FusionFix/GTAIV.EFLC.FusionFix.img")
                                         continue;
 
-                                    imgPath = "update:/" + imgPath;
+                                    imgFiles.push_back(relativePath);
+                                }
+                            }
+                        }
 
-                                    if (std::any_of(std::begin(episodicPaths), std::end(episodicPaths), [&](auto& it) { return contains_subfolder(relativePath, it); }))
+                        static auto StrCmpLogicalW = [](const wchar_t* str1, const wchar_t* str2) -> int {
+                            if (!str1 || !str2) return str1 ? 1 : (str2 ? -1 : 0);
+
+                            while (*str1 || *str2)
+                            {
+                                // Handle numeric sequences
+                                if (std::iswdigit(*str1) && std::iswdigit(*str2))
+                                {
+                                    // Skip leading zeros
+                                    while (*str1 == L'0') str1++;
+                                    while (*str2 == L'0') str2++;
+
+                                    // Count digits
+                                    int len1 = 0, len2 = 0;
+                                    const wchar_t* p1 = str1;
+                                    const wchar_t* p2 = str2;
+
+                                    while (std::iswdigit(*p1))
                                     {
-                                        auto curEp = *_dwCurrentEpisode;
-                                        if (CText::hasViceCityStrings())
-                                            curEp = episodicPaths.size() - 1;
-
-                                        if (curEp < int32_t(episodicPaths.size()) && contains_subfolder(relativePath, episodicPaths[curEp]))
-                                            CImgManager__addImgFile(imgPath.data(), 1, -1);
+                                        p1++; len1++;
                                     }
-                                    else
+                                    while (std::iswdigit(*p2))
+                                    {
+                                        p2++; len2++;
+                                    }
+
+                                    // Compare by length first (longer number is greater)
+                                    if (len1 != len2) return len1 - len2;
+
+                                    // Same length, compare digit by digit
+                                    for (int i = 0; i < len1; i++)
+                                    {
+                                        if (str1[i] != str2[i]) return str1[i] - str2[i];
+                                    }
+
+                                    str1 += len1;
+                                    str2 += len2;
+                                }
+                                else
+                                {
+                                    // Regular character comparison (case-insensitive)
+                                    wchar_t c1 = std::towlower(*str1);
+                                    wchar_t c2 = std::towlower(*str2);
+
+                                    if (c1 != c2) return c1 - c2;
+
+                                    if (*str1) str1++;
+                                    if (*str2) str2++;
+                                }
+                            }
+
+                            return 0;
+                        };
+
+                        // Sort IMG files: group by root directory, then by depth within each group, then alphabetically
+                        std::sort(imgFiles.begin(), imgFiles.end(), [](const std::filesystem::path& a, const std::filesystem::path& b) {
+                            // Get the first directory after "update" for both paths
+                            std::filesystem::path rootDirA, rootDirB;
+
+                            auto itA = a.begin();
+                            auto itB = b.begin();
+
+                            // Skip "update" and get the first subdirectory
+                            if (itA != a.end()) ++itA; // Skip "update"
+                            if (itB != b.end()) ++itB; // Skip "update"
+
+                            if (itA != a.end()) rootDirA = *itA;
+                            if (itB != b.end()) rootDirB = *itB;
+
+                            // Compare root directories first (case-insensitive)
+                            std::wstring rootA = rootDirA.wstring();
+                            std::wstring rootB = rootDirB.wstring();
+                            std::transform(rootA.begin(), rootA.end(), rootA.begin(), ::towlower);
+                            std::transform(rootB.begin(), rootB.end(), rootB.begin(), ::towlower);
+
+                            int rootCompare = rootA.compare(rootB);
+                            if (rootCompare != 0)
+                                return rootCompare < 0;
+
+                            // If same root directory, then sort by depth
+                            size_t depthA = std::distance(a.begin(), a.end()) - 1; // -1 to exclude filename
+                            size_t depthB = std::distance(b.begin(), b.end()) - 1; // -1 to exclude filename
+
+                            if (depthA != depthB)
+                                return depthA < depthB;
+
+                            // If same root directory and same depth, use logical string comparison
+                            return StrCmpLogicalW(a.c_str(), b.c_str()) < 0;
+                        });
+
+                        // Load sorted IMG files
+                        auto contains_subfolder = [](const std::filesystem::path& path, const std::filesystem::path& base) -> bool {
+                            for (auto& p : path)
+                            {
+                                if (p == *path.begin())
+                                    continue;
+
+                                if (iequals(p.native(), base.native()))
+                                    return true;
+                            }
+                            return false;
+                        };
+
+                        for (const auto& relativePath : imgFiles)
+                        {
+                            auto imgPath = relativePath.string();
+                            std::replace(std::begin(imgPath), std::end(imgPath), '\\', '/');
+                            auto pos = imgPath.find('/');
+
+                            if (pos != imgPath.npos)
+                            {
+                                imgPath = imgPath.substr(pos + 1);
+                                imgPath = "update:/" + imgPath;
+
+                                if (std::any_of(std::begin(episodicPaths), std::end(episodicPaths), [&](auto& it) { return contains_subfolder(relativePath, it); }))
+                                {
+                                    auto curEp = *_dwCurrentEpisode;
+                                    if (CText::hasViceCityStrings())
+                                        curEp = episodicPaths.size() - 1;
+
+                                    if (curEp < int32_t(episodicPaths.size()) && contains_subfolder(relativePath, episodicPaths[curEp]))
                                         CImgManager__addImgFile(imgPath.data(), 1, -1);
                                 }
+                                else
+                                    CImgManager__addImgFile(imgPath.data(), 1, -1);
                             }
                         }
                     }

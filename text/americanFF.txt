@@ -40,8 +40,14 @@ Always Run
 [Cover Centering]
 Cover Centering
 
-[Centering Delay]
-Centering Delay
+[CenterDelayFoot]
+On Foot Camera Centering Delay
+
+[CenterDelayVeh]
+Vehicle Camera Centering Delay
+
+[CamTurnSpeedVeh]
+Vehicle Camera Turn Speed
 
 [Gamepad Icons]
 Gamepad Icons

@@ -7,12 +7,12 @@
 #define SMAA_CORNER_ROUNDING 25
 
 uniform float4 globalScreenSize : register(c44);
-sampler colorGammaTex : register(ps, s0); // HDRSampler
-sampler edgesTex : register(ps, s1);
-sampler areaTex : register(ps, s2);
-sampler searchTex : register(ps, s3);
-sampler blendTex : register(ps, s4);
-sampler colorTex : register(ps, s0); // Also HDRSampler, but SRGB
+sampler colorGammaTex           : register(s0);  // HDRSampler
+sampler edgesTex                : register(s1);  
+sampler areaTex                 : register(s2);  
+sampler searchTex               : register(s3);  
+sampler blendTex                : register(s4);  
+sampler colorTex                : register(s0);  // Also HDRSampler, but SRGB
 
 /**
  * Copyright (C) 2013 Jorge Jimenez (jorge@iryoku.com)

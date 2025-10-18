@@ -12,7 +12,11 @@ import natives;
 injector::hook_back<double(__fastcall*)(void* _this, void* edx, void* a2, void* a3)> hbsub_A18510;
 double __fastcall sub_A18510(void* _this, void* edx, void* a2, void* a3)
 {
-    return hbsub_A18510.fun(_this, edx, a2, a3) * (*CTimer::fTimeStep / (1.0f / 30.0f));
+    float f = 1.0f;
+    if (!Natives::IsUsingController())
+        f = 3.0f;
+
+    return hbsub_A18510.fun(_this, edx, a2, a3) * (*CTimer::fTimeStep / (1.0f / 30.0f)) * f;
 }
 
 int (__cdecl *game_rand)() = nullptr;
@@ -355,6 +359,15 @@ public:
             hbSLIDE_OBJECT.fun = NativeOverride::Register(Natives::NativeHashes::SLIDE_OBJECT, NATIVE_SLIDE_OBJECT, "E8 ? ? ? ? 0F B6 C8", 107);
             if (!hbSLIDE_OBJECT.fun)
                 hbSLIDE_OBJECT.fun = NativeOverride::Register(Natives::NativeHashes::SLIDE_OBJECT, NATIVE_SLIDE_OBJECT, "E8 ? ? ? ? 83 C4 ? C3", 30);
+
+            // CCamFollowVehicle
+            pattern = find_pattern("77 ? 0F 28 C2 F3 0F 5C 8F", "77 ? 0F 28 D3 F3 0F 10 8E");
+            if (!pattern.empty())
+                injector::MakeNOP(pattern.get_first(0), 2, true);
+
+            pattern = find_pattern("76 ? 0F 28 C8 EB ? F3 0F 10 4C 24", "76 ? 0F 28 CE EB ? 0F 28 CF 84 D2");
+            if (!pattern.empty())
+                injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
         };
     }
 } FramerateVigilante;

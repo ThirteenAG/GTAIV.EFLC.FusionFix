@@ -1,8 +1,8 @@
 ﻿[Skip Intro]
-Saltar intro
+Omitir introducción
 
 [Skip Menu]
-Saltar menú
+Omitir menú principal
 
 [Windowed]
 Ventana
@@ -40,8 +40,14 @@ Correr siempre
 [Cover Centering]
 Centrar cámara al cubrirse
 
-[Centering Delay]
-Demora al centrar cámara
+[CenterDelayFoot]
+Demora al centrar cámara a pie
+
+[CenterDelayVeh]
+Demora al centrar cámara en vehículo
+
+[CamTurnSpeedVeh]
+Velocidad de giro de la cámara en vehículo
 
 [Gamepad Icons]
 Iconos del mando
@@ -92,7 +98,7 @@ Farolas, faros y sombras nocturnas del vehículo
 Transparencia de árboles
 
 [UnclampLighting]
-Mayor alcance de la luz solar
+Alcance ampliado de la luz solar
 
 [Shadow Filter]
 Filtro de sombras
@@ -104,94 +110,94 @@ Sombras de faros
 Eventos estacionales
 
 [Tone Mapping]
-Mapeo tonal
+Mapeo de tonos
 
 [Volumetric Fog]
 Niebla volumétrica
 
 [Zoomed Movement]
-Permitir movimiento con zoom
+Permitir movimiento al acercar la mirilla
 
 [Distant Lights]
-Luces lejanas
+Luces a lo lejos
 
 [CenteredVehCam]
-Cámara de vehículo centrada
+Centrar la cámara del vehículo
 
 [CenteredFootCam]
-Cámara a pie centrada
+Centrar la cámara del personaje 
 
 [Camera Shake]
-Temblor de cámara
+Sacudida de la cámara
 
 [CutscAudioSync]
-Sincronización de audio en escenas
+Sincronizar audio durante las escenas cinemáticas
 
 [CutscAudioSync0]
-Sincronización de audio en escenas desactivada
+Sincronizar audio durante las escenas cinemáticas: Desactivada
 
 [CutscAudioSync1]
-Sincronización de audio en escenas activada
+Sincronizar audio durante las escenas cinemáticas: Activada
 
 [Turn Indicators]
 Indicadores de giro
 
 [WinterEvent0]
-Evento de invierno desactivado
+Evento de invierno: Desactivada
 
 [WinterEvent1]
-Evento de invierno activado
+Evento de invierno: Activada
 
 [HalloweenEvent0]
-Evento de Halloween desactivado
+Evento de Halloween: Desactivada
 
 [HalloweenEvent1]
-Evento de Halloween activado
+Evento de Halloween: Activada
 
 [TranspMapMenu]
-Menú del mapa transparente
+Transparencia del mapa del menú de pausa
 
 [Extra Streaming]
-Memoria de streaming adicional
+Memoria de «streaming» adicional
 
 [FF_SM]
-Presupuesto de streaming
+Recurso de memoria de «streaming»
 
 [Graphics API]
 API gráfica
 
 [FF_RESTART]
-Se debe reiniciar el juego para aplicar la configuración.
+Es necesario reiniciar GTA IV para aplicar el ajuste.
 
 [Extended Sniper]
 Controles extendidos del rifle de francotirador
 
 [Bullet Traces]
-Mostrar siempre las trazas de balas
+Mostrar siempre los rastros de balas
 
 [FF_WARN0]
 ~p~Archivos IMG:
 
 [FF_WARN1]
-; ~r~ATENCIÓN: Se ha sobrepasado el límite de 255 archivos IMG y causará problemas de carga ("streaming"). 
+; ~r~NOTA: Se ha superado el límite de 255 IMG, lo que provocará problemas de «streaming». 
 
 [FF_WARN2]
-~r~ATENCIÓN: "Sombras nocturnas adicionales" es una opción original de PC hecho por Rockstar. Muy defectuosa, no recomendada.
+~r~NOTA: «Sombras nocturnas adicionales» es una opción exclusiva para PC por Rockstar. No se recomienda su uso debido a que presenta numerosos errores.
 
 [FF_WARN3]
-~r~ATENCIÓN: Los valores de distancia visible superiores a 25 y los valores de detalle de distancia superiores a 31 pueden causar que los objetos se dibujen bruscamente ("pop-in").
+~r~NOTA: Si el valor del deslizador «Distancia de visión» es superior a 25 y el del deslizador «Detalle de distancia» es superior a 31, es posible que aparezcan objetos de forma repentina.
 
 [FF_WARN4]
-~r~ATENCIÓN: Los valores de distancia visible superiores a 25 pueden causar que los objetos se dibujen bruscamente ("pop-in").
+~r~NOTA: Si el valor del deslizador de «Distancia de visión» es superior a 25, pueden aparecer objetos de forma repentina.
 
 [FF_WARN5]
-~r~ATENCIÓN: Los valores de detalle de distancia superiores a 31 pueden causar que los objetos se dibujen bruscamente ("pop-in").
+~r~NOTA: Si el valor del deslizador de «Detalle de distancia» es superior a 31, pueden aparecer objetos de forma repentina.
 
 [FF_WARN6]
-~r~ATENCIÓN: CHSS se activa solamente con la calidad de las sombras puesta en "Muy alta".
+~r~NOTA: «CHSS» solo tiene efecto cuando la calidad de las sombras está establecida en «Muy alta».
 
 [FF_WARN7]
-~r~ATENCIÓN: Activa la sincronización de audio si tienes desincronización del audio en escenas, desactívala para animaciones fluidas. Se puede cambiar en una escena con ~PAD_UP~.
+~r~NOTA: Activa la sincronización de audio de las escenas cinemáticas si tienes desincronización de audio, y desactívala para que la animación sea más fluida. Se puede activar o desactivar en una escena cinemática con ~PAD_UP~.
 
 [DUMMY_l11]
 Dummy label.

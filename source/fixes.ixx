@@ -14,7 +14,7 @@ class Fixes
 {
 public:
     static inline int32_t nTimeToPassBeforeCenteringCameraOnFoot = 0;
-    static inline bool bWaitBeforeCenteringCameraOnFootUsingPad = false;
+    static inline int32_t nTimeToPassBeforeCenteringCameraInVehicle = 0;
 
     static inline bool* bIsPhoneShowing = nullptr;
     static inline injector::hook_back<int32_t(__cdecl*)()> hbsub_B2CE30;
@@ -151,6 +151,12 @@ public:
 
         // The key is not pressed and the timer has expired.
         return false; // Return false to allow the zoom to return to normal.
+    }
+
+    static inline injector::hook_back<decltype(&Natives::CompareString)> hbCOMPARE_STRING;
+    static bool __cdecl NATIVE_COMPARE_STRING(const char* a1, const char* a2)
+    {
+        return a1 && a2 && IsBadReadPtr(a1, 1) == 0 && IsBadReadPtr(a2, 1) == 0 && strcmp(a1, a2) == 0;
     }
 
     Fixes()
@@ -381,7 +387,7 @@ public:
                             Natives::GetMouseInput(&x, &y);
 
                         if (x || y)
-                            nTimeToPassBeforeCenteringCameraOnFoot = *CTimer::m_snTimeInMilliseconds + ((pad ? nTimeToWaitBeforeCenteringCameraOnFootPad->get() : nTimeToWaitBeforeCenteringCameraOnFootKB->get()) * 1000);
+                            nTimeToPassBeforeCenteringCameraOnFoot = *CTimer::m_snTimeInMilliseconds + ((pad ? nTimeToWaitBeforeCenteringCameraOnFootPad->get() : nTimeToWaitBeforeCenteringCameraOnFootKB->get()) * 500);
 
                         if (pad && !nTimeToWaitBeforeCenteringCameraOnFootPad->get())
                             nTimeToPassBeforeCenteringCameraOnFoot = 0;
@@ -391,7 +397,7 @@ public:
                         else
                             posX = 0.0f;
                     }
-                }; 
+                };
                 
                 if (reg != 0x48)
                     injector::MakeInline<OnFootCamCenteringHook>(pattern.get_first(0), pattern.get_first(6));
@@ -400,6 +406,83 @@ public:
                     injector::MakeInline<OnFootCamCenteringHook>(pattern.get_first(-2), pattern.get_first(6));
                     injector::WriteMemory<uint16_t>(pattern.get_first(3), 0xDB85, true);
                 }
+            }
+
+            {
+                auto pattern = find_pattern("F3 0F 11 44 24 ? 0F 84 ? ? ? ? 80 3D");
+                static auto reg = *pattern.get_first<uint8_t>(5);
+                static auto nTimeToWaitBeforeCenteringCameraOnFootKBInCar = FusionFixSettings.GetRef("PREF_KBCAMCENTERDELAYVEH");
+                static auto nTimeToWaitBeforeCenteringCameraOnFootPadInCar = FusionFixSettings.GetRef("PREF_PADCAMCENTERDELAYVEH");
+                static auto nCameraTurnSpeedKBInCar = FusionFixSettings.GetRef("PREF_KBCAMTURNSPEEDVEH");
+                static auto nCameraTurnSpeedPadInCar = FusionFixSettings.GetRef("PREF_PADCAMTURNSPEEDVEH");
+                struct InVehicleHorizontalCamCenteringHook
+                {
+                    void operator()(injector::reg_pack& regs)
+                    {
+                        bool pad = Natives::IsUsingController();
+                        float f = regs.xmm0.f32[0] / (regs.xmm1.f32[0] * (1.0f - (pad ? nCameraTurnSpeedPadInCar->get() : nCameraTurnSpeedKBInCar->get()) * 0.1f));
+                        float& posX = *(float*)(regs.esp + reg);
+                        int32_t x = 0;
+                        int32_t y = 0;
+
+                        if (pad)
+                        {
+                            Natives::GetPadState(0, 2, &x);
+                            Natives::GetPadState(0, 3, &y);
+                        }
+                        else
+                            Natives::GetMouseInput(&x, &y);
+
+                        if (x || y)
+                            nTimeToPassBeforeCenteringCameraInVehicle = *CTimer::m_snTimeInMilliseconds + ((pad ? nTimeToWaitBeforeCenteringCameraOnFootPadInCar->get() : nTimeToWaitBeforeCenteringCameraOnFootKBInCar->get()) * 500);
+
+                        if (pad && !nTimeToWaitBeforeCenteringCameraOnFootPadInCar->get())
+                            nTimeToPassBeforeCenteringCameraInVehicle = 0;
+
+                        if (nTimeToPassBeforeCenteringCameraInVehicle < *CTimer::m_snTimeInMilliseconds)
+                            posX = f;
+                        else
+                            posX = 0.0f;
+                    }
+                }; injector::MakeInline<InVehicleHorizontalCamCenteringHook>(pattern.get_first(-4), pattern.get_first(6));
+
+                pattern = find_pattern("F3 0F 11 8C 24 ? ? ? ? 0F 28 CA E8", "F3 0F 11 84 24 ? ? ? ? F3 0F 10 43 ? F3 0F 11 8C 24");
+                static auto reg2 = *pattern.get_first<uint8_t>(5);
+                struct InVehicleVerticalCamCenteringHook
+                {
+                    void operator()(injector::reg_pack& regs)
+                    {
+                        static float f = 0.0f;
+                        f = regs.xmm1.f32[0];
+
+                        if (reg2 == 0xBC)
+                            f = regs.xmm0.f32[0];
+
+                        float& posX = *(float*)(regs.esp + reg2);
+                        bool pad = Natives::IsUsingController();
+                        int32_t x = 0;
+                        int32_t y = 0;
+
+                        if (pad)
+                        {
+                            Natives::GetPadState(0, 2, &x);
+                            Natives::GetPadState(0, 3, &y);
+                        }
+                        else
+                            Natives::GetMouseInput(&x, &y);
+
+                        if (x || y)
+                            nTimeToPassBeforeCenteringCameraInVehicle = *CTimer::m_snTimeInMilliseconds + ((pad ? nTimeToWaitBeforeCenteringCameraOnFootPadInCar->get() : nTimeToWaitBeforeCenteringCameraOnFootKBInCar->get()) * 500);
+
+                        if (pad && !nTimeToWaitBeforeCenteringCameraOnFootPadInCar->get())
+                            nTimeToPassBeforeCenteringCameraInVehicle = 0;
+
+                        if (nTimeToPassBeforeCenteringCameraInVehicle < *CTimer::m_snTimeInMilliseconds)
+                            posX = f;
+                        else
+                            posX = 0.0f;
+                    }
+                }; injector::MakeInline<InVehicleVerticalCamCenteringHook>(pattern.get_first(0), pattern.get_first(9));
             }
 
             // Disable drive-by while using cellphone
@@ -788,6 +871,27 @@ public:
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(0), 6, true);
             }
+
+            // TLAD phone calls crashing (https://github.com/GTAmodding/GTAIV-Issues-List/issues/232)
+            {
+                hbCOMPARE_STRING.fun = NativeOverride::Register(Natives::NativeHashes::COMPARE_STRING, NATIVE_COMPARE_STRING, "E8 ? ? ? ? ? ? ? ? ? 83 C4 ? 89 ? 5E C3", 30);
+            }
+
+            // Water flicker mitigation
+            //{
+            //    auto pattern = find_pattern("A8 ? 0F 84 ? ? ? ? 8B C8");
+            //    static auto loc_927DE0 = resolve_next_displacement(pattern.get_first(0)).value();
+            //    injector::MakeNOP(pattern.get_first(2), 6);
+            //    static auto LightCounterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+            //    {
+            //        if ((regs.eax & 6) != 0 && Natives::IsInteriorScene())
+            //        {
+            //            return;
+            //        }
+            //
+            //        return_to(loc_927DE0);
+            //    });
+            //}
         };
     }
 } Fixes;

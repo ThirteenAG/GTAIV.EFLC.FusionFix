@@ -82,6 +82,226 @@ rage::grcTexturePC* __fastcall sub_41B920(rage::grcTextureReference* tex, void* 
     return shsub_41B920.unsafe_fastcall<rage::grcTexturePC*>(tex, edx);
 }
 
+SafetyHookInline shsub_A9F2D0{};
+void* __stdcall sub_A9F2D0(unsigned int hash, int a2, char a3)
+{
+    static std::vector<unsigned int> list = {
+        0x9EA7160A, // bullet impact smoke
+        0x107fae47, // bullet impact smoke
+        0xC0D41722, // footsteps
+        0xA73931FF, // tires1 
+        0xFF029DA7, // tires2
+        0xFF029DA7, // tires3
+        0x52901658, // tires4
+        0x0F94D257, // tires5
+    };
+
+    if (bEnableSnow)
+    {
+        if (std::any_of(std::begin(list), std::end(list), [hash](const auto& i) { return i == hash; }))
+            return nullptr;
+    }
+
+    return shsub_A9F2D0.unsafe_stdcall<void*>(hash, a2, a3);
+}
+
+namespace phMaterialGta
+{
+    enum FxGroup
+    {
+        _VOID,
+        CONCRETE,
+        STONE,
+        PAVING_SLABS,
+        BRICK_COBBLE,
+        GRAVEL,
+        MUD_SOFT,
+        DIRT_DRY,
+        SAND,
+        SNOW,
+        WOOD,
+        METAL,
+        CERAMICS,
+        MARBLE,
+        LAMINATE,
+        CARPET_FABRIC,
+        LINOLEUM,
+        RUBBER,
+        PLASTIC,
+        CARDBOARD,
+        PAPER,
+        MATTRESS_FOAM,
+        PILLOW_FEATHERS,
+        GRASS,
+        BUSHES,
+        TREE_BARK_DARK,
+        TREE_BARK_MEDIUM,
+        TREE_BARK_LIGHT,
+        FLOWERS,
+        LEAVES_PILE,
+        GLASS,
+        WINDSCREEN,
+        CAR_METAL,
+        CAR_PLASTIC,
+        WATER,
+        GENERIC,
+        PED_HEAD,
+        PED_TORSO,
+        PED_LIMB,
+        PED_FOOT,
+        TVSCREEN,
+        VIDEOWALL,
+        DEFAULT,
+    };
+
+    enum HeliFx
+    {
+        HELIFX_DEFAULT,
+        HELIFX_SAND,
+        HELIFX_DIRT,
+        HELIFX_WATER,
+    };
+
+    #pragma pack(push, 8)
+    struct phMaterial : rage::datBase
+    {
+        int field_4;
+        const char* m_pszName;
+    };
+
+    struct phMaterialGta : phMaterial
+    {
+        float m_fFriction;
+        float m_fElasticity;
+        float m_fDensity;
+        float m_fTyreGrip;
+        float m_fWetGrip;
+        int16_t m_wFxGroup;
+        int16_t m_wHeliFx;
+        float m_fFlammability;
+        float m_fBurnTime;
+        float m_fBurnStrenght;
+        int m_nRoughness;
+        float m_fPedDensity;
+        int m_dwFlags;                        ///< 1 = SeeThru, 2 = ShootThru, 4 = IsWet
+    };
+    #pragma pack(pop)
+
+    struct MaterialBackup
+    {
+        int16_t originalFxGroup;
+        int16_t originalHeliFx;
+    };
+
+    int nCurMaterialIndex = 0;
+    std::vector<std::pair<phMaterialGta*, MaterialBackup>> pMaterials;
+
+    SafetyHookInline shparse{};
+    void __fastcall parse(phMaterialGta* _this, void* edx, const char* a2, float fVersion)
+    {
+        shparse.unsafe_fastcall(_this, edx, a2, fVersion);
+        pMaterials.emplace_back(_this, MaterialBackup{ _this->m_wFxGroup, _this->m_wHeliFx });
+        nCurMaterialIndex++;
+    }
+
+    static void SetMaterialsDatParams()
+    {
+        std::vector<std::string> list = {
+            "concrete", "concrete_freeway", "painted_road", "plaster_board",
+            "rumble_strip", "tarmac", "brick_cobble", "paving_slabs",
+            "rooftile", "gravel", "railway_gravel", "dirt_dry", "twigs",
+            "mud_soft", "bushes", "flowers", "leaves_pile"
+        };
+
+        if (bEnableSnow)
+        {
+            // Apply snow settings
+            for (auto& it : pMaterials)
+            {
+                if (std::any_of(std::begin(list), std::end(list), [&it](const auto& str) { return str == it.first->m_pszName; }))
+                {
+                    it.first->m_wFxGroup = GRASS;
+                    it.first->m_wHeliFx = HELIFX_DIRT;
+                }
+            }
+        }
+        else
+        {
+            // Restore original material parameters
+            for (auto& it : pMaterials)
+            {
+                if (std::any_of(std::begin(list), std::end(list), [&it](const auto& str) { return str == it.first->m_pszName; }))
+                {
+                    it.first->m_wFxGroup = it.second.originalFxGroup;
+                    it.first->m_wHeliFx = it.second.originalHeliFx;
+                }
+            }
+        }
+    }
+}
+
+namespace ShockingEvents
+{
+    enum eShockingEvents
+    {
+        SexyCar,
+        RunningPed,
+        VisibleWeapon,
+        VisibleWeaponMELEE,
+        VisibleWeaponTHROWN,
+        VisibleWeaponHANDGUN,
+        VisibleWeaponSHOTGUN,
+        VisibleWeaponSMG,
+        VisibleWeaponSNIPER,
+        VisibleWeaponRIFLE,
+        VisibleWeaponHEAVY,
+        HornSounded,
+        PlaneFlyby,
+        SeenCarStolen,
+        HelicopterOverhead,
+        SeenMeleeAction,
+        SeenGangFight,
+        PedRunOver,
+        PanickedPed,
+        InjuredPed,
+        DeadBody,
+        DrivingOnPavement,
+        MadDriver,
+        CarCrash,
+        CarPileUp,
+        Fire,
+        GunshotFired,
+        PedShot,
+        GunFight,
+        Explosion,
+    };
+
+    constexpr auto ShockingEventIndexSize = 4;
+    constexpr auto ShockingEventDataFullSize = 52;
+    constexpr auto ShockingEventSize = ShockingEventDataFullSize - ShockingEventIndexSize;
+
+    void** pShockingEvents = nullptr;
+    static std::array<uint8_t, ShockingEventSize> originalDrivingOnPavement;
+    static std::array<uint8_t, ShockingEventSize> originalMadDriver;
+
+    static void SetShockingEventsParams()
+    {
+        if (bEnableSnow)
+        {
+            memcpy(originalDrivingOnPavement.data(), pShockingEvents + ((ShockingEventDataFullSize * DrivingOnPavement) / sizeof(void*)) + (ShockingEventIndexSize / sizeof(void*)), ShockingEventSize);
+            memcpy(originalMadDriver.data(), pShockingEvents + ((ShockingEventDataFullSize * MadDriver) / sizeof(void*)) + (ShockingEventIndexSize / sizeof(void*)), ShockingEventSize);
+
+            memset(pShockingEvents + ((ShockingEventDataFullSize * DrivingOnPavement) / sizeof(void*)) + (ShockingEventIndexSize / sizeof(void*)), 0, ShockingEventSize);
+            memset(pShockingEvents + ((ShockingEventDataFullSize * MadDriver) / sizeof(void*)) + (ShockingEventIndexSize / sizeof(void*)), 0, ShockingEventSize);
+        }
+        else
+        {
+            memcpy(pShockingEvents + ((ShockingEventDataFullSize * DrivingOnPavement) / sizeof(void*)) + (ShockingEventIndexSize / sizeof(void*)), originalDrivingOnPavement.data(), ShockingEventSize);
+            memcpy(pShockingEvents + ((ShockingEventDataFullSize * MadDriver) / sizeof(void*)) + (ShockingEventIndexSize / sizeof(void*)), originalMadDriver.data(), ShockingEventSize);
+        }
+    }
+}
+
 class Snow
 {
 private:
@@ -533,6 +753,8 @@ public:
         bEnableSnow = bValue;
         CTimeCycle::Initialise();
         SetRainRenderParams();
+        phMaterialGta::SetMaterialsDatParams();
+        ShockingEvents::SetShockingEventsParams();
     }
 
     Snow()
@@ -717,6 +939,23 @@ public:
                 // Snow on vehicles: replace textures
                 pattern = find_pattern("8B 49 18 85 C9 74 05 8B 01 FF 60 3C", "83 79 18 00 74 0A 8B 49 18 8B 01 8B 50 38", "55 8B EC 83 E4 F0 8B 01 8B 50 38 83 EC 10 FF D2 85 C0 74 0F 8B 10 8B 52 34");
                 shsub_41B920 = safetyhook::create_inline(pattern.get_first(), sub_41B920);
+
+                // Particles: can't change color, disabling
+                pattern = find_pattern("83 EC ? FF 35 ? ? ? ? FF 15", "83 EC ? E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? E8");
+                shsub_A9F2D0 = safetyhook::create_inline(pattern.get_first(), sub_A9F2D0);
+
+                pattern = find_pattern("81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 53 55 56 57 8B BC 24 ? ? ? ? 8D B4 24", "81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 55 56 8B B4 24 ? ? ? ? 8D 94 24 ? ? ? ? 57");
+                static auto readMaterialsDatHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                {
+                    phMaterialGta::nCurMaterialIndex = 0;
+                    phMaterialGta::pMaterials.clear();
+                });
+
+                pattern = find_pattern("81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 56 8B F1 8D 4C 24", "81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 56 F3 0F 10 84 24");
+                phMaterialGta::shparse = safetyhook::create_inline(pattern.get_first(), phMaterialGta::parse);
+
+                pattern = find_pattern("34 05 ? ? ? ? 56 8B C8 E8 ? ? ? ? 6A", "81 C1 ? ? ? ? E8 ? ? ? ? 6A ? 55");
+                ShockingEvents::pShockingEvents = *pattern.get_first<void**>(2);
                 
                 // LCS Snow test
                 //CRenderPhaseDrawScene::onBeforePostFX() += []()

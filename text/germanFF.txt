@@ -40,8 +40,14 @@ Immer rennen
 [Cover Centering]
 Deckungszentrierung
 
-[Centering Delay]
-Zentrierungsverzögerung
+[CenterDelayFoot]
+Zentrierungsverzögerung (zu Fuß)
+
+[CenterDelayVeh]
+Zentrierungsverzögerung (Fahrzeug)
+
+[CamTurnSpeedVeh]
+Kamera-Drehgeschwindigkeit (Fahrzeug)
 
 [Gamepad Icons]
 Controllersymbole
