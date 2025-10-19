@@ -338,6 +338,35 @@ public:
     }
 } Limits;
 
+std::vector<uint32_t> WeaponInfoHashes;
+SafetyHookInline shGetWeaponInfoIdByHash = {};
+int __cdecl getWeaponInfoIdByHash(int hash, int defaultId)
+{
+    constexpr int UNKNOWN_WEAPON_ID = 55;
+    constexpr int CUSTOM_WEAPON_START_ID = 58;
+    constexpr int WEAPON_NOT_FOUND = -1;
+
+    // Check if this is a vanilla weapon
+    int vanillaId = shGetWeaponInfoIdByHash.unsafe_ccall<int>(hash, WEAPON_NOT_FOUND);
+    if (vanillaId != WEAPON_NOT_FOUND)
+        return vanillaId;
+
+    // Don't register unknown weapons
+    if (defaultId == UNKNOWN_WEAPON_ID)
+        return UNKNOWN_WEAPON_ID;
+
+    // Check if this custom weapon was already registered
+    auto it = std::find(WeaponInfoHashes.begin(), WeaponInfoHashes.end(), hash);
+    if (it != WeaponInfoHashes.end())
+        return static_cast<int>(std::distance(WeaponInfoHashes.begin(), it)) + CUSTOM_WEAPON_START_ID;
+
+    // Register new custom weapon
+    int newWeaponId = static_cast<int>(WeaponInfoHashes.size()) + CUSTOM_WEAPON_START_ID;
+    WeaponInfoHashes.push_back(hash);
+
+    return newWeaponId;
+}
+
 class ExtendedLimits
 {
 public:
@@ -474,6 +503,10 @@ public:
                     auto WeaponInfo = LimitAdjuster(*pattern.get_first<uintptr_t>(2), 0x110, 60, 16).ReplaceXrefs(0, 0x24, 0x1A98, 0x1A9C, 0x1AB4, 0x1B30, 0x3430, 0x3540, 0x363C, 0x3870, 0x3980, 0x3DC0).ReplaceNumericRefs(ref1, ref2);
                     pattern = hook::pattern("7D 0C 69 C0");
                     injector::MakeNOP(pattern.get_first(), 2);
+
+                    pattern = find_pattern("C0 3B 0C 85 ? ? ? ? 74 0A 40", "C0 3B 0C 85 ? ? ? ? 74 0C");
+                    if (!pattern.empty())
+                        shGetWeaponInfoIdByHash = safetyhook::create_inline(pattern.get_first(-5), getWeaponInfoIdByHash);
                 }
                 }
 
