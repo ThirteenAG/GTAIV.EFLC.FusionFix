@@ -386,32 +386,71 @@ private:
 
         mNormalRtCopy = rage::grcTextureFactory::GetInstance()->CreateRenderTarget("_DEFERRED_GBUFFER_1_COPY", 3, width, height, 32, &desc);
 
-        HMODULE hm = NULL;
-        GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)&OnDeviceReset, &hm);
-        D3DXCreateTextureFromResource(rage::grcDevice::GetD3DDevice(), hm, MAKEINTRESOURCE(IDR_SNOWTX), &mSnowTexture);
+        auto* device = rage::grcDevice::GetD3DDevice();
+        if (!device)
+            return;
 
-        D3DVERTEXELEMENT9 vertexDeclElements[] =
+        // Load snow texture
         {
-            {0, 0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
-            {0, 12, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0},
-            D3DDECL_END()
-        };
+            HMODULE hm = NULL;
+            GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)&OnDeviceReset, &hm);
+            if (FAILED(D3DXCreateTextureFromResource(device, hm, MAKEINTRESOURCE(IDR_SNOWTX), &mSnowTexture)))
+                mSnowTexture = nullptr;
+        }
 
-        rage::grcDevice::GetD3DDevice()->CreateVertexDeclaration(vertexDeclElements, &mQuadVertexDecl);
+        // Create vertex declaration
+        if (!mQuadVertexDecl)
+        {
+            D3DVERTEXELEMENT9 vertexDeclElements[] =
+            {
+                {0, 0,  D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
+                {0, 12, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0},
+                D3DDECL_END()
+            };
 
-        rage::grcDevice::GetD3DDevice()->CreateVertexBuffer(6 * sizeof(VertexFormat), 0, 0, D3DPOOL_DEFAULT, &mQuadVertexBuffer, NULL);
+            if (FAILED(device->CreateVertexDeclaration(vertexDeclElements, &mQuadVertexDecl)))
+            {
+                mQuadVertexDecl = nullptr;
+                return;
+            }
+        }
 
-        VertexFormat* vertexData;
-        mQuadVertexBuffer->Lock(0, 0, (void**)&vertexData, 0);
+        // Create and fill the fullscreen-quad VB
+        if (!mQuadVertexBuffer)
+        {
+            HRESULT hr = device->CreateVertexBuffer(
+                6u * sizeof(VertexFormat),
+                D3DUSAGE_WRITEONLY,
+                0,
+                D3DPOOL_DEFAULT,
+                &mQuadVertexBuffer,
+                nullptr
+            );
 
-        vertexData[0] = { -1.0f, -1.0f, 0.0f, 0.0f, 1.0f };
-        vertexData[1] = { -1.0f, 1.0f, 0.0f, 0.0f, 0.0f };
-        vertexData[2] = { 1.0f, -1.0f, 0.0f, 1.0f, 1.0f };
-        vertexData[3] = { -1.0f, 1.0f, 0.0f, 0.0f, 0.0f };
-        vertexData[4] = { 1.0f, 1.0f, 0.0f, 1.0f, 0.0f };
-        vertexData[5] = { 1.0f, -1.0f, 0.0f, 1.0f, 1.0f };
+            if (FAILED(hr) || !mQuadVertexBuffer)
+            {
+                mQuadVertexBuffer = nullptr;
+                return;
+            }
 
-        mQuadVertexBuffer->Unlock();
+            VertexFormat* vertexData = nullptr;
+            hr = mQuadVertexBuffer->Lock(0, 0, reinterpret_cast<void**>(&vertexData), 0);
+            if (FAILED(hr) || !vertexData)
+            {
+                mQuadVertexBuffer->Release();
+                mQuadVertexBuffer = nullptr;
+                return;
+            }
+
+            vertexData[0] = { -1.0f, -1.0f, 0.0f, 0.0f, 1.0f };
+            vertexData[1] = { -1.0f,  1.0f, 0.0f, 0.0f, 0.0f };
+            vertexData[2] = { 1.0f, -1.0f, 0.0f, 1.0f, 1.0f };
+            vertexData[3] = { -1.0f,  1.0f, 0.0f, 0.0f, 0.0f };
+            vertexData[4] = { 1.0f,  1.0f, 0.0f, 1.0f, 0.0f };
+            vertexData[5] = { 1.0f, -1.0f, 0.0f, 1.0f, 1.0f };
+
+            mQuadVertexBuffer->Unlock();
+        }
     }
 
     static void Init()
@@ -457,10 +496,14 @@ private:
         if (!bEnableSnow)
             return;
 
-        auto HasSnow = [](CWeather::eWeatherType type) -> bool
+        // Skip if any required GPU resource is unavailable (e.g., during/after a device reset)
+        if (!mQuadVertexBuffer || !mQuadVertexDecl || !mBlitVS || !mBlitPS || !mSnowVS || !mSnowPS ||
+            !mDiffuseRT || !mNormalRT || !mSpecularAoRT || !mStencilRT || !mDepthRT || !mNormalRtCopy || !mSnowTexture)
         {
-            //if (type == CWeather::LIGHTNING)
-            //    return false;
+            return;
+        }
+
+        auto HasSnow = [](CWeather::eWeatherType /*type*/) -> bool {
             return true;
         };
 
@@ -492,7 +535,7 @@ private:
             pixelOffset.y = (1.0f / mNormalRT->mHeight);
             device->SetVertexShaderConstantF(5, &pixelOffset.x, 1);
 
-            //copy normal gbuffer
+            // copy normal gbuffer
             {
                 rage::grcTextureFactoryPC::GetInstance()->LockRenderTarget(0, mNormalRtCopy, nullptr);
                 device->SetVertexShader(mBlitVS);
@@ -509,7 +552,7 @@ private:
                 rage::grcTextureFactoryPC::GetInstance()->UnlockRenderTarget(0, &resolveFlags);
             }
 
-            //render snow
+            // render snow
             rage::grcTextureFactoryPC::GetInstance()->LockRenderTarget(0, mDiffuseRT, nullptr);
             rage::grcTextureFactoryPC::GetInstance()->LockRenderTarget(1, mNormalRT, nullptr);
             rage::grcTextureFactoryPC::GetInstance()->LockRenderTarget(2, mSpecularAoRT, nullptr);
