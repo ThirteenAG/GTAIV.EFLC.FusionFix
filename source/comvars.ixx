@@ -1625,6 +1625,8 @@ export namespace rage
 
     VALIDATE_SIZE(CLightSource, 0x80);
 
+    CLightSource(**ms_lightSources)[640];
+
     namespace scrEngine
     {
         uint32_t* ms_dwNativeTableSize;
@@ -2481,5 +2483,7 @@ public:
         pattern = find_pattern("E8 ? ? ? ? E9 ? ? ? ? 80 BC 3B", "E8 ? ? ? ? D9 45 ? F3 0F 10 05 ? ? ? ? F3 0F 2A 4D");
         rage::scrThread::shGetActiveThread = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first()).as_int(), rage::scrThread::GetActiveThreadHook);
 
+        pattern = find_pattern("8B 3D ? ? ? ? F3 0F 11 44 24 ? 89 44 24", "8B 35 ? ? ? ? F3 0F 11 44 24 ? F3 0F 10 83");
+        rage::ms_lightSources = *pattern.get_first<decltype(rage::ms_lightSources)>(2);
     }
 } Common;

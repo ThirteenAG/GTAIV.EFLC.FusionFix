@@ -877,21 +877,80 @@ public:
                 hbCOMPARE_STRING.fun = NativeOverride::Register(Natives::NativeHashes::COMPARE_STRING, NATIVE_COMPARE_STRING, "E8 ? ? ? ? ? ? ? ? ? 83 C4 ? 89 ? 5E C3", 30);
             }
 
+            // TLAD Marta Full of Grace's crash https://github.com/GTAmodding/GTAIV-Issues-List/issues/235
+            {
+                auto pattern = find_pattern("F6 80 ? ? ? ? ? 74 ? 8B 80 ? ? ? ? 56");
+                if (!pattern.empty())
+                {
+                    static auto loc_BA91F2 = resolve_next_displacement(pattern.get_first(0)).value();
+                    injector::MakeNOP(pattern.get_first(0), 9);
+                    static auto IS_CHAR_SITTING_IN_ANY_CAR_HOOK = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        if (!regs.eax || (*(uint8_t*)(regs.eax + 0x26C) & 4) == 0)
+                            return_to(loc_BA91F2);
+                    });
+                }
+            }
+
             // Water flicker mitigation
-            //{
-            //    auto pattern = find_pattern("A8 ? 0F 84 ? ? ? ? 8B C8");
-            //    static auto loc_927DE0 = resolve_next_displacement(pattern.get_first(0)).value();
-            //    injector::MakeNOP(pattern.get_first(2), 6);
-            //    static auto LightCounterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-            //    {
-            //        if ((regs.eax & 6) != 0 && Natives::IsInteriorScene())
-            //        {
-            //            return;
-            //        }
-            //
-            //        return_to(loc_927DE0);
-            //    });
-            //}
+            {
+                static auto AreAllLightsOutsideDistance = [](float selectedDistance) -> bool {
+
+                    if ((!rage::ms_lightSources && !*rage::ms_lightSources) || Natives::IsInteriorScene())
+                        return false;
+
+                    int currentCamera;
+                    Natives::GetRootCam(&currentCamera);
+                    CVector camPos;
+                    Natives::GetCamPos(currentCamera, &camPos.x, &camPos.y, &camPos.z);
+
+                    float selectedDistSqr = selectedDistance * selectedDistance;
+
+                    for (int i = 0; i < 640; ++i)
+                    {
+                        const rage::CLightSource& light = (**rage::ms_lightSources)[i];
+                        if (light.mType == rage::LT_POINT || light.mType == rage::LT_SPOT)
+                        {
+                            float dx = camPos.x - light.mPosition.x;
+                            float dy = camPos.y - light.mPosition.y;
+                            float dz = camPos.z - light.mPosition.z;
+                            float distSqr = dx * dx + dy * dy + dz * dz;
+                            if (distSqr <= selectedDistSqr)
+                            {
+                                if (Natives::CamIsSphereVisible(currentCamera, light.mPosition.x, light.mPosition.y, light.mPosition.z, 4.0f))
+                                {
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+                    return true;
+                };
+
+                auto pattern = find_pattern("A8 ? 0F 84 ? ? ? ? 8B C8");
+                static auto loc_927DE0 = resolve_next_displacement(pattern.get_first(0)).value();
+                injector::MakeNOP(pattern.get_first(2), 6);
+                static auto LightCounterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    static auto extraNightShadows = FusionFixSettings.GetRef("PREF_EXTRANIGHTSHADOWS");
+                    if (extraNightShadows->get())
+                    {
+                        if ((regs.eax & 6) != 0 && !AreAllLightsOutsideDistance(40.0f))
+                        {
+                            return; //flicker
+                        }
+                    }
+                    else
+                    {
+                        if ((regs.eax & 6) != 0 && Natives::IsInteriorScene())
+                        {
+                            return; //flicker
+                        }
+                    }
+            
+                    return_to(loc_927DE0);
+                });
+            }
         };
     }
 } Fixes;
