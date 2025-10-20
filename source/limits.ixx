@@ -462,13 +462,13 @@ public:
                     auto FlyingHandlingLines = LimitAdjuster(aFlyingHandlingLines, 0x40, ms_iFlyingLines, 5).IncreaseBy(increaseby).InsertNewArrayPointer(handling.data() + (0x110 * ms_iStandardLinesLimit) + (0x40 * ms_iBikeLinesLimit)).ReplaceXrefs(0);
                     auto BoatHandlingLines = LimitAdjuster(aBoatHandlingLines, 0x40, ms_iBoatLines, 5).IncreaseBy(increaseby).InsertNewArrayPointer(handling.data() + (0x110 * ms_iStandardLinesLimit) + (0x40 * ms_iBikeLinesLimit) + (0x60 * ms_iFlyingLinesLimit)).ReplaceXrefs(0);
 
-                    auto pattern = find_pattern("BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 81 C6 ? ? ? ? 4F 79 F0 5F 5E C3 CC CC CC CC CC CC CC CC CC CC CC CC CC 56 57 BE ? ? ? ? BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 83 C6 20", "BE 9F ? ? ? EB 03 8D 49 00 8B CA E8 ? ? ? ? 81 C2 ? ? ? ? 83 EE 01 79 EE 5E C3");
+                    auto pattern = find_pattern("BF 9F 00 00 00 8D 64 24 ? 8B CE E8 ? ? ? ? 81 C6 ? ? ? ? 4F 79 ? 5F 5E C3", "BE 9F ? ? ? EB 03 8D 49 00 8B CA E8 ? ? ? ? 81 C2 ? ? ? ? 83 EE 01 79 EE 5E C3");
                     injector::WriteMemory(pattern.get_first(1), ms_iStandardLinesLimit - 1, true);
                     pattern = find_pattern("BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 83 C6 40 4F 79 F3 5F 5E C3 56 57 BE ? ? ? ? BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 81 C6 ? ? ? ? 4F 79 F0 5F", "BA ? ? ? ? 8D 9B ? ? ? ? E8 ? ? ? ? 83 C1 40 83 EA 01 79 F3 C3");
                     injector::WriteMemory(pattern.get_first(1), ms_iBikeLinesLimit - 1, true);
                     pattern = find_pattern("BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 83 C6 60 4F 79 F3 5F 5E C3 56", "BA ? ? ? ? 8D 9B ? ? ? ? E8 ? ? ? ? 83 C1 60 83 EA 01 79 F3 C3");
                     injector::WriteMemory(pattern.get_first(1), ms_iFlyingLinesLimit - 1, true);
-                    pattern = find_pattern("BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 81 C6 ? ? ? ? 4F 79 F0 5F 5E C3 CC CC CC CC CC CC CC CC CC CC CC CC CC 56 57 BE ? ? ? ? BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 83 C6 60", "BA 27 ? ? ? 8D 9B ? ? ? ? E8 ? ? ? ? 81 C1 ? ? ? ? 83 EA 01 79 F0 C3");
+                    pattern = find_pattern("BF 27 00 00 00 8D 64 24 ? 8B CE E8 ? ? ? ? 81 C6 ? ? ? ? 4F 79 ? 5F 5E C3", "BA 27 ? ? ? 8D 9B ? ? ? ? E8 ? ? ? ? 81 C1 ? ? ? ? 83 EA 01 79 F0 C3");
                     injector::WriteMemory(pattern.get_first(1), ms_iBoatLinesLimit - 1, true);
 
                     pattern = find_pattern("7D 1B 8B C2", "7D 19 56 8B F2");        // bikeHandlingCount
