@@ -800,6 +800,48 @@ public:
         ShockingEvents::SetShockingEventsParams();
     }
 
+    static bool HasVolumes(CWeather::eWeatherType type)
+    {
+        switch (type)
+        {
+            case CWeather::SUNNY_WINDY: return true;
+            case CWeather::CLOUDY:      return true;
+            case CWeather::RAIN:        return true;
+            case CWeather::DRIZZLE:     return true;
+            case CWeather::FOGGY:       return true;
+            case CWeather::LIGHTNING:   return true;
+            default: return false;
+        }
+    }
+
+    static float LightVolumeIntensities(CWeather::eWeatherType type)
+    {
+        switch (type)
+        {
+            case CWeather::SUNNY_WINDY: return 1.1f;
+            case CWeather::CLOUDY:      return 1.15f;
+            case CWeather::RAIN:        return 1.25f;
+            case CWeather::DRIZZLE:     return 1.2f;
+            case CWeather::FOGGY:       return 1.4f;
+            case CWeather::LIGHTNING:   return 1.3f;
+            default: return 0.0f;
+        }
+    }
+
+    static float LightVolumeScales(CWeather::eWeatherType type)
+    {
+        switch (type)
+        {
+            case CWeather::SUNNY_WINDY: return 0.1f;
+            case CWeather::CLOUDY:      return 0.15f;
+            case CWeather::RAIN:        return 0.25f;
+            case CWeather::DRIZZLE:     return 0.2f;
+            case CWeather::FOGGY:       return 0.4f;
+            case CWeather::LIGHTNING:   return 0.3f;
+            default: return 0.0f;
+        }
+    }
+
     Snow()
     {
         FusionFix::onInitEventAsync() += []()
@@ -897,64 +939,50 @@ public:
                         mBeforeLightingCB->Append();
                 };
 
-                //struct hash_tuple
-                //{
-                //    size_t operator()(const std::tuple<int, int, int>& t) const
-                //    {
-                //        return get<0>(t) ^ get<1>(t) ^ get<2>(t);
-                //    }
-                //};
-
-                //static std::unordered_map<std::tuple<int, int, int>, float, hash_tuple> LightVolumeIntensity;
-
                 CRenderPhaseDeferredLighting_LightsToScreen::OnAfterCopyLight() += [](rage::CLightSource* light)
                 {
                     if (bEnableSnow)
                     {
-                        if (light->mType == rage::LT_SPOT && light->mRadius < 35.0f && !(light->mFlags & 8) /* Exclude lights previously volumetric */ && !(light->mFlags & 0x300) /* Exclude vehicle lights and traffic lights */)
+                        CWeather::eWeatherType CurrentWeather = CWeather::GetOldWeatherType();
+                        CWeather::eWeatherType NextWeather = CWeather::GetNewWeatherType();
+                        float InterpolationValue = CWeather::GetWeatherInterpolationValue();
+
+                        if (HasVolumes(CurrentWeather) || HasVolumes(NextWeather))
                         {
-                            light->mFlags |= 8;
-                            light->mVolumeSize  = 4.0f;
-                            light->mVolumeScale = 0.5f;
+                            // Only affect spotlights with a radius between 8 and 20 (Most lampposts in lamppost.img are within that range),
+                            // and exclude lights previously volumetric, vehicle lights, traffic lights and filler lights
+                            if (light->mType == rage::LT_SPOT && light->mRadius >= 8.0f && light->mRadius <= 20.0f && !(light->mFlags & (8 | 0x310)))
+                            {
+                                light->mFlags |= 8;
+
+                                // Transition from no volumes to volumes
+                                if (!HasVolumes(CurrentWeather) && HasVolumes(NextWeather))
+                                {
+                                    light->mVolumeIntensity = 4.0f * LightVolumeIntensities(NextWeather) * InterpolationValue;
+                                    light->mVolumeScale = LightVolumeScales(NextWeather) * InterpolationValue;
+                                }
+                                // Transition between volumes
+                                else if (HasVolumes(CurrentWeather) && HasVolumes(NextWeather))
+                                {
+                                    float CurrentVolumeIntensity = LightVolumeIntensities(CurrentWeather);
+                                    float NextVolumeIntensity = LightVolumeIntensities(NextWeather);
+
+                                    float CurrentVolumeScale = LightVolumeScales(CurrentWeather);
+                                    float NextVolumeScale = LightVolumeScales(NextWeather);
+
+                                    light->mVolumeIntensity = 4.0f * (CurrentVolumeIntensity + (NextVolumeIntensity - CurrentVolumeIntensity) * InterpolationValue);
+                                    light->mVolumeScale = CurrentVolumeScale + (NextVolumeScale - CurrentVolumeScale) * InterpolationValue;
+                                }
+                                // Transition from volumes to no volumes
+                                else if (HasVolumes(CurrentWeather) && !HasVolumes(NextWeather))
+                                {
+                                    light->mVolumeIntensity = 4.0f * LightVolumeIntensities(CurrentWeather) * (1.0f - InterpolationValue);
+                                    light->mVolumeScale = LightVolumeScales(CurrentWeather) * (1.0f - InterpolationValue);
+                                }
+                            }
                         }
                     }
                 };
-
-                // Causes volumes to flicker and is not really needed
-                //auto pattern = hook::pattern("C7 84 24 ? ? ? ? ? ? ? ? FF 74 06 44");
-                //if (!pattern.empty())
-                //{
-                //    struct LightsHook
-                //    {
-                //        void operator()(injector::reg_pack& regs)
-                //        {
-                //            if (bEnableSnow)
-                //            {
-                //                auto light = (rage::CLightSource*)(regs.esi + regs.eax);
-                //               *(float*)(regs.esp + 0xEC) = LightVolumeIntensity[std::make_tuple(static_cast<int>(light->mPosition.x), static_cast<int>(light->mPosition.y), static_cast<int>(light->mPosition.z))];
-                //            }
-                //            else
-                //                *(float*)(regs.esp + 0xEC) = 1.0f;
-                //        }
-                //    }; injector::MakeInline<LightsHook>(pattern.get_first(0), pattern.get_first(11));
-                //}
-                //else
-                //{
-                //    pattern = hook::pattern("F3 0F 11 44 24 ? 8B 54 06 44");
-                //    struct LightsHook
-                //    {
-                //        void operator()(injector::reg_pack& regs)
-                //        {
-                //            if (bEnableSnow)
-                //            {
-                //                auto light = (rage::CLightSource*)(regs.esi + regs.eax * 1);
-                //                *(float*)(regs.esp + 0x68) = LightVolumeIntensity[std::make_tuple(static_cast<int>(light->mPosition.x), static_cast<int>(light->mPosition.y), static_cast<int>(light->mPosition.z))];
-                //            }
-                //            else
-                //                *(float*)(regs.esp + 0x68) = 1.0f;
-                //        }
-                //    }; injector::MakeInline<LightsHook>(pattern.get_first(0), pattern.get_first(6));
-                //}
 
                 auto pattern = find_pattern("B9 ? ? ? ? E8 ? ? ? ? 8B 4D 0C 51 F3 0F 10 41 ? 8D 41 20", "B9 ? ? ? ? D9 44 24 1C D9 5C 24 04");
                 byte_1723BB0 = *pattern.get_first<uint8_t*>(1);
@@ -1053,9 +1081,14 @@ extern "C"
         return bEnableSnow;
     }
 
+    bool __declspec(dllexport) IsHallEnabled()
+    {
+        return bEnableHall;
+    }
+
     bool __declspec(dllexport) IsWeatherSnow()
     {
-        return true; //CWeather::OldWeatherType && *CWeather::OldWeatherType != CWeather::LIGHTNING;
+        return true;
     }
 
     void __declspec(dllexport) ToggleSnow()
