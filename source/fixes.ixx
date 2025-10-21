@@ -159,6 +159,64 @@ public:
         return a1 && a2 && IsBadReadPtr(a1, 1) == 0 && IsBadReadPtr(a2, 1) == 0 && strcmp(a1, a2) == 0;
     }
 
+    static inline char(__cdecl* GET_NTH_CLOSEST_WATER_NODE_WITH_HEADING)(float x, float y, float z, int flag0, int flag1, Vector4* node, float* heading) = nullptr;
+
+    static inline bool bAnyVisibleNearbyLightOnScreen = false;
+    static inline injector::hook_back<int32_t(__fastcall*)(rage::grcViewport*, void*, float, float, float, float, float*)> hbIsSphereVisible;
+    static int32_t __fastcall AddLightIsSphereVisible(rage::grcViewport* pViewport, void* edx, float X, float Y, float Z, float radius, float* a6)
+    {
+        auto ret = hbIsSphereVisible.fun(pViewport, edx, X, Y, Z, radius, a6);
+
+        if (!bAnyVisibleNearbyLightOnScreen)
+        {
+            constexpr float selectedDistance = 3.5f;
+            constexpr float selectedDistSqr = selectedDistance * selectedDistance;
+            float dx = pViewport->mCameraMatrix[3][0] - X;
+            float dy = pViewport->mCameraMatrix[3][1] - Y;
+            float dz = pViewport->mCameraMatrix[3][2] - Z;
+            float distSqr = dx * dx + dy * dy + dz * dz;
+
+            if (ret && distSqr <= selectedDistSqr)
+            {
+                bAnyVisibleNearbyLightOnScreen = true;
+            }
+        }
+
+        return ret;
+    }
+
+    static inline bool bAnyVisibleNearbyWaterOnScreen = false;
+    static inline int32_t WaterQuadsCount = 0;
+    static int32_t __fastcall DrawWaterIsSphereVisible(rage::grcViewport* pViewport, void* edx, float X, float Y, float Z, float radius, float* a6)
+    {
+        auto ret = hbIsSphereVisible.fun(pViewport, edx, X, Y, Z, radius, a6);
+
+        if (ret)
+        {
+            constexpr float selectedDistance = 1100.0f;
+            constexpr float selectedDistSqr = selectedDistance * selectedDistance;
+
+            Vector4 out = {};
+            float heading = 0.0f;
+            float camX = pViewport->mCameraMatrix[3][0];
+            float camY = pViewport->mCameraMatrix[3][1];
+            float camZ = pViewport->mCameraMatrix[3][2];
+            if (GET_NTH_CLOSEST_WATER_NODE_WITH_HEADING(camX, camY, camZ, 1, 0, &out, &heading))
+            {
+                float dx = camX - out.fX;
+                float dy = camY - out.fY;
+                float distSqr = dx * dx + dy * dy;
+
+                if (WaterQuadsCount >= 90 && distSqr <= selectedDistSqr)
+                    bAnyVisibleNearbyWaterOnScreen = true;
+            }
+            else if (WaterQuadsCount >= 90)
+                bAnyVisibleNearbyWaterOnScreen = true;
+        }
+
+        return ret;
+    }
+
     Fixes()
     {
         FusionFix::onInitEventAsync() += []()
@@ -894,40 +952,41 @@ public:
 
             // Water flicker mitigation
             {
-                static auto AreAllLightsOutsideDistance = [](float selectedDistance) -> bool {
+                auto pattern = find_pattern("83 EC ? F3 0F 10 4D ? F3 0F 10 05 ? ? ? ? 0F 2F C1 F3 0F 10 55 ? F3 0F 10 5D ? F3 0F 11 54 24 ? F3 0F 11 5C 24 ? F3 0F 11 4C 24 ? 72 ? 6A ? 83 EC ? F3 0F 11 5C 24 ? F3 0F 11 14 24 E8 ? ? ? ? D9 5C 24 ? 83 C4 ? 8B 45", "83 EC ? F3 0F 10 45 ? F3 0F 10 0D ? ? ? ? F3 0F 11 44 24 ? F3 0F 10 45 ? F3 0F 11 44 24 ? F3 0F 10 45 ? 0F 2F C8 F3 0F 11 44 24 ? 72 ? D9 45 ? 6A ? 83 EC ? D9 5C 24 ? D9 45 ? D9 1C 24 E8 ? ? ? ? D9 5C 24 ? 83 C4 ? D9 EE");
+                GET_NTH_CLOSEST_WATER_NODE_WITH_HEADING = (decltype(GET_NTH_CLOSEST_WATER_NODE_WITH_HEADING))pattern.get_first(-6);
 
-                    if ((!rage::ms_lightSources && !*rage::ms_lightSources) || Natives::IsInteriorScene())
-                        return false;
+                pattern = find_pattern("E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 80 7D ? ? C6 44 24 ? ? 74 ? FF 77", "E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 80 7D ? ? C6 44 24 ? ? 74 ? 8B 4E");
+                hbIsSphereVisible.fun = injector::MakeCALL(pattern.get_first(0), AddLightIsSphereVisible, true).get();
 
-                    int currentCamera;
-                    Natives::GetRootCam(&currentCamera);
-                    CVector camPos;
-                    Natives::GetCamPos(currentCamera, &camPos.x, &camPos.y, &camPos.z);
+                pattern = find_pattern("E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 8B 4C 24 ? 3B F9", "E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 3B F7");
+                hbIsSphereVisible.fun = injector::MakeCALL(pattern.get_first(0), DrawWaterIsSphereVisible, true).get();
 
-                    float selectedDistSqr = selectedDistance * selectedDistance;
+                pattern = find_pattern("E8 ? ? ? ? 8B D0 8B B4 BA", "8B B4 00 ? ? ? ? 03 C0 8B 80 ? ? ? ? 03 C6 3B F0 0F 83 ? ? ? ? 8D 64 24");
+                static auto RenderWaterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    bAnyVisibleNearbyWaterOnScreen = false;
+                    WaterQuadsCount = 0;
+                });
 
-                    for (int i = 0; i < 640; ++i)
-                    {
-                        const rage::CLightSource& light = (**rage::ms_lightSources)[i];
-                        if (light.mType == rage::LT_POINT || light.mType == rage::LT_SPOT)
-                        {
-                            float dx = camPos.x - light.mPosition.x;
-                            float dy = camPos.y - light.mPosition.y;
-                            float dz = camPos.z - light.mPosition.z;
-                            float distSqr = dx * dx + dy * dy + dz * dz;
-                            if (distSqr <= selectedDistSqr)
-                            {
-                                if (Natives::CamIsSphereVisible(currentCamera, light.mPosition.x, light.mPosition.y, light.mPosition.z, 4.0f))
-                                {
-                                    return false;
-                                }
-                            }
-                        }
-                    }
-                    return true;
-                };
+                pattern = find_pattern("0F B7 0C 72 C1 E1 ? 0F BF 81", "0F B7 04 55 ? ? ? ? C1 E0 ? 0F BF 88");
+                static auto RenderWaterCounterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    WaterQuadsCount++;
+                });
 
-                auto pattern = find_pattern("A8 ? 0F 84 ? ? ? ? 8B C8");
+                //pattern = find_pattern("F3 0F 11 44 24 ? FF 74 24 ? F3 0F 11 44 24", "F3 0F 11 44 24 ? 8B 54 24 ? 52 F3 0F 11 44 24");
+                //static auto RenderWaterCounterHook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                //{
+                //    WaterQuadsCount++;
+                //});
+
+                pattern = find_pattern("8B 35 ? ? ? ? F3 0F 11 44 24 ? F3 0F 10 80", "8B 1D ? ? ? ? F3 0F 10 83");
+                static auto RenderLightsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    bAnyVisibleNearbyLightOnScreen = false;
+                });
+
+                pattern = find_pattern("A8 ? 0F 84 ? ? ? ? 8B C8");
                 static auto loc_927DE0 = resolve_next_displacement(pattern.get_first(0)).value();
                 injector::MakeNOP(pattern.get_first(2), 6);
                 static auto LightCounterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
@@ -935,9 +994,21 @@ public:
                     static auto extraNightShadows = FusionFixSettings.GetRef("PREF_EXTRANIGHTSHADOWS");
                     if (extraNightShadows->get())
                     {
-                        if ((regs.eax & 6) != 0 && !AreAllLightsOutsideDistance(40.0f))
+                        if ((regs.eax & 6) != 0)
                         {
-                            return; //flicker
+                            if (Natives::IsInteriorScene())
+                            {
+                                return; //flicker - always in interiors
+                            }
+
+                            if (!bAnyVisibleNearbyWaterOnScreen)
+                            {
+                                return; //flicker - no water on screen
+                            }
+                            else if (bAnyVisibleNearbyLightOnScreen)
+                            {
+                                return; //flicker - water and lights
+                            }
                         }
                     }
                     else
@@ -947,7 +1018,7 @@ public:
                             return; //flicker
                         }
                     }
-            
+
                     return_to(loc_927DE0);
                 });
             }
