@@ -1589,10 +1589,10 @@ export namespace rage
 
     enum eLightType
     {
-        LT_POINT = 0x0,
-        LT_DIR = 0x1,
-        LT_SPOT = 0x2,
-        LT_AO = 0x3,
+        LT_POINT   = 0x0,
+        LT_DIR     = 0x1,
+        LT_SPOT    = 0x2,
+        LT_AMBOCC  = 0x3,
         LT_CLAMPED = 0x4,
     };
 
@@ -1600,27 +1600,28 @@ export namespace rage
     {
     public:
         Vector3 mDirection;
-        int32_t field_C;
+        float field_C;
         Vector3 mTangent;
-        int32_t field_1C;
+        float field_1C;
         Vector3 mPosition;
-        int32_t field_2C;
+        float field_2C;
         Vector4 mColor;
         float mIntensity;
         eLightType mType;
-        int32_t mFlags;
-        int32_t mTxdId;
-        int32_t field_50;
+        uint32_t mFlags;
+        int32_t mCoronaTexHash;
+        int32_t mProjTexHash;
         float mRadius;
         float mInnerConeAngle;
         float mOuterConeAngle;
-        int32_t field_60;
-        int32_t field_64;
-        int32_t field_68;
-        int32_t field_6C;
-        float mVolumeSize;
+        int32_t mCastShadows;
+        int32_t mShadowCacheIndex;
+        int32_t mInteriorIndex;
+        int32_t mRoomIndex;
+        float mVolumeIntensity;
         float mVolumeScale;
-        uint8_t gap78[8];
+        int8_t field_78[7];
+        char field_7F;
     };
 
     VALIDATE_SIZE(CLightSource, 0x80);
@@ -1994,6 +1995,21 @@ export namespace CWeather
     eWeatherType* OldWeatherType = nullptr;
     eWeatherType* NewWeatherType = nullptr;
     float* InterpolationValue = nullptr;
+
+    eWeatherType GetOldWeatherType()
+    {
+        return *OldWeatherType;
+    }
+
+    eWeatherType GetNewWeatherType()
+    {
+        return *NewWeatherType;
+    }
+
+    float GetWeatherInterpolationValue()
+    {
+        return *InterpolationValue;
+    }
 }
 
 export namespace CClock
