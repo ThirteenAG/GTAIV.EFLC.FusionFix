@@ -157,12 +157,47 @@ public:
                     {
                         auto Hair = Natives::GetCharDrawableVariation(PlayerPed, PED_COMPONENT_HAIR);
 
-                        if (!Hair)
+                        if (Hair == 0)
                         {
                             Natives::SetCharComponentVariation(PlayerPed, PED_COMPONENT_HAIR, 1, 0);
                             Natives::PrintHelp((char*)"CHEAT1");
                         }
-                        else
+                        if (Hair == 1)
+                        {
+                            Natives::SetCharComponentVariation(PlayerPed, PED_COMPONENT_HAIR, 0, 0);
+                            Natives::PrintHelp((char*)"CHEAT2");
+                        }
+                        if (Hair == 2)
+                        {
+                            Natives::SetCharComponentVariation(PlayerPed, PED_COMPONENT_HAIR, 1, 0);
+                            Natives::PrintHelp((char*)"CHEAT1");
+                        }
+                    }
+                }
+            });
+
+            //Another Unused IV Hair
+            NativeOverride::RegisterPhoneCheat("5285550100", []
+            {
+                if (*_dwCurrentEpisode == 0)
+                {
+                    Ped PlayerPed = 0;
+                    Natives::GetPlayerChar(Natives::ConvertIntToPlayerIndex(Natives::GetPlayerId()), &PlayerPed);
+                    if (PlayerPed)
+                    {
+                        auto Hair = Natives::GetCharDrawableVariation(PlayerPed, PED_COMPONENT_HAIR);
+
+                        if (Hair == 0)
+                        {
+                            Natives::SetCharComponentVariation(PlayerPed, PED_COMPONENT_HAIR, 2, 0);
+                            Natives::PrintHelp((char*)"CHEAT1");
+                        }
+                        if (Hair == 1)
+                        {
+                            Natives::SetCharComponentVariation(PlayerPed, PED_COMPONENT_HAIR, 2, 0);
+                            Natives::PrintHelp((char*)"CHEAT1");
+                        }
+                        if (Hair == 2)
                         {
                             Natives::SetCharComponentVariation(PlayerPed, PED_COMPONENT_HAIR, 0, 0);
                             Natives::PrintHelp((char*)"CHEAT2");
