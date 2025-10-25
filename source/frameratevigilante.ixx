@@ -205,11 +205,11 @@ void __cdecl NATIVE_SET_CAM_FOV(int cam, float targetFOV)
     return hbSET_CAM_FOV.fun(cam, new_fov);
 }
 
-injector::hook_back<decltype(&Natives::SlideObject)> hbSLIDE_OBJECT;
-bool __cdecl NATIVE_SLIDE_OBJECT(Object object, float toX, float toY, float toZ, float speedX, float speedY, float speedZ, char collision)
+SafetyHookInline shNATIVE_SLIDE_OBJECT{};
+bool __cdecl NATIVE_SLIDE_OBJECT(int object, float x, float y, float z, float dx, float dy, float dz, bool flag)
 {
     float delta = *CTimer::fTimeStep * 30.0f;
-    return hbSLIDE_OBJECT.fun(object, toX, toY, toZ, speedX * delta, speedY * delta, speedZ * delta, collision);
+    return shNATIVE_SLIDE_OBJECT.unsafe_ccall<bool>(object, x, y, z, dx * delta, dy * delta, dz * delta, flag);
 }
 
 class FramerateVigilante
@@ -356,9 +356,12 @@ public:
 
             // Natives
             hbSET_CAM_FOV.fun = NativeOverride::Register(Natives::NativeHashes::SET_CAM_FOV, NATIVE_SET_CAM_FOV, "E8 ? ? ? ? 83 C4 08 C3", 30);
-            hbSLIDE_OBJECT.fun = NativeOverride::Register(Natives::NativeHashes::SLIDE_OBJECT, NATIVE_SLIDE_OBJECT, "E8 ? ? ? ? 0F B6 C8", 107);
-            if (!hbSLIDE_OBJECT.fun)
-                hbSLIDE_OBJECT.fun = NativeOverride::Register(Natives::NativeHashes::SLIDE_OBJECT, NATIVE_SLIDE_OBJECT, "E8 ? ? ? ? 83 C4 ? C3", 30);
+
+            pattern = find_pattern("55 8B EC 83 E4 ? 8B 0D ? ? ? ? 81 EC ? ? ? ? 56 FF 75", "55 8B EC 83 E4 F0 8B 45 08 8B 0D ? ? ? ? 81 EC ? ? ? ? 56 50");
+            if (!pattern.empty())
+            {
+                shNATIVE_SLIDE_OBJECT = safetyhook::create_inline(pattern.get_first(0), NATIVE_SLIDE_OBJECT);
+            }
 
             // CCamFollowVehicle
             pattern = find_pattern("77 ? 0F 28 C2 F3 0F 5C 8F", "77 ? 0F 28 D3 F3 0F 10 8E");

@@ -935,7 +935,7 @@ public:
                 hbCOMPARE_STRING.fun = NativeOverride::Register(Natives::NativeHashes::COMPARE_STRING, NATIVE_COMPARE_STRING, "E8 ? ? ? ? ? ? ? ? ? 83 C4 ? 89 ? 5E C3", 30);
             }
 
-            // TLAD Marta Full of Grace's crash https://github.com/GTAmodding/GTAIV-Issues-List/issues/235
+            // TLAD Marta Full of Grace's crash (https://github.com/GTAmodding/GTAIV-Issues-List/issues/235)
             {
                 auto pattern = find_pattern("F6 80 ? ? ? ? ? 74 ? 8B 80 ? ? ? ? 56");
                 if (!pattern.empty())
@@ -961,14 +961,14 @@ public:
                 pattern = find_pattern("E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 8B 4C 24 ? 3B F9", "E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 3B F7");
                 hbIsSphereVisible.fun = injector::MakeCALL(pattern.get_first(0), DrawWaterIsSphereVisible, true).get();
 
-                pattern = find_pattern("E8 ? ? ? ? 8B D0 8B B4 BA", "8B B4 00 ? ? ? ? 03 C0 8B 80 ? ? ? ? 03 C6 3B F0 0F 83 ? ? ? ? 8D 64 24");
+                pattern = find_pattern("E8 ? ? ? ? 8B D0 8B B4 BA", "E8 ? ? ? ? 8B BC B0 ? ? ? ? 8B 94 B0");
                 static auto RenderWaterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                 {
                     bAnyVisibleNearbyWaterOnScreen = false;
                     WaterQuadsCount = 0;
                 });
 
-                pattern = find_pattern("0F B7 0C 72 C1 E1 ? 0F BF 81", "0F B7 04 55 ? ? ? ? C1 E0 ? 0F BF 88");
+                pattern = find_pattern("0F B7 0C 72 C1 E1 ? 0F BF 81", "0F B7 04 78 C1 E0 04 0F BF 88 ? ? ? ? 8B 14 CD ? ? ? ? 0F BF 88 ? ? ? ? 03 C9");
                 static auto RenderWaterCounterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                 {
                     WaterQuadsCount++;
@@ -986,28 +986,28 @@ public:
                     bAnyVisibleNearbyLightOnScreen = false;
                 });
 
-                pattern = find_pattern("A8 ? 0F 84 ? ? ? ? 8B C8");
+                pattern = hook::pattern("A8 ? 0F 84 ? ? ? ? 8B C8");
                 static auto loc_927DE0 = resolve_next_displacement(pattern.get_first(0)).value();
                 injector::MakeNOP(pattern.get_first(2), 6);
                 static auto LightCounterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                 {
-                    static auto extraNightShadows = FusionFixSettings.GetRef("PREF_EXTRANIGHTSHADOWS");
-                    if (extraNightShadows->get())
+                    static auto ExtraNightShadows = FusionFixSettings.GetRef("PREF_EXTRANIGHTSHADOWS");
+                    if (ExtraNightShadows->get())
                     {
                         if ((regs.eax & 6) != 0)
                         {
                             if (Natives::IsInteriorScene())
                             {
-                                return; //flicker - always in interiors
+                                return; // Flicker - Always in interiors
                             }
 
                             if (!bAnyVisibleNearbyWaterOnScreen)
                             {
-                                return; //flicker - no water on screen
+                                return; // Flicker - No water on screen
                             }
                             else if (bAnyVisibleNearbyLightOnScreen)
                             {
-                                return; //flicker - water and lights
+                                return; // Flicker - Water and lights
                             }
                         }
                     }
@@ -1015,7 +1015,7 @@ public:
                     {
                         if ((regs.eax & 6) != 0 && Natives::IsInteriorScene())
                         {
-                            return; //flicker
+                            return; // Flicker
                         }
                     }
 
