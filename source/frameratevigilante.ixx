@@ -206,10 +206,10 @@ void __cdecl NATIVE_SET_CAM_FOV(int cam, float targetFOV)
 }
 
 SafetyHookInline shNATIVE_SLIDE_OBJECT{};
-bool __cdecl NATIVE_SLIDE_OBJECT(int object, float x, float y, float z, float dx, float dy, float dz, bool flag)
+bool __cdecl NATIVE_SLIDE_OBJECT(Object object, float x, float y, float z, float xs, float ys, float zs, bool flag)
 {
     float delta = *CTimer::fTimeStep * 30.0f;
-    return shNATIVE_SLIDE_OBJECT.unsafe_ccall<bool>(object, x, y, z, dx * delta, dy * delta, dz * delta, flag);
+    return shNATIVE_SLIDE_OBJECT.unsafe_ccall<bool>(object, x, y, z, xs * delta, ys * delta, zs * delta, flag);
 }
 
 class FramerateVigilante
