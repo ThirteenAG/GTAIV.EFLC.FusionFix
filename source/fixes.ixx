@@ -950,43 +950,43 @@ public:
                 }
             }
 
-            // Water flicker mitigation
+            // Water flicker mitigation experiment
             {
-                auto pattern = find_pattern("83 EC ? F3 0F 10 4D ? F3 0F 10 05 ? ? ? ? 0F 2F C1 F3 0F 10 55 ? F3 0F 10 5D ? F3 0F 11 54 24 ? F3 0F 11 5C 24 ? F3 0F 11 4C 24 ? 72 ? 6A ? 83 EC ? F3 0F 11 5C 24 ? F3 0F 11 14 24 E8 ? ? ? ? D9 5C 24 ? 83 C4 ? 8B 45", "83 EC ? F3 0F 10 45 ? F3 0F 10 0D ? ? ? ? F3 0F 11 44 24 ? F3 0F 10 45 ? F3 0F 11 44 24 ? F3 0F 10 45 ? 0F 2F C8 F3 0F 11 44 24 ? 72 ? D9 45 ? 6A ? 83 EC ? D9 5C 24 ? D9 45 ? D9 1C 24 E8 ? ? ? ? D9 5C 24 ? 83 C4 ? D9 EE");
-                GET_NTH_CLOSEST_WATER_NODE_WITH_HEADING = (decltype(GET_NTH_CLOSEST_WATER_NODE_WITH_HEADING))pattern.get_first(-6);
-
-                pattern = find_pattern("E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 80 7D ? ? C6 44 24 ? ? 74 ? FF 77", "E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 80 7D ? ? C6 44 24 ? ? 74 ? 8B 4E");
-                hbIsSphereVisible.fun = injector::MakeCALL(pattern.get_first(0), AddLightIsSphereVisible, true).get();
-
-                pattern = find_pattern("E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 8B 4C 24 ? 3B F9", "E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 3B F7");
-                hbIsSphereVisible.fun = injector::MakeCALL(pattern.get_first(0), DrawWaterIsSphereVisible, true).get();
-
-                pattern = find_pattern("E8 ? ? ? ? 8B D0 8B B4 BA", "E8 ? ? ? ? 8B BC B0 ? ? ? ? 8B 94 B0");
-                static auto RenderWaterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                {
-                    bAnyVisibleNearbyWaterOnScreen = false;
-                    WaterQuadsCount = 0;
-                });
-
-                pattern = find_pattern("0F B7 0C 72 C1 E1 ? 0F BF 81", "0F B7 04 78 C1 E0 04 0F BF 88 ? ? ? ? 8B 14 CD ? ? ? ? 0F BF 88 ? ? ? ? 03 C9");
-                static auto RenderWaterCounterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                {
-                    WaterQuadsCount++;
-                });
-
-                //pattern = find_pattern("F3 0F 11 44 24 ? FF 74 24 ? F3 0F 11 44 24", "F3 0F 11 44 24 ? 8B 54 24 ? 52 F3 0F 11 44 24");
-                //static auto RenderWaterCounterHook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                //auto pattern = find_pattern("83 EC ? F3 0F 10 4D ? F3 0F 10 05 ? ? ? ? 0F 2F C1 F3 0F 10 55 ? F3 0F 10 5D ? F3 0F 11 54 24 ? F3 0F 11 5C 24 ? F3 0F 11 4C 24 ? 72 ? 6A ? 83 EC ? F3 0F 11 5C 24 ? F3 0F 11 14 24 E8 ? ? ? ? D9 5C 24 ? 83 C4 ? 8B 45", "83 EC ? F3 0F 10 45 ? F3 0F 10 0D ? ? ? ? F3 0F 11 44 24 ? F3 0F 10 45 ? F3 0F 11 44 24 ? F3 0F 10 45 ? 0F 2F C8 F3 0F 11 44 24 ? 72 ? D9 45 ? 6A ? 83 EC ? D9 5C 24 ? D9 45 ? D9 1C 24 E8 ? ? ? ? D9 5C 24 ? 83 C4 ? D9 EE");
+                //GET_NTH_CLOSEST_WATER_NODE_WITH_HEADING = (decltype(GET_NTH_CLOSEST_WATER_NODE_WITH_HEADING))pattern.get_first(-6);
+                //
+                //pattern = find_pattern("E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 80 7D ? ? C6 44 24 ? ? 74 ? FF 77", "E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 80 7D ? ? C6 44 24 ? ? 74 ? 8B 4E");
+                //hbIsSphereVisible.fun = injector::MakeCALL(pattern.get_first(0), AddLightIsSphereVisible, true).get();
+                //
+                //pattern = find_pattern("E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 8B 4C 24 ? 3B F9", "E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 3B F7");
+                //hbIsSphereVisible.fun = injector::MakeCALL(pattern.get_first(0), DrawWaterIsSphereVisible, true).get();
+                //
+                //pattern = find_pattern("E8 ? ? ? ? 8B D0 8B B4 BA", "E8 ? ? ? ? 8B BC B0 ? ? ? ? 8B 94 B0");
+                //static auto RenderWaterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                //{
+                //    bAnyVisibleNearbyWaterOnScreen = false;
+                //    WaterQuadsCount = 0;
+                //});
+                //
+                //pattern = find_pattern("0F B7 0C 72 C1 E1 ? 0F BF 81", "0F B7 04 78 C1 E0 04 0F BF 88 ? ? ? ? 8B 14 CD ? ? ? ? 0F BF 88 ? ? ? ? 03 C9");
+                //static auto RenderWaterCounterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                 //{
                 //    WaterQuadsCount++;
                 //});
+                //
+                ////pattern = find_pattern("F3 0F 11 44 24 ? FF 74 24 ? F3 0F 11 44 24", "F3 0F 11 44 24 ? 8B 54 24 ? 52 F3 0F 11 44 24");
+                ////static auto RenderWaterCounterHook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                ////{
+                ////    WaterQuadsCount++;
+                ////});
+                //
+                //pattern = find_pattern("8B 35 ? ? ? ? F3 0F 11 44 24 ? F3 0F 10 80", "8B 1D ? ? ? ? F3 0F 10 83");
+                //static auto RenderLightsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                //{
+                //    bAnyVisibleNearbyLightOnScreen = false;
+                //});
 
-                pattern = find_pattern("8B 35 ? ? ? ? F3 0F 11 44 24 ? F3 0F 10 80", "8B 1D ? ? ? ? F3 0F 10 83");
-                static auto RenderLightsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                {
-                    bAnyVisibleNearbyLightOnScreen = false;
-                });
-
-                pattern = hook::pattern("A8 ? 0F 84 ? ? ? ? 8B C8");
+                auto pattern = hook::pattern("A8 ? 0F 84 ? ? ? ? 8B C8");
                 static auto loc_927DE0 = resolve_next_displacement(pattern.get_first(0)).value();
                 injector::MakeNOP(pattern.get_first(2), 6);
                 static auto LightCounterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
@@ -996,19 +996,21 @@ public:
                     {
                         if ((regs.eax & 6) != 0)
                         {
-                            if (Natives::IsInteriorScene())
-                            {
-                                return; // Flicker - Always in interiors
-                            }
+                            return;
 
-                            if (!bAnyVisibleNearbyWaterOnScreen)
-                            {
-                                return; // Flicker - No water on screen
-                            }
-                            else if (bAnyVisibleNearbyLightOnScreen)
-                            {
-                                return; // Flicker - Water and lights
-                            }
+                            //if (Natives::IsInteriorScene())
+                            //{
+                            //    return; // Flicker - Always in interiors
+                            //}
+                            //
+                            //if (!bAnyVisibleNearbyWaterOnScreen)
+                            //{
+                            //    return; // Flicker - No water on screen
+                            //}
+                            //else if (bAnyVisibleNearbyLightOnScreen)
+                            //{
+                            //    return; // Flicker - Water and lights
+                            //}
                         }
                     }
                     else
