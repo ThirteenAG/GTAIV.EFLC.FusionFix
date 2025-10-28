@@ -459,7 +459,7 @@
             <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="CenterDelayFoot" value="PREF_EPISODIC_RACECLASS_RACE_4" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
             <optionspc action="MENUOPT_ADJUST" label="CenterDelayVeh" value="PREF_EPISODIC_RACECLASS_RACE_1" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
-            <optionspc action="MENUOPT_ADJUST" label="CamTurnSpeedVeh" value="PREF_EPISODIC_RACECLASS_RACE_0" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
+            <optionspc action="MENUOPT_ADJUST" label="CamTurnSpeedVeh" value="PREF_EPISODIC_RACECLASS_RACE_0" scaler="8" displayValue="MENU_DISPLAY_SLIDERBAR" />
             <optionspc action="MENUOPT_ADJUST" label="Raw Input" value="PREF_RAWINPUT" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             
             <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
@@ -479,7 +479,7 @@
             <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="CenterDelayFoot" value="PREF_EPISODIC_RACECLASS_RACE_5" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
             <optionspc action="MENUOPT_ADJUST" label="CenterDelayVeh" value="PREF_EPISODIC_RACECLASS_RACE_2" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
-            <optionspc action="MENUOPT_ADJUST" label="CamTurnSpeedVeh" value="PREF_EPISODIC_RACENAME_RACE_5" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
+            <optionspc action="MENUOPT_ADJUST" label="CamTurnSpeedVeh" value="PREF_EPISODIC_RACENAME_RACE_5" scaler="8" displayValue="MENU_DISPLAY_SLIDERBAR" />
             <optionspc action="MENUOPT_ADJUST" label="Gamepad Icons" value="PREF_BUTTONS" scaler="13" displayValue="MENU_DISPLAY_BUTTONS" />
             
             <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
