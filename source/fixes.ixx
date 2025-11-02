@@ -1024,6 +1024,26 @@ public:
                     return_to(loc_927DE0);
                 });
             }
+
+            // https://github.com/GTAmodding/GTAIV-Issues-List/issues/245#issuecomment-3477012943
+            {
+                auto pattern = find_pattern("C7 06 00 00 00 00 89 44 24 08");
+                if (!pattern.empty())
+                {
+                    static auto loc_B0CAB2 = (uintptr_t)hook::get_pattern("8B 55 0C 85 D2 78 ? 8B 0D ? ? ? ? 8B 41 04 F6 04 02 80");
+                    injector::MakeNOP(pattern.get_first(0), 8);
+                    static auto PickupCrashFix = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        *(uint32_t*)(regs.esp + 8) = regs.eax;
+                        regs.eax = int32_t(*(int16_t*)(regs.edi + 0x40));
+
+                        if (regs.eax == int32_t(-1))
+                        {
+                            return_to(loc_B0CAB2);
+                        }
+                    });
+                }
+            }
         };
     }
 } Fixes;
