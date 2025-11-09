@@ -223,11 +223,11 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 >Note: most of this content requires additional modifications by the end user to the game in order to fully use these features.
 >
 - Added an option to enable support for APC and buzzard and all their abilities in IV and TLAD
-- Added an DSR1, pipe bomb, sticky bomb, AA12 explosive shells, P90 vehicle check, partially parachute and some other episodic weapons' abilities in IV, TLAD and TBoGT
-- Added an option to enable explosive rounds on annihilator, requires episodic weapons
+- Added an option to enable DSR1, pipe bomb, sticky bomb, AA12 explosive shells, P90 vehicle check, partially parachute and some other ep weapons abilities in IV, TLAD and TBoGT
+- Added an option to enable explosive rounds on annihilator, requires ep weapons
 - Added an option to enable camera bobbing in clubs, cell phone switching, altimeter in helicopters and parachute, explosive sniper and fists cheats, requires related episodic files
 - Added an option to raise height limit for helicopters in base game and TLAD to match TBOGT
-- Added an option to give P90 and AA12 to SWAT and FIB and M249 to police in helicopters, requires episodic weapons
+- Added an option to give P90 and AA12 to SWAT and FIB and M249 to police in helicopters, requires ep weapons
 - Added an option to disable SCO signature check, make game can use any episodic SCO on all episodes
 
 ### Misc
@@ -263,7 +263,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 ### Some details
 
-- **RecoilFix** - set to **1** to make recoil behavior bahave the same as controller when playing with keyboard and mouse, set to **0** to disable the fix
+- **RecoilFix** - set to **1** to make recoil behavior bahave the same as controller when playing with keyboard and mouse, set to **0** to disable the fix.
 - **AimingZoomFix** - set to **1** for proper fix, so it behaves like on xbox, set to **2** to have this fixed feature enabled in IV and TLAD, set to **-1** to disable this feature. **0** disables the fix, as usual.
 - **FpsLimit** - enter a desired value to specify the number of frames per second you want for the game. Like 30, 45, 60 or more. This will affect all gameplay. Refresh rate offsets may also be used.
 - **CutsceneFpsLimit** - enter a desired value to specify the number of frames per second you want for the game to use on cutscenes only.
@@ -273,7 +273,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **DisableCameraCenteringInCover** - [see issue 20](https://github.com/GTAmodding/GTAIV-Issues-List/issues/20).
 - **VehicleBudget** - allows to increase the budget of vehicles, used to avoid "Taxi Bug", may cause vehicle audio issue, [watch TJGM's video for more information about TaxiBug and VehicleBudget](https://www.youtube.com/watch?v=wr8m9kL3U20&t=237s)
 - **PedBudget** - allows to increase the budget of pedestrians.
-- **ExtendedLimits** - set to **1** to increase various limits like modelinfo, handling, carcols
+- **ExtendedLimits** - set to **1** to increase various limits like modelinfo, handling, carcols.
 
 ## Shaders Changelog
 
