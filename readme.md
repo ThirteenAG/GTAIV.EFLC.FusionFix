@@ -129,12 +129,12 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 ![LightSyncRGB](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/assets/4904157/f925ad27-19ce-4dde-8801-0cec1578ade7)
 
-- **Seasonal Events**, toggles added seasonal events
+- **Seasonal Events**, enable added seasonal events at a specific time
 - **Check For Fusion Fix Updates**, checks if there's an update available on startup
 
 #### Audio
 
-- **Cutscene Audio Sync**, enable this if you experience audio desynchronization in cutscenes
+- **Cutscene Audio Sync**, force cutscene to sync with cutscene audio, enable this if you experience audio desynchronization in cutscenes, can be toggled through **the up arrow key** with keyboard or **up on the D-pad** with controller in cutscene
 - **Alternative Dialogues**, when enabled, forces the game to use alternative dialogues in some missions
 
 #### Controls
