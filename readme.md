@@ -109,6 +109,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **Tone Mapping**, prevents highlights from being blown out, more operators can be found [here](https://github.com/Parallellines0451/GTAIV.EFLC.FusionShaders/tree/main/assets/luts/samples)
 - **Shadow Filter**, toggles between sharp, soft, or contact hardening shadows
 - **Graphics API**, select between DirectX 9 and Vulkan (through [DXVK](https://github.com/doitsujin/dxvk/releases)), requires a restart
+> Fusion Fix uses DXVK 2.6.2 by default, if you need to use other DXVK version, [install DXVK version which you need](https://github.com/doitsujin/dxvk/releases), rename x32 folder's d3d9.dll to vulkan.dll, and replace Fusion Fix's vulkan.dll. 
 
 #### Game
 
