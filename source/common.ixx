@@ -18,12 +18,12 @@ public:
         using std::function<void(Args...)>::function;
 
     private:
-        std::vector<std::function<void(Args...)>> handlers;
+        std::list<std::function<void(Args...)>> handlers;
 
     public:
-        void operator+=(std::function<void(Args...)>&& handler)
-        {
-            handlers.push_back(handler);
+        std::function<void()> operator+=(std::function<void(Args...)>&& handler) {
+            auto it = handlers.insert(handlers.end(), handler);
+            return [this, it]() { handlers.erase(it); };
         }
 
         void executeAll(Args... args) const

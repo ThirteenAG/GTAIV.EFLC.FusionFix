@@ -220,6 +220,8 @@ private:
     static inline float interp_c0, interp_c1, interp_c2, interp_c3;
 
 public:
+    static FusionFix::Event<>&  onCTimeCycleExtInit() { static FusionFix::Event<> ev; return ev; }
+
     static float GetVolFogDensity() { return m_fCurrentVolFogDensity; }
     static float GetVolFogHeightFalloff() { return m_fCurrentVolFogHeightFalloff; }
     static float GetVolFogAltitudeTweak() { return m_fCurrentVolFogAltitudeTweak; }
@@ -438,25 +440,14 @@ public:
             pattern = find_pattern("56 E8 ? ? ? ? 83 C4 ? E8 ? ? ? ? 5F 5E 5B 8B E5 5D C3", "53 E8 ? ? ? ? 83 C4 04 E8 ? ? ? ? 8B 8C 24");
             static auto CTimeCycleInitialiseHook = safetyhook::create_mid(pattern.get_first(14), [](SafetyHookContext& regs)
             {
-                static std::vector<std::filesystem::path> episodicPaths = {
-                    std::filesystem::path(""),
-                    std::filesystem::path("TLAD"),
-                    std::filesystem::path("TBoGT"),
-                };
-
-                auto filePath1 = GetModulePath(GetModuleHandleW(NULL)).parent_path() / episodicPaths[*_dwCurrentEpisode] / "pc" / "data";
-                auto filePath2 = GetModulePath(GetModuleHandleW(NULL)).parent_path() / "pc" / "data";
-
-                CTimeCycleExt::Initialise(filePath1 / "timecycext.dat");
-                CTimeCycleModifiersExt::Initialise(filePath2 / "timecyclemodifiersext.dat");
-
-                if (bEnableSnow)
-                    CTimeCycleExt::Initialise(filePath1 / "snowext.dat");
-                else if (bEnableHall)
-                    CTimeCycleExt::Initialise(filePath1 / "halloweenext.dat");
+                CTimeCycleExt::Initialise(currentEpisodePath() / "pc" / "data" / "timecycext.dat");
+                CTimeCycleExt::onCTimeCycleExtInit().executeAll();
+                
+                static const auto moduleParentPath = GetModulePath(GetModuleHandleW(NULL)).parent_path();
+                CTimeCycleModifiersExt::Initialise(moduleParentPath / "pc" / "data" / "timecyclemodifiersext.dat");
             });
 
-            pattern = find_pattern("FF 35 ? ? ? ? FF 15 ? ? ? ? 85 C0 75 ? 38 05 ? ? ? ? 74 ? 38 05 ? ? ? ? 75 ? 33 C0 EB ? B8 ? ? ? ? 0A 05 ? ? ? ? 0A 05 ? ? ? ? 0F 85 ? ? ? ? E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? 8B 0D ? ? ? ? 8B 15", 
+            pattern = find_pattern("FF 35 ? ? ? ? FF 15 ? ? ? ? 85 C0 75 ? 38 05 ? ? ? ? 74 ? 38 05 ? ? ? ? 75 ? 33 C0 EB ? B8 ? ? ? ? 0A 05 ? ? ? ? 0A 05 ? ? ? ? 0F 85 ? ? ? ? E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? 8B 0D ? ? ? ? 8B 15",
                 "51 E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? E8");
             static auto CClockUpdateHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
             {
@@ -500,7 +491,7 @@ public:
 
             pattern = find_pattern("E8 ? ? ? ? F3 0F 10 84 B4 ? ? ? ? 51", "E8 ? ? ? ? D9 44 24 ? 51 8B D1");
             CTimeCycleModifier::hbBlendWithModifier.fun = injector::MakeCALL(pattern.get_first(), CTimeCycleModifier::BlendWithModifier).get();
-            
+
             pattern = find_pattern("E8 ? ? ? ? 8B 4C 24 ? 8B 54 24 ? 0F 57 C0 0F 2F 81 ? ? ? ? 0F B6 D2 B8", "E8 ? ? ? ? 0F 57 C0 0F 2F 86 ? ? ? ? 72");
             CTimeCycleModifier::hbBlendWithModifier.fun = injector::MakeCALL(pattern.get_first(), CTimeCycleModifier::BlendWithModifier2).get();
         };
