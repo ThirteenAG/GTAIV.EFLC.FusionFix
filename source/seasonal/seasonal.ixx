@@ -9,6 +9,7 @@ import common;
 import comvars;
 import timecycext;
 import settings;
+import natives;
 
 import seasonal.halloween;
 import seasonal.snow;
@@ -114,8 +115,10 @@ public:
                         if (bOnce) return;
                         bOnce = true;
                         
-                        if (SeasonalManager::GetCurrent() != SeasonalType::Snow)
+                        if (SeasonalManager::GetCurrent() != SeasonalType::Snow) {
                             SeasonalManager::Set(SeasonalType::Snow);
+                            Natives::PrintHelp((char*)"WinterEvent1");
+                        }
                     }
                     else if (SeasonalManager::GetCurrent() == SeasonalType::Snow)
                     {
@@ -124,6 +127,7 @@ public:
                         bOnce = true;
 
                         SeasonalManager::Set(SeasonalType::None);
+                        Natives::PrintHelp((char*)"WinterEvent0");
                     }
                 };
             }
@@ -144,8 +148,10 @@ public:
                         if (bOnce) return;
                         bOnce = true;
 
-                        if (SeasonalManager::GetCurrent() != SeasonalType::Halloween)
+                        if (SeasonalManager::GetCurrent() != SeasonalType::Halloween) {
                             SeasonalManager::Set(SeasonalType::Halloween);
+                            Natives::PrintHelp((char*)"HalloweenEvent1");
+                        }
                     }
                     else if (SeasonalManager::GetCurrent() == SeasonalType::Halloween)
                     {
@@ -154,6 +160,7 @@ public:
                         bOnce = true;
 
                         SeasonalManager::Set(SeasonalType::None);
+                        Natives::PrintHelp((char*)"HalloweenEvent0");
                     }
                 };
             }
