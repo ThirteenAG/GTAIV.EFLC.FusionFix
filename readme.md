@@ -63,7 +63,9 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 > * Search for "d3dx9_43", select it and click OK.
 
 > [!IMPORTANT]
-> Only The Complete Edition is fully supported. Legacy versions of the game (e.g., v1.0.7.0 or v1.0.8.0) additionally require the installation of the [Legacy Addon](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFixLegacyAddon.zip), which is done by unpacking its contents to the game's root directory.
+> Only The Complete Edition is fully supported. Legacy versions of the game (e.g., v1.0.7.0 or v1.0.8.0) additionally require the installation of the [Legacy Addon](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFixLegacyAddon.zip), which is done by unpacking its contents to the game's root directory. If you need LegacyAddon additionally, you don't need to use **dinput8.dll** in [GTAIV.EFLC.FusionFix.zip](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFix.zip)
+>
+> The project only supports [Ultimate Asi Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader). Fusion Fix has included Ultimate Asi Loader. Make sure you don't use other Asi Loader or more than one Asi Loader. Otherwise game can't work normally.
 >
 > Multiplayer is not supported. [Take-Two has agreed that it generally will not take legal action against third-party projects involving Rockstar’s PC games that are single-player, non-commercial, and respect the intellectual property (IP) rights of third parties. This does not apply to (i) multiplayer or online services; (ii) tools, files, libraries, or functions that could be used to impact multiplayer or online services, or (iii) use or importation of other IP (including other Rockstar IP) in the project; or (iv) making new games, stories, missions, or maps.](https://support.rockstargames.com/articles/5NVOAYjcTomO8v6SX2k76k/pc-single-player-mods)
 > Forking this project or creating any derivative software intended for use with multiplayer of any kind is forbidden. Any persons or entities who do so are not associated with this project.
