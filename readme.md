@@ -65,7 +65,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 > [!IMPORTANT]
 > Only The Complete Edition is fully supported. Legacy versions of the game (e.g., v1.0.7.0 or v1.0.8.0) additionally require the installation of the [Legacy Addon](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFixLegacyAddon.zip), which is done by unpacking its contents to the game's root directory. If you need **LegacyAddon** additionally, you don't need to use **dinput8.dll** in [GTAIV.EFLC.FusionFix.zip](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFix.zip)
 >
-> The project only supports [Ultimate Asi Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader). Fusion Fix has included Ultimate Asi Loader. Make sure you don't use other Asi Loader, more than one Asi Loader or use **LegacyAddon** for Complete Edition. Otherwise game can't work normally.
+> The project only supports [Ultimate Asi Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader)(included in the archive). Make sure you don't use other Asi Loader, more than one Asi Loader or use **LegacyAddon** for Complete Edition. Otherwise game can't work normally.
 >
 > Multiplayer is not supported. [Take-Two has agreed that it generally will not take legal action against third-party projects involving Rockstar’s PC games that are single-player, non-commercial, and respect the intellectual property (IP) rights of third parties. This does not apply to (i) multiplayer or online services; (ii) tools, files, libraries, or functions that could be used to impact multiplayer or online services, or (iii) use or importation of other IP (including other Rockstar IP) in the project; or (iv) making new games, stories, missions, or maps.](https://support.rockstargames.com/articles/5NVOAYjcTomO8v6SX2k76k/pc-single-player-mods)
 > Forking this project or creating any derivative software intended for use with multiplayer of any kind is forbidden. Any persons or entities who do so are not associated with this project.
@@ -188,8 +188,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Added an option to allow users to custom tree alpha value
 - Fixed assault rifle and sawn-off firing delay
 - Fixed the auto sniper position when aiming
-- Fixed TLAD StreetSweeper broken recoil animation
 - Fixed MP5 crouch reload animation lacks sound in IV
+- Fixed TLAD StreetSweeper broken recoil animation
 - Fixed incorrect bullet tracer position in TBoGT
 - Significantly sped up loading screens
 - Fixed jagged vehicle reflections
@@ -200,7 +200,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Improved cascaded shadows performance, and added an option to double their resolution
 - Added dynamic shadows for trees
 - Reduced water flickering issue (need to disable **Extra Night Shadows**)
-- Added several cheat code to enable seasonal events and restore some unused player assets for Niko and Johnny, they can be found hidden in relevant locations, [or finding them here](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/blob/master/source/cheats.ixx)
+- Added several cheat code to enable seasonal events and restore some unused player assets for Niko and Johnny, they can be found hidden in relevant locations, or finding them [here](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/blob/master/source/cheats.ixx)
 
 ### Scripts
 
@@ -226,11 +226,11 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 >Note: most of this content requires additional modifications by the end user to the game in order to fully use these features.
 >
 - Added an option to enable support for APC and buzzard and all their abilities in IV and TLAD
-- Added an option to enable DSR1, pipe bomb, sticky bomb, AA12 explosive shells, P90 vehicle check, partially parachute and some other ep weapons abilities in IV, TLAD and TBoGT
-- Added an option to enable explosive rounds on annihilator, requires ep weapons
+- Added an option to enable DSR1, pipe bomb, sticky bomb, AA12 explosive shells, P90 vehicle check, partially parachute and some other episodic weapons abilities in IV, TLAD and TBoGT
+- Added an option to enable explosive rounds on annihilator, requires episodic weapons
 - Added an option to enable camera bobbing in clubs, cell phone switching, altimeter in helicopters and parachute, explosive sniper and fists cheats, requires related episodic files
 - Added an option to raise height limit for helicopters in base game and TLAD to match TBOGT
-- Added an option to give P90 and AA12 to SWAT and FIB and M249 to police in helicopters, requires ep weapons
+- Added an option to give P90 and AA12 to SWAT and FIB and M249 to police in helicopters, requires episodic weapons
 - Added an option to disable SCO signature check, make game can use any episodic SCO on all episodes
 
 ### Misc
@@ -250,19 +250,19 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed helicopter searchlights flicker violently when more than one helicopter is present
 - Fixed camera stuttering while sprinting, turning and swimming with a controller
 - Fixed helicopter pitch up anim
-- Fixed black rain droplets and missing refraction
 - Improved phone screen resolution
 - Fixed offset mirrors
 - Fixed washed out mirror reflections on some graphics cards
-- Significantly reduced pop-in on higher graphics settings
+- Significantly reduced pop-in on higher graphics settings (mainly procedural objects)
 - Restored functionality of some rain parameters from visualsettings.dat
+- Fixed black rain droplets and missing refraction
 - Restored console rain density
 - Sped up menu and pause transitions
 - Fixed TLAD phone keypad rendering on top of the plastic cover
 - Fixed Yusef's golden cellphone and golden uzi cutscene models
 - Added an option to enable shadows for some objects and vegetation that lack them
 - Added options to customize shadow blur, bias and cascade blending
-- Various other fixes, like regular cops & fat cops will now spawn with their hat prop disabled when in a vehicle like console version
+- Various other fixes, like regular cops & fat cops will now spawn with their hat prop disabled when in a vehicle, like on the console version
 
 ### Some details
 
@@ -274,7 +274,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **DefaultCameraAngleInTLAD** - TLAD uses a different camera angle on bikes, this option can force the original IV camera angle. [Enabled](https://i.imgur.com/PqFHJfU.jpg) / [Disabled](https://i.imgur.com/5kM5Sgn.jpg)
 - **PedDeathAnimFixFromTBOGT** - when you perform a counter attack after a dodge in IV & TLAD, the ped after falling and dying performs an additional death animation, which doesn't happen in TBOGT. [Enabled](https://imgur.com/EYsiGPe) / [Disabled](https://imgur.com/CR3LEdR)
 - **DisableCameraCenteringInCover** - [see issue 20](https://github.com/GTAmodding/GTAIV-Issues-List/issues/20).
-- **VehicleBudget** - allows to increase the budget of vehicles, used to avoid "Taxi Bug", may cause vehicle audio issue, [watch TJGM's video for more information about TaxiBug and VehicleBudget](https://www.youtube.com/watch?v=wr8m9kL3U20&t=237s)
+- **VehicleBudget** - allows to increase the budget of vehicles, used to avoid "Taxi Bug", may cause vehicle audio issue. For more information about TaxiBug and VehicleBudget, please watch [TJGM's video](https://www.youtube.com/watch?v=wr8m9kL3U20&t=237s)
 - **PedBudget** - allows to increase the budget of pedestrians.
 - **ExtendedLimits** - set to **1** to increase various limits like modelinfo, handling, carcols.
 
