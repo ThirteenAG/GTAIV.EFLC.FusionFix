@@ -179,6 +179,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Improved ultrawide support
 - Fixed improper VRAM detection on some setups
 - The mouse cursor is now hidden when playing with controller
+- Fixed mouse cursor scale
 - Added various fixed animations and vehicle models
 - Fixed draw distance sliders not being applied on startup
 - Improved and fixed some lights and emissive materials
@@ -188,8 +189,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Added an option to allow users to custom tree alpha value
 - Fixed assault rifle and sawn-off firing delay
 - Fixed the auto sniper position when aiming
-- Fixed MP5 crouch reload animation lacks sound in IV
-- Fixed TLAD StreetSweeper broken recoil animation
+- Fixed mp5 crouch reload animation lacks sound in IV
+- Fixed TLAD streetsweeper broken recoil animation
 - Fixed incorrect bullet tracer position in TBoGT
 - Significantly sped up loading screens
 - Fixed jagged vehicle reflections
@@ -225,12 +226,12 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 >Note: most of this content requires additional modifications by the end user to the game in order to fully use these features.
 >
-- Added an option to enable support for APC and buzzard and all their abilities in IV and TLAD
-- Added an option to enable DSR1, pipe bomb, sticky bomb, AA12 explosive shells, P90 vehicle check, partially parachute and some other episodic weapons abilities in IV, TLAD and TBoGT
+- Added an option to enable support for APC, buzzard, smuggler, floater, blade and all their abilities in IV and TLAD
+- Added an option to enable DSR1, grenade launcher, pipe bomb, sticky bomb, AA12 explosive shells, P90 vehicle check, partially parachute and all their abilities in IV, TLAD and TBoGT
 - Added an option to enable explosive rounds on annihilator, requires episodic weapons
 - Added an option to enable camera bobbing in clubs, cell phone switching, altimeter in helicopters and parachute, explosive sniper and fists cheats, requires related episodic files
 - Added an option to raise height limit for helicopters in base game and TLAD to match TBOGT
-- Added an option to give P90 and AA12 to SWAT and FIB and M249 to police in helicopters, requires episodic weapons
+- Added an option to give P90 and AA12 to SWAT and FIB and M249 to police in helicopters in IV and TLAD, requires episodic weapons
 - Added an option to disable SCO signature check, make game can use any episodic SCO on all episodes
 
 ### Misc
@@ -242,6 +243,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored environment reflection intensity from consoles
 - Added an option to restore the more reflective cars from consoles
 - Fixed incorrect water and post processing noise tiling on quality levels other than medium
+- Remove free cam boundary limits in the video editor
 - Added an option to display NPC's health on the reticle when playing with keyboard and mouse
 - Crosshair will appear in the first person view on Annihilator and Buzzard when playing with controller
 - Pressing radar zoom out button now will make it stay zoomed out for a few seconds, and added an option to allow to custom zoom delay time
