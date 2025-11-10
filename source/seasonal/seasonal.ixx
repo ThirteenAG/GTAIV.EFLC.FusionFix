@@ -104,10 +104,12 @@ auto SeasonalManager::Set(const SeasonalType type) -> void
     if (!initialized)
         return;
 
-    Get(currentEventType)->Disable();
+    auto current = Get(currentEventType);
 
+    // Disable/Enable currently depends on new currentEventType
     currentEventType = type;
 
+    current->Disable();
     Get(currentEventType)->Enable();
 }
 
