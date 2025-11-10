@@ -21,8 +21,9 @@ public:
         std::list<std::function<void(Args...)>> handlers;
 
     public:
-        std::function<void()> operator+=(std::function<void(Args...)>&& handler) {
-            auto it = handlers.insert(handlers.end(), handler);
+        auto operator+=(std::function<void(Args...)>&& handler) -> std::function<void()>
+        {
+            auto it = handlers.insert(handlers.end(), std::move(handler));
             return [this, it]() { handlers.erase(it); };
         }
 
