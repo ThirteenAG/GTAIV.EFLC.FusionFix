@@ -508,8 +508,13 @@ public:
     }
     void SetCallback(std::string_view name, std::function<void(int32_t)>&& cb)
     {
-        auto prefID = GetPrefIDByName(name);
+        const auto prefID = GetPrefIDByName(name);
         if (prefID) mFusionPrefs[*prefID].callback = cb;
+    }
+    void RemoveCallback(std::string_view name)
+    {
+        const auto prefID = GetPrefIDByName(name);
+        if (prefID) mFusionPrefs[*prefID].callback = nullptr;
     }
     void ForEachPref(std::function<void(int32_t id, int32_t idStart, int32_t idEnd)>&& cb)
     {

@@ -22,6 +22,14 @@ export enum class SeasonalType : std::uint8_t {
     COUNT
 };
 
+export namespace SeasonalManager {
+    auto Init() -> void;
+    auto GetCurrent() -> const SeasonalType;
+    auto Set(const SeasonalType type) -> void;
+    auto DisableTimedEvents() -> void;
+    auto IsTimedEventsDisabled() -> bool;
+}
+
 class None : public ISeasonal
 {
 public:
@@ -32,55 +40,127 @@ public:
     auto Disable() -> void override {}
 };
 
-namespace SeasonalManager
+auto initialized = false;
+
+auto isTimedEventDisabled = false;
+
+auto currentEventType = SeasonalType::None;
+
+std::function<void()> unsub_onGameProcessEvent;
+
+const auto registry = std::array{
+    &None::Instance(),
+    &Halloween::Instance(),
+    &Snow::Instance(),
+};
+static_assert(registry.size() == std::to_underlying(SeasonalType::COUNT));
+
+auto Get(const SeasonalType type)
 {
-    namespace 
+    return registry[std::to_underlying(type)];
+}
+
+auto onGameProcessEvent() -> void
+{
+    const auto now = std::chrono::system_clock::now();
+    const auto now_c = std::chrono::system_clock::to_time_t(now);
+    const auto date = std::localtime(&now_c);
+
+    if ((date->tm_mon == 0 && date->tm_mday <= 2) || (date->tm_mon == 11 && date->tm_mday >= 30))
     {
-        auto initialized = false;
-
-        auto registry = std::array{
-            &None::Instance(),
-            &Halloween::Instance(),
-            &Snow::Instance(),
-        };
-        static_assert(registry.size() == std::to_underlying(SeasonalType::COUNT));
-
-        auto Get(const SeasonalType type)
+        if (currentEventType != SeasonalType::Snow)
         {
-            return registry[std::to_underlying(type)];
+            SeasonalManager::Set(SeasonalType::Snow);
+            Natives::PrintHelp((char*)"WinterEvent1");
         }
-
-        auto currentEventType = SeasonalType::None;
-
-        auto Init() -> void
+    }
+    else if (currentEventType == SeasonalType::Snow)
+    {
+        SeasonalManager::Set(SeasonalType::None);
+        Natives::PrintHelp((char*)"WinterEvent0");
+    }
+    else if ((date->tm_mon == 10 && date->tm_mday <= 1) || (date->tm_mon == 9 && date->tm_mday >= 30))
+    {
+        if (currentEventType != SeasonalType::Halloween)
         {
-            if (initialized)
-                return;
+            SeasonalManager::Set(SeasonalType::Halloween);
+            Natives::PrintHelp((char*)"HalloweenEvent1");
+        }
+    }
+    else if (currentEventType == SeasonalType::Halloween)
+    {
+        SeasonalManager::Set(SeasonalType::None);
+        Natives::PrintHelp((char*)"HalloweenEvent0");
+    }
+}
 
-            initialized = true;
+auto SeasonalManager::GetCurrent() -> const SeasonalType
+{
+    return currentEventType;
+}
 
-            for (const auto& seasonalEvent : registry) {
-                seasonalEvent->Init();
+auto SeasonalManager::Set(const SeasonalType type) -> void
+{
+    if (!initialized)
+        return;
+
+    Get(currentEventType)->Disable();
+
+    currentEventType = type;
+
+    Get(currentEventType)->Enable();
+}
+
+auto SeasonalManager::Init() -> void
+{
+    //if (!GetD3DX9_43DLL()) return;
+
+    if (initialized)
+        return;
+
+    initialized = true;
+
+    for (const auto& seasonalEvent : registry) {
+        seasonalEvent->Init();
+    }
+
+    if (FusionFixSettings("PREF_TIMEDEVENTS"))
+    {
+        unsub_onGameProcessEvent = FusionFix::onGameProcessEvent() += onGameProcessEvent;
+    }
+
+    FusionFixSettings.SetCallback("PREF_TIMEDEVENTS", [](int32_t value)
+    {
+        if (value)
+        {
+            unsub_onGameProcessEvent = FusionFix::onGameProcessEvent() += onGameProcessEvent;
+        }
+        else
+        {
+            unsub_onGameProcessEvent();
+            unsub_onGameProcessEvent = nullptr;
+
+            if (GetCurrent() != SeasonalType::None)
+            {
+                Set(SeasonalType::None);
             }
         }
-    }
+    });
+}
 
-    export auto GetCurrent() -> const SeasonalType
-    {
-        return currentEventType;
-    }
+auto SeasonalManager::DisableTimedEvents() -> void
+{
+    if (unsub_onGameProcessEvent)
+        unsub_onGameProcessEvent();
 
-    export auto Set(const SeasonalType type) -> void
-    {
-        if (!initialized)
-            return;
+    FusionFixSettings.RemoveCallback("PREF_TIMEDEVENTS");
 
-        Get(currentEventType)->Disable();
+    isTimedEventDisabled = true;
+}
 
-        currentEventType = type;
-
-        Get(currentEventType)->Enable();
-    }
+auto SeasonalManager::IsTimedEventsDisabled() -> bool
+{
+    return isTimedEventDisabled;
 }
 
 class Initializer
@@ -91,79 +171,6 @@ public:
         FusionFix::onInitEventAsync() += []()
         {
             SeasonalManager::Init();
-
-            //if (!GetD3DX9_43DLL()) return;
-
-            auto now = std::chrono::system_clock::now();
-            auto now_c = std::chrono::system_clock::to_time_t(now);
-            auto date = std::localtime(&now_c);
-
-            if ((date->tm_mon == 0 && date->tm_mday <= 2) || (date->tm_mon == 11 && date->tm_mday >= 29))
-            {
-                FusionFix::onGameProcessEvent() += []()
-                {
-                    if (!FusionFixSettings("PREF_TIMEDEVENTS"))
-                        return;
-
-                    auto now = std::chrono::system_clock::now();
-                    auto now_c = std::chrono::system_clock::to_time_t(now);
-                    auto date = std::localtime(&now_c);
-
-                    if ((date->tm_mon == 0 && date->tm_mday <= 2) || (date->tm_mon == 11 && date->tm_mday >= 30))
-                    {
-                        static bool bOnce = false;
-                        if (bOnce) return;
-                        bOnce = true;
-                        
-                        if (SeasonalManager::GetCurrent() != SeasonalType::Snow) {
-                            SeasonalManager::Set(SeasonalType::Snow);
-                            Natives::PrintHelp((char*)"WinterEvent1");
-                        }
-                    }
-                    else if (SeasonalManager::GetCurrent() == SeasonalType::Snow)
-                    {
-                        static bool bOnce = false;
-                        if (bOnce) return;
-                        bOnce = true;
-
-                        SeasonalManager::Set(SeasonalType::None);
-                        Natives::PrintHelp((char*)"WinterEvent0");
-                    }
-                };
-            }
-            else if (date->tm_mon == 9 && date->tm_mday == 31)
-            {
-                FusionFix::onGameProcessEvent() += []()
-                {
-                    if (!FusionFixSettings("PREF_TIMEDEVENTS"))
-                        return;
-
-                    auto now = std::chrono::system_clock::now();
-                    auto now_c = std::chrono::system_clock::to_time_t(now);
-                    auto date = std::localtime(&now_c);
-
-                    if ((date->tm_mon == 10 && date->tm_mday <= 1) || (date->tm_mon == 9 && date->tm_mday >= 30))
-                    {
-                        static bool bOnce = false;
-                        if (bOnce) return;
-                        bOnce = true;
-
-                        if (SeasonalManager::GetCurrent() != SeasonalType::Halloween) {
-                            SeasonalManager::Set(SeasonalType::Halloween);
-                            Natives::PrintHelp((char*)"HalloweenEvent1");
-                        }
-                    }
-                    else if (SeasonalManager::GetCurrent() == SeasonalType::Halloween)
-                    {
-                        static bool bOnce = false;
-                        if (bOnce) return;
-                        bOnce = true;
-
-                        SeasonalManager::Set(SeasonalType::None);
-                        Natives::PrintHelp((char*)"HalloweenEvent0");
-                    }
-                };
-            }
         };
     }
 } Initializer;
@@ -172,12 +179,12 @@ extern "C"
 {
     bool __declspec(dllexport) IsSnowEnabled()
     {
-        return SeasonalManager::GetCurrent() == SeasonalType::Snow;
+        return currentEventType == SeasonalType::Snow;
     }
 
     bool __declspec(dllexport) IsHallEnabled()
     {
-        return SeasonalManager::GetCurrent() == SeasonalType::Halloween;
+        return currentEventType == SeasonalType::Halloween;
     }
 
     bool __declspec(dllexport) IsWeatherSnow()
@@ -188,6 +195,6 @@ extern "C"
     void __declspec(dllexport) ToggleSnow()
     {
         constexpr auto type = SeasonalType::Snow;
-        SeasonalManager::Set(SeasonalManager::GetCurrent() == type ? SeasonalType::None : type);
+        SeasonalManager::Set(currentEventType == type ? SeasonalType::None : type);
     }
 }

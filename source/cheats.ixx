@@ -15,6 +15,9 @@ char CheatString[MAX_CHEAT_LENGTH] = { 0 };
 
 auto SnowCheat(bool bPrintHelp = true) -> void
 {
+    if (!SeasonalManager::IsTimedEventsDisabled())
+        SeasonalManager::DisableTimedEvents();
+
     if (SeasonalManager::GetCurrent() == SeasonalType::Snow) 
     {
         SeasonalManager::Set(SeasonalType::None);
@@ -33,6 +36,9 @@ auto SnowCheat(bool bPrintHelp = true) -> void
 
 auto HallCheat(bool bPrintHelp = true) -> void
 {
+    if (!SeasonalManager::IsTimedEventsDisabled())
+        SeasonalManager::DisableTimedEvents();
+
     if (SeasonalManager::GetCurrent() == SeasonalType::Halloween)
     {
         SeasonalManager::Set(SeasonalType::None);
