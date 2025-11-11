@@ -217,8 +217,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Chinatown gun shop: Fixed a small bug where the wrong voice line is used after exiting when not buying something
 - Restored voice lines from Luis, he'll now respond to what the pilot tells him about the landmarks during the tour
 - Fixed the busker script terminates too early in TBoGT, now Luis can give money to busker normally
-- Fixed ilyena call & brycebug content can't trigger after load the save (from ilyena's random character mission and stubbs' job)
-- Fixed the truck and heli climb QTE being impossible on really high framerates (phil's mission and ending)
+- Fixed ilyena call & brycebug content can't trigger after load the save (From ilyena's random character mission and stubbs' job)
+- Fixed the heli climb QTE being impossible on really high framerates
 - Workaround for a bug where Niko dies after being kicked off of Dimitri's helicopter and falling into the water (Deal Ending)
 - Workaround for a bug where Jacob crashes the Annihilator on high framerates (Deal Ending)
 
