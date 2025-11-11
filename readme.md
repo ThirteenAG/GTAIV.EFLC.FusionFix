@@ -294,6 +294,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 - Fixed z-fighting
 - Restored deferred object and LOD fading
+- Restored faster console object fade speed
 - Restored console screen door transparency
 
 #### Lighting
