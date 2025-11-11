@@ -183,6 +183,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Added various fixed animations and vehicle models
 - Increased vehicle livery limit from 4 to 127
 - Fixed draw distance sliders not being applied on startup, solved lods appearing inside normal models unless opening "Graphics" menu once
+- Game will use constant far clip value when **Volumetric Fog** is enabled, not affected by player position, the value can be customed through added option
 - Improved and fixed some lights and emissive materials (e.g. fixed some light bleed issues)
 - Restored missing lamppost coronas by using console accurate lamppost light properties
 - Restored the higher quality uncompressed corona texture from the Xbox 360 version
