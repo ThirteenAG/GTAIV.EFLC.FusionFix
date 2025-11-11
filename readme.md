@@ -182,7 +182,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed mouse cursor scale
 - Added various fixed animations and vehicle models
 - Fixed draw distance sliders not being applied on startup
-- Improved and fixed some lights and emissive materials
+- Improved and fixed some lights and emissive materials (e.g. fixed some light bleed issues)
 - Restored missing lamppost coronas and uncompressed corona texture from consoles
 - Fixed PC grass models stuck underground
 - Added new tree LOD atlas based on the PC trees
@@ -194,7 +194,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed incorrect bullet tracer position in TBoGT
 - Significantly sped up loading screens
 - Fixed jagged vehicle reflections
-- Disable Z-write behavior for emissive shaders to fix some visual issues (e.g. Bahama Mamas' strobe lights)
+- Disable Z-write behavior for emissive shaders to fix some visual issues (e.g. fixed Bahama Mamas' strobe lights)
 - LOD lights now appear at the appropriate time, and they can render in cutscene, like on the console version
 - Make night shadows resolution be adjusted by night shadows option
 - Restored higher shadow render distance from old versions of the game
@@ -230,9 +230,9 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Added an option to enable DSR1, grenade launcher, pipe bomb, sticky bomb, AA12 explosive shells, P90 vehicle check, partially parachute and all their abilities in IV, TLAD and TBoGT
 - Added an option to enable explosive rounds on annihilator, requires episodic weapons
 - Added an option to enable camera bobbing in clubs, cell phone switching, altimeter in helicopters and parachute, explosive sniper and fists cheats, requires related episodic files
-- Added an option to raise height limit for helicopters in base game and TLAD to match TBOGT
+- Added an option to raise height limit for helicopters in IV and TLAD to match TBOGT level
 - Added an option to give P90 and AA12 to SWAT and FIB and M249 to police in helicopters in IV and TLAD, requires episodic weapons
-- Added an option to disable SCO signature check, make game can use any episodic SCO on all episodes
+- Added an option to disable SCO signature check, allow game to use any episodic SCO on all episodes
 
 ### Misc
 
@@ -262,9 +262,11 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed black rain droplets and missing refraction
 - Restored console rain density
 - Sped up menu and pause transitions
-- Fixed TLAD phone keypad rendering on top of the plastic cover
+- Fixed Z-shift issue on Roman's apartment light bulb
+- Fixed TLAD phone keypad rendering on top of the plastic cover and restored Xbox360 button position
 - Fixed an incorrectly used head texture in TLAD's traffic cops
-- Fixed Yusef's golden cellphone and golden uzi cutscene models
+- Corrected CD cases model in Bulgarin's apartment in TBoGT
+- Fixed Yusef's golden cellphone and golden uzi cutscene models in TBoGT
 - Fixed Tony's apartment window models in TBoGT, to prevent them from flickering violently at night
 - Added an option to enable shadows for some objects and vegetation that lack them
 - Added options to customize shadow blur, bias and cascade blending
