@@ -161,7 +161,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - [Fixed recoil behavior that was different when playing with keyboard/mouse and gamepad](https://github.com/GTAmodding/GTAIV-Issues-List/issues/6)
 - [Fixed forced "definition off" setting in cutscenes, now cutscenes will respect the menu setting](https://github.com/GTAmodding/GTAIV-Issues-List/issues/5)
 - [Fixed DLC car lights in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/3)
-- [Fixed the reverse light illuminating the wrong place](https://github.com/GTAmodding/GTAIV-Issues-List/issues/42)
+- [Fixed reverse lights illuminating in the wrong place for some vehicles](https://github.com/GTAmodding/GTAIV-Issues-List/issues/42)
 - [Fixed various issues related to high frame rates](https://github.com/GTAmodding/GTAIV-Issues-List/issues/112)
 - [Added various frame limiting options to address fps related issues](https://github.com/GTAmodding/GTAIV-Issues-List/issues/1)
 - [Fixed Niko will not use his leg to keep balance on bike while talking on the phone](https://github.com/GTAmodding/GTAIV-Issues-List/issues/41)
@@ -184,15 +184,18 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Increased vehicle livery limit from 4 to 127
 - Fixed draw distance sliders not being applied on startup, solved lods appearing inside normal models unless opening "Graphics" menu once
 - Improved and fixed some lights and emissive materials (e.g. fixed some light bleed issues)
-- Restored missing lamppost coronas and uncompressed corona texture from consoles
+- Restored missing lamppost coronas by using console accurate lamppost light properties
+- Restored the higher quality uncompressed corona texture from the Xbox 360 version
 - Fixed PC grass models stuck underground
 - Added new tree LOD atlas based on the PC trees
 - Added an option to allow users to custom tree alpha value
-- Fixed assault rifle and sawn-off firing delay
-- Fixed the auto sniper position when aiming
-- Fixed mp5 crouch reload animation lacks sound in IV
+- Fixed firing delay for assault rifles caused by imperfect animation data (Only appear in PC IV and TLAD)
+- Fixed MP5 crouch reload lacks sounds, caused by improper animation data (Only appear in PC IV)
+- Fixed sniper animations using a mix of PC and console animations, and fixed their positions while held
+- Mirrored sniper models so their reloading animation makes more sense
+- Reduced TLAD sawn-off firing delay in it's animation data, now the second shot will be faster after shooting the first one
 - Fixed TLAD streetsweeper broken recoil animation
-- Fixed incorrect bullet tracer position in TBoGT
+- Force TBoGT to use IV and TLAD bullet tracer particles to fix TBoGT's bullet tracer spawning behind the guns, now they look consistent across three games
 - Significantly sped up loading screens
 - Fixed jagged vehicle reflections
 - Disable Z-write behavior for emissive shaders to fix some visual issues (e.g. fixed Bahama Mamas' strobe lights)
@@ -244,6 +247,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored Xbox360 contrast slider behavior
 - Fixed glass shards lacking colors
 - Fixed particles flickering in some situations
+- Restored console .wpfls particle file to fix some broken particles (e.g. explosion particle transparency)
 - Added an option to restore the auto exposure effect from consoles
 - Restored environment reflection intensity from consoles
 - Added an option to restore the more reflective cars from consoles
@@ -267,7 +271,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed black rain droplets and missing refraction, now rain droplets look the same as console version
 - Restored console rain density
 - Sped up menu and pause transitions
-- Fixed Z-shift issue on Roman's apartment light bulb
+- Restored Roman's apartment light bulb properties from console, and fixed its depth sorting issue
 - Fixed TLAD phone keypad rendering on top of the plastic cover and restored Xbox360 button position
 - Fixed an incorrectly used head texture in TLAD's traffic cops
 - Corrected CD cases model in Bulgarin's apartment and Luis's safehouse in TBoGT
@@ -363,7 +367,6 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed stuttery particle animations caused by patch 1.0.5.0
 - Fixed rain being almost invisible, especially at night
 - Fixed rain streaks becoming shorter at high framerates
-- Fixed broken explosion particle transparency
 
 #### Water
 
