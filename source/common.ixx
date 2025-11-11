@@ -1019,7 +1019,7 @@ public:
             for (auto i = 0; i < ntHeader->FileHeader.NumberOfSections; i++)
             {
                 auto sec = getSection(ntHeader, i);
-                auto pFunctions = reinterpret_cast<void**>(instance + max(sec->PointerToRawData, sec->VirtualAddress));
+                auto pFunctions = reinterpret_cast<void**>(instance + std::max(sec->PointerToRawData, sec->VirtualAddress));
 
                 for (ptrdiff_t j = 0; j < 300; j++)
                 {

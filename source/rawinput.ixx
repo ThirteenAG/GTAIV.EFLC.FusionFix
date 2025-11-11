@@ -239,9 +239,9 @@ public:
                     {
                         auto fFOVZoomed = *(float*)(ptr + 0x60);
                         static auto fFOVDefault = fFOVZoomed;
-                        fFOVDefault = max(fFOVDefault, fFOVZoomed);
+                        fFOVDefault = std::max(fFOVDefault, fFOVZoomed);
                         auto fDiff = fFOVDefault / fFOVZoomed;
-            
+
                         *(float*)(ptr + 0x148) += (-(float)GetRIMouseAxisData(0) * TryMatchPedCamSensitivity()) / fDiff;
                         *(float*)(ptr + 0x144) += (-(float)GetRIMouseAxisData(1) * (inv->get() ? -TryMatchPedCamSensitivity() : TryMatchPedCamSensitivity())) / fDiff;
                     }

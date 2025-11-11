@@ -175,8 +175,8 @@ uint64_t GetProcessPreferredGPUMemory()
     FreeLibrary(hDxgi);  // Free only after all interfaces are released
 
     // Safety caps
-    memory = max(max(budget, dedicated), _2048mb);
-    memory = min(memory, total_system_ram / 2);
+    memory = std::max(std::max(budget, dedicated), _2048mb);
+    memory = std::min(memory, total_system_ram / 2);
 
     return memory;
 }
@@ -189,7 +189,7 @@ int64_t getAvailableVidMem()
     {
         static auto vram = GetProcessPreferredGPUMemory();
         static auto d3d9vram = static_cast<uint64_t>(rage::grcDevice::GetD3DDevice()->GetAvailableTextureMem());
-        static auto totalVRAM = max(max(vram, d3d9vram), _2048mb);
+        static auto totalVRAM = std::max(std::max(vram, d3d9vram), _2048mb);
         ret = static_cast<int64_t>(totalVRAM);
     }
     return ret;

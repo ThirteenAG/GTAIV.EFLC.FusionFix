@@ -1719,7 +1719,7 @@ export namespace rage
 
         static inline void setShaderParamData(size_t idx, const void* src, size_t size)
         {
-            std::memcpy(ShaderParamData[idx].data(), src, min(size, sizeof(decltype(ShaderParamData)::value_type)));
+            std::memcpy(ShaderParamData[idx].data(), src, std::min(size, sizeof(decltype(ShaderParamData)::value_type)));
         }
 
         static inline decltype(ShaderParamData)::value_type& getShaderParamData(size_t idx)

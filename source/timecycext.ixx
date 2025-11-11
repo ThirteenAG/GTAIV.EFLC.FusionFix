@@ -269,7 +269,7 @@ public:
 
                     std::string_view line = contentView.substr(pos, nextNewline - pos);
                     pos = nextNewline < contentView.size() ? nextNewline + 1 : nextNewline;
-                    line.remove_prefix(min(line.find_first_not_of(" \t\r"), line.size()));
+                    line.remove_prefix(std::min(line.find_first_not_of(" \t\r"), line.size()));
 
                     if (!line.empty() && line.front() != '/' && line.front() != '#')
                     {
