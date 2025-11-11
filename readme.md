@@ -234,8 +234,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 >
 - Added an option to enable support for APC, buzzard, smuggler, floater, blade and all their abilities in IV and TLAD
 - Added an option to enable DSR1, grenade launcher, pipe bomb, sticky bomb, AA12 explosive shells, P90 vehicle check, partially parachute and all their abilities in IV, TLAD and TBoGT
-- Added an option to enable explosive rounds on annihilator, requires episodic weapons
-- Added an option to enable camera bobbing in clubs, cell phone switching, altimeter in helicopters and parachute, explosive sniper and fists cheats, requires related episodic files
+- Added an option to enable explosive rounds on annihilator in IV, requires episodic weapons
+- Added an option to enable camera bobbing in clubs, cell phone switching, altimeter in helicopters and parachute, explosive sniper and fists cheats in IV and TLAD, requires related episodic files
 - Added an option to raise height limit for helicopters in IV and TLAD to match TBOGT level
 - Added an option to give P90 and AA12 to SWAT and FIB and M249 to police in helicopters in IV and TLAD, requires episodic weapons
 - Added an option to disable SCO signature check, allow game to use any episodic SCO on all episodes
@@ -243,7 +243,6 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 ### Misc
 
 - Restored timecycles from consoles with improved auto exposure and fixed missing moon at night in "Sunny" weather
-- Restored console timecyc gamma bump
 - Restored Xbox360 contrast slider behavior
 - Fixed glass shards lacking colors
 - Fixed particles flickering in some situations
@@ -271,7 +270,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored functionality of some rain parameters from visualsettings.dat
 - Fixed black rain droplets and missing refraction, now rain droplets look the same as console version
 - Restored console rain density
-- Sped up menu and pause transitions
+- Sped up menu and pause transitions, some related delay time can be customed through several added options
 - Restored Roman's apartment light bulb properties from console, and fixed its depth sorting issue
 - Fixed TLAD phone keypad rendering on top of the plastic cover and restored Xbox360 button position
 - Fixed an incorrectly used head texture in TLAD's traffic cops
