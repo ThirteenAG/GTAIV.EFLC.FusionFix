@@ -218,6 +218,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored voice lines from Luis, he'll now respond to what the pilot tells him about the landmarks during the tour
 - Fixed the busker script terminates too early in TBoGT, now Luis can give money to busker normally
 - Fixed ilyena call & brycebug content can't trigger after load the save (From ilyena's random character mission and stubbs' job)
+- Fixed the FIB arriving too early at the abandoned mansion in Phil's mission "To live and die in Alderney"
 - Fixed the heli climb QTE being impossible on really high framerates
 - Workaround for a bug where Niko dies after being kicked off of Dimitri's helicopter and falling into the water (Deal Ending)
 - Workaround for a bug where Jacob crashes the Annihilator on high framerates (Deal Ending)
@@ -245,6 +246,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored environment reflection intensity from consoles
 - Added an option to restore the more reflective cars from consoles
 - Fixed incorrect water and post processing noise tiling on quality levels other than medium
+- Now "Display" background's game render area width keeps the same as "Graphics" in the pause menu
 - Remove free cam boundary limits in the video editor
 - Added an option to display NPC's health on the reticle when playing with keyboard and mouse
 - Crosshair will appear in the first person view on Annihilator and Buzzard when playing with controller
@@ -265,7 +267,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed Z-shift issue on Roman's apartment light bulb
 - Fixed TLAD phone keypad rendering on top of the plastic cover and restored Xbox360 button position
 - Fixed an incorrectly used head texture in TLAD's traffic cops
-- Corrected CD cases model in Bulgarin's apartment in TBoGT
+- Corrected CD cases model in Bulgarin's apartment and Luis's safehouse in TBoGT
 - Fixed Yusef's golden cellphone and golden uzi cutscene models in TBoGT
 - Fixed Tony's apartment window models in TBoGT, to prevent them from flickering violently at night
 - Added an option to enable shadows for some objects and vegetation that lack them
