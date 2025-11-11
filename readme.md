@@ -134,7 +134,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 #### Audio
 
-- **Cutscene Audio Sync**, force cutscene to sync with cutscene audio, enable this if you experience audio desynchronization in cutscenes, can be toggled through **the up arrow key** with keyboard or **up on the D-pad** with controller in cutscene
+- **Cutscene Audio Sync**, force cutscene to sync with cutscene audio, may affect the smoothness of cutscene animations, only enable this if you experience audio desynchronization in cutscenes, can be toggled through **the up arrow key** with keyboard or **up on the D-pad** with controller in cutscene
 - **Alternative Dialogues**, when enabled, forces the game to use alternative dialogues in some missions
 
 #### Controls
@@ -258,6 +258,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Added an option to display NPC's health on the reticle when playing with keyboard and mouse
 - Crosshair will appear in the first person view on Annihilator and Buzzard when playing with controller
 - Pressing radar zoom out button now will make it stay zoomed out for a few seconds, and added an option to allow to custom zoom delay time
+- Adjusted Handbrake Cam behavior on keyboard and mouse
 - Fixed radio reset after cutscene
 - Workaround for lights & motion blur flicker intermittently when player is drunk
 - Fixed helicopter searchlights flicker violently when more than one helicopter is present
@@ -284,7 +285,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 ### Some details
 
 - **RecoilFix** - set to **1** to make recoil behavior bahave the same as controller when playing with keyboard and mouse, set to **0** to disable the fix.
-- **AimingZoomFix** - set to **1** for proper fix, so it behaves like on xbox, set to **2** to have this fixed feature enabled in IV and TLAD, set to **-1** to disable this feature. **0** disables the fix, as usual.
+- **AimingZoomFix** - set to **1** for proper fix, so it behaves like on Xbox360 (memorize the zoom level from the last time aiming was canceled), set to **2** to have this fixed feature enabled in IV and TLAD, set to **-1** to disable this feature. **0** disables the fix, as usual.
 - **FpsLimit** - enter a desired value to specify the number of frames per second you want for the game. Like 30, 45, 60 or more. This will affect all gameplay. Refresh rate offsets may also be used.
 - **CutsceneFpsLimit** - enter a desired value to specify the number of frames per second you want for the game to use on cutscenes only.
 - **MinigamesFpsLimit** - limit frame rates for some selected minigames to avoid possible high frame rates issue during these minigames.
