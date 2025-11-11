@@ -217,8 +217,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Chinatown gun shop: Fixed a small bug where the wrong voice line is used after exiting when not buying something
 - Restored voice lines from Luis, he'll now respond to what the pilot tells him about the landmarks during the tour
 - Fixed the busker script terminates too early in TBoGT, now Luis can give money to busker normally
-- Fixed ilyena call & brycebug content can't trigger after load the save
-- Fixed the heli climb QTE being impossible on really high framerates
+- Fixed ilyena call & brycebug content can't trigger after load the save (from ilyena's random character mission and stubbs' job)
+- Fixed the truck and heli climb QTE being impossible on really high framerates (phil's mission and ending)
 - Workaround for a bug where Niko dies after being kicked off of Dimitri's helicopter and falling into the water (Deal Ending)
 - Workaround for a bug where Jacob crashes the Annihilator on high framerates (Deal Ending)
 
@@ -237,8 +237,10 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 ### Misc
 
 - Restored timecycles from consoles with improved auto exposure and fixed missing moon at night in "Sunny" weather
-- restored console timecyc gamma bump
+- Restored console timecyc gamma bump
+- Restored Xbox360 contrast slider behavior
 - Fixed glass shards lacking colors
+- Fixed particles flickering in some situations
 - Added an option to restore the auto exposure effect from consoles
 - Restored environment reflection intensity from consoles
 - Added an option to restore the more reflective cars from consoles
@@ -261,7 +263,9 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored console rain density
 - Sped up menu and pause transitions
 - Fixed TLAD phone keypad rendering on top of the plastic cover
+- Fixed an incorrectly used head texture in TLAD's traffic cops
 - Fixed Yusef's golden cellphone and golden uzi cutscene models
+- Fixed Tony's apartment window models in TBoGT, to prevent them from flickering violently at night
 - Added an option to enable shadows for some objects and vegetation that lack them
 - Added options to customize shadow blur, bias and cascade blending
 - Various other fixes, like regular cops & fat cops will now spawn with their hat prop disabled when in a vehicle, like on the console version
