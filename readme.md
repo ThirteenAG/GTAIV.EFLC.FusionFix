@@ -177,11 +177,12 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Added Snow and Halloween seasonal events
 - Increased corona limit to avoid heavy flickering of game's lights
 - Improved ultrawide support
-- Fixed improper VRAM detection on some setups
+- Fixed improper VRAM detection on some setups (e.g. using DXVK)
 - The mouse cursor is now hidden when playing with controller
 - Fixed mouse cursor scale
 - Added various fixed animations and vehicle models
-- Fixed draw distance sliders not being applied on startup
+- Increased vehicle livery limit from 4 to 127
+- Fixed draw distance sliders not being applied on startup, solved lods appearing inside normal models unless opening "Graphics" menu once
 - Improved and fixed some lights and emissive materials (e.g. fixed some light bleed issues)
 - Restored missing lamppost coronas and uncompressed corona texture from consoles
 - Fixed PC grass models stuck underground
@@ -200,6 +201,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored higher shadow render distance from old versions of the game
 - Improved cascaded shadows performance, and added an option to double their resolution
 - Added dynamic shadows for trees
+- Added contact hardening shadows, and it has different softness levels depending on the weather and time of day, can be customed in extra timecyc
 - Reduced water flickering issue (need to disable **Extra Night Shadows**)
 - Added several cheat code to enable seasonal events and restore some unused player assets for Niko and Johnny, they can be found hidden in relevant locations, or finding them [here](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/blob/master/source/cheats.ixx)
 
@@ -246,6 +248,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored environment reflection intensity from consoles
 - Added an option to restore the more reflective cars from consoles
 - Fixed incorrect water and post processing noise tiling on quality levels other than medium
+- Coronas now can fade in reflections, and fixed sometimes coronas may be reflected through objects from very far away
 - Now "Display" background's game render area width keeps the same as "Graphics" in the pause menu
 - Remove free cam boundary limits in the video editor
 - Added an option to display NPC's health on the reticle when playing with keyboard and mouse
@@ -261,7 +264,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed washed out mirror reflections on some graphics cards
 - Significantly reduced pop-in on higher graphics settings (mainly procedural objects)
 - Restored functionality of some rain parameters from visualsettings.dat
-- Fixed black rain droplets and missing refraction
+- Fixed black rain droplets and missing refraction, now rain droplets look the same as console version
 - Restored console rain density
 - Sped up menu and pause transitions
 - Fixed Z-shift issue on Roman's apartment light bulb
@@ -280,13 +283,13 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **AimingZoomFix** - set to **1** for proper fix, so it behaves like on xbox, set to **2** to have this fixed feature enabled in IV and TLAD, set to **-1** to disable this feature. **0** disables the fix, as usual.
 - **FpsLimit** - enter a desired value to specify the number of frames per second you want for the game. Like 30, 45, 60 or more. This will affect all gameplay. Refresh rate offsets may also be used.
 - **CutsceneFpsLimit** - enter a desired value to specify the number of frames per second you want for the game to use on cutscenes only.
-- **MinigamesFpsLimit** - Limit frame rates for some selected minigames to avoid possible high frame rates issue during these minigames.
+- **MinigamesFpsLimit** - limit frame rates for some selected minigames to avoid possible high frame rates issue during these minigames.
 - **DefaultCameraAngleInTLAD** - TLAD uses a different camera angle on bikes, this option can force the original IV camera angle. [Enabled](https://i.imgur.com/PqFHJfU.jpg) / [Disabled](https://i.imgur.com/5kM5Sgn.jpg)
 - **PedDeathAnimFixFromTBOGT** - when you perform a counter attack after a dodge in IV & TLAD, the ped after falling and dying performs an additional death animation, which doesn't happen in TBOGT. [Enabled](https://imgur.com/EYsiGPe) / [Disabled](https://imgur.com/CR3LEdR)
 - **DisableCameraCenteringInCover** - [see issue 20](https://github.com/GTAmodding/GTAIV-Issues-List/issues/20).
 - **VehicleBudget** - allows to increase the budget of vehicles, used to avoid "Taxi Bug", may cause vehicle audio issue. For more information about TaxiBug and VehicleBudget, please watch [TJGM's video](https://www.youtube.com/watch?v=wr8m9kL3U20&t=237s)
 - **PedBudget** - allows to increase the budget of pedestrians.
-- **ExtendedLimits** - set to **1** to increase various limits like modelinfo, handling, carcols.
+- **ExtendedLimits** - set to **1** to increase various limits like modelinfo, handling, carcols, some pools size.
 
 ## Shaders Changelog
 
