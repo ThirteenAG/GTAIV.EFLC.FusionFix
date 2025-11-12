@@ -108,8 +108,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **Extended Sunlight Reach**, allows sunlight to reach surfaces that it couldn't before, and increases cloud shading
 - **Tone Mapping**, prevents highlights from being blown out, more operators can be found [here](https://github.com/Parallellines0451/GTAIV.EFLC.FusionShaders/tree/main/assets/luts/samples)
 - **Shadow Filter**, toggles between sharp, soft, or contact hardening shadows
-- **Graphics API**, select between DirectX 9 and Vulkan (through [DXVK](https://github.com/doitsujin/dxvk/releases)), requires a restart
-> Fusion Fix uses DXVK 2.6.2 by default, if you need to use other DXVK version, [install DXVK version which you need](https://github.com/doitsujin/dxvk/releases), rename x32 folder's d3d9.dll to vulkan.dll, and replace Fusion Fix's vulkan.dll. 
+- **Graphics API**, select between DirectX 9 and Vulkan (through [DXVK](https://github.com/doitsujin/dxvk/releases)), requires a restart 
 
 #### Game
 
@@ -127,12 +126,12 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 ![LightSyncRGB](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/assets/4904157/f925ad27-19ce-4dde-8801-0cec1578ade7)
 
-- **Seasonal Events**, enable added seasonal events at a specific time
+- **Seasonal Events**, enable added seasonal events at specific date
 - **Check For Fusion Fix Updates**, checks if there's an update available on startup
 
 #### Audio
 
-- **Cutscene Audio Sync**, force cutscene to sync with cutscene audio, may affect the smoothness of cutscene animations, only enable this if you experience audio desynchronization in cutscenes, can be toggled through **the up arrow key** with keyboard or **up on the D-pad** with controller in cutscene
+- **Cutscene Audio Sync**, [see issue 691](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/issues/691), only enable this if you experience audio desynchronization in cutscenes
 - **Alternative Dialogues**, when enabled, forces the game to use alternative dialogues in some missions
 
 #### Controls
@@ -159,12 +158,9 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - [Fixed recoil behavior that was different when playing with keyboard/mouse and gamepad](https://github.com/GTAmodding/GTAIV-Issues-List/issues/6)
 - [Fixed forced "definition off" setting in cutscenes, now cutscenes will respect the menu setting](https://github.com/GTAmodding/GTAIV-Issues-List/issues/5)
 - [Fixed DLC car lights in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/3)
-- [Fixed reverse lights illuminating in the wrong place for some vehicles](https://github.com/GTAmodding/GTAIV-Issues-List/issues/42)
 - [Fixed various issues related to high frame rates](https://github.com/GTAmodding/GTAIV-Issues-List/issues/112)
 - [Added various frame limiting options to address fps related issues](https://github.com/GTAmodding/GTAIV-Issues-List/issues/1)
-- [Fixed Niko will not use his leg to keep balance on bike while talking on the phone](https://github.com/GTAmodding/GTAIV-Issues-List/issues/41)
 - [Fixed aiming zoom in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/19)
-- [Fixed Drive-by can be triggered when using cellphone](https://github.com/GTAmodding/GTAIV-Issues-List/issues/28)
 - [Fixed P90 being selectable in vehicles on keyboard](https://github.com/GTAmodding/GTAIV-Issues-List/issues/90)
 - [Fixed possible crash when manually dial a phone number using the keypad in TLAD](https://github.com/GTAmodding/GTAIV-Issues-List/issues/232)
 - [Fixed possible crash in TLAD mission "Marta Full of Grace"](https://github.com/GTAmodding/GTAIV-Issues-List/issues/235)
@@ -172,38 +168,24 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - [Added a file overload solution that allows to replace game files without actually replacing them](https://github.com/ThirteenAG/Ultimate-ASI-Loader?tab=readme-ov-file#update-folder-overload-from-folder)
 - Added IMG Loader (from update folder)
 - Added GXT Overloading, allow game to load additional .gxt files to overwrite vanilla lines or add new lines, without changing vanilla gxt files
-- Added Snow and Halloween seasonal events
 - Increased corona limit to avoid heavy flickering of game's lights
 - Improved ultrawide support
-- Fixed improper VRAM detection on some setups (e.g. using DXVK)
-- The mouse cursor is now hidden when playing with controller
-- Fixed mouse cursor scale
-- Added various fixed animations and vehicle models
-- Increased vehicle livery limit from 4 to 127
-- Fixed draw distance sliders not being applied on startup, solved lods appearing inside normal models unless opening "Graphics" menu once
-- Game will use constant far clip value when **Volumetric Fog** is enabled, not affected by player position, the value can be customed through added option
-- Improved and fixed some lights and emissive materials (e.g. fixed some light bleed issues)
-- Restored missing lamppost coronas by using console accurate lamppost light properties
-- Restored the higher quality uncompressed corona texture from the Xbox 360 version
+- Fixed improper VRAM detection on some setups
+- Fixed draw distance sliders not being applied on startup
+- Fixed mouse cursor scale and can be seen when using controller
+- Significantly sped up loading screens
+- Added various fixed weapon, movement and other animations
+- Added various fixed vehicle models
+- Fixed incorrect TBoGT bullet tracer position
+- Restored missing lamppost coronas and uncompressed corona texture from console
 - Fixed PC grass models stuck underground
 - Added new tree LOD atlas based on the PC trees
-- Added an option to allow users to custom tree alpha value
-- Fixed firing delay for assault rifles caused by imperfect animation data (Only appear in PC IV and TLAD)
-- Fixed MP5 crouch reload lacks sounds, caused by improper animation data (Only appear in PC IV)
-- Fixed sniper animations using a mix of PC and console animations, and fixed their positions while held
-- Mirrored sniper models so their reloading animation makes more sense
-- Reduced TLAD sawn-off firing delay in it's animation data, now the second shot will be faster after shooting the first one
-- Fixed TLAD streetsweeper broken recoil animation
-- Force TBoGT to use IV and TLAD bullet tracer particles to fix TBoGT's bullet tracer spawning behind the guns, now they look consistent across three games
-- Significantly sped up loading screens
 - Fixed jagged vehicle reflections
-- Disable Z-write behavior for emissive shaders to fix some visual issues (e.g. fixed Bahama Mamas' strobe lights)
-- LOD lights now appear at the appropriate time, and they can render in cutscene, like on the console version
+- LOD lights now appear at the appropriate time and can render in cutscene, like on the console version
 - Make night shadows resolution be adjusted by night shadows option
 - Restored higher shadow render distance from old versions of the game
 - Improved cascaded shadows performance, and added an option to double their resolution
 - Added dynamic shadows for trees
-- Added contact hardening shadows, and it has different softness levels depending on the weather and time of day, can be customed in extra timecyc
 - Reduced water flickering issue (need to disable **Extra Night Shadows**)
 - Added several cheat code to enable seasonal events and restore some unused player assets for Niko and Johnny, they can be found hidden in relevant locations, or finding them [here](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/blob/master/source/cheats.ixx)
 
@@ -233,66 +215,52 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 >
 - Added an option to enable support for APC, buzzard, smuggler, floater, blade and all their abilities in IV and TLAD
 - Added an option to enable DSR1, grenade launcher, pipe bomb, sticky bomb, AA12 explosive shells, P90 vehicle check, partially parachute and all their abilities in IV, TLAD and TBoGT
-- Added an option to enable explosive rounds on annihilator in IV, requires episodic weapons
-- Added an option to enable camera bobbing in clubs, cell phone switching, altimeter in helicopters and parachute, explosive sniper and fists cheats in IV and TLAD, requires related episodic files
+- Added an option to enable explosive rounds on annihilator in IV
+- Added an option to enable camera bobbing in clubs, cell phone switching, altimeter in helicopters and parachute, explosive sniper and fists cheats in IV and TLAD
 - Added an option to raise height limit for helicopters in IV and TLAD to match TBOGT level
-- Added an option to give P90 and AA12 to SWAT and FIB and M249 to police in helicopters in IV and TLAD, requires episodic weapons
+- Added an option to give P90 and AA12 to SWAT and FIB and M249 to police in helicopters in IV and TLAD
 - Added an option to disable SCO signature check, allow game to use any episodic SCO on all episodes
 
 ### Misc
 
-- Restored timecycles from consoles with improved auto exposure and fixed missing moon at night in "Sunny" weather
-- Restored Xbox360 contrast slider behavior
+- Restored timecycles from consoles with improved auto exposure and fixed missing moon at night in certain weather
 - Fixed glass shards lacking colors
 - Fixed particles flickering in some situations
-- Restored console .wpfls particle file to fix some broken particles (e.g. explosion particle transparency)
-- Added an option to restore the auto exposure effect from consoles
+- Restored console particle file, and fixed some broken particles
 - Restored environment reflection intensity from consoles
 - Added an option to restore the more reflective cars from consoles
-- Fixed incorrect water and post processing noise tiling on quality levels other than medium
-- Coronas now can fade in reflections, and fixed sometimes coronas may be reflected through objects from very far away
-- Now "Display" background's game render area width keeps the same as "Graphics" in the pause menu
-- Remove free cam boundary limits in the video editor
-- Added an option to display NPC's health on the reticle when playing with keyboard and mouse
-- Crosshair will appear in the first person view on Annihilator and Buzzard when playing with controller
-- Pressing radar zoom out button now will make it stay zoomed out for a few seconds, and added an option to allow to custom zoom delay time
-- Adjusted Handbrake Cam behavior on keyboard and mouse
-- Fixed radio reset after cutscene
-- Workaround for lights & motion blur flicker intermittently when player is drunk
-- Fixed helicopter searchlights flicker violently when more than one helicopter is present
-- Fixed camera stuttering while sprinting, turning and swimming with a controller
-- Fixed helicopter pitch up anim
+- Restored Xbox360 contrast slider behavior
+- Disable Z-write behavior for emissive shaders to fix some visual issues
 - Improved phone screen resolution
 - Fixed offset mirrors
 - Fixed washed out mirror reflections on some graphics cards
-- Significantly reduced pop-in on higher graphics settings (mainly procedural objects)
+- Significantly reduced pop-in on higher graphics settings
 - Restored functionality of some rain parameters from visualsettings.dat
-- Fixed black rain droplets and missing refraction, now rain droplets look the same as console version
+- Fixed black rain droplets and missing refraction
 - Restored console rain density
-- Sped up menu and pause transitions, some related delay time can be customed through several added options
-- Restored Roman's apartment light bulb properties from console, and fixed its depth sorting issue
-- Fixed TLAD phone keypad rendering on top of the plastic cover and restored Xbox360 button position
-- Fixed an incorrectly used head texture in TLAD's traffic cops
-- Corrected CD cases model in Bulgarin's apartment and Luis's safehouse in TBoGT
-- Fixed Yusef's golden cellphone and golden uzi cutscene models in TBoGT
-- Fixed Tony's apartment window models in TBoGT, to prevent them from flickering violently at night
+- Sped up menu and pause transitions
+- Pressing radar zoom out button now will make it stay zoomed out for a few seconds
+- Workaround for lights & motion blur flicker intermittently when player is drunk
+- Fixed helicopter searchlights flicker violently when more than one helicopter is present
+- Fixed radio reset after cutscene
+- Fixed TLAD phone keypad rendering on top of the plastic cover
+- Fixed TLAD an incorrect traffic cops head texture
+- Fixed some cutscene and interiors models
+- Fixed and improved some lights and emissive materials
 - Added an option to enable shadows for some objects and vegetation that lack them
-- Added options to customize shadow blur, bias and cascade blending
+- Added options to customize shadow blur, bias and cascade blending 
 - Various other fixes, like regular cops & fat cops will now spawn with their hat prop disabled when in a vehicle, like on the console version
 
 ### Some details
 
-- **RecoilFix** - set to **1** to make recoil behavior bahave the same as controller when playing with keyboard and mouse, set to **0** to disable the fix.
 - **AimingZoomFix** - set to **1** for proper fix, so it behaves like on Xbox360 (memorize the zoom level from the last time aiming was canceled), set to **2** to have this fixed feature enabled in IV and TLAD, set to **-1** to disable this feature. **0** disables the fix, as usual.
 - **FpsLimit** - enter a desired value to specify the number of frames per second you want for the game. Like 30, 45, 60 or more. This will affect all gameplay. Refresh rate offsets may also be used.
 - **CutsceneFpsLimit** - enter a desired value to specify the number of frames per second you want for the game to use on cutscenes only.
-- **MinigamesFpsLimit** - limit frame rates for some selected minigames to avoid possible high frame rates issue during these minigames.
 - **DefaultCameraAngleInTLAD** - TLAD uses a different camera angle on bikes, this option can force the original IV camera angle. [Enabled](https://i.imgur.com/PqFHJfU.jpg) / [Disabled](https://i.imgur.com/5kM5Sgn.jpg)
 - **PedDeathAnimFixFromTBOGT** - when you perform a counter attack after a dodge in IV & TLAD, the ped after falling and dying performs an additional death animation, which doesn't happen in TBOGT. [Enabled](https://imgur.com/EYsiGPe) / [Disabled](https://imgur.com/CR3LEdR)
 - **DisableCameraCenteringInCover** - [see issue 20](https://github.com/GTAmodding/GTAIV-Issues-List/issues/20).
-- **VehicleBudget** - allows to increase the budget of vehicles, used to avoid "Taxi Bug", may cause vehicle audio issue. For more information about TaxiBug and VehicleBudget, please watch [TJGM's video](https://www.youtube.com/watch?v=wr8m9kL3U20&t=237s)
+- **VehicleBudget** - allows to increase the budget of vehicles, used to avoid only taxi will spawn. For more information about TaxiBug and VehicleBudget, please watch [TJGM's video](https://www.youtube.com/watch?v=wr8m9kL3U20&t=237s)
 - **PedBudget** - allows to increase the budget of pedestrians.
-- **ExtendedLimits** - set to **1** to increase various limits like modelinfo, handling, carcols, some pools size.
 
 ## Shaders Changelog
 
