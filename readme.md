@@ -228,6 +228,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed particles flickering in some situations
 - Restored console particle file, and fixed some broken particles
 - Restored environment reflection intensity from consoles
+- Fixed incorrect water and post processing noise tiling on quality levels other than medium
 - Added an option to restore the more reflective cars from consoles
 - Restored Xbox360 contrast slider behavior
 - Disable Z-write behavior for emissive shaders to fix some visual issues
@@ -268,7 +269,6 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 - Fixed z-fighting
 - Restored deferred object and LOD fading
-- Restored faster console object fade speed
 - Restored console screen door transparency
 
 #### Lighting
