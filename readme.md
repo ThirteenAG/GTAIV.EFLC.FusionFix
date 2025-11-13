@@ -228,7 +228,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed particles flickering in some situations
 - Restored console particle file, and fixed some broken particles
 - Restored environment reflection intensity from consoles
-- Fixed water on quality levels other than medium and post processing noise effect tiling incorrectly
+- Fixed incorrect water texture and post processing noise tiling on "Water Quality" levels other than medium
 - Added an option to restore the more reflective cars from consoles
 - Restored Xbox360 contrast slider behavior
 - Disable Z-write behavior for emissive shaders to fix some visual issues
