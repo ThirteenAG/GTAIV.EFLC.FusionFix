@@ -144,8 +144,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **Centered On Foot Camera**, makes on foot camera centered, also for more options install the [original mod](https://github.com/gennariarmando/iv-centered-onfoot-cam)
 - **Turn Indicators**, allows the player to use vehicle turn indicators and hazard lights
 - **Always Show Bullet Traces**, shows bullet traces on every shot instead of randomly, like in the older games
-- **Vehicle Camera Centering Delay**, controls the time until the vehicle camera auto centering kicks in after moving it
-- **On Foot Camera Centering Delay**, controls the time until the on foot camera auto centering kicks in after moving it
+- **Vehicle Camera Centering Delay**, controls the time until vehicle camera auto centering kicks in after moving it
+- **On Foot Camera Centering Delay**, controls the time until on foot camera auto centering kicks in after moving it
 - **Vehicle Camera Turn Speed**, controls the camera turn speed when driving a vehicle and turning
 - **Gamepad Icons**, allows to select various controller icon styles (Xbox 360, Xbox One, PS3, PS4, PS5, Nintendo Switch, Steam Deck)
 - **Raw Input**, raw input for menu and adjustments for in-game camera mouse look
@@ -172,7 +172,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Improved ultrawide support
 - Fixed improper VRAM detection on some setups
 - Fixed draw distance sliders not being applied on startup
-- Fixed mouse cursor scale and can be seen when using controller
+- Fixed mouse cursor scale and hidden mouse cursor when using controller
 - Significantly sped up loading screens
 - Added various fixed weapon, movement and other animations
 - Added various fixed vehicle models
@@ -203,7 +203,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Chinatown gun shop: Fixed a small bug where the wrong voice line is used after exiting when not buying something
 - Restored voice lines from Luis, he'll now respond to what the pilot tells him about the landmarks during the tour
 - Fixed the busker script terminates too early in TBoGT, now Luis can give money to busker normally
-- Fixed ilyena call & brycebug content can't trigger after load the save (From ilyena's random character mission and stubbs' job)
+- Fixed ilyena call and brycebug content can't trigger after load the save (From ilyena's random character mission and stubbs' job)
 - Fixed the FIB arriving too early at the abandoned mansion in Phil's mission "To live and die in Alderney"
 - Fixed the heli climb QTE being impossible on really high framerates
 - Workaround for a bug where Niko dies after being kicked off of Dimitri's helicopter and falling into the water (Deal Ending)
@@ -214,7 +214,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 >Note: most of this content requires additional modifications by the end user to the game in order to fully use these features.
 >
 - Added an option to enable support for APC, buzzard, smuggler, floater, blade and all their abilities in IV and TLAD
-- Added an option to enable DSR1, grenade launcher, pipe bomb, sticky bomb, AA12 explosive shells, P90 vehicle check, partially parachute and all their abilities in IV, TLAD and TBoGT
+- Added an option to enable support for DSR1, grenade launcher, pipe bomb, sticky bomb, AA12 explosive shells, P90 vehicle check, partially parachute and all their abilities in IV, TLAD and TBoGT
 - Added an option to enable explosive rounds on annihilator in IV
 - Added an option to enable camera bobbing in clubs, cell phone switching, altimeter in helicopters and parachute, explosive sniper and fists cheats in IV and TLAD
 - Added an option to raise height limit for helicopters in IV and TLAD to match TBOGT level
@@ -223,15 +223,15 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 ### Misc
 
-- Restored timecycles from consoles with improved auto exposure and fixed missing moon at night in certain weather
+- Restored timecycles from consoles with improved auto exposure and restored missing moon in certain weather
 - Fixed glass shards lacking colors
 - Fixed particles flickering in some situations
 - Restored console particle file, and fixed some broken particles
 - Restored environment reflection intensity from consoles
-- Fixed incorrect water texture and post processing noise tiling on "Water Quality" levels other than medium
 - Added an option to restore the more reflective cars from consoles
+- Fixed incorrect water texture and post processing noise tiling on "Water Quality" levels other than medium
 - Restored Xbox360 contrast slider behavior
-- Disable Z-write behavior for emissive shaders to fix some visual issues
+- Disabled Z-write behavior for emissive shaders to fix some visual issues
 - Improved phone screen resolution
 - Fixed offset mirrors
 - Fixed washed out mirror reflections on some graphics cards
@@ -240,10 +240,10 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed black rain droplets and missing refraction
 - Restored console rain density
 - Sped up menu and pause transitions
-- Pressing radar zoom out button now will make it stay zoomed out for a few seconds
-- Workaround for lights & motion blur flicker intermittently when player is drunk
+- Pressed radar zoom out button now will make it stay zoomed out for a few seconds
 - Fixed helicopter searchlights flicker violently when more than one helicopter is present
 - Fixed radio reset after cutscene
+- Workaround for lights & motion blur flicker intermittently when player is drunk
 - Fixed TLAD phone keypad rendering on top of the plastic cover
 - Fixed TLAD an incorrect traffic cops head texture
 - Fixed some cutscene and interiors models
@@ -260,7 +260,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **DefaultCameraAngleInTLAD** - TLAD uses a different camera angle on bikes, this option can force the original IV camera angle. [Enabled](https://i.imgur.com/PqFHJfU.jpg) / [Disabled](https://i.imgur.com/5kM5Sgn.jpg)
 - **PedDeathAnimFixFromTBOGT** - when you perform a counter attack after a dodge in IV & TLAD, the ped after falling and dying performs an additional death animation, which doesn't happen in TBOGT. [Enabled](https://imgur.com/EYsiGPe) / [Disabled](https://imgur.com/CR3LEdR)
 - **DisableCameraCenteringInCover** - [see issue 20](https://github.com/GTAmodding/GTAIV-Issues-List/issues/20).
-- **VehicleBudget** - allows to increase the budget of vehicles, used to avoid only taxi will spawn. For more information about TaxiBug and VehicleBudget, please watch [TJGM's video](https://www.youtube.com/watch?v=wr8m9kL3U20&t=237s)
+- **VehicleBudget** - allows to increase the budget of vehicles, used to avoid only taxi will spawn. For more information about TaxiBug and VehicleBudget, please watch [TJGM's video](https://www.youtube.com/watch?v=wr8m9kL3U20&t=237s).
 - **PedBudget** - allows to increase the budget of pedestrians.
 
 ## Shaders Changelog

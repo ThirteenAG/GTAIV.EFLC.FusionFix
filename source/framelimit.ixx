@@ -24,6 +24,8 @@ std::vector<std::string> minigamesNames = {
     "air_hockey",
     "arm_wrestling",
     "tenpinbowl",
+    "darts",
+    "drinking"
 };
 
 class FrameLimiter
