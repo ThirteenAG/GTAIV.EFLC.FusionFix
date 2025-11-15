@@ -508,8 +508,13 @@ public:
     }
     void SetCallback(std::string_view name, std::function<void(int32_t)>&& cb)
     {
-        auto prefID = GetPrefIDByName(name);
+        const auto prefID = GetPrefIDByName(name);
         if (prefID) mFusionPrefs[*prefID].callback = cb;
+    }
+    void RemoveCallback(std::string_view name)
+    {
+        const auto prefID = GetPrefIDByName(name);
+        if (prefID) mFusionPrefs[*prefID].callback = nullptr;
     }
     void ForEachPref(std::function<void(int32_t id, int32_t idStart, int32_t idEnd)>&& cb)
     {
@@ -1206,17 +1211,6 @@ public:
                     auto curState = GetAsyncKeyState(VK_F3);
                     if ((oldState & 0x8000) == 0 && (curState & 0x8000))
                     {
-                        static std::vector<std::filesystem::path> episodicPaths = {
-                             std::filesystem::path(""),
-                             std::filesystem::path("TLAD"),
-                             std::filesystem::path("TBoGT"),
-                        };
-                    
-                        auto filePath1 = GetModulePath(GetModuleHandleW(NULL)).parent_path() / episodicPaths[*_dwCurrentEpisode] / "pc" / "data";
-                        auto filePath2 = GetModulePath(GetModuleHandleW(NULL)).parent_path() / "pc" / "data";
-                        CTimeCycleExt::Initialise(filePath1 / "timecycext.dat");
-                        CTimeCycleModifiersExt::Initialise(filePath2 / "timecyclemodifiersext.dat");
-                    
                         CTimeCycle::Initialise();
                         CTimeCycle::InitialiseModifiers();
                     }

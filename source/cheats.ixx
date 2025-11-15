@@ -8,10 +8,52 @@ import common;
 import comvars;
 import natives;
 import settings;
-import snow;
+import seasonal;
 
 constexpr size_t MAX_CHEAT_LENGTH = 32;
 char CheatString[MAX_CHEAT_LENGTH] = { 0 };
+
+auto SnowCheat(bool bPrintHelp = true) -> void
+{
+    if (!SeasonalManager::IsTimedEventsDisabled())
+        SeasonalManager::DisableTimedEvents();
+
+    if (SeasonalManager::GetCurrent() == SeasonalType::Snow) 
+    {
+        SeasonalManager::Set(SeasonalType::None);
+
+        if (bPrintHelp)
+            Natives::PrintHelp((char*)"WinterEvent0");
+    }   
+    else 
+    {
+        SeasonalManager::Set(SeasonalType::Snow);
+
+        if (bPrintHelp)
+            Natives::PrintHelp((char*)"WinterEvent1");
+    }
+}
+
+auto HallCheat(bool bPrintHelp = true) -> void
+{
+    if (!SeasonalManager::IsTimedEventsDisabled())
+        SeasonalManager::DisableTimedEvents();
+
+    if (SeasonalManager::GetCurrent() == SeasonalType::Halloween)
+    {
+        SeasonalManager::Set(SeasonalType::None);
+
+        if (bPrintHelp)
+            Natives::PrintHelp((char*)"HalloweenEvent0");
+    }
+    else
+    {
+        SeasonalManager::Set(SeasonalType::Halloween);
+
+        if (bPrintHelp)
+            Natives::PrintHelp((char*)"HalloweenEvent1");
+    }
+}
 
 std::vector<std::pair<const char*, std::function<void()>>> ReversedCheats =
 {

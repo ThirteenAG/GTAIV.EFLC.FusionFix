@@ -11,6 +11,7 @@ import settings;
 import natives;
 import shadows;
 import timecycext;
+import seasonal;
 import d3dx9_43;
 
 template<typename T, typename ... U>
@@ -54,7 +55,7 @@ class Shaders
             static auto AzimuthHeightIdx = rage::grmShaderInfo::registerShaderParam("gta_atmoscatt_clouds.fxc", "AzimuthHeight");
             auto& AzimuthColor = rage::grmShaderInfo::getShaderParamData(AzimuthColorIdx);
             auto& AzimuthHeight = rage::grmShaderInfo::getShaderParamData(AzimuthHeightIdx);
-            
+
             static float arr[4];
             arr[0] = AzimuthColor[0];
             arr[1] = AzimuthColor[1];
@@ -70,7 +71,7 @@ class Shaders
             static auto AzimuthStrengthIdx = rage::grmShaderInfo::registerShaderParam("gta_atmoscatt_clouds.fxc", "AzimuthStrength");
             auto& AzimuthColorEast = rage::grmShaderInfo::getShaderParamData(AzimuthColorEastIdx);
             auto& AzimuthStrength = rage::grmShaderInfo::getShaderParamData(AzimuthStrengthIdx);
-            
+
             static float arr[4];
             arr[0] = AzimuthColorEast[0];
             arr[1] = AzimuthColorEast[1];
@@ -80,13 +81,13 @@ class Shaders
             pDevice->SetPixelShaderConstantF(213, &arr[0], 1);
             pDevice->SetVertexShaderConstantF(229, &arr[0], 1);
         }
-        
+
         {
             static auto SkyColorIdx = rage::grmShaderInfo::registerShaderParam("gta_atmoscatt_clouds.fxc", "SkyColor");
             static auto HDRExposureIdx = rage::grmShaderInfo::registerShaderParam("gta_atmoscatt_clouds.fxc", "HDRExposure");
             auto& SkyColor = rage::grmShaderInfo::getShaderParamData(SkyColorIdx);
             auto& HDRExposure = rage::grmShaderInfo::getShaderParamData(HDRExposureIdx);
-        
+
             static float arr[4];
             arr[0] = SkyColor[0];
             arr[1] = SkyColor[1];
@@ -96,13 +97,13 @@ class Shaders
             pDevice->SetPixelShaderConstantF(214, &arr[0], 1);
             pDevice->SetVertexShaderConstantF(234, &arr[0], 1);
         }
-        
+
         {
             static auto SunColorIdx = rage::grmShaderInfo::registerShaderParam("gta_atmoscatt_clouds.fxc", "SunColor");
             static auto HDRSunExposureIdx = rage::grmShaderInfo::registerShaderParam("gta_atmoscatt_clouds.fxc", "HDRSunExposure");
             auto& SunColor = rage::grmShaderInfo::getShaderParamData(SunColorIdx);
             auto& HDRSunExposure = rage::grmShaderInfo::getShaderParamData(HDRSunExposureIdx);
-            
+
             static float arr[4];
             arr[0] = SunColor[0];
             arr[1] = SunColor[1];
@@ -112,11 +113,11 @@ class Shaders
             pDevice->SetPixelShaderConstantF(215, &arr[0], 1);
             pDevice->SetVertexShaderConstantF(231, &arr[0], 1);
         }
-        
+
         {
             static auto SunDirectionIdx = rage::grmShaderInfo::registerShaderParam("gta_atmoscatt_clouds.fxc", "SunDirection");
             auto& SunDirection = rage::grmShaderInfo::getShaderParamData(SunDirectionIdx);
-        
+
             static float arr[4];
             arr[0] = SunDirection[0];
             arr[1] = (-1.0f * SunDirection[2]);
@@ -158,7 +159,7 @@ public:
         static int nForceShadowFilter = 0;
 
         static bool bSmoothShorelines = true;
-        
+
         static bool bSmoothLightVolumes = true;
 
         static bool bNoBloomColorShift = true;
@@ -188,7 +189,7 @@ public:
             bSmoothLightVolumes = iniReader.ReadInteger("MISC", "SmoothLightVolumes", 1) != 0;
 
             bNoBloomColorShift = iniReader.ReadInteger("MISC", "NoBloomColorShift", 1) != 0;
-            fMaxPQValue = max(iniReader.ReadFloat("MISC", "MaxPQValue", 100.0f), 0.0000001f);
+            fMaxPQValue = std::max(iniReader.ReadFloat("MISC", "MaxPQValue", 100.0f), 0.0000001f);
 
             // Redirect path to one unified folder
             auto pattern = hook::pattern("8B 04 8D ? ? ? ? A3 ? ? ? ? 8B 44 24 04");
@@ -398,7 +399,7 @@ public:
                     {
                         static float arr2[4];
                         arr2[0] = (Natives::IsInteriorScene() || bNoWindSway) ? 0.0f : *dw11A2948;
-                        arr2[1] = bEnableSnow ? 0.005f : std::clamp(*CTimer::fTimeScale2 * 0.015f, 0.0015f, 0.015f);
+                        arr2[1] = SeasonalManager::GetCurrent() == SeasonalType::Snow ? 0.005f : std::clamp(*CTimer::fTimeScale2 * 0.015f, 0.0015f, 0.015f);
                         arr2[2] = 0.0f;
                         arr2[3] = 0.0f;
                         pDevice->SetVertexShaderConstantF(233, &arr2[0], 1);
@@ -438,12 +439,12 @@ public:
 
                         arr9[0] = bHighResolutionShadows ? fSHADOWFILTERCHSSMaxSoftness * 2.0f : fSHADOWFILTERCHSSMaxSoftness;
                         arr9[1] = bHighResolutionShadows ? CTimeCycleExt::GetCHSSLightSize() * 2.0f : CTimeCycleExt::GetCHSSLightSize();
-                        
+
                         static auto tm = FusionFixSettings.GetRef("PREF_TONEMAPPING");
                         arr9[2] = static_cast<float>(tm->get());
 
                         arr9[3] = bNoBloomColorShift && tm->get() ? 1.0f : 0.0f;
-                        
+
 
 
                         pDevice->SetPixelShaderConstantF(217, &arr9[0], 1);
@@ -473,9 +474,9 @@ public:
                                 arr[1] = (0.5f / 512.0f);
                                 break;
                         }
-                        
+
                         static auto unclamplighting = FusionFixSettings.GetRef("PREF_UNCLAMPLIGHTING");
-                        
+
                         arr[2] = unclamplighting->get() ? 1.0f : 4.0f / 3.0f;
                         arr[3] = unclamplighting->get() ? 0.0f : -1.0f / 3.0f;
 
@@ -501,7 +502,7 @@ public:
                             arr5[0] = 1.0f;
                         }
 
-                        arr5[1] = bEnableSnow ? 1.0f : 0.0f;
+                        arr5[1] = SeasonalManager::GetCurrent() == SeasonalType::Snow ? 1.0f : 0.0f;
                         arr5[2] = fMenuBlur;
 
                         static float alphamul = 4.0f;
@@ -571,9 +572,9 @@ public:
                         static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
 
                         static float arr10[4];
-                        arr10[0] = max(CTimeCycleExt::GetVolFogDensity(), 0.0f);
-                        arr10[1] = max(CTimeCycleExt::GetVolFogHeightFalloff(), 0.0000001f);
-                        arr10[2] = max(CTimeCycleExt::GetVolFogPower(), 0.0f);
+                        arr10[0] = std::max(CTimeCycleExt::GetVolFogDensity(), 0.0f);
+                        arr10[1] = std::max(CTimeCycleExt::GetVolFogHeightFalloff(), 0.0000001f);
+                        arr10[2] = std::max(CTimeCycleExt::GetVolFogPower(), 0.0f);
                         arr10[3] = std::clamp(CTimeCycleExt::GetVolFogAltitudeTweak(), 0.0f, 1.0f);
                         pDevice->SetPixelShaderConstantF(211, &arr10[0], 1);
                         pDevice->SetVertexShaderConstantF(235, &arr10[0], 1);
@@ -598,7 +599,7 @@ public:
                         pDevice->SetVertexShaderConstantF(237, &arr12[0], 1);
 
                         static float arr13[4];
-                        arr13[0] = max(CTimeCycleExt::GetSSIntensity(), 0.0f);
+                        arr13[0] = std::max(CTimeCycleExt::GetSSIntensity(), 0.0f);
                         arr13[1] = fSSDensity;
                         arr13[2] = fSSDecay;
                         arr13[3] = 0.0f;
@@ -630,7 +631,7 @@ public:
                 {
                     pHDRTexQuarter = rage::grcTextureFactoryPC::GetRTByName("Quarter Screen 0");
                 }
-                
+
                 uintptr_t thisPtr;
                 if (stackSize == 0x10)
                 {
@@ -640,7 +641,7 @@ public:
                 {
                     thisPtr = regs.ecx;
                 }
-                
+
                 uint32_t frameMapVar = *(uint32_t*)(thisPtr + 0xA0);
                 uintptr_t shaderFx = *(uintptr_t*)(thisPtr + 0x4);
                 uintptr_t instanceData = shaderFx + 0x14;

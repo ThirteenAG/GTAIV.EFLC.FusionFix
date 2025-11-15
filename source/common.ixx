@@ -18,12 +18,13 @@ public:
         using std::function<void(Args...)>::function;
 
     private:
-        std::vector<std::function<void(Args...)>> handlers;
+        std::list<std::function<void(Args...)>> handlers;
 
     public:
-        void operator+=(std::function<void(Args...)>&& handler)
+        auto operator+=(std::function<void(Args...)>&& handler) -> std::function<void()>
         {
-            handlers.push_back(handler);
+            auto it = handlers.insert(handlers.end(), std::move(handler));
+            return [this, it]() { handlers.erase(it); };
         }
 
         void executeAll(Args... args) const
@@ -1018,7 +1019,7 @@ public:
             for (auto i = 0; i < ntHeader->FileHeader.NumberOfSections; i++)
             {
                 auto sec = getSection(ntHeader, i);
-                auto pFunctions = reinterpret_cast<void**>(instance + max(sec->PointerToRawData, sec->VirtualAddress));
+                auto pFunctions = reinterpret_cast<void**>(instance + std::max(sec->PointerToRawData, sec->VirtualAddress));
 
                 for (ptrdiff_t j = 0; j < 300; j++)
                 {

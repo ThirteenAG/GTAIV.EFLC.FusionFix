@@ -401,19 +401,19 @@ export unsigned int hashStringLowercaseFromSeed(const char* str, unsigned int se
 {
     auto hash = seed;
     auto currentChar = str;
-    
+
     if (*str == '"')
         currentChar = str + 1;
-    
+
     while (*currentChar)
     {
         char character = *currentChar;
-    
+
         if (*str == '"' && character == '"')
             break;
-    
+
         ++currentChar;
-    
+
         if ((uint8_t)(character - 'A') <= 25)
         {
             character += 32; // Convert uppercase to lowercase
@@ -422,10 +422,10 @@ export unsigned int hashStringLowercaseFromSeed(const char* str, unsigned int se
         {
             character = '/';
         }
-    
+
         hash = (1025 * (hash + character) >> 6) ^ 1025 * (hash + character);
     }
-    
+
     return 32769 * (9 * hash ^ (9 * hash >> 11));
 }
 
@@ -1719,7 +1719,7 @@ export namespace rage
 
         static inline void setShaderParamData(size_t idx, const void* src, size_t size)
         {
-            std::memcpy(ShaderParamData[idx].data(), src, min(size, sizeof(decltype(ShaderParamData)::value_type)));
+            std::memcpy(ShaderParamData[idx].data(), src, std::min(size, sizeof(decltype(ShaderParamData)::value_type)));
         }
 
         static inline decltype(ShaderParamData)::value_type& getShaderParamData(size_t idx)
@@ -2123,7 +2123,7 @@ public:
 
     static inline SafetyHookInline shBuildRenderList{};
     static void __fastcall BuildRenderList(CBaseDC* _this, void* edx)
-    {  
+    {
         OnBuildRenderList().executeAll();
         shBuildRenderList.fastcall<void*>(_this, edx);
     }
@@ -2155,8 +2155,6 @@ export bool bDynamicShadowsForTrees = true;
 export bool bLoadingShown = false;
 export int bMenuNeedsUpdate = 0;
 export int bMenuNeedsUpdate2 = 0;
-export bool bEnableSnow = false;
-export bool bEnableHall = false;
 export bool bExtraNightShadows = false;
 export bool bHeadlightShadows = false;
 export bool bVehicleNightShadows = true;
@@ -2165,6 +2163,218 @@ export bool bIsQUB3D = false;
 export float fMenuBlur = 0.0f;
 export bool bInSniperScope = false;
 export eCamMode nCurrentCamera = NUM_CAM_MODES;
+
+export auto currentEpisodePath() -> std::filesystem::path
+{
+    static constexpr auto episodicPaths = std::array{ "", "TLAD", "TBoGT" };
+    static const auto moduleParentPath = GetModulePath(GetModuleHandleW(NULL)).parent_path();
+    return moduleParentPath / episodicPaths[*_dwCurrentEpisode];
+}
+
+export namespace phMaterialGta
+{
+    enum FxGroup
+    {
+        _VOID,
+        CONCRETE,
+        STONE,
+        PAVING_SLABS,
+        BRICK_COBBLE,
+        GRAVEL,
+        MUD_SOFT,
+        DIRT_DRY,
+        SAND,
+        SNOW,
+        WOOD,
+        METAL,
+        CERAMICS,
+        MARBLE,
+        LAMINATE,
+        CARPET_FABRIC,
+        LINOLEUM,
+        RUBBER,
+        PLASTIC,
+        CARDBOARD,
+        PAPER,
+        MATTRESS_FOAM,
+        PILLOW_FEATHERS,
+        GRASS,
+        BUSHES,
+        TREE_BARK_DARK,
+        TREE_BARK_MEDIUM,
+        TREE_BARK_LIGHT,
+        FLOWERS,
+        LEAVES_PILE,
+        GLASS,
+        WINDSCREEN,
+        CAR_METAL,
+        CAR_PLASTIC,
+        WATER,
+        GENERIC,
+        PED_HEAD,
+        PED_TORSO,
+        PED_LIMB,
+        PED_FOOT,
+        TVSCREEN,
+        VIDEOWALL,
+        DEFAULT,
+    };
+
+    enum HeliFx
+    {
+        HELIFX_DEFAULT,
+        HELIFX_SAND,
+        HELIFX_DIRT,
+        HELIFX_WATER,
+    };
+
+#pragma pack(push, 8)
+    struct phMaterial : rage::datBase
+    {
+        int field_4;
+        const char* m_pszName;
+    };
+
+    struct phMaterialGta : phMaterial
+    {
+        float m_fFriction;
+        float m_fElasticity;
+        float m_fDensity;
+        float m_fTyreGrip;
+        float m_fWetGrip;
+        int16_t m_wFxGroup;
+        int16_t m_wHeliFx;
+        float m_fFlammability;
+        float m_fBurnTime;
+        float m_fBurnStrenght;
+        int m_nRoughness;
+        float m_fPedDensity;
+        int m_dwFlags;                        ///< 1 = SeeThru, 2 = ShootThru, 4 = IsWet
+    };
+#pragma pack(pop)
+}
+
+export struct gtaRainEmitter
+{
+    float posX;
+    float posY;
+    float posZ;
+    int unk1;
+    float posRangeX;
+    float posRangeY;
+    float posRangeZ;
+    int unk2;
+    float LifeRangeOffsetX;
+    float LifeRangeOffsetY;
+    int unk3;
+    int unk4;
+    float velX;
+    float velY;
+    float velZ;
+    int unk5;
+    float velRangeX;
+    float velRangeY;
+    float velRangeZ;
+    int posRelative;
+    int AddCameraOffset;
+    float collisionVelocityModifierX;
+    float collisionVelocityModifierY;
+    float collisionVelocityModifierZ;
+    int unk6;
+    int unk7;
+    int unk8;
+    int unk9;
+    float collisionLifeModifierX;
+    float collisionLifeModifierY;
+    int unk10;
+    int unk11;
+    float collisionPositionModifierX;
+    float collisionPositionModifierY;
+    float collisionPositionModifierZ;
+    int unk12;
+    float gustSpacingX;
+    float gustSpacingY;
+    int unk13[6];
+    float disperseRange;
+    float disperseAmt;
+    float inertia;
+    float probablityPhase2;
+};
+
+export struct gtaRainRender
+{
+    float motionBlurAmt;
+    float radius;
+    float radiusVariance;
+    float radius2;
+    float radius2Variance;
+    float lifeFadeX;
+    float lifeFadeY;
+    int useDirectional;
+    int unk1;
+    int unk2;
+    int unk3;
+    float tintColorX;
+    float tintColorY;
+    float tintColorZ;
+    float tintColorW;
+    float tintColorPhase2X;
+    float tintColorPhase2Y;
+    float tintColorPhase2Z;
+    float tintColorPhase2W;
+    float AnimStart;
+    float AnimEnd;
+    float NumFrames;
+};
+
+export namespace ShockingEvents
+{
+    enum eShockingEvents
+    {
+        SexyCar,
+        RunningPed,
+        VisibleWeapon,
+        VisibleWeaponMELEE,
+        VisibleWeaponTHROWN,
+        VisibleWeaponHANDGUN,
+        VisibleWeaponSHOTGUN,
+        VisibleWeaponSMG,
+        VisibleWeaponSNIPER,
+        VisibleWeaponRIFLE,
+        VisibleWeaponHEAVY,
+        HornSounded,
+        PlaneFlyby,
+        SeenCarStolen,
+        HelicopterOverhead,
+        SeenMeleeAction,
+        SeenGangFight,
+        PedRunOver,
+        PanickedPed,
+        InjuredPed,
+        DeadBody,
+        DrivingOnPavement,
+        MadDriver,
+        CarCrash,
+        CarPileUp,
+        Fire,
+        GunshotFired,
+        PedShot,
+        GunFight,
+        Explosion,
+    };
+
+    constexpr auto ShockingEventIndexSize = 4;
+    constexpr auto ShockingEventDataFullSize = 52;
+    constexpr auto ShockingEventSize = ShockingEventDataFullSize - ShockingEventIndexSize;
+}
+
+export class ISeasonal
+{
+public:
+   virtual auto Init() -> void = 0;
+   virtual auto Enable() -> void = 0;
+   virtual auto Disable() -> void = 0;
+};
 
 export inline LONG getWindowWidth()
 {
@@ -2409,7 +2619,7 @@ public:
 
         pattern = hook::pattern("51 56 8B F1 83 BE ? ? ? ? ? 0F 84 ? ? ? ? 68");
         CRenderPhaseDeferredLighting_SceneToGBuffer::shBuildRenderList = safetyhook::create_inline(pattern.get_first(0), CRenderPhaseDeferredLighting_SceneToGBuffer::BuildRenderList);
-    
+
         pattern = find_pattern("83 3D ? ? ? ? ? 8D 81 ? ? ? ? 75 ? 8D 81 ? ? ? ? 50", "83 3D ? ? ? ? ? 74 ? 8D 8B");
         dwSniperInverted = *pattern.get_first<int*>(2);
 
@@ -2424,13 +2634,13 @@ public:
 
         pattern = find_pattern("8B 0D ? ? ? ? C6 46");
         pTaskPool = *pattern.get_first<decltype(pTaskPool)>(2);
-        
+
         pattern = find_pattern("8B 3D ? ? ? ? 8B F1 8B 47", "8B 15 ? ? ? ? 81 EC ? ? ? ? 8B C1");
         pPedPool = *pattern.get_first<decltype(pPedPool)>(2);
-        
+
         pattern = find_pattern("8B 0D ? ? ? ? E8 ? ? ? ? 85 C0 74 ? 80 7C 24 ? ? 75", "8B 0D ? ? ? ? E8 ? ? ? ? 85 C0 74 ? 8B C8 E8 ? ? ? ? E9 ? ? ? ? 33 F6");
         pCamPool = *pattern.get_first<decltype(pCamPool)>(2);
-        
+
         pattern = find_pattern("8B 15 ? ? ? ? 46 3B 72 ? 7C ? 5E", "8B 3D ? ? ? ? 8B CE FF D2 6A ? 6A ? 6A ? EB");
         pVehiclePool = *pattern.get_first<decltype(pVehiclePool)>(2);
 
@@ -2490,7 +2700,7 @@ public:
 
         pattern = find_pattern("8B 54 24 ? 85 D2 75 ? 33 C0", "56 8B 74 24 ? 33 C0 85 F6");
         rage::scrThread::GetThread = (decltype(rage::scrThread::GetThread))pattern.get_first(0);
-        
+
         pattern = find_pattern("FF 74 24 ? FF 74 24 ? E8 ? ? ? ? 84 C0 75 ? 6A ? FF 74 24 ? 68", "8B 44 24 ? 56 8B 74 24 ? 50 56 E8 ? ? ? ? 84 C0");
         rage::scrThread::RegisterCommand = (decltype(rage::scrThread::RegisterCommand))pattern.get_first(0);
 

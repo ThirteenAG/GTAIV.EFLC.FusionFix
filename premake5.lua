@@ -20,7 +20,7 @@ workspace "GTAIV.EFLC.FusionFix"
    flags { "MultiProcessorCompile" }
 
    defines { "rsc_CompanyName=\"GTAIV.EFLC.FusionFix\"" }
-   defines { "rsc_LegalCopyright=\"GTAIV.EFLC.FusionFix\""} 
+   defines { "rsc_LegalCopyright=\"GTAIV.EFLC.FusionFix\""}
    defines { "rsc_InternalName=\"%{prj.name}\"", "rsc_ProductName=\"%{prj.name}\"", "rsc_OriginalFilename=\"%{prj.name}.dll\"" }
    defines { "rsc_FileDescription=\"GTAIV.EFLC.FusionFix\"" }
    defines { "rsc_UpdateUrl=\"https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix\"" }
@@ -65,11 +65,11 @@ workspace "GTAIV.EFLC.FusionFix"
    includedirs { "source/dxsdk" }
    libdirs { "source/ledsdk" }
    libdirs { "source/dxsdk" }
-   files { "source/*.h", "source/*.hpp", "source/*.cpp", "source/*.hxx", "source/*.ixx", "source/snow/*.ixx" }
+   files { "source/**.h", "source/*.hpp", "source/*.cpp", "source/*.hxx", "source/**.ixx" }
    files { "source/resources/Versioninfo.rc" }
    files { "source/resources/Shaders.rc" }
    files { "source/resources/LODLights.rc" }
-   files { "source/snow/*.rc" }
+   files { "source/resources/snow/*.rc" }
    links { "LogitechLEDLib.lib" }
 
    includedirs { "external/injector/safetyhook/include" }
@@ -86,9 +86,9 @@ workspace "GTAIV.EFLC.FusionFix"
    files { "source/gxt/src/**.h", "source/gxt/src/**.cpp" }
 
    prebuildcommands {
-      "for /R \"../source/snow/\" %%f in (*.ps) do (\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E main /Fo \"../source/snow/%%~nfps.pso\" %%f)",
-      "for /R \"../source/snow/\" %%f in (*.vs) do (\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E main /Fo \"../source/snow/%%~nfvs.vso\" %%f)",
-      
+      "for /R \"../source/resources/snow/\" %%f in (*.ps) do (\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E main /Fo \"../source/resources/snow/%%~nfps.pso\" %%f)",
+      "for /R \"../source/resources/snow/\" %%f in (*.vs) do (\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E main /Fo \"../source/resources/snow/%%~nfvs.vso\" %%f)",
+
       -- Compile HLSL shaders to .pso/.vso (output to ../source/resources/)
       "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E SSDraw /Fo \"../source/resources/SSDraw_PS.pso\" \"../source/resources/SunShafts_PS.hlsl\"",
       "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E SSPrepass /Fo \"../source/resources/SSPrepass_PS.pso\" \"../source/resources/SunShafts_PS.hlsl\"",
@@ -101,8 +101,8 @@ workspace "GTAIV.EFLC.FusionFix"
       "\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E DX9_SMAABlendingWeightCalculationVS /Fo \"../source/resources/SMAA_BlendingWeightsCalculationVS.vso\" \"../source/resources/SMAA.hlsl\"",
       "\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E DX9_SMAANeighborhoodBlendingVS /Fo \"../source/resources/SMAA_NeighborhoodBlendingVS.vso\" \"../source/resources/SMAA.hlsl\"",
    }
-   
-   pbcommands = { 
+
+   pbcommands = {
       "setlocal EnableDelayedExpansion",
       --"set \"path=" .. (gamepath) .. "\"",
       "set file=$(TargetPath)",
@@ -128,7 +128,7 @@ workspace "GTAIV.EFLC.FusionFix"
       end
       targetdir ("bin")
    end
-   
+
    filter "configurations:Debug"
       defines { "DEBUG" }
       symbols "On"
@@ -138,7 +138,7 @@ workspace "GTAIV.EFLC.FusionFix"
       defines { "NDEBUG" }
       optimize "On"
       links { "libmodupdater_release_win32.lib" }
-      
+
 project "GTAIV.EFLC.FusionFix"
    setpaths("H:/SteamLibrary/steamapps/common/Grand Theft Auto IV/GTAIV/", "GTAIV.exe", "plugins/")
 

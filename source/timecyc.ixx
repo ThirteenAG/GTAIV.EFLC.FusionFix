@@ -9,9 +9,7 @@ import settings;
 import comvars;
 import natives;
 import timecycext;
-
-std::vector<std::string> snowTC;
-std::vector<std::string> hallTC;
+import seasonal;
 
 float fVolFogFarClip = 4500.0f;
 
@@ -41,16 +39,38 @@ int timecyc_scanf(const char* i, const char* fmt, int* mAmbient0ColorR, int* mAm
     if (!i)
         return 0;
 
-    if (bEnableSnow)
+    // TODO: Maybe to seasonal at some point?
     {
-        if (snowTC.size() == 99)
-            i = snowTC[scanfCount].c_str();
-    }
+        static auto getDatFile = [](const std::string& fileName) {
+            std::vector<std::string> dat;
+            static const auto filePath = GetModulePath(GetModuleHandleW(NULL)).parent_path() / "pc" / "data";
+            std::ifstream ifstr(filePath / fileName);
+            std::string line;
+            while (std::getline(ifstr, line))
+            {
+                if (line.find_first_not_of(" \t\r\n") != std::string::npos && !line.contains('/'))
+                    dat.emplace_back(line);
+            }
+            return dat;
+        };
 
-    if (bEnableHall)
-    {
-        if (hallTC.size() == 99)
-            i = hallTC[scanfCount].c_str();
+        static const auto snowTC = getDatFile("snow.dat");
+        static const auto hallTC = getDatFile("halloween.dat");
+
+        switch (SeasonalManager::GetCurrent()) {
+            case SeasonalType::Snow:
+            {
+                if (snowTC.size() == 99)
+                    i = snowTC[scanfCount].c_str();
+                break;
+            }
+            case SeasonalType::Halloween:
+            {
+                if (hallTC.size() == 99)
+                    i = hallTC[scanfCount].c_str();
+                break;
+            }
+        }
     }
 
     auto res = sscanf(i, fmt, mAmbient0ColorR, mAmbient0ColorG, mAmbient0ColorB, mAmbient1ColorR, mAmbient1ColorG, mAmbient1ColorB, mDirLightColorR,
@@ -360,7 +380,7 @@ public:
                     }
                     return hbsub_4B18F0.fun();
                 };
-                
+
                 pattern = hook::pattern("E8 ? ? ? ? 84 C0 5F 0F 85");
                 hbsub_4B18F0.fun = injector::MakeCALL(pattern.get_first(), static_cast<int(*)()>(MenuTimecycHook), true).get();
 
@@ -411,29 +431,9 @@ public:
             {
                 auto pattern = hook::pattern("E8 ? ? ? ? 6A 0C E8 ? ? ? ? 8B 0D");
                 injector::MakeCALL(pattern.get_first(0), cutsc_scanf, true);
-            
+
                 pattern = hook::pattern("E8 ? ? ? ? 69 F6 ? ? ? ? 8D 84 24");
                 injector::MakeCALL(pattern.get_first(0), timecyclemodifiers_scanf, true);
-            }
-
-            {
-                auto filePath = GetModulePath(GetModuleHandleW(NULL)).parent_path() / "pc" / "data";
-                std::string line;
-                std::ifstream istr_snow(filePath / "snow.dat");
-                while (std::getline(istr_snow, line))
-                {
-                    if (line.find_first_not_of(" \t\r\n") != std::string::npos && !line.contains('/'))
-                        snowTC.emplace_back(line);
-                }
-                //assert(snowTC.size() == 99);
-
-                std::ifstream istr_hall(filePath / "halloween.dat");
-                while (std::getline(istr_hall, line))
-                {
-                    if (line.find_first_not_of(" \t\r\n") != std::string::npos && !line.contains('/'))
-                        hallTC.emplace_back(line);
-                }
-                //assert(hallTC.size() == 99);
             }
         };
     }
