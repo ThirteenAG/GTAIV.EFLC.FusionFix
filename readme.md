@@ -172,7 +172,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Improved ultrawide support
 - Fixed improper VRAM detection on some setups
 - Fixed draw distance sliders not being applied on startup
-- Fixed mouse cursor scale and hidden mouse cursor when using controller
+- Fixed mouse cursor scale, and mouse cursor is hidden when using controller now
 - Significantly sped up loading screens
 - Added various fixed weapon, movement and other animations
 - Added various fixed vehicle models
