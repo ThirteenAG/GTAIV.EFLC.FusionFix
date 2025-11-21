@@ -1,0 +1,348 @@
+# FONTS.DAT (E1)
+# maintained by Derek Payne
+# this file contains the proportional values for each font used
+
+# resolution the font code is based on:
+[RESOLUTION]
+512,488
+
+
+#
+# Controller buttons (based on 32 width)
+#
+[BUTTONS]
+22 # FO_CONTROLLER_UP
+22 # FO_CONTROLLER_DOWN
+22 # FO_CONTROLLER_LEFT
+22 # FO_CONTROLLER_RIGHT
+29 # FO_CONTROLLER_DPAD_UP
+29 # FO_CONTROLLER_DPAD_DOWN
+29 # FO_CONTROLLER_DPAD_LEFT
+29 # FO_CONTROLLER_DPAD_RIGHT
+29 # FO_CONTROLLER_DPAD_NONE
+29 # FO_CONTROLLER_DPAD_ALL
+29 # FO_CONTROLLER_DPAD_UPDOWN
+29 # FO_CONTROLLER_DPAD_LEFTRIGHT
+29 # FO_CONTROLLER_LSTICK_UP
+29 # FO_CONTROLLER_LSTICK_DOWN
+29 # FO_CONTROLLER_LSTICK_LEFT
+29 # FO_CONTROLLER_LSTICK_RIGHT
+29 # FO_CONTROLLER_LSTICK_NONE
+29 # FO_CONTROLLER_LSTICK_ALL
+29 # FO_CONTROLLER_LSTICK_UPDOWN,
+29 # FO_CONTROLLER_LSTICK_LEFTRIGHT
+29 # FO_CONTROLLER_RSTICK_UP
+29 # FO_CONTROLLER_RSTICK_DOWN
+29 # FO_CONTROLLER_RSTICK_LEFT
+29 # FO_CONTROLLER_RSTICK_RIGHT
+29 # FO_CONTROLLER_RSTICK_NONE
+29 # FO_CONTROLLER_RSTICK_ALL
+29 # FO_CONTROLLER_RSTICK_UPDOWN
+29 # FO_CONTROLLER_RSTICK_LEFTRIGHT
+29 # FO_CONTROLLER_BUTTON_A
+29 # FO_CONTROLLER_BUTTON_B
+29 # FO_CONTROLLER_BUTTON_X
+29 # FO_CONTROLLER_BUTTON_Y
+29 # FO_CONTROLLER_BUTTON_LB
+30 # FO_CONTROLLER_BUTTON_LT
+29 # FO_CONTROLLER_BUTTON_RB
+30 # FO_CONTROLLER_BUTTON_RT
+29 # FO_CONTROLLER_BUTTON_START
+29 # FO_CONTROLLER_BUTTON_BACK
+29 # FO_CONTROLLER_ACCEPT
+29 # FO_CONTROLLER_CANCEL
+26 # FO_KEYBOARD_UP					// remove this for PS3
+26 # FO_KEYBOARD_DOWN				// remove this for PS3
+26 # FO_KEYBOARD_LEFT				// remove this for PS3
+26 # FO_KEYBOARD_RIGHT				// remove this for PS3
+26 # FO_TEXT_BOX_MIDDLE				// remove this for PS3
+26 # FO_TEXT_BOX_END				// remove this for PS3
+58 # FO_CONTROLLER_SIXAXIS_DRIVE   // wont be read in on XENON
+58 # FO_CONTROLLER_SIXAXIS_PITCH   // wont be read in on XENON
+58 # FO_CONTROLLER_SIXAXIS_RELOAD  // wont be read in on XENON
+58 # FO_CONTROLLER_SIXAXIS_ROLL    // wont be read in on XENON
+29 # FO_CONTROLLER_RSTICK_ROTATE   // E2 additional
+
+#
+# Radar blip size (based on 32 width)
+#
+[RADAR_BLIP]
+29 # SIZE_FOR_BLIPS_IN_FONT_STRINGS
+
+
+
+#
+# FONT1.DDS: FO_FONT_STYLE_STANDARD (SUBFONT_1 = FO_FONT_STYLE_HEADING) (HELECOND / PRICEDOWN)
+#
+
+# this font id:
+[FONT_ID]
+0
+
+
+# texture mapping:
+[MAP]
+# !  "   #   $   %   &   '   (   )   +   ,   -   .   /   0   1
+ 33  34  35  36  37  38  39  40  41  43  44  45  46  47  48  49
+# 2  3   4   5   6   7   8   9   :   ;   <   =   >   ?   @   A
+ 50  51  52  53  54  55  56  57  58  59  60  61  62  63  64  65
+# B  C   D   E   F   G   H   I   J   K   L   M   N   O   P   Q
+ 66  67  68  69  70  71  72  73  74  75  76  77  78  79  80  81
+# R  S   T   U   V   W   X   Y   Z   \   a   b   c   d   e   f
+ 82  83  84  85  86  87  88  89  90  92  97  98  99 100 101 102
+# g  h   i   j   k   l   m   n   o   p   q   r   s   t   u   v
+103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118
+# w  x   y   z   ¡   °   ¿   À   Á   Â   Ä   Æ   Ç   È   É   Ê
+119 120 121 122 161 176 191 192 193 194 196 198 199 200 201 202
+# Ë  Ì   Í   Î   Ï   Ñ   Ò   Ó   Ô   Ö   Ù   Ú   Û   Ü   ß   à
+203 204 205 206 207 209 210 211 212 214 217 218 219 220 223 224
+# á  â   ä   æ   ç   è   é   ê   ë   ì   í   î   ï   ñ   ò   ó
+225 226 228 230 231 232 233 234 235 236 237 238 239 241 242 243
+# ô  ö   ù   ú   û   ü   $   0   1   2   3   4   5   6   7   8
+244 246 249 250 251 252  36  48  49  50  51  52  53  54  55  56
+# 9  :   +   -   G   O   ©   ®   ™   *   ^   œ   Œ   _  ¬R*  ~
+ 57  58  43 45  71  79  169 174 153 251 252 156 140  95 172 126
+# `  [   ]   {   }   |   ^   *   £   ´
+ 96  91  93 123 125 124  94  42 163 180  32  32  32  32  32  32
+#
+ 32  32  32  32  32 32   32  32  32  32  32  32  32  32  32  32
+#
+ 32  32  32  32  32 32   32  32  32  32  32  32  32  32  32 254
+[/MAP]
+
+# start/end of main font
+[MAINFONT]
+0 134
+
+# start/end of subfont 1
+[SUBFONT_1]
+134 150
+
+# start/end of subfont 2
+[SUBFONT_2]
+0 0
+
+# start/end of common font
+[COMMON_FONT]
+150 208
+
+# proportional values:
+[PROP]
+26 23 15 12 16 10 27 23 23 13 23 20 25 19 15 21
+15 15 14 15 15 16 14 14 25 26 13 12 13 17  9 11
+12 13 12 14 14 13 12 24 16 11 14 08 10 13 12 11
+12 14 13 12 12  3 13 14 14 19 16 15 16 15 15 21
+15 15 25 22 15 24  4 15 15 15 16 20 16 21 14 15
+ 6 15 15 17 25 20 17 11 11 11 11  2 12 14 14 14
+14 24 23 21 21 11 13 13 13 13 13 13 13 13 15 16
+16 16 16  6 15 15 15 15 15 24 24 21 21 15 15 15
+15 15 14 14 14 14  9  9  9  9  9  9  9  9  9  9
+ 9 18  9  9  9  9 12 12 10  0  0  5  2 11  0 14
+19 18 18 18 18 18 14 21 14 22  0  0  0  0  0  0
+ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0
+ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1
+[/PROP]
+
+# value for unproportional
+[UNPROP]
+26
+
+# value for spacing between each character
+[SPACE_BETWEEN_CHARS]
+0 -2 0
+
+# width of space:
+[WHITESPACE]
+8
+
+
+
+
+
+
+#
+# FONT3.DDS: FO_FONT_STYLE_STREAMED:  (STANDARD = FO_FONT_STYLE_TAXI, SUBFONT_1 = FO_FONT_STYLE_CHALK, SUBFONT_2 = FO_FONT_STYLE_GARAGE) (TAXI / CHALK / GARAGE)
+#
+
+# this font id
+[FONT_ID]
+1
+
+# texture mapping:
+[MAP]
+# !  "   $   %   &   '   (   )   +   ,   -   .   /   0   1   2
+ 33  34  36  37  38  39  40  41  43  44  45  46  47  48  49  50
+# 3  4   5   6   7   8   9   :   ;   <   =   >   ?  A   B   C
+ 51  52  53  54  55  56  57  58  59  60  61  62  63  65  66  67
+# D  E   F   G   H   I   J   K   L   M   N   O   P   Q  R   S
+ 68  69  70  71  72  73  74  75  76  77  78  79  80  81  82  83
+# T  U   V   W   X   Y   Z   \   ¡   ¿   À   Á   Â   Ä   Æ   Ç
+ 84  85  86  87  88  89  90  92 161 191 192 193 194 196 198 199
+# È  É   Ê   Ë   Ì   Í   Î   Ï   Ñ   Ò   Ó   Ô   Ö   Ù   Ú   Û
+200 201 202 203 204 205 206 207 209 210 211 212 214 217 218 219
+# Ü   ß   0   1   2   3   4   5   6   7   8   9   !   $   &   '
+220 223  48  49  50  51  52  53  54  55  56  57  33  36  38  39
+# (   )   .   0   1   2   3   4   5   6   7   8   9   :   ?   A
+ 40  41  46  48  49  50  51  52  53  54  55  56  57  58  63  65
+# B   C   D   E   F   G   H   I   J   K   L   M   N   O   P   Q
+ 66  67  68  69  70  71  72  73  74  75  76  77  78  79  80  81
+# R   S   T   U   V   W   X   Y   Z   ¡   ¿   À   Á   Â   Ä   Æ 
+ 82  83  84  85  86  87  88  89  90  161 191 192 193 194 196 198
+# Ç  È   É   Ê   Ë   Ì   Í   Î   Ï   Ñ   Ò   Ó   Ô   Ö   Ù   Ú 
+199 200 201 202 203 204 205 206 207 209 210 211 212 214 217 218
+# Û  Ü   ß   -   °   /   HT` _   
+219 220 223 045 176 047 096 095
+[/MAP]
+
+# start/end of main font
+[MAINFONT]
+0 81
+
+# start/end of subfont 1
+[SUBFONT_1]
+82 92
+
+# start/end of subfont 2
+[SUBFONT_2]
+92 179
+
+# start/end of common font
+[COMMON_FONT]
+180 191
+
+# proportional values:
+[PROP] 
+25 20 12 11 11 26 21 21 14 24 13 25 09 12 23 13
+12 12 13 12 12 14 12 25 24 21 11 21 11 12 12 12
+12 15 15 13 12 19 13 12 14 12 12 12 12 13 12 12
+13 12 12 12 14 13 15 11 25 12 13 13 13 13 04 13 
+14 14 14 14 19 19 19 19 12 12 12 12 12 13 13 13
+13 12 06 22 10 09 08 07 07 08 07 07 25 17 14 26
+24 24 26 19 22 19 19 16 18 19 18 19 19 26 17 14
+17 18 17 18 18 17 17 25 18 15 18 13 16 16 17 15
+16 16 17 17 17 09 15 15 19 25 17 14 14 14 14 07
+17 18 18 18 18 22 22 19 20 16 17 17 17 17 17 17
+17 17 18 19 21 21 10 11  0  0  0  0  0  0  0  1
+[/PROP]
+
+# value for unproportional
+[UNPROP]
+25
+
+# value for spacing between each character
+[SPACE_BETWEEN_CHARS]
+0 0 0
+
+# width of space:
+[WHITESPACE]
+8
+
+
+
+
+
+
+
+#############################################
+#############################################
+#############################################
+## ALL STREAMED FONTS MUST COME UNDER HERE ##
+#############################################
+#############################################
+#############################################
+
+
+
+
+#
+# FONT2.DDS: FO_FONT_STYLE_BANK (SUBFONT_1 = FO_FONT_STYLE_SPACEAGE) (HELE BLACK / HELE ROMAN)
+#
+
+# this font id (starts at ZERO):
+[FONT_ID]
+3
+
+# texture mapping:
+[MAP]
+# !  "   #   $   %   &   '   (   )   +   ,   -   .   /   0   1
+ 33  34  35  36  37  38  39  40  41  43  44  45  46  47  48  49
+# 2  3   4   5   6   7   8   9   :   ;   <   =   >   ?   @   A
+ 50  51  52  53  54  55  56  57  58  59  60  61  62  63  64  65
+# B  C   D   E   F   G   H   I   J   K   L   M   N   O   P   Q
+ 66  67  68  69  70  71  72  73  74  75  76  77  78  79  80  81
+# R  S   T   U   V   W   X   Y   Z   \   a   b   c   d   e   f
+ 82  83  84  85  86  87  88  89  90  92  97  98  99 100 101 102
+# g  h   i   j   k   l   m   n   o   p   q   r   s   t   u   v
+103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118
+# w  x   y   z   ¡   °   ¿   À   Á   Â   Ä   Æ   Ç   È   É   Ê
+119 120 121 122 161 176 191 192 193 194 196 198 199 200 201 202
+# Ë  Ì   Í   Î   Ï   Ñ   Ò   Ó   Ô   Ö   Ù   Ú   Û   Ü   ß   à
+203 204 205 206 207 209 210 211 212 214 217 218 219 220 223 224
+# á  â   ä   æ   ç   è   é   ê   ë   ì   í   î   ï   ñ   ò   ó
+225 226 228 230 231 232 233 234 235 236 237 238 239 241 242 243
+# ô  ö   ù   ú   û   ü   0   1   2   3   4   5   6   7   8   9
+244 246 249 250 251 252  48  49  50  51  52  53  54  55  56  57
+# :  A   B   C   D   E   F   G   H   I   J   K   L   M   N   O 
+ 58  65  66  67  68  69  70  71  72  73  74  75  76  77  78  79
+# P  Q   R   S   T   U   V   W   X   Y   Z   À   Á   Â   Ä   Æ 
+ 80  81  82  83  84  85  86  87  88  89  90 192 193 194 196 198
+# Ç  È   É   Ê   Ë   Ì   Í   Î   Ï   Ñ   Ò   Ó   Ô   Ö   Ù   Ú 
+199 200 201 202 203 204 205 206 207 209 210 211 212 214 217 218
+# Û  Ü   ß   ©   ®   ™   œ   Œ   _   HT`
+219 220 223 169 174 153 156 140 095 096
+[/MAP]
+
+
+# start/end of main font
+[MAINFONT]
+0 134
+
+# start/end of subfont 1
+[SUBFONT_1]
+135 195
+
+
+# start/end of subfont 2
+[SUBFONT_2]
+0 0
+
+# start/end of common font
+[COMMON_FONT]
+196 202
+
+
+
+# proportional values:
+[PROP]
+24 17 13  8  2  6 24 21 21 14 24 19 24 17 12 17
+12 12 12 12 12 13 12 12 24 24 13 13 13 13  6  7
+ 9  8  8 11 13  7  9 23 14  8 13  4  9  6 10  7
+ 9 10 10  9  9  1  8  8 10 17 13 12 13 12 12 19
+12 12 23 22 13 24  3 13 12 13 13 19 14 18 13 12
+ 3 13 13 14 24 19 14  7  7  7  7  1  8 11 11 11
+11 22 22 19 19  9  6  6  6  6  9  9  9  9 12 13
+13 13 13  1 13 12 12 12 12 22 22 19 19 13 12 12
+12 12 14 14 14 14 14 21 14 14 14 14 14 15 14 14
+25  9 11  9 10 13 14 10 11 25 16 10 14  6 11  8
+12  8 11 11 11 11 10  0 10 10 11  9  9  9  9  1
+ 9 13 13 13 13 24 25 21 21 11  8  8  8  8 11 11
+11 11 11 11 11 10  3  2 12 07
+[/PROP]
+
+# value for unproportional
+[UNPROP]
+25
+
+# value for spacing between each character
+[SPACE_BETWEEN_CHARS]
+-1 -1 -1
+
+# width of space:
+[WHITESPACE]
+10
+
+
+
+
+
+# -eof-
