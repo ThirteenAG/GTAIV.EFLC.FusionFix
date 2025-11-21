@@ -203,6 +203,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Chinatown gun shop: Fixed a small bug where the wrong voice line is used after exiting when not buying something
 - Restored voice lines from Luis, he'll now respond to what the pilot tells him about the landmarks during the tour
 - Fixed the busker script terminates too early in TBoGT, now Luis can give money to busker normally
+- Fixed incorrect used giving money animation at the toll station for several TBoGT's motorcycles
 - Fixed ilyena call and brycebug content can't trigger after load the save (From ilyena's random character mission and stubbs' job)
 - Fixed the FIB arriving too early at the abandoned mansion in Phil's mission "To live and die in Alderney"
 - Fixed the heli climb QTE being impossible on really high framerates
