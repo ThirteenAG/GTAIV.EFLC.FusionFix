@@ -218,7 +218,11 @@ public:
                         "mh2_08_ter05_mh2", "mh2_13_terr01_mh2", "mh2_07_terrain_mh2", "mh2_10_terrain_mh2", "blk34_terrb_mh8",
                         "tg_sh1_gutters", "nj01_13_gutter", "nj01_19_gutter1", "nj01_19_gutter2", "nj01_20_gutter1", "nj01_20_gutter2",
                         "nj01_25_gutter1", "nj01_25_gutter2", "nj01_26_gutter", "nj01_27_gutter", "nj01_32_gutter", "nj01_39_gutter",
-                        "nj01_40_gutter"
+                        "nj01_40_gutter",
+                        "et_groundsouth", "fo1_ground", "ltrain_ground", "mp_ground01_mh3", "ng_ground_top", "nj04e_ground1",
+                        "nj04e_ground13", "nj04e_ground2", "nj04e_ground4", "nj04e_ground5", "nj04e_ground6", "nj04e_ground7",
+                        "nj04e_ground8", "nj05_ground07", "og_bs3blk07ground", "og_bs3blk08ground", "tg_sh4_nground", "tg_sh4_sground",
+                        "ts_ground01_dc9", "ts_ground03_dc9"
                     };
 
                     modelNames.insert(modelNames.end(), miscNames.begin(), miscNames.end());
