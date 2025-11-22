@@ -199,7 +199,7 @@ public:
                         "seawall_det2_mh12", "seawall_det4_mh12", "seawall_det4c_mh12", "seawall_det5_mh12", "wii_bboard", "block03det_mh10",
                         "5thavten01det_dc9", "hk_cnrten01det_mh3", "hk_crmten5x7det_mh3", "hk_crntenbrn1det_mh3", "hk_redten3x4det_mh3", "hk_redten4x4det_mh3",
                         "litaly_ten22det_mh2", "litaly_ten23det_mh2", "litaly_tendet21_mh2", "litaly_tendet24_mh2", "litaly_tendet25_mh2",
-                        "lty2_ten01d02_mh2", "lty2_ten02d1_mh2", "lty2_ten02d2_mh2", "soho_ten12det_mh2", "soho_ten21det_mh2", "tentop4_bxw", "tentop5b_bxw",
+                        "lty2_ten01d02_mh2", "lty2_ten02d1_mh2", "lty2_ten02d2_mh2", "soho_ten12det_mh2", "soho_ten21det_mh2", "tentop4_bxw", "tentop5b_bxw", "esb_roofdet01_dc9",
                         "cityhalldet0",
                         "bens2_fragwall", "coop_projektwall3", "ec_sp_wall", "lev6wallpatt2", "nj04e_bbwall01", "nj04e_brdgwall03",
                         "wallbed_1b_mh8", "wallbed_2b_mh8", "wallbed_3b_mh8",
@@ -253,7 +253,17 @@ public:
                         "apt_corn_12_5d_ixx", "apt_corn1_10d_mh8", "aptmentsd_a2_mh4", "crnapt_uniacomd_mh4", "mh3_12bd_aptb",
                         "rdwrks_reelixr", "ts_roads03wrks_dc9", "ts_roads21wrks_dc9",
                         "cablesnposts_mh12", "carcabflrover", "ind1_portcabinstuff", "intcafe_cables", "ks_cabled01", "ws_cc_cables02_mh7",
-                        "ts_wigwamdet_01_dc9"
+                        "block03det_mh10", "ec_tres_block", "et_ferryblocked", "hk_block02det_mh3",
+                        "hotel1d_block11_mh8", "hotel2d_block11_mh4", "hotel3d_block11_mh4", "hotel3d_block11_mh8",
+                        "nj01roadblock01", "nj01roadblock03", "nj01roadblock05", "nj01roadblock39",
+                        "bboard01_mh11", "bilboard75corn_dc9", "billboard01_lmap", "billboard02_lmap", "nj01_bilboardframe",
+                        "og_billboards02", "og_billboards03", "og_billboards06", "og_billboards07", "og_billboards08",
+                        "ts_bilboard",
+                        "detail_0", "detail_1",
+                        "detail_resid61i_mh12", "lite_detail_mh8", "lite_detailb_mh8",
+                        "rope06_mh12", "rope07_mh12", "rope08_mh12", "rope09_mh12",
+                        "wh_load1_d_mh1", "wh_load2_d_mh1", "cj_scaffold_7", "scaffadsgroup01_dc9", "clambarmain", "mh3_07_barbers_det",
+                        "ts_wigwamdet_01_dc9", "nj03_rubfnce_01", "ccbarrier1_mh7", "ab_firedept_shelf", "sw10_temp1newaly"
                     };
 
                     modelNames.insert(modelNames.end(), miscNames.begin(), miscNames.end());
