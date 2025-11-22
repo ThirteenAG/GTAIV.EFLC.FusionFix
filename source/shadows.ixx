@@ -180,6 +180,7 @@ public:
                         "qw_track9_d", "qw_track10_d", "qw_track11_d", "qw_track16_d", "qw_track16b_d", "rail01_qe_01b", "rail01_qe_02b",
                         "rail05ax_ksun_01op", "rail08_ks2un_01b", "rail08a_ks2un_01b", "rail08c_ks2un_01b", "rail09c_ksun_01op", "rail10a_ksun_01op",
                         "railtrack_02_mh5", "railtrack_03_mh5", "railtrack_04_mh5", "railtrack_05_mh5", "railtrack_06_mh5", "railtrack_07_mh5",
+                        "ab_firedept_rails", "et_oldrailbits02", "lev5_ddrailings", "railtnnl2_dtl1_mh5", "railtrack2_dtl1_mh5", "railtrack2_dtl2_mh5",
                         "bx_firescape", "fire_esc_1", "fire_esc_1b", "fire_esc_2", "fire_esc_2_steps", "fire_esc_2b", "fire_esc_4", "fire_esc_4b",
                         "fire_esc_5", "fire_esc_5b", "fire_esc_6", "fire_esc_6b", "fire_esc_7", "fire_esc_7b", "fire_esc_8", "fire_esc_8b", "fire_esc_9",
                         "fire_esc_9b", "fire_esc_10", "fire_esc_10b", "fire_esc_11", "fire_esc_11b", "fire_esc_11c", "fire_esc_12b", "ironsteps_mh12", "bxw_wii_ladders",
@@ -188,7 +189,7 @@ public:
                         "warbridge2d_mh8", "warbridge3d_mh8",
                         "coast_d_03_mh8", "coast_d_06_mh8", "coast_d_08_mh8", "coast_d_09_mh8", "coast_d_10_mh8", "coast_d_11_mh8", "coast_d_21_mh8",
                         "coast_d_26_mh8", "coast_d_27_mh8", "coast_d_28_mh8", "coast_d_34_mh8", "coast_d_35_mh8", "coast_d_36_mh8", "coast_d_37_mh8",
-                        "hlmcoast11d_mh12", "hlmcoastrd2_mh12",
+                        "hlmcoast11d_mh12", "hlmcoastrd2_mh12", "bxw_coastland8", "bxw_coastland9",
                         "05_01_dtl1_mh5", "05_02_dtl1_mh5", "05_03_dtl1_mh5", "05_04_dtl1_mh5",
                         "bkn_bit04", "dockbrookn_01", "dockbrookn_wall", "dumbo_bstep_bkn", "dumbolisted_bkn03",
                         "dumbofront_bkn", "dumborock01_bkn", "dumborock02_bkn", "lod_tg_f_n01", "mh_roadbuit_bkn", "tg_f_n",
@@ -198,7 +199,7 @@ public:
                         "gm-19_03", "mun_gnd01_mh2", "sp_weeds_mh10", "stmys_path2", "qw_astprkgrs5", "qw_astprkgrs7",
                         "jers_tun01_mh3", "qw2_queenstun",
                         "et_piera", "et_pierb", "et_pierc", "et_pierd", "et_piere", "et_pierf", "et_pierg", "et_pierh", "njdockgrd01", "njdockgrd02", "njdockgrd04",
-                        "nj03hiway00", "nj03hiway03",
+                        "am_ap_runwayg", "am_ap_runwayh", "am_h02_freeway", "nj03hiway00", "nj03hiway03", "ind_1_walkway",
                         "ag_roads_brks02", "ag_roads_brks03", "ag_roads_brks07", "tg_f_road1",
                         "qw_road2", "qw_road3", "qw_road4",
                         "bxe_road_14", "bxe_road_27", "bxe_road_39", "bxe_road_43", "bxe_road_57a", "bxe_road_63", "bxw_road_47", "bx_ind6_jetty03_road",
@@ -218,6 +219,10 @@ public:
                         "mh2_08_ter05_mh2", "mh2_13_terr01_mh2", "mh2_07_terrain_mh2", "mh2_10_terrain_mh2", "blk34_terrb_mh8",
                         "nj01_13_gutter", "nj01_19_gutter1", "nj01_19_gutter2", "nj01_20_gutter1", "nj01_20_gutter2", "nj01_25_gutter1",
                         "nj01_25_gutter2", "nj01_26_gutter", "nj01_27_gutter", "nj01_32_gutter", "nj01_39_gutter", "nj01_40_gutter",
+                        "tg_fway_pipes",
+                        "bxepink_grnd_bay2", "carmodgrnd_01_mh3", "dm_prj_grnd03_mh7", "hp1_grnd", "nj5_bld4grnd",
+                        "nj5_cstgrnda",
+                        "sb2_grnd", "stmrys_grnd3", "stmys_grnd5", "am_ap_carpk_gnd1", "am_ap_carpk_gnd2",
                         "et_groundsouth", "fo1_ground", "ltrain_ground", "mp_ground01_mh3", "ng_ground_top", "nj04e_ground1",
                         "nj04e_ground13", "nj04e_ground2", "nj04e_ground4", "nj04e_ground5", "nj04e_ground6", "nj04e_ground7",
                         "nj04e_ground8", "nj05_ground07", "og_bs3blk07ground", "og_bs3blk08ground", "tg_sh4_nground", "tg_sh4_sground",
@@ -225,9 +230,14 @@ public:
                         "et_docketrance1", "wi1_dockbase", "wi1_docks",
                         "base_wresd_mh4", "et_cranebase06", "et_cranebase07", "esb_basedet01_dc9", "esb_basedet02_dc9", "esb_basedet03_dc9", "esb_basedet04_dc9",
                         "tg_cibase_01", "tg_cibase_02", "tg_cibase_03", "tg_cp3_projbase", "wi_wt_base7", "wi_wt_base8", "wi1_baseball",
+                        "12_land01_mh5", "12_land02_mh5", "am_ap_carpkisland1", "am_ap_carpkisland2", "am_ap_land1_dttrk",
+                        "ap_land_0",
+                        "co_oplandtemp7", "coop_projekt_land02", "coop_projekt_land03", "dmblandio", "hk_land08_mh3", "ind1_upass_landb",
+                        "land_cc4", "nj04paulieland01", "nj04paulieland02", "nj05_land03b02", "nj05_land69",
                         "bkn_bsh_stair2_e", "bkn_bsh_stair2_mid", "bkn_bsh_stair2_top", "lev5_prsstair2", "pp_stairs01rail_mh12",
                         "facetedtowerd_tf8", "lite_towerd_mh2", "lite_towerd_mh8", "northtowerd_mh8", "plaintowerd_tf8", "rc_y_tower_dc9",
                         "tower08d_mh8", "tower1d_mh4", "trumptowerd_mh4", "ts_atowerdet_dc9",
+                        "cityhalldet0",
                         "ts_wigwamdet_01_dc9"
                     };
 
@@ -237,7 +247,7 @@ public:
                 if (bExtraDynamicShadows >= 3)
                 {
                     std::vector<std::string> roadNames = {
-                        "road", "terrain"
+                        "road", "terrain", "coast"
                     };
 
                     modelNames.insert(modelNames.end(), roadNames.begin(), roadNames.end());
