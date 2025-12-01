@@ -5,20 +5,17 @@ module;
 export module loadingdelays;
 
 import common;
-import framelimit;
 import comvars;
+import framelimit;
 
-//bool bRestoreSleep = false;
 void WINAPI FusionSleep(DWORD dwMilliseconds)
 {
-    //if (!bRestoreSleep)
-    {
-        auto bMenuActive = CMenuManager::m_MenuActive && *CMenuManager::m_MenuActive;
-        auto bLoadscreenActive = (CMenuManager::bLoadscreenShown && *CMenuManager::bLoadscreenShown) || bLoadingShown;
+    auto bMenuActive = CMenuManager::m_MenuActive && *CMenuManager::m_MenuActive;
+    auto bLoadscreenActive = (CMenuManager::bLoadscreenShown && *CMenuManager::bLoadscreenShown) || bLoadingShown;
 
-        if (!bMenuActive && bLoadscreenActive)
-            return Sleep(0);
-    }
+    if (!bMenuActive && bLoadscreenActive)
+        return Sleep(0);
+
     return Sleep(dwMilliseconds);
 }
 
@@ -42,10 +39,5 @@ public:
                 std::forward_as_tuple("Sleep", FusionSleep)
             );
         };
-
-        //FusionFix::onGameInitEvent() += []()
-        //{
-        //    bRestoreSleep = true;
-        //};
     }
 } LoadingDelays;

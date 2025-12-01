@@ -418,10 +418,11 @@ private:
 
         if (HasVolumes(CurrentWeather) || HasVolumes(NextWeather))
         {
-            // Only affect spotlights with a radius between 8 and 20 (Most lampposts in lamppost.img are within that range),
-            // and exclude lights previously volumetric, vehicle lights, traffic lights and filler lights
-            if (light->mType == rage::LT_SPOT && light->mRadius >= 8.0f && light->mRadius <= 20.0f && !(light->mFlags & (8 | 0x310)))
+            // Only affect spotlights with a radius between 8 and 20 (Most light models in lamppost.img are within that range),
+            // and exclude lights previously volumetric, vehicle lights, traffic lights, fill lights and cutscene lights
+            if (light->mType == rage::LT_SPOT && light->mRadius >= 8.0f && light->mRadius <= 20.0f && !(light->mFlags & 0x398))
             {
+                // Append the light shaft flag
                 light->mFlags |= 8;
 
                 // Transition from no volumes to volumes

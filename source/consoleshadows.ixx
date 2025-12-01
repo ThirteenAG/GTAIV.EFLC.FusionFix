@@ -6,8 +6,10 @@ export module consoleshadows;
 
 import common;
 import comvars;
+import natives;
 import settings;
 
+bool bHighResolutionNightShadows = false;
 bool bIsDirLightShadows = false;
 
 void* fnAE3310 = nullptr;
@@ -40,7 +42,7 @@ namespace CShadows
         // Disable the headlight shadows of the player's vehicle, if headlight shadows are off
         if (!bHeadlightShadows)
         {
-            Flags &= ~4; // Dynamic shadow
+            Flags &= ~4; // Subtract dynamic shadows
         }
 
         return hbStoreStaticShadow.fun(a1, a2, Flags, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15);
@@ -49,9 +51,54 @@ namespace CShadows
     void __cdecl StoreStaticShadowNPC(int a1, int a2, uint32_t Flags, int a4, int a5, int a6, int a7, int a8, int a9, int a10, int a11, int a12, int a13, int a14, int a15)
     {
         // Disable the headlight shadows of NPC vehicles regardless of any condition, to avoid reaching patch 1.0.6.0 night shadow limits
-        Flags &= ~4; // Dynamic shadow
+        Flags &= ~4; // Subtract dynamic shadows
 
         return hbStoreStaticShadow.fun(a1, a2, Flags, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15);
+    }
+}
+
+static inline SafetyHookInline shsub_925DB0{};
+static inline SafetyHookInline shsub_D77A00{};
+
+// Lamppost shadows workaround 1
+static int __cdecl sub_925DB0(int a1, int a2, int flags)
+{
+    if (!bExtraNightShadows)
+    {
+        if (!Natives::IsInteriorScene())
+        {
+            return -1;
+        }
+    }
+
+    return shsub_925DB0.ccall<int>(a1, a2, flags);
+}
+
+// Lamppost shadows workaround 2
+static void __fastcall sub_D77A00(void* _this, void* edx)
+{
+    if (!bExtraNightShadows)
+    {
+        if (!Natives::IsInteriorScene())
+        {
+            return;
+        }
+    }
+
+    return shsub_D77A00.unsafe_fastcall(_this, edx);
+}
+
+int GetNightShadowQuality()
+{
+    static auto NightShadows = FusionFixSettings.GetRef("PREF_SHADOW_DENSITY");
+    switch (NightShadows->get())
+    {
+        // MO_OFF / MO_MED / MO_HIGH / MO_VHIGH
+        case 0: return 0;
+        case 1: return 256  * (bHighResolutionNightShadows ? 2 : 1);
+        case 2: return 512  * (bHighResolutionNightShadows ? 2 : 1);
+        case 3: return 1024 * (bHighResolutionNightShadows ? 2 : 1);
+        default: return 0;
     }
 }
 
@@ -62,6 +109,17 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
+            CIniReader iniReader("");
+
+            // [NIGHTSHADOWS]
+            bHighResolutionNightShadows = iniReader.ReadInteger("SHADOWS", "HighResolutionNightShadows", 0) != 0;
+
+            // Make the night shadow options adjust the night shadow resolution
+            {
+                auto pattern = find_pattern("8B 0D ? ? ? ? 85 C9 7E 1B", "8B 0D ? ? ? ? 33 C0 85 C9 7E 1B");
+                static auto shsub_925E70 = safetyhook::create_inline(pattern.get_first(0), GetNightShadowQuality);
+            }
+
             // Vehicle night shadows
             // Allows rendering dynamic shadows of vehicles from artificial light sources
             // Bugs: Vehicle tires and damage/dents/deformation do not get included in the shadow maps
@@ -127,18 +185,18 @@ public:
                                     if (!car || !checkAgainst)
                                         return false;
 
-                                    if (!*(uint8_t*)(car + 0xF15)) // lights off
+                                    if (!*(uint8_t*)(car + 0xF15)) // Lights off
                                         return false;
 
                                     auto m_nVehicleType = *(uint32_t*)(car + 0x1304);
                                     if (m_nVehicleType == VEHICLETYPE_AUTOMOBILE)
                                     {
-                                        if (*(uint8_t*)(car + 0x1190) != 0 && *(uint8_t*)(car + 0x1191) != 0) // headlights damaged
+                                        if (*(uint8_t*)(car + 0x1190) != 0 && *(uint8_t*)(car + 0x1191) != 0) // Headlights damaged
                                             return false;
                                     }
                                     else if (m_nVehicleType == VEHICLETYPE_BIKE)
                                     {
-                                        if (*(uint8_t*)(car + 0x1190) != 0 || *(uint8_t*)(car + 0x1191) != 0) // headlight damaged
+                                        if (*(uint8_t*)(car + 0x1190) != 0 || *(uint8_t*)(car + 0x1191) != 0) // Headlight damaged
                                             return false;
                                     }
 
@@ -195,18 +253,18 @@ public:
                                     if (!car || !checkAgainst)
                                         return false;
 
-                                    if (!*(uint8_t*)(car + 0xF65)) // lights off
+                                    if (!*(uint8_t*)(car + 0xF65)) // Lights off
                                         return false;
 
                                     auto m_nVehicleType = *(uint32_t*)(car + 0x1350);
                                     if (m_nVehicleType == VEHICLETYPE_AUTOMOBILE)
                                     {
-                                        if (*(uint8_t*)(car + 0x11E0) != 0 && *(uint8_t*)(car + 0x11E1) != 0) // headlights damaged
+                                        if (*(uint8_t*)(car + 0x11E0) != 0 && *(uint8_t*)(car + 0x11E1) != 0) // Headlights damaged
                                             return false;
                                     }
                                     else if (m_nVehicleType == VEHICLETYPE_BIKE)
                                     {
-                                        if (*(uint8_t*)(car + 0x11E0) != 0 || *(uint8_t*)(car + 0x11E1) != 0) // headlight damaged
+                                        if (*(uint8_t*)(car + 0x11E0) != 0 || *(uint8_t*)(car + 0x11E1) != 0) // Headlight damaged
                                             return false;
                                     }
 
@@ -249,23 +307,77 @@ public:
                 }
             }
 
-            // Multiply car/bike bottom static shadow texture intensity while headlight shadows and vehicle night shadows are active (to compensate for the player's car lacking a shadow)
+            // Lamppost shadows
             {
-                auto pattern = find_pattern("C7 44 24 ? ? ? ? ? F3 0F 11 14 24 50");
+                // Lamppost shadows workaround 1
+                auto pattern = hook::pattern("80 3D ? ? ? ? ? 75 04 83 C8 FF");
+                shsub_925DB0 = safetyhook::create_inline(pattern.get_first(), sub_925DB0);
+
+                // Lamppost shadows workaround 2
+                pattern = find_pattern("83 EC 3C 80 3D ? ? ? ? ? 56 8B F1", "83 EC 3C 53 33 DB");
+                shsub_D77A00 = safetyhook::create_inline(pattern.get_first(0), sub_D77A00);
+
+                // This code tests every light source for a custom flag.
+                // When Extra Night Shadows is disabled, any light that holds that custom flag has its static and dynamic shadow bits removed if present.
+                // This is mainly of use for us to allow disabling the shadows of light models from lamppost.img, for parity with consoles.
+                // NOTE:
+                // Currently, this code's effects are overridden by a workaround for an ugly bug,
+                // which forces us to disable all exterior/outdoors night shadows. Because of that, this hook does not currently produce visible changes.
+                pattern = hook::pattern("8B 55 20 F6 C1 06");
+                if (!pattern.empty())
+                {
+                    static auto FlagsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        if (!bExtraNightShadows)
+                        {
+                            if ((*(uint32_t*)(regs.edi + 0x4C) & 0x8000000) != 0) // Check if flag 134217728 exists
+                            {
+                                regs.ecx &= ~2; // Subtract static shadows
+                                regs.ecx &= ~4; // Subtract dynamic shadows
+                                *(uint32_t*)(regs.esp + 0x18) = regs.ecx;
+                            }
+                        }
+                    });
+                }
+                else
+                {
+                    pattern = hook::pattern("E8 ? ? ? ? 0F B6 46 ? F3 0F 10 44 24");
+                    static auto FlagsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        if (!bExtraNightShadows)
+                        {
+                            if ((*(uint32_t*)(regs.esi + 0x4C) & 0x8000000) != 0) // Check if flag 134217728 exists
+                            {
+                                regs.ebx &= ~2; // Subtract static shadows
+                                regs.ebx &= ~4; // Subtract dynamic shadows
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Multiply the car/bike bottom static shadow texture intensity while headlight shadows and vehicle night shadows are active (To compensate for the player's car lacking a shadow)
+            {
+                auto pattern = hook::pattern("C7 44 24 ? ? ? ? ? F3 0F 11 14 24 50");
                 if (!pattern.empty())
                 {
                     static auto CarStaticShadowIntensityHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         if (bHeadlightShadows)
+                        {
                             regs.xmm2.f32[0] *= 3.0f;
+                        }
                     });
                 }
                 else
                 {
-                    pattern = find_pattern("F3 0F 11 54 24 ? D9 45 ? D9 1C 24");
-                    static auto CarStaticShadowIntensityHook = safetyhook::create_mid(pattern.get_first(9), [](SafetyHookContext& regs) {
+                    pattern = hook::pattern("D9 1C 24 8D 4C 24 34 51 8B 4D 0C 52 51 50 6A 00 6A 03 6A 00 E8 ? ? ? ? 83 C4 40 8B E5 5D C3 CC");
+                    static auto CarStaticShadowIntensityHook = safetyhook::create_mid(pattern.count(2).get(0).get<void*>(7), [](SafetyHookContext& regs)
+                    {
                         if (bHeadlightShadows)
+                        {
                             *(float*)regs.esp *= 3.0f;
+                        }
                     });
                 }
             }

@@ -6,17 +6,15 @@ export module shadows;
 
 import common;
 import comvars;
-import natives;
 import settings;
 
 import <bitset>;
 
-injector::memory_pointer_raw CModelInfoStore__allocateBaseModel     = nullptr;
+injector::memory_pointer_raw CModelInfoStore__allocateBaseModel = nullptr;
 injector::memory_pointer_raw CModelInfoStore__allocateInstanceModel = nullptr;
-injector::memory_pointer_raw CBaseModelInfo__setFlags               = nullptr;
+injector::memory_pointer_raw CBaseModelInfo__setFlags = nullptr;
 
 int32_t bExtraDynamicShadows;
-bool bHighResolutionNightShadows = false;
 
 std::string curModelName;
 void* __cdecl CModelInfoStore__allocateBaseModelHook(char* modelName)
@@ -83,54 +81,8 @@ void __cdecl CBaseModelInfo__setFlagsHook(void* pModel, int dwFlags, int a3)
     return injector::cstd<void(void*, int, int)>::call(CBaseModelInfo__setFlags, pModel, dwFlags, a3);
 }
 
-int GetNightShadowQuality()
-{
-    static auto NightShadows = FusionFixSettings.GetRef("PREF_SHADOW_DENSITY");
-    switch (NightShadows->get())
-    {
-        case 0: //MO_OFF
-            return 0;
-
-        case 1: //MO_MED
-            return 256  * (bHighResolutionNightShadows ? 2 : 1);
-
-        case 2: //MO_HIGH
-            return 512  * (bHighResolutionNightShadows ? 2 : 1);
-
-        case 3: //MO_VHIGH
-            return 1024 * (bHighResolutionNightShadows ? 2 : 1);
-
-        default:
-            return 0;
-    }
-}
-
 class Shadows
 {
-    static inline SafetyHookInline shsub_925DB0{};
-    static int __cdecl sub_925DB0(int a1, int a2, int flags)
-    {
-        if (!bExtraNightShadows)
-        {
-            if (!Natives::IsInteriorScene())
-                return -1;
-        }
-
-        return shsub_925DB0.ccall<int>(a1, a2, flags);
-    }
-
-    static inline SafetyHookInline shsub_D77A00{};
-    static void __fastcall sub_D77A00(void* _this, void* edx)
-    {
-        if (!bExtraNightShadows)
-        {
-            if (!Natives::IsInteriorScene())
-                return;
-        }
-
-        return shsub_D77A00.unsafe_fastcall(_this, edx);
-    }
-
 public:
     Shadows()
     {
@@ -139,10 +91,9 @@ public:
             CIniReader iniReader("");
 
             // [SHADOWS]
-            bExtraDynamicShadows = iniReader.ReadInteger("SHADOWS", "ExtraDynamicShadows", 2);
+            bExtraDynamicShadows    = iniReader.ReadInteger("SHADOWS", "ExtraDynamicShadows",    2);
             bDynamicShadowsForTrees = iniReader.ReadInteger("SHADOWS", "DynamicShadowsForTrees", 1) != 0;
-            bHighResolutionShadows = iniReader.ReadInteger("SHADOWS", "HighResolutionShadows", 0) != 0;
-            bHighResolutionNightShadows = iniReader.ReadInteger("SHADOWS", "HighResolutionNightShadows", 0) != 0;
+            bHighResolutionShadows  = iniReader.ReadInteger("SHADOWS", "HighResolutionShadows",  0) != 0;
 
             // Dynamic shadows for trees
             if (bDynamicShadowsForTrees)
@@ -306,7 +257,7 @@ public:
                                        "D9 82 ? ? ? ? D9 1C BD ? ? ? ? 0F 8D ? ? ? ? 8D 04 87 D9 04 85 ? ? ? ? D9 1C BD ? ? ? ? E9 ? ? ? ? 85 C9");
                 auto pCascadeRange2 = *pattern.get_first<CascadeRange*>(2);
 
-                for (size_t i = 0; i < 4; i++) // low medium high veryhigh
+                for (size_t i = 0; i < 4; i++) // MO_LOW / MO_MED / MO_HIGH / MO_VHIGH
                 {
                     injector::scoped_unprotect(&pCascadeRange1[i], sizeof(CascadeRange));
                     injector::scoped_unprotect(&pCascadeRange2[i], sizeof(CascadeRange));
@@ -335,7 +286,7 @@ public:
                                        "F3 0F 10 94 00 ? ? ? ? F3 0F 10 9C 00 ? ? ? ? 03 C0 F3 0F 5C DA F3 0F 5E D9 F3 0F 59 D8 F3 0F 58 DA F3 0F 11 1C BD");
                 auto pShadowMatrix = *pattern.get_first<ShadowMatrix*>(5);
 
-                for (size_t i = 0; i < 4; i++) // low medium high veryhigh
+                for (size_t i = 0; i < 4; i++) // MO_LOW / MO_MED / MO_HIGH / MO_VHIGH
                 {
                     injector::scoped_unprotect(&pShadowMatrix[i], sizeof(ShadowMatrix));
 
@@ -343,56 +294,6 @@ public:
                     pShadowMatrix[i].ShadowMatrix1 = 0.0f;
                     pShadowMatrix[i].ShadowMatrix2 = 0.0f;
                     pShadowMatrix[i].ShadowMatrix3 = 0.0f;
-                }
-
-                // Make night shadow options adjust night shadow resolution
-                pattern = find_pattern("8B 0D ? ? ? ? 85 C9 7E 1B", "8B 0D ? ? ? ? 33 C0 85 C9 7E 1B");
-                static auto shsub_925E70 = safetyhook::create_inline(pattern.get_first(0), GetNightShadowQuality);
-
-                // Lamppost shadows workaround
-                {
-                    auto pattern = hook::pattern("80 3D ? ? ? ? ? 75 04 83 C8 FF");
-                    shsub_925DB0 = safetyhook::create_inline(pattern.get_first(), sub_925DB0);
-
-                    pattern = find_pattern("83 EC 3C 80 3D ? ? ? ? ? 56 8B F1", "83 EC 3C 53 33 DB");
-                    shsub_D77A00 = safetyhook::create_inline(pattern.get_first(0), sub_D77A00);
-
-                    pattern = find_pattern("8B 55 20 F6 C1 06");
-                    if (!pattern.empty())
-                    {
-                        static auto FlagsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                        {
-                            if (!bExtraNightShadows)
-                            {
-                                if (Natives::IsInteriorScene())
-                                {
-                                    if ((*(uint32_t*)(regs.edi + 0x4C) & 0x8000000) != 0) // new flag to detect affected lampposts
-                                    {
-                                        regs.ecx &= ~3;
-                                        regs.ecx &= ~4;
-                                        *(uint32_t*)(regs.esp + 0x18) = regs.ecx;
-                                    }
-                                }
-                            }
-                        });
-                    }
-                    else
-                    {
-                        pattern = find_pattern("E8 ? ? ? ? 0F B6 46 ? F3 0F 10 44 24");
-                        static auto FlagsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs) {
-                            if (!bExtraNightShadows)
-                            {
-                                if (Natives::IsInteriorScene())
-                                {
-                                    if ((*(uint32_t*)(regs.esi + 0x4C) & 0x8000000) != 0) // new flag to detect affected lampposts
-                                    {
-                                        regs.ebx &= ~3;
-                                        regs.ebx &= ~4;
-                                    }
-                                }
-                            }
-                        });
-                    }
                 }
             }
         };
