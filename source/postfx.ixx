@@ -33,6 +33,8 @@ import d3dx9_43;
 #define IDR_SunShafts_PS                         127
 #define IDR_CascadeAtlasGen                      128
 
+#define IDR_Blit_PS                              129
+
 #define IDR_SSDraw_PS_compiled                   2127
 #define IDR_SSPrepass_PS_compiled                2128
 #define IDR_SSAdd_PS_compiled                    2129
@@ -91,6 +93,8 @@ public:
     IDirect3DSurface9* renderTargetSurf = nullptr;
     IDirect3DSurface9* surfaceRead = nullptr;
 
+    // Pre alpha pass depth texture copy
+    rage::grcRenderTargetPC* PreAlphaDepthCopyRT = nullptr;
 
     //-------- half resolution screen --------------
     rage::grcRenderTargetPC* FullScreenDownsampleTex = nullptr; // main downsampled texture
@@ -125,6 +129,7 @@ public:
     //IDirect3DSurface9* pShadowBlurSurf1 = nullptr;
     //IDirect3DSurface9* pShadowBlurSurf2 = nullptr;
 
+    IDirect3DSurface9* PreAlphaDepthSurface = nullptr;
 
     // shaders
     IDirect3DPixelShader9* FxaaPS = nullptr;
@@ -150,6 +155,8 @@ public:
     IDirect3DVertexShader9* SMAA_BlendingWeightsCalculationVS = nullptr;
     IDirect3DVertexShader9* SMAA_NeighborhoodBlendingVS = nullptr;
 
+    IDirect3DPixelShader9* Blit_PS = nullptr;
+
     //IDirect3DPixelShader9* DeferredShadowGen_ps = nullptr;
     //IDirect3DPixelShader9* DeferredShadowBlurH_ps = nullptr;
     //IDirect3DPixelShader9* DeferredShadowBlurV_ps = nullptr;
@@ -169,6 +176,8 @@ public:
     bool useStippleFilter = true;
 
     bool shadersLoaded = false;
+
+    bool bEnablePreAlphaDepth = false;
 
     bool loadShaders(LPDIRECT3DDEVICE9 pDevice, HMODULE hm)
     {
@@ -402,6 +411,17 @@ public:
             SAFE_RELEASE(ppConstantTable);
         }
 
+        if (!Blit_PS)
+        {
+            if (D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_Blit_PS), NULL, NULL, 0, &bf1, &bf2) == S_OK)
+            {
+                if (pDevice->CreatePixelShader((DWORD*)bf1->GetBufferPointer(), &Blit_PS) != S_OK || !Blit_PS)
+                    SAFE_RELEASE(Blit_PS);
+                SAFE_RELEASE(bf1);
+                SAFE_RELEASE(bf2);
+            }
+        }
+
         return ShadersFinishedLoading();
     }
 
@@ -475,6 +495,11 @@ public:
             FullScreenDownsampleTex2 = nullptr;
         }
 
+        if (PreAlphaDepthCopyRT)
+        {
+            PreAlphaDepthCopyRT->Destroy();
+            PreAlphaDepthCopyRT = nullptr;
+        }
         //if (pShadowBlurTex1)
         //{
         //    pShadowBlurTex1->Destroy();
@@ -492,7 +517,8 @@ public:
         if(FxaaPS && dof_blur_ps && dof_coc_ps && depth_of_field_tent_ps && stipple_filter_ps
            && SSDraw_PS && SSPrepass_PS && SSAdd_PS
            && SMAA_EdgeDetection && SMAA_BlendingWeightsCalculation && SMAA_NeighborhoodBlending
-           && SMAA_EdgeDetectionVS && SMAA_BlendingWeightsCalculationVS && SMAA_NeighborhoodBlendingVS)
+           && SMAA_EdgeDetectionVS && SMAA_BlendingWeightsCalculationVS && SMAA_NeighborhoodBlendingVS
+           && Blit_PS)
            // DeferredShadowGen_ps && deferred_lighting_PS1 && deferred_lighting_PS2 && SSAO_gen_ps && SSAO_blend_ps && DeferredShadowBlurH_ps && DeferredShadowBlurV_ps && DeferredShadowBlurCircle_ps
             return true;
 
@@ -504,6 +530,8 @@ public:
         EnablePostfx = iniReader.ReadInteger("SRF", "EnablePostfx", 1);
 
         useStippleFilter = iniReader.ReadInteger("SRF", "StippleFilter", 1) != 0;
+
+        bEnablePreAlphaDepth = iniReader.ReadInteger("SRF", "EnablePreAlphaDepth", 1) != 0;
 
         // 0 off, 1 horizontal, 2 vertical, 3 horizontal e vertical.
         //useScreenSpaceShadowsBlur = iniReader.ReadInteger("SRF", "ScreenSpaceShadowsBlur", 0);
@@ -556,6 +584,9 @@ public:
 
         FullScreenDownsampleTex = CreateEmptyRT("FullScreenDownsampleTex", 3, Width / 2, Height / 2, 64, &desc);
         FullScreenDownsampleTex2 = CreateEmptyRT("FullScreenDownsampleTex2", 3, Width / 2, Height / 2, 64, &desc);
+
+        desc.mFormat = rage::GRCFMT_R32F;
+        PreAlphaDepthCopyRT = CreateEmptyRT("PreAlphaDepthCopy", 3, Width, Height, 32, &desc);
 
         if (!SMAA_areaTex)
             D3DXCreateTextureFromResourceExW(pDevice, hm, MAKEINTRESOURCEW(IDR_AreaTex), 160, 560, 1, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_LINEAR, D3DX_FILTER_LINEAR, 0, NULL, NULL, &SMAA_areaTex);
@@ -701,6 +732,63 @@ private:
         OnDeviceReset();
 
         initialized = true;
+    }
+
+    static void NewFog() {
+        IDirect3DDevice9* pDevice = rage::grcDevice::GetD3DDevice();
+
+        IDirect3DSurface9* prevSurface = nullptr;
+        IDirect3DSurface9* prevDepthStencilSurface = nullptr;
+        IDirect3DPixelShader9* prevPS = nullptr;
+
+        pDevice->GetRenderTarget(0, &prevSurface);
+        pDevice->GetDepthStencilSurface(&prevDepthStencilSurface);
+        
+        pDevice->GetPixelShader(&prevPS);
+
+        {
+            if (PostFxResources.PreAlphaDepthCopyRT)
+            {
+                PostFxResources.PreAlphaDepthCopyRT->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.PreAlphaDepthSurface);
+
+                // Blit depth to texture 
+                if (PostFxResources.Blit_PS)
+                {
+                    if (PostFxResources.PreAlphaDepthSurface)
+                    {
+                        pDevice->SetRenderTarget(0, PostFxResources.PreAlphaDepthSurface);
+                        pDevice->SetDepthStencilSurface(nullptr);
+
+                        // No need to set texture here as the desired depth texture already set (GBufferTextureSampler3)
+
+                        pDevice->SetPixelShader(PostFxResources.Blit_PS);
+
+                        pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
+                    }
+                }
+            }
+
+            // Restore fog pass
+            if (prevPS)
+            {
+                if (prevSurface)
+                {
+                    pDevice->SetRenderTarget(0, prevSurface);
+                    pDevice->SetDepthStencilSurface(prevDepthStencilSurface);
+
+                    pDevice->SetPixelShader(prevPS);
+
+                    hbDrawPrimitivePostFX.fun();
+                }
+            }
+        }
+
+        SAFE_RELEASE(PostFxResources.PreAlphaDepthSurface);
+
+        SAFE_RELEASE(prevSurface);
+        SAFE_RELEASE(prevDepthStencilSurface);
+
+        SAFE_RELEASE(prevPS);
     }
 
     static void NewPostFX() {
@@ -876,6 +964,8 @@ private:
 
                                 pDevice->SetPixelShader(PostFxResources.dof_coc_ps);
                                 pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
+                                if (PostFxResources.bEnablePreAlphaDepth)
+                                    pDevice->SetTexture(1, PostFxResources.PreAlphaDepthCopyRT->mD3DTexture);
                                 pDevice->SetTexture(2, PostFxResources.textureRead);
                                 pDevice->SetTexture(8, PostFxResources.FullScreenDownsampleTex2->mD3DTexture);
                                 pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
@@ -905,6 +995,8 @@ private:
                                 // crop around sun position
                                 pDevice->SetPixelShader(PostFxResources.SSPrepass_PS);
                                 pDevice->SetRenderTarget(0, PostFxResources.FullScreenDownsampleSurf);
+                                if (PostFxResources.bEnablePreAlphaDepth)
+                                    pDevice->SetTexture(1, PostFxResources.PreAlphaDepthCopyRT->mD3DTexture);
                                 pDevice->SetTexture(2, PostFxResources.textureRead);
                                 pDevice->SetTexture(13, PostFxResources.DiffuseTex);
                                 pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
@@ -947,6 +1039,8 @@ private:
                         else
                             pDevice->SetRenderTarget(0, PostFxResources.backBuffer);
 
+                        if (PostFxResources.bEnablePreAlphaDepth)
+                            pDevice->SetTexture(1, PostFxResources.PreAlphaDepthCopyRT->mD3DTexture);
                         pDevice->SetTexture(2, PostFxResources.textureRead);
                         pDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 0, 0);
 
@@ -1115,6 +1209,14 @@ private:
         return S_FALSE;
     }
 
+    static inline thread_local bool bInsteadDrawPrimitiveFog = false;
+    static inline injector::hook_back<void(__fastcall*)(void*, void*, int, int, int)> hbDrawCallFog;
+    static void __fastcall DrawCallFog(void* _this, void* edx, int a2, int a3, int a4) {
+        bInsteadDrawPrimitiveFog = true;
+        hbDrawCallFog.fun(_this, edx, a2, a3, a4);
+        bInsteadDrawPrimitiveFog = false;
+    }
+
     static inline thread_local bool bInsteadDrawPrimitivePostFX = false;
     static inline injector::hook_back<void(__fastcall*)(void*, void*, int, int, int)> hbDrawCallPostFX;
     static void __fastcall DrawCallPostFX(void* _this, void* edx, int a2, int a3, int a4) {
@@ -1125,7 +1227,13 @@ private:
 
     static inline injector::hook_back<void(__stdcall*)()> hbDrawPrimitivePostFX;
     static void __stdcall DrawPrimitivePostFX() {
-        if (bInsteadDrawPrimitivePostFX)
+        if (bInsteadDrawPrimitiveFog)
+        {
+            bInsteadDrawPrimitiveFog = false;
+            // Do not initialize shaders, RTs etc. here or we get a device reset error for some reason
+            NewFog();
+        }
+        else if (bInsteadDrawPrimitivePostFX)
         {
             bInsteadDrawPrimitivePostFX = false;
             Init();
@@ -1188,6 +1296,19 @@ public:
             
                     pattern = find_pattern("E8 ? ? ? ? 6A 0A FF B7", "E8 ? ? ? ? 8B 8E ? ? ? ? 8B 56 10");
                     hbDrawCallPostFX.fun = injector::MakeCALL(pattern.get_first(0), DrawCallPostFX).get();
+                    
+                    if (PostFxResources.bEnablePreAlphaDepth)
+                    {
+                        pattern = hook::pattern("6A ? E8 ? ? ? ? 5E 8B E5 5D C3");
+                        if (!pattern.empty())
+                            hbDrawCallFog.fun = injector::MakeCALL(pattern.get_first(2), DrawCallFog).get();
+                        else
+                        {
+                            pattern = hook::pattern("6A ? 8B CE E8 ? ? ? ? 5E 8B E5");
+                            hbDrawCallFog.fun = injector::MakeCALL(pattern.get_first(4), DrawCallFog).get();
+                        }
+                    }
+
                 }
             }
         };
