@@ -2,7 +2,7 @@ module;
 
 #include <common.hxx>
 
-export module consoleshadows;
+export module nightshadows;
 
 import common;
 import comvars;
@@ -102,10 +102,10 @@ int GetNightShadowQuality()
     }
 }
 
-class ConsoleShadows
+class NightShadows
 {
 public:
-    ConsoleShadows()
+    NightShadows()
     {
         FusionFix::onInitEventAsync() += []()
         {
@@ -383,4 +383,4 @@ public:
             }
         };
     }
-} ConsoleShadows;
+} NightShadows;
