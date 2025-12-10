@@ -585,7 +585,7 @@ public:
         FullScreenDownsampleTex = CreateEmptyRT("FullScreenDownsampleTex", 3, Width / 2, Height / 2, 64, &desc);
         FullScreenDownsampleTex2 = CreateEmptyRT("FullScreenDownsampleTex2", 3, Width / 2, Height / 2, 64, &desc);
 
-        if (PostFxResources.bEnablePreAlphaDepth)
+        if (bEnablePreAlphaDepth)
         {
             desc.mFormat = rage::GRCFMT_R32F;
             PreAlphaDepthCopyRT = CreateEmptyRT("PreAlphaDepthCopy", 3, Width, Height, 32, &desc);
