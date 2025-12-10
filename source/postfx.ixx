@@ -531,7 +531,7 @@ public:
 
         useStippleFilter = iniReader.ReadInteger("SRF", "StippleFilter", 1) != 0;
 
-        bEnablePreAlphaDepth = iniReader.ReadInteger("SRF", "EnablePreAlphaDepth", 1) != 0;
+        bEnablePreAlphaDepth = iniReader.ReadInteger("POSTFX", "EnablePreAlphaDepth", 1) != 0;
 
         // 0 off, 1 horizontal, 2 vertical, 3 horizontal e vertical.
         //useScreenSpaceShadowsBlur = iniReader.ReadInteger("SRF", "ScreenSpaceShadowsBlur", 0);
@@ -585,8 +585,12 @@ public:
         FullScreenDownsampleTex = CreateEmptyRT("FullScreenDownsampleTex", 3, Width / 2, Height / 2, 64, &desc);
         FullScreenDownsampleTex2 = CreateEmptyRT("FullScreenDownsampleTex2", 3, Width / 2, Height / 2, 64, &desc);
 
-        desc.mFormat = rage::GRCFMT_R32F;
-        PreAlphaDepthCopyRT = CreateEmptyRT("PreAlphaDepthCopy", 3, Width, Height, 32, &desc);
+        if (PostFxResources.bEnablePreAlphaDepth)
+        {
+            desc.mFormat = rage::GRCFMT_R32F;
+            PreAlphaDepthCopyRT = CreateEmptyRT("PreAlphaDepthCopy", 3, Width, Height, 32, &desc);
+        }
+
 
         if (!SMAA_areaTex)
             D3DXCreateTextureFromResourceExW(pDevice, hm, MAKEINTRESOURCEW(IDR_AreaTex), 160, 560, 1, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_LINEAR, D3DX_FILTER_LINEAR, 0, NULL, NULL, &SMAA_areaTex);
