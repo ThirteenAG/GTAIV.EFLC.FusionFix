@@ -5,6 +5,7 @@ module;
 
 export module seasonal.snow;
 
+import common;
 import comvars;
 import timecycext;
 
@@ -23,8 +24,16 @@ public:
     {
         CRenderPhaseDeferredLighting_LightsToScreen::OnBuildRenderList() += OnBuildRenderList;
 
+        // Disables rain-related audio (e.g., surface impacts)
+        auto pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 11 04 24 E8 ? ? ? ? 51"); // TODO: pre-CE
+        disableRainSounds = raw_mem{ pattern.get_first(0), { 0x0F, 0x57, 0xC0, 0x90, 0x90, 0x90, 0x90, 0x90 } }; // xorps xmm0,xmm0 + NOP 5
+
+        // Disables wetness-related effects (e.g., reflections, footstep/vehicle interaction sounds, particles)
+        pattern = find_pattern("00 00 80 3F F3 0F 10 25 ? ? ? ? F3 0F 10 04"); // TODO: pre-CE
+        disableRainWetness = raw_mem{ pattern.get_first(0), { 0, 0, 0, 0 } }; // mov [addr],3F800000 -> 0
+
         // Snow on vehicles: load textures
-        auto pattern = find_pattern("E8 ? ? ? ? 8B 0D ? ? ? ? 83 C4 18 8B 01 6A 00", "E8 ? ? ? ? 83 C4 18 8B 0D");
+        pattern = find_pattern("E8 ? ? ? ? 8B 0D ? ? ? ? 83 C4 18 8B 01 6A 00", "E8 ? ? ? ? 83 C4 18 8B 0D");
         static auto FXRain__CTxdStore__setCurrent = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& ctx)
         {
             vehicle_generic_glasswindows2_snow = CTxdStore::getEntryByKey(CTxdStore::at(ctx.esi), 0, hashStringLowercaseFromSeed("vehicle_generic_glasswindows2_snow", 0));
@@ -75,6 +84,8 @@ public:
         applySnowRenderParams();
         applyMaterialsDatParams();
         applyShockingEventsParams();
+        disableRainSounds.Write();
+        disableRainWetness.Write();
     }
 
     auto Disable() -> void override
@@ -88,6 +99,8 @@ public:
         restoreSnowRenderParams();
         restoreMaterialsDatParams();
         restoreShockingEventsParams();
+        disableRainSounds.Restore();
+        disableRainWetness.Restore();
     }
 
 private:
@@ -119,6 +132,9 @@ private:
     static inline rage::grcRenderTargetPC* mDepthRT;
 
     static inline rage::grcRenderTargetPC* mNormalRtCopy;
+
+    static inline auto disableRainSounds = raw_mem{};
+    static inline auto disableRainWetness = raw_mem{};
 
     static auto __fastcall OnDeviceLost() -> void
     {
