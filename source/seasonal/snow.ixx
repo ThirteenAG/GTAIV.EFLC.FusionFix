@@ -5,7 +5,6 @@ module;
 
 export module seasonal.snow;
 
-import common;
 import comvars;
 import timecycext;
 
@@ -24,13 +23,58 @@ public:
     {
         CRenderPhaseDeferredLighting_LightsToScreen::OnBuildRenderList() += OnBuildRenderList;
 
-        // Disables rain-related audio (e.g., surface impacts)
-        auto pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 11 04 24 E8 ? ? ? ? 51"); // TODO: pre-CE
-        disableRainSounds = raw_mem{ pattern.get_first(0), { 0x0F, 0x57, 0xC0, 0x90, 0x90, 0x90, 0x90, 0x90 } }; // xorps xmm0,xmm0 + NOP 5
+        // Disables rain-related audio (e.g. Surface impacts)
+        auto pattern = hook::pattern("F3 0F 10 05 ? ? ? ? F3 0F 11 04 24 E8 ? ? ? ? 51");
+        if (!pattern.empty())
+        {
+            static auto SetRainAudioHook = safetyhook::create_mid(pattern.get_first(8), [](SafetyHookContext& ctx)
+            {
+                if (enabled)
+                {
+                    ctx.xmm0.f32[0] = 0.0f;
+                }
+            });
+        }
+        else
+        {
+            pattern = hook::pattern("D9 1C 24 E8 ? ? ? ? 51 D9 1C 24 E8 ? ? ? ? D8 44 24 08 83 C4 04 5E 59 C3 CC");
+            static auto SetRainAudioHook = safetyhook::create_mid(pattern.get_first(3), [](SafetyHookContext& ctx)
+            {
+                if (enabled)
+                {
+                    *(float*)ctx.esp = 0.0f;
+                }
+            });
+        }
 
-        // Disables wetness-related effects (e.g., reflections, footstep/vehicle interaction sounds, particles)
-        pattern = find_pattern("00 00 80 3F F3 0F 10 25 ? ? ? ? F3 0F 10 04"); // TODO: pre-CE
-        disableRainWetness = raw_mem{ pattern.get_first(0), { 0, 0, 0, 0 } }; // mov [addr],3F800000 -> 0
+        // Disables wetness-related effects (e.g. Reflections, footstep/vehicle interaction sounds, particles)
+        pattern = hook::pattern("C7 05 ? ? ? ? 00 00 80 3F F3 0F 10 25 ? ? ? ? F3 0F 10 04");
+        if (!pattern.empty())
+        {
+            pWetness = *reinterpret_cast<float**>(pattern.get_first(2));
+            static auto SetRainWetnessHook = safetyhook::create_mid(pattern.get_first(10), [](SafetyHookContext& ctx)
+            {
+                if (enabled)
+                {
+                    *pWetness = 0.0f;
+                }
+            });
+        }
+        else
+        {
+            pattern = hook::pattern("F3 0F 11 05 ? ? ? ? EB 67");
+            pWetness = *reinterpret_cast<float**>(pattern.get_first(4));
+            injector::MakeNOP(pattern.get_first(0), 8, true);
+            static auto SetRainWetnessHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& ctx)
+            {
+                *pWetness = 1.0f;
+
+                if (enabled)
+                {
+                    *pWetness = 0.0f;
+                }
+            });
+        }
 
         // Snow on vehicles: load textures
         pattern = find_pattern("E8 ? ? ? ? 8B 0D ? ? ? ? 83 C4 18 8B 01 6A 00", "E8 ? ? ? ? 83 C4 18 8B 0D");
@@ -84,8 +128,6 @@ public:
         applySnowRenderParams();
         applyMaterialsDatParams();
         applyShockingEventsParams();
-        disableRainSounds.Write();
-        disableRainWetness.Write();
     }
 
     auto Disable() -> void override
@@ -99,8 +141,6 @@ public:
         restoreSnowRenderParams();
         restoreMaterialsDatParams();
         restoreShockingEventsParams();
-        disableRainSounds.Restore();
-        disableRainWetness.Restore();
     }
 
 private:
@@ -133,8 +173,7 @@ private:
 
     static inline rage::grcRenderTargetPC* mNormalRtCopy;
 
-    static inline auto disableRainSounds = raw_mem{};
-    static inline auto disableRainWetness = raw_mem{};
+    static inline float* pWetness = nullptr;
 
     static auto __fastcall OnDeviceLost() -> void
     {

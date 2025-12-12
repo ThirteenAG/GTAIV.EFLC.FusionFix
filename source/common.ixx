@@ -1056,8 +1056,6 @@ public:
 export class raw_mem
 {
 public:
-    raw_mem() = default;
-
     raw_mem(injector::memory_pointer_tr addr, std::initializer_list<uint8_t> bytes, bool offset_back = false)
     {
         ptr = addr.as_int() - (offset_back ? bytes.size() : 0);
