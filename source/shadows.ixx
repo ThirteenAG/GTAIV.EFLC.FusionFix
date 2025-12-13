@@ -6,17 +6,15 @@ export module shadows;
 
 import common;
 import comvars;
-import natives;
 import settings;
 
 import <bitset>;
 
-injector::memory_pointer_raw CModelInfoStore__allocateBaseModel     = nullptr;
+injector::memory_pointer_raw CModelInfoStore__allocateBaseModel = nullptr;
 injector::memory_pointer_raw CModelInfoStore__allocateInstanceModel = nullptr;
-injector::memory_pointer_raw CBaseModelInfo__setFlags               = nullptr;
+injector::memory_pointer_raw CBaseModelInfo__setFlags = nullptr;
 
 int32_t bExtraDynamicShadows;
-bool bHighResolutionNightShadows = false;
 
 std::string curModelName;
 void* __cdecl CModelInfoStore__allocateBaseModelHook(char* modelName)
@@ -83,54 +81,8 @@ void __cdecl CBaseModelInfo__setFlagsHook(void* pModel, int dwFlags, int a3)
     return injector::cstd<void(void*, int, int)>::call(CBaseModelInfo__setFlags, pModel, dwFlags, a3);
 }
 
-int GetNightShadowQuality()
-{
-    static auto NightShadows = FusionFixSettings.GetRef("PREF_SHADOW_DENSITY");
-    switch (NightShadows->get())
-    {
-        case 0: //MO_OFF
-            return 0;
-
-        case 1: //MO_MED
-            return 256  * (bHighResolutionNightShadows ? 2 : 1);
-
-        case 2: //MO_HIGH
-            return 512  * (bHighResolutionNightShadows ? 2 : 1);
-
-        case 3: //MO_VHIGH
-            return 1024 * (bHighResolutionNightShadows ? 2 : 1);
-
-        default:
-            return 0;
-    }
-}
-
 class Shadows
 {
-    static inline SafetyHookInline shsub_925DB0{};
-    static int __cdecl sub_925DB0(int a1, int a2, int flags)
-    {
-        if (!bExtraNightShadows)
-        {
-            if (!Natives::IsInteriorScene())
-                return -1;
-        }
-
-        return shsub_925DB0.ccall<int>(a1, a2, flags);
-    }
-
-    static inline SafetyHookInline shsub_D77A00{};
-    static void __fastcall sub_D77A00(void* _this, void* edx)
-    {
-        if (!bExtraNightShadows)
-        {
-            if (!Natives::IsInteriorScene())
-                return;
-        }
-
-        return shsub_D77A00.unsafe_fastcall(_this, edx);
-    }
-
 public:
     Shadows()
     {
@@ -139,10 +91,9 @@ public:
             CIniReader iniReader("");
 
             // [SHADOWS]
-            bExtraDynamicShadows = iniReader.ReadInteger("SHADOWS", "ExtraDynamicShadows", 2);
+            bExtraDynamicShadows    = iniReader.ReadInteger("SHADOWS", "ExtraDynamicShadows",    2);
             bDynamicShadowsForTrees = iniReader.ReadInteger("SHADOWS", "DynamicShadowsForTrees", 1) != 0;
-            bHighResolutionShadows = iniReader.ReadInteger("SHADOWS", "HighResolutionShadows", 0) != 0;
-            bHighResolutionNightShadows = iniReader.ReadInteger("SHADOWS", "HighResolutionNightShadows", 0) != 0;
+            bHighResolutionShadows  = iniReader.ReadInteger("SHADOWS", "HighResolutionShadows",  0) != 0;
 
             // Dynamic shadows for trees
             if (bDynamicShadowsForTrees)
@@ -162,8 +113,8 @@ public:
                 if (bExtraDynamicShadows >= 1)
                 {
                     std::vector<std::string> vegetationNames = {
-                        "ag_bigandbushy", "ag_bigandbushygrn", "azalea_md_ingame", "azalea_md_ingame_06",
-                        "azalea_md_ingame_2", "bholly_md_ingame", "bholly_md_ingame_2", "bholly_md_s_ingame_2", "c_fern_md_ingame_2"
+                        "ag_bigandbushy", "ag_bigandbushygrn", "azalea_md_ingame", "azalea_md_ingame_06", "azalea_md_ingame_2", "bholly_md_ingame", "bholly_md_ingame_2",
+                        "bholly_md_s_ingame_2", "c_fern_md_ingame_2"
                     };
 
                     modelNames.insert(modelNames.end(), vegetationNames.begin(), vegetationNames.end());
@@ -172,100 +123,54 @@ public:
                 if (bExtraDynamicShadows >= 2)
                 {
                     std::vector<std::string> miscNames = {
-                        "am_qm_eltrntrk1b", "am_qm_eltrntrk2b", "am_qm_eltrntrk3b", "am_qm_eltrntrk4b", "am_qm_fm4trkb", "am_qm_ho4trkb",
-                        "bkn_ltrn_bkslin02b", "bkn_ltrn_bkslin03b", "bkn_ltrn_bkslin04b", "bkn_ltrn_bkslin05b", "bkn_ltrn_qwslin02b", "bkn_ltrn_qwslin03b",
-                        "bx_eltrain_5a", "bx_eltrain_6a", "bx_eltrain_7a", "bx_eltrain_10a", "bxw_el_lights", "bxw_el_lights2", "bxw_el_mesh",
-                        "el_lights01", "el_lights02", "el_lights02a", "el_lights04", "mbridge_lt10_bkn", "mbridge_lt10_bknb",
-                        "qw2_track0_d", "qw2_track1_d", "qw2_track2_d", "qw2_track3_d", "qw2_track4_d", "qw2_track5_d", "qw2_track6_d", "qw2_track7_d",
-                        "qw_track9_d", "qw_track10_d", "qw_track11_d", "qw_track16_d", "qw_track16b_d", "rail01_qe_01b", "rail01_qe_02b",
-                        "rail05ax_ksun_01op", "rail08_ks2un_01b", "rail08a_ks2un_01b", "rail08c_ks2un_01b", "rail09c_ksun_01op", "rail10a_ksun_01op",
-                        "railtrack_02_mh5", "railtrack_03_mh5", "railtrack_04_mh5", "railtrack_05_mh5", "railtrack_06_mh5", "railtrack_07_mh5",
-                        "et_oldrailbits02", "railtnnl2_dtl1_mh5", "railtrck2_dtl1_mh5", "railtrck2_dtl2_mh5",
-                        "njdock_grasstrack", "njdock_grasstrack01",
-                        "bx_firescape", "fire_esc_1", "fire_esc_1b", "fire_esc_2", "fire_esc_2_steps", "fire_esc_2b", "fire_esc_4", "fire_esc_4b",
-                        "fire_esc_5", "fire_esc_5b", "fire_esc_6", "fire_esc_6b", "fire_esc_7", "fire_esc_7b", "fire_esc_8", "fire_esc_8b", "fire_esc_9",
-                        "fire_esc_9b", "fire_esc_10", "fire_esc_10b", "fire_esc_11", "fire_esc_11b", "fire_esc_11c", "fire_esc_12b", "ironsteps_mh12", "bxw_wii_ladders",
-                        "fence",
-                        "gatepillara_mh4", "gatepillarb_mh4", "gatepillarc_mh4", "gatepillard_mh4", "gravegates_mh10", "gravegates_mh11",
-                        "hp_gate_brriers", "uni_gatea_mh4", "uni_gateb_mh4",
-                        "pedbridge2d2_mh8", "pedbridge2d_mh8", "pedbridged_mh8", "rodabridge1d_mh4", "warbridge1d_mh8", "warbridge1d2_mh8",
-                        "warbridge2d_mh8", "warbridge3d_mh8",
-                        "coast_d_03_mh8", "coast_d_06_mh8", "coast_d_08_mh8", "coast_d_09_mh8", "coast_d_10_mh8", "coast_d_11_mh8", "coast_d_21_mh8",
-                        "coast_d_26_mh8", "coast_d_27_mh8", "coast_d_28_mh8", "coast_d_34_mh8", "coast_d_35_mh8", "coast_d_36_mh8", "coast_d_37_mh8",
-                        "hlmcoast11d_mh12", "hlmcoastrd2_mh12", "bxw_coastland8", "bxe2_cstrocks_ng",
-                        "05_01_dtl1_mh5", "05_02_dtl1_mh5", "05_03_dtl1_mh5", "05_04_dtl1_mh5", "08_bld05dtl_mh5", "24resibuild1_dtl_mh5",
-                        "resid_12-2_mh4", "resid_12-5_mh4",
-                        "resi_builds8d_34_mh4", "resi_yfrontd_mh4",
-                        "bkn_bit04", "dockbrookn_01", "dockbrookn_wall", "dumbo_bstep_bkn", "dumbolisted_bkn03",
-                        "dumbofront_bkn", "dumborock01_bkn", "dumborock02_bkn", "lod_tg_f_n01", "mh_roadbuit_bkn", "tg_f_n",
-                        "cj_mh_cp_post1", "concblock01_mh12", "concblock02_mh12", "concblock03_mh12",
-                        "seawall_det2_mh12", "seawall_det4_mh12", "seawall_det4c_mh12", "seawall_det5_mh12", "wii_bboard", "block03det_mh10",
-                        "5thavten01det_dc9", "hk_cnrten01det_mh3", "hk_crmten5x7det_mh3", "hk_crntenbrn1det_mh3", "hk_redten3x4det_mh3", "hk_redten4x4det_mh3", "soho_bank01det_mh2",
-                        "litaly_ten22det_mh2", "litaly_ten23det_mh2", "litaly_tendet21_mh2", "litaly_tendet24_mh2", "litaly_tendet25_mh2",
-                        "lty2_ten01d02_mh2", "lty2_ten02d1_mh2", "lty2_ten02d2_mh2", "soho_ten12det_mh2", "soho_ten21det_mh2", "tentop4_bxw", "tentop5b_bxw", "esb_roofdet01_dc9",
-                        "cityhalldet0",
-                        "coop_projektwall3", "nj04e_bbwall01", "nj04e_brdgwall03",
-                        "wallbed_1b_mh8", "wallbed_2b_mh8", "wallbed_3b_mh8",
-                        "27_land01_lmap", "cc2_3_crprk_cst", "cityhall_gnd01_ns2", "cityhall_gnd02_ns2", "dm_prj_grnd04_mh7", "dm_un_hedge05_mh7",
-                        "gm-19_03", "mun_gnd01_mh2", "sp_weeds_mh10", "stmys_path2", "qw_astprkgrs5", "qw_astprkgrs7",
-                        "jers_tun01_mh3", "qw2_queenstun",
-                        "nj5_priswaste03", "nj5_priswaste04", "nj5_priswaste05", "nj5priscage00", "pris_baskbl2",
-                        "prispath_0",
-                        "bayrd_2_bxe", "baywindowsd_tf8", "weedbay05a",
-                        "et_piera", "et_pierb", "et_pierc", "et_pierd", "et_piere", "et_pierf", "et_pierg", "et_pierh", "njdockgrd01", "njdockgrd02", "njdockgrd04",
-                        "am_ap_runwayg", "am_ap_runwayh", "am_h02_freeway", "nj03hiway00", "nj03hiway03",
-                        "ag_roads_brks02", "ag_roads_brks03", "ag_roads_brks07", "tg_f_road1",
-                        "qw_road2", "qw_road3", "qw_road4",
-                        "bxe_road_14", "bxe_road_27", "bxe_road_39", "bxe_road_43", "bxe_road_57a", "bxe_road_63", "bxw_road_47", "bx_ind6_jetty03_road", "bxbayroad_1",
-                        "croad",
-                        "10_road2_mh1", "10_road3_mh1", "10_road_mh1", "21_road02_mh1", "newjunt_mh10", "newroads_11_mh3", "newroads_12_mh3",
-                        "newroads_13_mh3", "newroads_16_mh3", "newroads_23_mh3", "newroads_26_mh3", "newroads_32_mh3", "newroads_41_mh3",
-                        "newroads_41b_mh3", "newroads_44_mh3", "road1_02_mh1", "road11_01_mh1", "road14_01_mh1", "road2_01_mh1", "road22_01_mh1", "road_02_mh2",
-                        "road_03_mh2", "road_06b_mh2", "road_08_mh10", "road_10_mh2", "road_11_mh2", "road_12_mh04", "road_17_mh5", "road_20_mh04",
-                        "road_25_mh2", "road_26_mh10", "road_26b_mh10", "road_28_mh04", "road_28_mh2", "road_28_mtf8", "road_29_mh04", "road_30_mh2",
-                        "road_31_mh04", "road_31_mh2", "road_31_mtf8", "road_32_mh04", "road_33_mh04", "road_33b_mh04", "road_34_mh2", "road_36_mh2",
-                        "road_37_mh2", "road_37_mh5", "road_40_mh5", "road_49_mh5", "road_55_mh5", "road_56_mtf8", "road_59_mh7", "cppave09_mh8", "smordmanh03_mxr15",
-                        "ts_roads04_dc9", "ts_roads27_dc9",
-                        "newj4e_road07", "newj4e_road15", "nj01_08road", "nj01_24road", "nj01_31road", "nj02road_02", "nj03hiway08", "nj03hiway09",
-                        "nj03road05", "nj03road06", "nj03road12", "nj03road16", "nj03road32", "nj03road33", "nj03road51",
-                        "embankment1d_mh8", "embankment2d_mh8", "embankment4d_mh8", "embankment5d_mh8",
-                        "gas_terr_mh2", "soho02_terrain_mh2", "04_terr01_mh2", "mh2_08_ter01_mh2",
-                        "mh2_08_ter05_mh2", "mh2_13_terr01_mh2", "mh2_07_terrain_mh2", "mh2_10_terrain_mh2", "blk34_terrb_mh8",
-                        "nj01_13_gutter", "nj01_19_gutter1", "nj01_19_gutter2", "nj01_20_gutter1", "nj01_20_gutter2", "nj01_25_gutter1",
-                        "nj01_25_gutter2", "nj01_26_gutter", "nj01_27_gutter", "nj01_32_gutter", "nj01_39_gutter", "nj01_40_gutter",
-                        "dm_roofpipe02_mh7", "mh3_07_pipes0", "tg_fway_pipes",
-                        "bxepink_grnd_bay2", "hp1_grnd", "nj5_bld4grnd",
-                        "sb2_grnd", "am_ap_carpk_gnd1", "am_ap_carpk_gnd2",
-                        "et_groundsouth", "ltrain_ground", "mp_ground01_mh3", "ng_ground_top", "nj04e_ground1",
-                        "nj04e_ground2", "nj04e_ground5", "nj04e_ground6", "nj04e_ground7",
-                        "nj04e_ground8", "og_bs3blk07ground", "og_bs3blk08ground", "tg_sh4_nground",
-                        "et_docketrance1", "wi1_dockbase", "wi1_docks",
-                        "base_wresd_mh4", "et_cranebase06", "et_cranebase07", "esb_basedet01_dc9", "esb_basedet02_dc9", "esb_basedet03_dc9", "esb_basedet04_dc9",
-                        "tg_cibase_01", "tg_cibase_02", "tg_cibase_03", "tg_cp3_projbase", "wi_wt_base7", "wi_wt_base8",
-                        "12_land01_mh5", "am_ap_carpkisland1", "am_ap_carpkisland2",
-                        "coop_projekt_land02", "coop_projekt_land03", "dmblandio", "ind1_upass_landb",
-                        "land_cc4", "nj04paulieland01", "nj04paulieland02", "nj05_land03b02",
-                        "pp_stairs01rail_mh12",
-                        "facetedtowerd_tf8", "lite_towerd_mh2", "lite_towerd_mh8", "northtowerd_mh8", "plaintowerd_tf8",
-                        "tower08d_mh8", "tower1d_mh4", "trumptowerd_mh4", "ts_atowerdet_dc9",
-                        "apt_corn_12_5d_ixx", "apt_corn1_10d_mh8", "aptmentsd_a2_mh4", "crnapt_uniacomd_mh4",
-                        "aprts_03d_mh4", "aprts_03d_mh4_lmap", "aprts_04d_mh4", "aprt_10_24d_mh4",
-                        "rdwrks_reelixr", "ts_roads03wrks_dc9", "ts_roads21wrks_dc9",
-                        "blk23_unique1d_mh4", "blk30_unique1d_mh4", "blk30_unique2d_mh4",
-                        "cablesnposts_mh12", "ks_cabled01", "ws_cc_cables02_mh7",
-                        "block03det_mh10", "hk_block02det_mh3",
-                        "hotel1d_block11_mh8", "hotel2d_block11_mh4", "hotel3d_block11_mh4", "hotel3d_block11_mh8",
-                        "nj01roadblock01", "nj01roadblock03", "nj01roadblock05", "nj01roadblock39",
-                        "bilboard75corn_dc9", "nj01_bilboardframe",
-                        "ts_bilboard",
-                        "eeris_logo_bkn",
-                        "detail_0", "detail_1",
-                        "detail_resid61i_mh12", "lite_detail_mh8", "lite_detailb_mh8",
-                        "rope06_mh12", "rope07_mh12", "rope08_mh12", "rope09_mh12",
-                        "ap_carpark_stp_01", "ap_carpark_stp_02", "ap_carpark_stp_03",
-                        "mh3_07_barbers_det",
-                        "ts_wigwamdet_01_dc9", "nj03_rubfnce_01", "ccbarrier1_mh7", "wi1_lightpoles", "et_radiomast", "nj_plumdingr",
-                        "24_chimneys1_mh04", "nathistd_mh4", "plazad2_tf8", "shp_corner1d_12_mh05", "timewarnerd_mh4", "white_coma_mh4", "jumparea3_mh12"
+                        "am_qm_eltrntrk1b", "am_qm_eltrntrk2b", "am_qm_eltrntrk3b", "am_qm_eltrntrk4b", "am_qm_fm4trkb", "am_qm_ho4trkb", "bkn_ltrn_bkslin02b", "bkn_ltrn_bkslin03b",
+                        "bkn_ltrn_bkslin04b", "bkn_ltrn_bkslin05b", "bkn_ltrn_qwslin02b", "bkn_ltrn_qwslin03b", "bx_eltrain_5a", "bx_eltrain_6a", "bx_eltrain_7a", "bx_eltrain_10a",
+                        "bxw_el_lights", "bxw_el_lights2", "bxw_el_mesh", "el_lights01", "el_lights02", "el_lights02a", "el_lights04", "mbridge_lt10_bkn", "mbridge_lt10_bknb",
+                        "qw2_track0_d", "qw2_track1_d", "qw2_track2_d", "qw2_track3_d", "qw2_track4_d", "qw2_track5_d", "qw2_track6_d", "qw2_track7_d", "qw_track9_d", "qw_track10_d",
+                        "qw_track11_d", "qw_track16_d", "qw_track16b_d", "rail01_qe_01b", "rail01_qe_02b", "rail05ax_ksun_01op", "rail08_ks2un_01b", "rail08a_ks2un_01b", "rail08c_ks2un_01b",
+                        "rail09c_ksun_01op", "rail10a_ksun_01op", "railtrack_02_mh5", "railtrack_03_mh5", "railtrack_04_mh5", "railtrack_05_mh5", "railtrack_06_mh5", "railtrack_07_mh5",
+                        "et_oldrailbits02", "railtnnl2_dtl1_mh5", "railtrck2_dtl1_mh5", "railtrck2_dtl2_mh5", "njdock_grasstrack", "njdock_grasstrack01", "bx_firescape", "fire_esc_1",
+                        "fire_esc_1b", "fire_esc_2", "fire_esc_2_steps", "fire_esc_2b", "fire_esc_4", "fire_esc_4b", "fire_esc_5", "fire_esc_5b", "fire_esc_6", "fire_esc_6b", "fire_esc_7",
+                        "fire_esc_7b", "fire_esc_8", "fire_esc_8b", "fire_esc_9", "fire_esc_9b", "fire_esc_10", "fire_esc_10b", "fire_esc_11", "fire_esc_11b", "fire_esc_11c", "fire_esc_12b",
+                        "ironsteps_mh12", "bxw_wii_ladders", "fence", "gatepillara_mh4", "gatepillarb_mh4", "gatepillarc_mh4", "gatepillard_mh4", "gravegates_mh10", "gravegates_mh11",
+                        "hp_gate_brriers", "uni_gatea_mh4", "uni_gateb_mh4", "pedbridge2d2_mh8", "pedbridge2d_mh8", "pedbridged_mh8", "rodabridge1d_mh4", "warbridge1d_mh8", "warbridge1d2_mh8",
+                        "warbridge2d_mh8", "warbridge3d_mh8", "coast_d_03_mh8", "coast_d_06_mh8", "coast_d_08_mh8", "coast_d_09_mh8", "coast_d_10_mh8", "coast_d_11_mh8", "coast_d_21_mh8",
+                        "coast_d_26_mh8", "coast_d_27_mh8", "coast_d_28_mh8", "coast_d_34_mh8", "coast_d_35_mh8", "coast_d_36_mh8", "coast_d_37_mh8", "hlmcoast11d_mh12", "hlmcoastrd2_mh12",
+                        "bxw_coastland8", "bxe2_cstrocks_ng", "05_01_dtl1_mh5", "05_02_dtl1_mh5", "05_03_dtl1_mh5", "05_04_dtl1_mh5", "08_bld05dtl_mh5", "24resibuild1_dtl_mh5", "resid_12-2_mh4",
+                        "resid_12-5_mh4", "resi_builds8d_34_mh4", "resi_yfrontd_mh4", "bkn_bit04", "dockbrookn_01", "dockbrookn_wall", "dumbo_bstep_bkn", "dumbolisted_bkn03", "dumbofront_bkn",
+                        "dumborock01_bkn", "dumborock02_bkn", "lod_tg_f_n01", "mh_roadbuit_bkn", "tg_f_n", "cj_mh_cp_post1", "concblock01_mh12", "concblock02_mh12", "concblock03_mh12",
+                        "seawall_det2_mh12", "seawall_det4_mh12", "seawall_det4c_mh12", "seawall_det5_mh12", "wii_bboard", "block03det_mh10", "5thavten01det_dc9", "hk_cnrten01det_mh3",
+                        "hk_crmten5x7det_mh3", "hk_crntenbrn1det_mh3", "hk_redten3x4det_mh3", "hk_redten4x4det_mh3", "soho_bank01det_mh2", "litaly_ten22det_mh2", "litaly_ten23det_mh2",
+                        "litaly_tendet21_mh2", "litaly_tendet24_mh2", "litaly_tendet25_mh2", "lty2_ten01d02_mh2", "lty2_ten02d1_mh2", "lty2_ten02d2_mh2", "soho_ten12det_mh2", "soho_ten21det_mh2",
+                        "tentop4_bxw", "tentop5b_bxw", "esb_roofdet01_dc9", "cityhalldet0", "coop_projektwall3", "nj04e_bbwall01", "nj04e_brdgwall03", "wallbed_1b_mh8", "wallbed_2b_mh8",
+                        "wallbed_3b_mh8", "27_land01_lmap", "cc2_3_crprk_cst", "cityhall_gnd01_ns2", "cityhall_gnd02_ns2", "dm_prj_grnd04_mh7", "dm_un_hedge05_mh7", "gm-19_03", "mun_gnd01_mh2",
+                        "sp_weeds_mh10", "stmys_path2", "qw_astprkgrs5", "qw_astprkgrs7", "jers_tun01_mh3", "qw2_queenstun", "nj5_priswaste03", "nj5_priswaste04", "nj5_priswaste05", "nj5priscage00",
+                        "pris_baskbl2", "prispath_0", "bayrd_2_bxe", "baywindowsd_tf8", "weedbay05a", "et_piera", "et_pierb", "et_pierc", "et_pierd", "et_piere", "et_pierf", "et_pierg", "et_pierh",
+                        "njdockgrd01", "njdockgrd02", "njdockgrd04", "am_ap_runwayg", "am_ap_runwayh", "am_h02_freeway", "nj03hiway00", "nj03hiway03", "ag_roads_brks02", "ag_roads_brks03",
+                        "ag_roads_brks07", "tg_f_road1", "qw_road2", "qw_road3", "qw_road4", "bxe_road_14", "bxe_road_27", "bxe_road_39", "bxe_road_43", "bxe_road_57a", "bxe_road_63",
+                        "bxw_road_47", "bx_ind6_jetty03_road", "bxbayroad_1", "croad", "10_road2_mh1", "10_road3_mh1", "10_road_mh1", "21_road02_mh1", "newjunt_mh10", "newroads_11_mh3",
+                        "newroads_12_mh3", "newroads_13_mh3", "newroads_16_mh3", "newroads_23_mh3", "newroads_26_mh3", "newroads_32_mh3", "newroads_41_mh3", "newroads_41b_mh3", "newroads_44_mh3",
+                        "road1_02_mh1", "road11_01_mh1", "road14_01_mh1", "road2_01_mh1", "road22_01_mh1", "road_02_mh2", "road_03_mh2", "road_06b_mh2", "road_08_mh10", "road_10_mh2",
+                        "road_11_mh2", "road_12_mh04", "road_17_mh5", "road_20_mh04", "road_25_mh2", "road_26_mh10", "road_26b_mh10", "road_28_mh04", "road_28_mh2", "road_28_mtf8",
+                        "road_29_mh04", "road_30_mh2", "road_31_mh04", "road_31_mh2", "road_31_mtf8", "road_32_mh04", "road_33_mh04", "road_33b_mh04", "road_34_mh2", "road_36_mh2",
+                        "road_37_mh2", "road_37_mh5", "road_40_mh5", "road_49_mh5", "road_55_mh5", "road_56_mtf8", "road_59_mh7", "cppave09_mh8", "smordmanh03_mxr15", "ts_roads04_dc9",
+                        "ts_roads27_dc9", "newj4e_road07", "newj4e_road15", "nj01_08road", "nj01_24road", "nj01_31road", "nj02road_02", "nj03hiway08", "nj03hiway09", "nj03road05", "nj03road06",
+                        "nj03road12", "nj03road16", "nj03road32", "nj03road33", "nj03road51", "embankment1d_mh8", "embankment2d_mh8", "embankment4d_mh8", "embankment5d_mh8", "gas_terr_mh2",
+                        "soho02_terrain_mh2", "04_terr01_mh2", "mh2_08_ter01_mh2", "mh2_08_ter05_mh2", "mh2_13_terr01_mh2", "mh2_07_terrain_mh2", "mh2_10_terrain_mh2", "blk34_terrb_mh8",
+                        "nj01_13_gutter", "nj01_19_gutter1", "nj01_19_gutter2", "nj01_20_gutter1", "nj01_20_gutter2", "nj01_25_gutter1", "nj01_25_gutter2", "nj01_26_gutter", "nj01_27_gutter",
+                        "nj01_32_gutter", "nj01_39_gutter", "nj01_40_gutter", "dm_roofpipe02_mh7", "mh3_07_pipes0", "tg_fway_pipes", "bxepink_grnd_bay2", "hp1_grnd", "nj5_bld4grnd", "sb2_grnd",
+                        "am_ap_carpk_gnd1", "am_ap_carpk_gnd2", "et_groundsouth", "ltrain_ground", "mp_ground01_mh3", "ng_ground_top", "nj04e_ground1", "nj04e_ground2", "nj04e_ground5", "nj04e_ground6",
+                        "nj04e_ground7", "nj04e_ground8", "og_bs3blk07ground", "og_bs3blk08ground", "tg_sh4_nground", "et_docketrance1", "wi1_dockbase", "wi1_docks", "base_wresd_mh4", "et_cranebase06",
+                        "et_cranebase07", "esb_basedet01_dc9", "esb_basedet02_dc9", "esb_basedet03_dc9", "esb_basedet04_dc9", "tg_cibase_01", "tg_cibase_02", "tg_cibase_03", "tg_cp3_projbase", "wi_wt_base7",
+                        "wi_wt_base8", "12_land01_mh5", "am_ap_carpkisland1", "am_ap_carpkisland2", "coop_projekt_land02", "coop_projekt_land03", "dmblandio", "ind1_upass_landb", "land_cc4", "nj04paulieland01",
+                        "nj04paulieland02", "nj05_land03b02", "pp_stairs01rail_mh12", "facetedtowerd_tf8", "lite_towerd_mh2", "lite_towerd_mh8", "northtowerd_mh8", "plaintowerd_tf8", "tower08d_mh8",
+                        "tower1d_mh4", "trumptowerd_mh4", "ts_atowerdet_dc9", "apt_corn_12_5d_ixx", "apt_corn1_10d_mh8", "aptmentsd_a2_mh4", "crnapt_uniacomd_mh4", "aprts_03d_mh4", "aprts_03d_mh4_lmap",
+                        "aprts_04d_mh4", "aprt_10_24d_mh4", "rdwrks_reelixr", "ts_roads03wrks_dc9", "ts_roads21wrks_dc9", "blk23_unique1d_mh4", "blk30_unique1d_mh4", "blk30_unique2d_mh4", "cablesnposts_mh12",
+                        "ks_cabled01", "ws_cc_cables02_mh7", "block03det_mh10", "hk_block02det_mh3", "hotel1d_block11_mh8", "hotel2d_block11_mh4", "hotel3d_block11_mh4", "hotel3d_block11_mh8",
+                        "nj01roadblock01", "nj01roadblock03", "nj01roadblock05", "nj01roadblock39", "bilboard75corn_dc9", "nj01_bilboardframe", "ts_bilboard", "eeris_logo_bkn", "detail_0","detail_1",
+                        "detail_resid61i_mh12", "lite_detail_mh8", "lite_detailb_mh8", "rope06_mh12", "rope07_mh12", "rope08_mh12", "rope09_mh12", "ap_carpark_stp_01", "ap_carpark_stp_02", "ap_carpark_stp_03",
+                        "mh3_07_barbers_det", "ts_wigwamdet_01_dc9", "nj03_rubfnce_01", "ccbarrier1_mh7", "wi1_lightpoles", "et_radiomast", "nj_plumdingr", "24_chimneys1_mh04", "nathistd_mh4", "plazad2_tf8",
+                        "shp_corner1d_12_mh05", "timewarnerd_mh4", "white_coma_mh4", "jumparea3_mh12"
                     };
 
                     modelNames.insert(modelNames.end(), miscNames.begin(), miscNames.end());
@@ -360,7 +265,7 @@ public:
                                        "D9 82 ? ? ? ? D9 1C BD ? ? ? ? 0F 8D ? ? ? ? 8D 04 87 D9 04 85 ? ? ? ? D9 1C BD ? ? ? ? E9 ? ? ? ? 85 C9");
                 auto pCascadeRange2 = *pattern.get_first<CascadeRange*>(2);
 
-                for (size_t i = 0; i < 4; i++) // low medium high veryhigh
+                for (size_t i = 0; i < 4; i++) // MO_LOW / MO_MED / MO_HIGH / MO_VHIGH
                 {
                     injector::scoped_unprotect(&pCascadeRange1[i], sizeof(CascadeRange));
                     injector::scoped_unprotect(&pCascadeRange2[i], sizeof(CascadeRange));
@@ -389,7 +294,7 @@ public:
                                        "F3 0F 10 94 00 ? ? ? ? F3 0F 10 9C 00 ? ? ? ? 03 C0 F3 0F 5C DA F3 0F 5E D9 F3 0F 59 D8 F3 0F 58 DA F3 0F 11 1C BD");
                 auto pShadowMatrix = *pattern.get_first<ShadowMatrix*>(5);
 
-                for (size_t i = 0; i < 4; i++) // low medium high veryhigh
+                for (size_t i = 0; i < 4; i++) // MO_LOW / MO_MED / MO_HIGH / MO_VHIGH
                 {
                     injector::scoped_unprotect(&pShadowMatrix[i], sizeof(ShadowMatrix));
 
@@ -397,56 +302,6 @@ public:
                     pShadowMatrix[i].ShadowMatrix1 = 0.0f;
                     pShadowMatrix[i].ShadowMatrix2 = 0.0f;
                     pShadowMatrix[i].ShadowMatrix3 = 0.0f;
-                }
-
-                // Make night shadow options adjust night shadow resolution
-                pattern = find_pattern("8B 0D ? ? ? ? 85 C9 7E 1B", "8B 0D ? ? ? ? 33 C0 85 C9 7E 1B");
-                static auto shsub_925E70 = safetyhook::create_inline(pattern.get_first(0), GetNightShadowQuality);
-
-                // Lamppost shadows workaround
-                {
-                    auto pattern = hook::pattern("80 3D ? ? ? ? ? 75 04 83 C8 FF");
-                    shsub_925DB0 = safetyhook::create_inline(pattern.get_first(), sub_925DB0);
-
-                    pattern = find_pattern("83 EC 3C 80 3D ? ? ? ? ? 56 8B F1", "83 EC 3C 53 33 DB");
-                    shsub_D77A00 = safetyhook::create_inline(pattern.get_first(0), sub_D77A00);
-
-                    pattern = find_pattern("8B 55 20 F6 C1 06");
-                    if (!pattern.empty())
-                    {
-                        static auto FlagsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                        {
-                            if (!bExtraNightShadows)
-                            {
-                                if (Natives::IsInteriorScene())
-                                {
-                                    if ((*(uint32_t*)(regs.edi + 0x4C) & 0x8000000) != 0) // new flag to detect affected lampposts
-                                    {
-                                        regs.ecx &= ~3;
-                                        regs.ecx &= ~4;
-                                        *(uint32_t*)(regs.esp + 0x18) = regs.ecx;
-                                    }
-                                }
-                            }
-                        });
-                    }
-                    else
-                    {
-                        pattern = find_pattern("E8 ? ? ? ? 0F B6 46 ? F3 0F 10 44 24");
-                        static auto FlagsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs) {
-                            if (!bExtraNightShadows)
-                            {
-                                if (Natives::IsInteriorScene())
-                                {
-                                    if ((*(uint32_t*)(regs.esi + 0x4C) & 0x8000000) != 0) // new flag to detect affected lampposts
-                                    {
-                                        regs.ebx &= ~3;
-                                        regs.ebx &= ~4;
-                                    }
-                                }
-                            }
-                        });
-                    }
                 }
             }
         };

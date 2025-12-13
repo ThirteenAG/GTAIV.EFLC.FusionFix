@@ -255,7 +255,3 @@ misc.HiDof.nearBlur	1
 misc.HiDof.midBlur	0.20		
 misc.HiDof.farBlur	1.00		
 misc.cutscene.nearBlurMin	0.2		
-misc.HiDof.nearBlur	1.00		
-misc.HiDof.midBlur	0.20		
-misc.HiDof.farBlur	1		
-misc.cutscene.nearBlurMin	0.2		
