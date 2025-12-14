@@ -203,7 +203,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored the temporary ban from the gun shop when attacking the owner in TLAD/TBOGT
 - Chinatown gun shop: Fixed a small bug where the wrong voice line is used after exiting when not buying something
 - Restored voice lines from Luis, he'll now respond to what the pilot tells him about the landmarks during the tour
-- Uptown Riders now use their own voice line rather than Angles of Death voice in TLAD's arm wrestling
+- Uptown Riders now use their own voice line rather than Angels of Death voice in TLAD's arm wrestling
 - Fixed the busker script terminates too early in TBoGT, now Luis can give money to busker normally
 - Fixed several motorcycles use incorrect paying animation at toll station in TBoGT
 - Fixed ilyena call and brycebug content can't trigger after load the save (From ilyena's random character mission and stubbs' job)
