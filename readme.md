@@ -182,6 +182,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Added new tree LOD atlas based on the PC trees
 - Fixed jagged vehicle reflections
 - LOD lights now appear at the appropriate time and can render in cutscene, like on the console version
+- Added an option to allow various postfx effect to render behind transparent objects properly
 - Make night shadows resolution be adjusted by night shadows option
 - Restored higher shadow render distance from old versions of the game
 - Improved cascaded shadows performance, and added an option to double their resolution
