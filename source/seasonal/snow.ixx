@@ -23,15 +23,68 @@ public:
     {
         CRenderPhaseDeferredLighting_LightsToScreen::OnBuildRenderList() += OnBuildRenderList;
 
-        // Snow on vehicles: load textures
-        auto pattern = find_pattern("E8 ? ? ? ? 8B 0D ? ? ? ? 83 C4 18 8B 01 6A 00", "E8 ? ? ? ? 83 C4 18 8B 0D");
-        static auto FXRain__CTxdStore__setCurrent = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& ctx)
+        // Disables rain-related audio (e.g. Surface impacts)
+        auto pattern = hook::pattern("F3 0F 10 05 ? ? ? ? F3 0F 11 04 24 E8 ? ? ? ? 51");
+        if (!pattern.empty())
         {
-            vehicle_generic_glasswindows2_snow = CTxdStore::getEntryByKey(CTxdStore::at(ctx.esi), 0, hashStringLowercaseFromSeed("vehicle_generic_glasswindows2_snow", 0));
-            vehicle_generic_tyrewallblack_snow = CTxdStore::getEntryByKey(CTxdStore::at(ctx.esi), 0, hashStringLowercaseFromSeed("vehicle_generic_tyrewallblack_snow", 0));
-            vehicle_generic_glassdirt_snow = CTxdStore::getEntryByKey(CTxdStore::at(ctx.esi), 0, hashStringLowercaseFromSeed("vehicle_generic_glassdirt_snow", 0));
-            vehicle_genericmud_car_snow = CTxdStore::getEntryByKey(CTxdStore::at(ctx.esi), 0, hashStringLowercaseFromSeed("vehicle_genericmud_car_snow", 0));
-            vehicle_genericmud_truck_snow = CTxdStore::getEntryByKey(CTxdStore::at(ctx.esi), 0, hashStringLowercaseFromSeed("vehicle_genericmud_truck_snow", 0));
+            static auto SetRainAudioHook = safetyhook::create_mid(pattern.get_first(8), [](SafetyHookContext& regs)
+            {
+                if (snowEnabled)
+                {
+                    regs.xmm0.f32[0] = 0.0f;
+                }
+            });
+        }
+        else
+        {
+            pattern = hook::pattern("D9 1C 24 E8 ? ? ? ? 51 D9 1C 24 E8 ? ? ? ? D8 44 24 08 83 C4 04 5E 59 C3 CC");
+            static auto SetRainAudioHook = safetyhook::create_mid(pattern.get_first(3), [](SafetyHookContext& regs)
+            {
+                if (snowEnabled)
+                {
+                    *(float*)regs.esp = 0.0f;
+                }
+            });
+        }
+
+        // Disables wetness-related effects (e.g. Reflections, footstep/vehicle interaction sounds, particles)
+        pattern = hook::pattern("C7 05 ? ? ? ? 00 00 80 3F F3 0F 10 25 ? ? ? ? F3 0F 10 04");
+        if (!pattern.empty())
+        {
+            pWetness = *pattern.get_first<float*>(2);
+            static auto SetRainWetnessHook = safetyhook::create_mid(pattern.get_first(10), [](SafetyHookContext& regs)
+            {
+                if (snowEnabled)
+                {
+                    *pWetness = 0.0f;
+                }
+            });
+        }
+        else
+        {
+            pattern = hook::pattern("F3 0F 11 05 ? ? ? ? EB 67");
+            pWetness = *pattern.get_first<float*>(4);
+            injector::MakeNOP(pattern.get_first(0), 8, true);
+            static auto SetRainWetnessHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+            {
+                *pWetness = 1.0f;
+
+                if (snowEnabled)
+                {
+                    *pWetness = 0.0f;
+                }
+            });
+        }
+
+        // Snow on vehicles: load textures
+        pattern = find_pattern("E8 ? ? ? ? 8B 0D ? ? ? ? 83 C4 18 8B 01 6A 00", "E8 ? ? ? ? 83 C4 18 8B 0D");
+        static auto FXRain__CTxdStore__setCurrent = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+        {
+            vehicle_generic_glasswindows2_snow = CTxdStore::getEntryByKey(CTxdStore::at(regs.esi), 0, hashStringLowercaseFromSeed("vehicle_generic_glasswindows2_snow", 0));
+            vehicle_generic_tyrewallblack_snow = CTxdStore::getEntryByKey(CTxdStore::at(regs.esi), 0, hashStringLowercaseFromSeed("vehicle_generic_tyrewallblack_snow", 0));
+            vehicle_generic_glassdirt_snow = CTxdStore::getEntryByKey(CTxdStore::at(regs.esi), 0, hashStringLowercaseFromSeed("vehicle_generic_glassdirt_snow", 0));
+            vehicle_genericmud_car_snow = CTxdStore::getEntryByKey(CTxdStore::at(regs.esi), 0, hashStringLowercaseFromSeed("vehicle_genericmud_car_snow", 0));
+            vehicle_genericmud_truck_snow = CTxdStore::getEntryByKey(CTxdStore::at(regs.esi), 0, hashStringLowercaseFromSeed("vehicle_genericmud_truck_snow", 0));
         });
 
         // Snow on vehicles: replace textures
@@ -66,7 +119,7 @@ public:
 
     auto Enable() -> void override
     {
-        enabled = true;
+        snowEnabled = true;
 
         unsub_OnAfterCopyLight = CRenderPhaseDeferredLighting_LightsToScreen::OnAfterCopyLight() += OnAfterCopyLight;
         unsub_onCTimeCycleExtInit = CTimeCycleExt::onCTimeCycleExtInit() += onCTimeCycleExtInit;
@@ -79,7 +132,7 @@ public:
 
     auto Disable() -> void override
     {
-        enabled = false;
+        snowEnabled = false;
 
         unsub_OnAfterCopyLight();
         unsub_onCTimeCycleExtInit();
@@ -91,7 +144,7 @@ public:
     }
 
 private:
-    static inline auto enabled = false;
+    static inline auto snowEnabled = false;
 
     static inline std::function<void()> unsub_OnAfterCopyLight;
     static inline std::function<void()> unsub_onCTimeCycleExtInit;
@@ -119,6 +172,8 @@ private:
     static inline rage::grcRenderTargetPC* mDepthRT;
 
     static inline rage::grcRenderTargetPC* mNormalRtCopy;
+
+    static inline float* pWetness = nullptr;
 
     static auto __fastcall OnDeviceLost() -> void
     {
@@ -285,7 +340,7 @@ private:
             OnBuildRenderListInit();
         }
 
-        if (!enabled)
+        if (!snowEnabled)
             return;
 
         // Skip if any required GPU resource is unavailable (e.g., during/after a device reset)
@@ -302,7 +357,8 @@ private:
 
     static auto OnBeforeLighting() -> void
     {
-        auto HasSnow = [](CWeather::eWeatherType /*type*/) -> bool {
+        auto HasSnow = [](CWeather::eWeatherType /*type*/) -> bool
+        {
             return true;
         };
 
@@ -462,13 +518,13 @@ private:
     {
         switch (type)
         {
-        case CWeather::SUNNY_WINDY: return true;
-        case CWeather::CLOUDY:      return true;
-        case CWeather::RAIN:        return true;
-        case CWeather::DRIZZLE:     return true;
-        case CWeather::FOGGY:       return true;
-        case CWeather::LIGHTNING:   return true;
-        default: return false;
+            case CWeather::SUNNY_WINDY: return true;
+            case CWeather::CLOUDY:      return true;
+            case CWeather::RAIN:        return true;
+            case CWeather::DRIZZLE:     return true;
+            case CWeather::FOGGY:       return true;
+            case CWeather::LIGHTNING:   return true;
+            default: return false;
         }
     }
 
@@ -476,13 +532,13 @@ private:
     {
         switch (type)
         {
-        case CWeather::SUNNY_WINDY: return 1.1f;
-        case CWeather::CLOUDY:      return 1.15f;
-        case CWeather::RAIN:        return 1.25f;
-        case CWeather::DRIZZLE:     return 1.2f;
-        case CWeather::FOGGY:       return 1.4f;
-        case CWeather::LIGHTNING:   return 1.3f;
-        default: return 0.0f;
+            case CWeather::SUNNY_WINDY: return 1.1f;
+            case CWeather::CLOUDY:      return 1.15f;
+            case CWeather::RAIN:        return 1.25f;
+            case CWeather::DRIZZLE:     return 1.2f;
+            case CWeather::FOGGY:       return 1.4f;
+            case CWeather::LIGHTNING:   return 1.3f;
+            default: return 0.0f;
         }
     }
 
@@ -490,13 +546,13 @@ private:
     {
         switch (type)
         {
-        case CWeather::SUNNY_WINDY: return 0.1f;
-        case CWeather::CLOUDY:      return 0.15f;
-        case CWeather::RAIN:        return 0.25f;
-        case CWeather::DRIZZLE:     return 0.2f;
-        case CWeather::FOGGY:       return 0.4f;
-        case CWeather::LIGHTNING:   return 0.3f;
-        default: return 0.0f;
+            case CWeather::SUNNY_WINDY: return 0.1f;
+            case CWeather::CLOUDY:      return 0.15f;
+            case CWeather::RAIN:        return 0.25f;
+            case CWeather::DRIZZLE:     return 0.2f;
+            case CWeather::FOGGY:       return 0.4f;
+            case CWeather::LIGHTNING:   return 0.3f;
+            default: return 0.0f;
         }
     }
 
@@ -515,7 +571,7 @@ private:
     static inline SafetyHookInline shsub_41B920{};
     static auto __fastcall sub_41B920(rage::grcTextureReference* tex, void* edx) -> rage::grcTexturePC*
     {
-        if (enabled)
+        if (snowEnabled)
         {
             if (!vehicle_generic_glasswindows2)
             {
@@ -564,7 +620,7 @@ private:
     static inline SafetyHookInline shsub_A9F2D0{};
     static auto __stdcall sub_A9F2D0(unsigned int hash, int a2, char a3) -> void*
     {
-        if (enabled)
+        if (snowEnabled)
         {
             static std::vector<unsigned int> list = {
                 0x9EA7160A, // bullet impact smoke
