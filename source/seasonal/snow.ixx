@@ -478,7 +478,7 @@ private:
         Natives::GetRootCam(&CurrentCamera);
         Natives::GetCamPos(CurrentCamera, &CameraPosition.x, &CameraPosition.y, &CameraPosition.z);
 
-        auto Smoothstep = [](float Edge0, float Edge1, float X)
+        static auto Smoothstep = [](float Edge0, float Edge1, float X)
         {
             float NormalizedX = std::clamp((X - Edge0) / (Edge1 - Edge0), 0.0f, 1.0f);
 
