@@ -18,14 +18,14 @@ auto SnowCheat(bool bPrintHelp = true) -> void
     if (!SeasonalManager::IsTimedEventsDisabled())
         SeasonalManager::DisableTimedEvents();
 
-    if (SeasonalManager::GetCurrent() == SeasonalType::Snow) 
+    if (SeasonalManager::GetCurrent() == SeasonalType::Snow)
     {
         SeasonalManager::Set(SeasonalType::None);
 
         if (bPrintHelp)
             Natives::PrintHelp((char*)"WinterEvent0");
-    }   
-    else 
+    }
+    else
     {
         SeasonalManager::Set(SeasonalType::Snow);
 
@@ -75,12 +75,55 @@ char VirtualKeyToChar(int vkCode)
 
     switch (vkCode)
     {
-    case VK_SPACE:
-        return ' ';
-    default:
-        return '\0';
+        case VK_SPACE:
+            return ' ';
+        default:
+            return '\0';
     }
 }
+
+#pragma pack(push, 8)
+struct modelNameId
+{
+    const char* pszName = nullptr;
+    int nModelId = 0;
+    modelNameId* pPrev = nullptr;
+};
+#pragma pack(pop)
+
+namespace ModelNameId
+{
+    modelNameId Hexer;
+    modelNameId Slamvan;
+    modelNameId PoliceBike;
+    modelNameId PoliceStinger;
+    modelNameId Brickade;
+
+    modelNameId* (__fastcall* ModelNameId)(modelNameId* _this, void* edx, const char* pszModelName) = nullptr;
+
+    SafetyHookInline shinitialize = {};
+    void __fastcall initialize(void* CModelInfoStore, void* edx)
+    {
+        if (!Hexer.pszName)
+            ModelNameId(&Hexer, 0, "hexer");
+
+        if (!Slamvan.pszName)
+            ModelNameId(&Slamvan, 0, "slamvan");
+
+        if (!PoliceBike.pszName)
+            ModelNameId(&PoliceBike, 0, "policeb");
+
+        if (!PoliceStinger.pszName)
+            ModelNameId(&PoliceStinger, 0, "police4");
+
+        if (!Brickade.pszName)
+            ModelNameId(&Brickade, 0, "avan");
+
+        return shinitialize.unsafe_fastcall(CModelInfoStore, edx);
+    }
+}
+
+void (__cdecl* SpawnCar)(int modelID) = nullptr;
 
 class Cheats
 {
@@ -93,7 +136,8 @@ public:
             {
                 memset(CheatString, 0, sizeof(CheatString));
 
-                FusionFix::onGameProcessEvent() += []() {
+                FusionFix::onGameProcessEvent() += []()
+                {
                     int keyIndex = 0;
                     while (keyIndex < 255)
                     {
@@ -140,11 +184,13 @@ public:
             if (bHalloweenCheat)
                 FusionFix::onGameInitEvent() += []() { HallCheat(); };
 
-            NativeOverride::RegisterPhoneCheat("7665550100", [] {
+            NativeOverride::RegisterPhoneCheat("7665550100", []
+            {
                 SnowCheat();
             });
 
-            NativeOverride::RegisterPhoneCheat("2665550100", [] {
+            NativeOverride::RegisterPhoneCheat("2665550100", []
+            {
                 HallCheat();
             });
 
@@ -235,6 +281,65 @@ public:
                             Natives::PrintHelp((char*)"CHEAT2");
                         }
                     }
+                }
+            });
+
+            auto pattern = find_pattern("8B 44 24 ? 89 01 C7 41 ? ? ? ? ? A1", "8B C1 8B 4C 24 ? 89 08 C7 40");
+            ModelNameId::ModelNameId = (decltype(ModelNameId::ModelNameId))pattern.get_first();
+
+            pattern = find_pattern("56 8B 35 ? ? ? ? 85 F6 74 ? EB 03 8D 49 ? 8D 46", "56 8B 35 ? ? ? ? 85 F6 74 ? EB 03 8D 49 ? 8D 46");
+            ModelNameId::shinitialize = safetyhook::create_inline(pattern.get_first(), ModelNameId::initialize);
+
+            pattern = find_pattern("55 8B EC 83 E4 F0 81 EC 58 01 00 00 56 57 8B 7D ? 85 FF", "55 8B EC 83 E4 F0 81 EC 84 01 00 00 53 56 57 8B 7D");
+            SpawnCar = (decltype(SpawnCar))pattern.get_first();
+
+            //Spawn Hexer
+            NativeOverride::RegisterPhoneCheat("2455550150", []
+            {
+                if (*_dwCurrentEpisode == 2)
+                {
+                    SpawnCar(ModelNameId::Hexer.nModelId);
+                    Natives::PrintHelp((char*)"CHEAT1");
+                }
+            });
+
+            //Spawn Slamvan
+            NativeOverride::RegisterPhoneCheat("8265550100", []
+            {
+                if (*_dwCurrentEpisode == 2)
+                {
+                    SpawnCar(ModelNameId::Slamvan.nModelId);
+                    Natives::PrintHelp((char*)"CHEAT1");
+                }
+            });
+
+            //Spawn Police Bike
+            NativeOverride::RegisterPhoneCheat("6255556752", []
+            {
+                if (*_dwCurrentEpisode == 2)
+                {
+                    SpawnCar(ModelNameId::PoliceBike.nModelId);
+                    Natives::PrintHelp((char*)"CHEAT1");
+                }
+            });
+
+            //Spawn Police Stinger
+            NativeOverride::RegisterPhoneCheat("2275557864", []
+            {
+                if (*_dwCurrentEpisode == 2)
+                {
+                    SpawnCar(ModelNameId::PoliceStinger.nModelId);
+                    Natives::PrintHelp((char*)"CHEAT1");
+                }
+            });
+
+            //Spawn Brickade
+            NativeOverride::RegisterPhoneCheat("2725552826", []
+            {
+                if (*_dwCurrentEpisode == 2)
+                {
+                    SpawnCar(ModelNameId::Brickade.nModelId);
+                    Natives::PrintHelp((char*)"CHEAT1");
                 }
             });
         };
