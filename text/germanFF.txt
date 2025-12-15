@@ -175,6 +175,9 @@ Erweiterte Sniper-Steuerung
 [Bullet Traces]
 Schussspuren immer sichtbar
 
+[POLICE3]
+Polizei-Buffalo
+
 [FF_WARN0]
 ~p~IMG-Dateien:
 

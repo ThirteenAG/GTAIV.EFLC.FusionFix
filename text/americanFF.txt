@@ -175,6 +175,9 @@ Extended Sniper Controls
 [Bullet Traces]
 Always Show Bullet Traces
 
+[POLICE3]
+Police Buffalo
+
 [FF_WARN0]
 ~p~IMG Files:
 
