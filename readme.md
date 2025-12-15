@@ -182,6 +182,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Added new tree LOD atlas based on the PC trees
 - Fixed jagged vehicle reflections
 - LOD lights now appear at the appropriate time and can render in cutscene, like on the console version
+- Added an option to allow various postfx effect to render behind transparent objects properly
 - Make night shadows resolution be adjusted by night shadows option
 - Restored higher shadow render distance from old versions of the game
 - Improved cascaded shadows performance, and added an option to double their resolution
@@ -202,8 +203,9 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored the temporary ban from the gun shop when attacking the owner in TLAD/TBOGT
 - Chinatown gun shop: Fixed a small bug where the wrong voice line is used after exiting when not buying something
 - Restored voice lines from Luis, he'll now respond to what the pilot tells him about the landmarks during the tour
+- Uptown Riders now use their own voice line rather than Angels of Death voice in TLAD's arm wrestling
 - Fixed the busker script terminates too early in TBoGT, now Luis can give money to busker normally
-- Fixed incorrect used giving money animation at the toll station for several TBoGT's motorcycles
+- Fixed several motorcycles use incorrect paying animation at toll station in TBoGT
 - Fixed ilyena call and brycebug content can't trigger after load the save (From ilyena's random character mission and stubbs' job)
 - Fixed the FIB arriving too early at the abandoned mansion in Phil's mission "To live and die in Alderney"
 - Fixed the heli climb QTE being impossible on really high framerates
@@ -245,10 +247,12 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed helicopter searchlights flicker violently when more than one helicopter is present
 - Fixed radio reset after cutscene
 - Workaround for lights & motion blur flicker intermittently when player is drunk
+- Fixed player can't give beggar money normally on PC
 - Fixed TLAD phone keypad rendering on top of the plastic cover
 - Fixed TLAD an incorrect traffic cops head texture
 - Fixed some cutscene and interiors models
 - Fixed and improved some lights and emissive materials
+- Fixed a font uses incorrect style in TBoGT
 - Added an option to enable shadows for some objects and vegetation that lack them
 - Added options to customize shadow blur, bias and cascade blending 
 - Various other fixes, like regular cops & fat cops will now spawn with their hat prop disabled when in a vehicle, like on the console version
