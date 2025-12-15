@@ -333,7 +333,7 @@ public:
                 if (*_dwCurrentEpisode == 2)
                 {
                     SpawnCar(ModelNameId::PoliceBuffalo.nModelId);
-                    Natives::PrintHelp((char*)"Cheat1");
+                    Natives::PrintHelp((char*)"CHEAT1");
                 }
             });
 
