@@ -175,6 +175,9 @@ Controles extendidos del rifle de francotirador
 [Bullet Traces]
 Mostrar siempre los rastros de balas
 
+[POLICE3]
+Buffalo policía
+
 [FF_WARN0]
 ~p~Archivos IMG:
 
