@@ -96,6 +96,7 @@ namespace ModelNameId
     modelNameId Hexer;
     modelNameId Slamvan;
     modelNameId PoliceBike;
+    modelNameId PoliceBuffalo;
     modelNameId PoliceStinger;
     modelNameId Brickade;
 
@@ -112,6 +113,9 @@ namespace ModelNameId
 
         if (!PoliceBike.pszName)
             ModelNameId(&PoliceBike, 0, "policeb");
+
+        if (!PoliceBuffalo.pszName)
+            ModelNameId(&PoliceBuffalo, 0, "police3");
 
         if (!PoliceStinger.pszName)
             ModelNameId(&PoliceStinger, 0, "police4");
@@ -320,6 +324,16 @@ public:
                 {
                     SpawnCar(ModelNameId::PoliceBike.nModelId);
                     Natives::PrintHelp((char*)"CHEAT1");
+                }
+            });
+
+            //Spawn Police Buffalo
+            NativeOverride::RegisterPhoneCheat("4725558624", []
+            {
+                if (*_dwCurrentEpisode == 2)
+                {
+                    SpawnCar(ModelNameId::PoliceBuffalo.nModelId);
+                    Natives::PrintHelp((char*)"Cheat1");
                 }
             });
 

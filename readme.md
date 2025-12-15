@@ -188,7 +188,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Improved cascaded shadows performance, and added an option to double their resolution
 - Added dynamic shadows for trees
 - Reduced water flickering issue (need to disable **Extra Night Shadows**)
-- Added several cheat code to enable seasonal events and restore some unused player assets for Niko and Johnny, they can be found hidden in relevant locations, or finding them [here](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/blob/master/source/cheats.ixx)
+- Added several cheat code to enable seasonal events, restore some unused player assets for Niko and Johnny, and spawn some vehicles in TBoGT, they can be found hidden in relevant locations, or finding them [here](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/blob/master/source/cheats.ixx)
 
 ### Scripts
 
@@ -204,6 +204,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Chinatown gun shop: Fixed a small bug where the wrong voice line is used after exiting when not buying something
 - Restored voice lines from Luis, he'll now respond to what the pilot tells him about the landmarks during the tour
 - Uptown Riders now use their own voice line rather than Angels of Death voice in TLAD's arm wrestling
+- Restored Clay's voice line which is used when he meets Johnny in hangout friend activity in TLAD
 - Fixed the busker script terminates too early in TBoGT, now Luis can give money to busker normally
 - Fixed several motorcycles use incorrect paying animation at toll station in TBoGT
 - Fixed ilyena call and brycebug content can't trigger after load the save (From ilyena's random character mission and stubbs' job)
