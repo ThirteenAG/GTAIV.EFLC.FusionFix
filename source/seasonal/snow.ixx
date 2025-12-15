@@ -6,6 +6,7 @@ module;
 export module seasonal.snow;
 
 import comvars;
+import natives;
 import timecycext;
 
 #define IDR_SNOWTX 200
@@ -468,24 +469,48 @@ private:
 
     static auto OnAfterCopyLight(rage::CLightSource* light) -> void
     {
-        const auto CurrentWeather = CWeather::GetOldWeatherType();
-        const auto NextWeather = CWeather::GetNewWeatherType();
-        const auto InterpolationValue = CWeather::GetWeatherInterpolationValue();
+        const CWeather::eWeatherType CurrentWeather = CWeather::GetOldWeatherType();
+        const CWeather::eWeatherType NextWeather = CWeather::GetNewWeatherType();
+        const float InterpolationValue = CWeather::GetWeatherInterpolationValue();
+
+        int CurrentCamera;
+        rage::Vector3 CameraPosition;
+        Natives::GetRootCam(&CurrentCamera);
+        Natives::GetCamPos(CurrentCamera, &CameraPosition.x, &CameraPosition.y, &CameraPosition.z);
+
+        static auto Smoothstep = [](float Edge0, float Edge1, float X)
+        {
+            float NormalizedX = std::clamp((X - Edge0) / (Edge1 - Edge0), 0.0f, 1.0f);
+
+            return NormalizedX * NormalizedX * (3.0f - 2.0f * NormalizedX);
+        };
 
         if (HasVolumes(CurrentWeather) || HasVolumes(NextWeather))
         {
-            // Only affect spotlights with a radius between 8 and 20 (Most light models in lamppost.img are within that range),
+            // Include spotlights with a radius between 8 and 20 (Most light models in lamppost.img are within that range)
             // and exclude lights previously volumetric, vehicle lights, traffic lights, fill lights and cutscene lights
             if (light->mType == rage::LT_SPOT && light->mRadius >= 8.0f && light->mRadius <= 20.0f && !(light->mFlags & 0x398))
             {
                 // Append the light shaft flag
                 light->mFlags |= 8;
 
+                // Distance fading setup
+                float DeltaX = CameraPosition.x - light->mPosition.x;
+                float DeltaY = CameraPosition.y - light->mPosition.y;
+                float DeltaZ = CameraPosition.z - light->mPosition.z;
+
+                float Distance = std::sqrt(DeltaX * DeltaX + DeltaY * DeltaY + DeltaZ * DeltaZ);
+
+                float FadeStart = 75.0f;
+                float FadeEnd = 150.0f;
+
+                float DistanceFade = 1.0f - Smoothstep(FadeStart, FadeEnd, Distance);
+
                 // Transition from no volumes to volumes
                 if (!HasVolumes(CurrentWeather) && HasVolumes(NextWeather))
                 {
-                    light->mVolumeIntensity = 4.0f * LightVolumeIntensities(NextWeather) * InterpolationValue;
-                    light->mVolumeScale = LightVolumeScales(NextWeather) * InterpolationValue;
+                    light->mVolumeIntensity = 4.0f * LightVolumeIntensities(NextWeather) * InterpolationValue * DistanceFade;
+                    light->mVolumeScale = LightVolumeScales(NextWeather) * InterpolationValue * DistanceFade;
                 }
                 // Transition between volumes
                 else if (HasVolumes(CurrentWeather) && HasVolumes(NextWeather))
@@ -496,14 +521,14 @@ private:
                     float CurrentVolumeScale = LightVolumeScales(CurrentWeather);
                     float NextVolumeScale = LightVolumeScales(NextWeather);
 
-                    light->mVolumeIntensity = 4.0f * (CurrentVolumeIntensity + (NextVolumeIntensity - CurrentVolumeIntensity) * InterpolationValue);
-                    light->mVolumeScale = CurrentVolumeScale + (NextVolumeScale - CurrentVolumeScale) * InterpolationValue;
+                    light->mVolumeIntensity = 4.0f * (CurrentVolumeIntensity + (NextVolumeIntensity - CurrentVolumeIntensity) * InterpolationValue) * DistanceFade;
+                    light->mVolumeScale = (CurrentVolumeScale + (NextVolumeScale - CurrentVolumeScale) * InterpolationValue) * DistanceFade;
                 }
                 // Transition from volumes to no volumes
                 else if (HasVolumes(CurrentWeather) && !HasVolumes(NextWeather))
                 {
-                    light->mVolumeIntensity = 4.0f * LightVolumeIntensities(CurrentWeather) * (1.0f - InterpolationValue);
-                    light->mVolumeScale = LightVolumeScales(CurrentWeather) * (1.0f - InterpolationValue);
+                    light->mVolumeIntensity = 4.0f * LightVolumeIntensities(CurrentWeather) * (1.0f - InterpolationValue) * DistanceFade;
+                    light->mVolumeScale = LightVolumeScales(CurrentWeather) * (1.0f - InterpolationValue) * DistanceFade;
                 }
             }
         }
@@ -514,9 +539,9 @@ private:
         CTimeCycleExt::Initialise(currentEpisodePath() / "pc" / "data" / "snowext.dat");
     }
 
-    static auto HasVolumes(CWeather::eWeatherType type) -> bool
+    static auto HasVolumes(CWeather::eWeatherType Type) -> bool
     {
-        switch (type)
+        switch (Type)
         {
             case CWeather::SUNNY_WINDY: return true;
             case CWeather::CLOUDY:      return true;
@@ -528,9 +553,9 @@ private:
         }
     }
 
-    static auto LightVolumeIntensities(CWeather::eWeatherType type) -> float
+    static auto LightVolumeIntensities(CWeather::eWeatherType Type) -> float
     {
-        switch (type)
+        switch (Type)
         {
             case CWeather::SUNNY_WINDY: return 1.1f;
             case CWeather::CLOUDY:      return 1.15f;
@@ -542,9 +567,9 @@ private:
         }
     }
 
-    static auto LightVolumeScales(CWeather::eWeatherType type) -> float
+    static auto LightVolumeScales(CWeather::eWeatherType Type) -> float
     {
-        switch (type)
+        switch (Type)
         {
             case CWeather::SUNNY_WINDY: return 0.1f;
             case CWeather::CLOUDY:      return 0.15f;
