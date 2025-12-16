@@ -175,9 +175,6 @@ Controlli estesi del fucile di precisione
 [Bullet Traces]
 Mostra sempre le tracce dei proiettili
 
-[POLICE3]
-Buffalo polizia
-
 [FF_WARN0]
 ~p~Archivi IMG:
 

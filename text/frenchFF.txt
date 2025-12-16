@@ -172,9 +172,6 @@ GTA IV doit être redémarré pour appliquer les paramètres.
 [Extended Sniper]
 Commande étendue du fusil de sniper
 
-[POLICE3]
-Police Buffalo
-
 [FF_WARN0]
 ~p~Fichiers IMG:
 
