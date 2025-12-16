@@ -97,6 +97,8 @@ namespace ModelNameId
     modelNameId PoliceStockade;
     modelNameId RomansTaxi;
     modelNameId Romero;
+    modelNameId PoliceMaverick;
+    modelNameId PolicePredator;
     modelNameId Packer2;
     modelNameId PrisonBus;
     modelNameId Regina;
@@ -111,6 +113,8 @@ namespace ModelNameId
     modelNameId PoliceBuffalo;
     modelNameId PoliceStinger;
     modelNameId Brickade;
+    modelNameId Skylift;
+    modelNameId Swift;
 
     modelNameId* (__fastcall* ModelNameId)(modelNameId* _this, void* edx, const char* pszModelName) = nullptr;
 
@@ -128,6 +132,12 @@ namespace ModelNameId
 
         if (!Romero.pszName)
             ModelNameId(&Romero, 0, "romero");
+
+        if (!PoliceMaverick.pszName)
+            ModelNameId(&PoliceMaverick, 0, "polmav");
+
+        if (!PolicePredator.pszName)
+            ModelNameId(&PolicePredator, 0, "predator");
 
         if (!Packer2.pszName)
             ModelNameId(&Packer2, 0, "packer2");
@@ -170,6 +180,12 @@ namespace ModelNameId
 
         if (!Brickade.pszName)
             ModelNameId(&Brickade, 0, "avan");
+
+        if (!Skylift.pszName)
+            ModelNameId(&Skylift, 0, "skylift");
+
+        if (!Swift.pszName)
+            ModelNameId(Swift, 0, "swift");
 
         return shinitialize.unsafe_fastcall(CModelInfoStore, edx);
     }
@@ -373,6 +389,20 @@ public:
                 Natives::PrintHelp((char*)"CHEAT1");
             });
 
+            //Spawn Police Maverick
+            NativeOverride::RegisterPhoneCheat("7765558200", []
+            {
+                SpawnCar(ModelNameId::PoliceMaverick.nModelId);
+                Natives::PrintHelp((char*)"CHEAT1");
+            });
+
+            //Spawn Police Predator
+            NativeOverride::RegisterPhoneCheat("5665553800", []
+            {
+                SpawnCar(ModelNameId::PolicePredator.nModelId);
+                Natives::PrintHelp((char*)"CHEAT1");
+            });
+
             //Spawn Packer2
             NativeOverride::RegisterPhoneCheat("5435550942", []
             {
@@ -509,6 +539,26 @@ public:
                 if (*_dwCurrentEpisode == 2)
                 {
                     SpawnCar(ModelNameId::Brickade.nModelId);
+                    Natives::PrintHelp((char*)"CHEAT1");
+                }
+            });
+
+            //Spawn Skylift
+            NativeOverride::RegisterPhoneCheat("4675552492", []
+            {
+                if (*_dwCurrentEpisode == 2)
+                {
+                    SpawnCar(ModelNameId::Skylift.nModelId);
+                    Natives::PrintHelp((char*)"CHEAT1");
+                }
+            });
+
+            //Spawn Swift
+            NativeOverride::RegisterPhoneCheat("9725550264", []
+            {
+                if (*_dwCurrentEpisode == 2)
+                {
+                    SpawnCar(ModelNameId::Swift.nModelId);
                     Natives::PrintHelp((char*)"CHEAT1");
                 }
             });
