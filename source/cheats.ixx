@@ -360,7 +360,6 @@ public:
             });
 
             //Spawn Roman's Taxi
-
             NativeOverride::RegisterPhoneCheat("2945552222", []
             {
                 SpawnCar(ModelNameId::RomansTaxi.nModelId);
@@ -368,7 +367,6 @@ public:
             });
 
             //Spawn Romero
-
             NativeOverride::RegisterPhoneCheat("3725558926", []
             {
                 SpawnCar(ModelNameId::Romero.nModelId);
@@ -376,7 +374,6 @@ public:
             });
 
             //Spawn Packer2
-
             NativeOverride::RegisterPhoneCheat("5435550942", []
             {
                 if (*_dwCurrentEpisode == 1)
@@ -387,7 +384,6 @@ public:
             });
 
             //Spawn Prison Bus
-
             NativeOverride::RegisterPhoneCheat("2565551372", []
             {
                 if (*_dwCurrentEpisode == 1)
@@ -398,7 +394,6 @@ public:
             });
 
             //Spawn Regina
-
             NativeOverride::RegisterPhoneCheat("6255551374", []
             {
                 if (*_dwCurrentEpisode == 1)
@@ -409,7 +404,6 @@ public:
             });
 
             //Spawn Tampa
-
             NativeOverride::RegisterPhoneCheat("4625554022", []
             {
                 if (*_dwCurrentEpisode == 1)
@@ -420,7 +414,6 @@ public:
             });
 
             //Spawn Yankee2
-
             NativeOverride::RegisterPhoneCheat("8265550184", []
             {
                 if (*_dwCurrentEpisode == 1)
@@ -431,7 +424,6 @@ public:
             });
 
             //Spawn Bati Custom
-
             NativeOverride::RegisterPhoneCheat("2455550288", []
             {
                 if (*_dwCurrentEpisode == 2)
@@ -442,7 +434,6 @@ public:
             });
 
             //Spawn Caddy
-
             NativeOverride::RegisterPhoneCheat("9265550180", []
             {
                 if (*_dwCurrentEpisode == 2)
@@ -463,7 +454,6 @@ public:
             });
 
             //Spawn Stretch E
-
             NativeOverride::RegisterPhoneCheat("4965550450", []
             {
                 if (*_dwCurrentEpisode == 2)
