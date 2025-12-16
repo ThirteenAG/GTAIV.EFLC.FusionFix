@@ -188,7 +188,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Improved cascaded shadows performance, and added an option to double their resolution
 - Added dynamic shadows for trees
 - Reduced water flickering issue (need to disable **Extra Night Shadows**)
-- Added several cheat code to enable seasonal events, restore some unused player assets for Niko and Johnny, and spawn some vehicles in TBoGT, they can be found hidden in relevant locations, or finding them [here](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/blob/master/source/cheats.ixx)
+- Added several cheat code to enable seasonal events, restore some unused player assets for Niko and Johnny, and spawn some vehicles, they can be found hidden in relevant locations, or finding them [here](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/blob/master/source/cheats.ixx)
 
 ### Scripts
 
