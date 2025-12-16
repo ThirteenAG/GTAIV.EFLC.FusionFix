@@ -185,7 +185,7 @@ namespace ModelNameId
             ModelNameId(&Skylift, 0, "skylift");
 
         if (!Swift.pszName)
-            ModelNameId(Swift, 0, "swift");
+            ModelNameId(&Swift, 0, "swift");
 
         return shinitialize.unsafe_fastcall(CModelInfoStore, edx);
     }
