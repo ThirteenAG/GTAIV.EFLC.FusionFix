@@ -93,78 +93,24 @@ struct modelNameId
 
 namespace ModelNameId
 {
-    modelNameId Laundromat;
-    modelNameId PoliceStockade;
-    modelNameId RomansTaxi;
-    modelNameId Romero;
-    modelNameId PoliceMaverick;
-    modelNameId PolicePredator;
-    modelNameId Packer2;
-    modelNameId PrisonBus;
-    modelNameId Regina;
     modelNameId Tampa;
-    modelNameId Yankee2;
-    modelNameId BatiCustom;
-    modelNameId Caddy;
     modelNameId Hexer;
-    modelNameId StretchE;
     modelNameId Slamvan;
     modelNameId PoliceBike;
     modelNameId PoliceBuffalo;
     modelNameId PoliceStinger;
     modelNameId Brickade;
-    modelNameId Skylift;
-    modelNameId Swift;
 
     modelNameId* (__fastcall* ModelNameId)(modelNameId* _this, void* edx, const char* pszModelName) = nullptr;
 
     SafetyHookInline shinitialize = {};
     void __fastcall initialize(void* CModelInfoStore, void* edx)
     {
-        if (!Laundromat.pszName)
-            ModelNameId(&Laundromat, 0, "burrito2");
-
-        if (!PoliceStockade.pszName)
-            ModelNameId(&PoliceStockade, 0, "pstockade");
-
-        if (!RomansTaxi.pszName)
-            ModelNameId(&RomansTaxi, 0, "rom");
-
-        if (!Romero.pszName)
-            ModelNameId(&Romero, 0, "romero");
-
-        if (!PoliceMaverick.pszName)
-            ModelNameId(&PoliceMaverick, 0, "polmav");
-
-        if (!PolicePredator.pszName)
-            ModelNameId(&PolicePredator, 0, "predator");
-
-        if (!Packer2.pszName)
-            ModelNameId(&Packer2, 0, "packer2");
-
-        if (!PrisonBus.pszName)
-            ModelNameId(&PrisonBus, 0, "pbus");
-
-        if (!Regina.pszName)
-            ModelNameId(&Regina, 0, "regina");
-
         if (!Tampa.pszName)
             ModelNameId(&Tampa, 0, "tampa");
 
-        if (!Yankee2.pszName)
-            ModelNameId(&Yankee2, 0, "yankee2");
-
-        if (!BatiCustom.pszName)
-            ModelNameId(&BatiCustom, 0, "bati2");
-
-        if (!Caddy.pszName)
-            ModelNameId(&Caddy, 0, "caddy");
-
         if (!Hexer.pszName)
             ModelNameId(&Hexer, 0, "hexer");
-
-        if (!StretchE.pszName)
-            ModelNameId(&StretchE, 0, "limo2");
 
         if (!Slamvan.pszName)
             ModelNameId(&Slamvan, 0, "slamvan");
@@ -180,12 +126,6 @@ namespace ModelNameId
 
         if (!Brickade.pszName)
             ModelNameId(&Brickade, 0, "avan");
-
-        if (!Skylift.pszName)
-            ModelNameId(&Skylift, 0, "skylift");
-
-        if (!Swift.pszName)
-            ModelNameId(&Swift, 0, "swift");
 
         return shinitialize.unsafe_fastcall(CModelInfoStore, edx);
     }
@@ -361,114 +301,12 @@ public:
             pattern = find_pattern("55 8B EC 83 E4 F0 81 EC 58 01 00 00 56 57 8B 7D ? 85 FF", "55 8B EC 83 E4 F0 81 EC 84 01 00 00 53 56 57 8B 7D");
             SpawnCar = (decltype(SpawnCar))pattern.get_first();
 
-            //Spawn Laundromat
-            NativeOverride::RegisterPhoneCheat("1825551976", []
-            {
-                SpawnCar(ModelNameId::Laundromat.nModelId);
-                Natives::PrintHelp((char*)"CHEAT1");
-            });
-
-            //Spawn Police Stockade
-            NativeOverride::RegisterPhoneCheat("6725557240", []
-            {
-                SpawnCar(ModelNameId::PoliceStockade.nModelId);
-                Natives::PrintHelp((char*)"CHEAT1");
-            });
-
-            //Spawn Roman's Taxi
-            NativeOverride::RegisterPhoneCheat("2945552222", []
-            {
-                SpawnCar(ModelNameId::RomansTaxi.nModelId);
-                Natives::PrintHelp((char*)"CHEAT1");
-            });
-
-            //Spawn Romero
-            NativeOverride::RegisterPhoneCheat("3725558926", []
-            {
-                SpawnCar(ModelNameId::Romero.nModelId);
-                Natives::PrintHelp((char*)"CHEAT1");
-            });
-
-            //Spawn Police Maverick
-            NativeOverride::RegisterPhoneCheat("7765558200", []
-            {
-                SpawnCar(ModelNameId::PoliceMaverick.nModelId);
-                Natives::PrintHelp((char*)"CHEAT1");
-            });
-
-            //Spawn Police Predator
-            NativeOverride::RegisterPhoneCheat("5665553800", []
-            {
-                SpawnCar(ModelNameId::PolicePredator.nModelId);
-                Natives::PrintHelp((char*)"CHEAT1");
-            });
-
-            //Spawn Packer2
-            NativeOverride::RegisterPhoneCheat("5435550942", []
-            {
-                if (*_dwCurrentEpisode == 1)
-                {
-                    SpawnCar(ModelNameId::Packer2.nModelId);
-                    Natives::PrintHelp((char*)"CHEAT1");
-                }
-            });
-
-            //Spawn Prison Bus
-            NativeOverride::RegisterPhoneCheat("2565551372", []
-            {
-                if (*_dwCurrentEpisode == 1)
-                {
-                    SpawnCar(ModelNameId::PrisonBus.nModelId);
-                    Natives::PrintHelp((char*)"CHEAT1");
-                }
-            });
-
-            //Spawn Regina
-            NativeOverride::RegisterPhoneCheat("6255551374", []
-            {
-                if (*_dwCurrentEpisode == 1)
-                {
-                    SpawnCar(ModelNameId::Regina.nModelId);
-                    Natives::PrintHelp((char*)"CHEAT1");
-                }
-            });
-
             //Spawn Tampa
-            NativeOverride::RegisterPhoneCheat("4625554022", []
+            NativeOverride::RegisterPhoneCheat("2275558267", []
             {
-                if (*_dwCurrentEpisode == 1)
+                if (*_dwCurrentEpisode == 1 || *_dwCurrentEpisode == 2)
                 {
                     SpawnCar(ModelNameId::Tampa.nModelId);
-                    Natives::PrintHelp((char*)"CHEAT1");
-                }
-            });
-
-            //Spawn Yankee2
-            NativeOverride::RegisterPhoneCheat("8265550184", []
-            {
-                if (*_dwCurrentEpisode == 1)
-                {
-                    SpawnCar(ModelNameId::Yankee2.nModelId);
-                    Natives::PrintHelp((char*)"CHEAT1");
-                }
-            });
-
-            //Spawn Bati Custom
-            NativeOverride::RegisterPhoneCheat("2455550288", []
-            {
-                if (*_dwCurrentEpisode == 2)
-                {
-                    SpawnCar(ModelNameId::BatiCustom.nModelId);
-                    Natives::PrintHelp((char*)"CHEAT1");
-                }
-            });
-
-            //Spawn Caddy
-            NativeOverride::RegisterPhoneCheat("9265550180", []
-            {
-                if (*_dwCurrentEpisode == 2)
-                {
-                    SpawnCar(ModelNameId::Caddy.nModelId);
                     Natives::PrintHelp((char*)"CHEAT1");
                 }
             });
@@ -479,16 +317,6 @@ public:
                 if (*_dwCurrentEpisode == 2)
                 {
                     SpawnCar(ModelNameId::Hexer.nModelId);
-                    Natives::PrintHelp((char*)"CHEAT1");
-                }
-            });
-
-            //Spawn Stretch E
-            NativeOverride::RegisterPhoneCheat("4965550450", []
-            {
-                if (*_dwCurrentEpisode == 2)
-                {
-                    SpawnCar(ModelNameId::StretchE.nModelId);
                     Natives::PrintHelp((char*)"CHEAT1");
                 }
             });
@@ -514,7 +342,7 @@ public:
             });
 
             //Spawn Police Buffalo
-            NativeOverride::RegisterPhoneCheat("4725558624", []
+            NativeOverride::RegisterPhoneCheat("2275552833", []
             {
                 if (*_dwCurrentEpisode == 2)
                 {
@@ -539,26 +367,6 @@ public:
                 if (*_dwCurrentEpisode == 2)
                 {
                     SpawnCar(ModelNameId::Brickade.nModelId);
-                    Natives::PrintHelp((char*)"CHEAT1");
-                }
-            });
-
-            //Spawn Skylift
-            NativeOverride::RegisterPhoneCheat("4675552492", []
-            {
-                if (*_dwCurrentEpisode == 2)
-                {
-                    SpawnCar(ModelNameId::Skylift.nModelId);
-                    Natives::PrintHelp((char*)"CHEAT1");
-                }
-            });
-
-            //Spawn Swift
-            NativeOverride::RegisterPhoneCheat("9725550264", []
-            {
-                if (*_dwCurrentEpisode == 2)
-                {
-                    SpawnCar(ModelNameId::Swift.nModelId);
                     Natives::PrintHelp((char*)"CHEAT1");
                 }
             });
