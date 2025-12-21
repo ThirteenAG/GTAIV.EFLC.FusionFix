@@ -205,6 +205,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored voice lines from Luis, he'll now respond to what the pilot tells him about the landmarks during the tour
 - Uptown Riders now use their own voice line rather than Angels of Death voice in TLAD's arm wrestling
 - Restored Clay's voice line which is used when he meets Johnny in hangout friend activity in TLAD
+- Restored Jim, Terry, Clay own voice line in TLAD hi_lo_cards minigame
 - Fixed the busker script terminates too early in TBoGT, now Luis can give money to busker normally
 - Fixed several motorcycles use incorrect paying animation at toll station in TBoGT
 - Fixed ilyena call and brycebug content can't trigger after load the save (From ilyena's random character mission and stubbs' job)
@@ -212,6 +213,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed the heli climb QTE being impossible on really high framerates
 - Workaround for a bug where Niko dies after being kicked off of Dimitri's helicopter and falling into the water (Deal Ending)
 - Workaround for a bug where Jacob crashes the Annihilator on high framerates (Deal Ending)
+- Workaround for burned AOD won't trigger ragdoll behavior on high frame rates in TLAD mission "Action/Reaction"
 
 ### Episodic content
 
