@@ -93,9 +93,13 @@ struct modelNameId
 
 namespace ModelNameId
 {
+    modelNameId Tampa;
+    modelNameId DoubleT;
+    modelNameId Hakuchou;
     modelNameId Hexer;
     modelNameId Slamvan;
     modelNameId PoliceBike;
+    modelNameId PoliceBuffalo;
     modelNameId PoliceStinger;
     modelNameId Brickade;
 
@@ -104,6 +108,15 @@ namespace ModelNameId
     SafetyHookInline shinitialize = {};
     void __fastcall initialize(void* CModelInfoStore, void* edx)
     {
+        if (!Tampa.pszName)
+            ModelNameId(&Tampa, 0, "tampa");
+
+        if (!DoubleT.pszName)
+            ModelNameId(&DoubleT, 0, "double");
+
+        if (!Hakuchou.pszName)
+            ModelNameId(&Hakuchou, 0, "hakuchou");
+
         if (!Hexer.pszName)
             ModelNameId(&Hexer, 0, "hexer");
 
@@ -112,6 +125,9 @@ namespace ModelNameId
 
         if (!PoliceBike.pszName)
             ModelNameId(&PoliceBike, 0, "policeb");
+
+        if (!PoliceBuffalo.pszName)
+            ModelNameId(&PoliceBuffalo, 0, "police3");
 
         if (!PoliceStinger.pszName)
             ModelNameId(&PoliceStinger, 0, "police4");
@@ -293,6 +309,36 @@ public:
             pattern = find_pattern("55 8B EC 83 E4 F0 81 EC 58 01 00 00 56 57 8B 7D ? 85 FF", "55 8B EC 83 E4 F0 81 EC 84 01 00 00 53 56 57 8B 7D");
             SpawnCar = (decltype(SpawnCar))pattern.get_first();
 
+            //Spawn Tampa
+            NativeOverride::RegisterPhoneCheat("2275558267", []
+            {
+                if (*_dwCurrentEpisode == 1 || *_dwCurrentEpisode == 2)
+                {
+                    SpawnCar(ModelNameId::Tampa.nModelId);
+                    Natives::PrintHelp((char*)"CHEAT1");
+                }
+            });
+
+            //Spawn DoubleT
+            NativeOverride::RegisterPhoneCheat("2455550125", []
+            {
+                if (*_dwCurrentEpisode == 2)
+                {
+                    SpawnCar(ModelNameId::DoubleT.nModelId);
+                    Natives::PrintHelp((char*)"CHEAT1");
+                }
+            });
+
+            //Spawn Hakuchou
+            NativeOverride::RegisterPhoneCheat("2455550199", []
+            {
+                if (*_dwCurrentEpisode == 2)
+                {
+                    SpawnCar(ModelNameId::Hakuchou.nModelId);
+                    Natives::PrintHelp((char*)"CHEAT1");
+                }
+            });
+
             //Spawn Hexer
             NativeOverride::RegisterPhoneCheat("2455550150", []
             {
@@ -319,6 +365,16 @@ public:
                 if (*_dwCurrentEpisode == 2)
                 {
                     SpawnCar(ModelNameId::PoliceBike.nModelId);
+                    Natives::PrintHelp((char*)"CHEAT1");
+                }
+            });
+
+            //Spawn Police Buffalo
+            NativeOverride::RegisterPhoneCheat("2275552833", []
+            {
+                if (*_dwCurrentEpisode == 2)
+                {
+                    SpawnCar(ModelNameId::PoliceBuffalo.nModelId);
                     Natives::PrintHelp((char*)"CHEAT1");
                 }
             });
