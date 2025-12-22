@@ -40,6 +40,9 @@ Raw Input
 [Cover Centering]
 カバー時カメラのセンタリング
 
+[PadLookAroundSensitivity]
+ルックアラウンド感度
+
 [CenterDelayFoot]
 徒歩時のカメラセンタリング遅延
 

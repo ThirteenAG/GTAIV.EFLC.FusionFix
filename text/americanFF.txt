@@ -40,6 +40,9 @@ Always Run
 [Cover Centering]
 Cover Centering
 
+[PadLookAroundSensitivity]
+Look-Around Sensitivity
+
 [CenterDelayFoot]
 On Foot Camera Centering Delay
 

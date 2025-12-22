@@ -40,6 +40,9 @@ Immer rennen
 [Cover Centering]
 Deckungszentrierung
 
+[PadLookAroundSensitivity]
+Kameraempfindlichkeit
+
 [CenterDelayFoot]
 Zentrierungsverzögerung (zu Fuß)
 

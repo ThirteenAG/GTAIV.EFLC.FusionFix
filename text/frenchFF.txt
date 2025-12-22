@@ -40,6 +40,9 @@ Toujours courir
 [Cover Centering]
 Centrage de la vue
 
+[PadLookAroundSensitivity]
+Sensibilité de la vue
+
 [CenterDelayFoot]
 Délai de recentrage caméra à pied
 

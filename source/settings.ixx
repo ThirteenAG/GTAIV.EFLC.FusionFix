@@ -330,6 +330,7 @@ public:
             { 0, "PREF_PADCAMCENTERDELAYVEH",   "MISC",       "DelayBeforeCenteringCameraPadInCar", "",                           0, nullptr, 0, 9 },
             { 0, "PREF_KBCAMTURNSPEEDVEH",      "MISC",       "CameraTurnSpeedKBInCar",             "",                           3, nullptr, 0, 7 },
             { 0, "PREF_PADCAMTURNSPEEDVEH",     "MISC",       "CameraTurnSpeedPadInCar",            "",                           0, nullptr, 0, 7 },
+            { 0, "PREF_PADLOOKSENSITIVITY",     "MISC",       "PadLookAroundSensitivity",           "",                           5, nullptr, 0, 9 },
             // Enums are at capacity, to use more enums, replace multiplayer ones. On/Off toggles should still be possible to add.
         };
 
@@ -394,14 +395,14 @@ public:
         {
             /* { "PREF_EPISODIC_RACENAME_RACE_2", "" }, */
             /* { "PREF_EPISODIC_RACENAME_RACE_3", "" }, */
-            /* { "PREF_EPISODIC_RACENAME_RACE_4", "" }, */
-            { "PREF_EPISODIC_RACENAME_RACE_5",  "PREF_PADCAMTURNSPEEDVEH" },
-            { "PREF_EPISODIC_RACECLASS_RACE_0", "PREF_KBCAMTURNSPEEDVEH" },
-            { "PREF_EPISODIC_RACECLASS_RACE_1", "PREF_KBCAMCENTERDELAYVEH" },
+            { "PREF_EPISODIC_RACENAME_RACE_4",  "PREF_PADLOOKSENSITIVITY"   },
+            { "PREF_EPISODIC_RACENAME_RACE_5",  "PREF_PADCAMTURNSPEEDVEH"   },
+            { "PREF_EPISODIC_RACECLASS_RACE_0", "PREF_KBCAMTURNSPEEDVEH"    },
+            { "PREF_EPISODIC_RACECLASS_RACE_1", "PREF_KBCAMCENTERDELAYVEH"  },
             { "PREF_EPISODIC_RACECLASS_RACE_2", "PREF_PADCAMCENTERDELAYVEH" },
-            { "PREF_EPISODIC_RACECLASS_RACE_3", "PREF_CUSTOMFOV" },
-            { "PREF_EPISODIC_RACECLASS_RACE_4", "PREF_KBCAMCENTERDELAY" },
-            { "PREF_EPISODIC_RACECLASS_RACE_5", "PREF_PADCAMCENTERDELAY" },
+            { "PREF_EPISODIC_RACECLASS_RACE_3", "PREF_CUSTOMFOV"            },
+            { "PREF_EPISODIC_RACECLASS_RACE_4", "PREF_KBCAMCENTERDELAY"     },
+            { "PREF_EPISODIC_RACECLASS_RACE_5", "PREF_PADCAMCENTERDELAY"    },
         };
 
         for (auto& it : matchingSettingsList)
