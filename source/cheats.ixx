@@ -94,6 +94,8 @@ struct modelNameId
 namespace ModelNameId
 {
     modelNameId Tampa;
+    modelNameId DoubleT;
+    modelNameId Hakuchou;
     modelNameId Hexer;
     modelNameId Slamvan;
     modelNameId PoliceBike;
@@ -108,6 +110,12 @@ namespace ModelNameId
     {
         if (!Tampa.pszName)
             ModelNameId(&Tampa, 0, "tampa");
+
+        if (!DoubleT.pszName)
+            ModelNameId(&DoubleT, 0, "double");
+
+        if (!Hakuchou.pszName)
+            ModelNameId(&Hakuchou, 0, "hakuchou");
 
         if (!Hexer.pszName)
             ModelNameId(&Hexer, 0, "hexer");
@@ -307,6 +315,26 @@ public:
                 if (*_dwCurrentEpisode == 1 || *_dwCurrentEpisode == 2)
                 {
                     SpawnCar(ModelNameId::Tampa.nModelId);
+                    Natives::PrintHelp((char*)"CHEAT1");
+                }
+            });
+
+            //Spawn DoubleT
+            NativeOverride::RegisterPhoneCheat("2455550125", []
+            {
+                if (*_dwCurrentEpisode == 2)
+                {
+                    SpawnCar(ModelNameId::DoubleT.nModelId);
+                    Natives::PrintHelp((char*)"CHEAT1");
+                }
+            });
+
+            //Spawn Hakuchou
+            NativeOverride::RegisterPhoneCheat("2455550199", []
+            {
+                if (*_dwCurrentEpisode == 2)
+                {
+                    SpawnCar(ModelNameId::Hakuchou.nModelId);
                     Natives::PrintHelp((char*)"CHEAT1");
                 }
             });

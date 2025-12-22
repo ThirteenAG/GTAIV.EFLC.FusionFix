@@ -201,11 +201,11 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - The gun shop owner now uses his unique model (M_M_GunNut_01) instead of the strip club bouncer model (M_Y_bouncer_01).
 - The Desert Eagle and Micro SMG are now using their unique sounds when viewing them (required modifying the animation dictionary "missgunlockup.wad")
 - Restored the temporary ban from the gun shop when attacking the owner in TLAD/TBOGT
-- Chinatown gun shop: Fixed a small bug where the wrong voice line is used after exiting when not buying something
+- Chinatown gun shop: Fixed a small bug where the wrong voice lines is used after exiting when not buying something
 - Restored voice lines from Luis, he'll now respond to what the pilot tells him about the landmarks during the tour
-- Uptown Riders now use their own voice line rather than Angels of Death voice in TLAD's arm wrestling
-- Restored Clay's voice line which is used when he meets Johnny in hangout friend activity in TLAD
-- Restored Jim, Terry, Clay own voice line in TLAD hi_lo_cards minigame
+- Uptown Riders now use their own voice lines rather than Angels of Death voice in TLAD's arm wrestling
+- Restored Clay's voice lines which is used when he meets Johnny in hangout friend activity in TLAD
+- Restored Jim, Terry, Clay own voice lines in TLAD hi_lo_cards minigame
 - Fixed the busker script terminates too early in TBoGT, now Luis can give money to busker normally
 - Fixed several motorcycles use incorrect paying animation at toll station in TBoGT
 - Fixed ilyena call and brycebug content can't trigger after load the save (From ilyena's random character mission and stubbs' job)
@@ -214,6 +214,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Workaround for a bug where Niko dies after being kicked off of Dimitri's helicopter and falling into the water (Deal Ending)
 - Workaround for a bug where Jacob crashes the Annihilator on high framerates (Deal Ending)
 - Workaround for burned AOD won't trigger ragdoll behavior on high frame rates in TLAD mission "Action/Reaction"
+- Fixed TLAD intro scripted cutscene's cut off distant world in several shots 
 
 ### Episodic content
 
