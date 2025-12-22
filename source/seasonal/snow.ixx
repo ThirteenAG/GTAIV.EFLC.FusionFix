@@ -116,6 +116,12 @@ public:
         pattern = find_pattern("88 41 61 F3 0F 10 0D", "48 60 8A 15 ? ? ? ? 88 50 61");
         pRainEmitter = *pattern.get_first<gtaRainEmitter*>(15);
         pStormEmitter = reinterpret_cast<gtaRainEmitter*>((uintptr_t)pRainEmitter + 0xD0);
+
+        pattern = find_pattern("F3 0F 11 05 ? ? ? ? 66 0F 6E 05 ? ? ? ? 0F 5B C0 F3 0F 59 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 05 ? ? ? ? F3 0F 11 04 24", "F3 0F 11 05 ? ? ? ? F3 0F 2A 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 05 ? ? ? ? D3 E6");
+        if (!pattern.empty())
+        {
+            dwViewDistance = *pattern.get_first<float*>(4);
+        }
     }
 
     auto Enable() -> void override
@@ -175,6 +181,8 @@ private:
     static inline rage::grcRenderTargetPC* mNormalRtCopy;
 
     static inline float* pWetness = nullptr;
+
+    static inline float* dwViewDistance = nullptr;
 
     static auto __fastcall OnDeviceLost() -> void
     {
@@ -501,8 +509,8 @@ private:
 
                 float Distance = std::sqrt(DeltaX * DeltaX + DeltaY * DeltaY + DeltaZ * DeltaZ);
 
-                float FadeStart = 75.0f;
-                float FadeEnd = 150.0f;
+                float FadeStart = 30.0f * *dwViewDistance;
+                float FadeEnd = 105.0f * *dwViewDistance;
 
                 float DistanceFade = 1.0f - Smoothstep(FadeStart, FadeEnd, Distance);
 
