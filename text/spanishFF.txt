@@ -40,7 +40,7 @@ Correr siempre
 [Cover Centering]
 Centrar cámara al cubrirse
 
-[PadLookAroundSensitivity]
+[PadLookSens]
 Sensibilidad de la cámara
 
 [CenterDelayFoot]

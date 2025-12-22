@@ -40,7 +40,7 @@ Raw Input
 [Cover Centering]
 カバー時カメラのセンタリング
 
-[PadLookAroundSensitivity]
+[PadLookSens]
 ルックアラウンド感度
 
 [CenterDelayFoot]

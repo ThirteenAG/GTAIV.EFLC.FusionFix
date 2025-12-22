@@ -40,7 +40,7 @@ Toujours courir
 [Cover Centering]
 Centrage de la vue
 
-[PadLookAroundSensitivity]
+[PadLookSens]
 Sensibilité de la vue
 
 [CenterDelayFoot]

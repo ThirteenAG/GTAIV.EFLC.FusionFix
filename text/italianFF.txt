@@ -40,7 +40,7 @@ Corri sempre
 [Cover Centering]
 Centra camera al riparo
 
-[PadLookAroundSensitivity]
+[PadLookSens]
 Sensibilità della camera
 
 [CenterDelayFoot]

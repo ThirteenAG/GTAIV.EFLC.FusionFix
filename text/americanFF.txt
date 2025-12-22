@@ -40,7 +40,7 @@ Always Run
 [Cover Centering]
 Cover Centering
 
-[PadLookAroundSensitivity]
+[PadLookSens]
 Look-Around Sensitivity
 
 [CenterDelayFoot]

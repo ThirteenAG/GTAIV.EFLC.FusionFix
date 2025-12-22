@@ -40,7 +40,7 @@ Fusion Fix: Проверять Обновления
 [Cover Centering]
 Центровка камеры в укрытии
 
-[PadLookAroundSensitivity]
+[PadLookSens]
 Чувствительность камеры
 
 [CenterDelayFoot]

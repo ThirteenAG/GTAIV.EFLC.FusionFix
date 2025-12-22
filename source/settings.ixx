@@ -330,7 +330,7 @@ public:
             { 0, "PREF_PADCAMCENTERDELAYVEH",   "MISC",       "DelayBeforeCenteringCameraPadInCar", "",                           0, nullptr, 0, 9 },
             { 0, "PREF_KBCAMTURNSPEEDVEH",      "MISC",       "CameraTurnSpeedKBInCar",             "",                           3, nullptr, 0, 7 },
             { 0, "PREF_PADCAMTURNSPEEDVEH",     "MISC",       "CameraTurnSpeedPadInCar",            "",                           0, nullptr, 0, 7 },
-            { 0, "PREF_PADLOOKSENSITIVITY",     "MISC",       "PadLookAroundSensitivity",           "",                           5, nullptr, 0, 9 },
+            { 0, "PREF_PADLOOKSENSITIVITY",     "MISC",       "PadLookSens",                        "",                           5, nullptr, 0, 9 },
             // Enums are at capacity, to use more enums, replace multiplayer ones. On/Off toggles should still be possible to add.
         };
 
