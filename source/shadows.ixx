@@ -170,7 +170,15 @@ public:
                         "nj01roadblock01", "nj01roadblock03", "nj01roadblock05", "nj01roadblock39", "bilboard75corn_dc9", "nj01_bilboardframe", "ts_bilboard", "eeris_logo_bkn", "detail_0","detail_1",
                         "detail_resid61i_mh12", "lite_detail_mh8", "lite_detailb_mh8", "rope06_mh12", "rope07_mh12", "rope08_mh12", "rope09_mh12", "ap_carpark_stp_01", "ap_carpark_stp_02", "ap_carpark_stp_03",
                         "mh3_07_barbers_det", "ts_wigwamdet_01_dc9", "nj03_rubfnce_01", "ccbarrier1_mh7", "wi1_lightpoles", "et_radiomast", "nj_plumdingr", "24_chimneys1_mh04", "nathistd_mh4", "plazad2_tf8",
-                        "shp_corner1d_12_mh05", "timewarnerd_mh4", "white_coma_mh4", "jumparea3_mh12"
+                        "shp_corner1d_12_mh05", "timewarnerd_mh4", "white_coma_mh4", "jumparea3_mh12", "win_1x2_dlxr", "nj04pauliebunt01", "fordham_alpha2", "sb5_alpha", "dm_un_flag01_mh7", "dm_un_flag02_mh7",
+                        "aprt_7_33d_mx07", "aprts_01d_mh4", "aprts_02d_mh4", "aprts_02d2_mh4", "aprt_10_42d_mh4", "aprt_10_44d_mh4", "aprt_10_44d_mh8", "aprt_7_33d_mx07", "aprts_01d_mh4", "aprts_02d_mh4",
+                        "aprts_02d2_mh4", "blk23_unique2d_mh4", "shp_corner1d_12_mh4", "shp_corner2d_12_mh4", "shp_cornerd_12a_mh4", "resi_builds9d_mh4", "tg_ciproj_balconyg", "cipblk2_ks2_00", "cipblk2_ks2_01",
+                        "cipblk_ks2_02", "04_03_dtl1_mh5", "08_bld01dtl_mh5", "08_bld02dtl_mh5", "08_bld03dtl_mh5", "08_bld04dtl_mh5", "08_bld05dtl2_mh5", "10_01_dtl1_mh5", "10_02_dtl1_mh5", "10_03_dtl1_mh5",
+                        "10_04_dtl1_mh5", "10_05_dtl1_mh5", "12_warehs01dtl_mh5", "13_blds1_dtl_mh5", "13_blds4_dtl_mh5", "13_blds6_dtl_mh5", "14_01_dtl1_mh5", "14_backdtls01_mh5", "15_blds1dtl1_mh5",
+                        "15_blds1dtl2_mh5", "15_blds1dtl3_mh5", "15_blds4dtl1_mh5", "15_blds4dtl2_mh5", "15_blds5dtl_mh5", "16_01_dtl1_mh5", "16_01_dtl2_mh5", "16_01_dtl3_mh5", "16_02_dtl1_mh5", "16_02_dtl2_mh5",
+                        "16_03_dtl1_mh5", "16_03_dtl2_mh5", "19_01_dtl1_mh5", "19_02_dtl1_mh5", "19_05_dtl1_mh5", "20_01_dtl1_mh5", "20_01_dtl2_mh5", "20_02_dtl1_mh5", "22_bld01dtl_mh5", "22_bld02dtl_mh5",
+                        "22_bld03dtl_mh5", "22_bld05dtl_mh5", "24_bld01dtl1_mh5", "24_bld01dtl2_mh5", "24_bld01dtl3_mh5", "26_02_dtl2_mh5", "26_03_dtl1_mh5", "26_04_dtl1_mh5", "26_05_dtl1_mh5", "b12_bld01dtl_mh5",
+                        "b12_meatfdtl_mh5", "b12_warhs02dtl_mh5", "brownstdtl01_mh5", "policehqdtl_mh10", "taino_dtl01_mh5", "taino_dtl02_mh5"
                     };
 
                     modelNames.insert(modelNames.end(), miscNames.begin(), miscNames.end());
@@ -179,7 +187,7 @@ public:
                 if (bExtraDynamicShadows >= 3)
                 {
                     std::vector<std::string> roadNames = {
-                        "road", "coast", "dtl", "det"
+                        "road", "coast", "det"
                     };
 
                     modelNames.insert(modelNames.end(), roadNames.begin(), roadNames.end());
