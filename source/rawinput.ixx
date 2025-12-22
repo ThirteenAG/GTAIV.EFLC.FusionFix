@@ -200,7 +200,8 @@ public:
 
             // Ped cam behaves the same way as aiming cam
             pattern = hook::pattern("51 FF 74 24 0C FF 74 24 0C E8 ? ? ? ? D9 5C 24 08");
-            if (!pattern.empty()) {
+            if (!pattern.empty())
+            {
                 injector::MakeJMP(pattern.get_first(0), sub_8EFE40_PlayerCam, true);
                 pattern = hook::pattern("E8 ? ? ? ? D9 5C 24 20 F3 0F 10 44 24 ? 0F 57 05 ? ? ? ? 83 C4 08 8B CF");
                 injector::MakeCALL(pattern.get_first(0), GetMouseAxisData2, true);
@@ -211,7 +212,8 @@ public:
                 pattern = hook::pattern("E8 ? ? ? ? 83 C4 08 89 06 5F");
                 injector::MakeCALL(pattern.get_first(0), sub_8EFE40, true);
             }
-            else {
+            else
+            {
                 pattern = hook::pattern("8B 44 24 08 8B 4C 24 04 50 51 E8 ? ? ? ? D8 0D");
                 injector::MakeJMP(pattern.get_first(0), sub_8EFE40_PlayerCam, true);
                 pattern = hook::pattern("E8 ? ? ? ? D9 E0 83 C4 08 D9 5C 24 14");
@@ -268,6 +270,34 @@ public:
                     regs.xmm0.f32[0] = *(float*)(ptr + 0x1B0);
                 }
             }; injector::MakeInline<CCamFollowVehicleHook>(pattern.get_first(0), pattern.get_first(8));
+
+            // Sensitivity
+            pattern = find_pattern("F3 0F 11 5C 24 ? EB 42");
+            if (!pattern.empty())
+            {
+                injector::MakeNOP(pattern.get_first(0), 6, true);
+                static auto CCamFollowPedMouseSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    float multiplier = 0.5f; // TODO: placeholder
+
+                    *(float*)(regs.esp + 0x18) *= multiplier;
+                    *(float*)(regs.esp + 0x28) = regs.xmm3.f32[0] * multiplier;
+                });
+            }
+
+            pattern = find_pattern("F3 0F 11 4C 24 ? 80 A6");
+            if (!pattern.empty())
+            {
+                injector::MakeNOP(pattern.get_first(0), 6, true);
+                static auto CCamFollowPedGamepadSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    static auto GamepadSensitivity = FusionFixSettings.GetRef("PREF_PADLOOKSENSITIVITY");
+                    float multiplier = 1.0f + (GamepadSensitivity->get() / 10.0f);
+
+                    *(float*)(regs.esp + 0x18) *= multiplier;
+                    *(float*)(regs.esp + 0x28) = regs.xmm1.f32[0] * multiplier;
+                });
+            }
         };
 
         FusionFix::onActivateApp() += [](bool wParam)
