@@ -275,8 +275,8 @@ public:
                 }
             }; injector::MakeInline<CCamFollowVehicleHook>(pattern.get_first(0), pattern.get_first(8));
 
-            // Sensitivity
-            pattern = find_pattern("F3 0F 11 5C 24 ? EB 42");
+            // Mouse sensitivity multiplier
+            pattern = find_pattern("F3 0F 11 5C 24 ? EB ? F3 0F 10 4C 24 ? 0F 54 CC");
             if (!pattern.empty())
             {
                 injector::MakeNOP(pattern.get_first(0), 6, true);
@@ -286,19 +286,60 @@ public:
                     *(float*)(regs.esp + 0x28) = regs.xmm3.f32[0] * fMouseLookSensitivityMultiplier;
                 });
             }
+            else
+            {
+                pattern = hook::pattern("F3 0F 59 44 24 ? F3 0F 59 05 ? ? ? ? F3 0F 59 4C 24");
+                injector::MakeNOP(pattern.get_first(0), 6, true);
+                static auto CCamFollowPedMouseSensX = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    regs.xmm0.f32[0] = regs.xmm0.f32[0] * *(float*)(regs.esp + 0x14) * fMouseLookSensitivityMultiplier;
+                });
 
+                pattern = hook::pattern("F3 0F 59 4C 24 ? 0F 57 ED F3 0F 11 44 24");
+                injector::MakeNOP(pattern.get_first(0), 6, true);
+                static auto CCamFollowPedMouseSensY = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    regs.xmm1.f32[0] = regs.xmm1.f32[0] * *(float*)(regs.esp + 0x18) * fMouseLookSensitivityMultiplier;
+                });
+            }
+
+            // Gamepad Look-Around sensitivity slider and multiplier
             pattern = find_pattern("F3 0F 11 4C 24 ? 80 A6");
             if (!pattern.empty())
             {
                 injector::MakeNOP(pattern.get_first(0), 6, true);
                 static auto CCamFollowPedGamepadSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                 {
-                    static auto GamepadSensitivity = FusionFixSettings.GetRef("PREF_PADLOOKSENSITIVITY");
-                    float multiplier = 1.0f + (GamepadSensitivity->get() / 10.0f);
-                    multiplier *= fGamepadLookSensitivityMultiplier;
+                    static auto GamepadLookSensitivity = FusionFixSettings.GetRef("PREF_PADLOOKSENSITIVITY");
+                    float Multiplier = 1.0f + (GamepadLookSensitivity->get() / 10.0f);
+                    Multiplier *= fGamepadLookSensitivityMultiplier;
 
-                    *(float*)(regs.esp + 0x18) *= multiplier;
-                    *(float*)(regs.esp + 0x28) = regs.xmm1.f32[0] * multiplier;
+                    *(float*)(regs.esp + 0x18) *= Multiplier;
+                    *(float*)(regs.esp + 0x28) = regs.xmm1.f32[0] * Multiplier;
+                });
+            }
+            else
+            {
+                pattern = hook::pattern("F3 0F 11 44 24 ? 76 ? 0F 28 C4");
+                injector::MakeNOP(pattern.get_first(0), 6, true);
+                static auto CCamFollowPedGamepadSensX = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    static auto GamepadLookSensitivity = FusionFixSettings.GetRef("PREF_PADLOOKSENSITIVITY");
+                    float Multiplier = 1.0f + (GamepadLookSensitivity->get() / 10.0f);
+                    Multiplier *= fGamepadLookSensitivityMultiplier;
+
+                    *(float*)(regs.esp + 0x14) = regs.xmm0.f32[0] * Multiplier;
+                });
+
+                pattern = hook::pattern("F3 0F 59 C8 F3 0F 59 CA 80 A6");
+                injector::MakeNOP(pattern.get_first(0), 4, true);
+                static auto CCamFollowPedGamepadSensY = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    static auto GamepadLookSensitivity = FusionFixSettings.GetRef("PREF_PADLOOKSENSITIVITY");
+                    float Multiplier = 1.0f + (GamepadLookSensitivity->get() / 10.0f);
+                    Multiplier *= fGamepadLookSensitivityMultiplier;
+
+                    regs.xmm1.f32[0] = regs.xmm1.f32[0] * regs.xmm0.f32[0] * Multiplier;
                 });
             }
         };
