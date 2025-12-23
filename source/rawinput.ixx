@@ -114,6 +114,10 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
+            CIniReader iniReader("");
+            static float fMouseLookSensitivityMultiplier = iniReader.ReadFloat("CAMERASENSITIVITY", "MouseLookSensitivityMultiplier", 0.5f);
+            static float fGamepadLookSensitivityMultiplier = iniReader.ReadFloat("CAMERASENSITIVITY", "GamepadLookSensitivityMultiplier", 1.0f);
+
             // Menu
             auto pattern = hook::pattern("0F 48 C1 A3 ? ? ? ? 5F");
             if (!pattern.empty())
@@ -278,10 +282,8 @@ public:
                 injector::MakeNOP(pattern.get_first(0), 6, true);
                 static auto CCamFollowPedMouseSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                 {
-                    float multiplier = 0.5f; // TODO: placeholder
-
-                    *(float*)(regs.esp + 0x18) *= multiplier;
-                    *(float*)(regs.esp + 0x28) = regs.xmm3.f32[0] * multiplier;
+                    *(float*)(regs.esp + 0x18) *= fMouseLookSensitivityMultiplier;
+                    *(float*)(regs.esp + 0x28) = regs.xmm3.f32[0] * fMouseLookSensitivityMultiplier;
                 });
             }
 
@@ -293,6 +295,7 @@ public:
                 {
                     static auto GamepadSensitivity = FusionFixSettings.GetRef("PREF_PADLOOKSENSITIVITY");
                     float multiplier = 1.0f + (GamepadSensitivity->get() / 10.0f);
+                    multiplier *= fGamepadLookSensitivityMultiplier;
 
                     *(float*)(regs.esp + 0x18) *= multiplier;
                     *(float*)(regs.esp + 0x28) = regs.xmm1.f32[0] * multiplier;
