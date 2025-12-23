@@ -107,6 +107,21 @@ void __cdecl NATIVE_GET_MOUSE_INPUT(int* a1, int* a2)
     return hbNATIVE_GET_MOUSE_INPUT.fun(a1, a2);
 }
 
+float fMouseLookSensitivityMultiplier = 0.5f;
+inline float GetMouseLookSensitivity()
+{
+    return fMouseLookSensitivityMultiplier;
+}
+
+float fGamepadLookSensitivityMultiplier = 1.0f;
+inline float GetGamepadLookSensitivity()
+{
+    static auto GamepadLookSensitivity = FusionFixSettings.GetRef("PREF_PADLOOKSENSITIVITY");
+    float Multiplier = 1.0f + (GamepadLookSensitivity->get() / 10.0f);
+    Multiplier *= fGamepadLookSensitivityMultiplier;
+    return Multiplier;
+}
+
 class RawInput
 {
 public:
@@ -115,8 +130,8 @@ public:
         FusionFix::onInitEventAsync() += []()
         {
             CIniReader iniReader("");
-            static float fMouseLookSensitivityMultiplier = iniReader.ReadFloat("CAMERASENSITIVITY", "MouseLookSensitivityMultiplier", 0.5f);
-            static float fGamepadLookSensitivityMultiplier = iniReader.ReadFloat("CAMERASENSITIVITY", "GamepadLookSensitivityMultiplier", 1.0f);
+            fMouseLookSensitivityMultiplier = iniReader.ReadFloat("CAMERASENSITIVITY", "MouseLookSensitivityMultiplier", 0.5f);
+            fGamepadLookSensitivityMultiplier = iniReader.ReadFloat("CAMERASENSITIVITY", "GamepadLookSensitivityMultiplier", 1.0f);
 
             // Menu
             auto pattern = hook::pattern("0F 48 C1 A3 ? ? ? ? 5F");
@@ -275,15 +290,15 @@ public:
                 }
             }; injector::MakeInline<CCamFollowVehicleHook>(pattern.get_first(0), pattern.get_first(8));
 
-            // Mouse sensitivity multiplier
+            // Mouse sensitivity multiplier (CCamFollowPed)
             pattern = find_pattern("F3 0F 11 5C 24 ? EB ? F3 0F 10 4C 24 ? 0F 54 CC");
             if (!pattern.empty())
             {
                 injector::MakeNOP(pattern.get_first(0), 6, true);
                 static auto CCamFollowPedMouseSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                 {
-                    *(float*)(regs.esp + 0x18) *= fMouseLookSensitivityMultiplier;
-                    *(float*)(regs.esp + 0x28) = regs.xmm3.f32[0] * fMouseLookSensitivityMultiplier;
+                    *(float*)(regs.esp + 0x18) *= GetMouseLookSensitivity();
+                    *(float*)(regs.esp + 0x28) = regs.xmm3.f32[0] * GetMouseLookSensitivity();
                 });
             }
             else
@@ -292,30 +307,26 @@ public:
                 injector::MakeNOP(pattern.get_first(0), 6, true);
                 static auto CCamFollowPedMouseSensX = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                 {
-                    regs.xmm0.f32[0] = regs.xmm0.f32[0] * *(float*)(regs.esp + 0x14) * fMouseLookSensitivityMultiplier;
+                    regs.xmm0.f32[0] *= *(float*)(regs.esp + 0x14) * GetMouseLookSensitivity();
                 });
 
                 pattern = hook::pattern("F3 0F 59 4C 24 ? 0F 57 ED F3 0F 11 44 24");
                 injector::MakeNOP(pattern.get_first(0), 6, true);
                 static auto CCamFollowPedMouseSensY = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                 {
-                    regs.xmm1.f32[0] = regs.xmm1.f32[0] * *(float*)(regs.esp + 0x18) * fMouseLookSensitivityMultiplier;
+                    regs.xmm1.f32[0] *= *(float*)(regs.esp + 0x18) * GetMouseLookSensitivity();
                 });
             }
 
-            // Gamepad Look-Around sensitivity slider and multiplier
+            // Gamepad Look-Around sensitivity slider and multiplier (CCamFollowPed)
             pattern = find_pattern("F3 0F 11 4C 24 ? 80 A6");
             if (!pattern.empty())
             {
                 injector::MakeNOP(pattern.get_first(0), 6, true);
                 static auto CCamFollowPedGamepadSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                 {
-                    static auto GamepadLookSensitivity = FusionFixSettings.GetRef("PREF_PADLOOKSENSITIVITY");
-                    float Multiplier = 1.0f + (GamepadLookSensitivity->get() / 10.0f);
-                    Multiplier *= fGamepadLookSensitivityMultiplier;
-
-                    *(float*)(regs.esp + 0x18) *= Multiplier;
-                    *(float*)(regs.esp + 0x28) = regs.xmm1.f32[0] * Multiplier;
+                    *(float*)(regs.esp + 0x18) *= GetGamepadLookSensitivity();
+                    *(float*)(regs.esp + 0x28) = regs.xmm1.f32[0] * GetGamepadLookSensitivity();
                 });
             }
             else
@@ -324,23 +335,45 @@ public:
                 injector::MakeNOP(pattern.get_first(0), 6, true);
                 static auto CCamFollowPedGamepadSensX = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                 {
-                    static auto GamepadLookSensitivity = FusionFixSettings.GetRef("PREF_PADLOOKSENSITIVITY");
-                    float Multiplier = 1.0f + (GamepadLookSensitivity->get() / 10.0f);
-                    Multiplier *= fGamepadLookSensitivityMultiplier;
-
-                    *(float*)(regs.esp + 0x14) = regs.xmm0.f32[0] * Multiplier;
+                    *(float*)(regs.esp + 0x14) = regs.xmm0.f32[0] * GetGamepadLookSensitivity();
                 });
 
                 pattern = hook::pattern("F3 0F 59 C8 F3 0F 59 CA 80 A6");
                 injector::MakeNOP(pattern.get_first(0), 4, true);
                 static auto CCamFollowPedGamepadSensY = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                 {
-                    static auto GamepadLookSensitivity = FusionFixSettings.GetRef("PREF_PADLOOKSENSITIVITY");
-                    float Multiplier = 1.0f + (GamepadLookSensitivity->get() / 10.0f);
-                    Multiplier *= fGamepadLookSensitivityMultiplier;
-
-                    regs.xmm1.f32[0] = regs.xmm1.f32[0] * regs.xmm0.f32[0] * Multiplier;
+                    regs.xmm1.f32[0] *= regs.xmm0.f32[0] * GetGamepadLookSensitivity();
                 });
+            }
+
+            // Mouse sensitivity multiplier (CCamFollowVehicle First Person)
+            pattern = find_pattern("F3 0F 11 4C 24 ? E8 ? ? ? ? 50 E8 ? ? ? ? D9 5C 24");
+            if (!pattern.empty())
+            {
+                injector::MakeNOP(pattern.get_first(0), 6, true);
+                static auto CCamFollowVehicleMouseSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    *(float*)(regs.esp + 0x34) = regs.xmm1.f32[0] * GetMouseLookSensitivity() * 100.0f;
+                });
+            }
+            else
+            {
+
+            }
+
+            // Gamepad Look-Around sensitivity slider and multiplier (CCamFollowVehicle First Person)
+            pattern = find_pattern("F3 0F 11 44 24 ? C6 44 24 ? ? E8 ? ? ? ? 83 C4 10");
+            if (!pattern.empty())
+            {
+                injector::MakeNOP(pattern.get_first(0), 6, true);
+                static auto CCamFollowVehicleGamepadSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    *(float*)(regs.esp + 0x40) = regs.xmm0.f32[0] * GetGamepadLookSensitivity();
+                });
+            }
+            else
+            {
+
             }
         };
 
