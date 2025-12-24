@@ -110,14 +110,67 @@ void __cdecl NATIVE_GET_MOUSE_INPUT(int* a1, int* a2)
 float fMouseLookSensitivityMultiplier = 0.5f;
 inline float GetMouseLookSensitivity()
 {
+    static auto ri = FusionFixSettings.GetRef("PREF_RAWINPUT");
+    if (ri->get())
+        return fMouseLookSensitivityMultiplier / 2.0f;
+
     return fMouseLookSensitivityMultiplier;
+}
+
+constexpr float fMouseAimSensitivityScaler = 20.0f;
+constexpr float fGamepadAimSensitivityScaler = 10.0f;
+
+inline float GetMouseAimSensitivity()
+{
+    static auto ri = FusionFixSettings.GetRef("PREF_RAWINPUT");
+    static auto MouseAimSensitivity = FusionFixSettings.GetRef("PREF_MOUSEAIMSENSITIVITY");
+    float sliderValue = (float)MouseAimSensitivity->get();
+    float sliderMid = fMouseAimSensitivityScaler / 2.0f; // 10.0f
+
+    float Multiplier;
+    if (sliderValue <= sliderMid)
+    {
+        // 0-10 maps to 0.1-1.0
+        Multiplier = 0.1f + (sliderValue / sliderMid) * 0.9f;
+    }
+    else
+    {
+        // 10-20 maps to 1.0-2.0
+        Multiplier = 1.0f + ((sliderValue - sliderMid) / sliderMid);
+    }
+
+    Multiplier *= fMouseLookSensitivityMultiplier / (ri->get() ? 2.0f : 1.0f);
+    return Multiplier;
 }
 
 float fGamepadLookSensitivityMultiplier = 1.0f;
 inline float GetGamepadLookSensitivity()
 {
     static auto GamepadLookSensitivity = FusionFixSettings.GetRef("PREF_PADLOOKSENSITIVITY");
-    float Multiplier = 1.0f + (GamepadLookSensitivity->get() / 10.0f);
+    float Multiplier = 1.0f + (GamepadLookSensitivity->get() / fGamepadAimSensitivityScaler);
+    Multiplier *= fGamepadLookSensitivityMultiplier;
+    return Multiplier;
+}
+
+inline float GetGamepadAimSensitivity()
+{
+    static auto GamepadAimSensitivity = FusionFixSettings.GetRef("PREF_PADAIMSENSITIVITY");
+    float sliderValue = (float)GamepadAimSensitivity->get();
+    float sliderMid = fGamepadAimSensitivityScaler / 2.0f; // 5.0f
+    float sliderMax = fGamepadAimSensitivityScaler - 1.0f; // 9.0f
+
+    float Multiplier;
+    if (sliderValue <= sliderMid)
+    {
+        // 0-5 maps to 0.7-1.0 evenly
+        Multiplier = 0.7f + (sliderValue / sliderMid) * 0.3f;
+    }
+    else
+    {
+        // 5-9 maps to 1.0-3.0 evenly
+        Multiplier = 1.0f + ((sliderValue - sliderMid) / (sliderMax - sliderMid)) * 2.0f;
+    }
+
     Multiplier *= fGamepadLookSensitivityMultiplier;
     return Multiplier;
 }
@@ -346,6 +399,89 @@ public:
                 });
             }
 
+            // Sensitivity multiplier (CCamFollowPed)
+            //static float f00625 = 0.0625;
+            //pattern = find_pattern("F3 0F 59 1D ? ? ? ? F3 0F 11 54 24 ? F3 0F 11 5C 24");
+            //if (!pattern.empty())
+            //{
+            //    injector::WriteMemory(pattern.get_first(4), &f00625, true);
+            //}
+            //else
+            //{
+            //
+            //}
+            //
+            //// Sensitivity multiplier (CCamFollowPed)
+            //pattern = find_pattern("F3 0F 59 0D ? ? ? ? F3 0F 11 4C 24 ? 80 A6");
+            //if (!pattern.empty())
+            //{
+            //    injector::WriteMemory(pattern.get_first(4), &f00625, true);
+            //}
+            //else
+            //{
+            //
+            //}
+
+            // Mouse aim sensitivity multiplier (CCamAimWeapon)
+            {
+                pattern = find_pattern("0F 45 C1 0F 2F 0D");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(0), 3, true);
+                    injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xC18B, true);
+                }
+                else
+                {
+
+                }
+
+                // Sensitivity multiplier (CCamAimWeapon)
+                //pattern = find_pattern("F3 0F 59 05 ? ? ? ? 0F 28 D1 F3 0F 59 54 24");
+                //if (!pattern.empty())
+                //{
+                //    injector::WriteMemory(pattern.get_first(4), &f00625, true);
+                //}
+                //else
+                //{
+                //
+                //}
+
+                pattern = find_pattern("0F 28 E3 EB 08 F3 0F 10 25");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(0), 3, true);
+                    static auto CCamAimWeaponMouseAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm3.f32[0] = (GetMouseAimSensitivity() * 0.075f) + 0.025f;
+                        regs.xmm4.f32[0] = regs.xmm3.f32[0];
+                    });
+                }
+                else
+                {
+
+                }
+
+                // Gamepad aim sensitivity multiplier (CCamAimWeapon)
+                pattern = find_pattern("F3 0F 10 1D ? ? ? ? F3 0F 10 4C 24 ? F3 0F 10 45");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(0), 8, true);
+                    static auto CCamAimWeaponGamepadAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm3.f32[0] = (GetGamepadAimSensitivity()) * 0.015f;
+                        regs.xmm4.f32[0] = (GetGamepadAimSensitivity()) * 0.02f;
+
+                        //regs.xmm3.f32[0] = ((GetGamepadAimSensitivity() * 0.075f) + 0.025f);
+                        //regs.xmm4.f32[0] = regs.xmm3.f32[0];
+                    });
+                }
+                else
+                {
+
+                }
+            }
+
+            //TODO: this internally uses aim sensitivity
             // Mouse sensitivity multiplier (CCamFollowVehicle First Person)
             pattern = find_pattern("F3 0F 11 4C 24 ? E8 ? ? ? ? 50 E8 ? ? ? ? D9 5C 24");
             if (!pattern.empty())
@@ -375,6 +511,8 @@ public:
             {
 
             }
+
+            //
         };
 
         FusionFix::onActivateApp() += [](bool wParam)

@@ -334,7 +334,9 @@ public:
             { 0, "PREF_PADCAMCENTERDELAYVEH",   "MISC",       "DelayBeforeCenteringCameraPadInCar", "",                           0, nullptr, 0, 9 },
             { 0, "PREF_KBCAMTURNSPEEDVEH",      "MISC",       "CameraTurnSpeedKBInCar",             "",                           3, nullptr, 0, 7 },
             { 0, "PREF_PADCAMTURNSPEEDVEH",     "MISC",       "CameraTurnSpeedPadInCar",            "",                           0, nullptr, 0, 7 },
-            { 0, "PREF_PADLOOKSENSITIVITY",     "MISC",       "PadLookSens",                        "",                           0, nullptr, 0, 9 },
+            { 0, "PREF_PADLOOKSENSITIVITY",     "MISC",       "PadLookSensitivity",                 "",                           0, nullptr, 0, 9 },
+            { 0, "PREF_PADAIMSENSITIVITY",      "MISC",       "PadAimSensitivity",                  "",                           0, nullptr, 0, 9 },
+            { 0, "PREF_MOUSEAIMSENSITIVITY",    "MISC",       "MouseAimSensitivity",                "",                           0, nullptr, 0, 19 },
             // Enums are at capacity, to use more enums, replace multiplayer ones. On/Off toggles should still be possible to add.
         };
 
@@ -398,8 +400,8 @@ public:
         // Sliders
         static std::vector<std::pair<std::string_view, std::string_view>> matchingSettingsList =
         {
-            /* { "PREF_EPISODIC_RACENAME_RACE_2", "" }, */
-            /* { "PREF_EPISODIC_RACENAME_RACE_3", "" }, */
+            { "PREF_EPISODIC_RACENAME_RACE_2",  "PREF_PADAIMSENSITIVITY"    },
+            { "PREF_EPISODIC_RACENAME_RACE_3",  "PREF_MOUSEAIMSENSITIVITY"  },
             { "PREF_EPISODIC_RACENAME_RACE_4",  "PREF_PADLOOKSENSITIVITY"   },
             { "PREF_EPISODIC_RACENAME_RACE_5",  "PREF_PADCAMTURNSPEEDVEH"   },
             { "PREF_EPISODIC_RACECLASS_RACE_0", "PREF_KBCAMTURNSPEEDVEH"    },
