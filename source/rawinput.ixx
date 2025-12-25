@@ -380,7 +380,7 @@ public:
                     injector::MakeNOP(pattern.get_first(0), 6, true);
                     static auto CCamFollowVehicleMouseSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        *(float*)(regs.esp + 0x34) = regs.xmm1.f32[0] * GetMouseLookSensitivity() * 100.0f;
+                        *(float*)(regs.esp + 0x34) = regs.xmm1.f32[0] * GetMouseLookSensitivity();
                     });
                 }
                 else
@@ -389,7 +389,7 @@ public:
                     injector::MakeNOP(pattern.get_first(0), 4, true);
                     static auto CCamFollowVehicleMouseSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        *(float*)(regs.esp + 0x18) *= GetMouseLookSensitivity() * 100.0f;
+                        *(float*)(regs.esp + 0x18) *= GetMouseLookSensitivity();
                     });
                 }
             }
@@ -442,6 +442,34 @@ public:
                     {
                         *(float*)(regs.esp + 0x24) = regs.xmm0.f32[0] * GetGamepadLookSensitivity();
                     });
+                }
+
+                pattern = hook::pattern("F3 0F 10 0C 85 ? ? ? ? F3 0F 58 05");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(0), 9, true);
+                    static auto CCamFollowVehicleOriginalSensOverride1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm1.f32[0] = 1.0f;
+                    });
+                }
+                else
+                {
+
+                }
+
+                pattern = hook::pattern("F3 0F 10 04 85 ? ? ? ? F3 0F 10 5C 24");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(0), 9, true);
+                    static auto CCamFollowVehicleOriginalSensOverride2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm0.f32[0] = 1.0f;
+                    });
+                }
+                else
+                {
+
                 }
             }
 
