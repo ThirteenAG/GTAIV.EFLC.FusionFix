@@ -1,3 +1,4 @@
+#if 0
 module;
 
 #include <common.hxx>
@@ -55,3 +56,4 @@ public:
         };
     }
 } VLikeStuntCam;
+#endif
