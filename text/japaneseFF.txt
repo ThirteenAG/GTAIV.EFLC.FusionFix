@@ -43,6 +43,15 @@ Raw Input
 [PadLookSens]
 ルックアラウンド感度
 
+[MO_SENS]
+照準感度
+
+[MO_MOUSE]
+マウスの視線感度
+
+[MouseAimSens]
+マウスの照準感度
+
 [CenterDelayFoot]
 徒歩時のカメラセンタリング遅延
 

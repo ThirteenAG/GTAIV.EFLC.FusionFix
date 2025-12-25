@@ -43,6 +43,15 @@ Cover Centering
 [PadLookSens]
 Look-Around Sensitivity
 
+[MO_SENS]
+Aiming Sensitivity
+
+[MO_MOUSE]
+Mouse Look Sensitivity
+
+[MouseAimSens]
+Mouse Aim Sensitivity
+
 [CenterDelayFoot]
 On Foot Camera Centering Delay
 
