@@ -89,17 +89,17 @@ double __cdecl GetMouseAxisData2(int pInput, int32_t requestedAxis)
     return GetMouseAxisData(pInput, requestedAxis) * ((inv->get() && requestedAxis == 1) ? -2.0 : 2.0f);
 }
 
-float TryMatchPedCamSensitivity()
-{
-    return ((GetMouseSensitivityForRI() / 20.0f) * 0.6f) + 0.2f;
-}
-
 injector::hook_back<decltype(&Natives::GetMouseInput)> hbNATIVE_GET_MOUSE_INPUT;
 void __cdecl NATIVE_GET_MOUSE_INPUT(int* a1, int* a2)
 {
     static auto ri = FusionFixSettings.GetRef("PREF_RAWINPUT");
     if (ri->get())
     {
+        auto TryMatchPedCamSensitivity = []() -> float
+        {
+            return ((GetMouseSensitivityForRI() / 20.0f) * 0.6f) + 0.2f;
+        };
+
         *a1 = (int)std::clamp(GetRIMouseAxisData(0) * 2000 * TryMatchPedCamSensitivity(), -128.0, 128.0);
         *a2 = (int)std::clamp(GetRIMouseAxisData(1) * 2000 * TryMatchPedCamSensitivity(), -128.0, 128.0);
         return;
@@ -341,8 +341,13 @@ public:
                     if (reg2 == 0x87) ptr = regs.edi;
                     if (ri->get())
                     {
-                        *(float*)(ptr + 0x1B4) += -(float)GetRIMouseAxisData(0) * TryMatchPedCamSensitivity();
-                        *(float*)(ptr + 0x1B0) += -(float)GetRIMouseAxisData(1) * (inv->get() ? -TryMatchPedCamSensitivity() : TryMatchPedCamSensitivity());
+                        auto TryMatchFpsCamSensitivity = []() -> float
+                        {
+                            return (GetMouseAimSensitivity() * 0.6f) + 0.2f;
+                        };
+
+                        *(float*)(ptr + 0x1B4) += -(float)GetRIMouseAxisData(0) * TryMatchFpsCamSensitivity();
+                        *(float*)(ptr + 0x1B0) += -(float)GetRIMouseAxisData(1) * (inv->get() ? -TryMatchFpsCamSensitivity() : TryMatchFpsCamSensitivity());
                     }
                     regs.xmm0.f32[0] = *(float*)(ptr + 0x1B0);
                 }
