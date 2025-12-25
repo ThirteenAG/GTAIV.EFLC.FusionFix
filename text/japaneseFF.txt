@@ -47,7 +47,7 @@ Raw Input
 照準感度
 
 [MO_MOUSE]
-マウスの視線感度
+マウスのルック感度
 
 [MouseAimSens]
 マウスの照準感度
