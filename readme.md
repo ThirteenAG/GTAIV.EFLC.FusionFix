@@ -206,6 +206,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Uptown Riders now use their own voice lines rather than Angels of Death voice in TLAD's arm wrestling
 - Restored Clay's voice lines which is used when he meets Johnny in hangout friend activity in TLAD
 - Restored Jim, Terry, Clay own voice lines in TLAD hi_lo_cards minigame
+- Restored TLAD Combat Shotgun's own unique prop model
 - Fixed the busker script terminates too early in TBoGT, now Luis can give money to busker normally
 - Fixed several motorcycles use incorrect paying animation at toll station in TBoGT
 - Fixed ilyena call and brycebug content can't trigger after load the save (From ilyena's random character mission and stubbs' job)
