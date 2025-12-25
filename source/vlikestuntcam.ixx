@@ -19,14 +19,14 @@ public:
             static float camSpeed = 128.0f;
             static bool canSwitchRadio = true;
 
-            auto pattern = find_pattern("8D 8F D8 29 00 00 E8 ? ? ? ?");
+            auto pattern = find_pattern("8D 8F D8 29 00 00 E8");
             static auto sub_E8CB90_1 = safetyhook::create_mid(pattern.get_first(6), [](SafetyHookContext& regs)
             {
                 if(!canSwitchRadio)
                     *(int8_t*)(regs.ecx + 6) = 0;
             });
 
-            pattern = find_pattern("8D 8F E8 29 00 00 E8 ? ? ? ?");
+            pattern = find_pattern("8D 8F E8 29 00 00 E8");
             static auto sub_E8CB90_2 = safetyhook::create_mid(pattern.get_first(6), [](SafetyHookContext& regs)
             {
                 if(!canSwitchRadio)
