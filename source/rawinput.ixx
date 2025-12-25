@@ -316,8 +316,13 @@ public:
                         fFOVDefault = std::max(fFOVDefault, fFOVZoomed);
                         auto fDiff = fFOVDefault / fFOVZoomed;
 
-                        *(float*)(ptr + 0x148) += (-(float)GetRIMouseAxisData(0) * TryMatchPedCamSensitivity()) / fDiff;
-                        *(float*)(ptr + 0x144) += (-(float)GetRIMouseAxisData(1) * (inv->get() ? -TryMatchPedCamSensitivity() : TryMatchPedCamSensitivity())) / fDiff;
+                        auto TryMatchAimCamSensitivity = []() -> float
+                        {
+                            return (GetMouseAimSensitivity() * 0.075f) + 0.025f;
+                        };
+
+                        *(float*)(ptr + 0x148) += (-(float)GetRIMouseAxisData(0) * TryMatchAimCamSensitivity()) / fDiff;
+                        *(float*)(ptr + 0x144) += (-(float)GetRIMouseAxisData(1) * (inv->get() ? -TryMatchAimCamSensitivity() : TryMatchAimCamSensitivity())) / fDiff;
                     }
                     regs.xmm0.f32[0] = *(float*)(ptr + 0x144);
                 }
@@ -471,6 +476,49 @@ public:
                 {
 
                 }
+
+                //CCamFpsWeapon
+                pattern = hook::pattern("F3 0F 10 04 8D ? ? ? ? F3 0F 59 05");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(0), 9, true);
+                    static auto CCamFpsWeaponOriginalSensOverride1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm0.f32[0] = 1.0f;
+                    });
+                }
+                else
+                {
+
+                }
+
+                pattern = hook::pattern("F3 0F 10 0C 8D ? ? ? ? 0F 2F C1 76");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(0), 9, true);
+                    static auto CCamFpsWeaponOriginalSensOverride2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm1.f32[0] = 1.0f;
+                    });
+                }
+                else
+                {
+
+                }
+
+                pattern = hook::pattern("F3 0F 10 04 85 ? ? ? ? F3 0F 59 C1 F3 0F 11 44 24 ? 66 0F 6E 05");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(0), 9, true);
+                    static auto CCamFpsWeaponOriginalSensOverride3 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm0.f32[0] = 1.0f;
+                    });
+                }
+                else
+                {
+
+                }
             }
 
             // Mouse aim sensitivity slider and multiplier (CCamAimWeapon)
@@ -530,6 +578,42 @@ public:
                         regs.xmm2.f32[0] = (GetGamepadAimSensitivity()) * 0.015f;
                         regs.xmm3.f32[0] = (GetGamepadAimSensitivity()) * 0.02f;
                     });
+                }
+            }
+
+            // Mouse aim sensitivity slider and multiplier (CCamFpsWeapon)
+            {
+                pattern = hook::pattern("0F 28 CD EB 08 F3 0F 10 0D");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(0), 3, true);
+                    static auto CCamFpsWeaponMouseSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm1.f32[0] = (GetMouseAimSensitivity() * 0.075f) + 0.025f;
+                        regs.xmm5.f32[0] = regs.xmm1.f32[0];
+                    });
+                }
+                else
+                {
+
+                }
+            }
+
+            // Gamepad aim sensitivity slider and multiplier (CCamFpsWeapon)
+            {
+                auto pattern = hook::pattern("F3 0F 10 2D ? ? ? ? 80 7C 24");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(0), 8, true);
+                    static auto CCamFpsWeaponGamepadAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm5.f32[0] = (GetGamepadAimSensitivity()) * 0.015f;
+                        regs.xmm1.f32[0] = (GetGamepadAimSensitivity()) * 0.02f;
+                    });
+                }
+                else
+                {
+
                 }
             }
         };
