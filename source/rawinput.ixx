@@ -388,7 +388,7 @@ public:
                 if (!pattern.empty())
                 {
                     injector::MakeNOP(pattern.get_first(0), 6, true);
-                    static auto CCamFollowVehicleMouseSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CCamFollowVehicleFirstPersonMouseSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         *(float*)(regs.esp + 0x34) = regs.xmm1.f32[0] * GetMouseLookSensitivity();
                     });
@@ -397,7 +397,7 @@ public:
                 {
                     pattern = hook::pattern("D9 5C 24 ? E8 ? ? ? ? 50 E8 ? ? ? ? D9 E0");
                     injector::MakeNOP(pattern.get_first(0), 4, true);
-                    static auto CCamFollowVehicleMouseSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CCamFollowVehicleFirstPersonMouseSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         *(float*)(regs.esp + 0x18) *= GetMouseLookSensitivity();
                     });
@@ -634,6 +634,24 @@ public:
                         {
                             *(float*)(regs.ebp + 0x18) *= GetGamepadLookSensitivity();
                         }
+                    });
+                }
+                else
+                {
+
+                }
+            }
+
+            // Mouse sensitivity multiplier
+            {
+                // CCamFollowVehicle
+                auto pattern = hook::pattern("F3 0F 11 45 ? F3 0F 10 07");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(0), 5, true);
+                    static auto CCamFollowVehicleMouseSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        *(float*)(regs.ebp + 0x18) = regs.xmm0.f32[0] * GetMouseLookSensitivity();
                     });
                 }
                 else
