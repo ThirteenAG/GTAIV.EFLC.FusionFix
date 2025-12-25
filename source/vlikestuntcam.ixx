@@ -1,4 +1,3 @@
-#if 0
 module;
 
 #include <common.hxx>
@@ -35,14 +34,14 @@ public:
 
 
             //reset back to defaults
-            pattern = find_pattern("E8 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 11 05 ? ? ? ? C3");
+            pattern = find_pattern("E8 ? ? ? ? C7 05 ? ? ? ? CD CC 4C 3E C3", "E8 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 11 05 ? ? ? ? C3");
             static auto CIntermezzoEventStuntJump__virtual0x8Hook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
             {
                 camSpeed = 128.0f;
                 canSwitchRadio = true;
             });
 
-            pattern = find_pattern("F3 0F 5C 05 ? ? ? ? 0F 57 D2 0F 2F C2");
+            pattern = find_pattern("F3 0F 5C 05 ? ? ? ? 0F 2F C2 76 16 F3 0F 59 05", "F3 0F 5C 05 ? ? ? ? 0F 57 D2 0F 2F C2");
             static auto CIntermezzoEventStuntJump__virtual0x4Hook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
             {
                 int32_t wheel;
@@ -56,4 +55,3 @@ public:
         };
     }
 } VLikeStuntCam;
-#endif
