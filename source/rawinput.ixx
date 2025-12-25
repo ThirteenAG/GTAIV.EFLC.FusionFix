@@ -616,6 +616,26 @@ public:
 
                 }
             }
+
+            // Gamepad sensitivity slider and multiplier (CCamFollowVehicle)
+            {
+                auto pattern = hook::pattern("E8 ? ? ? ? 8B 4C 24 ? 57 56 E8 ? ? ? ? D9 7C 24");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(0), 8, true);
+                    static auto CCamFpsWeaponGamepadAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        if (!*(uint8_t*)(regs.eax + 0x3289))
+                        {
+                            *(float*)(regs.ebp + 0x18) *= GetGamepadLookSensitivity();
+                        }
+                    });
+                }
+                else
+                {
+
+                }
+            }
         };
 
         FusionFix::onActivateApp() += [](bool wParam)
