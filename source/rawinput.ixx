@@ -5,9 +5,9 @@ module;
 export module rawinput;
 
 import common;
-import settings;
 import comvars;
 import natives;
+import settings;
 
 uint32_t pCamPointers;
 int32_t* diMouseAxisX;
@@ -353,14 +353,14 @@ public:
                 }
             }; injector::MakeInline<CCamFollowVehicleHook>(pattern.get_first(0), pattern.get_first(8));
 
-            // Mouse sensitivity multiplier
+            // Mouse sensitivity multipliers
             {
                 // CCamFollowPed
                 auto pattern = hook::pattern("F3 0F 11 5C 24 ? EB ? F3 0F 10 4C 24 ? 0F 54 CC");
                 if (!pattern.empty())
                 {
                     injector::MakeNOP(pattern.get_first(0), 6, true);
-                    static auto CCamFollowPedMouseSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CCamFollowPed_MouseSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         *(float*)(regs.esp + 0x18) *= GetMouseLookSensitivity();
                         *(float*)(regs.esp + 0x28) = regs.xmm3.f32[0] * GetMouseLookSensitivity();
@@ -370,16 +370,36 @@ public:
                 {
                     pattern = hook::pattern("F3 0F 59 44 24 ? F3 0F 59 05 ? ? ? ? F3 0F 59 4C 24");
                     injector::MakeNOP(pattern.get_first(0), 6, true);
-                    static auto CCamFollowPedMouseSensX = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CCamFollowPed_MouseSensX = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         regs.xmm0.f32[0] *= *(float*)(regs.esp + 0x14) * GetMouseLookSensitivity();
                     });
 
                     pattern = hook::pattern("F3 0F 59 4C 24 ? 0F 57 ED F3 0F 11 44 24");
                     injector::MakeNOP(pattern.get_first(0), 6, true);
-                    static auto CCamFollowPedMouseSensY = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CCamFollowPed_MouseSensY = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         regs.xmm1.f32[0] *= *(float*)(regs.esp + 0x18) * GetMouseLookSensitivity();
+                    });
+                }
+
+                // CCamFollowVehicle
+                pattern = hook::pattern("F3 0F 11 45 ? F3 0F 10 07");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(0), 5, true);
+                    static auto CCamFollowVehicle_MouseSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        *(float*)(regs.ebp + 0x18) = regs.xmm0.f32[0] * GetMouseLookSensitivity();
+                    });
+                }
+                else
+                {
+                    pattern = hook::pattern("F3 0F 11 44 24 ? F3 0F 10 05 ? ? ? ? F3 0F 11 44 24 ? 0F 84 ? ? ? ? 8D 44 24 ? 50");
+                    injector::MakeNOP(pattern.get_first(0), 6, true);
+                    static auto CCamFollowVehicle_MouseSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        *(float*)(regs.esp + 0x28) = regs.xmm0.f32[0] * GetMouseLookSensitivity();
                     });
                 }
 
@@ -388,7 +408,7 @@ public:
                 if (!pattern.empty())
                 {
                     injector::MakeNOP(pattern.get_first(0), 6, true);
-                    static auto CCamFollowVehicleFirstPersonMouseSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CCamFollowVehicleFirstPerson_MouseSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         *(float*)(regs.esp + 0x34) = regs.xmm1.f32[0] * GetMouseLookSensitivity();
                     });
@@ -397,21 +417,21 @@ public:
                 {
                     pattern = hook::pattern("D9 5C 24 ? E8 ? ? ? ? 50 E8 ? ? ? ? D9 E0");
                     injector::MakeNOP(pattern.get_first(0), 4, true);
-                    static auto CCamFollowVehicleFirstPersonMouseSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CCamFollowVehicleFirstPerson_MouseSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         *(float*)(regs.esp + 0x18) *= GetMouseLookSensitivity();
                     });
                 }
             }
 
-            // Gamepad look-around sensitivity slider and multiplier
+            // Gamepad look-around sensitivity slider and multipliers
             {
                 // CCamFollowPed
                 auto pattern = hook::pattern("F3 0F 11 4C 24 ? 80 A6");
                 if (!pattern.empty())
                 {
                     injector::MakeNOP(pattern.get_first(0), 6, true);
-                    static auto CCamFollowPedGamepadSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CCamFollowPed_GamepadSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         *(float*)(regs.esp + 0x18) *= GetGamepadLookSensitivity();
                         *(float*)(regs.esp + 0x28) = regs.xmm1.f32[0] * GetGamepadLookSensitivity();
@@ -421,25 +441,88 @@ public:
                 {
                     pattern = hook::pattern("F3 0F 11 44 24 ? 76 ? 0F 28 C4");
                     injector::MakeNOP(pattern.get_first(0), 6, true);
-                    static auto CCamFollowPedGamepadSensX = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CCamFollowPed_GamepadSensX = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         *(float*)(regs.esp + 0x14) = regs.xmm0.f32[0] * GetGamepadLookSensitivity();
                     });
 
                     pattern = hook::pattern("F3 0F 59 C8 F3 0F 59 CA 80 A6");
                     injector::MakeNOP(pattern.get_first(0), 4, true);
-                    static auto CCamFollowPedGamepadSensY = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CCamFollowPed_GamepadSensY = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         regs.xmm1.f32[0] *= regs.xmm0.f32[0] * GetGamepadLookSensitivity();
                     });
                 }
 
+                // CCamFollowVehicle
+                pattern = hook::pattern("E8 ? ? ? ? 8B 4C 24 ? 57 56 E8 ? ? ? ? D9 7C 24");
+                if (!pattern.empty())
+                {
+                    static auto CCamFollowVehicle_GamepadSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        if (!*(uint8_t*)(regs.eax + 0x3289))
+                        {
+                            *(float*)(regs.ebp + 0x18) *= GetGamepadLookSensitivity();
+                        }
+                    });
+                }
+                else
+                {
+                    pattern = hook::pattern("F3 0F 10 06 F3 0F 59 44 24 ? F3 0F 11 06 F3 0F 10 07");
+                    static auto CCamFollowVehicle_GamepadSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        if (!*(uint8_t*)(regs.ebx + 0x3289))
+                        {
+                            *(float*)(regs.esp + 0x20) *= GetGamepadLookSensitivity();
+                            *(float*)(regs.esp + 0x24) *= GetGamepadLookSensitivity();
+                        }
+                    });
+                }
+
                 // CCamFollowVehicle (First person "Hood" mode)
+                pattern = hook::pattern("F3 0F 10 0C 85 ? ? ? ? F3 0F 58 05");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(0), 9, true);
+                    static auto CCamFollowVehicleFirstPerson_OriginalSensOverride1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm1.f32[0] = 1.0f;
+                    });
+                }
+                else
+                {
+                    pattern = hook::pattern("F3 0F 10 14 8D ? ? ? ? 0F 2F CA F3 0F 11 0D ? ? ? ? 76");
+                    injector::MakeNOP(pattern.get_first(0), 9, true);
+                    static auto CCamFollowVehicleFirstPerson_OriginalSensOverride1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm2.f32[0] = 1.0f;
+                    });
+                }
+
+                pattern = hook::pattern("F3 0F 10 04 85 ? ? ? ? F3 0F 10 5C 24");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(0), 9, true);
+                    static auto CCamFollowVehicleFirstPerson_OriginalSensOverride2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm0.f32[0] = 1.0f;
+                    });
+                }
+                else
+                {
+                    pattern = hook::pattern("F3 0F 10 0C 95 ? ? ? ? F3 0F 10 5C 24 ? 0F 57 ED");
+                    injector::MakeNOP(pattern.get_first(0), 9, true);
+                    static auto CCamFollowVehicleFirstPerson_OriginalSensOverride2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm1.f32[0] = 1.0f;
+                    });
+                }
+
                 pattern = hook::pattern("F3 0F 11 44 24 ? C6 44 24 ? ? E8 ? ? ? ? 83 C4 ? 88 44 24");
                 if (!pattern.empty())
                 {
                     injector::MakeNOP(pattern.get_first(0), 6, true);
-                    static auto CCamFollowVehicleGamepadSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CCamFollowVehicleFirstPerson_GamepadSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         *(float*)(regs.esp + 0x40) = regs.xmm0.f32[0] * GetGamepadLookSensitivity();
                     });
@@ -448,86 +531,16 @@ public:
                 {
                     pattern = hook::pattern("F3 0F 11 44 24 ? C6 44 24 ? ? E8 ? ? ? ? 83 C4 ? 85 F6");
                     injector::MakeNOP(pattern.get_first(0), 6, true);
-                    static auto CCamFollowVehicleGamepadSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CCamFollowVehicleFirstPerson_GamepadSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         *(float*)(regs.esp + 0x24) = regs.xmm0.f32[0] * GetGamepadLookSensitivity();
                     });
                 }
-
-                pattern = hook::pattern("F3 0F 10 0C 85 ? ? ? ? F3 0F 58 05");
-                if (!pattern.empty())
-                {
-                    injector::MakeNOP(pattern.get_first(0), 9, true);
-                    static auto CCamFollowVehicleOriginalSensOverride1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                    {
-                        regs.xmm1.f32[0] = 1.0f;
-                    });
-                }
-                else
-                {
-
-                }
-
-                pattern = hook::pattern("F3 0F 10 04 85 ? ? ? ? F3 0F 10 5C 24");
-                if (!pattern.empty())
-                {
-                    injector::MakeNOP(pattern.get_first(0), 9, true);
-                    static auto CCamFollowVehicleOriginalSensOverride2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                    {
-                        regs.xmm0.f32[0] = 1.0f;
-                    });
-                }
-                else
-                {
-
-                }
-
-                //CCamFpsWeapon
-                pattern = hook::pattern("F3 0F 10 04 8D ? ? ? ? F3 0F 59 05");
-                if (!pattern.empty())
-                {
-                    injector::MakeNOP(pattern.get_first(0), 9, true);
-                    static auto CCamFpsWeaponOriginalSensOverride1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                    {
-                        regs.xmm0.f32[0] = 1.0f;
-                    });
-                }
-                else
-                {
-
-                }
-
-                pattern = hook::pattern("F3 0F 10 0C 8D ? ? ? ? 0F 2F C1 76");
-                if (!pattern.empty())
-                {
-                    injector::MakeNOP(pattern.get_first(0), 9, true);
-                    static auto CCamFpsWeaponOriginalSensOverride2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                    {
-                        regs.xmm1.f32[0] = 1.0f;
-                    });
-                }
-                else
-                {
-
-                }
-
-                pattern = hook::pattern("F3 0F 10 04 85 ? ? ? ? F3 0F 59 C1 F3 0F 11 44 24 ? 66 0F 6E 05");
-                if (!pattern.empty())
-                {
-                    injector::MakeNOP(pattern.get_first(0), 9, true);
-                    static auto CCamFpsWeaponOriginalSensOverride3 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                    {
-                        regs.xmm0.f32[0] = 1.0f;
-                    });
-                }
-                else
-                {
-
-                }
             }
 
-            // Mouse aim sensitivity slider and multiplier (CCamAimWeapon)
+            // Mouse aim sensitivity slider and multipliers
             {
+                // CCamAimWeapon
                 auto pattern = hook::pattern("0F 45 C1 0F 2F 0D");
                 if (!pattern.empty())
                 {
@@ -544,7 +557,7 @@ public:
                 if (!pattern.empty())
                 {
                     injector::MakeNOP(pattern.get_first(0), 3, true);
-                    static auto CCamAimWeaponMouseAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CCamAimWeapon_MouseAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         regs.xmm3.f32[0] = (GetMouseAimSensitivity() * 0.075f) + 0.025f;
                         regs.xmm4.f32[0] = regs.xmm3.f32[0];
@@ -554,21 +567,43 @@ public:
                 {
                     pattern = hook::pattern("0F 28 D8 EB ? F3 0F 10 1D ? ? ? ? 84 C0 74");
                     injector::MakeNOP(pattern.get_first(0), 3, true);
-                    static auto CCamAimWeaponMouseAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CCamAimWeapon_MouseAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         regs.xmm0.f32[0] = (GetMouseAimSensitivity() * 0.075f) + 0.025f;
                         regs.xmm3.f32[0] = regs.xmm0.f32[0];
                     });
                 }
+
+                pattern = hook::pattern("0F 28 CD EB 08 F3 0F 10 0D");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(0), 3, true);
+                    static auto CCamFpsWeapon_MouseAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm1.f32[0] = (GetMouseAimSensitivity() * 0.075f) + 0.025f;
+                        regs.xmm5.f32[0] = regs.xmm1.f32[0];
+                    });
+                }
+                else
+                {
+                    pattern = hook::pattern("0F 28 D0 EB ? F3 0F 10 15 ? ? ? ? 85 DB 74");
+                    injector::MakeNOP(pattern.get_first(0), 3, true);
+                    static auto CCamFpsWeapon_MouseAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm2.f32[0] = (GetMouseAimSensitivity() * 0.075f) + 0.025f;
+                        regs.xmm0.f32[0] = regs.xmm1.f32[0];
+                    });
+                }
             }
 
-            // Gamepad aim sensitivity slider and multiplier (CCamAimWeapon)
+            // Gamepad aim sensitivity slider and multiplier
             {
+                // CCamAimWeapon
                 auto pattern = hook::pattern("F3 0F 10 1D ? ? ? ? F3 0F 10 4C 24 ? F3 0F 10 45");
                 if (!pattern.empty())
                 {
                     injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto CCamAimWeaponGamepadAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CCamAimWeapon_GamepadAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         regs.xmm3.f32[0] = (GetGamepadAimSensitivity()) * 0.015f;
                         regs.xmm4.f32[0] = (GetGamepadAimSensitivity()) * 0.02f;
@@ -578,39 +613,67 @@ public:
                 {
                     pattern = hook::pattern("F3 0F 10 15 ? ? ? ? 84 C0 F3 0F 10 45");
                     injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto CCamAimWeaponGamepadAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CCamAimWeapon_GamepadAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         regs.xmm2.f32[0] = (GetGamepadAimSensitivity()) * 0.015f;
                         regs.xmm3.f32[0] = (GetGamepadAimSensitivity()) * 0.02f;
                     });
                 }
-            }
 
-            // Mouse aim sensitivity slider and multiplier (CCamFpsWeapon)
-            {
-                pattern = hook::pattern("0F 28 CD EB 08 F3 0F 10 0D");
+                // CCamFpsWeapon (Sniper)
+                pattern = hook::pattern("F3 0F 10 04 8D ? ? ? ? F3 0F 59 05");
                 if (!pattern.empty())
                 {
-                    injector::MakeNOP(pattern.get_first(0), 3, true);
-                    static auto CCamFpsWeaponMouseSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    injector::MakeNOP(pattern.get_first(0), 9, true);
+                    static auto CCamFpsWeapon_OriginalSensOverride1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm1.f32[0] = (GetMouseAimSensitivity() * 0.075f) + 0.025f;
-                        regs.xmm5.f32[0] = regs.xmm1.f32[0];
+                        regs.xmm0.f32[0] = 1.0f;
                     });
                 }
                 else
                 {
-
+                    pattern = hook::pattern("F3 0F 10 0C 85 ? ? ? ? F3 0F 59 0D ? ? ? ? F3 0F 58 8E ? ? ? ? F3 0F 11 8E");
+                    injector::MakeNOP(pattern.get_first(0), 9, true);
+                    static auto CCamFpsWeapon_OriginalSensOverride1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm1.f32[0] = 1.0f;
+                    });
                 }
-            }
 
-            // Gamepad aim sensitivity slider and multiplier (CCamFpsWeapon)
-            {
-                auto pattern = hook::pattern("F3 0F 10 2D ? ? ? ? 80 7C 24");
+                pattern = hook::pattern("F3 0F 10 0C 8D ? ? ? ? 0F 2F C1 76");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(0), 9, true);
+                    static auto CCamFpsWeapon_OriginalSensOverride2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm1.f32[0] = 1.0f;
+                    });
+                }
+                else
+                {
+                    pattern = hook::pattern("F3 0F 10 14 85 ? ? ? ? 0F 2F CA 76 ? F3 0F 11 96 ? ? ? ? EB");
+                    injector::MakeNOP(pattern.get_first(0), 9, true);
+                    static auto CCamFpsWeapon_OriginalSensOverride2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm2.f32[0] = 1.0f;
+                    });
+                }
+
+                pattern = find_pattern("F3 0F 10 04 85 ? ? ? ? F3 0F 59 C1 F3 0F 11 44 24 ? 66 0F 6E 05", "F3 0F 10 04 8D ? ? ? ? F3 0F 59 C1 F3 0F 11 44 24");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(0), 9, true);
+                    static auto CCamFpsWeapon_OriginalSensOverride3 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm0.f32[0] = 1.0f;
+                    });
+                }
+
+                pattern = hook::pattern("F3 0F 10 2D ? ? ? ? 80 7C 24 ? ? F3 0F 10 64 24");
                 if (!pattern.empty())
                 {
                     injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto CCamFpsWeaponGamepadAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CCamFpsWeapon_GamepadAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         regs.xmm5.f32[0] = (GetGamepadAimSensitivity()) * 0.015f;
                         regs.xmm1.f32[0] = (GetGamepadAimSensitivity()) * 0.02f;
@@ -618,45 +681,13 @@ public:
                 }
                 else
                 {
-
-                }
-            }
-
-            // Gamepad sensitivity slider and multiplier (CCamFollowVehicle)
-            {
-                auto pattern = hook::pattern("E8 ? ? ? ? 8B 4C 24 ? 57 56 E8 ? ? ? ? D9 7C 24");
-                if (!pattern.empty())
-                {
+                    pattern = hook::pattern("F3 0F 10 2D ? ? ? ? 80 7C 24 ? ? F3 0F 10 44 24");
                     injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto CCamFpsWeaponGamepadAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CCamFpsWeapon_GamepadAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        if (!*(uint8_t*)(regs.eax + 0x3289))
-                        {
-                            *(float*)(regs.ebp + 0x18) *= GetGamepadLookSensitivity();
-                        }
+                        regs.xmm5.f32[0] = (GetGamepadAimSensitivity()) * 0.015f;
+                        regs.xmm2.f32[0] = (GetGamepadAimSensitivity()) * 0.02f;
                     });
-                }
-                else
-                {
-
-                }
-            }
-
-            // Mouse sensitivity multiplier
-            {
-                // CCamFollowVehicle
-                auto pattern = hook::pattern("F3 0F 11 45 ? F3 0F 10 07");
-                if (!pattern.empty())
-                {
-                    injector::MakeNOP(pattern.get_first(0), 5, true);
-                    static auto CCamFollowVehicleMouseSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                    {
-                        *(float*)(regs.ebp + 0x18) = regs.xmm0.f32[0] * GetMouseLookSensitivity();
-                    });
-                }
-                else
-                {
-
                 }
             }
         };
