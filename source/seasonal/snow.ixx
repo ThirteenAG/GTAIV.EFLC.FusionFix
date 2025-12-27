@@ -118,10 +118,7 @@ public:
         pStormEmitter = reinterpret_cast<gtaRainEmitter*>((uintptr_t)pRainEmitter + 0xD0);
 
         pattern = find_pattern("F3 0F 11 05 ? ? ? ? 66 0F 6E 05 ? ? ? ? 0F 5B C0 F3 0F 59 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 05 ? ? ? ? F3 0F 11 04 24", "F3 0F 11 05 ? ? ? ? F3 0F 2A 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 05 ? ? ? ? D3 E6");
-        if (!pattern.empty())
-        {
-            dwViewDistance = *pattern.get_first<float*>(4);
-        }
+        dwViewDistance = *pattern.get_first<float*>(4);
     }
 
     auto Enable() -> void override
