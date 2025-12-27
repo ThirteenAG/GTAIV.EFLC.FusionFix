@@ -183,6 +183,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed jagged vehicle reflections
 - LOD lights now appear at the appropriate time and can render in cutscene, like on the console version
 - Added an option to allow various postfx effect to render behind transparent objects properly
+- Added an option to apply MSAA for various reflection maps
 - Make night shadows resolution be adjusted by night shadows option
 - Restored higher shadow render distance from old versions of the game
 - Improved cascaded shadows performance, and added an option to double their resolution
@@ -192,20 +193,23 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 ### Scripts
 
+- Fixed IV police computer soft lock issue that one interface from it can't be closed with keyboard
 - Restored transparency on pool minigame
 - Restored traffic cops in toll booths
 - Restored non-cop pedestrians in helicopters flying around city
+- Fixed two perseus suits' bought clothes texture doesn't match their prop models
 - Fixed Johnny's incorrect voice lines when exiting the gun shop after buying something (used to use voice lines from Higgin's Heli Tours)
 - Restored Luis' voice lines when exiting the gun shop (buying/not buying)
 - Restored missing voice lines from Luis & Johnny when exiting the Broker gun shop
-- The gun shop owner now uses his unique model (M_M_GunNut_01) instead of the strip club bouncer model (M_Y_bouncer_01).
+- The gun shop owner now uses his unique model (M_M_GunNut_01) instead of the strip club bouncer model (M_Y_bouncer_01)
 - The Desert Eagle and Micro SMG are now using their unique sounds when viewing them (required modifying the animation dictionary "missgunlockup.wad")
-- Restored the temporary ban from the gun shop when attacking the owner in TLAD/TBOGT
+- Restored the temporary ban from the gun shop when attacking the owner in TLAD/TBoGT
 - Chinatown gun shop: Fixed a small bug where the wrong voice lines is used after exiting when not buying something
+- Workaround for TLAD Heli Tours, now pilot voice lines trigger time won't be messed up due to Johnny's voice text clear issue
 - Restored voice lines from Luis, he'll now respond to what the pilot tells him about the landmarks during the tour
-- Uptown Riders now use their own voice lines rather than Angels of Death voice in TLAD's arm wrestling
-- Restored Clay's voice lines which is used when he meets Johnny in hangout friend activity in TLAD
-- Restored Jim, Terry, Clay own voice lines in TLAD hi_lo_cards minigame
+- Restored Uptown Riders' own voice lines in TLAD arm wrestling minigame (used to use Angels of Death's voice lines)
+- Restored Clay's voice lines, now he will respond to Johnny's arrival in hang out friend activity
+- Restored Jim, Terry, Clay own voice lines in TLAD hi-lo cards minigame
 - Restored TLAD Combat Shotgun's own unique prop model
 - Fixed the busker script terminates too early in TBoGT, now Luis can give money to busker normally
 - Fixed several motorcycles use incorrect paying animation at toll station in TBoGT
@@ -225,7 +229,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Added an option to enable support for DSR1, grenade launcher, pipe bomb, sticky bomb, AA12 explosive shells, P90 vehicle check, partially parachute and all their abilities in IV, TLAD and TBoGT
 - Added an option to enable explosive rounds on annihilator in IV
 - Added an option to enable camera bobbing in clubs, cell phone switching, altimeter in helicopters and parachute, explosive sniper and fists cheats in IV and TLAD
-- Added an option to raise height limit for helicopters in IV and TLAD to match TBOGT level
+- Added an option to raise height limit for helicopters in IV and TLAD to match TBoGT level
 - Added an option to give P90 and AA12 to SWAT and FIB and M249 to police in helicopters in IV and TLAD
 - Added an option to disable SCO signature check, allow game to use any episodic SCO on all episodes
 
@@ -252,6 +256,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed helicopter searchlights flicker violently when more than one helicopter is present
 - Fixed radio reset after cutscene
 - Workaround for lights & motion blur flicker intermittently when player is drunk
+- Now stunt jump camera is controlled by mouse wheel when using keyboard and mouse
 - Fixed player can't give beggar money normally on PC
 - Fixed TLAD phone keypad rendering on top of the plastic cover
 - Fixed TLAD an incorrect traffic cops head texture
@@ -268,7 +273,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **FpsLimit** - enter a desired value to specify the number of frames per second you want for the game. Like 30, 45, 60 or more. This will affect all gameplay. Refresh rate offsets may also be used.
 - **CutsceneFpsLimit** - enter a desired value to specify the number of frames per second you want for the game to use on cutscenes only.
 - **DefaultCameraAngleInTLAD** - TLAD uses a different camera angle on bikes, this option can force the original IV camera angle. [Enabled](https://i.imgur.com/PqFHJfU.jpg) / [Disabled](https://i.imgur.com/5kM5Sgn.jpg)
-- **PedDeathAnimFixFromTBOGT** - when you perform a counter attack after a dodge in IV & TLAD, the ped after falling and dying performs an additional death animation, which doesn't happen in TBOGT. [Enabled](https://imgur.com/EYsiGPe) / [Disabled](https://imgur.com/CR3LEdR)
+- **PedDeathAnimFixFromTBoGT** - when you perform a counter attack after a dodge in IV & TLAD, the ped after falling and dying performs an additional death animation, which doesn't happen in TBoGT. [Enabled](https://imgur.com/EYsiGPe) / [Disabled](https://imgur.com/CR3LEdR)
 - **DisableCameraCenteringInCover** - [see issue 20](https://github.com/GTAmodding/GTAIV-Issues-List/issues/20).
 - **VehicleBudget** - allows to increase the budget of vehicles, used to avoid only taxi will spawn. For more information about TaxiBug and VehicleBudget, please watch [TJGM's video](https://www.youtube.com/watch?v=wr8m9kL3U20&t=237s).
 - **PedBudget** - allows to increase the budget of pedestrians.
