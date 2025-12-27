@@ -353,7 +353,7 @@ public:
                 }
             }; injector::MakeInline<CCamFollowVehicleHook>(pattern.get_first(0), pattern.get_first(8));
 
-            // Mouse sensitivity multipliers
+            // Mouse look-around sensitivity multipliers
             {
                 // CCamFollowPed
                 auto pattern = hook::pattern("F3 0F 11 5C 24 ? EB ? F3 0F 10 4C 24 ? 0F 54 CC");
@@ -395,7 +395,7 @@ public:
                 }
                 else
                 {
-                    pattern = hook::pattern("F3 0F 11 44 24 ? F3 0F 10 05 ? ? ? ? F3 0F 11 44 24 ? 0F 84 ? ? ? ? 8D 44 24 ? 50");
+                    pattern = hook::pattern("F3 0F 11 44 24 ? F3 0F 10 05 ? ? ? ? F3 0F 11 44 24 ? 0F 84 ? ? ? ? 8D 44 24 ? 50 E8");
                     injector::MakeNOP(pattern.get_first(0), 6, true);
                     static auto CCamFollowVehicle_MouseSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
@@ -439,7 +439,7 @@ public:
                 }
                 else
                 {
-                    pattern = hook::pattern("F3 0F 11 44 24 ? 76 ? 0F 28 C4");
+                    pattern = hook::pattern("F3 0F 11 44 24 ? 76 ? 0F 28 C4 F3 0F 5C C2");
                     injector::MakeNOP(pattern.get_first(0), 6, true);
                     static auto CCamFollowPed_GamepadSensX = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
@@ -468,7 +468,7 @@ public:
                 }
                 else
                 {
-                    pattern = hook::pattern("F3 0F 10 06 F3 0F 59 44 24 ? F3 0F 11 06 F3 0F 10 07");
+                    pattern = hook::pattern("F3 0F 10 06 F3 0F 59 44 24 ? F3 0F 11 06");
                     static auto CCamFollowVehicle_GamepadSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         if (!*(uint8_t*)(regs.ebx + 0x3289))
@@ -491,7 +491,7 @@ public:
                 }
                 else
                 {
-                    pattern = hook::pattern("F3 0F 10 14 8D ? ? ? ? 0F 2F CA F3 0F 11 0D ? ? ? ? 76");
+                    pattern = hook::pattern("F3 0F 10 14 8D ? ? ? ? 0F 2F CA");
                     injector::MakeNOP(pattern.get_first(0), 9, true);
                     static auto CCamFollowVehicleFirstPerson_OriginalSensOverride1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
@@ -510,7 +510,7 @@ public:
                 }
                 else
                 {
-                    pattern = hook::pattern("F3 0F 10 0C 95 ? ? ? ? F3 0F 10 5C 24 ? 0F 57 ED");
+                    pattern = hook::pattern("F3 0F 10 0C 95 ? ? ? ? F3 0F 10 5C 24");
                     injector::MakeNOP(pattern.get_first(0), 9, true);
                     static auto CCamFollowVehicleFirstPerson_OriginalSensOverride2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
@@ -549,7 +549,7 @@ public:
                 }
                 else
                 {
-                    pattern = hook::pattern("74 ? B8 ? ? ? ? 0F 2F 05 ? ? ? ? 76");
+                    pattern = hook::pattern("74 ? B8 ? ? ? ? 0F 2F 05");
                     injector::MakeNOP(pattern.get_first(0), 2, true);
                 }
 
@@ -565,7 +565,7 @@ public:
                 }
                 else
                 {
-                    pattern = hook::pattern("0F 28 D8 EB ? F3 0F 10 1D ? ? ? ? 84 C0 74");
+                    pattern = hook::pattern("0F 28 D8 EB ? F3 0F 10 1D");
                     injector::MakeNOP(pattern.get_first(0), 3, true);
                     static auto CCamAimWeapon_MouseAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
@@ -574,7 +574,8 @@ public:
                     });
                 }
 
-                pattern = hook::pattern("0F 28 CD EB 08 F3 0F 10 0D");
+                // CCamFpsWeapon (Sniper)
+                pattern = hook::pattern("0F 28 CD EB ? F3 0F 10 0D ? ? ? ? 85 C0");
                 if (!pattern.empty())
                 {
                     injector::MakeNOP(pattern.get_first(0), 3, true);
@@ -586,7 +587,7 @@ public:
                 }
                 else
                 {
-                    pattern = hook::pattern("0F 28 D0 EB ? F3 0F 10 15 ? ? ? ? 85 DB 74");
+                    pattern = hook::pattern("0F 28 D0 EB ? F3 0F 10 15 ? ? ? ? 85 DB");
                     injector::MakeNOP(pattern.get_first(0), 3, true);
                     static auto CCamFpsWeapon_MouseAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
@@ -596,7 +597,7 @@ public:
                 }
             }
 
-            // Gamepad aim sensitivity slider and multiplier
+            // Gamepad aim sensitivity slider and multipliers
             {
                 // CCamAimWeapon
                 auto pattern = hook::pattern("F3 0F 10 1D ? ? ? ? F3 0F 10 4C 24 ? F3 0F 10 45");
@@ -621,7 +622,7 @@ public:
                 }
 
                 // CCamFpsWeapon (Sniper)
-                pattern = hook::pattern("F3 0F 10 04 8D ? ? ? ? F3 0F 59 05");
+                pattern = hook::pattern("F3 0F 10 04 8D ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 87");
                 if (!pattern.empty())
                 {
                     injector::MakeNOP(pattern.get_first(0), 9, true);
@@ -632,7 +633,7 @@ public:
                 }
                 else
                 {
-                    pattern = hook::pattern("F3 0F 10 0C 85 ? ? ? ? F3 0F 59 0D ? ? ? ? F3 0F 58 8E ? ? ? ? F3 0F 11 8E");
+                    pattern = hook::pattern("F3 0F 10 0C 85 ? ? ? ? F3 0F 59 0D ? ? ? ? F3 0F 58 8E");
                     injector::MakeNOP(pattern.get_first(0), 9, true);
                     static auto CCamFpsWeapon_OriginalSensOverride1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
@@ -651,7 +652,7 @@ public:
                 }
                 else
                 {
-                    pattern = hook::pattern("F3 0F 10 14 85 ? ? ? ? 0F 2F CA 76 ? F3 0F 11 96 ? ? ? ? EB");
+                    pattern = hook::pattern("F3 0F 10 14 85 ? ? ? ? 0F 2F CA");
                     injector::MakeNOP(pattern.get_first(0), 9, true);
                     static auto CCamFpsWeapon_OriginalSensOverride2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
@@ -659,7 +660,7 @@ public:
                     });
                 }
 
-                pattern = find_pattern("F3 0F 10 04 85 ? ? ? ? F3 0F 59 C1 F3 0F 11 44 24 ? 66 0F 6E 05", "F3 0F 10 04 8D ? ? ? ? F3 0F 59 C1 F3 0F 11 44 24");
+                pattern = find_pattern("F3 0F 10 04 85 ? ? ? ? F3 0F 59 C1 F3 0F 11 44 24 ? 66 0F 6E 05", "F3 0F 10 04 8D ? ? ? ? F3 0F 59 C1");
                 if (!pattern.empty())
                 {
                     injector::MakeNOP(pattern.get_first(0), 9, true);
