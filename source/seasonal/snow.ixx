@@ -515,7 +515,7 @@ private:
                 if (!HasVolumes(CurrentWeather) && HasVolumes(NextWeather))
                 {
                     light->mVolumeIntensity = 4.0f * LightVolumeIntensities(NextWeather) * InterpolationValue * DistanceFade;
-                    light->mVolumeScale = LightVolumeScales(NextWeather) * InterpolationValue * DistanceFade;
+                    light->mVolumeScale = LightVolumeScales(NextWeather) * InterpolationValue;
                 }
                 // Transition between volumes
                 else if (HasVolumes(CurrentWeather) && HasVolumes(NextWeather))
@@ -527,13 +527,13 @@ private:
                     float NextVolumeScale = LightVolumeScales(NextWeather);
 
                     light->mVolumeIntensity = 4.0f * (CurrentVolumeIntensity + (NextVolumeIntensity - CurrentVolumeIntensity) * InterpolationValue) * DistanceFade;
-                    light->mVolumeScale = (CurrentVolumeScale + (NextVolumeScale - CurrentVolumeScale) * InterpolationValue) * DistanceFade;
+                    light->mVolumeScale = (CurrentVolumeScale + (NextVolumeScale - CurrentVolumeScale) * InterpolationValue);
                 }
                 // Transition from volumes to no volumes
                 else if (HasVolumes(CurrentWeather) && !HasVolumes(NextWeather))
                 {
                     light->mVolumeIntensity = 4.0f * LightVolumeIntensities(CurrentWeather) * (1.0f - InterpolationValue) * DistanceFade;
-                    light->mVolumeScale = LightVolumeScales(CurrentWeather) * (1.0f - InterpolationValue) * DistanceFade;
+                    light->mVolumeScale = LightVolumeScales(CurrentWeather) * (1.0f - InterpolationValue);
                 }
             }
         }
