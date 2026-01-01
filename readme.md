@@ -194,10 +194,13 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 ### Scripts
 
 - Fixed IV police computer soft lock issue that one interface from it can't be closed with keyboard
+- Fixed too sensitive keyboard arrow keys input in police computer's virtual keyboard
+- Fixed IV pigeon collection's annihilator reward prevents Brucie landing his helicopter at Star Junction's landing site
+- Fixed two perseus suits' bought clothes texture doesn't match their prop models
 - Restored transparency on pool minigame
 - Restored traffic cops in toll booths
 - Restored non-cop pedestrians in helicopters flying around city
-- Fixed two perseus suits' bought clothes texture doesn't match their prop models
+- Restored TLAD Combat Shotgun's own unique prop model
 - Fixed Johnny's incorrect voice lines when exiting the gun shop after buying something (used to use voice lines from Higgin's Heli Tours)
 - Restored Luis' voice lines when exiting the gun shop (buying/not buying)
 - Restored missing voice lines from Luis & Johnny when exiting the Broker gun shop
@@ -210,14 +213,16 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored Uptown Riders' own voice lines in TLAD arm wrestling minigame (used to use Angels of Death's voice lines)
 - Restored Clay's voice lines, now he will respond to Johnny's arrival in hang out friend activity
 - Restored Jim, Terry, Clay own voice lines in TLAD hi-lo cards minigame
-- Restored TLAD Combat Shotgun's own unique prop model
 - Fixed the busker script terminates too early in TBoGT, now Luis can give money to busker normally
 - Fixed several motorcycles use incorrect paying animation at toll station in TBoGT
 - Fixed ilyena call and brycebug content can't trigger after load the save (From ilyena's random character mission and stubbs' job)
+- Fixed PlayboyX/Dwayne execute animations can't be played properly on high framerates in IV mission "The Holland Play..."
+- Fixed one camera's scripted Depth of Field intensity can't be cleared when it's skipped in Phil's mission "Catch the Wave"
 - Fixed the FIB arriving too early at the abandoned mansion in Phil's mission "To live and die in Alderney"
 - Fixed the heli climb QTE being impossible on really high framerates
 - Workaround for a bug where Niko dies after being kicked off of Dimitri's helicopter and falling into the water (Deal Ending)
 - Workaround for a bug where Jacob crashes the Annihilator on high framerates (Deal Ending)
+- Workaround for a bug where Turismo fails to hit Jeff on high framerates in Jeff's final mission
 - Workaround for burned AOD won't trigger ragdoll behavior on high frame rates in TLAD mission "Action/Reaction"
 - Fixed TLAD intro scripted cutscene's cut off distant world in several shots 
 
