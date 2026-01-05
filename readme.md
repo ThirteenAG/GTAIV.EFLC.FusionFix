@@ -144,6 +144,10 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **Centered On Foot Camera**, makes on foot camera centered, also for more options install the [original mod](https://github.com/gennariarmando/iv-centered-onfoot-cam)
 - **Turn Indicators**, allows the player to use vehicle turn indicators and hazard lights
 - **Always Show Bullet Traces**, shows bullet traces on every shot instead of randomly, like in the older games
+- **Look-Around Sensitivity**, controls the look sensitivity when using controller
+- **Aiming Sensitivity**, controls the aim sensitivity when using controller
+- **Mouse Look Sensitivity**, controls the look sensitivity when using mouse
+- **Mouse Aim Sensitivity**, controls the aim sensitivity when using mouse
 - **Vehicle Camera Centering Delay**, controls the time until vehicle camera auto centering kicks in after moving it
 - **On Foot Camera Centering Delay**, controls the time until on foot camera auto centering kicks in after moving it
 - **Vehicle Camera Turn Speed**, controls the camera turn speed when driving a vehicle and turning
@@ -172,7 +176,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Improved ultrawide support
 - Fixed improper VRAM detection on some setups
 - Fixed draw distance sliders not being applied on startup
-- Fixed mouse cursor scale, and mouse cursor is hidden when using controller now
+- Fixed mouse cursor scale, and hidden mouse cursor when using controller
 - Significantly sped up loading screens
 - Added various fixed weapon, movement and other animations
 - Added various fixed vehicle models
@@ -193,14 +197,18 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 ### Scripts
 
-- Fixed IV police computer soft lock issue that one interface from it can't be closed with keyboard
+- Fixed IV police computer soft-lock issue where one interface from it can't be closed with keyboard
 - Fixed too sensitive keyboard arrow keys input in police computer's virtual keyboard
-- Fixed IV pigeon collection's annihilator reward prevents Brucie landing his helicopter at Star Junction's landing site
+- Fixed computer web mouse sensitivity decreases on high framerates when using keyboard and mouse
+- Fixed computer web scrolling speed becomes faster on high framerates when using controller
+- Fixed IV pigeon collection's annihilator reward prevents Brucie landing helicopter at Star Junction's landing site
 - Fixed two perseus suits' bought clothes texture doesn't match their prop models
+- Fixed sometimes buying food animation plays after several seconds delay in fast-food shop
 - Restored transparency on pool minigame
 - Restored traffic cops in toll booths
 - Restored non-cop pedestrians in helicopters flying around city
-- Restored TLAD Combat Shotgun's own unique prop model
+- Restored TLAD combat shotgun's own unique prop model (prop_e1_pumpshot) instead of IV's model (cj_prop_pumpshot)
+- Fixed gun van's weapon animations speeding up on high framerates
 - Fixed Johnny's incorrect voice lines when exiting the gun shop after buying something (used to use voice lines from Higgin's Heli Tours)
 - Restored Luis' voice lines when exiting the gun shop (buying/not buying)
 - Restored missing voice lines from Luis & Johnny when exiting the Broker gun shop
@@ -208,22 +216,22 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - The Desert Eagle and Micro SMG are now using their unique sounds when viewing them (required modifying the animation dictionary "missgunlockup.wad")
 - Restored the temporary ban from the gun shop when attacking the owner in TLAD/TBoGT
 - Chinatown gun shop: Fixed a small bug where the wrong voice lines is used after exiting when not buying something
-- Workaround for TLAD Heli Tours, now pilot voice lines trigger time won't be messed up due to Johnny's voice text clear issue
+- Workaround for TLAD Heli Tours, now pilot voice trigger time won't be affected due to Johnny voice text clear issue
 - Restored voice lines from Luis, he'll now respond to what the pilot tells him about the landmarks during the tour
-- Restored Uptown Riders' own voice lines in TLAD arm wrestling minigame (used to use Angels of Death's voice lines)
+- Restored Uptown Riders' own voice lines in arm wrestling minigame (used to use Angels of Death's voice lines)
 - Restored Clay's voice lines, now he will respond to Johnny's arrival in hang out friend activity
-- Restored Jim, Terry, Clay own voice lines in TLAD hi-lo cards minigame
+- Restored Jim, Terry, Clay own voice lines in hi-lo cards minigame
 - Fixed the busker script terminates too early in TBoGT, now Luis can give money to busker normally
 - Fixed several motorcycles use incorrect paying animation at toll station in TBoGT
 - Fixed ilyena call and brycebug content can't trigger after load the save (From ilyena's random character mission and stubbs' job)
 - Fixed PlayboyX/Dwayne execute animations can't be played properly on high framerates in IV mission "The Holland Play..."
-- Fixed one camera's scripted Depth of Field intensity can't be cleared when it's skipped in Phil's mission "Catch the Wave"
+- Fixed one shot's scripted depth of field can't be cleared when it's skipped in Phil's mission "Catch the Wave"
 - Fixed the FIB arriving too early at the abandoned mansion in Phil's mission "To live and die in Alderney"
 - Fixed the heli climb QTE being impossible on really high framerates
 - Workaround for a bug where Niko dies after being kicked off of Dimitri's helicopter and falling into the water (Deal Ending)
 - Workaround for a bug where Jacob crashes the Annihilator on high framerates (Deal Ending)
 - Workaround for a bug where Turismo fails to hit Jeff on high framerates in Jeff's final mission
-- Workaround for burned AOD won't trigger ragdoll behavior on high frame rates in TLAD mission "Action/Reaction"
+- Workaround for burned AOD won't trigger ragdoll behavior on high framerates in TLAD mission "Action/Reaction"
 - Fixed TLAD intro scripted cutscene's cut off distant world in several shots 
 
 ### Episodic content
