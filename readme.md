@@ -202,8 +202,9 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed computer web mouse sensitivity decreases on high framerates when using keyboard and mouse
 - Fixed computer web scrolling speed becomes faster on high framerates when using controller
 - Fixed IV pigeon collection's annihilator reward prevents Brucie landing helicopter at Star Junction's landing site
-- Fixed two perseus suits' bought clothes texture doesn't match their prop models
 - Fixed sometimes buying food animation plays after several seconds delay in fast-food shop
+- Fixed two perseus suits' bought clothes texture doesn't match their prop models
+- Now game won't change Niko's hand when you change clothes to perseus' suits
 - Restored transparency on pool minigame
 - Restored traffic cops in toll booths
 - Restored non-cop pedestrians in helicopters flying around city
