@@ -1,6 +1,7 @@
 module;
 
 #include <common.hxx>
+#include <cmath>
 
 export module rawinput;
 
@@ -107,72 +108,57 @@ void __cdecl NATIVE_GET_MOUSE_INPUT(int* a1, int* a2)
     return hbNATIVE_GET_MOUSE_INPUT.fun(a1, a2);
 }
 
-float fMouseLookSensitivityMultiplier = 0.5f;
-inline float GetMouseLookSensitivity()
-{
-    static auto ri = FusionFixSettings.GetRef("PREF_RAWINPUT");
-    if (ri->get())
-        return fMouseLookSensitivityMultiplier / 2.0f;
-
-    return fMouseLookSensitivityMultiplier;
-}
-
 constexpr float fMouseAimSensitivityScaler = 20.0f;
 constexpr float fGamepadAimSensitivityScaler = 10.0f;
 
-inline float GetMouseAimSensitivity()
+float fMouseLookSensitivityMin = 0.1f;
+float fMouseLookSensitivityMax = 2.0f;
+float fGamepadLookSensitivityMin = 0.1f;
+float fGamepadLookSensitivityMax = 2.0f;
+float fMouseAimSensitivityMin = 0.1f;
+float fMouseAimSensitivityMax = 2.0f;
+float fGamepadAimSensitivityMin = 0.1f;
+float fGamepadAimSensitivityMax = 2.0f;
+
+inline float GetMouseLookSensitivity()
 {
-    static auto ri = FusionFixSettings.GetRef("PREF_RAWINPUT");
-    static auto MouseAimSensitivity = FusionFixSettings.GetRef("PREF_MOUSEAIMSENSITIVITY");
-    float sliderValue = (float)MouseAimSensitivity->get();
-    float sliderMid = fMouseAimSensitivityScaler / 2.0f; // 10.0f
+    static auto MouseSensitivity = FusionFixSettings.GetRef("PREF_MOUSE_SENSITIVITY");
+    float sliderValue = (float)MouseSensitivity->get();
+    float sliderMax = fMouseAimSensitivityScaler; // Assumption: Mouse Look slider uses similar range to Mouse Aim (20)
 
-    float Multiplier;
-    if (sliderValue <= sliderMid)
-    {
-        // 0-10 maps to 0.1-1.0
-        Multiplier = 0.1f + (sliderValue / sliderMid) * 0.9f;
-    }
-    else
-    {
-        // 10-20 maps to 1.0-2.0
-        Multiplier = 1.0f + ((sliderValue - sliderMid) / sliderMid);
-    }
-
-    Multiplier *= fMouseLookSensitivityMultiplier / (ri->get() ? 2.0f : 1.0f);
-    return Multiplier;
+    // Linear mapping: slider(0..20) -> [Min, Max]
+    float t = std::clamp(sliderValue / sliderMax, 0.0f, 1.0f);
+    return std::lerp(fMouseLookSensitivityMin, fMouseLookSensitivityMax, t);
 }
 
-float fGamepadLookSensitivityMultiplier = 1.0f;
+inline float GetMouseAimSensitivity()
+{
+    static auto MouseAimSensitivity = FusionFixSettings.GetRef("PREF_MOUSEAIMSENSITIVITY");
+    float sliderValue = (float)MouseAimSensitivity->get();
+    float sliderMax = fMouseAimSensitivityScaler; // 20.0f
+
+    float t = std::clamp(sliderValue / sliderMax, 0.0f, 1.0f);
+    return std::lerp(fMouseAimSensitivityMin, fMouseAimSensitivityMax, t);
+}
+
 inline float GetGamepadLookSensitivity()
 {
     static auto GamepadLookSensitivity = FusionFixSettings.GetRef("PREF_PADLOOKSENSITIVITY");
-    float Multiplier = 1.0f + (GamepadLookSensitivity->get() / fGamepadAimSensitivityScaler);
-    Multiplier *= fGamepadLookSensitivityMultiplier;
-    return Multiplier;
+    float sliderValue = (float)GamepadLookSensitivity->get();
+    float sliderMax = fGamepadAimSensitivityScaler; // 10.0f
+
+    float t = std::clamp(sliderValue / sliderMax, 0.0f, 1.0f);
+    return std::lerp(fGamepadLookSensitivityMin, fGamepadLookSensitivityMax, t);
 }
 
 inline float GetGamepadAimSensitivity()
 {
     static auto GamepadAimSensitivity = FusionFixSettings.GetRef("PREF_PADAIMSENSITIVITY");
     float sliderValue = (float)GamepadAimSensitivity->get();
-    float sliderMid = fGamepadAimSensitivityScaler / 2.0f; // 5.0f
-    float sliderMax = fGamepadAimSensitivityScaler - 1.0f; // 9.0f
+    float sliderMax = fGamepadAimSensitivityScaler; // 10.0f (Logic usually clamped to 9, we stay safe with 10 for normalization)
 
-    float Multiplier;
-    if (sliderValue <= sliderMid)
-    {
-        // 0-5 maps to 0.7-1.0 evenly
-        Multiplier = 0.7f + (sliderValue / sliderMid) * 0.3f;
-    }
-    else
-    {
-        // 5-9 maps to 1.0-3.0 evenly
-        Multiplier = 1.0f + ((sliderValue - sliderMid) / (sliderMax - sliderMid)) * 2.0f;
-    }
-
-    Multiplier *= fGamepadLookSensitivityMultiplier;
-    return Multiplier;
+    float t = std::clamp(sliderValue / sliderMax, 0.0f, 1.0f);
+    return std::lerp(fGamepadAimSensitivityMin, fGamepadAimSensitivityMax, t);
 }
 
 class RawInput
@@ -183,8 +169,14 @@ public:
         FusionFix::onInitEventAsync() += []()
         {
             CIniReader iniReader("");
-            fMouseLookSensitivityMultiplier = iniReader.ReadFloat("CAMERASENSITIVITY", "MouseLookSensitivityMultiplier", 0.5f);
-            fGamepadLookSensitivityMultiplier = iniReader.ReadFloat("CAMERASENSITIVITY", "GamepadLookSensitivityMultiplier", 1.0f);
+            fMouseLookSensitivityMin = iniReader.ReadFloat("CAMERASENSITIVITY", "MouseLookSensitivityMin", 0.1f);
+            fMouseLookSensitivityMax = iniReader.ReadFloat("CAMERASENSITIVITY", "MouseLookSensitivityMax", 2.0f);
+            fGamepadLookSensitivityMin = iniReader.ReadFloat("CAMERASENSITIVITY", "GamepadLookSensitivityMin", 0.1f);
+            fGamepadLookSensitivityMax = iniReader.ReadFloat("CAMERASENSITIVITY", "GamepadLookSensitivityMax", 2.0f);
+            fMouseAimSensitivityMin = iniReader.ReadFloat("CAMERASENSITIVITY", "MouseAimSensitivityMin", 0.1f);
+            fMouseAimSensitivityMax = iniReader.ReadFloat("CAMERASENSITIVITY", "MouseAimSensitivityMax", 2.0f);
+            fGamepadAimSensitivityMin = iniReader.ReadFloat("CAMERASENSITIVITY", "GamepadAimSensitivityMin", 0.1f);
+            fGamepadAimSensitivityMax = iniReader.ReadFloat("CAMERASENSITIVITY", "GamepadAimSensitivityMax", 2.0f);
 
             // Menu
             auto pattern = hook::pattern("0F 48 C1 A3 ? ? ? ? 5F");
