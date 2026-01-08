@@ -124,7 +124,7 @@ inline float GetMouseLookSensitivity()
 {
     static auto MouseSensitivity = FusionFixSettings.GetRef("PREF_MOUSE_SENSITIVITY");
     float sliderValue = (float)MouseSensitivity->get();
-    float sliderMax = fMouseAimSensitivityScaler; // Assumption: Mouse Look slider uses similar range to Mouse Aim (20)
+    float sliderMax = fMouseAimSensitivityScaler;
 
     // Linear mapping: slider(0..20) -> [Min, Max]
     float t = std::clamp(sliderValue / sliderMax, 0.0f, 1.0f);
@@ -155,7 +155,7 @@ inline float GetGamepadAimSensitivity()
 {
     static auto GamepadAimSensitivity = FusionFixSettings.GetRef("PREF_PADAIMSENSITIVITY");
     float sliderValue = (float)GamepadAimSensitivity->get();
-    float sliderMax = fGamepadAimSensitivityScaler; // 10.0f (Logic usually clamped to 9, we stay safe with 10 for normalization)
+    float sliderMax = fGamepadAimSensitivityScaler; // 10.0f
 
     float t = std::clamp(sliderValue / sliderMax, 0.0f, 1.0f);
     return std::lerp(fGamepadAimSensitivityMin, fGamepadAimSensitivityMax, t);
