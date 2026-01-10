@@ -354,8 +354,16 @@ public:
                     injector::MakeNOP(pattern.get_first(-6), 12, true);
                     static auto CCamFollowPed_MouseSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        *(float*)(regs.esp + 0x18) *= GetMouseLookSensitivity() * 0.1f * 0.022222223f;
-                        *(float*)(regs.esp + 0x28) *= GetMouseLookSensitivity() * 0.1f * 0.022222223f;
+                        if (*(uint8_t*)(regs.ebx + 0x3289))
+                        {
+                            *(float*)(regs.esp + 0x18) *= GetMouseLookSensitivity() * 0.1f * 0.022222223f;
+                            *(float*)(regs.esp + 0x28) *= GetMouseLookSensitivity() * 0.1f * 0.022222223f;
+                        }
+                        else
+                        {
+                            *(float*)(regs.esp + 0x18) = regs.xmm2.f32[0];
+                            *(float*)(regs.esp + 0x28) = regs.xmm3.f32[0];
+                        }
                     });
                 }
                 else
@@ -383,7 +391,10 @@ public:
                     injector::MakeNOP(pattern.get_first(0), 8, true);
                     static auto CCamFollowPed_MouseSens3 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm1.f32[0] *= 0.022222223f;
+                        if (*(uint8_t*)(regs.ebx + 0x3289))
+                            regs.xmm1.f32[0] *= 0.022222223f;
+                        else
+                            regs.xmm1.f32[0] *= 0.0625f;
                     });
                 }
                 else
@@ -397,7 +408,10 @@ public:
                     injector::MakeNOP(pattern.get_first(0), 8, true);
                     static auto CCamFollowPed_MouseSens4 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm1.f32[0] *= 0.022222223f;
+                        if (*(uint8_t*)(regs.ebx + 0x3289))
+                            regs.xmm1.f32[0] *= 0.022222223f;
+                        else
+                            regs.xmm1.f32[0] *= 0.0375f;
                     });
                 }
                 else
@@ -426,9 +440,18 @@ public:
                     injector::MakeNOP(pattern.get_first(0), 24, true);
                     static auto CCamFollowVehicle_MouseSens2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm1.f32[0] *= 0.022222223f;
-                        regs.xmm0.f32[0] *= 0.022222223f;
-                        regs.xmm1.f32[0] *= 1.0f;
+                        if (*(uint8_t*)(*(uintptr_t*)(regs.ebp + 8) + 0x3289))
+                        {
+                            regs.xmm1.f32[0] *= 0.022222223f;
+                            regs.xmm0.f32[0] *= 0.022222223f;
+                            regs.xmm1.f32[0] *= 1.0f;
+                        }
+                        else
+                        {
+                            regs.xmm1.f32[0] *= 0.019444445f;
+                            regs.xmm0.f32[0] *= 0.0070000002f;
+                            regs.xmm1.f32[0] *= 0.071428575f;
+                        }
                     });
                 }
                 else
@@ -442,7 +465,10 @@ public:
                     injector::MakeNOP(pattern.get_first(0), 8, true);
                     static auto CCamFollowVehicle_MouseSens2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm1.f32[0] *= 1.0f;
+                        if (*(uint8_t*)(*(uintptr_t*)(regs.ebp + 8) + 0x3289))
+                            regs.xmm1.f32[0] *= 1.0f;
+                        else
+                            regs.xmm1.f32[0] *= 0.042857144f;
                     });
                 }
                 else
@@ -654,8 +680,8 @@ public:
                     injector::MakeNOP(pattern.get_first(0), 8, true);
                     static auto CCamAimWeapon_GamepadAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm3.f32[0] = (GetGamepadAimSensitivity()) * 0.015f;
-                        regs.xmm4.f32[0] = (GetGamepadAimSensitivity()) * 0.02f;
+                        regs.xmm3.f32[0] = GetGamepadAimSensitivity() * 0.015f;
+                        regs.xmm4.f32[0] = GetGamepadAimSensitivity() * 0.02f;
                     });
                 }
                 else
@@ -664,8 +690,8 @@ public:
                     injector::MakeNOP(pattern.get_first(0), 8, true);
                     static auto CCamAimWeapon_GamepadAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm2.f32[0] = (GetGamepadAimSensitivity()) * 0.015f;
-                        regs.xmm3.f32[0] = (GetGamepadAimSensitivity()) * 0.02f;
+                        regs.xmm2.f32[0] = GetGamepadAimSensitivity() * 0.015f;
+                        regs.xmm3.f32[0] = GetGamepadAimSensitivity() * 0.02f;
                     });
                 }
 
@@ -724,8 +750,8 @@ public:
                     injector::MakeNOP(pattern.get_first(0), 8, true);
                     static auto CCamFpsWeapon_GamepadAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm5.f32[0] = (GetGamepadAimSensitivity()) * 0.015f;
-                        regs.xmm1.f32[0] = (GetGamepadAimSensitivity()) * 0.02f;
+                        regs.xmm5.f32[0] = GetGamepadAimSensitivity() * 0.022222223f; //* 0.015f;
+                        regs.xmm1.f32[0] = GetGamepadAimSensitivity() * 0.022222223f; //* 0.02f;
                     });
                 }
                 else
@@ -734,8 +760,8 @@ public:
                     injector::MakeNOP(pattern.get_first(0), 8, true);
                     static auto CCamFpsWeapon_GamepadAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm5.f32[0] = (GetGamepadAimSensitivity()) * 0.015f;
-                        regs.xmm2.f32[0] = (GetGamepadAimSensitivity()) * 0.02f;
+                        regs.xmm5.f32[0] = GetGamepadAimSensitivity() * 0.022222223f; //* 0.015f;
+                        regs.xmm2.f32[0] = GetGamepadAimSensitivity() * 0.022222223f; //* 0.02f;
                     });
                 }
             }
