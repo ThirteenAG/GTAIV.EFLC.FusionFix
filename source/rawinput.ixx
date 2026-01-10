@@ -310,7 +310,7 @@ public:
 
                         auto TryMatchAimCamSensitivity = []() -> float
                         {
-                            return (GetMouseAimSensitivity() * 0.075f) + 0.025f;
+                            return GetMouseAimSensitivity() * 0.1f;
                         };
 
                         *(float*)(ptr + 0x148) += (-(float)GetRIMouseAxisData(0) * TryMatchAimCamSensitivity()) / fDiff;
@@ -335,7 +335,7 @@ public:
                     {
                         auto TryMatchFpsCamSensitivity = []() -> float
                         {
-                            return (GetMouseAimSensitivity() * 0.6f) + 0.2f;
+                            return GetMouseAimSensitivity() * 0.8f;
                         };
 
                         *(float*)(ptr + 0x1B4) += -(float)GetRIMouseAxisData(0) * TryMatchFpsCamSensitivity();
@@ -551,7 +551,7 @@ public:
                     injector::MakeNOP(pattern.get_first(0), 3, true);
                     static auto CCamAimWeapon_MouseAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm3.f32[0] = (GetMouseAimSensitivity() * 0.075f) + 0.025f;
+                        regs.xmm3.f32[0] = GetMouseAimSensitivity() * 0.1f;
                         regs.xmm4.f32[0] = regs.xmm3.f32[0];
                     });
                 }
@@ -561,7 +561,7 @@ public:
                     injector::MakeNOP(pattern.get_first(0), 3, true);
                     static auto CCamAimWeapon_MouseAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm0.f32[0] = (GetMouseAimSensitivity() * 0.075f) + 0.025f;
+                        regs.xmm0.f32[0] = GetMouseAimSensitivity() * 0.1f;
                         regs.xmm3.f32[0] = regs.xmm0.f32[0];
                     });
                 }
@@ -573,7 +573,7 @@ public:
                     injector::MakeNOP(pattern.get_first(0), 3, true);
                     static auto CCamFpsWeapon_MouseAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm1.f32[0] = (GetMouseAimSensitivity() * 0.075f) + 0.025f;
+                        regs.xmm1.f32[0] = GetMouseAimSensitivity() * 0.1f;
                         regs.xmm5.f32[0] = regs.xmm1.f32[0];
                     });
                 }
@@ -583,7 +583,7 @@ public:
                     injector::MakeNOP(pattern.get_first(0), 3, true);
                     static auto CCamFpsWeapon_MouseAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm2.f32[0] = (GetMouseAimSensitivity() * 0.075f) + 0.025f;
+                        regs.xmm2.f32[0] = GetMouseAimSensitivity() * 0.1f;
                         regs.xmm0.f32[0] = regs.xmm1.f32[0];
                     });
                 }
