@@ -40,6 +40,18 @@ Correr siempre
 [Cover Centering]
 Centrar cámara al cubrirse
 
+[PadLookSens]
+Sensibilidad al mirar alrededor
+
+[MO_SENS]
+Sensibilidad al apuntar
+
+[MO_MOUSE]
+Sensibilidad del ratón al mirar
+
+[MouseAimSens]
+Sensibilidad del ratón al apuntar
+
 [CenterDelayFoot]
 Demora al centrar cámara a pie
 
