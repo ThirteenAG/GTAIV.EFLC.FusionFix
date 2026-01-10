@@ -1,4 +1,3 @@
-#if 0
 module;
 
 #include <common.hxx>
@@ -7,6 +6,14 @@ export module vlikestuntcam;
 
 import common;
 import natives;
+
+injector::hook_back<const wchar_t* (__fastcall*)(void*, void*, const char*)> hbgetUSJ_FRST;
+void __fastcall getUSJ_FRST(void* _this, void* edx, const char* key)
+{
+    if (!Natives::IsUsingController())
+        key = "USJ_FRST_KMB";
+    hbgetUSJ_FRST.fun(_this, edx, key);
+}
 
 class VLikeStuntCam
 {
@@ -22,14 +29,14 @@ public:
             auto pattern = find_pattern("8D 8F D8 29 00 00 E8");
             static auto sub_E8CB90_1 = safetyhook::create_mid(pattern.get_first(6), [](SafetyHookContext& regs)
             {
-                if(!canSwitchRadio)
+                if (!canSwitchRadio)
                     *(int8_t*)(regs.ecx + 6) = 0;
             });
 
             pattern = find_pattern("8D 8F E8 29 00 00 E8");
             static auto sub_E8CB90_2 = safetyhook::create_mid(pattern.get_first(6), [](SafetyHookContext& regs)
             {
-                if(!canSwitchRadio)
+                if (!canSwitchRadio)
                     *(int8_t*)(regs.ecx + 6) = 0;
             });
 
@@ -53,7 +60,12 @@ public:
 
                 regs.xmm0.f32[0] = camSpeed;
             });
+
+            pattern = find_pattern("E8 ? ? ? ? 50 B9 ? ? ? ? E8 ? ? ? ? 6A 00 6A 00 6A 01", "E8 ? ? ? ? 50 B9 ? ? ? ? E8 ? ? ? ? 6A 00 6A 00 6A 01");
+            hbgetUSJ_FRST.fun = injector::MakeCALL(pattern.get_first(0), getUSJ_FRST, true).get();
+
+            pattern = find_pattern("E8 ? ? ? ? 50 E8 ? ? ? ? 83 C4 40", "E8 ? ? ? ? 50 E8 ? ? ? ? 83 C4 40");
+            hbgetUSJ_FRST.fun = injector::MakeCALL(pattern.get_first(0), getUSJ_FRST, true).get();
         };
     }
 } VLikeStuntCam;
-#endif
