@@ -202,5 +202,8 @@ Buffalo policía
 [FF_WARN7]
 ~r~NOTA: Activa la sincronización de audio de las escenas cinemáticas si tienes desincronización de audio, y desactívala para que la animación sea más fluida. Se puede activar o desactivar en una escena cinemática con ~PAD_UP~.
 
+[USJ_FRST_KMB]
+Durante el modo cámara acrobática, usa ~INPUT_MOUSE_WHEEL_UP~ y ~INPUT_MOUSE_WHEEL_DOWN~ para controlar la velocidad de la cámara lenta.
+
 [DUMMY_l11]
 Dummy label.
