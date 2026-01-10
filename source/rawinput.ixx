@@ -457,17 +457,18 @@ public:
                     injector::MakeNOP(pattern.get_first(0), 6, true);
                     static auto CCamFollowVehicleFirstPerson_MouseSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        *(float*)(regs.esp + 0x34) = regs.xmm1.f32[0] * GetMouseLookSensitivity();
+                        *(float*)(regs.esp + 0x34) = GetMouseLookSensitivity() * 0.1f;
                     });
                 }
                 else
                 {
-                    pattern = hook::pattern("D9 5C 24 ? E8 ? ? ? ? 50 E8 ? ? ? ? D9 E0");
-                    injector::MakeNOP(pattern.get_first(0), 4, true);
-                    static auto CCamFollowVehicleFirstPerson_MouseSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                    {
-                        *(float*)(regs.esp + 0x18) *= GetMouseLookSensitivity();
-                    });
+                    //todo: verify correctness
+                    //pattern = hook::pattern("D9 5C 24 ? E8 ? ? ? ? 50 E8 ? ? ? ? D9 E0");
+                    //injector::MakeNOP(pattern.get_first(0), 4, true);
+                    //static auto CCamFollowVehicleFirstPerson_MouseSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    //{
+                    //    *(float*)(regs.esp + 0x18) *= GetMouseLookSensitivity() * 0.1f;
+                    //});
                 }
             }
 
