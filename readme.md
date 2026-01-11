@@ -224,6 +224,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored Jim, Terry, Clay own voice lines in hi-lo cards minigame
 - Fixed the busker script terminates too early in TBoGT, now Luis can give money to busker normally
 - Fixed several motorcycles use incorrect paying animation at toll station in TBoGT
+- Fixed damage vehicle will increase payment rather than decrease payment in Brucie's web email vehicle theft mission
+- Fixed vehicle is removed too early after parking it in garage in Brucie's web email vehicle theft mission
 - Fixed ilyena call and brycebug content can't trigger after load the save (From ilyena's random character mission and stubbs' job)
 - Fixed PlayboyX/Dwayne execute animations can't be played properly on high framerates in IV mission "The Holland Play..."
 - Fixed one shot's scripted depth of field can't be cleared when it's skipped in Phil's mission "Catch the Wave"
