@@ -108,8 +108,8 @@ void __cdecl NATIVE_GET_MOUSE_INPUT(int* a1, int* a2)
     return hbNATIVE_GET_MOUSE_INPUT.fun(a1, a2);
 }
 
-constexpr float fMouseAimSensitivityScaler = 20.0f;
-constexpr float fGamepadAimSensitivityScaler = 10.0f;
+constexpr float fMouseAimSensitivityScaler = 21.0f;
+constexpr float fGamepadAimSensitivityScaler = 21.0f;
 
 float fMouseLookSensitivityMin = 0.1f;
 float fMouseLookSensitivityMax = 2.0f;
@@ -135,17 +135,17 @@ inline float GetMouseAimSensitivity()
 {
     static auto MouseAimSensitivity = FusionFixSettings.GetRef("PREF_MOUSEAIMSENSITIVITY");
     float sliderValue = (float)MouseAimSensitivity->get();
-    float sliderMax = fMouseAimSensitivityScaler; // 20.0f
+    float sliderMax = fMouseAimSensitivityScaler; // 21.0f
 
     float t = std::clamp(sliderValue / sliderMax, 0.0f, 1.0f);
-    return std::lerp(fMouseAimSensitivityMin, fMouseAimSensitivityMax, t);
+    return std::lerp(fMouseAimSensitivityMin, fMouseAimSensitivityMax, t) * 0.1f;
 }
 
 inline float GetGamepadLookSensitivity()
 {
     static auto GamepadLookSensitivity = FusionFixSettings.GetRef("PREF_PADLOOKSENSITIVITY");
     float sliderValue = (float)GamepadLookSensitivity->get();
-    float sliderMax = fGamepadAimSensitivityScaler; // 10.0f
+    float sliderMax = fGamepadAimSensitivityScaler; // 21.0f
 
     float t = std::clamp(sliderValue / sliderMax, 0.0f, 1.0f);
     return std::lerp(fGamepadLookSensitivityMin, fGamepadLookSensitivityMax, t);
@@ -155,7 +155,7 @@ inline float GetGamepadAimSensitivity()
 {
     static auto GamepadAimSensitivity = FusionFixSettings.GetRef("PREF_PADAIMSENSITIVITY");
     float sliderValue = (float)GamepadAimSensitivity->get();
-    float sliderMax = fGamepadAimSensitivityScaler; // 10.0f
+    float sliderMax = fGamepadAimSensitivityScaler; // 21.0f
 
     float t = std::clamp(sliderValue / sliderMax, 0.0f, 1.0f);
     return std::lerp(fGamepadAimSensitivityMin, fGamepadAimSensitivityMax, t);
@@ -310,7 +310,7 @@ public:
 
                         auto TryMatchAimCamSensitivity = []() -> float
                         {
-                            return GetMouseAimSensitivity() * 0.1f;
+                            return GetMouseAimSensitivity();
                         };
 
                         *(float*)(ptr + 0x148) += (-(float)GetRIMouseAxisData(0) * TryMatchAimCamSensitivity()) / fDiff;
@@ -653,7 +653,7 @@ public:
                     injector::MakeNOP(pattern.get_first(0), 3, true);
                     static auto CCamAimWeapon_MouseAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm3.f32[0] = GetMouseAimSensitivity() * 0.1f;
+                        regs.xmm3.f32[0] = GetMouseAimSensitivity();
                         regs.xmm4.f32[0] = regs.xmm3.f32[0];
                     });
                 }
@@ -663,7 +663,7 @@ public:
                     injector::MakeNOP(pattern.get_first(0), 3, true);
                     static auto CCamAimWeapon_MouseAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm0.f32[0] = GetMouseAimSensitivity() * 0.1f;
+                        regs.xmm0.f32[0] = GetMouseAimSensitivity();
                         regs.xmm3.f32[0] = regs.xmm0.f32[0];
                     });
                 }
@@ -675,7 +675,7 @@ public:
                     injector::MakeNOP(pattern.get_first(0), 3, true);
                     static auto CCamFpsWeapon_MouseAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm1.f32[0] = GetMouseAimSensitivity() * 0.1f;
+                        regs.xmm1.f32[0] = GetMouseAimSensitivity();
                         regs.xmm5.f32[0] = regs.xmm1.f32[0];
                     });
                 }
@@ -685,7 +685,7 @@ public:
                     injector::MakeNOP(pattern.get_first(0), 3, true);
                     static auto CCamFpsWeapon_MouseAimSens = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm2.f32[0] = GetMouseAimSensitivity() * 0.1f;
+                        regs.xmm2.f32[0] = GetMouseAimSensitivity();
                         regs.xmm0.f32[0] = regs.xmm1.f32[0];
                     });
                 }

@@ -508,8 +508,8 @@
       <optionspc action="MENUOPT_ADJUST" label="MO_CROUCH" value="PREF_CROUCH" scaler="2" displayValue="MENU_DISPLAY_SNIPER_ZOOM_TYPE" />
       <!--optionspc action="MENUOPT_ADJUST" label="MO_STRAFE" value="PREF_STRAFE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF"/-->
       <optionspc action="MENUOPT_ADJUST" label="MO_ZOOMAIM" value="PREF_ZOOM_AIM" scaler="2" displayValue="MENU_DISPLAY_SNIPER_ZOOM_TYPE" />
-      <optionspc action="MENUOPT_ADJUST" label="MO_MOUSE" value="PREF_MOUSE_SENSITIVITY" scaler="20" displayValue="MENU_DISPLAY_SLIDERBAR" />
-      <optionspc action="MENUOPT_ADJUST" label="MouseAimSens" value="PREF_EPISODIC_RACENAME_RACE_3" scaler="20" displayValue="MENU_DISPLAY_SLIDERBAR" />
+      <optionspc action="MENUOPT_ADJUST" label="MO_MOUSE" value="PREF_MOUSE_SENSITIVITY" scaler="21" displayValue="MENU_DISPLAY_SLIDERBAR" />
+      <optionspc action="MENUOPT_ADJUST" label="MouseAimSens" value="PREF_EPISODIC_RACENAME_RACE_3" scaler="21" displayValue="MENU_DISPLAY_SLIDERBAR" />
       <optionspc action="MENUOPT_ADJUST" label="MO_MOWHEEL" value="PREF_MOUSE_WHEEL_SENSITIVITY" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
       <optionspc action="MENUOPT_ADJUST" label="MO_HELIKB" value="PREF_HELIKB" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       
@@ -530,8 +530,8 @@
       <options action="MENUOPT_ADJUST" label="MO_INV" value="PREF_INVERT_LOOK" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_ADJUST" label="MO_SNI" value="PREF_SNIPER_CONTROL" scaler="2" displayValue="MENU_DISPLAY_SNIPER_TYPE" />
       <!--<options action="MENUOPT_ADJUST" label="MO_SENS" value="PREF_CONTROLLER_SENSITIVITY" scaler="3" displayValue="MENU_DISPLAY_CONTROLLER_SENSITIVITY"/>-->
-      <options action="MENUOPT_ADJUST" label="PadLookSens" value="PREF_EPISODIC_RACENAME_RACE_4" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
-      <options action="MENUOPT_ADJUST" label="MO_SENS" value="PREF_EPISODIC_RACENAME_RACE_2" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
+      <options action="MENUOPT_ADJUST" label="PadLookSens" value="PREF_EPISODIC_RACENAME_RACE_4" scaler="21" displayValue="MENU_DISPLAY_SLIDERBAR" />
+      <options action="MENUOPT_ADJUST" label="MO_SENS" value="PREF_EPISODIC_RACENAME_RACE_2" scaler="21" displayValue="MENU_DISPLAY_SLIDERBAR" />
       
             <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="CenterDelayFoot" value="PREF_EPISODIC_RACECLASS_RACE_5" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
@@ -558,8 +558,8 @@
       <options action="MENUOPT_ADJUST" label="MO_AIM" value="PREF_AUTO_AIM" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_ADJUST" label="MO_INV" value="PREF_INVERT_LOOK" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_ADJUST" label="MO_SNI" value="PREF_SNIPER_CONTROL" scaler="2" displayValue="MENU_DISPLAY_SNIPER_TYPE" />
-      <options action="MENUOPT_ADJUST" label="PadLookSens" value="PREF_EPISODIC_RACENAME_RACE_4" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
-      <options action="MENUOPT_ADJUST" label="MO_SENS" value="PREF_EPISODIC_RACENAME_RACE_2" scaler="10" displayValue="MENU_DISPLAY_SLIDERBAR" />
+      <options action="MENUOPT_ADJUST" label="PadLookSens" value="PREF_EPISODIC_RACENAME_RACE_4" scaler="21" displayValue="MENU_DISPLAY_SLIDERBAR" />
+      <options action="MENUOPT_ADJUST" label="MO_SENS" value="PREF_EPISODIC_RACENAME_RACE_2" scaler="21" displayValue="MENU_DISPLAY_SLIDERBAR" />
       <optionsps3 action="MENUOPT_CONTROLLER_SIXAXIS" label="MO_SIXAXIS" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
       <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
     </menu>
