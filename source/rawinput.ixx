@@ -2,6 +2,7 @@ module;
 
 #include <common.hxx>
 #include <cmath>
+#include <regex>
 
 export module rawinput;
 
@@ -67,23 +68,6 @@ int __cdecl sub_8EFE40(int a1, int a2)
     return (int)(GetMouseAxisData(a1, a2) * 127.5f);
 }
 
-float GetMouseSensitivity()
-{
-    static auto ms = FusionFixSettings.GetRef("PREF_MOUSE_SENSITIVITY");
-    auto f = (float)ms->get();
-    if (f < 1.0f) f = 1.0f;
-    return f;
-}
-
-float GetMouseSensitivityForRI()
-{
-    static auto ms = FusionFixSettings.GetRef("PREF_MOUSE_SENSITIVITY");
-    auto f = (float)ms->get();
-    if (f < 1.0f) f = 1.0f;
-    f /= 10.0f;
-    return f;
-}
-
 double __cdecl GetMouseAxisData2(int pInput, int32_t requestedAxis)
 {
     static auto inv = FusionFixSettings.GetRef("PREF_INVERT_MOUSE");
@@ -91,19 +75,36 @@ double __cdecl GetMouseAxisData2(int pInput, int32_t requestedAxis)
 }
 
 injector::hook_back<decltype(&Natives::GetMouseInput)> hbNATIVE_GET_MOUSE_INPUT;
+POINT centerPos = { 0, 0 };
+bool centerInitialized = false;
 void __cdecl NATIVE_GET_MOUSE_INPUT(int* a1, int* a2)
 {
     static auto ri = FusionFixSettings.GetRef("PREF_RAWINPUT");
     if (ri->get())
     {
-        auto TryMatchPedCamSensitivity = []() -> float
+        if (gWnd && GetFocus() == gWnd)
         {
-            return ((GetMouseSensitivityForRI() / 20.0f) * 0.6f) + 0.2f;
-        };
+            POINT currentPos;
+            GetCursorPos(&currentPos);
 
-        *a1 = (int)std::clamp(GetRIMouseAxisData(0) * 2000 * TryMatchPedCamSensitivity(), -128.0, 128.0);
-        *a2 = (int)std::clamp(GetRIMouseAxisData(1) * 2000 * TryMatchPedCamSensitivity(), -128.0, 128.0);
-        return;
+            if (!centerInitialized)
+            {
+                RECT rect;
+                GetWindowRect(gWnd, &rect);
+                centerPos.x = (rect.left + rect.right) / 2;
+                centerPos.y = (rect.top + rect.bottom) / 2;
+                centerInitialized = true;
+            }
+
+            int deltaX = currentPos.x - centerPos.x;
+            int deltaY = currentPos.y - centerPos.y;
+
+            *a1 = (int)std::clamp((double)deltaX, -128.0, 128.0);
+            *a2 = (int)std::clamp((double)deltaY, -128.0, 128.0);
+
+            SetCursorPos(centerPos.x, centerPos.y);
+            return;
+        }
     }
     return hbNATIVE_GET_MOUSE_INPUT.fun(a1, a2);
 }
@@ -169,14 +170,35 @@ public:
         FusionFix::onInitEventAsync() += []()
         {
             CIniReader iniReader("");
-            fMouseLookSensitivityMin = iniReader.ReadFloat("CAMERASENSITIVITY", "MouseLookSensitivityMin", 0.1f);
-            fMouseLookSensitivityMax = iniReader.ReadFloat("CAMERASENSITIVITY", "MouseLookSensitivityMax", 2.0f);
-            fGamepadLookSensitivityMin = iniReader.ReadFloat("CAMERASENSITIVITY", "GamepadLookSensitivityMin", 0.1f);
-            fGamepadLookSensitivityMax = iniReader.ReadFloat("CAMERASENSITIVITY", "GamepadLookSensitivityMax", 2.0f);
-            fMouseAimSensitivityMin = iniReader.ReadFloat("CAMERASENSITIVITY", "MouseAimSensitivityMin", 0.1f);
-            fMouseAimSensitivityMax = iniReader.ReadFloat("CAMERASENSITIVITY", "MouseAimSensitivityMax", 2.0f);
-            fGamepadAimSensitivityMin = iniReader.ReadFloat("CAMERASENSITIVITY", "GamepadAimSensitivityMin", 0.1f);
-            fGamepadAimSensitivityMax = iniReader.ReadFloat("CAMERASENSITIVITY", "GamepadAimSensitivityMax", 2.0f);
+            auto parseRange = [](const std::string& rangeStr, float defaultMin, float defaultMax) -> std::pair<float, float>
+            {
+                std::regex floatRegex(R"(-?\d+(\.\d+)?)");
+                std::sregex_iterator iter(rangeStr.begin(), rangeStr.end(), floatRegex);
+                std::sregex_iterator end;
+                std::vector<float> numbers;
+
+                for (; iter != end; ++iter)
+                {
+                    try
+                    {
+                        numbers.push_back(std::stof(iter->str()));
+                    } catch (...)
+                    {
+                        // Skip invalid matches
+                    }
+                }
+
+                if (numbers.size() >= 2)
+                {
+                    return { numbers[0], numbers[1] };
+                }
+                return { defaultMin, defaultMax };
+            };
+
+            std::tie(fMouseLookSensitivityMin, fMouseLookSensitivityMax) = parseRange(iniReader.ReadString("CAMERASENSITIVITY", "MouseLookSensitivityRange", "0.1,2.0"), 0.1f, 2.0f);
+            std::tie(fGamepadLookSensitivityMin, fGamepadLookSensitivityMax) = parseRange(iniReader.ReadString("CAMERASENSITIVITY", "GamepadLookSensitivityRange", "0.1,2.0"), 0.1f, 2.0f);
+            std::tie(fMouseAimSensitivityMin, fMouseAimSensitivityMax) = parseRange(iniReader.ReadString("CAMERASENSITIVITY", "MouseAimSensitivityRange", "0.1,2.0"), 0.1f, 2.0f);
+            std::tie(fGamepadAimSensitivityMin, fGamepadAimSensitivityMax) = parseRange(iniReader.ReadString("CAMERASENSITIVITY", "GamepadAimSensitivityRange", "0.1,2.0"), 0.1f, 2.0f);
 
             // Menu
             auto pattern = hook::pattern("0F 48 C1 A3 ? ? ? ? 5F");
