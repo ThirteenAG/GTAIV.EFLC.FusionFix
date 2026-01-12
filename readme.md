@@ -229,7 +229,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed damage vehicle will increase payment rather than decrease payment in Brucie's web email vehicle theft mission
 - Fixed vehicle is removed too early after parking it in garage in Brucie's web email vehicle theft mission
 - Fixed ilyena call and brycebug content can't trigger after load the save (From ilyena's random character mission and stubbs' job)
-- Fixed PlayboyX/Dwayne execute animations can't be played properly on high framerates in IV mission "The Holland Play..."
+- Fixed Faustin execute animation sync issue in IV mission "The Master and the Molotov"
+- Fixed PlayboyX/Dwayne execute animations sync issue on high framerates in IV mission "The Holland Play..."
 - Fixed one shot's scripted depth of field can't be cleared when it's skipped in Phil's mission "Catch the Wave"
 - Fixed the FIB arriving too early at the abandoned mansion in Phil's mission "To live and die in Alderney"
 - Fixed the heli climb QTE being impossible on really high framerates
