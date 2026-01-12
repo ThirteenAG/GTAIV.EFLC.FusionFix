@@ -201,15 +201,19 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed too sensitive keyboard arrow keys input in police computer's virtual keyboard
 - Fixed computer web mouse sensitivity decreases on high framerates when using keyboard and mouse
 - Fixed computer web scrolling speed becomes faster on high framerates when using controller
-- Fixed IV pigeon collection's annihilator reward prevents Brucie landing helicopter at Star Junction's landing site
+- Fixed gun car's weapon animations speeding up on high framerates
 - Fixed sometimes buying food animation plays after several seconds delay in fast-food shop
+- Fixed IV pigeon collection's annihilator reward prevents Brucie landing helicopter at Star Junction's landing site
 - Fixed two perseus suits' bought clothes texture doesn't match their prop models
 - Now game won't change Niko's hand when you change clothes to perseus' suits
+- Fixed possible crash when Lost Club memorial wall has many photos in TLAD
+- Fixed zoomed camera will be interrupted if Luis is moving when he calls empty taxi in TBoGT
+- Fixed the busker script terminates too early in TBoGT, now Luis can give money to busker normally
+- Fixed several motorcycles use incorrect paying animation at toll station in TBoGT
 - Restored transparency on pool minigame
 - Restored traffic cops in toll booths
 - Restored non-cop pedestrians in helicopters flying around city
-- Restored TLAD combat shotgun's own unique prop model (prop_e1_pumpshot) instead of IV's model (cj_prop_pumpshot)
-- Fixed gun van's weapon animations speeding up on high framerates
+- Restored TLAD combat shotgun's own unique prop model (prop_e1_pumpshot) instead of reusing IV's model (cj_prop_pumpshot)
 - Fixed Johnny's incorrect voice lines when exiting the gun shop after buying something (used to use voice lines from Higgin's Heli Tours)
 - Restored Luis' voice lines when exiting the gun shop (buying/not buying)
 - Restored missing voice lines from Luis & Johnny when exiting the Broker gun shop
@@ -217,13 +221,13 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - The Desert Eagle and Micro SMG are now using their unique sounds when viewing them (required modifying the animation dictionary "missgunlockup.wad")
 - Restored the temporary ban from the gun shop when attacking the owner in TLAD/TBoGT
 - Chinatown gun shop: Fixed a small bug where the wrong voice lines is used after exiting when not buying something
-- Workaround for TLAD Heli Tours, now pilot voice trigger time won't be affected due to Johnny voice text clear issue
+- Workaround for TLAD Heli Tours, now pilot voice trigger time won't be affected by Johnny voice text clear bug
 - Restored voice lines from Luis, he'll now respond to what the pilot tells him about the landmarks during the tour
 - Restored Uptown Riders' own voice lines in arm wrestling minigame (used to use Angels of Death's voice lines)
 - Restored Clay's voice lines, now he will respond to Johnny's arrival in hang out friend activity
 - Restored Jim, Terry, Clay own voice lines in hi-lo cards minigame
-- Fixed the busker script terminates too early in TBoGT, now Luis can give money to busker normally
-- Fixed several motorcycles use incorrect paying animation at toll station in TBoGT
+- Fixed damage vehicle will increase payment rather than decrease payment in Brucie's web email vehicle theft mission
+- Fixed vehicle is removed too early after parking it in garage in Brucie's web email vehicle theft mission
 - Fixed ilyena call and brycebug content can't trigger after load the save (From ilyena's random character mission and stubbs' job)
 - Fixed PlayboyX/Dwayne execute animations can't be played properly on high framerates in IV mission "The Holland Play..."
 - Fixed one shot's scripted depth of field can't be cleared when it's skipped in Phil's mission "Catch the Wave"
@@ -232,7 +236,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Workaround for a bug where Niko dies after being kicked off of Dimitri's helicopter and falling into the water (Deal Ending)
 - Workaround for a bug where Jacob crashes the Annihilator on high framerates (Deal Ending)
 - Workaround for a bug where Turismo fails to hit Jeff on high framerates in Jeff's final mission
-- Workaround for burned AOD won't trigger ragdoll behavior on high framerates in TLAD mission "Action/Reaction"
+- Workaround for burned Angels of Deaths member won't trigger ragdoll and fall on high framerates in TLAD mission "Action/Reaction"
 - Fixed TLAD intro scripted cutscene's cut off distant world in several shots 
 
 ### Episodic content
@@ -252,7 +256,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored timecycles from consoles with improved auto exposure and restored missing moon in certain weather
 - Fixed glass shards lacking colors
 - Fixed particles flickering in some situations
-- Restored console particle file, and fixed some broken particles
+- Restored particle file from console, and fixed some broken particles
 - Restored environment reflection intensity from consoles
 - Added an option to restore the more reflective cars from consoles
 - Fixed incorrect water texture and post processing noise tiling on "Water Quality" levels other than medium
@@ -276,7 +280,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed TLAD an incorrect traffic cops head texture
 - Fixed some cutscene and interiors models
 - Fixed and improved some lights and emissive materials
-- Fixed a font uses incorrect style in TBoGT
+- Fixed one font '9' uses incorrect style in TBoGT
 - Added an option to enable shadows for some objects and vegetation that lack them
 - Added options to customize shadow blur, bias and cascade blending 
 - Various other fixes, like regular cops & fat cops will now spawn with their hat prop disabled when in a vehicle, like on the console version
