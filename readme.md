@@ -197,39 +197,45 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 ### Scripts
 
+#### General
+
 - Fixed IV police computer soft-lock issue where one interface from it can't be closed with keyboard
 - Fixed too sensitive keyboard arrow keys input in police computer's virtual keyboard
+- Fixed possible crash when Lost Club memorial wall has many photos in TLAD
+- Fixed the busker script terminates too early in TBoGT, now Luis can give money to busker normally
+- Fixed sometimes buying food animation plays after several seconds delay in fast-food shop
 - Fixed computer web mouse sensitivity decreases on high framerates when using keyboard and mouse
 - Fixed computer web scrolling speed becomes faster on high framerates when using controller
 - Fixed gun car's weapon animations speeding up on high framerates
-- Fixed sometimes buying food animation plays after several seconds delay in fast-food shop
-- Fixed IV pigeon collection's annihilator reward prevents Brucie landing helicopter at Star Junction's landing site
-- Fixed two perseus suits' bought clothes texture doesn't match their prop models
-- Now game won't change Niko's hand when you change clothes to perseus' suits
-- Fixed possible crash when Lost Club memorial wall has many photos in TLAD
-- Fixed memorial wall photos won't spawn when enter Lost Club from roof entry in TLAD
-- Fixed zoomed camera will be interrupted if Luis is moving when he calls empty taxi in TBoGT
-- Fixed the busker script terminates too early in TBoGT, now Luis can give money to busker normally
-- Fixed several motorcycles use incorrect paying animation at toll station in TBoGT
+
+#### Model
+
 - Restored transparency on pool minigame
 - Restored traffic cops in toll booths
 - Restored non-cop pedestrians in helicopters flying around city
 - Restored TLAD combat shotgun's own unique prop model (prop_e1_pumpshot) instead of reusing IV's model (cj_prop_pumpshot)
+- The gun shop owner now uses his unique model (M_M_GunNut_01) instead of the strip club bouncer model (M_Y_bouncer_01)
+- Fixed two perseus suits' bought clothes texture doesn't match their prop models
+- Now game won't change Niko's hand when changing clothes to perseus' suits
+
+#### Audio
+
+- The Desert Eagle and Micro SMG are now using their unique sounds when viewing them (required modifying the animation dictionary "missgunlockup.wad")
+- Chinatown gun shop: Fixed a small bug where the wrong voice lines is used after exiting when not buying something
 - Fixed Johnny's incorrect voice lines when exiting the gun shop after buying something (used to use voice lines from Higgin's Heli Tours)
 - Restored Luis' voice lines when exiting the gun shop (buying/not buying)
 - Restored missing voice lines from Luis & Johnny when exiting the Broker gun shop
-- The gun shop owner now uses his unique model (M_M_GunNut_01) instead of the strip club bouncer model (M_Y_bouncer_01)
-- The Desert Eagle and Micro SMG are now using their unique sounds when viewing them (required modifying the animation dictionary "missgunlockup.wad")
-- Restored the temporary ban from the gun shop when attacking the owner in TLAD/TBoGT
-- Chinatown gun shop: Fixed a small bug where the wrong voice lines is used after exiting when not buying something
-- Workaround for TLAD Heli Tours, now pilot voice trigger time won't be affected by Johnny voice text clear bug
-- Restored voice lines from Luis, he'll now respond to what the pilot tells him about the landmarks during the tour
+- Restored Jim, Terry, Clay own voice lines in hi-lo cards minigame
 - Restored Uptown Riders' own voice lines in arm wrestling minigame (used to use Angels of Death's voice lines)
 - Restored Clay's voice lines, now he will respond to Johnny's arrival in hang out friend activity
-- Restored Jim, Terry, Clay own voice lines in hi-lo cards minigame
-- Fixed damage vehicle will increase payment rather than decrease payment in Brucie's web email vehicle theft mission
-- Fixed vehicle is removed too early after parking it in garage in Brucie's web email vehicle theft mission
-- Fixed ilyena call and brycebug content can't trigger after load the save (From ilyena's random character mission and stubbs' job)
+- Restored voice lines from Luis, he'll now respond to what the pilot tells him about the landmarks during the tour
+- Workaround for TLAD Heli Tours, now pilot voice trigger time won't be affected by Johnny voice text clear bug
+
+#### Mission
+
+- Fixed damage vehicle will increase payment rather than decrease payment in Brucie's web email vehicle theft
+- Fixed vehicle is removed too early after parking it in garage in Brucie's web email vehicle theft
+- Fixed ilyena call and brycebug content can't trigger after loading save (From ilyena's random character mission and stubbs' job)
 - Fixed Faustin execute animation sync issue in IV mission "The Master and the Molotov"
 - Fixed PlayboyX/Dwayne execute animations sync issue on high framerates in IV mission "The Holland Play..."
 - Fixed one shot's scripted depth of field can't be cleared when it's skipped in Phil's mission "Catch the Wave"
@@ -241,6 +247,17 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Workaround for burned Angels of Deaths member won't trigger ragdoll and fall on high framerates in Billy's mission "Action/Reaction"
 - Fixed TLAD intro scripted cutscene's cut off distant world in several shots 
 - Fixed one animation's Yusuf's hand passing through the crane cabin glass in Yusuf's mission "Caught With Your Pants Down"
+
+#### Misc
+
+- Restored the temporary ban from the gun shop when attacking the owner in TLAD/TBoGT
+- Car Wash: now superd2 is accepted by car wash, and packer2, police3, police4, policew are not accepted
+- Fixed incorrect wash car price help text for a type of taxi
+- Fixed IV pigeon collection's annihilator reward prevents Brucie landing helicopter at Star Junction's landing site
+- Fixed memorial wall photos won't spawn when entering Lost Club from roof entry in TLAD
+- Fixed zoomed camera will be interrupted if Luis is moving when he calls empty taxi in TBoGT
+- Fixed several motorcycles use incorrect paying animation at toll station in TBoGT
+- Fixed Luis' vehicle always been removed after playing golf minigame
 
 ### Episodic content
 
