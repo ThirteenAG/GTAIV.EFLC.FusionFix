@@ -206,6 +206,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed sometimes buying food animation plays after several seconds delay in fast-food shop
 - Fixed computer web mouse sensitivity decreases on high framerates when using keyboard and mouse
 - Fixed computer web scrolling speed becomes faster on high framerates when using controller
+- Fixed telescope movement and zoom speed up on high framerates
 - Fixed gun car's weapon animations speeding up on high framerates
 
 #### Model
@@ -245,8 +246,10 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Workaround for a bug where Jacob crashes the Annihilator on high framerates (Deal Ending)
 - Workaround for a bug where Turismo fails to hit Jeff on high framerates in Jeff's final mission
 - Workaround for burned Angels of Deaths member won't trigger ragdoll and fall on high framerates in Billy's mission "Action/Reaction"
+- Workaround for one scripted cutscene ending too late on high framerates in TBoGT's ending credits
 - Fixed TLAD intro scripted cutscene's cut off distant world in several shots 
 - Fixed one animation's Yusuf's hand passing through the crane cabin glass in Yusuf's mission "Caught With Your Pants Down"
+- Fixed Timur animation delay in one scipted cutscene from TBoGT Ending Mission "Departure Time"
 
 #### Misc
 
