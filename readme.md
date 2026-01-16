@@ -249,7 +249,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Workaround for one scripted cutscene ending too late on high framerates in TBoGT's ending credits
 - Fixed TLAD intro scripted cutscene's cut off distant world in several shots 
 - Fixed one animation's Yusuf's hand passing through the crane cabin glass in Yusuf's mission "Caught With Your Pants Down"
-- Fixed Timur animation delay in one scipted cutscene from TBoGT Ending Mission "Departure Time"
+- Fixed Timur animation delay in one scripted cutscene from TBoGT Ending Mission "Departure Time"
 
 #### Misc
 
