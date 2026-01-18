@@ -260,6 +260,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored the temporary ban from the gun shop when attacking the owner in TLAD/TBoGT
 - Car Wash: now superd2 is accepted by car wash, and packer2, police3, police4, policew are not accepted
 - Fixed incorrect wash car price help text for a type of taxi
+- Fixed damaged soda vending machine still can be used
 - Fixed IV pigeon collection's annihilator reward prevents Brucie landing helicopter at Star Junction's landing site
 - Fixed memorial wall photos won't spawn when entering Lost Club from roof entry in TLAD
 - Fixed zoomed camera will be interrupted if Luis is moving when he calls empty taxi in TBoGT
