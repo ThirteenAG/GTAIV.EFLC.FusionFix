@@ -249,6 +249,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Workaround for one scripted cutscene ending too late on high framerates in TBoGT's ending credits
 - Fixed TLAD intro scripted cutscene's cut off distant world in several shots
 - Fixed sometimes mission can't continue for a long time when Johnny is close to Roman's Taxi in Ashley's mission "Roman's Holiday"
+- Fixed Roman lacking clothes model or using incorrect clothes texture in TLAD's ending credits
+- Fixed Malc's motorcycle used incorrect color in TLAD's ending credits
 - Fixed one animation's Yusuf's hand passing through the crane cabin glass in Yusuf's mission "Caught With Your Pants Down"
 - Fixed animation playing delay in one scripted cutscene from TBoGT Ending Mission "Departure Time"
 
