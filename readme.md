@@ -214,6 +214,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored transparency on pool minigame
 - Restored traffic cops in toll booths
 - Restored non-cop pedestrians in helicopters flying around city
+- Restored eCola's own unique soda can for eCola vending machine
 - Restored TLAD combat shotgun's own unique prop model (prop_e1_pumpshot) instead of reusing IV's model (cj_prop_pumpshot)
 - The gun shop owner now uses his unique model (M_M_GunNut_01) instead of the strip club bouncer model (M_Y_bouncer_01)
 - Fixed two perseus suits' bought clothes texture doesn't match their prop models
