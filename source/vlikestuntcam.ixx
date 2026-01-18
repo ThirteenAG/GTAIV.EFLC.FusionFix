@@ -52,13 +52,16 @@ public:
             pattern = find_pattern("F3 0F 5C 05 ? ? ? ? 0F 2F C2 76 16 F3 0F 59 05", "F3 0F 5C 05 ? ? ? ? 0F 57 D2 0F 2F C2");
             static auto CIntermezzoEventStuntJump__virtual0x4Hook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
             {
-                int32_t wheel;
-                Natives::GetMouseWheel(&wheel);
+                if(!Natives::IsUsingController())
+                {
+                    int32_t wheel;
+                    Natives::GetMouseWheel(&wheel);
 
-                camSpeed = std::clamp(camSpeed + float(wheel / 4), -128.0f, 128.0f);
-                canSwitchRadio = false;
+                    camSpeed = std::clamp(camSpeed + float(wheel / 4), -128.0f, 128.0f);
+                    canSwitchRadio = false;
 
-                regs.xmm0.f32[0] = camSpeed;
+                    regs.xmm0.f32[0] = camSpeed;
+                }
             });
 
             pattern = find_pattern("E8 ? ? ? ? 50 B9 ? ? ? ? E8 ? ? ? ? 6A 00 6A 00 6A 01", "E8 ? ? ? ? 50 B9 ? ? ? ? E8 ? ? ? ? 6A 00 6A 00 6A 01");
