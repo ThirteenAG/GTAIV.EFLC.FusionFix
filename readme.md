@@ -203,6 +203,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed too sensitive keyboard arrow keys input in police computer's virtual keyboard
 - Fixed possible crash when Lost Club memorial wall has many photos in TLAD
 - Fixed the busker script terminates too early in TBoGT, now Luis can give money to busker normally
+- Significantly sped up clothes changing in the safehouse wardrobe
 - Fixed sometimes buying food animation plays after several seconds delay in fast-food shop
 - Fixed computer web mouse sensitivity decreases on high framerates when using keyboard and mouse
 - Fixed computer web scrolling speed becomes faster on high framerates when using controller
@@ -250,17 +251,17 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Workaround for one scripted cutscene ending too late on high framerates in TBoGT's ending credits
 - Fixed TLAD intro scripted cutscene's cut off distant world in several shots
 - Fixed sometimes mission can't continue for a long time when Johnny is close to Roman's Taxi in Ashley's mission "Roman's Holiday"
-- Fixed Roman lacking clothes model or using incorrect clothes texture in TLAD's ending credits
+- Fixed sometimes Roman lacking clothes model or using incorrect clothes texture in TLAD's ending credits
 - Fixed Malc's motorcycle used incorrect color in TLAD's ending credits
-- Fixed one animation's Yusuf's hand passing through the crane cabin glass in Yusuf's mission "Caught With Your Pants Down"
+- Fixed Yusuf's hand passing through the crane cabin glass in one animation from Yusuf's mission "Caught With Your Pants Down"
 - Fixed animation playing delay in one scripted cutscene from TBoGT Ending Mission "Departure Time"
 
 #### Misc
 
 - Restored the temporary ban from the gun shop when attacking the owner in TLAD/TBoGT
 - Car Wash: now superd2 is accepted by car wash, and packer2, police3, police4, policew are not accepted
+- Now damaged soda vending machine can't be used
 - Fixed incorrect wash car price help text for a type of taxi
-- Fixed damaged soda vending machine still can be used
 - Fixed IV pigeon collection's annihilator reward prevents Brucie landing helicopter at Star Junction's landing site
 - Fixed memorial wall photos won't spawn when entering Lost Club from roof entry in TLAD
 - Fixed zoomed camera will be interrupted if Luis is moving when he calls empty taxi in TBoGT
