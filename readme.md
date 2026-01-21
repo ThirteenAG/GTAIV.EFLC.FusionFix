@@ -205,8 +205,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed the busker script terminates too early in TBoGT, now Luis can give money to busker normally
 - Significantly sped up clothes changing in the safehouse wardrobe
 - Fixed sometimes buying food animation plays after several seconds delay in fast-food shop
-- Fixed computer web mouse sensitivity decreases on high framerates when using keyboard and mouse
-- Fixed computer web scrolling speed becomes faster on high framerates when using controller
+- Fixed computer web mouse sensitivity decreasing on high framerates when using keyboard and mouse
+- Fixed computer web scrolling speeding up on high framerates when using controller
 - Fixed telescope movement and zoom speeding up on high framerates
 - Fixed gun car's weapon animations speeding up on high framerates
 
@@ -259,9 +259,10 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 #### Misc
 
 - Restored the temporary ban from the gun shop when attacking the owner in TLAD/TBoGT
-- Car Wash: now superd2 is accepted by car wash, and packer2, police3, police4, policew are not accepted
 - Now damaged soda vending machine can't be used
+- Car Wash: now superd2 is accepted by car wash, and packer2, police3, police4, policew are not accepted
 - Fixed incorrect wash car price help text for a type of taxi
+- Fixed NPC leaving delay after they pay at toll station
 - Fixed IV pigeon collection's annihilator reward prevents Brucie landing helicopter at Star Junction's landing site
 - Fixed memorial wall photos won't spawn when entering Lost Club from roof entry in TLAD
 - Fixed zoomed camera will be interrupted if Luis is moving when he calls empty taxi in TBoGT
