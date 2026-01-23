@@ -254,7 +254,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed sometimes Roman lacking clothes model or using incorrect clothes texture in TLAD's ending credits
 - Fixed Malc's motorcycle used incorrect color in TLAD's ending credits
 - Fixed Yusuf's hand passing through the crane cabin glass in one animation from Yusuf's mission "Caught With Your Pants Down"
-- Fixed animation playing delay in one scripted cutscene from TBoGT Ending Mission "Departure Time"
+- Fixed animation playing delay in two scripted cutscene from TBoGT Ending "Departure Time"
+- Fixed sometimes Luis will leave cover automatically when he is shooting behind cover in Bulgarin's plane (TBoGT Ending)
 
 #### Misc
 
