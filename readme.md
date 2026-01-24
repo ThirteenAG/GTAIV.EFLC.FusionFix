@@ -243,6 +243,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed PlayboyX/Dwayne execute animations sync issue on high framerates in IV mission "The Holland Play..."
 - Fixed one shot's scripted depth of field can't be cleared when it's skipped in Phil's mission "Catch the Wave"
 - Fixed the FIB arriving too early at the abandoned mansion in Phil's mission "To live and die in Alderney"
+- Fixed scripted depth of field isn't removed after Darko execute animation finished in IV mission "That Special Someone"
 - Fixed the heli climb QTE being impossible on really high framerates
 - Workaround for a bug where Niko dies after being kicked off of Dimitri's helicopter and falling into the water (Deal Ending)
 - Workaround for a bug where Jacob crashes the Annihilator on high framerates (Deal Ending)
