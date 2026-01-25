@@ -260,6 +260,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 #### Misc
 
+- Fixed ammo number reset when buying pistol which is different from player's one in IV
+- Fixed ammo number reset when buying weapon which is different from player's one in TLAD/TBoGT
 - Restored the temporary ban from the gun shop when attacking the owner in TLAD/TBoGT
 - Now damaged soda vending machine can't be used
 - Car Wash: now superd2 is accepted by car wash, and packer2, police3, police4, policew are not accepted
