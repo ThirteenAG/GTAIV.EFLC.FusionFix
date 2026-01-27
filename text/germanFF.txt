@@ -40,6 +40,18 @@ Immer rennen
 [Cover Centering]
 Deckungszentrierung
 
+[PadLookSens]
+Umschau-Empfindlichkeit
+
+[MO_SENS]
+Zielempfindlichkeit
+
+[MO_MOUSE]
+Maus-Umschau-Empfindlichkeit
+
+[MouseAimSens]
+Maus-Zielempfindlichkeit
+
 [CenterDelayFoot]
 Zentrierungsverzögerung (zu Fuß)
 
@@ -201,6 +213,9 @@ Polizei-Buffalo
 
 [FF_WARN7]
 ~r~ACHTUNG: "Synchronen Ton in Zwischensequenzen erzwingen" nur bei auffallend asynchronem Ton aktivieren, für flüssige Animationen deaktiviert lassen. Kann während Zwischensequenzen mit ~PAD_UP~ ein- und ausgeschaltet werden.
+
+[USJ_FRST_KMB]
+Verwende während der Stuntkamera ~INPUT_MOUSE_WHEEL_UP~ und ~INPUT_MOUSE_WHEEL_DOWN~, um das Zeitlupentempo zu regulieren.
 
 [DUMMY_l11]
 Dummy label.

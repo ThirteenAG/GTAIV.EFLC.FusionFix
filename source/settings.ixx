@@ -119,16 +119,20 @@ private:
     static inline int32_t* mPrefs = nullptr;
     static inline std::unordered_map<uint32_t, CSetting> mFusionPrefs;
 
-    std::optional<std::string> GetPrefNameByID(auto prefID) {
-        auto it = std::find_if(std::begin(aMenuPrefs), std::end(aMenuPrefs), [&prefID](auto& it) {
+    std::optional<std::string> GetPrefNameByID(auto prefID)
+    {
+        auto it = std::find_if(std::begin(aMenuPrefs), std::end(aMenuPrefs), [&prefID](auto& it)
+        {
             return it.prefID == prefID;
         });
         if (it != std::end(aMenuPrefs))
             return std::string(it->name);
         return std::nullopt;
     }
-    std::optional<int32_t> GetPrefIDByName(auto prefName) {
-        auto it = std::find_if(std::begin(aMenuPrefs), std::end(aMenuPrefs), [&prefName](auto& it) {
+    std::optional<int32_t> GetPrefIDByName(auto prefName)
+    {
+        auto it = std::find_if(std::begin(aMenuPrefs), std::end(aMenuPrefs), [&prefName](auto& it)
+        {
             return std::string_view(it.name) == prefName;
         });
         if (it != std::end(aMenuPrefs))
@@ -228,7 +232,7 @@ public:
                         }
                     }
                     else if (!ec && ((std::filesystem::perms::owner_read & status.permissions()) == std::filesystem::perms::owner_read &&
-                        (std::filesystem::perms::owner_write & status.permissions()) == std::filesystem::perms::owner_write))
+                             (std::filesystem::perms::owner_write & status.permissions()) == std::filesystem::perms::owner_write))
                     {
                         d3d9cfgPath = it;
                         break;
@@ -258,7 +262,7 @@ public:
             ppOriginalPrefs = pattern.get_first<MenuPrefs*>(3);
             originalPrefs = *ppOriginalPrefs;
         }
-        
+
         auto pOriginalPrefsNum = find_pattern("81 FF ? ? ? ? 7C DF", "81 FE ? ? ? ? 7C E0 33 F6").get_first<uint32_t>(2);
 
         for (auto i = 0; originalPrefs[i].prefID < *pOriginalPrefsNum; i++)
@@ -330,6 +334,9 @@ public:
             { 0, "PREF_PADCAMCENTERDELAYVEH",   "MISC",       "DelayBeforeCenteringCameraPadInCar", "",                           0, nullptr, 0, 9 },
             { 0, "PREF_KBCAMTURNSPEEDVEH",      "MISC",       "CameraTurnSpeedKBInCar",             "",                           3, nullptr, 0, 7 },
             { 0, "PREF_PADCAMTURNSPEEDVEH",     "MISC",       "CameraTurnSpeedPadInCar",            "",                           0, nullptr, 0, 7 },
+            { 0, "PREF_PADLOOKSENSITIVITY",     "MISC",       "PadLookSensitivity",                 "",                           10, nullptr, 0, 21 },
+            { 0, "PREF_PADAIMSENSITIVITY",      "MISC",       "PadAimSensitivity",                  "",                           10, nullptr, 0, 21 },
+            { 0, "PREF_MOUSEAIMSENSITIVITY",    "MISC",       "MouseAimSensitivity",                "",                           10, nullptr, 0, 21 },
             // Enums are at capacity, to use more enums, replace multiplayer ones. On/Off toggles should still be possible to add.
         };
 
@@ -358,7 +365,7 @@ public:
             pattern = hook::pattern("8B 04 F5 ? ? ? ? 5E C3 8B 04 F5");
             ppOriginalPrefs = pattern.count(4).get(2).get<MenuPrefs*>(3);
             originalEnums = *ppOriginalPrefs;
-            
+
         }
 
         auto pOriginalEnumsNum = find_pattern("83 FF 3C 7C E2", "83 FE 3C 7C E3 33 F6").get_first<uint8_t>(2);
@@ -373,7 +380,8 @@ public:
 
         for (auto& it : arr)
         {
-            if (!it.strEnum.empty()) {
+            if (!it.strEnum.empty())
+            {
                 aMenuEnums.emplace_back(firstEnumCustomID, it.strEnum.data());
                 firstEnumCustomID += 1;
             }
@@ -392,16 +400,16 @@ public:
         // Sliders
         static std::vector<std::pair<std::string_view, std::string_view>> matchingSettingsList =
         {
-            /* { "PREF_EPISODIC_RACENAME_RACE_2", "" }, */
-            /* { "PREF_EPISODIC_RACENAME_RACE_3", "" }, */
-            /* { "PREF_EPISODIC_RACENAME_RACE_4", "" }, */
-            { "PREF_EPISODIC_RACENAME_RACE_5",  "PREF_PADCAMTURNSPEEDVEH" },
-            { "PREF_EPISODIC_RACECLASS_RACE_0", "PREF_KBCAMTURNSPEEDVEH" },
-            { "PREF_EPISODIC_RACECLASS_RACE_1", "PREF_KBCAMCENTERDELAYVEH" },
+            { "PREF_EPISODIC_RACENAME_RACE_2",  "PREF_PADAIMSENSITIVITY"    },
+            { "PREF_EPISODIC_RACENAME_RACE_3",  "PREF_MOUSEAIMSENSITIVITY"  },
+            { "PREF_EPISODIC_RACENAME_RACE_4",  "PREF_PADLOOKSENSITIVITY"   },
+            { "PREF_EPISODIC_RACENAME_RACE_5",  "PREF_PADCAMTURNSPEEDVEH"   },
+            { "PREF_EPISODIC_RACECLASS_RACE_0", "PREF_KBCAMTURNSPEEDVEH"    },
+            { "PREF_EPISODIC_RACECLASS_RACE_1", "PREF_KBCAMCENTERDELAYVEH"  },
             { "PREF_EPISODIC_RACECLASS_RACE_2", "PREF_PADCAMCENTERDELAYVEH" },
-            { "PREF_EPISODIC_RACECLASS_RACE_3", "PREF_CUSTOMFOV" },
-            { "PREF_EPISODIC_RACECLASS_RACE_4", "PREF_KBCAMCENTERDELAY" },
-            { "PREF_EPISODIC_RACECLASS_RACE_5", "PREF_PADCAMCENTERDELAY" },
+            { "PREF_EPISODIC_RACECLASS_RACE_3", "PREF_CUSTOMFOV"            },
+            { "PREF_EPISODIC_RACECLASS_RACE_4", "PREF_KBCAMCENTERDELAY"     },
+            { "PREF_EPISODIC_RACECLASS_RACE_5", "PREF_PADCAMCENTERDELAY"    },
         };
 
         for (auto& it : matchingSettingsList)
@@ -454,8 +462,10 @@ public:
             return mPrefs[prefID];
         }
     }
-    auto Set(int32_t prefID, int32_t value) {
-        if (prefID >= firstCustomID) {
+    auto Set(int32_t prefID, int32_t value)
+    {
+        if (prefID >= firstCustomID)
+        {
             mFusionPrefs[prefID].SetValue(value);
         }
         else
@@ -466,7 +476,8 @@ public:
             injector::UnprotectMemory(&mPrefs[prefID], sizeof(int32_t), tmp);
             mPrefs[prefID] = value;
 
-            if (slidersList.contains(prefID)) {
+            if (slidersList.contains(prefID))
+            {
                 auto id = GetPrefIDByName(slidersList[prefID].second);
                 if (id) mFusionPrefs[*id].SetValue(value);
             }
@@ -478,11 +489,13 @@ public:
         if (prefID) { return Get(*prefID); }
         return 0;
     }
-    auto Set(std::string_view name, int32_t value) {
+    auto Set(std::string_view name, int32_t value)
+    {
         auto prefID = GetPrefIDByName(name);
         if (prefID) return Set(*prefID, value);
     }
-    auto isSame(int32_t id, std::string_view name) {
+    auto isSame(int32_t id, std::string_view name)
+    {
         auto prefID = GetPrefIDByName(name);
         if (prefID && *prefID == id)
             return true;
@@ -491,11 +504,14 @@ public:
     std::optional<std::reference_wrapper<int32_t>> GetRef(std::string_view name)
     {
         auto prefID = GetPrefIDByName(name);
-        if (prefID) {
+        if (prefID)
+        {
             if (prefID >= firstCustomID)
                 return std::ref(mFusionPrefs[*prefID].value);
-            else {
-                if (!mPrefs) {
+            else
+            {
+                if (!mPrefs)
+                {
                     MessageBoxW(0, L"Can't GetRef of original PREF", 0, 0);
                     return std::nullopt;
                 }
@@ -553,7 +569,8 @@ public:
 
     struct
     {
-        enum eShadowFilterText {
+        enum eShadowFilterText
+        {
             eRadio, eSequential, eShuffle, eSharp, eSoft, eCHSS
         };
         std::vector<const char*> data = { "Radio", "Sequential", "Shuffle", "Sharp", "Soft", "CHSS" };
@@ -561,7 +578,8 @@ public:
 
     struct
     {
-        enum eDofText {
+        enum eDofText
+        {
             eAuto, e43, e54, e159, e169, eOff, eCutscenesOnly, eLow, eMedium, eHigh, eVeryHigh
         };
         std::vector<const char*> data = { "Auto", "4:3", "5:4", "15:9", "16:9", "Off", "Cutscenes Only", "Low", "Medium", "High", "Very High" };
@@ -569,7 +587,8 @@ public:
 
     struct
     {
-        enum eTreeFxText {
+        enum eTreeFxText
+        {
             eAuto, e43, e54, e159, e169, e1610, ePC, ePCPlus, eConsole
         };
         std::vector<const char*> data = { "Auto", "4:3", "5:4", "15:9", "16:9", "16:10", "PC", "PC+", "Console" };
@@ -624,16 +643,20 @@ public:
                     auto id = regs.edx;
                     auto value = regs.ebx;
 
-                    if (reg == 0x8D) {
+                    if (reg == 0x8D)
+                    {
                         id = regs.ecx;
                         value = regs.ebx;
                     }
 
                     auto old = FusionFixSettings(id);
 
-                    FusionFixSettings.ForEachPref([&](int32_t prefID, int32_t idStart, int32_t idEnd) {
-                        if (prefID == id) {
-                            if (int32_t(value) <= idStart) {
+                    FusionFixSettings.ForEachPref([&](int32_t prefID, int32_t idStart, int32_t idEnd)
+                    {
+                        if (prefID == id)
+                        {
+                            if (int32_t(value) <= idStart)
+                            {
                                 if (old > idStart)
                                     value = idStart;
                                 else
@@ -682,16 +705,20 @@ public:
                     auto id = regs.ebx;
                     auto value = regs.eax;
 
-                    if (reg4 == 0xBD) {
+                    if (reg4 == 0xBD)
+                    {
                         id = regs.edi;
                         value = regs.edx;
                     }
 
                     auto old = FusionFixSettings(id);
 
-                    FusionFixSettings.ForEachPref([&](int32_t prefID, int32_t idStart, int32_t idEnd) {
-                        if (prefID == id) {
-                            if (int32_t(value) <= idStart) {
+                    FusionFixSettings.ForEachPref([&](int32_t prefID, int32_t idStart, int32_t idEnd)
+                    {
+                        if (prefID == id)
+                        {
+                            if (int32_t(value) <= idStart)
+                            {
                                 if (old > idStart)
                                     value = idStart;
                                 else
@@ -710,7 +737,8 @@ public:
             {
                 void operator()(injector::reg_pack& regs)
                 {
-                    if (reg2 == 0x8D) {
+                    if (reg2 == 0x8D)
+                    {
                         regs.ebx = FusionFixSettings.Get(regs.ecx);
                         return;
                     }
@@ -724,7 +752,8 @@ public:
             {
                 void operator()(injector::reg_pack& regs)
                 {
-                    if (reg3 == 0x8D) {
+                    if (reg3 == 0x8D)
+                    {
                         regs.ecx = FusionFixSettings.Get(regs.ecx);
                         return;
                     }
@@ -768,10 +797,10 @@ public:
             static auto shouldModifyMenuBackground = [](int curMenuTab = *pMenuTab) -> bool
             {
                 auto selectedItem = CMenu::getSelectedItem();
-                return (curMenuTab == 8)                       ||  // Everything in Display Tab
-                       (curMenuTab == 0 && selectedItem == 18) ||  // PREF_EXTRANIGHTSHADOWS in Game Tab
-                       (curMenuTab == 5 && selectedItem == 8)  ||  // PREF_CENTEREDCAMERA in Controls Tab
-                       (curMenuTab == 5 && selectedItem == 9);     // PREF_CENTEREDCAMERAFOOT in Controls Tab
+                return (curMenuTab == 8) ||  // Everything in Display Tab
+                    (curMenuTab == 0 && selectedItem == 18) ||  // PREF_EXTRANIGHTSHADOWS in Game Tab
+                    (curMenuTab == 5 && selectedItem == 8) ||  // PREF_CENTEREDCAMERA in Controls Tab
+                    (curMenuTab == 5 && selectedItem == 9);     // PREF_CENTEREDCAMERAFOOT in Controls Tab
             };
 
             pattern = hook::pattern("83 FE ? 75 ? FF 35 ? ? ? ? E8 ? ? ? ? 83 C4 ? 85 C0 79");
@@ -1058,14 +1087,14 @@ public:
             static bool bExtendedTimecycEditing = iniReader.ReadInteger("FOG", "ExtendedTimecycEditing", 0) != 0;
 
             static ID3DXFont* pFPSFont = nullptr;
-            
+
             FusionFix::onBeforeReset() += []()
             {
                 if (pFPSFont)
                     pFPSFont->Release();
                 pFPSFont = nullptr;
             };
-            
+
             FusionFix::onEndScene() += []()
             {
                 static auto fpsc = FusionFixSettings.GetRef("PREF_FPSCOUNTER");
@@ -1073,22 +1102,22 @@ public:
                 {
                     static std::list<int> m_times;
                     static int fontSize = 0;
-            
+
                     auto pDevice = *RageDirect3DDevice9::m_pRealDevice;
-            
+
                     LARGE_INTEGER frequency;
                     LARGE_INTEGER time;
                     QueryPerformanceFrequency(&frequency);
                     QueryPerformanceCounter(&time);
-            
+
                     if (m_times.size() == 50)
                         m_times.pop_front();
                     m_times.push_back(static_cast<int>(time.QuadPart));
-            
+
                     uint32_t fps = 0;
                     if (m_times.size() >= 2)
                         fps = static_cast<uint32_t>(0.5f + (static_cast<double>(m_times.size() - 1) * static_cast<double>(frequency.QuadPart)) / static_cast<double>(m_times.back() - m_times.front()));
-            
+
                     if (!pFPSFont)
                     {
                         D3DDEVICE_CREATION_PARAMETERS cparams;
@@ -1097,7 +1126,7 @@ public:
                         GetClientRect(cparams.hFocusWindow, &rect);
 
                         fontSize = rect.bottom / 20;
-            
+
                         D3DXFONT_DESC fps_font;
                         ZeroMemory(&fps_font, sizeof(D3DXFONT_DESC));
                         fps_font.Height = fontSize;
@@ -1111,7 +1140,7 @@ public:
                         fps_font.PitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
                         wchar_t FaceName[] = L"Arial";
                         memcpy(&fps_font.FaceName, &FaceName, sizeof(FaceName));
-            
+
                         if (D3DXCreateFontIndirectW(pDevice, &fps_font, &pFPSFont) != D3D_OK)
                             return;
                     }
@@ -1121,12 +1150,12 @@ public:
                         {
                             const D3DXCOLOR BLACK(D3DCOLOR_XRGB(0, 0, 0));
                             CHAR cBuffer[101] = "";
-            
+
                             va_list oArgs;
                             va_start(oArgs, cString);
                             _vsnprintf((cBuffer + strlen(cBuffer)), (sizeof(cBuffer) - strlen(cBuffer)), cString, oArgs);
                             va_end(oArgs);
-            
+
                             RECT Rect[5] =
                             {
                                 { LONG(X - 1), LONG(Y), LONG(X + 500.0f), LONG(Y + 50.0f) },
@@ -1135,13 +1164,13 @@ public:
                                 { LONG(X), LONG(Y + 1), LONG(X + 500.0f), LONG(Y + 50.0f) },
                                 { LONG(X), LONG(Y), LONG(X + 500.0f), LONG(Y + 50.0f)},
                             };
-            
+
                             if (dColor != BLACK)
                             {
                                 for (auto i = 0; i < 4; i++)
                                     pFont->DrawTextA(NULL, cBuffer, -1, &Rect[i], DT_NOCLIP, BLACK);
                             }
-            
+
                             pFont->DrawTextA(NULL, cBuffer, -1, &Rect[4], DT_NOCLIP, dColor);
                         };
                         auto curEp = _dwCurrentEpisode ? *_dwCurrentEpisode : 0;
@@ -1149,7 +1178,7 @@ public:
                         static const D3DXCOLOR TBOGT(D3DCOLOR_XRGB(0xD7, 0x11, 0x6E));
                         static const D3DXCOLOR TLAD(D3DCOLOR_XRGB(0x6F, 0x0D, 0x0F));
                         static const D3DXCOLOR IV(CText::hasViceCityStrings() ? D3DCOLOR_XRGB(0xF5, 0x8F, 0xBE) : D3DCOLOR_XRGB(0xF0, 0xA0, 0x00));
-                        
+
                         DrawTextOutline(pFPSFont, 10, 10, (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), str_format_fps, fps);
 
                         if (bExtendedTimecycEditing)
@@ -1189,7 +1218,7 @@ public:
                                 "pxdf", "rb_4b", "vla1_a", "vla2_a", "vla4_a", "rom8_b", "pm_3", "em_1", "em_2", "em_3", "em_5", "em_7", "fau4_a", "show_1", "show_2",
                                 "show_3", "show_4", "show_5", "show_6", "show_7", "show_8", "rb_4", "j_1", "rp_13", "rom2_a", "rom3_a", "rom5_a", "rom6_a", "rom8_a",
                                 "r_9", "Classic", "Tweaked", "Cinema", "Verte", "Hot", "Steel", "Psyche", "Romantic", "Sepia", "Muddy", "Neon", "Rouge", "Bronze",
-                                "Ulraviolet", "Eclipse", "Noire", "colors", "Vintage", "Fire", "Sketch", "em_1", "em_2", "em_5", 
+                                "Ulraviolet", "Eclipse", "Noire", "colors", "Vintage", "Fire", "Sketch", "em_1", "em_2", "em_5",
                             };
 
                             static char sModifiers[] = "%s %f";
@@ -1202,14 +1231,14 @@ public:
                     }
                 }
             };
-            
+
             if (bExtendedTimecycEditing)
             {
                 FusionFix::onGameProcessEvent() += []()
                 {
-                    static auto oldState = GetAsyncKeyState(VK_F3);
-                    auto curState = GetAsyncKeyState(VK_F3);
-                    if ((oldState & 0x8000) == 0 && (curState & 0x8000))
+                    static auto oldState = IsKeyboardKeyPressed(VK_F3);
+                    auto curState = IsKeyboardKeyPressed(VK_F3);
+                    if (!oldState && curState)
                     {
                         CTimeCycle::Initialise();
                         CTimeCycle::InitialiseModifiers();

@@ -77,10 +77,10 @@ void __cdecl sub_9C2C80(float* a1)
         {
             *dword_12957B8 |= 2;
         }
-    
+
         // Convert audio time to seconds
         float audio_time_sec = audio_time_ms * 0.001f;
-    
+
         // Adjust offset for cutscene "e2_int"
         if (!_stricmp(pszCurrentCutsceneName, "e2_int"))
         {
@@ -121,10 +121,9 @@ void __cdecl sub_9C2C80(float* a1)
     }
 
     static auto cas = FusionFixSettings.GetRef("PREF_CUTSCENEAUDIOSYNC");
-    constexpr auto BUTTON_DPAD_UP = 8;
-    static auto oldState = GetAsyncKeyState(VK_UP);
-    auto curState = GetAsyncKeyState(VK_UP);
-    if (((oldState & 0x8000) == 0 && (curState & 0x8000)) || Natives::IsButtonJustPressed(0, BUTTON_DPAD_UP))
+    static auto oldState = IsKeyboardKeyPressed(VK_UP);
+    auto curState = IsKeyboardKeyPressed(VK_UP);
+    if (((oldState) == 0 && (curState)) || Natives::IsButtonJustPressed(0, BUTTON_DPAD_UP))
     {
         FusionFixSettings.Set("PREF_CUTSCENEAUDIOSYNC", cas->get() ? 0 : 1);
 
@@ -222,7 +221,7 @@ public:
 
                 bool Hookster(float a2)
                 {
-#if 1
+                    #if 1
                     incrementalTimeStep += *CTimer::fTimeStep;
 
                     CutsceneCamJitterWorkaround temp = *this;
@@ -254,9 +253,9 @@ public:
                         return result;
                     }
                     return result2;
-#else
+                    #else
                     return OriginalHookster(a2) != 0.0;
-#endif
+                    #endif
                 }
             };
 
