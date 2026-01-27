@@ -40,6 +40,18 @@ Toujours courir
 [Cover Centering]
 Centrage de la vue
 
+[PadLookSens]
+Sensibilité caméra
+
+[MO_SENS]
+Sensibilité visée
+
+[MO_MOUSE]
+Sensibilité caméra souris
+
+[MouseAimSens]
+Sensibilité visée souris
+
 [CenterDelayFoot]
 Délai de recentrage caméra à pied
 
@@ -198,6 +210,9 @@ Police Buffalo
 
 [FF_WARN7]
 ~r~AVERTISSEMENT : Utilisez la synchronisation audio des cinématiques sur ON en cas de désynchronisation audio, sur OFF pour la fluidité de l'animation. Peut être changer en cinématique via ~PAD_UP~.
+
+[USJ_FRST_KMB]
+Lorsque la caméra passe en mode saut unique, utilise ~INPUT_MOUSE_WHEEL_UP~ et ~INPUT_MOUSE_WHEEL_DOWN~ pour modifier la vitesse du ralenti.
 
 [DUMMY_l11]
 Option fictive.
