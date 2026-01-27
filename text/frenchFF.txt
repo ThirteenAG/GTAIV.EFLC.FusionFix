@@ -40,6 +40,18 @@ Toujours courir
 [Cover Centering]
 Centrage de la vue
 
+[PadLookSens]
+Sensibilité caméra
+
+[MO_SENS]
+Sensibilité visée
+
+[MO_MOUSE]
+Sensibilité caméra souris
+
+[MouseAimSens]
+Sensibilité visée souris
+
 [CenterDelayFoot]
 Délai de recentrage caméra à pied
 

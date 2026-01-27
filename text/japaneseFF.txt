@@ -40,6 +40,18 @@ Raw Input
 [Cover Centering]
 カバー時カメラのセンタリング
 
+[PadLookSens]
+ルックアラウンド感度
+
+[MO_SENS]
+照準感度
+
+[MO_MOUSE]
+マウスのルック感度
+
+[MouseAimSens]
+マウスの照準感度
+
 [CenterDelayFoot]
 徒歩時のカメラセンタリング遅延
 
