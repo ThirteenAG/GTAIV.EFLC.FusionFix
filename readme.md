@@ -207,7 +207,6 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed sometimes buying food animation plays after several seconds delay in fast-food shop
 - Fixed computer web mouse sensitivity decreasing on high framerates when using keyboard and mouse
 - Fixed computer web scrolling speeding up on high framerates when using controller
-- Fixed telescope movement and zoom speeding up on high framerates
 - Fixed gun car's weapon animations speeding up on high framerates
 
 #### Model
