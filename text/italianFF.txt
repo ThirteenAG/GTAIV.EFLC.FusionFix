@@ -40,6 +40,18 @@ Corri sempre
 [Cover Centering]
 Centra camera al riparo
 
+[PadLookSens]
+Sensibilità visuale
+
+[MO_SENS]
+Sensibilità mira
+
+[MO_MOUSE]
+Sensibilità della visuale con mouse
+
+[MouseAimSens]
+Sensibilità di mira con mouse
+
 [CenterDelayFoot]
 Ritardo centramento camera a piedi
 

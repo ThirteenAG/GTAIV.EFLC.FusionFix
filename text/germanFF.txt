@@ -40,6 +40,18 @@ Immer rennen
 [Cover Centering]
 Deckungszentrierung
 
+[PadLookSens]
+Umschau-Empfindlichkeit
+
+[MO_SENS]
+Zielempfindlichkeit
+
+[MO_MOUSE]
+Maus-Umschau-Empfindlichkeit
+
+[MouseAimSens]
+Maus-Zielempfindlichkeit
+
 [CenterDelayFoot]
 Zentrierungsverzögerung (zu Fuß)
 
