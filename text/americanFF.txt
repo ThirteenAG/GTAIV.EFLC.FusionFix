@@ -214,5 +214,8 @@ Police Buffalo
 [FF_WARN7]
 ~r~WARNING: Set Cutscene Audio Sync ON if you have audio desynchronization, OFF for animation smoothness. It can be toggled in a cutscene via ~PAD_UP~
 
+[USJ_FRST_KMB]
+During the stunt camera mode use ~INPUT_MOUSE_WHEEL_UP~ and ~INPUT_MOUSE_WHEEL_DOWN~ to control the slow motion speed.
+
 [DUMMY_l11]
 Dummy label.

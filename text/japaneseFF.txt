@@ -211,5 +211,8 @@ FPSリミッター
 [FF_WARN7]
 ~r~警告: 音ズレが発生する場合はカットシーンの音声同期をONに、アニメーションを滑らかにするにはOFFにしてください。カットシーン中に~PAD_UP~で切り替えられます。
 
+[USJ_FRST_KMB]
+スタントカメラモード中は~INPUT_MOUSE_WHEEL_UP~と~INPUT_MOUSE_WHEEL_DOWN~で スローモーションの速度を調節できる
+
 [DUMMY_l11]
 Dummy label.
