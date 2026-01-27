@@ -5,6 +5,30 @@ newoption {
     default     = "4.0",
 }
 
+function findGamePath()
+   -- Try Steam version first (InstallFolder points to base, GTAIV subfolder contains the exe)
+   local steamPath = os.getWindowsRegistry("HKLM:SOFTWARE\\WOW6432Node\\Rockstar Games\\Grand Theft Auto IV\\InstallFolder")
+   if steamPath then
+      -- Ensure trailing backslash
+      if not steamPath:match("\\$") then
+         steamPath = steamPath .. "\\"
+      end
+      return steamPath
+   end
+
+   -- Try Rockstar Launcher version
+   local rglPath = os.getWindowsRegistry("HKLM:SOFTWARE\\WOW6432Node\\Rockstar Games\\GTAIV\\InstallFolder")
+   if rglPath then
+      if not rglPath:match("\\$") then
+         rglPath = rglPath .. "\\"
+      end
+      return rglPath
+   end
+
+   -- Fallback - return nil and let user configure manually
+   return nil
+end
+
 workspace "GTAIV.EFLC.FusionFix"
    configurations { "Release", "Debug" }
    architecture "x86"
@@ -140,7 +164,14 @@ workspace "GTAIV.EFLC.FusionFix"
       links { "libmodupdater_release_win32.lib" }
 
 project "GTAIV.EFLC.FusionFix"
-   setpaths("H:/SteamLibrary/steamapps/common/Grand Theft Auto IV/GTAIV/", "GTAIV.exe", "plugins/")
+   local gamepath = findGamePath()
+   if gamepath then
+      print("Found GTA IV at: " .. gamepath)
+      setpaths(gamepath, "GTAIV.exe", "plugins/")
+   else
+      print("Warning: GTA IV install not found. Debug paths not configured.")
+      targetdir("bin")
+   end
 
 project "GTAIV.EFLC.FusionFixInstaller"
    kind "WindowedApp"
