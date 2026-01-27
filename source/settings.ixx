@@ -1236,9 +1236,9 @@ public:
             {
                 FusionFix::onGameProcessEvent() += []()
                 {
-                    static auto oldState = GetAsyncKeyState(VK_F3);
-                    auto curState = GetAsyncKeyState(VK_F3);
-                    if ((oldState & 0x8000) == 0 && (curState & 0x8000))
+                    static auto oldState = IsKeyboardKeyPressed(VK_F3);
+                    auto curState = IsKeyboardKeyPressed(VK_F3);
+                    if (!oldState && curState)
                     {
                         CTimeCycle::Initialise();
                         CTimeCycle::InitialiseModifiers();

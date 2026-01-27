@@ -5,6 +5,7 @@ module;
 export module ikeeponwalking;
 
 import common;
+import comvars;
 import settings;
 import natives;
 
@@ -37,8 +38,8 @@ public:
 
                         force_return_address(loc_A2A60F);
                     }
-                    static auto alwaysrunPref = FusionFixSettings.GetRef("PREF_ALWAYSRUN"); 
-                    static auto sprintPref = FusionFixSettings.GetRef("PREF_SPRINT"); 
+                    static auto alwaysrunPref = FusionFixSettings.GetRef("PREF_ALWAYSRUN");
+                    static auto sprintPref = FusionFixSettings.GetRef("PREF_SPRINT");
                     auto bShouldRun = alwaysrunPref->get();
                     auto bDontRunNow = bShouldRun && bDoNotRunInside && Natives::IsInteriorScene();
 
@@ -47,12 +48,12 @@ public:
                         if (bShouldRun)
                         {
                             static auto bRunState = true;
-                            static auto oldWalkKeyState = GetAsyncKeyState(nWalkKey);
-                            auto curWalkKeyState = GetAsyncKeyState(nWalkKey);
+                            static auto oldWalkKeyState = IsKeyboardKeyPressed(nWalkKey);
+                            auto curWalkKeyState = IsKeyboardKeyPressed(nWalkKey);
                             if (curWalkKeyState != oldWalkKeyState)
                                 bRunState = !bRunState;
                             oldWalkKeyState = curWalkKeyState;
-                    
+
                             if (bRunState)
                             {
                                 if (!bDontRunNow)
@@ -60,7 +61,7 @@ public:
                             }
                         }
                     }
-                    else if (bShouldRun && !GetAsyncKeyState(nWalkKey)) // hold
+                    else if (bShouldRun && !IsKeyboardKeyPressed(nWalkKey)) // hold
                     {
                         if (!bDontRunNow)
                             *(float*)(regs.esp + (flag ? 0x18 : 0x1C)) = 1.0f;
