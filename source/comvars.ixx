@@ -476,8 +476,8 @@ public:
 
 export namespace rage
 {
-#define POOL_FLAG_ISFREE 0x80
-#define POOL_FLAG_REFERENCEMASK 0x7f
+    #define POOL_FLAG_ISFREE 0x80
+    #define POOL_FLAG_REFERENCEMASK 0x7f
 
     class fwBasePool
     {
@@ -698,9 +698,10 @@ namespace CPed
     }
 
     export template <typename... Args, typename = std::enable_if_t<(std::is_convertible_v<Args, TaskID> && ...)>>
-    bool ComparePedTasks(uintptr_t pPed, Args... args)
+        bool ComparePedTasks(uintptr_t pPed, Args... args)
     {
-        auto condition = [](TaskID val, TaskID param) -> bool {
+        auto condition = [](TaskID val, TaskID param) -> bool
+        {
             if (std::to_underlying(param) >= 0)
                 return std::to_underlying(val) == std::to_underlying(param);
             else
@@ -755,8 +756,7 @@ export namespace rage
     public:
         Vector3() = default;
         Vector3(float x, float y, float z) : x(x), y(y), z(z)
-        {
-        }
+        {}
 
         Vector3 operator+(const Vector3& other) const
         {
@@ -877,11 +877,9 @@ export namespace rage
     public:
         Vector4() = default;
         Vector4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w)
-        {
-        }
+        {}
         Vector4(const Vector3& other) : x(other.x), y(other.y), z(other.z), w(0.0f)
-        {
-        }
+        {}
 
         operator Vector3() const
         {
@@ -1523,13 +1521,13 @@ export namespace rage
             if (std::string_view(name) == "PHONE_SCREEN" || std::string_view(name) == "PHOTO" || std::string_view(name) == "FullScreenCopy2")
             {
                 auto res = (int32_t)(std::ceil((float)*rage::grcDevice::ms_nActiveHeight / 720.0f) * 256.0f);
-                width  = res;
+                width = res;
                 height = res;
             }
             else if (std::string_view(name) == "WATER_SURFACE0_COLOUR" || std::string_view(name) == "WATER_SURFACE1_COLOUR")
             {
                 // Force water surface rendertarget resolution to always be 256x256. This matches the water tiling on the console version.
-                width  = 256;
+                width = 256;
                 height = 256;
             }
             else if (std::string_view(name) == "MIRROR_RT" || std::string_view(name) == "MIRROR_DT")
@@ -1589,10 +1587,10 @@ export namespace rage
 
     enum eLightType
     {
-        LT_POINT   = 0x0,
-        LT_DIR     = 0x1,
-        LT_SPOT    = 0x2,
-        LT_AMBOCC  = 0x3,
+        LT_POINT = 0x0,
+        LT_DIR = 0x1,
+        LT_SPOT = 0x2,
+        LT_AMBOCC = 0x3,
         LT_CLAMPED = 0x4,
     };
 
@@ -1823,8 +1821,7 @@ export namespace rage
             Info(scrValue* resultPtr, int32_t parameterCount, scrValue* params) :
                 ResultPtr(resultPtr), ParamCount(parameterCount), Params(params),
                 BufferCount(0)
-            {
-            }
+            {}
         };
 
         struct InfoWithBuf : Info
@@ -2063,7 +2060,8 @@ export namespace RageDirect3DDevice9
 export class CRenderPhaseDeferredLighting_SceneToGBuffer
 {
 public:
-    static FusionFix::Event<>& OnBuildRenderList() {
+    static FusionFix::Event<>& OnBuildRenderList()
+    {
         static FusionFix::Event<> BuildRenderListEvent;
         return BuildRenderListEvent;
     }
@@ -2079,11 +2077,13 @@ public:
 export class CRenderPhaseDeferredLighting_LightsToScreen
 {
 public:
-    static FusionFix::Event<>& OnBuildRenderList() {
+    static FusionFix::Event<>& OnBuildRenderList()
+    {
         static FusionFix::Event<> BuildRenderListEvent;
         return BuildRenderListEvent;
     }
-    static FusionFix::Event<rage::CLightSource*>& OnAfterCopyLight() {
+    static FusionFix::Event<rage::CLightSource*>& OnAfterCopyLight()
+    {
         static FusionFix::Event<rage::CLightSource*> AfterCopyLightEvent;
         return AfterCopyLightEvent;
     }
@@ -2108,7 +2108,8 @@ public:
 export class CRenderPhaseDrawScene
 {
 public:
-    static FusionFix::Event<>& OnBuildRenderList() {
+    static FusionFix::Event<>& OnBuildRenderList()
+    {
         static FusionFix::Event<> BuildRenderListEvent;
         return BuildRenderListEvent;
     }
@@ -2228,7 +2229,7 @@ export namespace phMaterialGta
         HELIFX_WATER,
     };
 
-#pragma pack(push, 8)
+    #pragma pack(push, 8)
     struct phMaterial : rage::datBase
     {
         int field_4;
@@ -2251,7 +2252,7 @@ export namespace phMaterialGta
         float m_fPedDensity;
         int m_dwFlags;                        ///< 1 = SeeThru, 2 = ShootThru, 4 = IsWet
     };
-#pragma pack(pop)
+    #pragma pack(pop)
 }
 
 export struct gtaRainEmitter
@@ -2371,9 +2372,9 @@ export namespace ShockingEvents
 export class ISeasonal
 {
 public:
-   virtual auto Init() -> void = 0;
-   virtual auto Enable() -> void = 0;
-   virtual auto Disable() -> void = 0;
+    virtual auto Init() -> void = 0;
+    virtual auto Enable() -> void = 0;
+    virtual auto Disable() -> void = 0;
 };
 
 export inline LONG getWindowWidth()
@@ -2410,6 +2411,119 @@ export namespace CGameConfigReader
 }
 
 export int* dwSniperInverted = nullptr;
+
+void* KeyboardBuffer = nullptr;
+bool (__fastcall* pIsKeyboardKeyPressed)(void* buffer, void* edx, int keycode, int type, const char* hint) = nullptr;
+
+export bool IsKeyboardKeyPressed(int vkeycode, int type = 1, const char* hint = nullptr)
+{
+    static auto VKToDIK = [](int vk) -> int
+    {
+        switch (vk)
+        {
+            case VK_LSHIFT: return 0x2A; // DIK_LSHIFT
+            case VK_RSHIFT: return 0x36; // DIK_RSHIFT
+            case VK_LCONTROL: return 0x1D; // DIK_LCONTROL
+            case VK_RCONTROL: return 0x9D; // DIK_RCONTROL
+            case VK_LMENU: return 0x38; // DIK_LALT
+            case VK_RMENU: return 0xB8; // DIK_RALT
+            case VK_RETURN: return 0x1C; // DIK_RETURN
+            case VK_SPACE: return 0x39; // DIK_SPACE
+            case VK_LEFT: return 0xCB; // DIK_LEFT
+            case VK_UP: return 0xC8; // DIK_UP
+            case VK_RIGHT: return 0xCD; // DIK_RIGHT
+            case VK_DOWN: return 0xD0; // DIK_DOWN
+            case VK_ESCAPE: return 0x01; // DIK_ESCAPE
+            case VK_TAB: return 0x0F; // DIK_TAB
+            case VK_BACK: return 0x0E; // DIK_BACK
+            case VK_DELETE: return 0xD3; // DIK_DELETE
+            case VK_HOME: return 0xC7; // DIK_HOME
+            case VK_END: return 0xCF; // DIK_END
+            case VK_PRIOR: return 0xC9; // DIK_PGUP
+            case VK_NEXT: return 0xD1; // DIK_PGDN
+            case VK_INSERT: return 0xD2; // DIK_INSERT
+            case VK_F1: return 0x3B; // DIK_F1
+            case VK_F2: return 0x3C; // DIK_F2
+            case VK_F3: return 0x3D; // DIK_F3
+            case VK_F4: return 0x3E; // DIK_F4
+            case VK_F5: return 0x3F; // DIK_F5
+            case VK_F6: return 0x40; // DIK_F6
+            case VK_F7: return 0x41; // DIK_F7
+            case VK_F8: return 0x42; // DIK_F8
+            case VK_F9: return 0x43; // DIK_F9
+            case VK_F10: return 0x44; // DIK_F10
+            case VK_F11: return 0x57; // DIK_F11
+            case VK_F12: return 0x58; // DIK_F12
+            case 'A': return 0x1E;
+            case 'B': return 0x30;
+            case 'C': return 0x2E;
+            case 'D': return 0x20;
+            case 'E': return 0x12;
+            case 'F': return 0x21;
+            case 'G': return 0x22;
+            case 'H': return 0x23;
+            case 'I': return 0x17;
+            case 'J': return 0x24;
+            case 'K': return 0x25;
+            case 'L': return 0x26;
+            case 'M': return 0x32;
+            case 'N': return 0x31;
+            case 'O': return 0x18;
+            case 'P': return 0x19;
+            case 'Q': return 0x10;
+            case 'R': return 0x13;
+            case 'S': return 0x1F;
+            case 'T': return 0x14;
+            case 'U': return 0x16;
+            case 'V': return 0x2F;
+            case 'W': return 0x11;
+            case 'X': return 0x2D;
+            case 'Y': return 0x15;
+            case 'Z': return 0x2C;
+            case '0': return 0x0B;
+            case '1': return 0x02;
+            case '2': return 0x03;
+            case '3': return 0x04;
+            case '4': return 0x05;
+            case '5': return 0x06;
+            case '6': return 0x07;
+            case '7': return 0x08;
+            case '8': return 0x09;
+            case '9': return 0x0A;
+            default: return -1;
+        }
+    };
+
+    int dik = VKToDIK(vkeycode);
+    if (dik != -1)
+    {
+        return pIsKeyboardKeyPressed(KeyboardBuffer, nullptr, dik, type, hint);
+    }
+    else
+    {
+        return (GetAsyncKeyState(vkeycode) & 0x8000) != 0;
+    }
+}
+
+export enum eControllerButtons
+{
+    BUTTON_BUMPER_LEFT = 4,
+    BUTTON_TRIGGER_LEFT = 5,
+    BUTTON_BUMPER_RIGHT = 6,
+    BUTTON_TRIGGER_RIGHT = 7,
+    BUTTON_DPAD_UP = 8,
+    BUTTON_DPAD_DOWN = 9,
+    BUTTON_DPAD_LEFT = 10,
+    BUTTON_DPAD_RIGHT = 11,
+    BUTTON_START = 12,
+    BUTTON_BACK = 13,
+    BUTTON_X = 14,
+    BUTTON_Y = 15,
+    BUTTON_A = 16,
+    BUTTON_B = 17,
+    BUTTON_STICK_LEFT = 18,
+    BUTTON_STICK_RIGHT = 19,
+};
 
 export namespace UAL
 {
@@ -2583,7 +2697,7 @@ public:
         rage::grcTextureFactoryPC::shCreateRT = safetyhook::create_inline(pattern.get_first(0), rage::grcTextureFactoryPC::CreateRT);
 
         pattern = find_pattern("53 55 56 57 8B F9 85 FF 74 3F", "53 55 8B 6C 24 0C 56 57 EB 06 8D 9B 00 00 00 00 0F B7 51 14 33 FF 83 EA 01 78 26 8B 59 10", "85 C9 53 55 56 57 74 40 8B 6C 24 14 8D 64 24 00");
-        CTxdStore::getEntryByKey = pattern.get_first<rage::grcTexturePC*(__fastcall)(int*, void*, unsigned int)>(0);
+        CTxdStore::getEntryByKey = pattern.get_first<rage::grcTexturePC * (__fastcall)(int*, void*, unsigned int)>(0);
 
         pattern = find_pattern("55 8B EC 83 E4 ? 83 EC ? F3 0F 10 05 ? ? ? ? 56 8B 75 ? 0F 57 DB F3 0F 10 0E 0F 2E CB 57 9F 8B F9 F3 0F 11 44 24 ? F6 C4 ? 7A ? 0F 28 CB F3 0F 11 44 24", "55 8B EC 83 E4 ? 0F 57 D2 83 EC ? 56 57");
         Matrix34::fromEulersXYZ = pattern.get_first<void(__fastcall)(float*, void*, float*)>(0);
@@ -2706,5 +2820,9 @@ public:
 
         pattern = find_pattern("E8 ? ? ? ? E9 ? ? ? ? 80 BC 3B", "E8 ? ? ? ? D9 45 ? F3 0F 10 05 ? ? ? ? F3 0F 2A 4D");
         rage::scrThread::shGetActiveThread = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first()).as_int(), rage::scrThread::GetActiveThreadHook);
+
+        pattern = find_pattern("B9 ? ? ? ? E8 ? ? ? ? 84 C0 74 ? C6 86", "B9 ? ? ? ? E8 ? ? ? ? 84 C0 74 ? C6 86");
+        KeyboardBuffer = *pattern.get_first<void**>(1);
+        pIsKeyboardKeyPressed = (decltype(pIsKeyboardKeyPressed))injector::GetBranchDestination(pattern.get_first(5)).as_int();
     }
 } Common;

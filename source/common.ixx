@@ -53,47 +53,58 @@ public:
     };
 
 public:
-    static Event<>& onInitEvent() {
+    static Event<>& onInitEvent()
+    {
         static Event<> InitEvent;
         return InitEvent;
     }
-    static Event<>& onInitEventAsync() {
+    static Event<>& onInitEventAsync()
+    {
         static Event<> InitEventAsync;
         return InitEventAsync;
     }
-    static Event<>& onShutdownEvent() {
+    static Event<>& onShutdownEvent()
+    {
         static Event<> ShutdownEvent;
         return ShutdownEvent;
     }
-    static Event<>& onGameInitEvent() {
+    static Event<>& onGameInitEvent()
+    {
         static Event<> GameInitEvent;
         return GameInitEvent;
     }
-    static Event<>& onGameProcessEvent() {
+    static Event<>& onGameProcessEvent()
+    {
         static Event<> GameProcessEvent;
         return GameProcessEvent;
     }
-    static Event<>& onMenuDrawingEvent() {
+    static Event<>& onMenuDrawingEvent()
+    {
         static Event<> MenuDrawingEvent;
         return MenuDrawingEvent;
     }
-    static Event<>& onMenuEnterEvent() {
+    static Event<>& onMenuEnterEvent()
+    {
         static Event<> MenuEnterEvent;
         return MenuEnterEvent;
     }
-    static Event<>& onMenuExitEvent() {
+    static Event<>& onMenuExitEvent()
+    {
         static Event<> MenuExitEvent;
         return MenuExitEvent;
     }
-    static Event<bool>& onActivateApp() {
+    static Event<bool>& onActivateApp()
+    {
         static Event<bool> ActivateApp;
         return ActivateApp;
     }
-    static Event<>& onBeforeReset() {
+    static Event<>& onBeforeReset()
+    {
         static Event<> BeforeReset;
         return BeforeReset;
     }
-    static Event<>& onEndScene() {
+    static Event<>& onEndScene()
+    {
         static Event<> EndScene;
         return EndScene;
     }
@@ -115,95 +126,119 @@ public:
     //    return AfterPostFX;
     //}
 
-    struct D3D9 {
-        [[deprecated]] static Event<LPDIRECT3D9&, UINT&, D3DDEVTYPE&, HWND&, DWORD&, D3DPRESENT_PARAMETERS*&, IDirect3DDevice9**&>& onBeforeCreateDevice() {
+    struct D3D9
+    {
+        [[deprecated]] static Event<LPDIRECT3D9&, UINT&, D3DDEVTYPE&, HWND&, DWORD&, D3DPRESENT_PARAMETERS*&, IDirect3DDevice9**&>& onBeforeCreateDevice()
+        {
             static Event<LPDIRECT3D9&, UINT&, D3DDEVTYPE&, HWND&, DWORD&, D3DPRESENT_PARAMETERS*&, IDirect3DDevice9**&> BeforeCreateDevice;
             return BeforeCreateDevice;
         }
-        [[deprecated]] static Event<LPDIRECT3D9&, UINT&, D3DDEVTYPE&, HWND&, DWORD&, D3DPRESENT_PARAMETERS*&, IDirect3DDevice9**&>& onAfterCreateDevice() {
+        [[deprecated]] static Event<LPDIRECT3D9&, UINT&, D3DDEVTYPE&, HWND&, DWORD&, D3DPRESENT_PARAMETERS*&, IDirect3DDevice9**&>& onAfterCreateDevice()
+        {
             static Event<LPDIRECT3D9&, UINT&, D3DDEVTYPE&, HWND&, DWORD&, D3DPRESENT_PARAMETERS*&, IDirect3DDevice9**&> AfterCreateDevice;
             return AfterCreateDevice;
         }
-        [[deprecated]] static Event<LPDIRECT3DDEVICE9&>& onBeginScene() {
+        [[deprecated]] static Event<LPDIRECT3DDEVICE9&>& onBeginScene()
+        {
             static Event<LPDIRECT3DDEVICE9&> BeginScene;
             return BeginScene;
         }
-        [[deprecated]] static Event<LPDIRECT3DDEVICE9&>& onEndScene() {
+        [[deprecated]] static Event<LPDIRECT3DDEVICE9&>& onEndScene()
+        {
             static Event<LPDIRECT3DDEVICE9&> EndScene;
             return EndScene;
         }
-        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, D3DPRESENT_PARAMETERS*&>& onBeforeReset() {
+        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, D3DPRESENT_PARAMETERS*&>& onBeforeReset()
+        {
             static Event<LPDIRECT3DDEVICE9&, D3DPRESENT_PARAMETERS*&> BeforeReset;
             return BeforeReset;
         }
-        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, D3DPRESENT_PARAMETERS*&>& onAfterReset() {
+        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, D3DPRESENT_PARAMETERS*&>& onAfterReset()
+        {
             static Event<LPDIRECT3DDEVICE9&, D3DPRESENT_PARAMETERS*&> AfterReset;
             return AfterReset;
         }
-        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, IDirect3DPixelShader9*&>& onBeforeSetPixelShader() {
+        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, IDirect3DPixelShader9*&>& onBeforeSetPixelShader()
+        {
             static Event<LPDIRECT3DDEVICE9&, IDirect3DPixelShader9*&> BeforeSetPixelShader;
             return BeforeSetPixelShader;
         }
-        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, IDirect3DPixelShader9*&>& onAfterSetPixelShader() {
+        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, IDirect3DPixelShader9*&>& onAfterSetPixelShader()
+        {
             static Event<LPDIRECT3DDEVICE9&, IDirect3DPixelShader9*&> AfterSetPixelShader;
             return AfterSetPixelShader;
         }
-        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, IDirect3DVertexShader9*&>& onBeforeSetVertexShader() {
+        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, IDirect3DVertexShader9*&>& onBeforeSetVertexShader()
+        {
             static Event<LPDIRECT3DDEVICE9&, IDirect3DVertexShader9*&> BeforeSetVertexShader;
             return BeforeSetVertexShader;
         }
-        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, IDirect3DVertexShader9*&>& onAfterSetVertexShader() {
+        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, IDirect3DVertexShader9*&>& onAfterSetVertexShader()
+        {
             static Event<LPDIRECT3DDEVICE9&, IDirect3DVertexShader9*&> AfterSetVertexShader;
             return AfterSetVertexShader;
         }
-        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, UINT&, float*&, UINT&>& onSetVertexShaderConstantF() {
+        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, UINT&, float*&, UINT&>& onSetVertexShaderConstantF()
+        {
             static Event<LPDIRECT3DDEVICE9&, UINT&, float*&, UINT&> SetVertexShaderConstantF;
             return SetVertexShaderConstantF;
         }
-        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, UINT&, float*&, UINT&>& onSetPixelShaderConstantF() {
+        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, UINT&, float*&, UINT&>& onSetPixelShaderConstantF()
+        {
             static Event<LPDIRECT3DDEVICE9&, UINT&, float*&, UINT&> SetPixelShaderConstantF;
             return SetPixelShaderConstantF;
         }
-        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DPixelShader9**&>& onBeforeCreatePixelShader() {
+        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DPixelShader9**&>& onBeforeCreatePixelShader()
+        {
             static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DPixelShader9**&> BeforeCreatePixelShader;
             return BeforeCreatePixelShader;
         }
-        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DPixelShader9**&>& onAfterCreatePixelShader() {
+        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DPixelShader9**&>& onAfterCreatePixelShader()
+        {
             static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DPixelShader9**&> AfterCreatePixelShader;
             return AfterCreatePixelShader;
         }
-        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DVertexShader9**&>& onBeforeCreateVertexShader() {
+        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DVertexShader9**&>& onBeforeCreateVertexShader()
+        {
             static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DVertexShader9**&> BeforeCreateVertexShader;
             return BeforeCreateVertexShader;
         }
-        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DVertexShader9**&>& onAfterCreateVertexShader() {
+        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DVertexShader9**&>& onAfterCreateVertexShader()
+        {
             static Event<LPDIRECT3DDEVICE9&, DWORD*&, IDirect3DVertexShader9**&> AfterCreateVertexShader;
             return AfterCreateVertexShader;
         }
-        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, UINT&, UINT&, UINT&, DWORD&, D3DFORMAT&, D3DPOOL&, IDirect3DTexture9**&, HANDLE*&>& onBeforeCreateTexture() {
+        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, UINT&, UINT&, UINT&, DWORD&, D3DFORMAT&, D3DPOOL&, IDirect3DTexture9**&, HANDLE*&>& onBeforeCreateTexture()
+        {
             static Event<LPDIRECT3DDEVICE9&, UINT&, UINT&, UINT&, DWORD&, D3DFORMAT&, D3DPOOL&, IDirect3DTexture9**&, HANDLE*&> BeforeCreateTexture;
             return BeforeCreateTexture;
         }
-        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, UINT&, UINT&, UINT&, DWORD&, D3DFORMAT&, D3DPOOL&, IDirect3DTexture9**&, HANDLE*&>& onAfterCreateTexture() {
+        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, UINT&, UINT&, UINT&, DWORD&, D3DFORMAT&, D3DPOOL&, IDirect3DTexture9**&, HANDLE*&>& onAfterCreateTexture()
+        {
             static Event<LPDIRECT3DDEVICE9&, UINT&, UINT&, UINT&, DWORD&, D3DFORMAT&, D3DPOOL&, IDirect3DTexture9**&, HANDLE*&> AfterCreateTexture;
             return AfterCreateTexture;
         }
-        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, DWORD&, IDirect3DBaseTexture9*&>& onSetTexture() {
+        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, DWORD&, IDirect3DBaseTexture9*&>& onSetTexture()
+        {
             static Event<LPDIRECT3DDEVICE9&, DWORD&, IDirect3DBaseTexture9*&> SetTexture;
             return SetTexture;
         }
-        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, D3DPRIMITIVETYPE&, UINT&, UINT&>& onBeforeDrawPrimitive() {
+        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, D3DPRIMITIVETYPE&, UINT&, UINT&>& onBeforeDrawPrimitive()
+        {
             static Event<LPDIRECT3DDEVICE9&, D3DPRIMITIVETYPE&, UINT&, UINT&> BeforeDrawPrimitive;
             return BeforeDrawPrimitive;
         }
-        [[deprecated]] static bool& isInsteadDrawPrimitive() {
+        [[deprecated]] static bool& isInsteadDrawPrimitive()
+        {
             static bool InsteadDrawPrimitive = false;
             return InsteadDrawPrimitive;
         }
-        [[deprecated]] static void setInsteadDrawPrimitive(bool set) {
+        [[deprecated]] static void setInsteadDrawPrimitive(bool set)
+        {
             isInsteadDrawPrimitive() = set;
         }
-        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, D3DPRIMITIVETYPE&, UINT&, UINT&>& onAfterDrawPrimitive() {
+        [[deprecated]] static Event<LPDIRECT3DDEVICE9&, D3DPRIMITIVETYPE&, UINT&, UINT&>& onAfterDrawPrimitive()
+        {
             static Event<LPDIRECT3DDEVICE9&, D3DPRIMITIVETYPE&, UINT&, UINT&> AfterDrawPrimitive;
             return AfterDrawPrimitive;
         }
@@ -342,8 +377,7 @@ export std::filesystem::path lexicallyRelativeCaseIns(const std::filesystem::pat
         input_iterator_range(const std::filesystem::path::const_iterator& first, const std::filesystem::path::const_iterator& last)
             : _first(first)
             , _last(last)
-        {
-        }
+        {}
         std::filesystem::path::const_iterator begin() const
         {
             return _first;
@@ -420,10 +454,13 @@ export inline bool IsModuleUAL(HMODULE mod)
     return false;
 }
 
-export bool IsUALPresent() {
-    for (const auto& entry : std::stacktrace::current()) {
+export bool IsUALPresent()
+{
+    for (const auto& entry : std::stacktrace::current())
+    {
         HMODULE hModule = NULL;
-        if (GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCSTR)entry.native_handle(), &hModule)) {
+        if (GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCSTR)entry.native_handle(), &hModule))
+        {
             if (IsModuleUAL(hModule))
                 return true;
         }
@@ -474,12 +511,12 @@ public:
             if (ptr == nullptr)
                 ptr = (uint32_t*)((DWORD)mh + ntHeader->OptionalHeader.BaseOfCode + ntHeader->OptionalHeader.SizeOfCode - offset);
             std::thread([](std::function<void()>&& fn, uint32_t* ptr, uint32_t val)
-                {
-                    while (*ptr == val)
-                        std::this_thread::yield();
+            {
+                while (*ptr == val)
+                    std::this_thread::yield();
 
-                    fn();
-                }, fn, ptr, *ptr).detach();
+                fn();
+            }, fn, ptr, *ptr).detach();
         }
     }
 
@@ -828,9 +865,11 @@ std::string pattern_str(T t, Rest... rest)
     return std::string((std::is_same<T, char>::value ? format("%c ", t) : format("%02X ", t)) + pattern_str(rest...));
 }
 
-export std::string pattern_str(std::string_view str) {
+export std::string pattern_str(std::string_view str)
+{
     std::stringstream str_stream;
-    for (const auto& item : str) {
+    for (const auto& item : str)
+    {
         str_stream << std::uppercase << std::hex << std::setw(2) << std::setfill('0') << +uint8_t(item) << " ";
     }
     return str_stream.str();
@@ -849,6 +888,7 @@ public:
         PIMAGE_IMPORT_DESCRIPTOR pImports = reinterpret_cast<PIMAGE_IMPORT_DESCRIPTOR>(instance + ntHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress);
         DWORD dwProtect[2];
 
+        // Regular imports
         for (; pImports->Name != 0; pImports++)
         {
             if (_stricmp(reinterpret_cast<const char*>(instance + pImports->Name), dll_name.data()) == 0)
@@ -861,12 +901,13 @@ public:
                     {
                         auto pAddress = reinterpret_cast<void**>(instance + pImports->FirstThunk) + j;
                         if (!pAddress) continue;
-                        VirtualProtect(pAddress, sizeof(pAddress), PAGE_EXECUTE_READWRITE, &dwProtect[0]);
+                        VirtualProtect(pAddress, sizeof(void*), PAGE_EXECUTE_READWRITE, &dwProtect[0]);
                         ([&]
                         {
                             auto name = std::string_view(std::get<0>(inputs));
                             auto num = std::string("-1");
-                            if (name.contains("@")) {
+                            if (name.contains("@"))
+                            {
                                 num = name.substr(name.find_last_of("@") + 1);
                                 name = name.substr(0, name.find_last_of("@"));
                             }
@@ -881,8 +922,7 @@ public:
                                         originalPtrs[std::get<0>(inputs)].wait();
                                         *pAddress = std::get<1>(inputs);
                                     }
-                                }
-                                catch (...) {}
+                                } catch (...) {}
                             }
                             else if ((*pAddress && *pAddress == (void*)GetProcAddress(GetModuleHandleA(dll_name.data()), name.data())) ||
                             (strcmp(reinterpret_cast<PIMAGE_IMPORT_BY_NAME>(instance + pThunk[j].u1.AddressOfData)->Name, name.data()) == 0))
@@ -892,7 +932,7 @@ public:
                                 *pAddress = std::get<1>(inputs);
                             }
                         } (), ...);
-                        VirtualProtect(pAddress, sizeof(pAddress), dwProtect[0], &dwProtect[1]);
+                        VirtualProtect(pAddress, sizeof(void*), dwProtect[0], &dwProtect[1]);
                     }
                 }
                 else
@@ -901,8 +941,8 @@ public:
 
                     for (ptrdiff_t j = 0; pFunctions[j] != nullptr; j++)
                     {
-                        auto pAddress = reinterpret_cast<void**>(pFunctions[j]);
-                        VirtualProtect(pAddress, sizeof(pAddress), PAGE_EXECUTE_READWRITE, &dwProtect[0]);
+                        auto pAddress = &pFunctions[j];
+                        VirtualProtect(pAddress, sizeof(void*), PAGE_EXECUTE_READWRITE, &dwProtect[0]);
                         ([&]
                         {
                             if (*pAddress && *pAddress == (void*)GetProcAddress(GetModuleHandleA(dll_name.data()), std::get<0>(inputs)))
@@ -912,101 +952,96 @@ public:
                                 *pAddress = std::get<1>(inputs);
                             }
                         } (), ...);
-                        VirtualProtect(pAddress, sizeof(pAddress), dwProtect[0], &dwProtect[1]);
+                        VirtualProtect(pAddress, sizeof(void*), dwProtect[0], &dwProtect[1]);
                     }
                 }
             }
         }
 
-        if (originalPtrs.empty())
+        // Delay imports
+        PIMAGE_DELAYLOAD_DESCRIPTOR pDelayed = reinterpret_cast<PIMAGE_DELAYLOAD_DESCRIPTOR>(instance + ntHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT].VirtualAddress);
+        if (pDelayed && ntHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT].VirtualAddress != 0 && ntHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT].Size != 0)
         {
-            PIMAGE_DELAYLOAD_DESCRIPTOR pDelayed = reinterpret_cast<PIMAGE_DELAYLOAD_DESCRIPTOR>(instance + ntHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT].VirtualAddress);
-            if (pDelayed)
+            for (; pDelayed->DllNameRVA != 0; pDelayed++)
             {
-                for (; pDelayed->DllNameRVA != 0; pDelayed++)
+                if (_stricmp(reinterpret_cast<const char*>(instance + pDelayed->DllNameRVA), dll_name.data()) == 0)
                 {
-                    if (_stricmp(reinterpret_cast<const char*>(instance + pDelayed->DllNameRVA), dll_name.data()) == 0)
+                    if (pDelayed->ImportAddressTableRVA != 0)
                     {
-                        if (pDelayed->ImportAddressTableRVA != 0)
+                        const PIMAGE_THUNK_DATA pThunk = reinterpret_cast<PIMAGE_THUNK_DATA>(instance + pDelayed->ImportNameTableRVA);
+                        const PIMAGE_THUNK_DATA pFThunk = reinterpret_cast<PIMAGE_THUNK_DATA>(instance + pDelayed->ImportAddressTableRVA);
+
+                        for (ptrdiff_t j = 0; pThunk[j].u1.AddressOfData != 0; j++)
                         {
-                            const PIMAGE_THUNK_DATA pThunk = reinterpret_cast<PIMAGE_THUNK_DATA>(instance + pDelayed->ImportNameTableRVA);
-                            const PIMAGE_THUNK_DATA pFThunk = reinterpret_cast<PIMAGE_THUNK_DATA>(instance + pDelayed->ImportAddressTableRVA);
-
-                            for (ptrdiff_t j = 0; pThunk[j].u1.AddressOfData != 0; j++)
+                            auto pAddress = reinterpret_cast<void**>(&pFThunk[j].u1.Function);
+                            if (!pAddress) continue;
+                            VirtualProtect(pAddress, sizeof(void*), PAGE_EXECUTE_READWRITE, &dwProtect[0]);
+                            ([&]
                             {
-                                auto pAddress = reinterpret_cast<void**>(pFThunk[j].u1.Function);
-                                if (!pAddress) continue;
-                                if (pThunk[j].u1.Ordinal & IMAGE_ORDINAL_FLAG)
-                                    pAddress = *reinterpret_cast<void***>(pFThunk[j].u1.Function + 1); // mov     eax, offset *
-
-                                VirtualProtect(pAddress, sizeof(pAddress), PAGE_EXECUTE_READWRITE, &dwProtect[0]);
-                                ([&]
+                                auto name = std::string_view(std::get<0>(inputs));
+                                auto num = std::string("-1");
+                                if (name.contains("@"))
                                 {
-                                    auto name = std::string_view(std::get<0>(inputs));
-                                    auto num = std::string("-1");
-                                    if (name.contains("@")) {
-                                        num = name.substr(name.find_last_of("@") + 1);
-                                        name = name.substr(0, name.find_last_of("@"));
-                                    }
+                                    num = name.substr(name.find_last_of("@") + 1);
+                                    name = name.substr(0, name.find_last_of("@"));
+                                }
 
-                                    if (pThunk[j].u1.Ordinal & IMAGE_ORDINAL_FLAG)
+                                if (pThunk[j].u1.Ordinal & IMAGE_ORDINAL_FLAG)
+                                {
+                                    try
                                     {
-                                        try
+                                        if (IMAGE_ORDINAL(pThunk[j].u1.Ordinal) == std::stoi(num.data()))
                                         {
-                                            if (IMAGE_ORDINAL(pThunk[j].u1.Ordinal) == std::stoi(num.data()))
+                                            originalPtrs[std::get<0>(inputs)] = std::async(std::launch::async,
+                                            [](void** pAddress, void* value, PVOID instance) -> void*
                                             {
-                                                originalPtrs[std::get<0>(inputs)] = std::async(std::launch::async,
-                                                [](void** pAddress, void* value, PVOID instance) -> void*
+                                                DWORD dwProtect[2];
+                                                VirtualProtect(pAddress, sizeof(void*), PAGE_EXECUTE_READWRITE, &dwProtect[0]);
+                                                MEMORY_BASIC_INFORMATION mbi;
+                                                mbi.AllocationBase = instance;
+                                                do
                                                 {
-                                                    DWORD dwProtect[2];
-                                                    VirtualProtect(pAddress, sizeof(pAddress), PAGE_EXECUTE_READWRITE, &dwProtect[0]);
-                                                    MEMORY_BASIC_INFORMATION mbi;
-                                                    mbi.AllocationBase = instance;
-                                                    do
-                                                    {
-                                                        VirtualQuery(*pAddress, &mbi, sizeof(MEMORY_BASIC_INFORMATION));
-                                                        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                                                    } while (mbi.AllocationBase == instance);
-                                                    auto r = *pAddress;
-                                                    *pAddress = value;
-                                                    VirtualProtect(pAddress, sizeof(pAddress), dwProtect[0], &dwProtect[1]);
-                                                    return r;
-                                                }, pAddress, std::get<1>(inputs), (PVOID)instance);
-                                            }
+                                                    VirtualQuery(*pAddress, &mbi, sizeof(MEMORY_BASIC_INFORMATION));
+                                                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                                                } while (mbi.AllocationBase == instance);
+                                                auto r = *pAddress;
+                                                *pAddress = value;
+                                                VirtualProtect(pAddress, sizeof(void*), dwProtect[0], &dwProtect[1]);
+                                                return r;
+                                            }, pAddress, std::get<1>(inputs), (PVOID)instance);
                                         }
-                                        catch (...) {}
-                                    }
-                                    else if ((*pAddress && *pAddress == (void*)GetProcAddress(GetModuleHandleA(dll_name.data()), name.data())) ||
-                                    (strcmp(reinterpret_cast<PIMAGE_IMPORT_BY_NAME>(instance + pThunk[j].u1.AddressOfData)->Name, name.data()) == 0))
+                                    } catch (...) {}
+                                }
+                                else if (strcmp(reinterpret_cast<PIMAGE_IMPORT_BY_NAME>(instance + pThunk[j].u1.AddressOfData)->Name, name.data()) == 0)
+                                {
+                                    originalPtrs[std::get<0>(inputs)] = std::async(std::launch::async,
+                                    [](void** pAddress, void* value, PVOID instance) -> void*
                                     {
-                                        originalPtrs[std::get<0>(inputs)] = std::async(std::launch::async,
-                                        [](void** pAddress, void* value, PVOID instance) -> void*
+                                        DWORD dwProtect[2];
+                                        VirtualProtect(pAddress, sizeof(void*), PAGE_EXECUTE_READWRITE, &dwProtect[0]);
+                                        MEMORY_BASIC_INFORMATION mbi;
+                                        mbi.AllocationBase = instance;
+                                        do
                                         {
-                                            DWORD dwProtect[2];
-                                            VirtualProtect(pAddress, sizeof(pAddress), PAGE_EXECUTE_READWRITE, &dwProtect[0]);
-                                            MEMORY_BASIC_INFORMATION mbi;
-                                            mbi.AllocationBase = instance;
-                                            do
-                                            {
-                                                VirtualQuery(*pAddress, &mbi, sizeof(MEMORY_BASIC_INFORMATION));
-                                                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                                            } while (mbi.AllocationBase == instance);
-                                            auto r = *pAddress;
-                                            *pAddress = value;
-                                            VirtualProtect(pAddress, sizeof(pAddress), dwProtect[0], &dwProtect[1]);
-                                            return r;
-                                        }, pAddress, std::get<1>(inputs), (PVOID)instance);
-                                    }
-                                } (), ...);
-                                VirtualProtect(pAddress, sizeof(pAddress), dwProtect[0], &dwProtect[1]);
-                            }
+                                            VirtualQuery(*pAddress, &mbi, sizeof(MEMORY_BASIC_INFORMATION));
+                                            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                                        } while (mbi.AllocationBase == instance);
+                                        auto r = *pAddress;
+                                        *pAddress = value;
+                                        VirtualProtect(pAddress, sizeof(void*), dwProtect[0], &dwProtect[1]);
+                                        return r;
+                                    }, pAddress, std::get<1>(inputs), (PVOID)instance);
+                                }
+                            } (), ...);
+                            VirtualProtect(pAddress, sizeof(void*), dwProtect[0], &dwProtect[1]);
                         }
                     }
                 }
             }
         }
 
-        if (originalPtrs.empty()) // e.g. re5dx9.exe steam
+        // Fallback section scan (e.g. re5dx9.exe steam)
+        if (originalPtrs.empty())
         {
             static auto getSection = [](const PIMAGE_NT_HEADERS nt_headers, unsigned section) -> PIMAGE_SECTION_HEADER
             {
@@ -1023,13 +1058,14 @@ public:
 
                 for (ptrdiff_t j = 0; j < 300; j++)
                 {
-                    auto pAddress = reinterpret_cast<void**>(&pFunctions[j]);
-                    VirtualProtect(pAddress, sizeof(pAddress), PAGE_EXECUTE_READWRITE, &dwProtect[0]);
+                    auto pAddress = &pFunctions[j];
+                    VirtualProtect(pAddress, sizeof(void*), PAGE_EXECUTE_READWRITE, &dwProtect[0]);
                     ([&]
                     {
                         auto name = std::string_view(std::get<0>(inputs));
                         auto num = std::string("-1");
-                        if (name.contains("@")) {
+                        if (name.contains("@"))
+                        {
                             num = name.substr(name.find_last_of("@") + 1);
                             name = name.substr(0, name.find_last_of("@"));
                         }
@@ -1041,7 +1077,7 @@ public:
                             *pAddress = std::get<1>(inputs);
                         }
                     } (), ...);
-                    VirtualProtect(pAddress, sizeof(pAddress), dwProtect[0], &dwProtect[1]);
+                    VirtualProtect(pAddress, sizeof(void*), dwProtect[0], &dwProtect[1]);
                 }
 
                 if (!originalPtrs.empty())

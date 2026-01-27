@@ -40,6 +40,18 @@ Corri sempre
 [Cover Centering]
 Centra camera al riparo
 
+[PadLookSens]
+Sensibilità visuale
+
+[MO_SENS]
+Sensibilità mira
+
+[MO_MOUSE]
+Sensibilità della visuale con mouse
+
+[MouseAimSens]
+Sensibilità di mira con mouse
+
 [CenterDelayFoot]
 Ritardo centramento camera a piedi
 
@@ -201,6 +213,9 @@ Buffalo polizia
 
 [FF_WARN7]
 ~r~ATTENZIONE: Attiva la sincronizzazione audio cinematiche se riscontri desincronizzazione audio, disattivala per la fluidità delle animazioni. Può essere attivata/disattivata in una cinematica tramite ~PAD_UP~.
+
+[USJ_FRST_KMB]
+Durante la visualizzazione delle acrobazie usa ~INPUT_MOUSE_WHEEL_UP~ e ~INPUT_MOUSE_WHEEL_DOWN~ per controllare lo slow motion.
 
 [DUMMY_l11]
 Dummy label.
