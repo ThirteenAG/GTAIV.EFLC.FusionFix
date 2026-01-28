@@ -901,10 +901,10 @@ public:
             }
         };
 
-        FusionFix::onInitEvent() += []()
-        {
-            // Script
-            hbNATIVE_GET_MOUSE_INPUT.fun = NativeOverride::Register(Natives::NativeHashes::GET_MOUSE_INPUT, NATIVE_GET_MOUSE_INPUT, "E8 ? ? ? ? 83 C4 08 C3", 30);
-        };
+        //FusionFix::onInitEvent() += []()
+        //{
+        //    // Script
+        //    hbNATIVE_GET_MOUSE_INPUT.fun = NativeOverride::Register(Natives::NativeHashes::GET_MOUSE_INPUT, NATIVE_GET_MOUSE_INPUT, "E8 ? ? ? ? 83 C4 08 C3", 30);
+        //};
     }
 } RawInput;
