@@ -181,10 +181,10 @@ uint64_t GetProcessPreferredGPUMemory()
     return memory;
 }
 
-SafetyHookInline shgetAvailableVidMem = {};
-int64_t getAvailableVidMem()
+SafetyHookInline shGetAvailableVidMem = {};
+int64_t GetAvailableVidMem()
 {
-    auto ret = shgetAvailableVidMem.call<int64_t>();
+    auto ret = shGetAvailableVidMem.call<int64_t>();
     if (ret < static_cast<int64_t>(_2048mb))
     {
         static auto vram = GetProcessPreferredGPUMemory();
@@ -248,6 +248,7 @@ static unsigned int __fastcall CalculateStreamingMemoryBudget(void* _this, void*
 }
 
 bool bEnableHighDetailReflections = false;
+bool bRemoveBBoxCulling = false;
 injector::hook_back<void(__cdecl*)(int, int16_t, int)> hbsub_B1DEE0;
 void __cdecl sub_B1DEE0(int a1, int16_t a2, int a3)
 {
@@ -265,16 +266,19 @@ class VRam
 public:
     VRam()
     {
-        FusionFix::onInitEvent() += []() {
+        FusionFix::onInitEvent() += []()
+        {
             CIniReader iniReader("");
+
+            // [EXPERIMENTAL]
             bExtraStreamingMemory = iniReader.ReadInteger("EXPERIMENTAL", "ExtraStreamingMemory", 0) != 0;
             bEnableHighDetailReflections = iniReader.ReadInteger("EXPERIMENTAL", "EnableHighDetailReflections", 0) != 0;
-            bool bRemoveBBoxCulling = iniReader.ReadInteger("EXPERIMENTAL", "RemoveBBoxCulling", 0) != 0;
+            bRemoveBBoxCulling = iniReader.ReadInteger("EXPERIMENTAL", "RemoveBBoxCulling", 0) != 0;
 
             auto pattern = find_pattern("8B 0D ? ? ? ? 83 EC ? 33 C0", "A1 ? ? ? ? 8B 08 83 EC ? 56 57");
             if (!pattern.empty())
             {
-                shgetAvailableVidMem = safetyhook::create_inline(pattern.get_first(), getAvailableVidMem);
+                shGetAvailableVidMem = safetyhook::create_inline(pattern.get_first(0), GetAvailableVidMem);
             }
 
             pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? A1 ? ? ? ? 85 C0 74");
@@ -297,7 +301,9 @@ public:
 
                         // Original code for reference
                         if (*g_cmdarg_nomemrestrict)
+                        {
                             return_to(loc_427FC9);
+                        }
                     }
                 }; injector::MakeInline<NoMemRestrictHook>(pattern.get_first(0), pattern.get_first(13));
             }
@@ -305,14 +311,18 @@ public:
             {
                 pattern = find_pattern("75 7E A1 ? ? ? ? 85 C0");
                 if (!pattern.empty())
-                    injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz -> jmp
+                {
+                    injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz --> jmp
+                }
             }
 
             if (bExtraStreamingMemory)
             {
-                pattern = find_pattern("55 8B EC 83 E4 ? F3 0F 10 55 ? 83 EC");
+                pattern = find_pattern("55 8B EC 83 E4 ? F3 0F 10 55 ? 83 EC", "55 8B EC 83 E4 ? D9 45 ? 83 EC ? 53 56 57 51");
                 if (!pattern.empty())
+                {
                     streamingBudgetHook = safetyhook::create_inline(pattern.get_first(0), CalculateStreamingMemoryBudget);
+                }
             }
 
             if (bEnableHighDetailReflections)
@@ -326,7 +336,9 @@ public:
                     {
                         auto pattern = hook::pattern("0F 85 ? ? ? ? E8 ? ? ? ? 80 3D ? ? ? ? ? 8B 75");
                         if (!pattern.empty())
+                        {
                             injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true);
+                        }
                     }
                 }
             }

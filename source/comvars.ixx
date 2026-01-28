@@ -1966,6 +1966,7 @@ export namespace CTimer
     uint8_t* m_UserPause = nullptr;
     uint8_t* m_CodePause = nullptr;
     int32_t* m_snTimeInMilliseconds = nullptr;
+    int32_t* m_snTimeInMillisecondsPauseMode = nullptr;
 }
 
 export namespace CTimeCycle
@@ -2563,6 +2564,9 @@ public:
 
         pattern = find_pattern("A1 ? ? ? ? A3 ? ? ? ? EB 3A", "A1 ? ? ? ? 39 05 ? ? ? ? 76 1F");
         CTimer::m_snTimeInMilliseconds = *pattern.get_first<int32_t*>(1);
+
+        pattern = find_pattern("89 0D ? ? ? ? F3 0F 11 05 ? ? ? ? A3 ? ? ? ? E8 ? ? ? ? F3 0F 10 0D ? ? ? ? F3 0F 10 44 24 ? 84 C0 74 ? 0F 2F C1 77 ? EB ? 0F 2F C1 76 ? 0F 28 C8 F3 0F 10 05 ? ? ? ? 0F 2F C1 77 03 0F 28 C8 80 3D", "89 0D ? ? ? ? D9 2C 24 E8 ? ? ? ? 84 C0 F3 0F 10 05 ? ? ? ? F3 0F 10 4C 24 ? 74 ? 0F 2F C8 77 ? EB ? 0F 2F C8 76 ? 0F 28 C1 F3 0F 10 0D ? ? ? ? 0F 2F C8 77 03 0F 28 C1 80 3D");
+        CTimer::m_snTimeInMillisecondsPauseMode = *pattern.get_first<int32_t*>(2);
 
         pattern = find_pattern("83 3D ? ? ? ? ? 74 17 8B 4D 14", "83 3D ? ? ? ? ? 74 15 8B 44 24 1C", "83 3D ? ? ? ? ? 74 EF");
         rage::grcDevice::ms_pD3DDevice = *pattern.get_first<IDirect3DDevice9**>(2);

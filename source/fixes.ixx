@@ -6,8 +6,8 @@ export module fixes;
 
 import common;
 import comvars;
-import settings;
 import natives;
+import settings;
 import shaders;
 
 class Fixes
@@ -826,13 +826,6 @@ public:
                 auto pattern = find_pattern("74 ? 85 C9 75 ? 32 C0 50", "74 16 85 C0 75 12 D9 EE");
                 if (!pattern.empty())
                     injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jz -> jmp
-            }
-
-            // Radar zoom (T hotkey) 30fps cap fix
-            {
-                auto pattern = find_pattern("83 F9 ? 0F 86 ? ? ? ? F3 0F 10 15", "83 F8 1E 0F 86 ? ? ? ? F3 0F 10 0D ? ? ? ? 0F 2E C1");
-                if (!pattern.empty())
-                    injector::WriteMemory<uint8_t>(pattern.get_first(2), 15, true);
             }
 
             // Radar zoom stays for a bit
