@@ -134,7 +134,7 @@ public:
                 pattern = find_pattern("51 53 55 8B 2D ? ? ? ? 56 0F B7 5D 1C 33 F6 85 DB 7E 3A 57 EB 09", "53 56 57 8B 3D ? ? ? ? 0F B7 5F 1C 33 F6 85 DB 7E 41 55 EB 0A");
                 sh_grcSetRenderState = safetyhook::create_inline(pattern.get_first(0), grcSetRenderStateHook);
 
-                // Limit rendering to night shadows only, fixes vehicle damage not being reflected on directional light shadows (aka. those from the sun/moon/thunderbolts)
+                // Limit rendering to night shadows only, fixes vehicle damage not being reflected on cascaded shadows
                 pattern = hook::pattern("E8 ? ? ? ? 8B F0 83 C4 08 85 F6 74 17 8B 0D ? ? ? ? 8B 11 FF 52 28");
                 if (!pattern.count_hint(2).empty())
                 {
