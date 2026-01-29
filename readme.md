@@ -208,6 +208,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed computer web mouse sensitivity decreasing on high framerates when using keyboard and mouse
 - Fixed computer web scrolling speeding up on high framerates when using controller
 - Fixed gun car's weapon animations speeding up on high framerates
+- Fixed taxi passenger camera movement speeding up on high framerates
+- Improved taxi passenger camera's mouse control
 
 #### Model
 
@@ -269,9 +271,10 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed NPC abnormal overtaking behavior at toll station
 - Fixed IV pigeon collection's annihilator reward prevents Brucie landing helicopter at Star Junction's landing site
 - Fixed memorial wall photos won't spawn when entering Lost Club from roof entry in TLAD
+- Fixed scripted depth of field isn't removed after playing drinking minigame in TBoGT
 - Fixed zoomed camera will be interrupted if Luis is moving when he calls empty taxi in TBoGT
 - Fixed several motorcycles use incorrect paying animation at toll station in TBoGT
-- Fixed Luis' vehicle always been removed after playing golf minigame
+- Fixed Luis' vehicle always been removed after playing golf and drinking minigame
 
 ### Episodic content
 
