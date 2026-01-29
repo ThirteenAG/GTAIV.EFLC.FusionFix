@@ -208,8 +208,9 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed computer web mouse sensitivity decreasing on high framerates when using keyboard and mouse
 - Fixed computer web scrolling speeding up on high framerates when using controller
 - Fixed gun car's weapon animations speeding up on high framerates
-- Fixed taxi passenger camera movement speeding up on high framerates
-- Improved taxi passenger camera's mouse control
+- Fixed telescope camera zoom speeding up on high framerates
+- Fixed taxi and Brucie helicopter passenger camera movement speeding up on high framerates
+- Improved taxi and Brucie helicopter passenger camera's mouse control
 
 #### Model
 
