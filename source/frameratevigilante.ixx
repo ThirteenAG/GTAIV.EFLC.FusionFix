@@ -267,6 +267,13 @@ bool __cdecl NATIVE_SLIDE_OBJECT_2(Object object, float x, float y, float z, flo
     return shNATIVE_SLIDE_OBJECT.unsafe_ccall<bool>(object, x, y, z, xs * Delta, ys * Delta, zs * Delta, flag);
 }
 
+SafetyHookInline shsub_A4C190 = {};
+void __fastcall sub_A4C190(void* _this, void* edx, float a2)
+{
+    constexpr float MAX_DT = 1.0f / 30.0f;
+    return shsub_A4C190.unsafe_fastcall(_this, edx, std::min(a2, MAX_DT));
+}
+
 class FramerateVigilante
 {
 public:
@@ -274,8 +281,18 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            // Handbrake Cam force (Gamepad)
-            auto pattern = find_pattern("E8 ? ? ? ? D9 5C 24 7C F3 0F 10 4C 24", "E8 ? ? ? ? D9 5C 24 70 F3 0F 10 44 24 ? F3 0F 58 86");
+            //Timestep clamping in CTimer::Initialise
+            auto pattern = hook::pattern("E8 ? ? ? ? FF 74 24 ? E8 ? ? ? ? E8");
+            if (!pattern.empty())
+                injector::WriteMemory<float>(injector::GetBranchDestination(pattern.get_first(0)).as_int() + 6, 1.0f / 3000.0f, true);
+            else
+            {
+                pattern = hook::pattern("E8 ? ? ? ? 8B 44 24 ? 50 E8 ? ? ? ? E8");
+                injector::WriteMemory<float>(injector::GetBranchDestination(pattern.get_first(0)).as_int() + 4, 1.0f / 3000.0f, true);
+            }
+
+            // Handbrake Cam force
+            pattern = find_pattern("E8 ? ? ? ? D9 5C 24 7C F3 0F 10 4C 24", "E8 ? ? ? ? D9 5C 24 70 F3 0F 10 44 24 ? F3 0F 58 86");
             hbsub_A18510.fun = injector::MakeCALL(pattern.get_first(0), sub_A18510).get();
 
             // CCamFollowVehicle auto centering force
@@ -294,30 +311,32 @@ public:
                 }
             }
 
-            // Bike physics (Originally by Sergeanur)
-            // They will need a full fix in the future, one of the main things to look at are the slippery wheels, this only marginally improves them
-            pattern = hook::pattern("F3 0F 10 45 ? 51 8B CF F3 0F 11 04 24 E8 ? ? ? ? 8A 8F");
-            if (!pattern.empty())
+            // Automobile physics
+            pattern = find_pattern("56 8B F1 66 83 BE ? ? ? ? ? C6 86", "56 8B F1 66 83 BE ? ? ? ? ? C6 86");
+            shsub_A4C190 = safetyhook::create_inline(pattern.get_first(), sub_A4C190);
+
+            // Slippery bikes
+            injector::MakeNOP(0xCEE7A4, 6, true);
+            static auto test = safetyhook::create_mid(0xCEE7A4, [](SafetyHookContext& regs)
             {
-                injector::MakeNOP(pattern.get_first(0), 5, true);
-                static auto BikePhysics = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                {
-                    float f = *(float*)(regs.ebp + 0x08);
-                    f = std::clamp(f, 1.0f / 30.0f, FLT_MAX);
-                    regs.xmm0.f32[0] = f;
-                });
-            }
-            else
+                float dtScale = *CTimer::fTimeStep / (1.0f / 30.0f);
+                *(float*)(regs.esp + 0x3C) = regs.xmm0.f32[0] * dtScale;
+            });
+
+            injector::MakeNOP(0xCEDE48, 6, true);
+            static auto test2 = safetyhook::create_mid(0xCEDE48, [](SafetyHookContext& regs)
             {
-                pattern = hook::pattern("D9 45 ? 51 8B CE D9 1C 24 E8 ? ? ? ? 8A 86");
-                injector::MakeNOP(pattern.get_first(0), 3, true);
-                static auto BikePhysics = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                {
-                    float f = *(float*)(regs.ebp + 0x08);
-                    f = std::clamp(f, 1.0f / 30.0f, FLT_MAX);
-                    *(float*)(regs.ebp + 0x08) = f;
-                });
-            }
+                float dtScale = *CTimer::fTimeStep / (1.0f / 30.0f);
+                regs.xmm0.f32[0] *= dtScale;
+                regs.xmm0.f32[0] += *(float*)(regs.esp + 0x30);
+            });
+
+            // Slippery cars
+            static auto test3 = safetyhook::create_mid(0xC35C98, [](SafetyHookContext& regs)
+            {
+                float dtScale = *CTimer::fTimeStep / (1.0f / 30.0f);
+                regs.xmm0.f32[0] *= dtScale;
+            });
 
             // Loading text flash speed (IV and TLAD)
             {
