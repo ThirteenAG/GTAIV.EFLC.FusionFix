@@ -22,12 +22,12 @@ double __fastcall sub_A18510(void* _this, void* edx, void* a2, void* a3)
     return hbsub_A18510.fun(_this, edx, a2, a3) * (*CTimer::fTimeStep / (1.0f / 30.0f)) * f;
 }
 
-int (__cdecl *game_rand)() = nullptr;
+int (__cdecl* game_rand)() = nullptr;
 uint32_t* dword_11F7060 = nullptr;
 uint32_t* dword_12088B4 = nullptr;
 uint32_t* dword_1037720 = nullptr;
 uint32_t* dword_11F704C = nullptr;
-SafetyHookInline shCameraShake = {};
+SafetyHookInline shOnFootCameraShake = {};
 void __fastcall OnFootCameraShake(float* CameraData, void* edx, float Multiplier)
 {
     static auto CameraShake = FusionFixSettings.GetRef("PREF_CAMERASHAKE");
@@ -98,6 +98,114 @@ void __fastcall OnFootCameraShake(float* CameraData, void* edx, float Multiplier
     float Output[] = { CameraData[16] * Multiplier, CameraData[17] * Multiplier, CameraData[18] * Multiplier };
 
     Matrix34::fromEulersXYZ(CameraData, 0, Output);
+}
+
+SafetyHookInline shFirstPersonVehicleCameraBumping = {};
+void __fastcall FirstPersonVehicleCameraBumping(float* this_ptr, void*, float* vehicle, float* input_vector, float* out_offset, float a5)
+{
+    float real_dt = *CTimer::fTimeStep;
+
+    constexpr float FIXED_RATE = 30.0f;
+    constexpr float FIXED_DT = 1.0f / FIXED_RATE;
+
+    static float accumulator = 0.0f;
+    accumulator += real_dt;
+
+    float* right_vec = *(float**)((char*)vehicle + 0x20);
+
+    while (accumulator >= FIXED_DT)
+    {
+        accumulator -= FIXED_DT;
+        float dt = FIXED_DT;
+
+        float outWorldPos[4];
+        CPhysical::TransformOffsetToWorldSpace(vehicle, 0, outWorldPos, input_vector, 0, 0);
+
+        float prev_ref_x = this_ptr[180];
+        float prev_ref_y = this_ptr[181];
+        float prev_ref_z = this_ptr[182];
+
+        float tmp1 = prev_ref_y + this_ptr[186] * input_vector[0] - this_ptr[184] * input_vector[2];
+        float tmp2 = prev_ref_x + this_ptr[185] * input_vector[2] - this_ptr[186] * input_vector[1];
+        float tmp3 = prev_ref_z + this_ptr[184] * input_vector[1] - this_ptr[185] * input_vector[0];
+
+        float dx = outWorldPos[1] - tmp1;
+        float dy = outWorldPos[0] - tmp2;
+        float dz = outWorldPos[2] - tmp3;
+
+        float frame_time_mul = *(&*CTimer::fTimeStep + 1);
+        dx *= frame_time_mul;
+        dy *= frame_time_mul;
+        dz *= frame_time_mul;
+
+        float dot_a = right_vec[1] * dx + right_vec[0] * dy + right_vec[2] * dz;  // lateral
+        float dot_b = right_vec[5] * dx + right_vec[4] * dy + right_vec[6] * dz;  // longitudinal
+
+        float clamped_a = std::clamp(dot_a, -5.0f, 5.0f);
+        float clamped_b = std::clamp(dot_b, -5.0f, 5.0f);
+
+        float accum_x = this_ptr[172];
+        float accum_y = this_ptr[173];
+        float accum_z = this_ptr[174];
+
+        float prev_x = this_ptr[176];
+        float prev_y = this_ptr[177];
+        float prev_z = this_ptr[178];
+
+        // Impulse — correct original axis mapping
+        accum_x += 0.025f * dt * clamped_b;     // longitudinal
+        accum_y += 0.025f * dt * clamped_a;     // lateral
+
+        // Linear decay
+        accum_x -= prev_x * 7.0f * dt;
+        accum_y -= prev_y * 3.0f * dt;
+        accum_z -= prev_z * 0.0f * dt;
+
+        // Exponential decay
+        accum_x *= powf(0.017999999f, dt);
+        accum_y *= powf(0.0099999998f, dt);
+        accum_z *= powf(0.0f, dt);
+
+        // Write back accumulators & integrated values
+        this_ptr[172] = accum_x;
+        this_ptr[173] = accum_y;
+        this_ptr[174] = accum_z;
+
+        this_ptr[176] = prev_x + accum_x;
+        this_ptr[177] = prev_y + accum_y;
+        this_ptr[178] = prev_z + accum_z;
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    // Apply accumulated shake using real time delta
+    // ────────────────────────────────────────────────────────────────
+    float time_scale = real_dt * FIXED_RATE;
+    out_offset[0] += this_ptr[176] * a5 * time_scale;
+    out_offset[1] += this_ptr[177] * a5 * time_scale;
+    out_offset[2] += this_ptr[178] * a5 * time_scale;
+
+    // ────────────────────────────────────────────────────────────────
+    // Matrix / reference position (must run every frame)
+    // ────────────────────────────────────────────────────────────────
+    float temp[4]{};
+    auto get_matrix_func = (float* (__fastcall*)(void*, void*, float*))(*(uintptr_t*)(*(uintptr_t*)vehicle + 0xEC));
+    float* ref = get_matrix_func(vehicle, 0, temp);
+
+    this_ptr[180] = ref[0];
+    this_ptr[181] = ref[1];
+    this_ptr[182] = ref[2];
+    this_ptr[183] = ref[3];
+
+    // ────────────────────────────────────────────────────────────────
+    // Angular velocity (must run every frame)
+    // ────────────────────────────────────────────────────────────────
+    float angvel[4];
+    CPhysical::getAngularVelocity(vehicle, 0, angvel);
+
+    this_ptr[184] = angvel[0];
+    this_ptr[185] = angvel[1];
+    this_ptr[186] = angvel[2];
+    this_ptr[187] = angvel[3];
 }
 
 std::unordered_map<int, float> last_fov_values;
@@ -418,7 +526,11 @@ public:
             dword_1037720 = *find_pattern("83 3D ? ? ? ? ? 75 ? A1 ? ? ? ? 66 0F 6E C0", "83 3D ? ? ? ? ? 75 ? 8B 0D ? ? ? ? DB 05").get_first<uint32_t*>(2);
             dword_11F704C = *find_pattern("A1 ? ? ? ? 66 0F 6E C0 F3 0F E6 C0 C1 E8 ? F2 0F 58 04 C5 ? ? ? ? 66 0F 5A C0 F3 0F 59 05 ? ? ? ? F3 0F 59 C1", "0D ? ? ? ? DB 05 ? ? ? ? 85 C9 7D ? D8 05 ? ? ? ? D8 0D").get_first<uint32_t*>(1);
             pattern = find_pattern("55 8B EC 83 E4 ? 83 EC ? 56 57 8B F9 F3 0F 10 05", "55 8B EC 83 E4 ? 0F 57 E4 F3 0F 10 1D");
-            shCameraShake = safetyhook::create_inline(pattern.get_first(), OnFootCameraShake);
+            shOnFootCameraShake = safetyhook::create_inline(pattern.get_first(), OnFootCameraShake);
+
+            pattern = find_pattern("55 8B EC 83 E4 F0 83 EC 28 F3 0F 10 05 ? ? ? ? 56 8B 75 ? 57 6A 00", "55 8B EC 83 E4 F0 83 EC 24 F3 0F 10 05 ? ? ? ? 53 8B 5D ? 56 57 8B 7D");
+            shFirstPersonVehicleCameraBumping = safetyhook::create_inline(pattern.get_first(), FirstPersonVehicleCameraBumping);
+
 
             // Native patches
             hbSET_CAM_FOV.fun = NativeOverride::Register(Natives::NativeHashes::SET_CAM_FOV, NATIVE_SET_CAM_FOV, "E8 ? ? ? ? 83 C4 08 C3", 30);

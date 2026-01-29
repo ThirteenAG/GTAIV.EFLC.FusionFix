@@ -2506,6 +2506,12 @@ export bool IsKeyboardKeyPressed(int vkeycode, int type = 1, const char* hint = 
     }
 }
 
+export namespace CPhysical
+{
+    float* (__fastcall* getAngularVelocity)(void*, void*, float*) = nullptr;
+    void (__fastcall* TransformOffsetToWorldSpace)(float*, void*, float*, float*, char, int) = nullptr;
+}
+
 export enum eControllerButtons
 {
     BUTTON_BUMPER_LEFT = 4,
@@ -2828,5 +2834,11 @@ public:
         pattern = find_pattern("B9 ? ? ? ? E8 ? ? ? ? 84 C0 74 ? C6 86", "B9 ? ? ? ? E8 ? ? ? ? 84 C0 74 ? C6 86");
         KeyboardBuffer = *pattern.get_first<void**>(1);
         pIsKeyboardKeyPressed = (decltype(pIsKeyboardKeyPressed))injector::GetBranchDestination(pattern.get_first(5)).as_int();
+
+        pattern = find_pattern("E8 ? ? ? ? F3 0F 10 40 ? F3 0F 10 48 ? 8B 08 F3 0F 11 87 ? ? ? ? F3 0F 10 45", "E8 ? ? ? ? D9 00 F3 0F 10 40 ? F3 0F 10 48 ? D9 9E ? ? ? ? F3 0F 11 86 ? ? ? ? F3 0F 10 5D");
+        CPhysical::getAngularVelocity = (decltype(CPhysical::getAngularVelocity))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+
+        pattern = find_pattern("E8 ? ? ? ? F3 0F 10 B7 ? ? ? ? F3 0F 10 BF ? ? ? ? F3 0F 10 AF ? ? ? ? F3 0F 10 97", "E8 ? ? ? ? F3 0F 10 A6 ? ? ? ? F3 0F 10 6B");
+        CPhysical::TransformOffsetToWorldSpace = (decltype(CPhysical::TransformOffsetToWorldSpace))injector::GetBranchDestination(pattern.get_first(0)).as_int();
     }
 } Common;
