@@ -100,8 +100,8 @@ void __fastcall OnFootCameraShake(float* CameraData, void* edx, float Multiplier
     Matrix34::fromEulersXYZ(CameraData, 0, Output);
 }
 
-SafetyHookInline shFirstPersonVehicleCameraBumping = {};
-void __fastcall FirstPersonVehicleCameraBumping(float* this_ptr, void*, float* vehicle, float* input_vector, float* out_offset, float a5)
+SafetyHookInline shHoodCameraBumping = {};
+void __fastcall HoodCameraBumping(float* this_ptr, void*, float* vehicle, float* input_vector, float* out_offset, float a5)
 {
     float real_dt = *CTimer::fTimeStep;
 
@@ -138,8 +138,8 @@ void __fastcall FirstPersonVehicleCameraBumping(float* this_ptr, void*, float* v
         dy *= frame_time_mul;
         dz *= frame_time_mul;
 
-        float dot_a = right_vec[1] * dx + right_vec[0] * dy + right_vec[2] * dz;  // lateral
-        float dot_b = right_vec[5] * dx + right_vec[4] * dy + right_vec[6] * dz;  // longitudinal
+        float dot_a = right_vec[1] * dx + right_vec[0] * dy + right_vec[2] * dz; // lateral
+        float dot_b = right_vec[5] * dx + right_vec[4] * dy + right_vec[6] * dz; // longitudinal
 
         float clamped_a = std::clamp(dot_a, -5.0f, 5.0f);
         float clamped_b = std::clamp(dot_b, -5.0f, 5.0f);
@@ -153,8 +153,8 @@ void __fastcall FirstPersonVehicleCameraBumping(float* this_ptr, void*, float* v
         float prev_z = this_ptr[178];
 
         // Impulse — correct original axis mapping
-        accum_x += 0.025f * dt * clamped_b;     // longitudinal
-        accum_y += 0.025f * dt * clamped_a;     // lateral
+        accum_x += 0.025f * dt * clamped_b; // longitudinal
+        accum_y += 0.025f * dt * clamped_a; // lateral
 
         // Linear decay
         accum_x -= prev_x * 7.0f * dt;
@@ -176,17 +176,13 @@ void __fastcall FirstPersonVehicleCameraBumping(float* this_ptr, void*, float* v
         this_ptr[178] = prev_z + accum_z;
     }
 
-    // ────────────────────────────────────────────────────────────────
     // Apply accumulated shake using real time delta
-    // ────────────────────────────────────────────────────────────────
     float time_scale = real_dt * FIXED_RATE;
     out_offset[0] += this_ptr[176] * a5 * time_scale;
     out_offset[1] += this_ptr[177] * a5 * time_scale;
     out_offset[2] += this_ptr[178] * a5 * time_scale;
 
-    // ────────────────────────────────────────────────────────────────
     // Matrix / reference position (must run every frame)
-    // ────────────────────────────────────────────────────────────────
     float temp[4]{};
     auto get_matrix_func = (float* (__fastcall*)(void*, void*, float*))(*(uintptr_t*)(*(uintptr_t*)vehicle + 0xEC));
     float* ref = get_matrix_func(vehicle, 0, temp);
@@ -196,9 +192,7 @@ void __fastcall FirstPersonVehicleCameraBumping(float* this_ptr, void*, float* v
     this_ptr[182] = ref[2];
     this_ptr[183] = ref[3];
 
-    // ────────────────────────────────────────────────────────────────
     // Angular velocity (must run every frame)
-    // ────────────────────────────────────────────────────────────────
     float angvel[4];
     CPhysical::getAngularVelocity(vehicle, 0, angvel);
 
@@ -281,10 +275,12 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            //Timestep clamping in CTimer::Initialise
+            // Timestep clamp adjustment in CTimer::Initialise, fixes game speedup past 300fps, but not slowdown below 15fps as its kind of unnecessary
             auto pattern = hook::pattern("E8 ? ? ? ? FF 74 24 ? E8 ? ? ? ? E8");
             if (!pattern.empty())
+            {
                 injector::WriteMemory<float>(injector::GetBranchDestination(pattern.get_first(0)).as_int() + 6, 1.0f / 3000.0f, true);
+            }
             else
             {
                 pattern = hook::pattern("E8 ? ? ? ? 8B 44 24 ? 50 E8 ? ? ? ? E8");
@@ -363,7 +359,7 @@ public:
                     {
                         // Ends up being dword_1175C40 += dword_1032790 * (SomeTimer * (1000 / 30));
                         regs.xmm0.f32[0] = *(float*)(regs.esp + 0x34);
-                        regs.xmm0.f32[0] *= (1000 / 30);
+                        regs.xmm0.f32[0] *= (1000.0f / 30.0f);
                     });
                 }
                 else
@@ -374,7 +370,7 @@ public:
                     {
                         // Ends up being dword_11FB434 += dword_F38420 * (SomeTimer * (1000 / 30));
                         regs.xmm0.f32[0] = *(float*)(regs.esp + 0x44);
-                        regs.xmm0.f32[0] *= (1000 / 30);
+                        regs.xmm0.f32[0] *= (1000.0f / 30.0f);
                     });
                 }
             }
@@ -392,7 +388,7 @@ public:
                     static auto LoadingTextSparksSpeed = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         // Ends up being dword_1175770 += dword_E81598 * (SomeTimer * (1000 / 30));
-                        regs.xmm1.f32[0] += *dword_E81598 * *(float*)(regs.esp + 0x34) * (1000 / 30);
+                        regs.xmm1.f32[0] += *dword_E81598 * *(float*)(regs.esp + 0x34) * (1000.0f / 30.0f);
                     });
                 }
                 else
@@ -403,7 +399,7 @@ public:
                     static auto LoadingTextSparksSpeed = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         // Ends up being dword_11FB41C += flt_DEF584 * (SomeTimer * (1000 / 30));
-                        regs.xmm0.f32[0] += *flt_DEF584 * *(float*)(regs.esp + 0x44) * (1000 / 30);
+                        regs.xmm0.f32[0] += *flt_DEF584 * *(float*)(regs.esp + 0x44) * (1000.0f / 30.0f);
                     });
                 }
             }
@@ -538,7 +534,7 @@ public:
                 }
             }
 
-            // Camera shake
+            // On foot camera shake
             game_rand = (decltype(game_rand))injector::GetBranchDestination(find_pattern("E8 ? ? ? ? F3 0F 10 4C 24 ? F3 0F 5C 4C 24 ? F3 0F 10 5C 24", "E8 ? ? ? ? F3 0F 10 4C 24 ? F3 0F 59 4C 24 ? F3 0F 59 4C 24").get_first()).as_int();
             dword_11F7060 = *find_pattern("83 3D ? ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 C1", "83 3D ? ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 05").get_first<uint32_t*>(2);
             dword_12088B4 = *find_pattern("A1 ? ? ? ? 3B 05 ? ? ? ? 75 ? 83 3D ? ? ? ? ? 75 ? A1", "A1 ? ? ? ? 3B 05 ? ? ? ? 75 ? 83 3D ? ? ? ? ? 75 ? 8B 0D ? ? ? ? DB 05").get_first<uint32_t*>(1);
@@ -547,8 +543,9 @@ public:
             pattern = find_pattern("55 8B EC 83 E4 ? 83 EC ? 56 57 8B F9 F3 0F 10 05", "55 8B EC 83 E4 ? 0F 57 E4 F3 0F 10 1D");
             shOnFootCameraShake = safetyhook::create_inline(pattern.get_first(), OnFootCameraShake);
 
+            // Hood camera bumping
             pattern = find_pattern("55 8B EC 83 E4 F0 83 EC 28 F3 0F 10 05 ? ? ? ? 56 8B 75 ? 57 6A 00", "55 8B EC 83 E4 F0 83 EC 24 F3 0F 10 05 ? ? ? ? 53 8B 5D ? 56 57 8B 7D");
-            shFirstPersonVehicleCameraBumping = safetyhook::create_inline(pattern.get_first(), FirstPersonVehicleCameraBumping);
+            shHoodCameraBumping = safetyhook::create_inline(pattern.get_first(), HoodCameraBumping);
 
 
             // Native patches
