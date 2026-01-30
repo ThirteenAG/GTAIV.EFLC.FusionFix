@@ -113,6 +113,18 @@ void __fastcall HoodCameraBumping(float* this_ptr, void*, float* vehicle, float*
 
     float* right_vec = *(float**)((char*)vehicle + 0x20);
 
+    // Save state before physics update to use in interpolation
+    static float last_x = 0.0f;
+    static float last_y = 0.0f;
+    static float last_z = 0.0f;
+
+    if (accumulator >= FIXED_DT)
+    {
+        last_x = this_ptr[176];
+        last_y = this_ptr[177];
+        last_z = this_ptr[178];
+    }
+
     while (accumulator >= FIXED_DT)
     {
         accumulator -= FIXED_DT;
@@ -176,11 +188,16 @@ void __fastcall HoodCameraBumping(float* this_ptr, void*, float* vehicle, float*
         this_ptr[178] = prev_z + accum_z;
     }
 
-    // Apply accumulated shake using real time delta
-    float time_scale = real_dt * FIXED_RATE;
-    out_offset[0] += this_ptr[176] * a5 * time_scale;
-    out_offset[1] += this_ptr[177] * a5 * time_scale;
-    out_offset[2] += this_ptr[178] * a5 * time_scale;
+    // Interpolate between physics steps based on time remainder inside accumulator
+    float alpha = accumulator / FIXED_DT;
+
+    float interp_x = last_x + (this_ptr[176] - last_x) * alpha;
+    float interp_y = last_y + (this_ptr[177] - last_y) * alpha;
+    float interp_z = last_z + (this_ptr[178] - last_z) * alpha;
+
+    out_offset[0] += interp_x * a5;
+    out_offset[1] += interp_y * a5;
+    out_offset[2] += interp_z * a5;
 
     // Matrix / reference position (must run every frame)
     float temp[4]{};
