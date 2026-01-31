@@ -326,9 +326,13 @@ public:
             }
 
             // Automobile physics
+            // It's probably a better idea to inline CAutomobile::processPhysics, CBoat::sub_B419D0 and CBike::sub_B46590, 
+            // and clamp their respective a2 parameters as doing it just for CVehicle__sub_9FD940 doesn't seem to do anything...
             pattern = find_pattern("56 8B F1 66 83 BE ? ? ? ? ? C6 86", "56 8B F1 66 83 BE ? ? ? ? ? C6 86");
             shsub_A4C190 = safetyhook::create_inline(pattern.get_first(), sub_A4C190);
 
+            // Then all of the below may no longer be needed if we do the above? 
+            // As the following hooks just attempt to scale pieces of code from ::processPhysics anyways
             // Slippery bikes
             injector::MakeNOP(0xCEE7A4, 6, true);
             static auto test = safetyhook::create_mid(0xCEE7A4, [](SafetyHookContext& regs)
@@ -398,35 +402,77 @@ public:
             }
 
             // Heli rotor break time
-            // To figure out:
+            // Does not work yet!
             // This already seems correct (it uses _fFrameTime * 300.0f) but for some reason it does not want to work. Even doing CTimer::fTimeStep * 30 * 300 won't work.
             // The place is 100% correct too
             {
-                // This is preCE
-                pattern = hook::pattern("F3 0F 10 0D ? ? ? ? F3 0F 59 0D ? ? ? ? F3 0F 10 44 24 ? F3 0F 5C C1 0F 57 C9 0F 2F C8 F3 0F 11 86");
+                pattern = hook::pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 10 4C 24 ? F3 0F 5C C8");
                 if (!pattern.empty())
                 {
-                    injector::MakeNOP(pattern.get_first(0), 16, true);
-                    static auto RotorBreakTime1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    injector::MakeNOP(pattern.get_first(0), 8, true);
+                    static auto HeliRotorBreakTime1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm1.f32[0] = 300.0f;
+                        
                     });
                 }
+                else
+                {
+                    pattern = hook::pattern("F3 0F 10 0D ? ? ? ? F3 0F 59 0D ? ? ? ? F3 0F 10 44 24 ? F3 0F 5C C1 0F 57 C9");
+                    if (!pattern.empty())
+                    {
+                        injector::MakeNOP(pattern.get_first(0), 8, true);
+                        static auto HeliRotorBreakTime1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            
+                        });
+                    }
+                }
 
-                // This is preCE
-                pattern = hook::pattern("F3 0F 10 0D ? ? ? ? F3 0F 59 0D ? ? ? ? F3 0F 10 86 ? ? ? ? F3 0F 5C C1 0F 57 C9 0F 2F C8 F3 0F 11 86");
+                pattern = hook::pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 10 8F ? ? ? ? F3 0F 5C C8 0F 57 C0 0F 2F C1 F3 0F 11 8F");
                 if (!pattern.empty())
                 {
-                    injector::MakeNOP(pattern.get_first(0), 16, true);
-                    static auto RotorBreakTime2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    injector::MakeNOP(pattern.get_first(0), 8, true);
+                    static auto HeliRotorBreakTime2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm1.f32[0] = 300.0f;
+                        
                     });
+                }
+                else
+                {
+                    pattern = hook::pattern("F3 0F 10 0D ? ? ? ? F3 0F 59 0D ? ? ? ? F3 0F 10 86 ? ? ? ? F3 0F 5C C1 0F 57 C9 0F 2F C8 F3 0F 11 86 ? ? ? ? 72");
+                    if (!pattern.empty())
+                    {
+                        injector::MakeNOP(pattern.get_first(0), 8, true);
+                        static auto HeliRotorBreakTime2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+
+                        });
+                    }
                 }
             }
 
+            // Heli blinkers' speed
+            pattern = hook::pattern("03 0D ? ? ? ? F3 0F 10 0D");
+            if (!pattern.empty())
+            {
+                injector::MakeNOP(pattern.get_first(0), 6, true);
+                static auto HeliBlinkersSpeed = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    regs.ecx += *CTimer::m_snTimeInMilliseconds / (1000 / 30);
+                });
+            }
+            else
+            {
+                pattern = hook::pattern("8B 15 ? ? ? ? F3 0F 10 15 ? ? ? ? F3 0F 10 0D");
+                injector::MakeNOP(pattern.get_first(0), 6, true);
+                static auto HeliBlinkersSpeed = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    regs.edx = *CTimer::m_snTimeInMilliseconds / (1000 / 30);
+                });
+            }
+
             // Heli downwash effect
-            // To figure out:
+            // Does not work yet!
             // This uses more exquisite timing checks, so it doesn't fix anything atm, but the approach is probably halfway correct
             pattern = find_pattern("03 05 ? ? ? ? 33 D2 F7 F7 85 D2 75 ? 8B 46 ? 52 52 52", "03 05 ? ? ? ? 33 D2 F7 F1 85 D2 75 ? D9 44 24 ? 8B 47 ? 52 52 52");
             if (!pattern.empty())
