@@ -283,8 +283,9 @@ public:
             }
             else
             {
+                static float dword_EDF6CC = 1.0f / 3000.0f;
                 pattern = hook::pattern("E8 ? ? ? ? 8B 44 24 ? 50 E8 ? ? ? ? E8");
-                injector::WriteMemory<float>(injector::GetBranchDestination(pattern.get_first(0)).as_int() + 4, 1.0f / 3000.0f, true);
+                injector::WriteMemory(injector::GetBranchDestination(pattern.get_first(0)).as_int() + 4, &dword_EDF6CC, true);
             }
 
             // Handbrake Cam force
@@ -333,6 +334,92 @@ public:
                 float dtScale = *CTimer::fTimeStep / (1.0f / 30.0f);
                 regs.xmm0.f32[0] *= dtScale;
             });
+
+            // Heli rotor speed
+            {
+                pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 59 C4 F3 0F 5C C8");
+                if (!pattern.empty())
+                {
+                    static auto dword_1046AF0 = *pattern.get_first<float*>(4);
+                    injector::MakeNOP(pattern.get_first(0), 8, true);
+                    static auto HeliRotorSpeed1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm0.f32[0] *= *dword_1046AF0 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                    });
+                }
+                else
+                {
+                    pattern = hook::pattern("F3 0F 59 15 ? ? ? ? F3 0F 59 D4");
+                    static auto dword_F46598 = *pattern.get_first<float*>(4);
+                    injector::MakeNOP(pattern.get_first(0), 8, true);
+                    static auto HeliRotorSpeed1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm2.f32[0] *= *dword_F46598 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                    });
+                }
+
+                pattern = hook::pattern("F3 0F 59 1D ? ? ? ? F3 0F 10 87 ? ? ? ? F3 0F 59 DC");
+                if (!pattern.empty())
+                {
+                    static auto dword_1046AF4 = *pattern.get_first<float*>(4);
+                    injector::MakeNOP(pattern.get_first(0), 8, true);
+                    static auto HeliRotorSpeed2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm3.f32[0] *= *dword_1046AF4 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                    });
+                }
+                else
+                {
+                    pattern = hook::pattern("F3 0F 59 0D ? ? ? ? F3 0F 10 86 ? ? ? ? F3 0F 59 CC");
+                    static auto dword_F46594 = *pattern.get_first<float*>(4);
+                    injector::MakeNOP(pattern.get_first(0), 8, true);
+                    static auto HeliRotorSpeed2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm1.f32[0] *= *dword_F46594 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                    });
+                }
+            }
+
+            // Heli rotor break time
+            // To figure out:
+            // This already seems correct (it uses _fFrameTime * 300.0f) but for some reason it does not want to work. Even doing CTimer::fTimeStep * 30 * 300 won't work.
+            // The place is 100% correct too
+            {
+                // This is preCE
+                pattern = hook::pattern("F3 0F 10 0D ? ? ? ? F3 0F 59 0D ? ? ? ? F3 0F 10 44 24 ? F3 0F 5C C1 0F 57 C9 0F 2F C8 F3 0F 11 86");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(0), 16, true);
+                    static auto RotorBreakTime1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm1.f32[0] = 300.0f;
+                    });
+                }
+
+                // This is preCE
+                pattern = hook::pattern("F3 0F 10 0D ? ? ? ? F3 0F 59 0D ? ? ? ? F3 0F 10 86 ? ? ? ? F3 0F 5C C1 0F 57 C9 0F 2F C8 F3 0F 11 86");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(0), 16, true);
+                    static auto RotorBreakTime2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm1.f32[0] = 300.0f;
+                    });
+                }
+            }
+
+            // Heli downwash effect
+            // To figure out:
+            // This uses more exquisite timing checks, so it doesn't fix anything atm, but the approach is probably halfway correct
+            pattern = find_pattern("03 05 ? ? ? ? 33 D2 F7 F7 85 D2 75 ? 8B 46 ? 52 52 52", "03 05 ? ? ? ? 33 D2 F7 F1 85 D2 75 ? D9 44 24 ? 8B 47 ? 52 52 52");
+            if (!pattern.empty())
+            {
+                injector::MakeNOP(pattern.get_first(0), 6, true);
+                static auto HeliDownwashEffect = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    regs.eax += *CTimer::m_snTimeInMilliseconds / (1000 / 30);
+                });
+            }
 
             // Loading text flash speed (IV and TLAD)
             {
