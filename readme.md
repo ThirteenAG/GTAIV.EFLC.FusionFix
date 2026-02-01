@@ -203,14 +203,18 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed too sensitive arrow keys inputs in police computer virtual keyboard
 - Fixed possible crash when The Lost clubhouse memorial wall has too many photos
 - Fixed busker script terminating too early in TBoGT, now Luis can give money to buskers normally
+- Restored Star Junction BurgerShot blip in TBoGT
 - Significantly sped up clothes changing transition in the safehouse wardrobe
 - Fixed food buying animation sometimes playing with several seconds delay in fast-food restaurants
 - Fixed computer web mouse sensitivity decreasing on high framerates when using keyboard and mouse
 - Fixed computer web scrolling speeding up on high framerates when using controller
 - Fixed gun car weapon animations speeding up on high framerates
+- Fixed binocular camera zoom speeding up on high framerates
+- Fixed some scripted look around camera movements speeding up on high framerates, and improved their mouse controls, like taxi passenger camera
 
 #### Models
 
+- Fixed pool ball shadows flickering when playing pool minigame in Playboy's apartment
 - Restored transparency on pool minigame
 - Restored traffic cops in toll booths
 - Restored non-cop pedestrians in helicopters flying around city
@@ -219,6 +223,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - The gun shop owner now uses his unique model (M_M_GunNut_01) instead of reusing the strip club bouncer model (M_Y_bouncer_01)
 - Fixed two bought Perseus suits textures not matching their prop models
 - Fixed Niko's hands being changed while switching clothes to Perseus suits
+- Fixed Esperanto being spawned instead of Roman's Taxi in Roman's cab depot
 
 #### Audio
 
@@ -251,7 +256,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Workaround for burning Angels of Death member not triggering ragdoll and falling down on high framerates in mission "Action/Reaction"
 - Workaround for one scripted cutscene ending too late on high framerates in TBoGT ending credits
 - Fixed TLAD intro scripted cutscene cutting off distant world in several shots
-- Fixed mission failing to continue for a significant amount of time when Johnny is too close to Roman's Taxi in mission "Roman's Holiday"
+- Fixed scripted depth of field not being removed after one scripted cutscene ends in mission "Bad Standing"
+- Fixed possible issue where mission fails to continue for a significant amount of time even though Johnny has been close to Roman's Taxi in mission "Roman's Holiday"
 - Fixed Roman sometimes lacking clothes model or using incorrect clothes textures in TLAD ending credits
 - Fixed Malc's motorcycle using incorrect colors in TLAD ending credits
 - Fixed Yusuf's hand passing through the crane cabin glass during one of animations in mission "Caught With Your Pants Down"
@@ -263,6 +269,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed ammo reset when buying different pistol from gun shop in IV
 - Fixed ammo reset when buying different weapon from gun shop in TLAD/TBoGT
 - Restored the temporary ban from the gun shop when attacking the owner in TLAD/TBoGT
+- Enabled Roman's cab depot script in TLAD
 - Fixed damaged vending machines being usable
 - Superd2 is now accepted by car wash, meanwhile packer2, police3, police4, policew are now not accepted
 - Fixed incorrect car wash price help text for a one type of taxi
@@ -272,7 +279,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed memorial wall photos not spawning while entering The Lost clubhouse from roof entry in TLAD
 - Fixed zoomed camera being interrupted if Luis is moving while he calls an empty taxi
 - Fixed several motorcycles using incorrect paying animation at toll station in TBoGT
-- Fixed Luis' vehicle always being removed after playing golf minigame
+- Fixed scripted depth of field not being removed after playing drinking minigame
+- Fixed Luis' vehicle always being removed after playing golf and drinking minigame
 
 ### Episodic content
 
