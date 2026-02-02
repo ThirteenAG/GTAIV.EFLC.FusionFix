@@ -205,6 +205,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed busker script terminating too early in TBoGT, now Luis can give money to buskers normally
 - Restored Star Junction BurgerShot blip in TBoGT
 - Significantly sped up clothes changing transition in the safehouse wardrobe
+- Made the taxi stop immediately upon skipping the journey
 - Fixed food buying animation sometimes playing with several seconds delay in fast-food restaurants
 - Fixed computer web mouse sensitivity decreasing on high framerates when using keyboard and mouse
 - Fixed computer web scrolling speeding up on high framerates when using controller
