@@ -1304,6 +1304,41 @@ public:
                         FusionFixSettings.Set("PREF_GRAPHICSAPI", 1);
                 }
             });
+
+            // RMB as previous in menus
+            pattern = find_pattern("F6 C1 01 0F 84 ? ? ? ? EB 1B", "F6 C2 01 0F 84 ? ? ? ? 8B 04 B5");
+            injector::WriteMemory<uint8_t>(pattern.get_first(2), 3, true);
+
+            pattern = find_pattern("F6 C1 01 74 ? 68 ? ? ? ? B9", "F6 C1 01 74 ? 68");
+            injector::WriteMemory<uint8_t>(pattern.get_first(2), 3, true);
+
+            static bool bRmb = false;
+            pattern = find_pattern("F6 C1 01 0F 84 ? ? ? ? 80 BC 16");
+            if (!pattern.empty())
+            {
+                static auto GetRMBClick = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    bRmb = (*(uint8_t*)&regs.ecx & 2) != 0;
+                });
+            }
+            else
+            {
+                pattern = find_pattern("F6 C2 01 0F 84 ? ? ? ? 80 BC 08");
+                static auto GetRMBClick = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    bRmb = (*(uint8_t*)&regs.edx & 2) != 0;
+                });
+            }
+
+            pattern = find_pattern("83 C4 1C 84 C0 74 ? 68 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? 8B 04 BD ? ? ? ? C7 80 ? ? ? ? ? ? ? ? 8B 04 BD ? ? ? ? 0F B6 84 30", "83 C4 1C 84 C0 74 ? 68 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? 8B 0C B5 ? ? ? ? C7 81 ? ? ? ? ? ? ? ? 8B 14 B5");
+            static auto CheckRMBClick = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+            {
+                if (*(uint8_t*)&regs.eax == 0)
+                {
+                    if (bRmb)
+                        regs.eax = 1;
+                }
+            });
         }
     }
 } Settings;
