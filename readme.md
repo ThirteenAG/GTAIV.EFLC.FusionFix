@@ -211,7 +211,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed computer web scrolling speeding up on high framerates when using controller
 - Fixed gun car weapon animations speeding up on high framerates
 - Fixed binocular camera zoom speeding up on high framerates
-- Fixed some scripted look around camera movements speeding up on high framerates, and improved their mouse controls, like taxi passenger camera
+- Fixed some scripted look around camera movements speeding up on high framerates, and improved their mouse controls, like taxi passenger and binocular camera
 
 #### Models
 
