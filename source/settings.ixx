@@ -1336,7 +1336,10 @@ public:
                 if (*(uint8_t*)&regs.eax == 0)
                 {
                     if (bRmb)
+                    {
                         regs.eax = 1;
+                        bRmb = false;
+                    }
                 }
             });
         }
