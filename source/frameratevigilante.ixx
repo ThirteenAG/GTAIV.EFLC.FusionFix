@@ -278,11 +278,15 @@ bool __cdecl NATIVE_SLIDE_OBJECT_2(Object object, float x, float y, float z, flo
     return shNATIVE_SLIDE_OBJECT.unsafe_ccall<bool>(object, x, y, z, xs * Delta, ys * Delta, zs * Delta, flag);
 }
 
-SafetyHookInline shsub_A4C190 = {};
-void __fastcall sub_A4C190(void* _this, void* edx, float a2)
+float g_dtScale = 1.0f;
+SafetyHookInline shsub_9FE7B0 = {};
+void __cdecl sub_9FE7B0(float a1, int a2)
 {
     constexpr float MAX_DT = 1.0f / 30.0f;
-    return shsub_A4C190.unsafe_fastcall(_this, edx, std::min(a2, MAX_DT));
+    g_dtScale = a1 / MAX_DT;
+    float clampedDt = std::min(a1, MAX_DT * 2.0f);
+
+    return shsub_9FE7B0.unsafe_ccall(clampedDt, a2);
 }
 
 class FramerateVigilante
@@ -326,34 +330,30 @@ public:
             }
 
             // Automobile physics
-            // It's probably a better idea to inline CAutomobile::processPhysics, CBoat::sub_B419D0 and CBike::sub_B46590, 
-            // and clamp their respective a2 parameters as doing it just for CVehicle__sub_9FD940 doesn't seem to do anything...
-            pattern = find_pattern("56 8B F1 66 83 BE ? ? ? ? ? C6 86", "56 8B F1 66 83 BE ? ? ? ? ? C6 86");
-            shsub_A4C190 = safetyhook::create_inline(pattern.get_first(), sub_A4C190);
+            pattern = find_pattern("81 EC F8 02 00 00 53");
+            shsub_9FE7B0 = safetyhook::create_inline(pattern.get_first(), sub_9FE7B0);
 
-            // Then all of the below may no longer be needed if we do the above? 
-            // As the following hooks just attempt to scale pieces of code from ::processPhysics anyways
             // Slippery bikes
-            injector::MakeNOP(0xCEE7A4, 6, true);
-            static auto test = safetyhook::create_mid(0xCEE7A4, [](SafetyHookContext& regs)
+            pattern = find_pattern("F3 0F 58 44 24 ? F3 0F 10 90");
+            injector::MakeNOP(pattern.get_first(), 6, true);
+            static auto LeanAngleBikes = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
             {
-                float dtScale = *CTimer::fTimeStep / (1.0f / 30.0f);
-                *(float*)(regs.esp + 0x3C) = regs.xmm0.f32[0] * dtScale;
-            });
-
-            injector::MakeNOP(0xCEDE48, 6, true);
-            static auto test2 = safetyhook::create_mid(0xCEDE48, [](SafetyHookContext& regs)
-            {
-                float dtScale = *CTimer::fTimeStep / (1.0f / 30.0f);
-                regs.xmm0.f32[0] *= dtScale;
+                regs.xmm0.f32[0] *= g_dtScale;
                 regs.xmm0.f32[0] += *(float*)(regs.esp + 0x30);
             });
 
-            // Slippery cars
-            static auto test3 = safetyhook::create_mid(0xC35C98, [](SafetyHookContext& regs)
+            pattern = find_pattern("F3 0F 11 44 24 ? 7E ? 8B 8F ? ? ? ? EB 02 33 C9 E8");
+            injector::MakeNOP(pattern.get_first(), 6, true);
+            static auto AngleAdjustmentBikes = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
             {
-                float dtScale = *CTimer::fTimeStep / (1.0f / 30.0f);
-                regs.xmm0.f32[0] *= dtScale;
+                *(float*)(regs.esp + 0x3C) = regs.xmm0.f32[0] * g_dtScale;
+            });
+
+            // Slippery cars
+            pattern = find_pattern("0F 2F C8 77 ? F3 0F 10 0D ? ? ? ? 0F 2F C1 76 ? 0F 28 C1 8B 87 ? ? ? ? F3 0F 58 44 24 ? F3 0F 10 88");
+            static auto LeanAngleCars = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+            {
+                regs.xmm0.f32[0] *= g_dtScale;
             });
 
             // Heli rotor speed
@@ -412,7 +412,7 @@ public:
                     injector::MakeNOP(pattern.get_first(0), 8, true);
                     static auto HeliRotorBreakTime1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        
+
                     });
                 }
                 else
@@ -423,7 +423,7 @@ public:
                         injector::MakeNOP(pattern.get_first(0), 8, true);
                         static auto HeliRotorBreakTime1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                         {
-                            
+
                         });
                     }
                 }
@@ -434,7 +434,7 @@ public:
                     injector::MakeNOP(pattern.get_first(0), 8, true);
                     static auto HeliRotorBreakTime2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        
+
                     });
                 }
                 else
