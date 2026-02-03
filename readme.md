@@ -166,7 +166,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - [Added various frame limiting options to address fps related issues](https://github.com/GTAmodding/GTAIV-Issues-List/issues/1)
 - [Fixed aiming zoom in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/19)
 - [Fixed P90 being selectable in vehicles on keyboard](https://github.com/GTAmodding/GTAIV-Issues-List/issues/90)
-- [Fixed possible crash when manually dial a phone number using the keypad in TLAD](https://github.com/GTAmodding/GTAIV-Issues-List/issues/232)
+- [Fixed possible crash when manually dialing a phone number using the keypad in TLAD](https://github.com/GTAmodding/GTAIV-Issues-List/issues/232)
 - [Fixed possible crash in TLAD mission "Marta Full of Grace"](https://github.com/GTAmodding/GTAIV-Issues-List/issues/235)
 - [Added an option to fix a bug that only make taxis spawn](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/issues/85)
 - [Added a file overload solution that allows to replace game files without actually replacing them](https://github.com/ThirteenAG/Ultimate-ASI-Loader?tab=readme-ov-file#update-folder-overload-from-folder)
@@ -199,79 +199,88 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 #### General
 
-- Fixed IV police computer soft-lock issue where one interface from it can't be closed with keyboard
-- Fixed too sensitive keyboard arrow keys input in police computer's virtual keyboard
-- Fixed possible crash when Lost Club memorial wall has many photos in TLAD
-- Fixed the busker script terminates too early in TBoGT, now Luis can give money to busker normally
-- Significantly sped up clothes changing in the safehouse wardrobe
-- Fixed sometimes buying food animation plays after several seconds delay in fast-food shop
+- Fixed police computer softlock where one interface from it couldn't be closed with the keyboard
+- Fixed too sensitive arrow keys inputs in police computer virtual keyboard
+- Fixed possible crash when The Lost clubhouse memorial wall has too many photos
+- Fixed busker script terminating too early in TBoGT, now Luis can give money to buskers normally
+- Restored Star Junction BurgerShot blip in TBoGT
+- Significantly sped up clothes changing transition in the safehouse wardrobe
+- Fixed food buying animation sometimes playing with several seconds delay in fast-food restaurants
 - Fixed computer web mouse sensitivity decreasing on high framerates when using keyboard and mouse
 - Fixed computer web scrolling speeding up on high framerates when using controller
-- Fixed gun car's weapon animations speeding up on high framerates
+- Fixed gun car weapon animations speeding up on high framerates
+- Fixed binocular camera zoom speeding up on high framerates
+- Fixed some scripted look around camera movements speeding up on high framerates, and improved their mouse controls, like taxi passenger camera
 
-#### Model
+#### Models
 
+- Fixed pool ball shadows flickering when playing pool minigame in Playboy's apartment
 - Restored transparency on pool minigame
 - Restored traffic cops in toll booths
 - Restored non-cop pedestrians in helicopters flying around city
-- Restored eCola's own unique soda can for eCola vending machine
-- Restored TLAD combat shotgun's own unique prop model (prop_e1_pumpshot) instead of reusing IV's model (cj_prop_pumpshot)
-- The gun shop owner now uses his unique model (M_M_GunNut_01) instead of the strip club bouncer model (M_Y_bouncer_01)
-- Fixed two perseus suits' bought clothes texture doesn't match their prop models
-- Now game won't change Niko's hand when changing clothes to perseus' suits
+- Restored own unique soda can model for eCola vending machines instead of reusing Sprunk ones
+- Restored TLAD combat shotgun own unique prop model (prop_e1_pumpshot) instead of reusing IV model (cj_prop_pumpshot)
+- The gun shop owner now uses his unique model (M_M_GunNut_01) instead of reusing the strip club bouncer model (M_Y_bouncer_01)
+- Fixed two bought Perseus suits textures not matching their prop models
+- Fixed Niko's hands being changed while switching clothes to Perseus suits
+- Fixed Esperanto being spawned instead of Roman's Taxi in Roman's cab depot
 
 #### Audio
 
 - The Desert Eagle and Micro SMG are now using their unique sounds when viewing them (required modifying the animation dictionary "missgunlockup.wad")
-- Chinatown gun shop: Fixed a small bug where the wrong voice lines is used after exiting when not buying something
+- Fixed a small bug in Chinatown gun shop where the wrong voice lines were being used after exiting when not buying something
 - Fixed Johnny's incorrect voice lines when exiting the gun shop after buying something (used to use voice lines from Higgin's Heli Tours)
 - Restored Luis' voice lines when exiting the gun shop (buying/not buying)
 - Restored missing voice lines from Luis & Johnny when exiting the Broker gun shop
 - Restored Jim, Terry, Clay own voice lines in hi-lo cards minigame
 - Restored Uptown Riders' own voice lines in arm wrestling minigame (used to use Angels of Death's voice lines)
 - Restored Clay's voice lines, now he will respond to Johnny's arrival in hang out friend activity
-- Restored voice lines from Luis, he'll now respond to what the pilot tells him about the landmarks during the tour
+- Restored Luis' Heli Tours voice lines, he'll now respond to what the pilot tells him about the landmarks during the tour
 - Workaround for TLAD Heli Tours, now pilot voice trigger time won't be affected by Johnny voice text clear bug
 
-#### Mission
-
-- Fixed damage vehicle will increase payment rather than decrease payment in Brucie's web email vehicle theft
-- Fixed vehicle is removed too early after parking it in garage in Brucie's web email vehicle theft
-- Fixed ilyena call and brycebug content can't trigger after loading save (From ilyena's random character mission and stubbs' job)
-- Fixed Faustin execute animation sync issue in IV mission "The Master and the Molotov"
-- Fixed PlayboyX/Dwayne execute animations sync issue on high framerates in IV mission "The Holland Play..."
-- Fixed one shot's scripted depth of field can't be cleared when it's skipped in Phil's mission "Catch the Wave"
-- Fixed the FIB arriving too early at the abandoned mansion in Phil's mission "To live and die in Alderney"
-- Fixed scripted depth of field isn't removed after Darko execute animation finished in IV mission "That Special Someone"
+#### Missions
+>Note: this section contains story spoilers.
+>
+- Fixed damaged vehicles increasing payment, rather than decreasing payment, in Brucie's web email vehicles theft
+- Fixed vehicles being removed too early after parking it in garage in Brucie's web email vehicles theft
+- Fixed Ilyena call and Brycebug content not triggering after loading a save (From Ilyena's random encounter and Stubbs' job)
+- Fixed Faustin execution animation sync issue in mission "The Master and the Molotov"
+- Fixed Playboy/Dwayne execution animations sync issues on high framerates in mission "...The Holland Play"
+- Fixed scripted depth of field in one of the shots not being cleared upon skipping it in mission "Catch the Wave"
+- Fixed the FIB arriving too early at the abandoned mansion in mission "To Live and Die in Alderney"
+- Fixed scripted depth of field not being removed after Darko execution animation finishes in mission "That Special Someone"
 - Fixed the heli climb QTE being impossible on really high framerates
 - Workaround for a bug where Niko dies after being kicked off of Dimitri's helicopter and falling into the water (Deal Ending)
 - Workaround for a bug where Jacob crashes the Annihilator on high framerates (Deal Ending)
-- Workaround for a bug where Turismo fails to hit Jeff on high framerates in Jeff's final mission
-- Workaround for burned Angels of Deaths member won't trigger ragdoll and fall on high framerates in Billy's mission "Action/Reaction"
-- Workaround for one scripted cutscene ending too late on high framerates in TBoGT's ending credits
-- Fixed TLAD intro scripted cutscene's cut off distant world in several shots
-- Fixed sometimes mission can't continue for a long time when Johnny is close to Roman's Taxi in Ashley's mission "Roman's Holiday"
-- Fixed sometimes Roman lacking clothes model or using incorrect clothes texture in TLAD's ending credits
-- Fixed Malc's motorcycle used incorrect color in TLAD's ending credits
-- Fixed Yusuf's hand passing through the crane cabin glass in one animation from Yusuf's mission "Caught With Your Pants Down"
-- Fixed animation playing delay in two scripted cutscene from TBoGT Ending "Departure Time"
-- Fixed sometimes Luis will leave cover automatically when he is shooting behind cover in Bulgarin's plane (TBoGT Ending)
+- Workaround for a bug where Turismo fails to hit Jeff on high framerates in Jeff's final encounter
+- Workaround for burning Angels of Death member not triggering ragdoll and falling down on high framerates in mission "Action/Reaction"
+- Workaround for one scripted cutscene ending too late on high framerates in TBoGT ending credits
+- Fixed TLAD intro scripted cutscene cutting off distant world in several shots
+- Fixed scripted depth of field not being removed after one scripted cutscene ends in mission "Bad Standing"
+- Fixed possible issue where mission fails to continue for a significant amount of time even though Johnny has been close to Roman's Taxi in mission "Roman's Holiday"
+- Fixed Roman sometimes lacking clothes model or using incorrect clothes textures in TLAD ending credits
+- Fixed Malc's motorcycle using incorrect colors in TLAD ending credits
+- Fixed Yusuf's hand passing through the crane cabin glass during one of animations in mission "Caught With Your Pants Down"
+- Fixed delayed animations in two scripted cutscenes in "Departure Time"
+- Fixed Luis sometimes leaving cover automatically while shooting behind cover in Bulgarin's plane in mission "Departure Time"
 
 #### Misc
 
 - Fixed ammo reset when buying different pistol from gun shop in IV
 - Fixed ammo reset when buying different weapon from gun shop in TLAD/TBoGT
 - Restored the temporary ban from the gun shop when attacking the owner in TLAD/TBoGT
-- Now damaged soda vending machine can't be used
-- Car Wash: now superd2 is accepted by car wash, and packer2, police3, police4, policew are not accepted
-- Fixed incorrect wash car price help text for a type of taxi
-- Fixed NPC leaving delay after they finished paying at toll station
-- Fixed NPC abnormal overtaking behavior at toll station
-- Fixed IV pigeon collection's annihilator reward prevents Brucie landing helicopter at Star Junction's landing site
-- Fixed memorial wall photos won't spawn when entering Lost Club from roof entry in TLAD
-- Fixed zoomed camera will be interrupted if Luis is moving when he calls empty taxi in TBoGT
-- Fixed several motorcycles use incorrect paying animation at toll station in TBoGT
-- Fixed Luis' vehicle always been removed after playing golf minigame
+- Enabled Roman's cab depot script in TLAD
+- Fixed damaged vending machines being usable
+- Superd2 is now accepted by car wash, meanwhile packer2, police3, police4, policew are now not accepted
+- Fixed incorrect car wash price help text for a one type of taxi
+- Fixed NPCs driving away with a delay after finishing paying at toll station
+- Fixed NPCs abnormal overtaking behavior at toll station
+- Fixed 200 pigeons extermination annihilator reward preventing Brucie from landing helicopter at Star Junction landing site
+- Fixed memorial wall photos not spawning while entering The Lost clubhouse from roof entry in TLAD
+- Fixed zoomed camera being interrupted if Luis is moving while he calls an empty taxi
+- Fixed several motorcycles using incorrect paying animation at toll station in TBoGT
+- Fixed scripted depth of field not being removed after playing drinking minigame
+- Fixed Luis' vehicle always being removed after playing golf and drinking minigame
 
 ### Episodic content
 
@@ -305,16 +314,16 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored console rain density
 - Sped up menu and pause transitions
 - Pressed radar zoom out button now will make it stay zoomed out for a few seconds
-- Fixed helicopter searchlights flicker violently when more than one helicopter is present
+- Fixed helicopter searchlights flickering violently when more than one helicopter is present
 - Fixed radio reset after cutscene
-- Workaround for lights & motion blur flicker intermittently when player is drunk
+- Workaround for lights & motion blur flickering intermittently when player is drunk
 - Now stunt jump camera is controlled by mouse wheel when using keyboard and mouse
-- Fixed player can't give beggar money normally on PC
+- Fixed not being able to give money to beggars normally on PC
 - Fixed TLAD phone keypad rendering on top of the plastic cover
-- Fixed TLAD an incorrect traffic cops head texture
-- Fixed some cutscene and interiors models
+- Fixed TLAD incorrect traffic cops head texture
+- Fixed some cutscenes and interiors models
 - Fixed and improved some lights and emissive materials
-- Fixed one font '9' uses incorrect style in TBoGT
+- Fixed one font '9' using incorrect style in TBoGT
 - Added an option to enable shadows for some objects and vegetation that lack them
 - Added options to customize shadow blur, bias and cascade blending 
 - Various other fixes, like regular cops & fat cops will now spawn with their hat prop disabled when in a vehicle, like on the console version
