@@ -13,6 +13,7 @@ import d3dx9_43;
 import fusiondxhook;
 import gxtloader;
 import timecycext;
+import natives;
 
 namespace CText
 {
@@ -337,6 +338,8 @@ public:
             { 0, "PREF_PADLOOKSENSITIVITY",     "MISC",       "PadLookSensitivity",                 "",                           10, nullptr, 0, 21 },
             { 0, "PREF_PADAIMSENSITIVITY",      "MISC",       "PadAimSensitivity",                  "",                           10, nullptr, 0, 21 },
             { 0, "PREF_MOUSEAIMSENSITIVITY",    "MISC",       "MouseAimSensitivity",                "",                           10, nullptr, 0, 21 },
+            { 0, "PREF_SCOTEST1",               "MISC",       "ScoTest1",                           "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_SCOTEST2",               "MISC",       "ScoTest2",                           "",                           0, nullptr, 0, 1 },
             // Enums are at capacity, to use more enums, replace multiplayer ones. On/Off toggles should still be possible to add.
         };
 
@@ -624,6 +627,22 @@ export bool shouldModifyMapMenuBackground(int curMenuTab = *pMenuTab)
 {
     static auto bTransparentMapMenu = FusionFixSettings.GetRef("PREF_TRANSPARENTMAPMENU");
     return bTransparentMapMenu->get() && fMenuBlur && curMenuTab == 3;
+}
+
+injector::hook_back<decltype(&Natives::DoesScriptExist)> hbDOES_SCRIPT_EXIST;
+bool __cdecl NATIVE_DOES_SCRIPT_EXIST(char* name)
+{
+    auto ret = hbDOES_SCRIPT_EXIST.fun(name);
+
+    if (!ret)
+    {
+        if (std::string_view(name).starts_with("PREF_"))
+        {
+            return FusionFixSettings.Get(name);
+        }
+    }
+
+    return ret;
 }
 
 class Settings
@@ -1342,6 +1361,8 @@ public:
                     }
                 }
             });
+
+            hbDOES_SCRIPT_EXIST.fun = NativeOverride::Register(Natives::NativeHashes::DOES_SCRIPT_EXIST, NATIVE_DOES_SCRIPT_EXIST, "E8", 30);
         }
     }
 } Settings;
