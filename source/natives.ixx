@@ -53,7 +53,8 @@ export struct Vector4
     float fW;
 };
 
-export struct Color32 {
+export struct Color32
+{
     uint8_t b;
     uint8_t g;
     uint8_t r;
@@ -169,7 +170,7 @@ public:
     {
         if (getNativeAddress)
             return reinterpret_cast<ncall>(getNativeAddress(Hash));
-        
+
         auto ms_pNatives = *rage::scrEngine::ms_pNatives;
         auto ms_dwNativeTableSize = *rage::scrEngine::ms_dwNativeTableSize;
 
@@ -209,7 +210,8 @@ public:
             if (!m_IndexTable[Index])
             {
                 auto fn = GetNativeHandler(Hash);
-                if (fn) {
+                if (fn)
+                {
                     m_IndexTable[Index] = fn;
                     fn(&cxt);
                 }
@@ -230,7 +232,8 @@ public:
 export class Natives
 {
 public:
-    enum class NativeHashes : uint32_t {
+    enum class NativeHashes : uint32_t
+    {
         ABORT_ALL_GARAGE_ACTIVITY = 0x5DB95843,
         ABORT_SCRIPTED_CONVERSATION = 0x57DB70CE,
         ABSF = 0x67640F3,
@@ -4266,7 +4269,7 @@ public:
     static inline auto GetNumberOfFiresInRange(float x, float y, float z, float radius) { return NativeInvoke::Invoke<909, std::to_underlying(NativeHashes::GET_NUMBER_OF_FIRES_IN_RANGE), uint32_t>(x, y, z, radius); }
     static inline auto GetNumberOfFollowers(Ped ped, int32_t* followers) { return NativeInvoke::Invoke<910, std::to_underlying(NativeHashes::GET_NUMBER_OF_FOLLOWERS), void>(ped, followers); }
     static inline auto GetNumberOfInjuredPedsInRange(float x, float y, float z, float radius) { return NativeInvoke::Invoke<911, std::to_underlying(NativeHashes::GET_NUMBER_OF_INJURED_PEDS_IN_RANGE), int32_t>(x, y, z, radius); }
-    static inline auto GetNumberOfInstancesOfStreamedScript(char* scriptName) { return NativeInvoke::Invoke<912, std::to_underlying(NativeHashes::GET_NUMBER_OF_INSTANCES_OF_STREAMED_SCRIPT), uint32_t>(scriptName); }
+    static inline auto GetNumberOfInstancesOfStreamedScript(char* scriptName) { return NativeInvoke::Invoke<912, std::to_underlying(NativeHashes::GET_NUMBER_OF_INSTANCES_OF_STREAMED_SCRIPT), int32_t>(scriptName); }
     static inline auto GetNumberOfPassengers(Vehicle vehicle, uint32_t* pNumPassengers) { return NativeInvoke::Invoke<913, std::to_underlying(NativeHashes::GET_NUMBER_OF_PASSENGERS), void>(vehicle, pNumPassengers); }
     static inline auto GetNumberOfPlayers() { return NativeInvoke::Invoke<914, std::to_underlying(NativeHashes::GET_NUMBER_OF_PLAYERS), uint32_t>(); }
     static inline auto GetNumberOfStickyBombsStuckToObject(Object obj) { return NativeInvoke::Invoke<915, std::to_underlying(NativeHashes::GET_NUMBER_OF_STICKY_BOMBS_STUCK_TO_OBJECT), int32_t>(obj); }
