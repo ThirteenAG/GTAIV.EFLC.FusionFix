@@ -629,10 +629,10 @@ export bool shouldModifyMapMenuBackground(int curMenuTab = *pMenuTab)
     return bTransparentMapMenu->get() && fMenuBlur && curMenuTab == 3;
 }
 
-injector::hook_back<decltype(&Natives::DoesScriptExist)> hbDOES_SCRIPT_EXIST;
-bool __cdecl NATIVE_DOES_SCRIPT_EXIST(char* name)
+injector::hook_back<decltype(&Natives::GetNumberOfInstancesOfStreamedScript)> hbGET_NUMBER_OF_INSTANCES_OF_STREAMED_SCRIPT;
+int32_t __cdecl NATIVE_GET_NUMBER_OF_INSTANCES_OF_STREAMED_SCRIPT(char* name)
 {
-    auto ret = hbDOES_SCRIPT_EXIST.fun(name);
+    auto ret = hbGET_NUMBER_OF_INSTANCES_OF_STREAMED_SCRIPT.fun(name);
 
     if (!ret)
     {
@@ -1362,7 +1362,7 @@ public:
                 }
             });
 
-            hbDOES_SCRIPT_EXIST.fun = NativeOverride::Register(Natives::NativeHashes::DOES_SCRIPT_EXIST, NATIVE_DOES_SCRIPT_EXIST, "E8", 30);
+            hbGET_NUMBER_OF_INSTANCES_OF_STREAMED_SCRIPT.fun = NativeOverride::Register(Natives::NativeHashes::GET_NUMBER_OF_INSTANCES_OF_STREAMED_SCRIPT, NATIVE_GET_NUMBER_OF_INSTANCES_OF_STREAMED_SCRIPT, "E8", 30);
         }
     }
 } Settings;
