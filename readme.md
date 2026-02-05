@@ -248,6 +248,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed Playboy/Dwayne execution animations sync issues on high framerates in mission "...The Holland Play"
 - Fixed scripted depth of field in one of the shots not being cleared upon skipping it in mission "Catch the Wave"
 - Fixed the FIB arriving too early at the abandoned mansion in mission "To Live and Die in Alderney"
+- Fixed one conversation can't be restored and continue if Niko is too far away from Packie in mission "Diamonds are a Girl's Best Friend"
 - Fixed scripted depth of field not being removed after Darko execution animation finishes in mission "That Special Someone"
 - Fixed the heli climb QTE being impossible on really high framerates
 - Workaround for a bug where Niko dies after being kicked off of Dimitri's helicopter and falling into the water (Deal Ending)
