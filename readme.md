@@ -210,7 +210,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed computer web scrolling speeding up on high framerates when using controller
 - Fixed gun car weapon animations speeding up on high framerates
 - Fixed binocular camera zoom speeding up on high framerates
-- Fixed some scripted look around camera movements speeding up on high framerates, and improved their mouse controls, like taxi passenger camera
+- Fixed golf shot position movement becoming slower on high framerates when using keyboard and mouse
+- Fixed some scripted look around camera movements speeding up on high framerates, and improved their mouse controls, like taxi passenger and binocular camera
 
 #### Models
 
@@ -220,7 +221,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored non-cop pedestrians in helicopters flying around city
 - Restored own unique soda can model for eCola vending machines instead of reusing Sprunk ones
 - Restored TLAD combat shotgun own unique prop model (prop_e1_pumpshot) instead of reusing IV model (cj_prop_pumpshot)
-- The gun shop owner now uses his unique model (M_M_GunNut_01) instead of reusing the strip club bouncer model (M_Y_bouncer_01)
+- Restored the gun shop owner own unique model (M_M_GunNut_01) instead of using the strip club bouncer model (M_Y_bouncer_01)
 - Fixed two bought Perseus suits textures not matching their prop models
 - Fixed Niko's hands being changed while switching clothes to Perseus suits
 - Fixed Esperanto being spawned instead of Roman's Taxi in Roman's cab depot
@@ -234,7 +235,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored missing voice lines from Luis & Johnny when exiting the Broker gun shop
 - Restored Jim, Terry, Clay own voice lines in hi-lo cards minigame
 - Restored Uptown Riders' own voice lines in arm wrestling minigame (used to use Angels of Death's voice lines)
-- Restored Clay's voice lines, now he will respond to Johnny's arrival in hang out friend activity
+- Restored Clay's voice lines, he'll now respond to Johnny's arrival in hang out friend activity
+- Restored Armando and Henrique's voice lines, they'll now greet Luis when he is close to them in strip club
 - Restored Luis' Heli Tours voice lines, he'll now respond to what the pilot tells him about the landmarks during the tour
 - Workaround for TLAD Heli Tours, now pilot voice trigger time won't be affected by Johnny voice text clear bug
 
@@ -248,6 +250,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed Playboy/Dwayne execution animations sync issues on high framerates in mission "...The Holland Play"
 - Fixed scripted depth of field in one of the shots not being cleared upon skipping it in mission "Catch the Wave"
 - Fixed the FIB arriving too early at the abandoned mansion in mission "To Live and Die in Alderney"
+- Fixed one conversation couldn't be restored and continue if Niko is too far away from Packie in mission "Diamonds are a Girl's Best Friend"
 - Fixed scripted depth of field not being removed after Darko execution animation finishes in mission "That Special Someone"
 - Fixed the heli climb QTE being impossible on really high framerates
 - Workaround for a bug where Niko dies after being kicked off of Dimitri's helicopter and falling into the water (Deal Ending)
@@ -261,7 +264,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed Roman sometimes lacking clothes model or using incorrect clothes textures in TLAD ending credits
 - Fixed Malc's motorcycle using incorrect colors in TLAD ending credits
 - Fixed Yusuf's hand passing through the crane cabin glass during one of animations in mission "Caught With Your Pants Down"
-- Fixed delayed animations in two scripted cutscenes in "Departure Time"
+- Fixed parking tower platform movement speeding up on high framerates in mission "No. 3"
+- Fixed delayed animations in two scripted cutscenes in mission "Departure Time"
 - Fixed Luis sometimes leaving cover automatically while shooting behind cover in Bulgarin's plane in mission "Departure Time"
 
 #### Misc
@@ -270,15 +274,14 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed ammo reset when buying different weapon from gun shop in TLAD/TBoGT
 - Restored the temporary ban from the gun shop when attacking the owner in TLAD/TBoGT
 - Enabled Roman's cab depot script in TLAD
-- Fixed damaged vending machines being usable
 - Superd2 is now accepted by car wash, meanwhile packer2, police3, police4, policew are now not accepted
 - Fixed incorrect car wash price help text for a one type of taxi
-- Fixed NPCs driving away with a delay after finishing paying at toll station
-- Fixed NPCs abnormal overtaking behavior at toll station
+- Fixed damaged vending machines being usable
+- Fixed NPCs driving away with a delay after finishing paying in toll booths
+- Fixed NPCs abnormal overtaking behavior in toll booths
 - Fixed 200 pigeons extermination annihilator reward preventing Brucie from landing helicopter at Star Junction landing site
 - Fixed memorial wall photos not spawning while entering The Lost clubhouse from roof entry in TLAD
-- Fixed zoomed camera being interrupted if Luis is moving while he calls an empty taxi
-- Fixed several motorcycles using incorrect paying animation at toll station in TBoGT
+- Fixed several motorcycles using incorrect paying animation in toll booths in TBoGT
 - Fixed scripted depth of field not being removed after playing drinking minigame
 - Fixed Luis' vehicle always being removed after playing golf and drinking minigame
 
