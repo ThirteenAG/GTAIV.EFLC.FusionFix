@@ -210,6 +210,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed computer web scrolling speeding up on high framerates when using controller
 - Fixed gun car weapon animations speeding up on high framerates
 - Fixed binocular camera zoom speeding up on high framerates
+- Fixed golf shot position movement becoming slower on high framerates when using keyboard and mouse
 - Fixed some scripted look around camera movements speeding up on high framerates, and improved their mouse controls, like taxi passenger and binocular camera
 
 #### Models
@@ -262,7 +263,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed Roman sometimes lacking clothes model or using incorrect clothes textures in TLAD ending credits
 - Fixed Malc's motorcycle using incorrect colors in TLAD ending credits
 - Fixed Yusuf's hand passing through the crane cabin glass during one of animations in mission "Caught With Your Pants Down"
-- Fixed delayed animations in two scripted cutscenes in "Departure Time"
+- Fixed parking tower platform movement sped up on high framerates in mission "No. 3"
+- Fixed delayed animations in two scripted cutscenes in mission "Departure Time"
 - Fixed Luis sometimes leaving cover automatically while shooting behind cover in Bulgarin's plane in mission "Departure Time"
 
 #### Misc
