@@ -369,7 +369,7 @@ public:
                 if (!pattern.empty())
                 {
                     injector::MakeNOP(pattern.get_first(0), 12, true);
-                    static auto CCamFollowPed_MouseSensXY = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CCamFollowPed_MouseSens1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         if (regs.ebx && *(uint8_t*)(regs.ebx + 0x3289))
                         {
@@ -382,28 +382,8 @@ public:
                             *(float*)(regs.esp + 0x28) = regs.xmm3.f32[0];
                         }
                     });
-                }
-                else
-                {
-                    pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 11 44 24 ? 76 ? 0F 28 C4");
-                    injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto CCamFollowPed_MouseSensX = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                    {
-                        if (regs.ebx && *(uint8_t*)(regs.ebx + 0x3289))
-                        {
-                            regs.xmm0.f32[0] *= GetMouseLookSensitivity() * 0.022222223f;
-                        }
-                        else
-                        {
-                            regs.xmm0.f32[0] *= 0.0625f;
-                        }
-                    });
-                }
 
-                // Match with aim cam
-                pattern = hook::pattern("F3 0F 59 0D ? ? ? ? F3 0F 11 4C 24 ? F3 0F 10 4C 24 ? 0F 54 CC");
-                if (!pattern.empty())
-                {
+                    pattern = hook::pattern("F3 0F 59 0D ? ? ? ? F3 0F 11 4C 24 ? F3 0F 10 4C 24 ? 0F 54 CC");
                     injector::MakeNOP(pattern.get_first(0), 8, true);
                     static auto CCamFollowPed_MouseSens2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
@@ -419,6 +399,20 @@ public:
                 }
                 else
                 {
+                    pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 11 44 24 ? 76 ? 0F 28 C4");
+                    injector::MakeNOP(pattern.get_first(0), 8, true);
+                    static auto CCamFollowPed_MouseSens1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        if (regs.ebx && *(uint8_t*)(regs.ebx + 0x3289))
+                        {
+                            regs.xmm0.f32[0] *= GetMouseLookSensitivity() * 0.022222223f;
+                        }
+                        else
+                        {
+                            regs.xmm0.f32[0] *= 0.0625f;
+                        }
+                    });
+
                     pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 59 4C 24 ? 0F 57 ED");
                     injector::MakeNOP(pattern.get_first(0), 8, true);
                     static auto CCamFollowPed_MouseSens2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
