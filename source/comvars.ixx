@@ -2160,6 +2160,7 @@ export bool bExtraNightShadows = false;
 export bool bHeadlightShadows = false;
 export bool bVehicleNightShadows = true;
 export bool bHighResolutionShadows = false;
+export bool bHighResolutionNightShadows = false;
 export bool bIsQUB3D = false;
 export float fMenuBlur = 0.0f;
 export bool bInSniperScope = false;

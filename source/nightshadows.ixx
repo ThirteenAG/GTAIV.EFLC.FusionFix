@@ -9,7 +9,6 @@ import comvars;
 import natives;
 import settings;
 
-bool bHighResolutionNightShadows = false;
 bool bIsDirLightShadows = false;
 
 void* fnAE3310 = nullptr;
@@ -88,17 +87,26 @@ static void __fastcall sub_D77A00(void* _this, void* edx)
     return shsub_D77A00.unsafe_fastcall(_this, edx);
 }
 
-int GetNightShadowQuality()
+int CWarpedShadows_GetSize()
 {
     static auto NightShadows = FusionFixSettings.GetRef("PREF_SHADOW_DENSITY");
+
     switch (NightShadows->get())
     {
-        // MO_OFF / MO_MED / MO_HIGH / MO_VHIGH
-        case 0: return 0;
-        case 1: return 256  * (bHighResolutionNightShadows ? 2 : 1);
-        case 2: return 512  * (bHighResolutionNightShadows ? 2 : 1);
-        case 3: return 1024 * (bHighResolutionNightShadows ? 2 : 1);
-        default: return 0;
+        // MO_OFF
+        case 0:
+            return 0;
+        // MO_MED
+        case 1:
+            return 256  * (bHighResolutionNightShadows ? 2 : 1);
+        // MO_HIGH
+        case 2:
+            return 512  * (bHighResolutionNightShadows ? 2 : 1);
+        // MO_VHIGH
+        case 3:
+            return 1024 * (bHighResolutionNightShadows ? 2 : 1);
+        default:
+            return 0;
     }
 }
 
@@ -114,17 +122,15 @@ public:
             // [NIGHTSHADOWS]
             bHighResolutionNightShadows = iniReader.ReadInteger("SHADOWS", "HighResolutionNightShadows", 0) != 0;
 
-            // Make the night shadow options adjust the night shadow resolution
-            {
-                auto pattern = find_pattern("8B 0D ? ? ? ? 85 C9 7E 1B", "8B 0D ? ? ? ? 33 C0 85 C9 7E 1B");
-                static auto shsub_925E70 = safetyhook::create_inline(pattern.get_first(0), GetNightShadowQuality);
-            }
+            // Reimplement night shadows' settings
+            auto pattern = find_pattern("8B 0D ? ? ? ? 85 C9 7E ? 83 3D", "8B 0D ? ? ? ? 33 C0 85 C9 7E ? 39 05");
+            static auto CWarpedShadows__GetSize = safetyhook::create_inline(pattern.get_first(0), CWarpedShadows_GetSize);
 
             // Vehicle night shadows
             // Allows rendering dynamic shadows of vehicles from artificial light sources
             // Bugs: Vehicle tires and damage/dents/deformation do not get included in the shadow maps
             {
-                auto pattern = find_pattern("E8 ? ? ? ? 6A 00 6A 14 E8 ? ? ? ? 8B F8 83 C4 44", "E8 ? ? ? ? 53 6A 14 E8 ? ? ? ? 83 C4 44");
+                pattern = find_pattern("E8 ? ? ? ? 6A 00 6A 14 E8 ? ? ? ? 8B F8 83 C4 44", "E8 ? ? ? ? 53 6A 14 E8 ? ? ? ? 83 C4 44");
                 fnAE3310 = injector::GetBranchDestination(pattern.get_first(0)).get();
                 injector::MakeCALL(pattern.get_first(0), sub_AE3310, true);
 
@@ -155,7 +161,7 @@ public:
 
             // Headlight shadows
             {
-                auto pattern = hook::pattern("68 04 05 00 00 6A 02 6A 00");
+                pattern = hook::pattern("68 04 05 00 00 6A 02 6A 00");
                 if (!pattern.count(2).empty())
                 {
                     CShadows::hbStoreStaticShadow.fun = injector::MakeCALL(pattern.count(2).get(0).get<void*>(9), CShadows::StoreStaticShadowPlayerDriving).get();
@@ -310,7 +316,7 @@ public:
             // Lamppost shadows
             {
                 // Lamppost shadows workaround 1
-                auto pattern = hook::pattern("80 3D ? ? ? ? ? 75 04 83 C8 FF");
+                pattern = hook::pattern("80 3D ? ? ? ? ? 75 04 83 C8 FF");
                 shsub_925DB0 = safetyhook::create_inline(pattern.get_first(), sub_925DB0);
 
                 // Lamppost shadows workaround 2
@@ -356,12 +362,12 @@ public:
                 }
             }
 
-            // Multiply the car/bike bottom static shadow texture intensity while headlight shadows and vehicle night shadows are active (To compensate for the player's car lacking a shadow)
+            // Multiply the intensity of vehicle bottom shadow textures while headlight shadows are active (To compensate for the player's vehicle not receiving night shadows)
             {
-                auto pattern = hook::pattern("C7 44 24 ? ? ? ? ? F3 0F 11 14 24 50");
+                pattern = hook::pattern("C7 44 24 ? ? ? ? ? F3 0F 11 14 24 50");
                 if (!pattern.empty())
                 {
-                    static auto CarStaticShadowIntensityHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto VehicleBottomShadowIntensityHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         if (bHeadlightShadows)
                         {
@@ -372,7 +378,7 @@ public:
                 else
                 {
                     pattern = hook::pattern("D9 1C 24 8D 4C 24 34 51 8B 4D 0C 52 51 50 6A 00 6A 03 6A 00 E8 ? ? ? ? 83 C4 40 8B E5 5D C3 CC");
-                    static auto CarStaticShadowIntensityHook = safetyhook::create_mid(pattern.count(2).get(0).get<void*>(7), [](SafetyHookContext& regs)
+                    static auto VehicleBottomShadowIntensityHook = safetyhook::create_mid(pattern.count(2).get(0).get<void*>(7), [](SafetyHookContext& regs)
                     {
                         if (bHeadlightShadows)
                         {

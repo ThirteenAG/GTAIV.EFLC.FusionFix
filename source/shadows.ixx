@@ -81,6 +81,32 @@ void __cdecl CBaseModelInfo__setFlagsHook(void* pModel, int dwFlags, int a3)
     return injector::cstd<void(void*, int, int)>::call(CBaseModelInfo__setFlags, pModel, dwFlags, a3);
 }
 
+int CCascadeShadows_GetSize()
+{
+    static auto ShadowQuality = FusionFixSettings.GetRef("PREF_SHADOW_QUALITY");
+
+    switch (ShadowQuality->get())
+    {
+        // MO_OFF
+        case 0:
+            return 0;
+        // MO_LOW
+        case 1:
+            return 256  * (bHighResolutionShadows ? 2 : 1);
+        // MO_MED
+        case 2:
+            return 512  * (bHighResolutionShadows ? 2 : 1);
+        // MO_HIGH
+        case 3:
+            return 1024 * (bHighResolutionShadows ? 2 : 1);
+        // MO_VHIGH
+        case 4:
+            return 2048 * (bHighResolutionShadows ? 2 : 1);
+        default:
+            return 0;
+    }
+}
+
 class Shadows
 {
 public:
@@ -218,48 +244,14 @@ public:
                 pattern = find_pattern("BA ? ? ? ? 84 C0 0F 45 CA 8B 15", "40 05 00 00 00 8B 0D ? ? ? ? 8B 11 8B 52 38 8D 74 24 14 56 50 A1");
                 injector::WriteMemory(pattern.get_first(1), rage::getEngineTextureFormat(D3DFMT_A8R8G8B8), true);
 
-                if (bHighResolutionShadows)
+                // Reimplement shadow quality settings
                 {
-                    pattern = hook::pattern("8D 7D 40 8B 01 57 FF 75 10 FF 75 24 FF 75 0C FF 75 20 FF 75 18");
-                    if (!pattern.empty())
-                    {
-                        static auto FixCascadedShadowMapResolution = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                        {
-                            auto& Width  = *(uint32_t*)(regs.ebp + 0x14);
-                            auto& Height = *(uint32_t*)(regs.ebp + 0x18);
-                            auto& Levels = *(uint32_t*)(regs.ebp + 0x20);
-                            auto& Format = *(uint32_t*)(regs.ebp + 0x24);
-
-                            if (D3DFORMAT(Format) == NewCascadeAtlasFormat && Height >= 256 && Width == Height * 4 && Levels == 1)
-                            {
-                                Width  *= 2;
-                                Height *= 2;
-                            }
-                        });
-                    }
-                    else
-                    {
-                        pattern = hook::pattern("8D 4F 40 51 89 4C 24 24 8B 4F 10 51 8B 4F 24 51 8B 4F 0C 51 8B 4F 20 E9");
-                        static auto FixCascadedShadowMapResolution = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                        {
-                            auto& Width  = *(uint32_t*)(regs.edi + 0x14);
-                            auto& Height = *(uint32_t*)(regs.edi + 0x18);
-                            auto& Levels = *(uint32_t*)(regs.edi + 0x20);
-                            auto& Format = *(uint32_t*)(regs.edi + 0x24);
-
-                            if (D3DFORMAT(Format) == NewCascadeAtlasFormat && Height >= 256 && Width == Height * 4 && Levels == 1)
-                            {
-                                Width  *= 2;
-                                Height *= 2;
-                            }
-                        });
-                    }
-                }
-                else
-                {
-                    // Remove code that doubled shadow cascade resolution
-                    pattern = find_pattern("03 F6 E8 ? ? ? ? 8B 0D ? ? ? ? 8D 54 24 0C", "03 F6 E8 ? ? ? ? 8B 0D ? ? ? ? 8D 44 24 0C");
+                    // Remove code that doubles shadow cascade size
+                    pattern = hook::pattern("03 F6 E8 ? ? ? ? 8B 0D");
                     injector::MakeNOP(pattern.get_first(0), 2, true);
+
+                    pattern = find_pattern("8B 0D ? ? ? ? 85 C9 7E ? B8 ? ? ? ? D3 E0", "8B 0D ? ? ? ? 33 C0 85 C9 7E ? B8");
+                    static auto CCascadeShadows__GetSize = safetyhook::create_inline(pattern.get_first(0), CCascadeShadows_GetSize);
                 }
 
                 // Override cascade ranges
@@ -305,8 +297,7 @@ public:
                     float ShadowMatrix3;
                 };
 
-                pattern = find_pattern("F3 0F 10 14 85 ? ? ? ? F3 0F 10 0C 85 ? ? ? ? F3 0F 5C CA F3 0F 59 C8 F3 0F 58 CA F3 0F 11 0C B5",
-                                       "F3 0F 10 94 00 ? ? ? ? F3 0F 10 9C 00 ? ? ? ? 03 C0 F3 0F 5C DA F3 0F 5E D9 F3 0F 59 D8 F3 0F 58 DA F3 0F 11 1C BD");
+                pattern = find_pattern("F3 0F 10 14 85 ? ? ? ? F3 0F 10 0C 85 ? ? ? ? F3 0F 5C CA", "F3 0F 10 94 00 ? ? ? ? F3 0F 10 9C 00 ? ? ? ? 03 C0");
                 auto pShadowMatrix = *pattern.get_first<ShadowMatrix*>(5);
 
                 for (size_t i = 0; i < 4; i++) // MO_LOW / MO_MED / MO_HIGH / MO_VHIGH
