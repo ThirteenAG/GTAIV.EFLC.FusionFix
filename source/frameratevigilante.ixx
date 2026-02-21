@@ -219,6 +219,17 @@ bool __cdecl NATIVE_SLIDE_OBJECT_2(Object object, float x, float y, float z, flo
     return shNATIVE_SLIDE_OBJECT.unsafe_ccall<bool>(object, x, y, z, xs * delta, ys * delta, zs * delta, flag);
 }
 
+float g_dtScale = 1.0f;
+SafetyHookInline shsub_9FE7B0 = {};
+void __cdecl sub_9FE7B0(float a1, int a2)
+{
+    constexpr float MAX_DT = 1.0f / 30.0f;
+    g_dtScale = a1 / MAX_DT;
+    float clampedDt = std::min(a1, MAX_DT * 2.0f);
+
+    return shsub_9FE7B0.unsafe_ccall(clampedDt, a2);
+}
+
 class FramerateVigilante
 {
 public:
@@ -255,6 +266,105 @@ public:
                         *(float*)(regs.ebp + 0x08) = std::clamp(*(float*)(regs.ebp + 0x08), 1.0f / 150.0f, FLT_MAX);
                     }
                 }; injector::MakeInline<FramerateVigilanteHook1>(pattern.get_first(0), pattern.get_first(6));
+            }
+
+            // Automobile physics
+            pattern = find_pattern("81 EC F8 02 00 00 53", "81 EC F8 02 00 00");
+            shsub_9FE7B0 = safetyhook::create_inline(pattern.get_first(), sub_9FE7B0);
+
+            // Slippery bikes
+            pattern = find_pattern("F3 0F 58 44 24 ? F3 0F 10 90");
+            if (!pattern.empty())
+            {
+                injector::MakeNOP(pattern.get_first(), 6, true);
+                static auto LeanAngleBikes = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                {
+                    regs.xmm0.f32[0] *= g_dtScale;
+                    regs.xmm0.f32[0] += *(float*)(regs.esp + 0x30);
+                });
+            }
+
+            pattern = find_pattern("F3 0F 11 44 24 ? 7E ? 8B 8F ? ? ? ? EB 02 33 C9 E8");
+            if (!pattern.empty())
+            {
+                injector::MakeNOP(pattern.get_first(), 6, true);
+                static auto AngleAdjustmentBikes = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                {
+                    *(float*)(regs.esp + 0x3C) = regs.xmm0.f32[0] * g_dtScale;
+                });
+}
+
+            // Slippery cars
+            if (!pattern.empty())
+            {
+                pattern = find_pattern("0F 2F C8 77 ? F3 0F 10 0D ? ? ? ? 0F 2F C1 76 ? 0F 28 C1 8B 87 ? ? ? ? F3 0F 58 44 24 ? F3 0F 10 88");
+                static auto LeanAngleCars = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                {
+                    regs.xmm0.f32[0] *= g_dtScale;
+                });
+            }
+
+            // Heli rotor break time
+            // Does not work yet!
+            // This already seems correct (it uses _fFrameTime * 300.0f) but for some reason it does not want to work. Even doing CTimer::fTimeStep * 30 * 300 won't work.
+            // The place is 100% correct too
+            {
+                pattern = hook::pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 10 4C 24 ? F3 0F 5C C8");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(0), 8, true);
+                    static auto HeliRotorBreakTime1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        
+                    });
+                }
+                else
+                {
+                    pattern = hook::pattern("F3 0F 10 0D ? ? ? ? F3 0F 59 0D ? ? ? ? F3 0F 10 44 24 ? F3 0F 5C C1 0F 57 C9");
+                    if (!pattern.empty())
+                    {
+                        injector::MakeNOP(pattern.get_first(0), 8, true);
+                        static auto HeliRotorBreakTime1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            
+                        });
+                    }
+                }
+
+                pattern = hook::pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 10 8F ? ? ? ? F3 0F 5C C8 0F 57 C0 0F 2F C1 F3 0F 11 8F");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(0), 8, true);
+                    static auto HeliRotorBreakTime2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        
+                    });
+                }
+                else
+                {
+                    pattern = hook::pattern("F3 0F 10 0D ? ? ? ? F3 0F 59 0D ? ? ? ? F3 0F 10 86 ? ? ? ? F3 0F 5C C1 0F 57 C9 0F 2F C8 F3 0F 11 86 ? ? ? ? 72");
+                    if (!pattern.empty())
+                    {
+                        injector::MakeNOP(pattern.get_first(0), 8, true);
+                        static auto HeliRotorBreakTime2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            
+                        });
+                    }
+                }
+            }
+
+            // Heli downwash effect
+            // Does not work yet!
+            // This uses more exquisite timing checks, so it doesn't fix anything atm
+            pattern = find_pattern("03 05 ? ? ? ? 33 D2 F7 F7 85 D2 75 ? 8B 46 ? 52 52 52", "03 05 ? ? ? ? 33 D2 F7 F1 85 D2 75 ? D9 44 24 ? 8B 47 ? 52 52 52");
+            if (!pattern.empty())
+            {
+                injector::MakeNOP(pattern.get_first(0), 6, true);
+                static auto HeliDownwashEffect = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    
+                });
             }
 
             // Loading text
