@@ -133,12 +133,18 @@ public:
 
             if (bExtendedLimits)
             {
-                poolNames.push_back("TxdStore");
-                poolNames.push_back("Anim Manager");
-                poolNames.push_back("PhysicsStore");
-                poolNames.push_back("BoundsStore");
-                poolNames.push_back("DrawblDictStore");
-                poolNames.push_back("IplStore");
+                poolNames.push_back("Anim Manager");    // .wad
+                poolNames.push_back("BoundsStore");     // .wbn
+                poolNames.push_back("DrawblDictStore"); // .wdd
+                poolNames.push_back("IplStore");        // .wpl | .ipl(?)
+                poolNames.push_back("PhysicsStore");    // .wbd
+                poolNames.push_back("TxdStore");        // .wtd(?)
+
+                // These need to be raised in order to fix a crash during hot coffee scenes when certain objects have more than 150 draw distance in .ides
+                poolNames.push_back("Building");
+                poolNames.push_back("Dummy Object");
+                poolNames.push_back("EntryInfoNodes");
+                poolNames.push_back("PtrNode Double");
             }
 
             if (nVehicleBudget)
@@ -146,7 +152,7 @@ public:
                 auto pattern = find_pattern("F7 2D ? ? ? ? 8B CA C1 E9 1F 03 CA B8 ? ? ? ? F7 2D ? ? ? ? 8B C2 C1 E8 1F 03 C2 89 0D ? ? ? ? A3 ? ? ? ? 83 C4 10 C3", "8B 0D ? ? ? ? B8 ? ? ? ? F7 E9 8B 0D");
                 injector::WriteMemory(*pattern.get_first<void*>(2), nVehicleBudget, true);
 
-                // Increase VehicleStruct pool size, to avoid certain crash with high budget
+                // Needed to avoid a predictable crash with high vehicle budgets (It usually happens in very specific places in the game world)
                 poolNames.push_back("VehicleStruct");
             }
 
