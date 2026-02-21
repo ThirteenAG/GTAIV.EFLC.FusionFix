@@ -414,7 +414,7 @@ public:
             // Does not work yet!
             // This already seems correct (it uses _fFrameTime * 300.0f) but for some reason it does not want to work. Even doing CTimer::fTimeStep * 30 * 300 won't work.
             // The place is 100% correct too
-            {
+            /*{
                 pattern = hook::pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 10 4C 24 ? F3 0F 5C C8");
                 if (!pattern.empty())
                 {
@@ -458,7 +458,7 @@ public:
                         });
                     }
                 }
-            }
+            }*/
 
             // Heli blinkers' speed
             pattern = hook::pattern("03 0D ? ? ? ? F3 0F 10 0D");
@@ -483,7 +483,7 @@ public:
             // Heli downwash effect
             // Does not work yet!
             // This uses more exquisite timing checks, so it doesn't fix anything atm, but the approach is probably halfway correct
-            pattern = find_pattern("03 05 ? ? ? ? 33 D2 F7 F7 85 D2 75 ? 8B 46 ? 52 52 52", "03 05 ? ? ? ? 33 D2 F7 F1 85 D2 75 ? D9 44 24 ? 8B 47 ? 52 52 52");
+            /*pattern = find_pattern("03 05 ? ? ? ? 33 D2 F7 F7 85 D2 75 ? 8B 46 ? 52 52 52", "03 05 ? ? ? ? 33 D2 F7 F1 85 D2 75 ? D9 44 24 ? 8B 47 ? 52 52 52");
             if (!pattern.empty())
             {
                 injector::MakeNOP(pattern.get_first(0), 6, true);
@@ -491,7 +491,7 @@ public:
                 {
                     regs.eax += *CTimer::m_snTimeInMilliseconds / (1000 / 30);
                 });
-            }
+            }*/
 
             // Loading text flash speed (IV and TLAD)
             {
