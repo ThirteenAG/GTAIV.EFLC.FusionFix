@@ -835,7 +835,7 @@ public:
                     hbsub_5DCA80.fun = injector::MakeCALL(pattern.get_first(0), sub_5DCA80, true).get();
             }
 
-            // Fix for random stencil issues when the drunk camera or explosion shakes are playing
+            // Workaround for drunk cam lights issue
             {
                 auto pattern = find_pattern("E8 ? ? ? ? 6A ? FF 74 24 ? FF 74 24 ? 6A", "E8 ? ? ? ? 83 FF ? 6A");
                 if (!pattern.empty())
