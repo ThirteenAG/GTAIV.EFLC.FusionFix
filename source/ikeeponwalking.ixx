@@ -54,16 +54,13 @@ public:
                         static auto alwaysrunPref = FusionFixSettings.GetRef("PREF_ALWAYSRUN");
                         static auto sprintPref = FusionFixSettings.GetRef("PREF_SPRINT");
 
-                        auto alwaysRunMode = alwaysrunPref->get();  
-                        if (bAlwaysRunOptions >= 1 && alwaysRunMode >= 1)
-                        alwaysRunMode = bAlwaysRunOptions;  // ini overrides
+                        auto bShouldRun = alwaysrunPref->get();
+                        auto alwaysRunMode = bAlwaysRunOptions;
 
-                        bool bShouldRun = alwaysRunMode >= 1;
-
-                        bool bDontRunNow = bShouldRun && (
+                        auto bDontRunNow = bShouldRun && (
                             (bDoNotRunInside && Natives::IsInteriorScene()) ||
-                            (alwaysRunMode == 1 && bIsFists) ||      // Armed Only: skip force with fists
-                            (alwaysRunMode == 2)                    // No Jogging: skip force when armed
+                            (alwaysRunMode == 1 && bIsFists) ||
+                            (alwaysRunMode == 2)
                             );
 
                         if (!sprintPref->get()) // toggle
