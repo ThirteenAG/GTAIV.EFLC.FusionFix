@@ -54,12 +54,9 @@ public:
                         static auto alwaysrunPref = FusionFixSettings.GetRef("PREF_ALWAYSRUN");
                         static auto sprintPref = FusionFixSettings.GetRef("PREF_SPRINT");
 
-                        // Use ini AlwaysRunOptions if set (≥0), else fall back to menu toggle (0/1)
-                        int32_t alwaysRunMode;
-                        if (bAlwaysRunOptions >= 0)
-                            alwaysRunMode = bAlwaysRunOptions;  // ini overrides
-                        else
-                            alwaysRunMode = alwaysrunPref->get();  // 0=Off, 1=On
+                        auto alwaysRunMode = alwaysrunPref->get();  
+                        if (bAlwaysRunOptions >= 1 && alwaysRunMode >= 1)
+                        alwaysRunMode = bAlwaysRunOptions;  // ini overrides
 
                         bool bShouldRun = alwaysRunMode >= 1;
 
