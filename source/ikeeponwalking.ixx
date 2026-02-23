@@ -1,9 +1,6 @@
 module;
-
 #include <common.hxx>
-
 export module ikeeponwalking;
-
 import common;
 import comvars;
 import settings;
@@ -15,71 +12,101 @@ public:
     IKeepOnWalking()
     {
         FusionFix::onInitEventAsync() += []()
-        {
-            CIniReader iniReader("");
-            static int32_t nWalkKey = iniReader.ReadInteger("MISC", "WalkKey", VK_MENU);
-            static bool bDoNotRunInside = iniReader.ReadInteger("MISC", "DoNotRunInside", 0) != 0;
-            auto pattern = hook::pattern("D9 44 24 18 5F 5B 5D");
-            static auto flag = false;
-            if (!pattern.empty())
-                flag = true;
-            else
-                pattern = hook::pattern("D9 44 24 1C 5E 5B 5D");
-            static uintptr_t loc_A2A60F = (uintptr_t)pattern.get_first(0);
-            pattern = hook::pattern("80 F9 7F 76 57");
-            struct SprintHook
             {
-                void operator()(injector::reg_pack& regs)
+                CIniReader iniReader("");
+                static int32_t nWalkKey = iniReader.ReadInteger("MISC", "WalkKey", VK_MENU);
+                static bool bDoNotRunInside = iniReader.ReadInteger("MISC", "DoNotRunInside", 0) != 0;
+                static int32_t bAlwaysRunOptions = iniReader.ReadInteger("MISC", "AlwaysRunOptions", 0);
+
+                auto pattern = hook::pattern("D9 44 24 18 5F 5B 5D");
+                static auto flag = false;
+                if (!pattern.empty())
+                    flag = true;
+                else
+                    pattern = hook::pattern("D9 44 24 1C 5E 5B 5D");
+                static uintptr_t loc_A2A60F = (uintptr_t)pattern.get_first(0);
+                pattern = hook::pattern("80 F9 7F 76 57");
+
+                struct SprintHook
                 {
-                    if ((*(uint8_t*)(regs.eax + 4) ^ *(uint8_t*)(regs.eax + 6)) <= 127)
+                    void operator()(injector::reg_pack& regs)
                     {
-                        if (*(float*)(regs.esp + (flag ? 0x14 : 0x1C)) > 1.0f)
-                            *(float*)(regs.esp + (flag ? 0x18 : 0x1C)) = 1.0f;
-
-                        force_return_address(loc_A2A60F);
-                    }
-                    static auto alwaysrunPref = FusionFixSettings.GetRef("PREF_ALWAYSRUN");
-                    static auto sprintPref = FusionFixSettings.GetRef("PREF_SPRINT");
-                    auto bShouldRun = alwaysrunPref->get();
-                    auto bDontRunNow = bShouldRun && bDoNotRunInside && Natives::IsInteriorScene();
-
-                    if (!sprintPref->get()) // toggle
-                    {
-                        if (bShouldRun)
+                        if ((*(uint8_t*)(regs.eax + 4) ^ *(uint8_t*)(regs.eax + 6)) <= 127)
                         {
-                            static auto bRunState = true;
-                            static auto oldWalkKeyState = IsKeyboardKeyPressed(nWalkKey);
-                            auto curWalkKeyState = IsKeyboardKeyPressed(nWalkKey);
-                            if (curWalkKeyState != oldWalkKeyState)
-                                bRunState = !bRunState;
-                            oldWalkKeyState = curWalkKeyState;
+                            if (*(float*)(regs.esp + (flag ? 0x14 : 0x1C)) > 1.0f)
+                                *(float*)(regs.esp + (flag ? 0x18 : 0x1C)) = 1.0f;
+                            force_return_address(loc_A2A60F);
+                        }
 
-                            if (bRunState)
+                        // Detect if fists/unarmed equipped
+                        bool bIsFists = false;
+                        Ped hPlayer = 0;
+                        Player playerId = Natives::GetPlayerId();
+                        Player playerIndex = Natives::ConvertIntToPlayerIndex(playerId);
+                        Natives::GetPlayerChar(playerIndex, &hPlayer);
+                        if (hPlayer != 0)
+                        {
+                            uint32_t currentWeapon = 0;
+                            Natives::GetCurrentCharWeapon(hPlayer, &currentWeapon);
+                            if (currentWeapon == 0) bIsFists = true;
+                        }
+
+                        static auto alwaysrunPref = FusionFixSettings.GetRef("PREF_ALWAYSRUN");
+                        static auto sprintPref = FusionFixSettings.GetRef("PREF_SPRINT");
+
+                        // Use ini AlwaysRunOptions if set (≥0), else fall back to menu toggle (0/1)
+                        int32_t alwaysRunMode;
+                        if (bAlwaysRunOptions >= 0)
+                            alwaysRunMode = bAlwaysRunOptions;  // ini overrides
+                        else
+                            alwaysRunMode = alwaysrunPref->get();  // 0=Off, 1=On
+
+                        bool bShouldRun = alwaysRunMode >= 1;
+
+                        bool bDontRunNow = bShouldRun && (
+                            (bDoNotRunInside && Natives::IsInteriorScene()) ||
+                            (alwaysRunMode == 1 && bIsFists) ||      // Armed Only: skip force with fists
+                            (alwaysRunMode == 2)                    // No Jogging: skip force when armed
+                            );
+
+                        if (!sprintPref->get()) // toggle
+                        {
+                            if (bShouldRun)
                             {
-                                if (!bDontRunNow)
-                                    *(float*)(regs.esp + (flag ? 0x18 : 0x1C)) = 1.0f;
+                                static auto bRunState = true;
+                                static auto oldWalkKeyState = IsKeyboardKeyPressed(nWalkKey);
+                                auto curWalkKeyState = IsKeyboardKeyPressed(nWalkKey);
+                                if (curWalkKeyState != oldWalkKeyState)
+                                    bRunState = !bRunState;
+                                oldWalkKeyState = curWalkKeyState;
+                                if (bRunState)
+                                {
+                                    if (!bDontRunNow)
+                                        *(float*)(regs.esp + (flag ? 0x18 : 0x1C)) = 1.0f;
+                                }
                             }
                         }
+                        else if (bShouldRun && !IsKeyboardKeyPressed(nWalkKey)) // hold
+                        {
+                            if (!bDontRunNow)
+                                *(float*)(regs.esp + (flag ? 0x18 : 0x1C)) = 1.0f;
+                        }
                     }
-                    else if (bShouldRun && !IsKeyboardKeyPressed(nWalkKey)) // hold
-                    {
-                        if (!bDontRunNow)
-                            *(float*)(regs.esp + (flag ? 0x18 : 0x1C)) = 1.0f;
-                    }
-                }
-            }; injector::MakeInline<SprintHook>(pattern.get_first(0));
+                }; injector::MakeInline<SprintHook>(pattern.get_first(0));
 
-            pattern = find_pattern("77 5F 8B 8E", "77 46 8B 8F");
-            static raw_mem GamepadCB(pattern.get_first(0), { 0x90, 0x90 }); // NOP
-            FusionFixSettings.SetCallback("PREF_ALWAYSRUN", [](int32_t value)
-            {
-                if (value)
+                pattern = find_pattern("77 5F 8B 8E", "77 46 8B 8F");
+                static raw_mem GamepadCB(pattern.get_first(0), { 0x90, 0x90 }); // NOP
+
+                FusionFixSettings.SetCallback("PREF_ALWAYSRUN", [](int32_t value)
+                    {
+                        if (value)
+                            GamepadCB.Write();
+                        else
+                            GamepadCB.Restore();
+                    });
+
+                if (FusionFixSettings("PREF_ALWAYSRUN"))
                     GamepadCB.Write();
-                else
-                    GamepadCB.Restore();
-            });
-            if (FusionFixSettings("PREF_ALWAYSRUN"))
-                GamepadCB.Write();
-        };
+            };
     }
 } IKeepOnWalking;
