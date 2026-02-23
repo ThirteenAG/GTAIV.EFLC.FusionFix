@@ -16,7 +16,7 @@ public:
                 CIniReader iniReader("");
                 static int32_t nWalkKey = iniReader.ReadInteger("MISC", "WalkKey", VK_MENU);
                 static bool bDoNotRunInside = iniReader.ReadInteger("MISC", "DoNotRunInside", 0) != 0;
-                static int32_t bAlwaysRunOptions = iniReader.ReadInteger("MISC", "AlwaysRunOptions", 0);
+                static int32_t bAlwaysRunOptions = iniReader.ReadInteger("MISC", "AlwaysRunOptions", 0);  // 0=default, 1=armed only, 2=no jogging
 
                 auto pattern = hook::pattern("D9 44 24 18 5F 5B 5D");
                 static auto flag = false;
@@ -38,7 +38,7 @@ public:
                             force_return_address(loc_A2A60F);
                         }
 
-                        // Detect if fists/unarmed equipped
+                        // Detect if fists/unarmed equipped (only used for mode 1)
                         bool bIsFists = false;
                         Ped hPlayer = 0;
                         Player playerId = Natives::GetPlayerId();
@@ -54,14 +54,35 @@ public:
                         static auto alwaysrunPref = FusionFixSettings.GetRef("PREF_ALWAYSRUN");
                         static auto sprintPref = FusionFixSettings.GetRef("PREF_SPRINT");
 
-                        auto bShouldRun = alwaysrunPref->get();
-                        auto alwaysRunMode = bAlwaysRunOptions;
+                        bool bShouldRun = alwaysrunPref->get();  // main toggle from menu
 
-                        auto bDontRunNow = bShouldRun && (
-                            (bDoNotRunInside && Natives::IsInteriorScene()) ||
-                            (alwaysRunMode == 1 && bIsFists) ||
-                            (alwaysRunMode == 2)
-                            );
+                        bool bDontRunNow = false;
+
+                        if (bShouldRun)
+                        {
+                            auto alwaysRunMode = bAlwaysRunOptions;
+
+                            // Mode 0: default (no special rules)
+                            if (alwaysRunMode == 0)
+                            {
+                                bDontRunNow = (bDoNotRunInside && Natives::IsInteriorScene());
+                            }
+                            // Mode 1: armed only (walk when fists)
+                            else if (alwaysRunMode == 1)
+                            {
+                                bDontRunNow = (bDoNotRunInside && Natives::IsInteriorScene()) || bIsFists;
+                            }
+                            // Mode 2: no jogging
+                            else if (alwaysRunMode == 2)
+                            {
+                                bDontRunNow = (bDoNotRunInside && Natives::IsInteriorScene() || alwaysRunMode == 2);
+                            }
+                            // Invalid mode → default
+                            else
+                            {
+                                bDontRunNow = (bDoNotRunInside && Natives::IsInteriorScene());
+                            }
+                        }
 
                         if (!sprintPref->get()) // toggle
                         {
