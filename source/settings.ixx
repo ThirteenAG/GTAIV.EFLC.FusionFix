@@ -1076,25 +1076,39 @@ public:
             {
                 FusionFixSettings.SetCallback("PREF_EXTRANIGHTSHADOWS", [](int32_t value)
                 {
-                    if (value)
-                    {
-                        bExtraNightShadows = true;
-                        bHeadlightShadows = value >= FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
-                        bVehicleNightShadows = value != FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
-                    }
-                    else
-                    {
-                        bExtraNightShadows = false;
-                        bHeadlightShadows = false;
-                        bVehicleNightShadows = true;
-                    }
+                        if (value == 0)
+                        {
+                            bExtraNightShadows = false;
+                            bHeadlightShadows = false;
+                            bVehicleNightShadows = false;
+                        }
+                        else if (value == 1)
+                        {
+                            bExtraNightShadows = true;
+                            bHeadlightShadows = false;
+                            bVehicleNightShadows = true;
+                        }
+                        else if (value == 2)
+                        {
+                            bExtraNightShadows = true;
+                            bHeadlightShadows = true;
+                            bVehicleNightShadows = false;
+                        }
+                        else if (value == 3)
+                        {
+                            bExtraNightShadows = true;
+                            bHeadlightShadows = true;
+                            bVehicleNightShadows = true;  // force all
+                        }
+                        
                 });
 
                 if (FusionFixSettings("PREF_EXTRANIGHTSHADOWS"))
                 {
-                    bExtraNightShadows = true;
-                    bHeadlightShadows = FusionFixSettings("PREF_EXTRANIGHTSHADOWS") >= FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
-                    bVehicleNightShadows = FusionFixSettings("PREF_EXTRANIGHTSHADOWS") != FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
+                    int32_t value = FusionFixSettings("PREF_EXTRANIGHTSHADOWS");
+                    bExtraNightShadows = value > 0;
+                    bHeadlightShadows = value >= 2;
+                    bVehicleNightShadows = value >= 3 || value == 1;  // force on for all except middle option
                 }
             }
         };
