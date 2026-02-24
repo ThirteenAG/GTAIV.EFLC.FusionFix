@@ -617,8 +617,8 @@ public:
 
     struct
     {
-        enum eExtraNightShadowsText { eOff, eLampposts, eLampostsHeadl, eLampHeadlVNS };
-        std::vector<const char*> data = { "MO_OFF", "Lampposts", "LampostsHeadl", "LampHeadlVNS" };
+        enum eExtraNightShadowsText { eOff, eLampHeadlVNS, eLampostsHeadl, eLampposts };
+        std::vector<const char*> data = { "MO_OFF", "LampHeadlVNS", "LampostsHeadl", "Lampposts" };
     } ExtraNightShadowsText;
 
 } FusionFixSettings;
@@ -1085,7 +1085,7 @@ public:
                         else if (value == 1)
                         {
                             bExtraNightShadows = true;
-                            bHeadlightShadows = false;
+                            bHeadlightShadows = true;
                             bVehicleNightShadows = true;
                         }
                         else if (value == 2)
@@ -1097,18 +1097,18 @@ public:
                         else if (value == 3)
                         {
                             bExtraNightShadows = true;
-                            bHeadlightShadows = true;
-                            bVehicleNightShadows = true;  // force all
+                            bHeadlightShadows = false;
+                            bVehicleNightShadows = true;
                         }
                         
                 });
 
+
                 if (FusionFixSettings("PREF_EXTRANIGHTSHADOWS"))
                 {
-                    int32_t value = FusionFixSettings("PREF_EXTRANIGHTSHADOWS");
-                    bExtraNightShadows = value > 0;
-                    bHeadlightShadows = value >= 2;
-                    bVehicleNightShadows = value >= 3 || value == 1;  // force on for all except middle option
+                    bExtraNightShadows = true;
+                    //bHeadlightShadows = FusionFixSettings("PREF_EXTRANIGHTSHADOWS") == FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl || FusionFixSettings.ExtraNightShadowsText.eLampHeadlVNS;
+                    //bVehicleNightShadows = FusionFixSettings("PREF_EXTRANIGHTSHADOWS") == FusionFixSettings.ExtraNightShadowsText.eLampHeadlVNS || FusionFixSettings.ExtraNightShadowsText.eLampposts;
                 }
             }
         };
