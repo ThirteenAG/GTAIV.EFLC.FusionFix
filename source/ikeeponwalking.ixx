@@ -54,7 +54,7 @@ public:
                         static auto alwaysrunPref = FusionFixSettings.GetRef("PREF_ALWAYSRUN");
                         static auto sprintPref = FusionFixSettings.GetRef("PREF_SPRINT");
 
-                        bool bShouldRun = alwaysrunPref->get();  // main toggle from menu
+                        auto bShouldRun = alwaysrunPref->get();  // main toggle from menu
 
                         bool bDontRunNow = false;
 
