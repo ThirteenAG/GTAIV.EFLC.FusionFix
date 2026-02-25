@@ -1966,6 +1966,7 @@ export namespace CTimer
     uint8_t* m_UserPause = nullptr;
     uint8_t* m_CodePause = nullptr;
     int32_t* m_snTimeInMilliseconds = nullptr;
+    int32_t* m_snTimeInMillisecondsPauseMode = nullptr;
 }
 
 export namespace CTimeCycle
@@ -2505,6 +2506,12 @@ export bool IsKeyboardKeyPressed(int vkeycode, int type = 1, const char* hint = 
     }
 }
 
+export namespace CPhysical
+{
+    float* (__fastcall* getAngularVelocity)(void*, void*, float*) = nullptr;
+    void (__fastcall* TransformOffsetToWorldSpace)(float*, void*, float*, float*, char, int) = nullptr;
+}
+
 export enum eControllerButtons
 {
     BUTTON_BUMPER_LEFT = 4,
@@ -2563,6 +2570,9 @@ public:
 
         pattern = find_pattern("A1 ? ? ? ? A3 ? ? ? ? EB 3A", "A1 ? ? ? ? 39 05 ? ? ? ? 76 1F");
         CTimer::m_snTimeInMilliseconds = *pattern.get_first<int32_t*>(1);
+
+        pattern = find_pattern("89 0D ? ? ? ? F3 0F 11 05 ? ? ? ? A3 ? ? ? ? E8 ? ? ? ? F3 0F 10 0D ? ? ? ? F3 0F 10 44 24 ? 84 C0 74 ? 0F 2F C1 77 ? EB ? 0F 2F C1 76 ? 0F 28 C8 F3 0F 10 05 ? ? ? ? 0F 2F C1 77 03 0F 28 C8 80 3D", "89 0D ? ? ? ? D9 2C 24 E8 ? ? ? ? 84 C0 F3 0F 10 05 ? ? ? ? F3 0F 10 4C 24 ? 74 ? 0F 2F C8 77 ? EB ? 0F 2F C8 76 ? 0F 28 C1 F3 0F 10 0D ? ? ? ? 0F 2F C8 77 03 0F 28 C1 80 3D");
+        CTimer::m_snTimeInMillisecondsPauseMode = *pattern.get_first<int32_t*>(2);
 
         pattern = find_pattern("83 3D ? ? ? ? ? 74 17 8B 4D 14", "83 3D ? ? ? ? ? 74 15 8B 44 24 1C", "83 3D ? ? ? ? ? 74 EF");
         rage::grcDevice::ms_pD3DDevice = *pattern.get_first<IDirect3DDevice9**>(2);
@@ -2824,5 +2834,11 @@ public:
         pattern = find_pattern("B9 ? ? ? ? E8 ? ? ? ? 84 C0 74 ? C6 86", "B9 ? ? ? ? E8 ? ? ? ? 84 C0 74 ? C6 86");
         KeyboardBuffer = *pattern.get_first<void**>(1);
         pIsKeyboardKeyPressed = (decltype(pIsKeyboardKeyPressed))injector::GetBranchDestination(pattern.get_first(5)).as_int();
+
+        pattern = find_pattern("E8 ? ? ? ? F3 0F 10 40 ? F3 0F 10 48 ? 8B 08 F3 0F 11 87 ? ? ? ? F3 0F 10 45", "E8 ? ? ? ? D9 00 F3 0F 10 40 ? F3 0F 10 48 ? D9 9E ? ? ? ? F3 0F 11 86 ? ? ? ? F3 0F 10 5D");
+        CPhysical::getAngularVelocity = (decltype(CPhysical::getAngularVelocity))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+
+        pattern = find_pattern("E8 ? ? ? ? F3 0F 10 B7 ? ? ? ? F3 0F 10 BF ? ? ? ? F3 0F 10 AF ? ? ? ? F3 0F 10 97", "E8 ? ? ? ? F3 0F 10 A6 ? ? ? ? F3 0F 10 6B");
+        CPhysical::TransformOffsetToWorldSpace = (decltype(CPhysical::TransformOffsetToWorldSpace))injector::GetBranchDestination(pattern.get_first(0)).as_int();
     }
 } Common;

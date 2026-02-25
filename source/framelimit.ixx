@@ -1,6 +1,7 @@
 module;
 
 #include <common.hxx>
+#include <regex>
 #include <mmsystem.h>
 #pragma comment(lib, "winmm.lib") // needed for timeBeginPeriod()/timeEndPeriod()
 
@@ -18,15 +19,7 @@ float fScriptCutsceneFpsLimit;
 float fScriptCutsceneFovLimit;
 float fLoadingFpsLimit;
 float fMinigamesFpsLimit;
-
-std::vector<std::string> minigamesNames = {
-    "pool_game",
-    "air_hockey",
-    "arm_wrestling",
-    "tenpinbowl",
-    "darts",
-    "drinking",
-};
+std::vector<std::string> minigamesNames;
 
 class FrameLimiter
 {
@@ -125,7 +118,8 @@ private:
 bool __cdecl sub_411F50(uint32_t* a1, uint32_t* a2)
 {
     bLoadingShown = false;
-    if (!a1[2] && !a2[2]) {
+    if (!a1[2] && !a2[2])
+    {
         bLoadingShown = (*a1 == *a2) && *a1;
         return *a1 == *a2;
     }
@@ -153,7 +147,8 @@ void __cdecl sub_855640()
 
     if ((CMenuManager::bLoadscreenShown && !*CMenuManager::bLoadscreenShown && !bLoadingShown) || !bUnlockFramerateDuringLoadscreens)
     {
-        if (preset && *preset >= FusionFixSettings.FpsCaps.eCustom) {
+        if (preset && *preset >= FusionFixSettings.FpsCaps.eCustom)
+        {
             if (fFpsLimit != 0.0f || (*preset > FusionFixSettings.FpsCaps.eCustom && *preset < int32_t(FusionFixSettings.FpsCaps.data.size())))
                 FpsLimiter.Sync();
         }
@@ -205,6 +200,24 @@ public:
             fScriptCutsceneFovLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "ScriptCutsceneFovLimit", 0));
             fLoadingFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "LoadingFpsLimit", 30));
             fMinigamesFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "MinigamesFpsLimit", 30));
+            std::string minigamesList = iniReader.ReadString("FRAMELIMIT", "MinigamesList", "");
+            try
+            {
+                std::regex re("[^a-zA-Z0-9_]+");
+                std::sregex_token_iterator iter(minigamesList.begin(), minigamesList.end(), re, -1);
+                std::sregex_token_iterator end;
+                for (; iter != end; ++iter)
+                {
+                    std::string token = iter->str();
+                    if (!token.empty())
+                    {
+                        minigamesNames.push_back(token);
+                    }
+                }
+            } catch (const std::exception&)
+            {
+                minigamesNames = { "pool_game", "air_hockey", "arm_wrestling", "tenpinbowl", "darts", "drinking" };
+            }
             bUnlockFramerateDuringLoadscreens = iniReader.ReadInteger("FRAMELIMIT", "UnlockFramerateDuringLoadscreens", 0) != 0;
 
             //if (fFpsLimit || fCutsceneFpsLimit || fScriptCutsceneFpsLimit)
@@ -273,7 +286,8 @@ public:
                 injector::WriteMemory(pattern.get_first(0), 0x901CC483, true); //nop + add esp,1C
                 injector::MakeJMP(pattern.get_first(4), sub_855640, true); // + jmp
 
-                FusionFixSettings.SetCallback("PREF_FPS_LIMIT_PRESET", [](int32_t value) {
+                FusionFixSettings.SetCallback("PREF_FPS_LIMIT_PRESET", [](int32_t value)
+                {
                     auto mode = (nFrameLimitType == 2) ? FrameLimiter::FPSLimitMode::FPS_ACCURATE : FrameLimiter::FPSLimitMode::FPS_REALTIME;
                     if (value > FusionFixSettings.FpsCaps.eCustom && value < int32_t(FusionFixSettings.FpsCaps.data.size()))
                         FpsLimiter.Init(mode, (float)FusionFixSettings.FpsCaps.data[value]);
@@ -342,13 +356,14 @@ public:
             pattern = find_pattern("FF 05 ? ? ? ? C3 E8", "83 05 ? ? ? ? ? C3 E8 ? ? ? ? 8B C8");
             if (!pattern.empty())
             {
-                static auto SET_MINIGAME_IN_PROGRESS_HOOK = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs) {
+                static auto SET_MINIGAME_IN_PROGRESS_HOOK = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                {
                     auto curThread = (rage::scrThread*)regs.eax;
                     if (curThread)
                     {
                         std::string curScript = curThread->m_szProgramName;
                         std::transform(curScript.begin(), curScript.end(), curScript.begin(), [](unsigned char c) { return std::tolower(c); });
-            
+
                         if (std::any_of(std::begin(minigamesNames), std::end(minigamesNames), [&curScript](const auto& i) { return i == curScript; }))
                             bNeedsToLimitFpsForThisMinigame = true;
                         else
