@@ -206,15 +206,19 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored Star Junction BurgerShot blip in TBoGT
 - Significantly sped up clothes changing transition in the safehouse wardrobe
 - Fixed food buying animation sometimes playing with several seconds delay in fast-food restaurants
+
+#### Controls
+
+- Fixed bowling ball movement control speeding up on high framerates when using controller
 - Fixed computer web mouse sensitivity decreasing on high framerates when using keyboard and mouse
 - Fixed computer web scrolling speeding up on high framerates when using controller
-- Fixed gun car weapon animations speeding up on high framerates
 - Fixed binocular camera zoom speeding up on high framerates
 - Fixed golf shot position movement becoming slower on high framerates when using keyboard and mouse
 - Fixed some scripted look around camera movements speeding up on high framerates, and improved their mouse controls, like taxi passenger and binocular camera
 
 #### Models
 
+- Fixed some object animations speeding up on high framerates, like gun car weapon and pinspotter
 - Fixed pool ball shadows flickering when playing pool minigame in Playboy's apartment
 - Restored transparency on pool minigame
 - Restored traffic cops in toll booths
@@ -229,8 +233,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 #### Audio
 
 - The Desert Eagle and Micro SMG are now using their unique sounds when viewing them (required modifying the animation dictionary "missgunlockup.wad")
-- Fixed a small bug in Chinatown gun shop where the wrong voice lines were being used after exiting when not buying something
-- Fixed Johnny's incorrect voice lines when exiting the gun shop after buying something (used to use voice lines from Higgin's Heli Tours)
+- Fixed incorrect voice lines after exiting Chinatown gun shop when not buying something
+- Fixed Johnny's incorrect voice lines after exiting the gun shop when buying something (used to use voice lines from Higgin's Heli Tours)
 - Restored Luis' voice lines when exiting the gun shop (buying/not buying)
 - Restored missing voice lines from Luis & Johnny when exiting the Broker gun shop
 - Restored Jim, Terry, Clay own voice lines in hi-lo cards minigame
@@ -264,7 +268,6 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed Roman sometimes lacking clothes model or using incorrect clothes textures in TLAD ending credits
 - Fixed Malc's motorcycle using incorrect colors in TLAD ending credits
 - Fixed Yusuf's hand passing through the crane cabin glass during one of animations in mission "Caught With Your Pants Down"
-- Fixed parking tower platform movement speeding up on high framerates in mission "No. 3"
 - Fixed delayed animations in two scripted cutscenes in mission "Departure Time"
 - Fixed Luis sometimes leaving cover automatically while shooting behind cover in Bulgarin's plane in mission "Departure Time"
 
@@ -273,7 +276,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed ammo reset when buying different pistol from gun shop in IV
 - Fixed ammo reset when buying different weapon from gun shop in TLAD/TBoGT
 - Restored the temporary ban from the gun shop when attacking the owner in TLAD/TBoGT
-- Enabled Roman's cab depot script in TLAD
+- Restored Roman's cab depot script in TLAD
 - Superd2 is now accepted by car wash, meanwhile packer2, police3, police4, policew are now not accepted
 - Fixed incorrect car wash price help text for a one type of taxi
 - Fixed damaged vending machines being usable
