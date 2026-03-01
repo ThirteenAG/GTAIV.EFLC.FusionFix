@@ -187,7 +187,7 @@ Commande étendue du fusil de sniper
 [Bullet Traces]
 Toujours afficher les traces de balles
 
-[Wardrobe Transition]
+[Wardrobe Fading]
 Désactiver la transition de garde-robe
 
 [Stop Taxi]

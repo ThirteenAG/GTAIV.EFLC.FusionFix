@@ -188,7 +188,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Added new tree LOD atlas based on the PC trees
 - Fixed jagged vehicle reflections
 - LOD lights now appear at the appropriate time and can render in cutscene, like on the console version
-- Added an option to allow various postfx effect to render behind transparent objects properly
+- Added an option to allow depth related postfx effect to render behind transparent objects properly
 - Added an option to apply MSAA for various reflection maps
 - Make night shadows resolution be adjusted by night shadows option
 - Restored higher shadow render distance from old versions of the game
@@ -210,16 +210,16 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 #### Controls
 
-- Fixed bowling ball movement control speeding up on high framerates when using controller
+- Fixed bowling ball rolling direction control speeding up on high framerates when using controller
 - Fixed computer web mouse sensitivity decreasing on high framerates when using keyboard and mouse
 - Fixed computer web scrolling speeding up on high framerates when using controller
 - Fixed binocular camera zoom speeding up on high framerates
 - Fixed golf shot position movement becoming slower on high framerates when using keyboard and mouse
-- Fixed some scripted look around camera movements speeding up on high framerates, and improved their mouse controls, like taxi passenger and binocular camera
+- Fixed some scripted look around camera movements speeding up on high framerates when using controller, and improved their mouse controls, like taxi passenger and binocular camera
 
 #### Models
 
-- Fixed some object animations speeding up on high framerates, like gun car weapon and pinspotter
+- Fixed some object animations speeding up on high framerates, like gun car weapon and pinsetter
 - Fixed pool ball shadows flickering when playing pool minigame in Playboy's apartment
 - Restored transparency on pool minigame
 - Restored traffic cops in toll booths
@@ -255,7 +255,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed Playboy/Dwayne execution animations sync issues on high framerates in mission "...The Holland Play"
 - Fixed scripted depth of field in one of the shots not being cleared upon skipping it in mission "Catch the Wave"
 - Fixed the FIB arriving too early at the abandoned mansion in mission "To Live and Die in Alderney"
-- Fixed one conversation couldn't be restored and continue if Niko is too far away from Packie in mission "Diamonds are a Girl's Best Friend"
+- Fixed one dialogue couldn't be restored and continue if Niko is too far away from Packie in mission "Diamonds are a Girl's Best Friend"
 - Fixed scripted depth of field not being removed after Darko execution animation finishes in mission "That Special Someone"
 - Fixed the heli climb QTE being impossible on really high framerates
 - Workaround for a bug where Niko dies after being kicked off of Dimitri's helicopter and falling into the water (Deal Ending)

@@ -187,7 +187,7 @@ FPSリミッター
 [Bullet Traces]
 常に弾道を表示する
 
-[Wardrobe Transition]
+[Wardrobe Fading]
 ワードローブのフェードを無効にする
 
 [Stop Taxi]

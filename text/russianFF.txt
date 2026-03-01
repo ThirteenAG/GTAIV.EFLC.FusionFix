@@ -187,7 +187,7 @@ GTA IV необходимо перезапустить для применени
 [Bullet Traces]
 Всегда показывать следы от выстрелов
 
-[Wardrobe Transition]
+[Wardrobe Fading]
 Отключить переход гардероба
 
 [Stop Taxi]

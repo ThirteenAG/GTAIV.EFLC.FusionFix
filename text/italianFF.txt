@@ -187,7 +187,7 @@ Controlli estesi del fucile di precisione
 [Bullet Traces]
 Mostra sempre le tracce dei proiettili
 
-[Wardrobe Transition]
+[Wardrobe Fading]
 Disabilita transizione guardaroba
 
 [Stop Taxi]

@@ -187,7 +187,7 @@ Extended Sniper Controls
 [Bullet Traces]
 Always Show Bullet Traces
 
-[Wardrobe Transition]
+[Wardrobe Fading]
 Disable Wardrobe Transition
 
 [Stop Taxi]

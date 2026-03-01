@@ -187,7 +187,7 @@ Controles extendidos del rifle de francotirador
 [Bullet Traces]
 Mostrar siempre los rastros de balas
 
-[Wardrobe Transition]
+[Wardrobe Fading]
 Desactivar transición de vestuario
 
 [Stop Taxi]
