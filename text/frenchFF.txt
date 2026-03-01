@@ -184,6 +184,15 @@ GTA IV doit être redémarré pour appliquer les paramètres.
 [Extended Sniper]
 Commande étendue du fusil de sniper
 
+[Bullet Traces]
+Toujours afficher les traces de balles
+
+[Wardrobe Fading]
+Désactiver la transition de garde-robe
+
+[Stop Taxi]
+Arrêt instantané du taxi
+
 [POLICE3]
 Police Buffalo
 
