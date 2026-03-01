@@ -338,8 +338,8 @@ public:
             { 0, "PREF_PADLOOKSENSITIVITY",     "MISC",       "PadLookSensitivity",                 "",                           10, nullptr, 0, 21 },
             { 0, "PREF_PADAIMSENSITIVITY",      "MISC",       "PadAimSensitivity",                  "",                           10, nullptr, 0, 21 },
             { 0, "PREF_MOUSEAIMSENSITIVITY",    "MISC",       "MouseAimSensitivity",                "",                           10, nullptr, 0, 21 },
-            { 0, "PREF_NOWARDROBEFADING",       "MISC",       "ScoTest1",                           "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_STOPTAXI",               "MISC",       "ScoTest2",                           "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_NOWARDROBEFADING",       "MISC",       "DisableWardrobeTransition",          "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_STOPTAXI",               "MISC",       "InstantStopTaxi",                    "",                           0, nullptr, 0, 1 },
             // Enums are at capacity, to use more enums, replace multiplayer ones. On/Off toggles should still be possible to add.
         };
 

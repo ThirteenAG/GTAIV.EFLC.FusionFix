@@ -187,6 +187,12 @@ Erweiterte Sniper-Steuerung
 [Bullet Traces]
 Schussspuren immer sichtbar
 
+[Wardrobe Transition]
+Garderobenübergang deaktivieren
+
+[Stop Taxi]
+Sofortiger Taxi-Stopp
+
 [POLICE3]
 Polizei-Buffalo
 

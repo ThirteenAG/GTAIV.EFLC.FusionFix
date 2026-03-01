@@ -187,6 +187,12 @@ Controlli estesi del fucile di precisione
 [Bullet Traces]
 Mostra sempre le tracce dei proiettili
 
+[Wardrobe Transition]
+Disabilita transizione guardaroba
+
+[Stop Taxi]
+Fermata istantanea del taxi
+
 [POLICE3]
 Buffalo polizia
 

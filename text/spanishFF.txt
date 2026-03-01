@@ -187,6 +187,12 @@ Controles extendidos del rifle de francotirador
 [Bullet Traces]
 Mostrar siempre los rastros de balas
 
+[Wardrobe Transition]
+Desactivar transición de vestuario
+
+[Stop Taxi]
+Parada instantánea de taxi
+
 [POLICE3]
 Buffalo policía
 

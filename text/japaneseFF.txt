@@ -187,6 +187,12 @@ FPSリミッター
 [Bullet Traces]
 常に弾道を表示する
 
+[Wardrobe Transition]
+ワードローブのフェードを無効にする
+
+[Stop Taxi]
+タクシー即時停止
+
 [FF_WARN0]
 ~p~IMGファイル:
 
