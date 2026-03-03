@@ -74,41 +74,6 @@ double __cdecl GetMouseAxisData2(int pInput, int32_t requestedAxis)
     return GetMouseAxisData(pInput, requestedAxis) * ((inv->get() && requestedAxis == 1) ? -2.0 : 2.0f);
 }
 
-injector::hook_back<decltype(&Natives::GetMouseInput)> hbNATIVE_GET_MOUSE_INPUT;
-POINT centerPos = { 0, 0 };
-bool centerInitialized = false;
-void __cdecl NATIVE_GET_MOUSE_INPUT(int* a1, int* a2)
-{
-    static auto ri = FusionFixSettings.GetRef("PREF_RAWINPUT");
-    if (ri->get())
-    {
-        if (gWnd && GetFocus() == gWnd)
-        {
-            POINT currentPos;
-            GetCursorPos(&currentPos);
-
-            if (!centerInitialized)
-            {
-                RECT rect;
-                GetWindowRect(gWnd, &rect);
-                centerPos.x = (rect.left + rect.right) / 2;
-                centerPos.y = (rect.top + rect.bottom) / 2;
-                centerInitialized = true;
-            }
-
-            int deltaX = currentPos.x - centerPos.x;
-            int deltaY = currentPos.y - centerPos.y;
-
-            *a1 = (int)std::clamp((double)deltaX, -128.0, 128.0);
-            *a2 = (int)std::clamp((double)deltaY, -128.0, 128.0);
-
-            SetCursorPos(centerPos.x, centerPos.y);
-            return;
-        }
-    }
-    return hbNATIVE_GET_MOUSE_INPUT.fun(a1, a2);
-}
-
 constexpr float fMouseAimSensitivityScaler = 21.0f;
 constexpr float fGamepadAimSensitivityScaler = 21.0f;
 
@@ -894,11 +859,5 @@ public:
                 }
             }
         };
-
-        //FusionFix::onInitEvent() += []()
-        //{
-        //    // Script
-        //    hbNATIVE_GET_MOUSE_INPUT.fun = NativeOverride::Register(Natives::NativeHashes::GET_MOUSE_INPUT, NATIVE_GET_MOUSE_INPUT, "E8 ? ? ? ? 83 C4 08 C3", 30);
-        //};
     }
 } RawInput;

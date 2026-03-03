@@ -213,7 +213,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed bowling ball rolling direction control speeding up on high framerates when using controller
 - Fixed computer web mouse sensitivity decreasing on high framerates when using keyboard and mouse
 - Fixed computer web scrolling speeding up on high framerates when using controller
-- Fixed binocular camera zoom speeding up on high framerates
+- Fixed computer email typing speeding on high framerates
+- Fixed phone and binocular camera zoom speeding up on high framerates
 - Fixed golf shot position movement becoming slower on high framerates when using keyboard and mouse
 - Fixed some scripted look around camera movements speeding up on high framerates when using controller, and improved their mouse controls, like taxi passenger and binocular camera
 
@@ -250,13 +251,13 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 >
 - Fixed damaged vehicles increasing payment, rather than decreasing payment, in Brucie's web email vehicles theft
 - Fixed vehicles being removed too early after parking it in garage in Brucie's web email vehicles theft
-- Fixed Ilyena call and Brycebug content not triggering after loading a save (From Ilyena's random encounter and Stubbs' job)
+- Fixed Ilyena call and Brycebug content not triggering after loading save (From Ilyena's random encounter and Stubbs' job)
+- Fixed scripted depth of field not being removed properly in several missions (e.g. "Catch the wave")
 - Fixed Faustin execution animation sync issue in mission "The Master and the Molotov"
 - Fixed Playboy/Dwayne execution animations sync issues on high framerates in mission "...The Holland Play"
-- Fixed scripted depth of field in one of the shots not being cleared upon skipping it in mission "Catch the Wave"
-- Fixed the FIB arriving too early at the abandoned mansion in mission "To Live and Die in Alderney"
 - Fixed one dialogue couldn't be restored and continue if Niko is too far away from Packie in mission "Diamonds are a Girl's Best Friend"
-- Fixed scripted depth of field not being removed after Darko execution animation finishes in mission "That Special Someone"
+- Fixed the FIB arriving too early at the abandoned mansion in mission "To Live and Die in Alderney"
+- Fixed the truck climb QTE becoming harder on high framerates in mission "Truck Hustle"
 - Fixed the heli climb QTE being impossible on really high framerates
 - Workaround for a bug where Niko dies after being kicked off of Dimitri's helicopter and falling into the water (Deal Ending)
 - Workaround for a bug where Jacob crashes the Annihilator on high framerates (Deal Ending)
@@ -264,7 +265,6 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Workaround for burning Angels of Death member not triggering ragdoll and falling down on high framerates in mission "Action/Reaction"
 - Workaround for one scripted cutscene ending too late on high framerates in TBoGT ending credits
 - Fixed TLAD intro scripted cutscene cutting off distant world in several shots
-- Fixed scripted depth of field not being removed after one scripted cutscene ends in mission "Bad Standing"
 - Fixed possible issue where mission fails to continue for a significant amount of time even though Johnny has been close to Roman's Taxi in mission "Roman's Holiday"
 - Fixed Roman sometimes lacking clothes model or using incorrect clothes textures in TLAD ending credits
 - Fixed Malc's motorcycle using incorrect colors in TLAD ending credits
