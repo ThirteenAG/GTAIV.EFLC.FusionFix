@@ -213,7 +213,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed bowling ball rolling direction control speeding up on high framerates when using controller
 - Fixed computer web mouse sensitivity decreasing on high framerates when using keyboard and mouse
 - Fixed computer web scrolling speeding up on high framerates when using controller
-- Fixed computer email typing speeding on high framerates
+- Fixed computer email typing speeding up on high framerates
 - Fixed phone and binocular camera zoom speeding up on high framerates
 - Fixed golf shot position movement becoming slower on high framerates when using keyboard and mouse
 - Fixed some scripted look around camera movements speeding up on high framerates when using controller, and improved their mouse controls, like taxi passenger and binocular camera
@@ -252,7 +252,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed damaged vehicles increasing payment, rather than decreasing payment, in Brucie's web email vehicles theft
 - Fixed vehicles being removed too early after parking it in garage in Brucie's web email vehicles theft
 - Fixed Ilyena call and Brycebug content not triggering after loading save (From Ilyena's random encounter and Stubbs' job)
-- Fixed scripted depth of field not being removed properly in several missions (e.g. "Catch the wave")
+- Fixed scripted depth of field not being removed properly in several missions (e.g. "Catch the Wave")
 - Fixed Faustin execution animation sync issue in mission "The Master and the Molotov"
 - Fixed Playboy/Dwayne execution animations sync issues on high framerates in mission "...The Holland Play"
 - Fixed one dialogue couldn't be restored and continue if Niko is too far away from Packie in mission "Diamonds are a Girl's Best Friend"
