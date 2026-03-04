@@ -74,8 +74,6 @@ std::vector<std::vector<std::tuple<std::string_view, uint32_t>>> gAltDialogueVar
         { "gracie", 64750 },
         { "hossan_1", 65027 },
         { "hossan_1", 65028 },
-        { "ilyena", 64744 },
-        { "ilyena", 64745 },
         { "ilyena", 64751 },
         { "ivan_1", 65029 },
         { "ivan_1", 65030 },
