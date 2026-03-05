@@ -187,6 +187,12 @@ Extended Sniper Controls
 [Bullet Traces]
 Always Show Bullet Traces
 
+[Wardrobe Fading]
+Disable Wardrobe Transition
+
+[Stop Taxi]
+Instant Stop Taxi
+
 [POLICE3]
 Police Buffalo
 
