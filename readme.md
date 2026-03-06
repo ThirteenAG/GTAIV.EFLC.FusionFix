@@ -173,7 +173,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - [Added an option to fix a bug that only make taxis spawn](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/issues/85)
 - [Added a file overload solution that allows to replace game files without actually replacing them](https://github.com/ThirteenAG/Ultimate-ASI-Loader?tab=readme-ov-file#update-folder-overload-from-folder)
 - Added IMG Loader (from update folder)
-- Added GXT Overloading, allow game to load additional .gxt files to overwrite vanilla lines or add new lines, without changing vanilla gxt files
+- Added GXT Overloading, allow game to load additional gxt files to overwrite vanilla lines or add new lines, without changing vanilla gxt files
 - Increased corona limit to avoid heavy flickering of game's lights
 - Improved ultrawide support
 - Fixed improper VRAM detection on some setups
@@ -203,8 +203,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 - Fixed police computer softlock where one interface from it couldn't be closed with the keyboard
 - Fixed too sensitive arrow keys inputs in police computer virtual keyboard
-- Fixed food buying animation sometimes playing with several seconds delay in fast-food restaurants
-- Fixed possible crash when The Lost clubhouse memorial wall has too many photos
+- Fixed possible issue where food buying animation playing with several seconds delay in fast-food restaurants
+- Fixed possible crash when The Lost clubhouse memorial wall photos are full
 - Fixed busker script terminating too early in TBoGT, now Luis can give money to buskers normally
 - Restored Star Junction BurgerShot blip in TBoGT
 
@@ -213,15 +213,14 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed bowling ball rolling direction control speeding up on high framerates when using controller
 - Fixed computer web mouse sensitivity decreasing on high framerates when using keyboard and mouse
 - Fixed computer web scrolling speeding up on high framerates when using controller
-- Fixed computer email typing speeding up on high framerates
 - Fixed phone and binocular camera zoom speeding up on high framerates
-- Fixed golf shot position movement becoming slower on high framerates when using keyboard and mouse
-- Fixed some scripted look around camera movements speeding up on high framerates when using controller, and improved their mouse controls, like taxi passenger and binocular camera
+- Fixed golf shot aiming sensitivity decreasing on high framerates when using keyboard and mouse
+- Fixed some scripted look-around camera controls speeding up on high framerates when using controller, and improved their mouse controls
 
 #### Models
 
 - Fixed some object animations speeding up on high framerates, like gun car weapon and pinsetter
-- Fixed pool ball shadows flickering when playing pool minigame in Playboy's apartment
+- Fixed pool ball shadows flickering in Playboy apartment's pool table
 - Restored transparency on pool minigame
 - Restored traffic cops in toll booths
 - Restored non-cop pedestrians in helicopters flying around city
@@ -243,7 +242,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored Uptown Riders' own voice lines in arm wrestling minigame (used to use Angels of Death's voice lines)
 - Restored Clay's voice lines, he'll now respond to Johnny's arrival in hang out friend activity
 - Restored Armando and Henrique's voice lines, they'll now greet Luis when he is close to them in strip club
-- Restored Luis' Heli Tours voice lines, he'll now respond to what the pilot tells him about the landmarks during the tour
+- Restored Luis' voice lines, he'll now respond to what the pilot tells him about the landmarks during Heli Tours
 - Workaround for TLAD Heli Tours, now pilot voice trigger time won't be affected by Johnny voice text clear bug
 
 #### Missions
@@ -274,6 +273,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 #### Misc
 
+- Fixed several scripted drawing speeding up on high framerates
+- Fixed computer email typing speeding up on high framerates
 - Fixed ammo reset when buying different pistol from gun shop in IV
 - Fixed ammo reset when buying different weapon from gun shop in TLAD/TBoGT
 - Restored the temporary ban from the gun shop when attacking the owner in TLAD/TBoGT
@@ -324,7 +325,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed helicopter searchlights flickering violently when more than one helicopter is present
 - Fixed radio reset after cutscene
 - Workaround for lights & motion blur flickering intermittently when player is drunk
-- Now stunt jump camera is controlled by mouse wheel when using keyboard and mouse
+- Made stunt jump camera be controlled by mouse wheel when using keyboard and mouse
 - Fixed not being able to give money to beggars normally on PC
 - Fixed TLAD phone keypad rendering on top of the plastic cover
 - Fixed TLAD incorrect traffic cops head texture
