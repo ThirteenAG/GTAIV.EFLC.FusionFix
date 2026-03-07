@@ -215,7 +215,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed computer web scrolling speeding up on high framerates when using controller
 - Fixed phone and binocular camera zoom speeding up on high framerates
 - Fixed golf shot aiming sensitivity decreasing on high framerates when using keyboard and mouse
-- Fixed some scripted look-around camera controls speeding up on high framerates when using controller, and improved their mouse controls
+- Fixed some scripted look-around camera movements speeding up on high framerates when using controller, and improved their mouse controls
 
 #### Models
 
@@ -267,13 +267,14 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed possible issue where mission fails to continue for a significant amount of time even though Johnny has been close to Roman's Taxi in mission "Roman's Holiday"
 - Fixed Roman sometimes lacking clothes model or using incorrect clothes textures in TLAD ending credits
 - Fixed Malc's motorcycle using incorrect colors in TLAD ending credits
-- Fixed Yusuf's hand passing through the crane cabin glass during one of animations in mission "Caught With Your Pants Down"
+- Fixed Yusuf's hand passing through the crane cabin glass during one scripted cutscene in mission "Caught With Your Pants Down"
+- Fixed Luis movement on top of subway train speeding up in mission "For The Man Who Has Everything" and TBoGT ending credits
 - Fixed delayed animations in two scripted cutscenes in mission "Departure Time"
 - Fixed Luis sometimes leaving cover automatically while shooting behind cover in Bulgarin's plane in mission "Departure Time"
 
 #### Misc
 
-- Fixed several scripted drawing speeding up on high framerates
+- Fixed several sprite drawing speeding up on high framerates
 - Fixed computer email typing speeding up on high framerates
 - Fixed ammo reset when buying different pistol from gun shop in IV
 - Fixed ammo reset when buying different weapon from gun shop in TLAD/TBoGT
