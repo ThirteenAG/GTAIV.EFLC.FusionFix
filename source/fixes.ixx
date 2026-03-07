@@ -55,26 +55,6 @@ public:
         return r;
     }
 
-    static inline injector::hook_back<void(*)()> hbsub_AD1240;
-    static void sub_AD1240()
-    {
-        Cam rootCam = 0;
-        Natives::GetRootCam(&rootCam);
-        auto ccam = CCam::GetCamPool()->GetAt(rootCam);
-        if (ccam)
-        {
-            auto ptr = *(uintptr_t*)((uintptr_t)ccam + 0x110);
-
-            if (ptr)
-            {
-                if (*(uint8_t*)(ptr + 0x27C) == 1)
-                    return;
-            }
-        }
-
-        return hbsub_AD1240.fun();
-    }
-
     static inline uint32_t* dword_1670CD0 = nullptr;
     static inline uint32_t* dwFrameCount = nullptr;
     static inline void* g_pSearchlightHeli = nullptr; // Pointer to the helicopter that has the light
@@ -835,11 +815,10 @@ public:
                     hbsub_5DCA80.fun = injector::MakeCALL(pattern.get_first(0), sub_5DCA80, true).get();
             }
 
-            // Workaround for drunk cam lights issue
+            // Drunk camera/explosion shake stencil override fix
             {
-                auto pattern = find_pattern("E8 ? ? ? ? 6A ? FF 74 24 ? FF 74 24 ? 6A", "E8 ? ? ? ? 83 FF ? 6A");
-                if (!pattern.empty())
-                    hbsub_AD1240.fun = injector::MakeCALL(pattern.get_first(0), sub_AD1240, true).get();
+                auto pattern = find_pattern("C6 05 ? ? ? ? ? 33 F6 8D 84 24", "C6 05 ? ? ? ? ? 8B DF 33 F6");
+                injector::MakeNOP(pattern.get_first(0), 7, true);
             }
 
             // Helicopter lights fix
