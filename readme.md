@@ -215,7 +215,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed computer web scrolling speeding up on high framerates when using controller
 - Fixed phone and binocular camera zoom speeding up on high framerates
 - Fixed golf shot aiming sensitivity decreasing on high framerates when using keyboard and mouse
-- Fixed some scripted look-around camera controls speeding up on high framerates when using controller, and improved their mouse controls
+- Fixed some scripted look-around camera movements speeding up on high framerates when using controller, and improved their mouse controls
 
 #### Models
 
@@ -260,6 +260,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed the heli climb QTE being impossible on really high framerates
 - Workaround for a bug where Niko dies after being kicked off of Dimitri's helicopter and falling into the water (Deal Ending)
 - Workaround for a bug where Jacob crashes the Annihilator on high framerates (Deal Ending)
+- Workaround for possible issue where one burned target fails to fall from hotel rooftop in mission "Late Checkout"
 - Workaround for a bug where Turismo fails to hit Jeff on high framerates in Jeff's final encounter
 - Workaround for burning Angels of Death member not triggering ragdoll and falling down on high framerates in mission "Action/Reaction"
 - Workaround for one scripted cutscene ending too late on high framerates in TBoGT ending credits
@@ -267,13 +268,14 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed possible issue where mission fails to continue for a significant amount of time even though Johnny has been close to Roman's Taxi in mission "Roman's Holiday"
 - Fixed Roman sometimes lacking clothes model or using incorrect clothes textures in TLAD ending credits
 - Fixed Malc's motorcycle using incorrect colors in TLAD ending credits
-- Fixed Yusuf's hand passing through the crane cabin glass during one of animations in mission "Caught With Your Pants Down"
+- Fixed Yusuf's hand passing through the crane cabin glass during one scripted cutscene in mission "Caught With Your Pants Down"
+- Fixed Luis' movement on top of subway train speeding up on high framerates in mission "For The Man Who Has Everything" and TBoGT ending credits
 - Fixed delayed animations in two scripted cutscenes in mission "Departure Time"
 - Fixed Luis sometimes leaving cover automatically while shooting behind cover in Bulgarin's plane in mission "Departure Time"
 
 #### Misc
 
-- Fixed several scripted drawing speeding up on high framerates
+- Fixed several sprite drawing speeding up on high framerates
 - Fixed computer email typing speeding up on high framerates
 - Fixed ammo reset when buying different pistol from gun shop in IV
 - Fixed ammo reset when buying different weapon from gun shop in TLAD/TBoGT
