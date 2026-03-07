@@ -260,6 +260,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed the heli climb QTE being impossible on really high framerates
 - Workaround for a bug where Niko dies after being kicked off of Dimitri's helicopter and falling into the water (Deal Ending)
 - Workaround for a bug where Jacob crashes the Annihilator on high framerates (Deal Ending)
+- Workaround for possible issue where one burned target fails to fall from hotel rooftop in mission "Late Checkout"
 - Workaround for a bug where Turismo fails to hit Jeff on high framerates in Jeff's final encounter
 - Workaround for burning Angels of Death member not triggering ragdoll and falling down on high framerates in mission "Action/Reaction"
 - Workaround for one scripted cutscene ending too late on high framerates in TBoGT ending credits
