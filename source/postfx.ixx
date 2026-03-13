@@ -1584,7 +1584,7 @@ private:
 
     static DWORD __cdecl RenderPedAndVehicleFakeShadows(DWORD a1)
     {
-        DWORD result = RenderPedAndVehicleFakeShadowsInlineHook.ccall<DWORD>(a1);
+        DWORD result = RenderPedAndVehicleFakeShadowsInlineHook.unsafe_ccall<DWORD>(a1);
 
         RenderAmbientOcclusion();
 
@@ -1623,9 +1623,8 @@ public:
                         }
                     }
                     pattern = find_pattern("55 8B EC 83 E4 ? 8B 0D ? ? ? ? 8B 15 ? ? ? ? 8B 41");
-                    void* addr = pattern.get_first(0);
                     RenderPedAndVehicleFakeShadowsInlineHook = 
-                        safetyhook::create_inline(addr, RenderPedAndVehicleFakeShadows);
+                        safetyhook::create_inline(pattern.get_first(0), RenderPedAndVehicleFakeShadows);
                 }
             }
         };
