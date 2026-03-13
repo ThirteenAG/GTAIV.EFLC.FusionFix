@@ -202,7 +202,6 @@ float4 ComputeAO_PS(float2 uv : TEXCOORD0, float2 vPos : VPOS) : COLOR0
     float2 ssC = vPos;
     float3 C = ReconstructViewPos(ssC, depth);
 
-	// Hash function used in the HPG12 AlchemyAO paper
     float randomPatternRotationAngle = GetRandomRotationAngle(ssC);
 
 	// Reconstruct normals from positions. These will lead to 1-pixel black lines
