@@ -480,7 +480,7 @@ public:
                 hm, MAKEINTRESOURCEW(IDR_AO_FX), defines, nullptr, 0, nullptr, &AOEffect, &errors) != S_OK)
             {
                 if (errors)
-                    MessageBoxW(nullptr, (LPCSTR)errors->GetBufferPointer(), L"Error building shader!", MB_OK);
+                    MessageBoxA(nullptr, (LPCSTR)errors->GetBufferPointer(), "Error building shader!", MB_OK);
             }
             else {
                 AOEffectHandles.AOTexture2D = AOEffect->GetParameterByName(nullptr, "AOTexture2D");
