@@ -480,25 +480,26 @@ public:
                 hm, MAKEINTRESOURCEW(IDR_AO_FX), defines, nullptr, 0, nullptr, &AOEffect, &errors) != S_OK)
             {
                 if (errors)
-                    OutputDebugStringA((LPCSTR)errors->GetBufferPointer());
-                DebugBreak();
+                    MessageBoxW(nullptr, (LPCSTR)errors->GetBufferPointer(), L"Error building shader!", MB_OK);
             }
-            AOEffectHandles.AOTexture2D = AOEffect->GetParameterByName(nullptr, "AOTexture2D");
-            AOEffectHandles.AOCamDepthTexture2D = AOEffect->GetParameterByName(nullptr, "AOCamDepthTexture2D");
-            AOEffectHandles.DepthTex2D = AOEffect->GetParameterByName(nullptr, "DepthTex2D");
-            AOEffectHandles.vec2InvViewportSize = AOEffect->GetParameterByName(nullptr, "vec2InvViewportSize");
-            AOEffectHandles.fNearPlane = AOEffect->GetParameterByName(nullptr, "fNearPlane");
-            AOEffectHandles.fFarPlane = AOEffect->GetParameterByName(nullptr, "fFarPlane");
-            AOEffectHandles.fFarDivNear = AOEffect->GetParameterByName(nullptr, "fFarDivNear");
-            AOEffectHandles.fRadius = AOEffect->GetParameterByName(nullptr, "fRadius");
-            AOEffectHandles.fBias = AOEffect->GetParameterByName(nullptr, "fBias");
-            AOEffectHandles.fIntensity = AOEffect->GetParameterByName(nullptr, "fIntensity");
-            AOEffectHandles.fProjScale = AOEffect->GetParameterByName(nullptr, "fProjScale");
-            AOEffectHandles.vec4ProjInfo = AOEffect->GetParameterByName(nullptr, "vec4ProjInfo");
-            AOEffectHandles.vec2BlurDirection = AOEffect->GetParameterByName(nullptr, "vec2BlurDirection");
-            AOEffectHandles.vec2PrevMipSize = AOEffect->GetParameterByName(nullptr, "vec2PrevMipSize");
-            AOEffectHandles.vec2PrevMipTexel = AOEffect->GetParameterByName(nullptr, "vec2PrevMipTexel");
-            AOEffectHandles.iPreviousMip = AOEffect->GetParameterByName(nullptr, "iPreviousMip");
+            else {
+                AOEffectHandles.AOTexture2D = AOEffect->GetParameterByName(nullptr, "AOTexture2D");
+                AOEffectHandles.AOCamDepthTexture2D = AOEffect->GetParameterByName(nullptr, "AOCamDepthTexture2D");
+                AOEffectHandles.DepthTex2D = AOEffect->GetParameterByName(nullptr, "DepthTex2D");
+                AOEffectHandles.vec2InvViewportSize = AOEffect->GetParameterByName(nullptr, "vec2InvViewportSize");
+                AOEffectHandles.fNearPlane = AOEffect->GetParameterByName(nullptr, "fNearPlane");
+                AOEffectHandles.fFarPlane = AOEffect->GetParameterByName(nullptr, "fFarPlane");
+                AOEffectHandles.fFarDivNear = AOEffect->GetParameterByName(nullptr, "fFarDivNear");
+                AOEffectHandles.fRadius = AOEffect->GetParameterByName(nullptr, "fRadius");
+                AOEffectHandles.fBias = AOEffect->GetParameterByName(nullptr, "fBias");
+                AOEffectHandles.fIntensity = AOEffect->GetParameterByName(nullptr, "fIntensity");
+                AOEffectHandles.fProjScale = AOEffect->GetParameterByName(nullptr, "fProjScale");
+                AOEffectHandles.vec4ProjInfo = AOEffect->GetParameterByName(nullptr, "vec4ProjInfo");
+                AOEffectHandles.vec2BlurDirection = AOEffect->GetParameterByName(nullptr, "vec2BlurDirection");
+                AOEffectHandles.vec2PrevMipSize = AOEffect->GetParameterByName(nullptr, "vec2PrevMipSize");
+                AOEffectHandles.vec2PrevMipTexel = AOEffect->GetParameterByName(nullptr, "vec2PrevMipTexel");
+                AOEffectHandles.iPreviousMip = AOEffect->GetParameterByName(nullptr, "iPreviousMip");
+            }
         }
 
         return ShadersFinishedLoading();
