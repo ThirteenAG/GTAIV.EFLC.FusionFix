@@ -617,11 +617,22 @@ public:
         nAmbientOcclusionLogMaxOffset = iniReader.ReadInteger("POSTFX", "AmbientOcclusionLogMaxOffset", 3);
         nAmbientOcclusionMaxMipLevel = iniReader.ReadInteger("POSTFX", "AmbientOcclusionMaxMipLevel", 5);
         fAmbientOcclusionFarClip = iniReader.ReadFloat("POSTFX", "AmbientOcclusionFarClip", 150.0f);
+
+        nAmbientOcclusionBlurPasses = std::max(0, nAmbientOcclusionBlurPasses);
+        nAmbientOcclusionSamples = std::max(1, nAmbientOcclusionSamples);
+        nAmbientOcclusionLogMaxOffset = std::max(0, nAmbientOcclusionLogMaxOffset);
+        nAmbientOcclusionMaxMipLevel = std::max(1, nAmbientOcclusionMaxMipLevel);
+        fAmbientOcclusionFarClip = std::max(1.0f, fAmbientOcclusionFarClip);
+
         AOCamDepthSurf.resize(nAmbientOcclusionMaxMipLevel);
 
         fAmbientOcclusionRadius = iniReader.ReadFloat("POSTFX", "AmbientOcclusionRadius", 1.125);
         fAmbientOcclusionBias = iniReader.ReadFloat("POSTFX", "AmbientOcclusionBias", 0.03);
         fAmbientOcclusionIntensity = iniReader.ReadFloat("POSTFX", "AmbientOcclusionIntensity", 0.4);
+
+        fAmbientOcclusionRadius = std::max(fAmbientOcclusionRadius, 0.0f);
+        fAmbientOcclusionBias = std::max(fAmbientOcclusionBias, 0.0f);
+        fAmbientOcclusionIntensity = std::max(fAmbientOcclusionIntensity, 0.0f);
         // 0 off, 1 horizontal, 2 vertical, 3 horizontal e vertical.
         //useScreenSpaceShadowsBlur = iniReader.ReadInteger("SRF", "ScreenSpaceShadowsBlur", 0);
         //useHardwareBilinearSampling = iniReader.ReadInteger("SRF", "NewShadowAtlas", 0) != 0;
