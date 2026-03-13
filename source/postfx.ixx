@@ -620,7 +620,7 @@ public:
         fAmbientOcclusionFarClip = iniReader.ReadFloat("POSTFX", "AmbientOcclusionFarClip", 150.0f);
 
         nAmbientOcclusionBlurPasses = std::max(0, nAmbientOcclusionBlurPasses);
-        nAmbientOcclusionSamples = std::max(1, nAmbientOcclusionSamples);
+        nAmbientOcclusionSamples = std::clamp(nAmbientOcclusionSamples, 0, 128);
         nAmbientOcclusionLogMaxOffset = std::max(0, nAmbientOcclusionLogMaxOffset);
         nAmbientOcclusionMaxMipLevel = std::max(1, nAmbientOcclusionMaxMipLevel);
         fAmbientOcclusionFarClip = std::max(1.0f, fAmbientOcclusionFarClip);
