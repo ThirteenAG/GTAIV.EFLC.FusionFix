@@ -278,6 +278,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed several sprite drawing speeding up on high framerates
 - Fixed computer email typing speeding up on high framerates
 - Fixed phone vibrate speeding up on high framerates
+- Fixed phone being not usable after giving money to buskers
 - Fixed ammo reset when buying different pistol from gun shop in IV
 - Fixed ammo reset when buying different weapon from gun shop in TLAD/TBoGT
 - Restored the temporary ban from the gun shop when attacking the owner in TLAD/TBoGT
