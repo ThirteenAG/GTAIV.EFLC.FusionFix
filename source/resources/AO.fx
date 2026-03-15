@@ -175,12 +175,12 @@ float2 BilateralBlur(sampler2D Texture, sampler2D CamDepthTexture, in float2 uv)
     
     const float blurThreshold = BilateralDepthTreshold * refTap.y;
 
-    float blurredValue = refTap.x * GaussianWeights[0];
+    float blurredValue = refTap.x * GaussianWeights[4];
     
     float2 texel = vec2BlurDirection;
 
 	[unroll]
-    for (int i = 1; i < 9; ++i)
+    for (int i = 0; i < 9 && i != 4; ++i)
     {
         float2 offsetUV = uv + (UVOffsets[i].xy * texel);
         float2 tap;
