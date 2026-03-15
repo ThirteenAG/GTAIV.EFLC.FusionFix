@@ -192,7 +192,7 @@ public:
     bool bEnablePreAlphaDepth = false;
 
     int nAmbientOcclusionSamples = 9;
-    int nAmbientOcclusionBlurPasses = 2;
+    int nAmbientOcclusionBlurPasses = 1;
     int nAmbientOcclusionLogMaxOffset = 3;
     int nAmbientOcclusionMaxMipLevel = 5;
     float fAmbientOcclusionFarClip = 150.0f;
@@ -200,6 +200,7 @@ public:
     float fAmbientOcclusionRadius = 1.125;
     float fAmbientOcclusionBias = 0.03;
     float fAmbientOcclusionIntensity = 0.4;
+    float fAmbientOcclusionBlurRadius = 2.0f;
     
     struct {
         D3DXHANDLE AOTexture2D, AOCamDepthTexture2D, DepthTex2D;
@@ -613,17 +614,19 @@ public:
 
         bEnablePreAlphaDepth = iniReader.ReadInteger("POSTFX", "EnablePreAlphaDepth", 1) != 0;
 
-        nAmbientOcclusionBlurPasses = iniReader.ReadInteger("POSTFX", "AmbientOcclusionBlurPasses", 2);
+        nAmbientOcclusionBlurPasses = iniReader.ReadInteger("POSTFX", "AmbientOcclusionBlurPasses", 1);
         nAmbientOcclusionSamples = iniReader.ReadInteger("POSTFX", "AmbientOcclusionSamples", 9);
         nAmbientOcclusionLogMaxOffset = iniReader.ReadInteger("POSTFX", "AmbientOcclusionLogMaxOffset", 3);
         nAmbientOcclusionMaxMipLevel = iniReader.ReadInteger("POSTFX", "AmbientOcclusionMaxMipLevel", 5);
         fAmbientOcclusionFarClip = iniReader.ReadFloat("POSTFX", "AmbientOcclusionFarClip", 150.0f);
+        fAmbientOcclusionBlurRadius = iniReader.ReadFloat("POSTFX", "AmbientOcclusionBlurRadius", 2.0f);
 
         nAmbientOcclusionBlurPasses = std::max(0, nAmbientOcclusionBlurPasses);
         nAmbientOcclusionSamples = std::clamp(nAmbientOcclusionSamples, 0, 128);
         nAmbientOcclusionLogMaxOffset = std::max(0, nAmbientOcclusionLogMaxOffset);
         nAmbientOcclusionMaxMipLevel = std::max(1, nAmbientOcclusionMaxMipLevel);
         fAmbientOcclusionFarClip = std::max(1.0f, fAmbientOcclusionFarClip);
+        fAmbientOcclusionBlurRadius = std::max(0.0f, fAmbientOcclusionBlurRadius);
 
         AOCamDepthSurf.resize(nAmbientOcclusionMaxMipLevel);
 
@@ -1477,8 +1480,8 @@ private:
                 pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, screenVertices, sizeof(ScreenVertex));
                 effect->EndPass();
 
-                float hor[2] = { invViewportSize[0], 0.0 };
-                float ver[2] = { 0.0, invViewportSize[1] };
+                float hor[2] = { invViewportSize[0] * PostFxResources.fAmbientOcclusionBlurRadius, 0.0 };
+                float ver[2] = { 0.0, invViewportSize[1] * PostFxResources.fAmbientOcclusionBlurRadius };
                 effect->BeginPass(3);
                 for (size_t i = 0; i < PostFxResources.nAmbientOcclusionBlurPasses; ++i)
                 {

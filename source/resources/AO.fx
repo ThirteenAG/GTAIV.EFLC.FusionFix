@@ -67,6 +67,9 @@ uniform float2 vec2BlurDirection;
 #ifndef FAR_CLIP
 #define FAR_CLIP 150.0f
 #endif
+#ifndef NUM_SPIRAL_TURNS
+#define NUM_SPIRAL_TURNS 7
+#endif
 static const float PI = 3.14159265;
 
 float LogDepthToViewZ(float logDepth)
@@ -110,7 +113,7 @@ float2 tapLocation(int sampleNumber, float spinAngle, out float ssR)
 {
 	// Radius relative to ssR
     float alpha = float(sampleNumber + 0.5) * (1.0 / float(NUM_SAMPLES));
-    float angle = alpha * (7 * 6.28) + spinAngle;
+    float angle = alpha * (NUM_SPIRAL_TURNS * 2.0 * PI) + spinAngle;
 
     ssR = alpha;
     return float2(cos(angle), sin(angle));
@@ -168,16 +171,16 @@ float2 BilateralBlur(sampler2D Texture, sampler2D CamDepthTexture, in float2 uv)
     
     float2 refTap;
     refTap.x = tex2D(Texture, uv).x;
-    refTap.y = tex2D(CamDepthTexture, uv).x;
-
+    refTap.y = tex2Dlod(CamDepthTexture, float4(uv, 0, 0)).x;
+    
     const float blurThreshold = BilateralDepthTreshold * refTap.y;
 
-    float blurredValue = 0;
+    float blurredValue = refTap.x * GaussianWeights[0];
     
     float2 texel = vec2BlurDirection;
 
 	[unroll]
-    for (int i = 0; i < 9; ++i)
+    for (int i = 1; i < 9; ++i)
     {
         float2 offsetUV = uv + (UVOffsets[i].xy * texel);
         float2 tap;
