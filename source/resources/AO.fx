@@ -139,54 +139,39 @@ float sampleAO(in float2 ssC, in float3 C, in float3 n_C, in float ssDiskRadius,
     return f * f * f * max((vn - fBias) / (epsilon + vv), 0.0);
 }
 
+static const float BilateralDepthTreshold = 0.03;
+
 float2 BilateralBlur(sampler2D Texture, sampler2D CamDepthTexture, in float2 uv)
 { // thanks to Parallellines0451
-    static const float BilateralDepthTreshold = 0.03;
-    
-    static const float GaussianWeights[9] =
+    static const float GaussianWeights[5] =
     {
-        0.0276305506389,
-	0.0662822452864,
-	0.123831536806,
-	0.180173822911,
 	0.204163688715,
 	0.180173822911,
 	0.123831536806,
 	0.0662822452864,
 	0.0276305506389
     };
-    
-    static const float2 UVOffsets[9] =
-    {
-        -4.0f, -4.0f,
-	-3.0f, -3.0f,
-	-2.0f, -2.0f,
-	-1.0f, -1.0f,
-	 0.0f, 0.0f,
-	 1.0f, 1.0f,
-	 2.0f, 2.0f,
-	 3.0f, 3.0f,
-	 4.0f, 4.0f,
-    };
-    
+
     float2 refTap;
     refTap.x = tex2D(Texture, uv).x;
     refTap.y = tex2Dlod(CamDepthTexture, float4(uv, 0, 0)).x;
     
     const float blurThreshold = BilateralDepthTreshold * refTap.y;
 
-    float blurredValue = refTap.x * GaussianWeights[4];
+    float blurredValue = refTap.x * GaussianWeights[0];
     
     float2 texel = vec2BlurDirection;
 
 	[unroll]
-    for (int i = 0; i < 9 && i != 4; ++i)
+    for (int i = -4; i <= 4; ++i)
     {
-        float2 offsetUV = uv + (UVOffsets[i].xy * texel);
+        if (i == 0)
+            continue;
+        float2 offsetUV = uv + (i * texel);
         float2 tap;
         tap.x = tex2D(Texture, offsetUV).x;
         tap.y = tex2D(CamDepthTexture, offsetUV).x;
-        float weight = GaussianWeights[i];
+        float weight = GaussianWeights[abs(i)];
 
         blurredValue += weight * ((abs(refTap.y - tap.y) < blurThreshold) ? tap.x : refTap.x);
     }
@@ -231,12 +216,13 @@ float4 ComputeAO_PS(float2 uv : TEXCOORD0, float2 vPos : VPOS) : COLOR0
 	// (the difference that this makes is subtle)
     
     int2 pixel = ssC;
+    float depthThreshold = BilateralDepthTreshold * C.z;
     
-    if (abs(ddx(C.z)) < 0.02)
+    if (abs(ddx(C.z)) < depthThreshold)
     {
         A -= ddx(A) * (float(pixel.x % 2) - 0.5);
     }
-    if (abs(ddy(C.z)) < 0.02)
+    if (abs(ddy(C.z)) < depthThreshold)
     {
         A -= ddy(A) * (float(pixel.y % 2) - 0.5);
     }
