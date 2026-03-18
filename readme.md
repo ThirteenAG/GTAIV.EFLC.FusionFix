@@ -238,8 +238,10 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed Johnny's incorrect voice lines after exiting the gun shop when buying something (used to use voice lines from Higgin's Heli Tours)
 - Restored Luis' voice lines when exiting the gun shop (buying/not buying)
 - Restored missing voice lines from Luis & Johnny when exiting the Broker gun shop
-- Restored Jim, Terry, Clay own voice lines in hi-lo cards minigame
-- Restored Uptown Riders' own voice lines in arm wrestling minigame (used to use Angels of Death's voice lines)
+- Restored missing voice lines from Johnny when triggering pool minigame
+- Restored non-friend NPC voice lines on air hockey minigame
+- Restored Jim, Terry, Clay own voice lines on hi-lo cards minigame
+- Restored Uptown Riders' own voice lines on arm wrestling minigame (used to use Angels of Death's voice lines)
 - Restored Clay's voice lines, he'll now respond to Johnny's arrival in hang out friend activity
 - Restored Armando and Henrique's voice lines, they'll now greet Luis when he is close to them in strip club
 - Restored Luis' voice lines, he'll now respond to what the pilot tells him about the landmarks during Heli Tours
