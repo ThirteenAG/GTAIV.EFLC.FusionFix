@@ -223,6 +223,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed some object animations speeding up on high framerates, like gun car weapon and pinsetter
 - Fixed pool ball shadows flickering in Playboy apartment's pool table
 - Restored transparency on pool minigame
+- Restored console player transparency on air hockey minigame
 - Restored traffic cops in toll booths
 - Restored non-cop pedestrians in helicopters flying around city
 - Restored own unique soda can model for eCola vending machines instead of reusing Sprunk ones
