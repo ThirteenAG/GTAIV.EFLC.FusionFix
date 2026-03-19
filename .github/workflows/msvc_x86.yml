@@ -123,36 +123,27 @@ jobs:
         del XLivelessAddon.asi
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
-        name: GTAIV.EFLC.FusionFix
-        path: |
-          data/*
-          !data/update/GTAIV.EFLC.FusionFix/GTAIV.EFLC.FusionFix
-          !data/update/GTAIV.EFLC.FusionFix/GTAIV.FusionFix
-          !data/update/GTAIV.EFLC.FusionFix/TLAD.FusionFix
-          !data/update/GTAIV.EFLC.FusionFix/TBOGT.FusionFix
-          !data/update/GTAIV.EFLC.FusionFix/FusionTrees
-          !data/update/GTAIV.EFLC.FusionFix/FusionLights
-          !data/update/GTAIV.EFLC.FusionFix/cdimagemake.ims
-          !**/.gitkeep
+        archive: false
+        path: GTAIV.EFLC.FusionFix.zip
 
     - name: Upload Web Installer
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
-        name: GTAIV.EFLC.FusionFixWebInstaller.exe
+        archive: false
         path: GTAIV.EFLC.FusionFixWebInstaller.exe
 
     - name: Upload Offline Installer
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
-        name: GTAIV.EFLC.FusionFixOfflineInstaller.exe
+        archive: false
         path: GTAIV.EFLC.FusionFixOfflineInstaller.exe
 
     - name: Upload Legacy Addon
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
-        name: GTAIV.EFLC.FusionFixLegacyAddon.zip
+        archive: false
         path: GTAIV.EFLC.FusionFixLegacyAddon.zip
 
     - name: Upload Release
