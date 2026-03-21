@@ -1508,7 +1508,6 @@ private:
                 effect->BeginPass(4);
                 pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, screenVertices, sizeof(ScreenVertex));
                 effect->EndPass();
-
             }
             effect->End();
 
@@ -1638,6 +1637,8 @@ public:
                         }
                     }
                     pattern = find_pattern("55 8B EC 83 E4 ? 8B 0D ? ? ? ? 8B 15 ? ? ? ? 8B 41");
+                    if (pattern.empty())
+                        pattern = find_pattern("55 8B EC 83 E4 ? 8B 0D ? ? ? ? 8B 41 ? 8B 15"); // nonce
                     RenderPedAndVehicleFakeShadowsInlineHook = 
                         safetyhook::create_inline(pattern.get_first(0), RenderPedAndVehicleFakeShadows);
                 }
