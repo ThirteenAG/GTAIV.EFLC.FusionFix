@@ -127,8 +127,8 @@ Tone Mapping
 [Volumetric Fog]
 Volumetrischer Nebel
 
-[HBAO Plus]
-HBAO+
+[AO]
+Ambient Occlusion
 
 [Zoomed Movement]
 Bewegung beim Zoomen erlauben

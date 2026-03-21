@@ -127,8 +127,8 @@ Mappatura dei toni
 [Volumetric Fog]
 Nebbia volumetrica
 
-[HBAO Plus]
-HBAO+
+[AO]
+Occlusione ambientale
 
 [Zoomed Movement]
 Consenti movimento con lo zoom

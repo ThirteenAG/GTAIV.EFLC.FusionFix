@@ -127,8 +127,8 @@ Tone Mapping
 [Volumetric Fog]
 Volumetric Fog
 
-[HBAO Plus]
-HBAO+
+[AO]
+Ambient Occlusion
 
 [Zoomed Movement]
 Allow Movement When Zoomed

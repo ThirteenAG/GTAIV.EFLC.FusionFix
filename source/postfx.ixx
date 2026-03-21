@@ -1353,7 +1353,7 @@ private:
 
     static void RenderAmbientOcclusion()
     {
-        static auto AO = FusionFixSettings.GetRef("PREF_HBAOPLUS");
+        static auto AO = FusionFixSettings.GetRef("PREF_SAO");
         if (PostFxResources.AOEffect && PostFxResources.AOEnabled && AO->get())
         { // AO
             IDirect3DDevice9* pDevice = rage::grcDevice::GetD3DDevice();

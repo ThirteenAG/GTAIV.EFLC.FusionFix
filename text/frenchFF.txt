@@ -127,8 +127,8 @@ Mappage tonal
 [Volumetric Fog]
 Brouillard volumétrique
 
-[HBAO Plus]
-HBAO+
+[AO]
+Occlusion ambiante
 
 [Zoomed Movement]
 Permettre le mouvement en zoomant
