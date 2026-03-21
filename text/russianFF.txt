@@ -127,6 +127,9 @@ Fusion Fix: Проверять Обновления
 [Volumetric Fog]
 Объемный туман
 
+[HBAO Plus]
+HBAO+
+
 [Zoomed Movement]
 Разрешить движение при прицеливании
 

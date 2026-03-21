@@ -127,6 +127,9 @@ FPSリミッター
 [Volumetric Fog]
 ボリュメトリックフォグ
 
+[HBAO Plus]
+HBAO+
+
 [Zoomed Movement]
 ズーム中の移動を許可
 

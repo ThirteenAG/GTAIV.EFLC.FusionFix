@@ -1353,7 +1353,8 @@ private:
 
     static void RenderAmbientOcclusion()
     {
-        if (PostFxResources.AOEffect && PostFxResources.AOEnabled)
+        static auto AO = FusionFixSettings.GetRef("PREF_HBAOPLUS");
+        if (PostFxResources.AOEffect && PostFxResources.AOEnabled && AO->get())
         { // AO
             IDirect3DDevice9* pDevice = rage::grcDevice::GetD3DDevice();
 
@@ -1636,9 +1637,7 @@ public:
                             hbDrawCallFog.fun = injector::MakeCALL(pattern.get_first(4), DrawCallFog).get();
                         }
                     }
-                    pattern = find_pattern("55 8B EC 83 E4 ? 8B 0D ? ? ? ? 8B 15 ? ? ? ? 8B 41");
-                    if (pattern.empty())
-                        pattern = find_pattern("55 8B EC 83 E4 ? 8B 0D ? ? ? ? 8B 41 ? 8B 15"); // nonce
+                    pattern = find_pattern("55 8B EC 83 E4 ? 8B 0D ? ? ? ? 8B 15 ? ? ? ? 8B 41", "55 8B EC 83 E4 ? 8B 0D ? ? ? ? 8B 41 ? 8B 15");
                     RenderPedAndVehicleFakeShadowsInlineHook = 
                         safetyhook::create_inline(pattern.get_first(0), RenderPedAndVehicleFakeShadows);
                 }

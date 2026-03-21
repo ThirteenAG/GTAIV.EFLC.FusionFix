@@ -127,6 +127,9 @@ Mapeo de tonos
 [Volumetric Fog]
 Niebla volumétrica
 
+[HBAO Plus]
+HBAO+
+
 [Zoomed Movement]
 Permitir movimiento al acercar la mirilla
 
