@@ -295,8 +295,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed 200 pigeons extermination annihilator reward preventing Brucie from landing helicopter at Star Junction landing site
 - Fixed memorial wall photos not spawning while entering The Lost clubhouse from roof entry in TLAD
 - Fixed several motorcycles using incorrect paying animation in toll booths in TBoGT
-- Fixed scripted depth of field not being removed after playing drinking minigame
 - Fixed Luis' vehicle always being removed after playing golf and drinking minigame
+- Partially fixed scripted depth of field not being removed after playing drinking minigame
 
 ### Episodic content
 
