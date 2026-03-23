@@ -197,9 +197,9 @@ public:
     int nAmbientOcclusionMaxMipLevel = 5;
     float fAmbientOcclusionFarClip = 150.0f;
 
-    float fAmbientOcclusionRadius = 1.125;
-    float fAmbientOcclusionBias = 0.03;
-    float fAmbientOcclusionIntensity = 0.4;
+    float fAmbientOcclusionRadius = 1.125f;
+    float fAmbientOcclusionBias = 0.03f;
+    float fAmbientOcclusionIntensity = 0.4f;
     float fAmbientOcclusionBlurRadius = 2.0f;
     
     struct {
@@ -630,9 +630,9 @@ public:
 
         AOCamDepthSurf.resize(nAmbientOcclusionMaxMipLevel);
 
-        fAmbientOcclusionRadius = iniReader.ReadFloat("POSTFX", "AmbientOcclusionRadius", 1.125);
-        fAmbientOcclusionBias = iniReader.ReadFloat("POSTFX", "AmbientOcclusionBias", 0.03);
-        fAmbientOcclusionIntensity = iniReader.ReadFloat("POSTFX", "AmbientOcclusionIntensity", 0.4);
+        fAmbientOcclusionRadius = iniReader.ReadFloat("POSTFX", "AmbientOcclusionRadius", 1.125f);
+        fAmbientOcclusionBias = iniReader.ReadFloat("POSTFX", "AmbientOcclusionBias", 0.03f);
+        fAmbientOcclusionIntensity = iniReader.ReadFloat("POSTFX", "AmbientOcclusionIntensity", 0.4f);
 
         fAmbientOcclusionRadius = std::max(fAmbientOcclusionRadius, 0.0f);
         fAmbientOcclusionBias = std::max(fAmbientOcclusionBias, 0.0f);
@@ -778,7 +778,7 @@ private:
         SAFE_RELEASE(PostFxResources.AOCamDepthTex);
         SAFE_RELEASE(PostFxResources.AOTex);
         SAFE_RELEASE(PostFxResources.AOBlurTex);
-        for (size_t i = 0; i < PostFxResources.nAmbientOcclusionMaxMipLevel; ++i)
+        for (auto i = 0; i < PostFxResources.nAmbientOcclusionMaxMipLevel; ++i)
             SAFE_RELEASE(PostFxResources.AOCamDepthSurf[i]);
         SAFE_RELEASE(PostFxResources.AOSurf);
         SAFE_RELEASE(PostFxResources.AOBlurSurf);
@@ -835,7 +835,7 @@ private:
         SAFE_RELEASE(PostFxResources.AOCamDepthTex);
         SAFE_RELEASE(PostFxResources.AOTex);
         SAFE_RELEASE(PostFxResources.AOBlurTex);
-        for (size_t i = 0; i < PostFxResources.nAmbientOcclusionMaxMipLevel; ++i)
+        for (auto i = 0; i < PostFxResources.nAmbientOcclusionMaxMipLevel; ++i)
             SAFE_RELEASE(PostFxResources.AOCamDepthSurf[i]);
         SAFE_RELEASE(PostFxResources.AOSurf);
         SAFE_RELEASE(PostFxResources.AOBlurSurf);
@@ -848,7 +848,7 @@ private:
         pDevice->CreateTexture(width, height, 1, D3DUSAGE_RENDERTARGET,
             D3DFMT_L8, D3DPOOL_DEFAULT, &PostFxResources.AOBlurTex, nullptr);
 
-        for (size_t i = 0; i < PostFxResources.nAmbientOcclusionMaxMipLevel; ++i)
+        for (auto i = 0; i < PostFxResources.nAmbientOcclusionMaxMipLevel; ++i)
             PostFxResources.AOCamDepthTex->GetSurfaceLevel(i, &PostFxResources.AOCamDepthSurf[i]);
 
         PostFxResources.AOTex->GetSurfaceLevel(0, &PostFxResources.AOSurf);
@@ -1397,13 +1397,13 @@ private:
                 IDirect3DSurface9* aoSurf = PostFxResources.AOSurf;
                 IDirect3DSurface9* aoBlurSurf = PostFxResources.AOBlurSurf;
 
-                float width = currGrcViewport->mWidth;
-                float height = currGrcViewport->mHeight;
+                float width = float(currGrcViewport->mWidth);
+                float height = float(currGrcViewport->mHeight);
 
                 D3DVIEWPORT9 vp = {};
                 vp.MaxZ = 1.0;
-                vp.Height = height;
-                vp.Width = width;
+                vp.Height = DWORD(height);
+                vp.Width = DWORD(width);
                 pDevice->SetViewport(&vp);
 
                 auto& h = PostFxResources.AOEffectHandles;
@@ -1417,7 +1417,7 @@ private:
                     { width - 0.5f, height - 0.5f, 0.0f, 1.0f, 1.0f, 1.0f }
                 };
 
-                float invViewportSize[] = { 1.0 / width, 1.0 / height };
+                float invViewportSize[] = { 1.0f / width, 1.0f / height };
 
                 effect->SetTexture(h.DepthTex2D, PostFxResources.DepthTex);
                 effect->SetFloatArray(h.vec2InvViewportSize, invViewportSize, 2);
@@ -1432,11 +1432,11 @@ private:
 
                 effect->SetTexture(h.AOCamDepthTexture2D, camDepthTex);
                 effect->BeginPass(1);
-                for (size_t i = 1; i < PostFxResources.nAmbientOcclusionMaxMipLevel; ++i) {
-                    float prevMipDimensions[] = {(int)width >> (i - 1), (int)height >> (i - 1)};
-                    float prevMipTexel[] = { 1.0f / prevMipDimensions[0], 1.0f / prevMipDimensions[1] };
-                    float curMipWidth = int(width) >> i;
-                    float curMipHeight = int(height) >> i;
+                for (auto i = 1; i < PostFxResources.nAmbientOcclusionMaxMipLevel; ++i) {
+                    float prevMipDimensions[] = { float((int)width >> (i - 1)), float((int)height >> (i - 1)) };
+                    float prevMipTexel[] = { float(1.0f / prevMipDimensions[0]), float(1.0f / prevMipDimensions[1]) };
+                    float curMipWidth = float(int(width) >> i);
+                    float curMipHeight = float(int(height) >> i);
 
                     effect->SetFloatArray(h.vec2PrevMipSize, prevMipDimensions, 2);
                     effect->SetFloatArray(h.vec2PrevMipTexel, prevMipTexel, 2);
@@ -1484,7 +1484,7 @@ private:
                 float hor[2] = { invViewportSize[0] * PostFxResources.fAmbientOcclusionBlurRadius, 0.0 };
                 float ver[2] = { 0.0, invViewportSize[1] * PostFxResources.fAmbientOcclusionBlurRadius };
                 effect->BeginPass(3);
-                for (size_t i = 0; i < PostFxResources.nAmbientOcclusionBlurPasses; ++i)
+                for (auto i = 0; i < PostFxResources.nAmbientOcclusionBlurPasses; ++i)
                 {
                     pDevice->SetRenderTarget(0, aoBlurSurf);
                     effect->SetTexture(h.AOTexture2D, aoTex); // blur pass 1
