@@ -127,6 +127,9 @@ Tone Mapping
 [Volumetric Fog]
 Volumetric Fog
 
+[AO]
+Ambient Occlusion
+
 [Zoomed Movement]
 Allow Movement When Zoomed
 

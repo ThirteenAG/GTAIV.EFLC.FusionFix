@@ -35,6 +35,8 @@ import d3dx9_43;
 
 #define IDR_Blit_PS                              129
 
+#define IDR_AO_FX                                133
+
 #define IDR_SSDraw_PS_compiled                   2127
 #define IDR_SSPrepass_PS_compiled                2128
 #define IDR_SSAdd_PS_compiled                    2129
@@ -55,6 +57,8 @@ std::optional<std::reference_wrapper<int32_t>> UsePostFxAA;
 class PostFxResource {
 public:
 
+    ID3DXEffect* AOEffect = nullptr;
+
     // --------- load --------- 
     IDirect3DTexture9* SMAA_areaTex = nullptr; // loaded from file
     IDirect3DTexture9* SMAA_searchTex = nullptr; // loaded from file
@@ -68,8 +72,8 @@ public:
 
     // IDirect3DTexture9* NormalTex = nullptr;
     IDirect3DTexture9* DiffuseTex = nullptr;
-    // IDirect3DTexture9* SpecularTex = nullptr;
-    // IDirect3DTexture9* DepthTex = nullptr;
+    IDirect3DTexture9* SpecularTex = nullptr;
+     IDirect3DTexture9* DepthTex = nullptr;
     // IDirect3DTexture9* StencilTex = nullptr;
     // IDirect3DTexture9* BloomTex = nullptr;
     // IDirect3DTexture9* CurrentLumTex = nullptr;
@@ -93,6 +97,14 @@ public:
     IDirect3DSurface9* renderTargetSurf = nullptr;
     IDirect3DSurface9* surfaceRead = nullptr;
 
+    IDirect3DTexture9* AOCamDepthTex = nullptr;
+    IDirect3DTexture9* AOTex = nullptr;
+    IDirect3DTexture9* AOBlurTex = nullptr;
+    std::vector<IDirect3DSurface9*> AOCamDepthSurf = {};
+    IDirect3DSurface9* AOSurf = nullptr;
+    IDirect3DSurface9* AOBlurSurf = nullptr;
+    bool AOEnabled = true;
+
     // Pre alpha pass depth texture copy
     rage::grcRenderTargetPC* PreAlphaDepthCopyRT = nullptr;
 
@@ -105,8 +117,8 @@ public:
     // rage::grcRenderTargetPC* mSpecularAoRT = nullptr;
     // rage::grcRenderTargetPC* mNormalRT = nullptr;
     rage::grcRenderTargetPC* mDiffuseRT = nullptr;
-    // rage::grcRenderTargetPC* mSpecularRT = nullptr;
-    // rage::grcRenderTargetPC* mDepthRT = nullptr;
+    rage::grcRenderTargetPC* mSpecularRT = nullptr;
+     rage::grcRenderTargetPC* mDepthRT = nullptr;
     // rage::grcRenderTargetPC* mStencilRT = nullptr;
     rage::grcRenderTargetPC* mFullScreenRT = nullptr;
     // rage::grcRenderTargetPC* mFullScreenRT2 = nullptr;
@@ -178,6 +190,35 @@ public:
     bool shadersLoaded = false;
 
     bool bEnablePreAlphaDepth = false;
+
+    int nAmbientOcclusionSamples = 9;
+    int nAmbientOcclusionBlurPasses = 1;
+    int nAmbientOcclusionLogMaxOffset = 3;
+    int nAmbientOcclusionMaxMipLevel = 5;
+    float fAmbientOcclusionFarClip = 150.0f;
+
+    float fAmbientOcclusionRadius = 1.125;
+    float fAmbientOcclusionBias = 0.03;
+    float fAmbientOcclusionIntensity = 0.4;
+    float fAmbientOcclusionBlurRadius = 2.0f;
+    
+    struct {
+        D3DXHANDLE AOTexture2D, AOCamDepthTexture2D, DepthTex2D;
+
+        D3DXHANDLE vec2InvViewportSize;
+        D3DXHANDLE fNearPlane;
+        D3DXHANDLE fFarPlane;
+        D3DXHANDLE fFarDivNear;
+        D3DXHANDLE fRadius;
+        D3DXHANDLE fBias;
+        D3DXHANDLE fIntensity;
+        D3DXHANDLE fProjScale;
+        D3DXHANDLE vec4ProjInfo;
+        D3DXHANDLE vec2BlurDirection;
+        D3DXHANDLE vec2PrevMipSize;
+        D3DXHANDLE vec2PrevMipTexel;
+        D3DXHANDLE iPreviousMip;
+    } AOEffectHandles = {};
 
     bool loadShaders(LPDIRECT3DDEVICE9 pDevice, HMODULE hm)
     {
@@ -422,6 +463,46 @@ public:
             }
         }
 
+        if (!AOEffect)
+        {
+            ID3DXBuffer* errors = nullptr;
+            static std::string sampleCount = std::to_string(nAmbientOcclusionSamples);
+            static std::string logMaxOffset = std::to_string(nAmbientOcclusionLogMaxOffset);
+            static std::string maxMipLevel = std::to_string(nAmbientOcclusionMaxMipLevel);
+            static std::string farClip = std::to_string(fAmbientOcclusionFarClip);
+            D3DXMACRO defines[] = {
+                {"NUM_SAMPLES", sampleCount.c_str()},
+                {"LOG_MAX_OFFSET", logMaxOffset.c_str()},
+                {"MAX_MIP_LEVEL", maxMipLevel.c_str()},
+                {"FAR_CLIP", farClip.c_str()},
+                {} // last must be empty
+            };
+            if (D3DXCreateEffectFromResourceW(rage::grcDevice::GetD3DDevice(),
+                hm, MAKEINTRESOURCEW(IDR_AO_FX), defines, nullptr, 0, nullptr, &AOEffect, &errors) != S_OK)
+            {
+                if (errors)
+                    MessageBoxA(nullptr, (LPCSTR)errors->GetBufferPointer(), "Error building shader!", MB_OK);
+            }
+            else {
+                AOEffectHandles.AOTexture2D = AOEffect->GetParameterByName(nullptr, "AOTexture2D");
+                AOEffectHandles.AOCamDepthTexture2D = AOEffect->GetParameterByName(nullptr, "AOCamDepthTexture2D");
+                AOEffectHandles.DepthTex2D = AOEffect->GetParameterByName(nullptr, "DepthTex2D");
+                AOEffectHandles.vec2InvViewportSize = AOEffect->GetParameterByName(nullptr, "vec2InvViewportSize");
+                AOEffectHandles.fNearPlane = AOEffect->GetParameterByName(nullptr, "fNearPlane");
+                AOEffectHandles.fFarPlane = AOEffect->GetParameterByName(nullptr, "fFarPlane");
+                AOEffectHandles.fFarDivNear = AOEffect->GetParameterByName(nullptr, "fFarDivNear");
+                AOEffectHandles.fRadius = AOEffect->GetParameterByName(nullptr, "fRadius");
+                AOEffectHandles.fBias = AOEffect->GetParameterByName(nullptr, "fBias");
+                AOEffectHandles.fIntensity = AOEffect->GetParameterByName(nullptr, "fIntensity");
+                AOEffectHandles.fProjScale = AOEffect->GetParameterByName(nullptr, "fProjScale");
+                AOEffectHandles.vec4ProjInfo = AOEffect->GetParameterByName(nullptr, "vec4ProjInfo");
+                AOEffectHandles.vec2BlurDirection = AOEffect->GetParameterByName(nullptr, "vec2BlurDirection");
+                AOEffectHandles.vec2PrevMipSize = AOEffect->GetParameterByName(nullptr, "vec2PrevMipSize");
+                AOEffectHandles.vec2PrevMipTexel = AOEffect->GetParameterByName(nullptr, "vec2PrevMipTexel");
+                AOEffectHandles.iPreviousMip = AOEffect->GetParameterByName(nullptr, "iPreviousMip");
+            }
+        }
+
         return ShadersFinishedLoading();
     }
 
@@ -518,7 +599,7 @@ public:
            && SSDraw_PS && SSPrepass_PS && SSAdd_PS
            && SMAA_EdgeDetection && SMAA_BlendingWeightsCalculation && SMAA_NeighborhoodBlending
            && SMAA_EdgeDetectionVS && SMAA_BlendingWeightsCalculationVS && SMAA_NeighborhoodBlendingVS
-           && Blit_PS)
+           && Blit_PS && AOEffect)
            // DeferredShadowGen_ps && deferred_lighting_PS1 && deferred_lighting_PS2 && SSAO_gen_ps && SSAO_blend_ps && DeferredShadowBlurH_ps && DeferredShadowBlurV_ps && DeferredShadowBlurCircle_ps
             return true;
 
@@ -533,6 +614,29 @@ public:
 
         bEnablePreAlphaDepth = iniReader.ReadInteger("POSTFX", "EnablePreAlphaDepth", 1) != 0;
 
+        nAmbientOcclusionBlurPasses = iniReader.ReadInteger("POSTFX", "AmbientOcclusionBlurPasses", 1);
+        nAmbientOcclusionSamples = iniReader.ReadInteger("POSTFX", "AmbientOcclusionSamples", 9);
+        nAmbientOcclusionLogMaxOffset = iniReader.ReadInteger("POSTFX", "AmbientOcclusionLogMaxOffset", 3);
+        nAmbientOcclusionMaxMipLevel = iniReader.ReadInteger("POSTFX", "AmbientOcclusionMaxMipLevel", 5);
+        fAmbientOcclusionFarClip = iniReader.ReadFloat("POSTFX", "AmbientOcclusionFarClip", 150.0f);
+        fAmbientOcclusionBlurRadius = iniReader.ReadFloat("POSTFX", "AmbientOcclusionBlurRadius", 2.0f);
+
+        nAmbientOcclusionBlurPasses = std::max(0, nAmbientOcclusionBlurPasses);
+        nAmbientOcclusionSamples = std::clamp(nAmbientOcclusionSamples, 0, 128);
+        nAmbientOcclusionLogMaxOffset = std::max(0, nAmbientOcclusionLogMaxOffset);
+        nAmbientOcclusionMaxMipLevel = std::max(1, nAmbientOcclusionMaxMipLevel);
+        fAmbientOcclusionFarClip = std::max(1.0f, fAmbientOcclusionFarClip);
+        fAmbientOcclusionBlurRadius = std::max(0.0f, fAmbientOcclusionBlurRadius);
+
+        AOCamDepthSurf.resize(nAmbientOcclusionMaxMipLevel);
+
+        fAmbientOcclusionRadius = iniReader.ReadFloat("POSTFX", "AmbientOcclusionRadius", 1.125);
+        fAmbientOcclusionBias = iniReader.ReadFloat("POSTFX", "AmbientOcclusionBias", 0.03);
+        fAmbientOcclusionIntensity = iniReader.ReadFloat("POSTFX", "AmbientOcclusionIntensity", 0.4);
+
+        fAmbientOcclusionRadius = std::max(fAmbientOcclusionRadius, 0.0f);
+        fAmbientOcclusionBias = std::max(fAmbientOcclusionBias, 0.0f);
+        fAmbientOcclusionIntensity = std::max(fAmbientOcclusionIntensity, 0.0f);
         // 0 off, 1 horizontal, 2 vertical, 3 horizontal e vertical.
         //useScreenSpaceShadowsBlur = iniReader.ReadInteger("SRF", "ScreenSpaceShadowsBlur", 0);
         //useHardwareBilinearSampling = iniReader.ReadInteger("SRF", "NewShadowAtlas", 0) != 0;
@@ -668,15 +772,24 @@ private:
             mQuadVertexDecl->Release();
             mQuadVertexDecl = nullptr;
         }
+        if (PostFxResources.AOEffect)
+            PostFxResources.AOEffect->OnLostDevice();
 
+        SAFE_RELEASE(PostFxResources.AOCamDepthTex);
+        SAFE_RELEASE(PostFxResources.AOTex);
+        SAFE_RELEASE(PostFxResources.AOBlurTex);
+        for (size_t i = 0; i < PostFxResources.nAmbientOcclusionMaxMipLevel; ++i)
+            SAFE_RELEASE(PostFxResources.AOCamDepthSurf[i]);
+        SAFE_RELEASE(PostFxResources.AOSurf);
+        SAFE_RELEASE(PostFxResources.AOBlurSurf);
     }
 
     static void __fastcall OnDeviceReset()
     {
         // PostFxResources.mNormalRT       = rage::grcTextureFactoryPC::GetRTByName( "_DEFERRED_GBUFFER_1_"  );
         PostFxResources.mDiffuseRT      = rage::grcTextureFactoryPC::GetRTByName( "_DEFERRED_GBUFFER_0_"  );
-        // PostFxResources.mSpecularRT     = rage::grcTextureFactoryPC::GetRTByName( "_DEFERRED_GBUFFER_2_"  );
-        // PostFxResources.mDepthRT        = rage::grcTextureFactoryPC::GetRTByName( "_DEFERRED_GBUFFER_3_"  );
+        PostFxResources.mSpecularRT     = rage::grcTextureFactoryPC::GetRTByName( "_DEFERRED_GBUFFER_2_"  );
+         PostFxResources.mDepthRT        = rage::grcTextureFactoryPC::GetRTByName( "_DEFERRED_GBUFFER_3_"  );
         // PostFxResources.mStencilRT      = rage::grcTextureFactoryPC::GetRTByName( "_STENCIL_BUFFER_"      );
         // PostFxResources.mCascadeAtlasRT = rage::grcTextureFactoryPC::GetRTByName( "CASCADE_ATLAS"         );
         PostFxResources.mFullScreenRT   = rage::grcTextureFactoryPC::GetRTByName( "FullScreenCopy"        );
@@ -715,6 +828,31 @@ private:
         vertexData[5] = {  1.0f - pixelSize.x, -1.0f + pixelSize.y, 0.0f, 1.0f, 1.0f };
 
         mQuadVertexBuffer->Unlock();
+
+        if (PostFxResources.AOEffect)
+            PostFxResources.AOEffect->OnResetDevice();
+
+        SAFE_RELEASE(PostFxResources.AOCamDepthTex);
+        SAFE_RELEASE(PostFxResources.AOTex);
+        SAFE_RELEASE(PostFxResources.AOBlurTex);
+        for (size_t i = 0; i < PostFxResources.nAmbientOcclusionMaxMipLevel; ++i)
+            SAFE_RELEASE(PostFxResources.AOCamDepthSurf[i]);
+        SAFE_RELEASE(PostFxResources.AOSurf);
+        SAFE_RELEASE(PostFxResources.AOBlurSurf);
+        auto pDevice = rage::grcDevice::GetD3DDevice();
+
+        pDevice->CreateTexture(width, height, PostFxResources.nAmbientOcclusionMaxMipLevel, D3DUSAGE_RENDERTARGET,
+            D3DFMT_R32F, D3DPOOL_DEFAULT, &PostFxResources.AOCamDepthTex, nullptr);
+        pDevice->CreateTexture(width, height, 1, D3DUSAGE_RENDERTARGET,
+            D3DFMT_L8, D3DPOOL_DEFAULT, &PostFxResources.AOTex, nullptr);
+        pDevice->CreateTexture(width, height, 1, D3DUSAGE_RENDERTARGET,
+            D3DFMT_L8, D3DPOOL_DEFAULT, &PostFxResources.AOBlurTex, nullptr);
+
+        for (size_t i = 0; i < PostFxResources.nAmbientOcclusionMaxMipLevel; ++i)
+            PostFxResources.AOCamDepthTex->GetSurfaceLevel(i, &PostFxResources.AOCamDepthSurf[i]);
+
+        PostFxResources.AOTex->GetSurfaceLevel(0, &PostFxResources.AOSurf);
+        PostFxResources.AOBlurTex->GetSurfaceLevel(0, &PostFxResources.AOBlurSurf);
     }
 
     static void Init() {
@@ -747,7 +885,7 @@ private:
 
         pDevice->GetRenderTarget(0, &prevSurface);
         pDevice->GetDepthStencilSurface(&prevDepthStencilSurface);
-        
+
         pDevice->GetPixelShader(&prevPS);
 
         {
@@ -805,11 +943,11 @@ private:
         //     return;
         // PostFxResources.NormalTex = PostFxResources.mNormalRT->mD3DTexture;
         PostFxResources.DiffuseTex = PostFxResources.mDiffuseRT->mD3DTexture;
-        // PostFxResources.SpecularTex = PostFxResources.mSpecularRT->mD3DTexture;
+        PostFxResources.SpecularTex = PostFxResources.mSpecularRT->mD3DTexture;
         // PostFxResources.StencilTex = PostFxResources.mStencilRT->mD3DTexture;
         // PostFxResources.BloomTex = PostFxResources.mBloomRT->mD3DTexture;
         // PostFxResources.CurrentLumTex = PostFxResources.mCurrentLum->mD3DTexture;
-        // PostFxResources.DepthTex = PostFxResources.mDepthRT->mD3DTexture;
+         PostFxResources.DepthTex = PostFxResources.mDepthRT->mD3DTexture;
         // if (PostFxResources.mCascadeAtlasRT)
         //     PostFxResources.CascadeAtlasTex = PostFxResources.mCascadeAtlasRT->mD3DTexture;
 
@@ -1213,6 +1351,182 @@ private:
         return S_FALSE;
     }
 
+    static void RenderAmbientOcclusion()
+    {
+        static auto AO = FusionFixSettings.GetRef("PREF_SAO");
+        if (PostFxResources.AOEffect && PostFxResources.AOEnabled && AO->get())
+        { // AO
+            IDirect3DDevice9* pDevice = rage::grcDevice::GetD3DDevice();
+
+            IDirect3DSurface9* rt0 = nullptr;
+            IDirect3DSurface9* ds = nullptr;
+            IDirect3DVertexDeclaration9* oldDecl = nullptr;
+            IDirect3DVertexBuffer9* oldVB = nullptr;
+            UINT oldOffset = 0;
+            UINT oldStride = 0;
+            DWORD oldFVF = 0;
+            D3DVIEWPORT9 oldViewport;
+
+            pDevice->GetFVF(&oldFVF);
+            pDevice->GetVertexDeclaration(&oldDecl);
+            pDevice->GetStreamSource(0, &oldVB, &oldOffset, &oldStride);
+            pDevice->GetRenderTarget(0, &rt0);
+            pDevice->GetDepthStencilSurface(&ds);
+            pDevice->GetViewport(&oldViewport);
+
+            pDevice->SetDepthStencilSurface(nullptr);
+            pDevice->SetStreamSource(0, nullptr, 0, 0);
+            pDevice->SetVertexDeclaration(nullptr);
+            pDevice->SetFVF(D3DFVF_XYZRHW | D3DFVF_TEX1); // fullscreen fvf
+
+            PostFxResources.SpecularTex = PostFxResources.mSpecularRT->mD3DTexture;
+            PostFxResources.DepthTex = PostFxResources.mDepthRT->mD3DTexture;
+            IDirect3DSurface9* SpecularRT;
+            PostFxResources.SpecularTex->GetSurfaceLevel(0, &SpecularRT);
+
+            UINT passes = 0;
+            ID3DXEffect* effect = PostFxResources.AOEffect;
+            effect->Begin(&passes, 0); assert(passes == 5);
+            {
+                rage::grcViewport* currGrcViewport = rage::GetCurrentViewport();
+
+                IDirect3DTexture9* camDepthTex = PostFxResources.AOCamDepthTex;
+                IDirect3DTexture9* aoTex = PostFxResources.AOTex;
+                IDirect3DTexture9* aoBlurTex = PostFxResources.AOBlurTex;
+                auto& camDepthSurf = PostFxResources.AOCamDepthSurf;
+                IDirect3DSurface9* aoSurf = PostFxResources.AOSurf;
+                IDirect3DSurface9* aoBlurSurf = PostFxResources.AOBlurSurf;
+
+                float width = currGrcViewport->mWidth;
+                float height = currGrcViewport->mHeight;
+
+                D3DVIEWPORT9 vp = {};
+                vp.MaxZ = 1.0;
+                vp.Height = height;
+                vp.Width = width;
+                pDevice->SetViewport(&vp);
+
+                auto& h = PostFxResources.AOEffectHandles;
+
+                struct ScreenVertex { float x, y, z, rhw; float u, v; };
+                ScreenVertex screenVertices[4] =
+                {
+                    { -0.5f,         -0.5f,          0.0f, 1.0f, 0.0f, 0.0f },
+                    { -0.5f,          height - 0.5f, 0.0f, 1.0f, 0.0f, 1.0f },
+                    { width - 0.5f, -0.5f,          0.0f, 1.0f, 1.0f, 0.0f },
+                    { width - 0.5f, height - 0.5f, 0.0f, 1.0f, 1.0f, 1.0f }
+                };
+
+                float invViewportSize[] = { 1.0 / width, 1.0 / height };
+
+                effect->SetTexture(h.DepthTex2D, PostFxResources.DepthTex);
+                effect->SetFloatArray(h.vec2InvViewportSize, invViewportSize, 2);
+                effect->SetFloat(h.fNearPlane, currGrcViewport->mNearClip);
+                effect->SetFloat(h.fFarPlane, currGrcViewport->mFarClip);
+                effect->SetFloat(h.fFarDivNear, currGrcViewport->mFarClip / currGrcViewport->mNearClip);
+
+                pDevice->SetRenderTarget(0, camDepthSurf[0]);
+                effect->BeginPass(0);
+                pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, screenVertices, sizeof(ScreenVertex));
+                effect->EndPass();
+
+                effect->SetTexture(h.AOCamDepthTexture2D, camDepthTex);
+                effect->BeginPass(1);
+                for (size_t i = 1; i < PostFxResources.nAmbientOcclusionMaxMipLevel; ++i) {
+                    float prevMipDimensions[] = {(int)width >> (i - 1), (int)height >> (i - 1)};
+                    float prevMipTexel[] = { 1.0f / prevMipDimensions[0], 1.0f / prevMipDimensions[1] };
+                    float curMipWidth = int(width) >> i;
+                    float curMipHeight = int(height) >> i;
+
+                    effect->SetFloatArray(h.vec2PrevMipSize, prevMipDimensions, 2);
+                    effect->SetFloatArray(h.vec2PrevMipTexel, prevMipTexel, 2);
+                    effect->SetInt(h.iPreviousMip, i - 1);
+
+                    ScreenVertex mipVertices[4] =
+                    {
+                        { -0.5f,         -0.5f,          0.0f, 1.0f, 0.0f, 0.0f },
+                        { -0.5f,          curMipHeight - 0.5f, 0.0f, 1.0f, 0.0f, 1.0f },
+                        { curMipWidth - 0.5f, -0.5f,          0.0f, 1.0f, 1.0f, 0.0f },
+                        { curMipWidth - 0.5f, curMipHeight - 0.5f, 0.0f, 1.0f, 1.0f, 1.0f }
+                    };
+
+                    effect->CommitChanges();
+
+                    pDevice->SetRenderTarget(0, PostFxResources.AOCamDepthSurf[i]);
+                    pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, mipVertices, sizeof(ScreenVertex));
+                }
+                effect->EndPass();
+
+                pDevice->SetRenderTarget(0, aoSurf);
+                pDevice->Clear(0, nullptr, D3DCLEAR_TARGET, D3DCOLOR_COLORVALUE(1.0, 0.0, 0, 1.0), 1.0f, 0);
+
+                D3DMATRIX proj = *(D3DMATRIX*)currGrcViewport->mProjectionMatrix;
+
+                effect->SetFloat(h.fRadius, PostFxResources.fAmbientOcclusionRadius);
+                effect->SetFloat(h.fBias, PostFxResources.fAmbientOcclusionBias);
+                effect->SetFloat(h.fIntensity, PostFxResources.fAmbientOcclusionIntensity);
+                effect->SetFloat(h.fProjScale, proj._22 * 0.5f * height);
+
+                D3DXVECTOR4 projInfo;
+                projInfo.x = -2.0f / ((width)*proj._11);
+                projInfo.y = -2.0f / ((height)*proj._22);
+                projInfo.z = (1.0f - proj._31) / proj._11;
+                projInfo.w = (1.0f + proj._32) / proj._22;
+
+                effect->SetVector(h.vec4ProjInfo, &projInfo);
+
+                effect->CommitChanges();
+
+                effect->BeginPass(2);
+                pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, screenVertices, sizeof(ScreenVertex));
+                effect->EndPass();
+
+                float hor[2] = { invViewportSize[0] * PostFxResources.fAmbientOcclusionBlurRadius, 0.0 };
+                float ver[2] = { 0.0, invViewportSize[1] * PostFxResources.fAmbientOcclusionBlurRadius };
+                effect->BeginPass(3);
+                for (size_t i = 0; i < PostFxResources.nAmbientOcclusionBlurPasses; ++i)
+                {
+                    pDevice->SetRenderTarget(0, aoBlurSurf);
+                    effect->SetTexture(h.AOTexture2D, aoTex); // blur pass 1
+                    effect->SetFloatArray(h.vec2BlurDirection, hor, 2);
+                    effect->CommitChanges();
+
+                    pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, screenVertices, sizeof(ScreenVertex));
+
+                    pDevice->SetRenderTarget(0, aoSurf);
+                    effect->SetTexture(h.AOTexture2D, aoBlurTex); // blur pass 2
+                    effect->SetFloatArray(h.vec2BlurDirection, ver, 2);
+                    effect->CommitChanges();
+
+                    pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, screenVertices, sizeof(ScreenVertex));
+                }
+                effect->EndPass();
+
+                // final output
+                pDevice->SetRenderTarget(0, SpecularRT);
+                effect->SetTexture(h.AOTexture2D, aoTex);
+
+                effect->BeginPass(4);
+                pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, screenVertices, sizeof(ScreenVertex));
+                effect->EndPass();
+            }
+            effect->End();
+
+            pDevice->SetRenderTarget(0, rt0);
+            pDevice->SetDepthStencilSurface(ds);
+            pDevice->SetFVF(oldFVF);
+            pDevice->SetVertexDeclaration(oldDecl);
+            pDevice->SetStreamSource(0, oldVB, oldOffset, oldStride);
+            pDevice->SetViewport(&oldViewport);
+
+            SAFE_RELEASE(SpecularRT);
+            SAFE_RELEASE(rt0);
+            SAFE_RELEASE(ds);
+            SAFE_RELEASE(oldDecl);
+            SAFE_RELEASE(oldVB);
+        }
+    }
+
     static inline thread_local bool bInsteadDrawPrimitiveFog = false;
     static inline injector::hook_back<void(__fastcall*)(void*, void*, int, int, int)> hbDrawCallFog;
     static void __fastcall DrawCallFog(void* _this, void* edx, int a2, int a3, int a4) {
@@ -1281,6 +1595,17 @@ private:
         return hbDrawSkyHook.fun(_this, edx, a2, a3, a4, a5, a6, a7);
     }
 
+    static inline SafetyHookInline RenderPedAndVehicleFakeShadowsInlineHook;
+
+    static DWORD __cdecl RenderPedAndVehicleFakeShadows(DWORD a1)
+    {
+        DWORD result = RenderPedAndVehicleFakeShadowsInlineHook.unsafe_ccall<DWORD>(a1);
+
+        RenderAmbientOcclusion();
+
+        return result;
+    }
+
 public:
     PostFX()
     {
@@ -1312,7 +1637,9 @@ public:
                             hbDrawCallFog.fun = injector::MakeCALL(pattern.get_first(4), DrawCallFog).get();
                         }
                     }
-
+                    pattern = find_pattern("55 8B EC 83 E4 ? 8B 0D ? ? ? ? 8B 15 ? ? ? ? 8B 41", "55 8B EC 83 E4 ? 8B 0D ? ? ? ? 8B 41 ? 8B 15");
+                    RenderPedAndVehicleFakeShadowsInlineHook = 
+                        safetyhook::create_inline(pattern.get_first(0), RenderPedAndVehicleFakeShadows);
                 }
             }
         };
