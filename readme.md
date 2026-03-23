@@ -144,7 +144,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **Centered On Foot Camera**, makes on foot camera centered, also for more options install the [original mod](https://github.com/gennariarmando/iv-centered-onfoot-cam)
 - **Turn Indicators**, allows the player to use vehicle turn indicators and hazard lights
 - **Always Show Bullet Traces**, shows bullet traces on every shot instead of randomly, like in the older games
-- **Disable Wardrobe Transition**, disables all screen fading in/out process when changing clothes in the wardrobe
+- **Disable Wardrobe Transition**, disables all screen fading in/out process when switching clothes in the wardrobe
 - **Instant Taxi Stop**, makes the taxi stop immediately after skipping taxi ride journey
 - **Look-Around Sensitivity**, controls the look sensitivity when using controller
 - **Aiming Sensitivity**, controls the aim sensitivity when using controller
@@ -206,6 +206,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed possible issue where food buying animation playing with several seconds delay in fast-food restaurants
 - Fixed possible crash when The Lost clubhouse memorial wall photos are full
 - Fixed busker script terminating too early in TBoGT, now Luis can give money to buskers normally
+- Fixed Armando and Henrique's respect not increasing after finishing hang out friend activity
 - Restored Star Junction BurgerShot blip in TBoGT
 
 #### Controls
@@ -222,12 +223,13 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed some object animations speeding up on high framerates, like gun car weapon and pinsetter
 - Fixed pool ball shadows flickering in Playboy apartment's pool table
 - Restored transparency on pool minigame
+- Restored console player transparency on air hockey minigame
 - Restored traffic cops in toll booths
 - Restored non-cop pedestrians in helicopters flying around city
 - Restored own unique soda can model for eCola vending machines instead of reusing Sprunk ones
 - Restored TLAD combat shotgun own unique prop model (prop_e1_pumpshot) instead of reusing IV model (cj_prop_pumpshot)
 - Restored the gun shop owner own unique model (M_M_GunNut_01) instead of using the strip club bouncer model (M_Y_bouncer_01)
-- Fixed two bought Perseus suits textures not matching their prop models
+- Fixed two bought PC Perseus suits textures not matching their prop models
 - Fixed Niko's hands being changed while switching clothes to Perseus suits
 - Fixed Esperanto being spawned instead of Roman's Taxi in Roman's cab depot
 
@@ -238,8 +240,10 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed Johnny's incorrect voice lines after exiting the gun shop when buying something (used to use voice lines from Higgin's Heli Tours)
 - Restored Luis' voice lines when exiting the gun shop (buying/not buying)
 - Restored missing voice lines from Luis & Johnny when exiting the Broker gun shop
-- Restored Jim, Terry, Clay own voice lines in hi-lo cards minigame
-- Restored Uptown Riders' own voice lines in arm wrestling minigame (used to use Angels of Death's voice lines)
+- Restored missing voice lines from Johnny when triggering pool minigame
+- Restored non-friend NPC voice lines on air hockey minigame
+- Restored Jim, Terry, Clay own voice lines on hi-lo cards minigame
+- Restored Uptown Riders' own voice lines on arm wrestling minigame (used to use Angels of Death's voice lines)
 - Restored Clay's voice lines, he'll now respond to Johnny's arrival in hang out friend activity
 - Restored Armando and Henrique's voice lines, they'll now greet Luis when he is close to them in strip club
 - Restored Luis' voice lines, he'll now respond to what the pilot tells him about the landmarks during Heli Tours
@@ -277,6 +281,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 - Fixed several sprite drawing speeding up on high framerates
 - Fixed computer email typing speeding up on high framerates
+- Fixed phone vibrate speeding up on high framerates
+- Fixed phone being not usable after giving money to buskers
 - Fixed ammo reset when buying different pistol from gun shop in IV
 - Fixed ammo reset when buying different weapon from gun shop in TLAD/TBoGT
 - Restored the temporary ban from the gun shop when attacking the owner in TLAD/TBoGT
@@ -289,8 +295,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed 200 pigeons extermination annihilator reward preventing Brucie from landing helicopter at Star Junction landing site
 - Fixed memorial wall photos not spawning while entering The Lost clubhouse from roof entry in TLAD
 - Fixed several motorcycles using incorrect paying animation in toll booths in TBoGT
-- Fixed scripted depth of field not being removed after playing drinking minigame
 - Fixed Luis' vehicle always being removed after playing golf and drinking minigame
+- Partially fixed scripted depth of field not being removed after playing drinking minigame
 
 ### Episodic content
 
