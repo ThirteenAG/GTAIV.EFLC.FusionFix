@@ -127,6 +127,9 @@ Mappage tonal
 [Volumetric Fog]
 Brouillard volumétrique
 
+[AO]
+Occlusion ambiante
+
 [Zoomed Movement]
 Permettre le mouvement en zoomant
 
