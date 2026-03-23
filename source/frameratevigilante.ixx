@@ -278,15 +278,10 @@ bool __cdecl NATIVE_SLIDE_OBJECT_2(Object object, float x, float y, float z, flo
     return shNATIVE_SLIDE_OBJECT.unsafe_ccall<bool>(object, x, y, z, xs * Delta, ys * Delta, zs * Delta, flag);
 }
 
-float g_dtScale = 1.0f;
 SafetyHookInline shsub_9FE7B0 = {};
 void __cdecl sub_9FE7B0(float a1, int a2)
 {
-    constexpr float MAX_DT = 1.0f / 30.0f;
-    g_dtScale = a1 / MAX_DT;
-    float clampedDt = std::min(a1, MAX_DT * 2.0f);
-
-    return shsub_9FE7B0.unsafe_ccall(clampedDt, a2);
+    return shsub_9FE7B0.unsafe_ccall(std::clamp(a1, 1.0f / 150.0f, FLT_MAX), a2);
 }
 
 class FramerateVigilante
@@ -359,38 +354,6 @@ public:
             // Automobile physics
             pattern = find_pattern("81 EC F8 02 00 00 53", "81 EC F8 02 00 00");
             shsub_9FE7B0 = safetyhook::create_inline(pattern.get_first(), sub_9FE7B0);
-
-            // Slippery bikes
-            pattern = find_pattern("F3 0F 58 44 24 ? F3 0F 10 90");
-            if (!pattern.empty())
-            {
-                injector::MakeNOP(pattern.get_first(), 6, true);
-                static auto LeanAngleBikes = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
-                {
-                    regs.xmm0.f32[0] *= g_dtScale;
-                    regs.xmm0.f32[0] += *(float*)(regs.esp + 0x30);
-                });
-            }
-
-            pattern = find_pattern("F3 0F 11 44 24 ? 7E ? 8B 8F ? ? ? ? EB 02 33 C9 E8");
-            if (!pattern.empty())
-            {
-                injector::MakeNOP(pattern.get_first(), 6, true);
-                static auto AngleAdjustmentBikes = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
-                {
-                    *(float*)(regs.esp + 0x3C) = regs.xmm0.f32[0] * g_dtScale;
-                });
-            }
-
-            // Slippery cars
-            if (!pattern.empty())
-            {
-                pattern = find_pattern("0F 2F C8 77 ? F3 0F 10 0D ? ? ? ? 0F 2F C1 76 ? 0F 28 C1 8B 87 ? ? ? ? F3 0F 58 44 24 ? F3 0F 10 88");
-                static auto LeanAngleCars = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
-                {
-                    regs.xmm0.f32[0] *= g_dtScale;
-                });
-            }
 
             // Heli rotor break time
             // Does not work yet!
