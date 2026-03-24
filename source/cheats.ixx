@@ -398,6 +398,28 @@ public:
                     Natives::PrintHelp((char*)"CHEAT1");
                 }
             });
+
+            //SimRate
+            static bool bSpeedupSimRateCheat = false;
+
+            pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? 83 C4 ? ? ? ? ? ? E8");
+            injector::MakeNOP(pattern.get_first(0), 8, true);
+            static auto SimRateSpeed = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+            {
+                regs.xmm0.f32[0] = *CTimer::fTimeStep;
+
+                if (bSpeedupSimRateCheat)
+                    regs.xmm0.f32[0] *= 2.0f;
+            });
+
+            NativeOverride::RegisterPhoneCheat("6925550100", []
+            {
+                bSpeedupSimRateCheat = !bSpeedupSimRateCheat;
+                if (bSpeedupSimRateCheat)
+                    Natives::PrintHelp((char*)"CHEAT1");
+                else
+                    Natives::PrintHelp((char*)"CHEAT2");
+            });
         };
     }
 } Cheats;

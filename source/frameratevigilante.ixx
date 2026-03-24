@@ -278,10 +278,28 @@ bool __cdecl NATIVE_SLIDE_OBJECT_2(Object object, float x, float y, float z, flo
     return shNATIVE_SLIDE_OBJECT.unsafe_ccall<bool>(object, x, y, z, xs * Delta, ys * Delta, zs * Delta, flag);
 }
 
-SafetyHookInline shsub_9FE7B0 = {};
-void __cdecl sub_9FE7B0(float a1, int a2)
+namespace CPhysics
 {
-    return shsub_9FE7B0.unsafe_ccall(std::clamp(a1, 1.0f / 150.0f, FLT_MAX), a2);
+    int numSubsteps = 2;
+    float fSimStep = 0.0f;
+
+    SafetyHookInline shUpdate = {};
+    void __cdecl Update()
+    {
+        numSubsteps = 2;
+        fSimStep = *CTimer::fTimeStep;
+
+        // 45 fps, between 30 and 60; around 30 there are visible issues
+        constexpr float safetyThreshold = 15.0f;
+
+        if (*CTimer::fTimeStep < 1.0f / (30.0f + safetyThreshold))
+        {
+            numSubsteps = 1;
+            fSimStep = std::max(*CTimer::fTimeStep, 1.0f / 60.0f);
+        }
+
+        return shUpdate.unsafe_ccall();
+    }
 }
 
 class FramerateVigilante
@@ -324,9 +342,18 @@ public:
                 }
             }
 
-            // Automobile physics
-            pattern = find_pattern("81 EC F8 02 00 00 53", "81 EC F8 02 00 00");
-            shsub_9FE7B0 = safetyhook::create_inline(pattern.get_first(), sub_9FE7B0);
+            // Physics
+            pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 C1 56");
+            injector::WriteMemory(pattern.get_first(4), &CPhysics::fSimStep, true);
+
+            pattern = find_pattern("A1 ? ? ? ? F3 0F 10 0D ? ? ? ? 66 0F 6E C0 0F 5B C0");
+            injector::WriteMemory(pattern.get_first(1), &CPhysics::numSubsteps, true);
+
+            pattern = find_pattern("3B 35 ? ? ? ? 7C ? 5E 59");
+            injector::WriteMemory(pattern.get_first(2), &CPhysics::numSubsteps, true);
+
+            pattern = find_pattern("51 56 E8 ? ? ? ? E8");
+            CPhysics::shUpdate = safetyhook::create_inline(pattern.get_first(), CPhysics::Update);
 
             // Heli rotor break time
             // Does not work yet!
