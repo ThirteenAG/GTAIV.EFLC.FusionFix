@@ -301,7 +301,7 @@ public:
             { 0, "PREF_TREEALPHA",              "MISC",       "TreeAlpha",                          "MENU_DISPLAY_TREE_LIGHTING", 6, nullptr, (int32_t)TreeFxText.ePC, std::distance(std::begin(TreeFxText.data), std::end(TreeFxText.data)) - 1 },
             { 0, "PREF_SUNSHAFTS",              "MISC",       "SunShafts",                          "",                           0, nullptr, 0, 1 },
             { 0, "PREF_FPSCOUNTER",             "FRAMELIMIT", "DisplayFpsCounter",                  "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_ALWAYSRUN",              "MISC",       "AlwaysRun",                          "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_ALWAYSRUN",              "MISC",       "AlwaysRun",                          "",                           4, nullptr, (int32_t)AlwaysRunText.eOff, std::distance(std::begin(AlwaysRunText.data), std::end(AlwaysRunText.data)) - 1 }, //MENU_DISPLAY_SHADOW_DENSITY
             { 0, "PREF_ALTDIALOGUE",            "MISC",       "AltDialogue",                        "",                           0, nullptr, 0, 1 },
             { 0, "PREF_COVERCENTERING",         "MISC",       "CameraCenteringInCover",             "",                           0, nullptr, 0, 1 },
             { 0, "PREF_KBCAMCENTERDELAY",       "MISC",       "DelayBeforeCenteringCameraKB",       "",                           4, nullptr, 0, 9 },
@@ -615,6 +615,12 @@ public:
         enum eAntialiasingText { eLow, eMedium, eHigh, eVeryHigh, eHighest, eMO_OFF, eFXAA, eSMAA };
         std::vector<const char*> data = { "Low", "Medium", "High", "Very High", "Highest", "MO_OFF", "FXAA", "SMAA" };
     } AntialiasingText;
+
+    struct
+    {
+        enum eAlwaysRunText { eMO_OFF, eMO_ON, ePC, eConsole, eOff, eOn, eArmedOnly, eNoJogging };
+        std::vector<const char*> data = { "MO_OFF", "MO_ON", "PC", "Console", "Off", "On", "Armed Only", "No Jogging" };
+    } AlwaysRunText;
 
     struct
     {

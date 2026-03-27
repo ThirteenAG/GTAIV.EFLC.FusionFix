@@ -38,7 +38,7 @@ public:
                             force_return_address(loc_A2A60F);
                         }
 
-                        // Detect if fists/unarmed equipped (only used for mode 1)
+                        // Detect if fists/unarmed equipped (only used for mode 2)
                         bool bIsFists = false;
                         Ped hPlayer = 0;
                         Player playerId = Natives::GetPlayerId();
@@ -60,22 +60,20 @@ public:
 
                         if (bShouldRun)
                         {
-                            auto alwaysRunMode = bAlwaysRunOptions;
-
-                            // Mode 0: default (no special rules)
-                            if (alwaysRunMode == 0)
+                            // Mode 1: default (no special rules)
+                            if (alwaysrunPref == 1)
                             {
                                 bDontRunNow = (bDoNotRunInside && Natives::IsInteriorScene());
                             }
-                            // Mode 1: armed only (walk when fists)
-                            else if (alwaysRunMode == 1)
+                            // Mode 2: armed only (walk when fists)
+                            else if (alwaysrunPref == 2)
                             {
                                 bDontRunNow = (bDoNotRunInside && Natives::IsInteriorScene()) || bIsFists;
                             }
-                            // Mode 2: no jogging
-                            else if (alwaysRunMode == 2)
+                            // Mode 3: no jogging
+                            else if (alwaysrunPref == 3)
                             {
-                                bDontRunNow = (bDoNotRunInside && Natives::IsInteriorScene() || alwaysRunMode == 2);
+                                bDontRunNow = (bDoNotRunInside && Natives::IsInteriorScene() || alwaysrunPref == 3);
                             }
                             // Invalid mode → default
                             else

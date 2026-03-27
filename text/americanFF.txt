@@ -37,6 +37,12 @@ Raw Input
 [Always Run]
 Always Run
 
+[Armed Only]
+Armed Only
+
+[No Jogging]
+No Jogging
+
 [Cover Centering]
 Cover Centering
 
