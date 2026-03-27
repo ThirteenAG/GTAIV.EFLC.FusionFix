@@ -16,7 +16,7 @@ public:
                 CIniReader iniReader("");
                 static int32_t nWalkKey = iniReader.ReadInteger("MISC", "WalkKey", VK_MENU);
                 static bool bDoNotRunInside = iniReader.ReadInteger("MISC", "DoNotRunInside", 0) != 0;
-                static int32_t bAlwaysRunOptions = iniReader.ReadInteger("MISC", "AlwaysRunOptions", 0);  // 0=default, 1=armed only, 2=no jogging
+                //static int32_t bAlwaysRunOptions = iniReader.ReadInteger("MISC", "AlwaysRunOptions", 0);  // 0=default, 1=armed only, 2=no jogging
 
                 auto pattern = hook::pattern("D9 44 24 18 5F 5B 5D");
                 static auto flag = false;
@@ -54,31 +54,30 @@ public:
                         static auto alwaysrunPref = FusionFixSettings.GetRef("PREF_ALWAYSRUN");
                         static auto sprintPref = FusionFixSettings.GetRef("PREF_SPRINT");
 
-                        auto bShouldRun = alwaysrunPref->get();  // main toggle from menu
+                        auto bShouldRun = alwaysrunPref->get() > 4;  // main toggle from menu, has to look for values greater than 4 only because MO_OFF is 4
 
                         bool bDontRunNow = false;
 
                         if (bShouldRun)
                         {
                             // Mode 1: default (no special rules)
-                            if (alwaysrunPref == 1)
+                            if (alwaysrunPref == 5) // On
                             {
                                 bDontRunNow = (bDoNotRunInside && Natives::IsInteriorScene());
                             }
                             // Mode 2: armed only (walk when fists)
-                            else if (alwaysrunPref == 2)
+                            else if (alwaysrunPref == 6) // Armed Only
                             {
                                 bDontRunNow = (bDoNotRunInside && Natives::IsInteriorScene()) || bIsFists;
                             }
                             // Mode 3: no jogging
-                            else if (alwaysrunPref == 3)
+                            else if (alwaysrunPref == 7) // No Jogging
                             {
-                                bDontRunNow = (bDoNotRunInside && Natives::IsInteriorScene() || alwaysrunPref == 3);
+                                bDontRunNow = (bDoNotRunInside && Natives::IsInteriorScene() || alwaysrunPref == 7);
                             }
                             // Invalid mode → default
                             else
                             {
-                                bDontRunNow = (bDoNotRunInside && Natives::IsInteriorScene());
                             }
                         }
 
