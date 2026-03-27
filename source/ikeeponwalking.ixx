@@ -16,7 +16,6 @@ public:
                 CIniReader iniReader("");
                 static int32_t nWalkKey = iniReader.ReadInteger("MISC", "WalkKey", VK_MENU);
                 static bool bDoNotRunInside = iniReader.ReadInteger("MISC", "DoNotRunInside", 0) != 0;
-                //static int32_t bAlwaysRunOptions = iniReader.ReadInteger("MISC", "AlwaysRunOptions", 0);  // 0=default, 1=armed only, 2=no jogging
 
                 auto pattern = hook::pattern("D9 44 24 18 5F 5B 5D");
                 static auto flag = false;
