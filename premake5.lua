@@ -20,8 +20,8 @@ workspace "GTAIV.EFLC.FusionFix"
    flags { "MultiProcessorCompile" }
 
    defines { "rsc_CompanyName=\"GTAIV.EFLC.FusionFix\"" }
-   defines { "rsc_LegalCopyright=\"GTAIV.EFLC.FusionFix\""}
-   defines { "rsc_InternalName=\"%{prj.name}\"", "rsc_ProductName=\"%{prj.name}\"", "rsc_OriginalFilename=\"%{prj.name}.dll\"" }
+   defines { "rsc_LegalCopyright=\"GPL-3.0 license\""}
+   defines { "rsc_InternalName=\"%{prj.name}\"", "rsc_ProductName=\"%{prj.name}\"", "rsc_OriginalFilename=\"%{cfg.buildtarget.name}\"" }
    defines { "rsc_FileDescription=\"GTAIV.EFLC.FusionFix\"" }
    defines { "rsc_UpdateUrl=\"https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix\"" }
 
@@ -45,7 +45,6 @@ workspace "GTAIV.EFLC.FusionFix"
    defines { "rsc_FileVersion_BUILD=" .. build }
    defines { "rsc_FileVersion_REVISION=" .. revision }
    defines { "rsc_FileVersion=\"" .. major .. "." .. minor .. "." .. build .. "\"" }
-   defines { "rsc_ProductVersion=\"" .. major .. "." .. minor .. "." .. build .. "\"" }
 
    local githash = ""
    local f = io.popen("git rev-parse --short HEAD")
@@ -56,6 +55,7 @@ workspace "GTAIV.EFLC.FusionFix"
 
    defines { "rsc_GitSHA1=\"" .. githash .. "\"" }
    defines { "rsc_GitSHA1W=L\"" .. githash .. "\"" }
+   defines { "rsc_ProductVersion=\"" .. major .. "." .. minor .. "." .. build .. "." .. revision .. "-" .. githash .. "\"" }
 
    defines { "_CRT_SECURE_NO_WARNINGS" }
 
