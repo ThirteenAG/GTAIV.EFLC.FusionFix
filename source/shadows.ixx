@@ -185,7 +185,9 @@ public:
                         "ag_bushytree4", "ag_bushytree5", "ag_bushytree6", "ag_bushytree7", "bknbush_02", "et_bushlib02", "tr_dstore_det01_dc9", "ts_bawsaqdet_02_dc9", "ts_bilb8x14_dc9", "ts_bilbixrtile01_dc9",
                         "ts_bilbstand1_dc9", "ts_bilcorn01_dc9", "ts_floodlitixr_dc9", "ts_floodlitixr2_dc9", "ts_floodlitixr3_dc9", "ts_roads03x_dc9", "ts_roads07_dc9", "ts_roads08_dc9", "ts_roads09x_dc9",
                         "ts_roads12_dc9", "ts_roads14_dc9", "ts_roads15_dc9", "ts_roads18_dc9", "ts_roads19_dc9", "ts_roads21_dc9", "ts_roads22_dc9", "ts_roads23_dc9", "ts_roads29_dc9", "ts_roads31_dc9",
-                        "ts_roads32_dc9", "ts_roads58_dc9", "ts_roads60_dc9", "ts_rtheat1_det_dc9", "intbild1_d_mh12", "intbild2_d_mh12", "rez_bild8_33d_ix06"
+                        "ts_roads32_dc9", "ts_roads58_dc9", "ts_roads60_dc9", "ts_rtheat1_det_dc9", "intbild1_d_mh12", "intbild2_d_mh12", "rez_bild8_33d_ix06", "bxw_coastfortwds", "bxw_constalpha",
+                        "sb4b_alpha", "sb6_glues", "sb7_alpha", "sb8_wires", "sbx4_weeds", "percyshpsd_mh8", "bc_clam_alpha", "bxwmanny_alpha", "hp_2_plants_alpha03", "hp1_alpha", "nj01_casino_alpha",
+                        "plant_weeds_bxe_e02", "plant_weeds_bxe_e03"
                     };
 
                     modelNames.insert(modelNames.end(), miscNames.begin(), miscNames.end());

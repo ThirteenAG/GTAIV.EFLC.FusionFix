@@ -657,7 +657,7 @@ private:
                 0x107fae47, // bullet impact smoke
                 0xC0D41722, // footsteps
                 0xA73931FF, // tires1
-                0xFF029DA7, // tires2
+                //0xFF029DA7, // tires2
                 0x52901658, // tires3
                 0x0F94D257, // tires4
             };

@@ -218,6 +218,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed phone and binocular camera zoom speeding up on high framerates
 - Fixed golf shot aiming sensitivity decreasing on high framerates when using keyboard and mouse
 - Fixed some scripted look-around camera movements speeding up on high framerates when using controller, and improved their mouse controls
+- Added support to use mouse wheel when using phone keypad
 
 #### Models
 
