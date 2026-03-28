@@ -8,92 +8,57 @@ import common;
 import comvars;
 import settings;
 
+namespace CCamFollowVehicle
+{
+    GameRef<bool> ms_bAllowSideOffset;
+}
+
+namespace CCamFollowPed
+{
+    GameRef<float> ms_targetOffset;
+}
+
 class CenteredCam
 {
 public:
     static inline bool bLoadedCenteredVehicleCamIVasi = false;
-    static inline float fRightMult = 0.5f;
-    static inline float fForwardMult = 0.2f;
-    static inline float fUpMult = 0.2f;
-
-    using CVehicle = void;
-    using CPed = void;
-    using CPlayerPed = void;
-
-    static inline ptrdiff_t VehicleTypeOffset = 0x1304;
-    static inline CVehicle* (*GetVehiclePedWouldEnter)(CPed* ped, rage::Vector3* pos, bool arg2) = nullptr;
-
-    static bool IsVehicleTypeOffCenter(CVehicle const* veh)
-    {
-        uint32_t m_nVehicleType = *reinterpret_cast<uint32_t*>(reinterpret_cast<uintptr_t>(veh) + VehicleTypeOffset);
-        return m_nVehicleType == VEHICLETYPE_AUTOMOBILE || m_nVehicleType == VEHICLETYPE_PLANE || m_nVehicleType == VEHICLETYPE_HELI;
-    }
-
-    static inline injector::hook_back<void(__fastcall*)(rage::Matrix44*, void*, void*)> hbCopyMatFront;
-    static void __fastcall CopyMatFront(rage::Matrix44* mat, void*, void* arg2)
-    {
-        hbCopyMatFront.fun(mat, 0, arg2);
-
-        static auto cc = FusionFixSettings.GetRef("PREF_CENTEREDCAMERA");
-        if (cc->get() && !bLoadedCenteredVehicleCamIVasi)
-        {
-            auto playa = FindPlayerPed(0);
-            auto vehicle = FindPlayerVehicle(0);
-            auto m_pMatrix = &(*reinterpret_cast<rage::Matrix44*>(reinterpret_cast<uintptr_t>(playa) + 0x1C));
-            if (!vehicle)
-                vehicle = GetVehiclePedWouldEnter(playa, (rage::Vector3*)&m_pMatrix->up, 0); //0x1C + 0x10
-
-            if (vehicle && IsVehicleTypeOffCenter(vehicle))
-            {
-                mat->pos += mat->right * fRightMult;
-                mat->pos += mat->at * fUpMult;
-                mat->pos -= mat->up * fForwardMult;
-            }
-        }
-    }
-
-    static inline injector::hook_back<void(__fastcall*)(rage::Matrix44*, void*, void*)> hbCopyMatBehind;
-    static void __fastcall CopyMatBehind(rage::Matrix44* mat, void*, void* arg2)
-    {
-        hbCopyMatBehind.fun(mat, 0, arg2);
-
-        static auto cc = FusionFixSettings.GetRef("PREF_CENTEREDCAMERA");
-        if (cc->get() && !bLoadedCenteredVehicleCamIVasi)
-        {
-            auto playa = FindPlayerPed(0);
-            auto vehicle = FindPlayerVehicle(0);
-            auto m_pMatrix = &(*reinterpret_cast<rage::Matrix44*>(reinterpret_cast<uintptr_t>(playa) + 0x1C));
-            if (!vehicle)
-                vehicle = GetVehiclePedWouldEnter(playa, (rage::Vector3*)&m_pMatrix->up, 0);
-
-            if (vehicle && IsVehicleTypeOffCenter(vehicle))
-            {
-                mat->pos -= mat->right * fRightMult;
-            }
-        }
-    }
+    static inline bool bLoadedCenteredOnFootCamIVasi = false;
 
     CenteredCam()
     {
         FusionFix::onInitEventAsync() += []()
         {
-            auto pattern = hook::pattern("55 8B EC 83 E4 F0 83 EC 78 56 8B 75 08 57 F7 86");
-            if (!pattern.empty())
-                GetVehiclePedWouldEnter = (decltype(GetVehiclePedWouldEnter))pattern.get_first();
-            else
+            auto pattern = find_pattern("80 3D ? ? ? ? ? 0F 84 ? ? ? ? 8B 87 ? ? ? ? 85 C0", "80 3D ? ? ? ? ? 0F 84 ? ? ? ? 8B 86 ? ? ? ? 85 C0");
+            CCamFollowVehicle::ms_bAllowSideOffset.SetAddress(*pattern.get_first<bool*>(2));
+
+            static auto GetSideOffsetHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
             {
-                pattern = hook::pattern("55 8B EC 83 E4 ? 83 EC ? 56 8B 75 ? F7 86");
-                VehicleTypeOffset = 0x1350;
-                GetVehiclePedWouldEnter = (decltype(GetVehiclePedWouldEnter))pattern.get_first();
-            }
-
-            pattern = find_pattern("E8 ? ? ? ? 80 A7 ? ? ? ? ? 80 A7 ? ? ? ? ? 80 7C 24", "E8 ? ? ? ? 80 A6 ? ? ? ? ? 80 A6 ? ? ? ? ? 80 BC 24");
-            hbCopyMatFront.fun = injector::MakeCALL(pattern.get_first(0), CopyMatFront, true).get();
-
-            pattern = find_pattern("F3 0F 11 44 24 ? E8 ? ? ? ? 5F B0", "F3 0F 11 44 24 ? E8 ? ? ? ? 5F 5E B0 ? 5B 8B E5 5D C2");
-            hbCopyMatBehind.fun = injector::MakeCALL(pattern.get_first(6), CopyMatBehind, true).get();
+                static auto cc = FusionFixSettings.GetRef("PREF_CENTEREDCAMERA");
+                if (cc->get() && !bLoadedCenteredVehicleCamIVasi)
+                    CCamFollowVehicle::ms_bAllowSideOffset = false;
+                else
+                    CCamFollowVehicle::ms_bAllowSideOffset = true;
+            });
 
             FusionFixSettings.SetCallback("PREF_CENTEREDCAMERA", [](int32_t value)
+            {
+                bMenuNeedsUpdate = 4;
+                bMenuNeedsUpdate2 = 4;
+            });
+
+            pattern = find_pattern("F3 0F 10 2D ? ? ? ? F3 0F 10 25 ? ? ? ? F3 0F 59 D8", "F3 0F 10 25 ? ? ? ? F3 0F 10 15 ? ? ? ? F3 0F 10 1D ? ? ? ? F3 0F 59 E6");
+            CCamFollowPed::ms_targetOffset.SetAddress(*pattern.get_first<float*>(4));
+
+            static auto CCamFollowPedWidgetSetupHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+            {
+                static auto cc = FusionFixSettings.GetRef("PREF_CENTEREDCAMERAFOOT");
+                if (cc->get() && !bLoadedCenteredOnFootCamIVasi)
+                    CCamFollowPed::ms_targetOffset = 0.0f;
+                else
+                    CCamFollowPed::ms_targetOffset = 0.2f;
+            });
+
+            FusionFixSettings.SetCallback("PREF_CENTEREDCAMERAFOOT", [](int32_t value)
             {
                 bMenuNeedsUpdate = 4;
                 bMenuNeedsUpdate2 = 4;
@@ -104,69 +69,13 @@ public:
                 bLoadedCenteredVehicleCamIVasi = true;
             };
 
-            CallbackHandler::RegisterCallback(L"CenteredVehicleCamIV.asi", HandleCenteredVehicleCamIVasi);
-        };
-    }
-} CenteredCam;
-
-class CenteredCamOnFoot
-{
-public:
-    static inline bool bLoadedCenteredOnFootCamIVasi = false;
-    static inline float fRightMult = -0.1f;
-    static inline float fForwardMult = 0.0f;
-    static inline float fUpMult = 0.0f;
-
-    static inline injector::hook_back<void(__fastcall*)(rage::Matrix44*, void*, void*)> hbCopyMatFront;
-    static void __fastcall CopyMatFront(rage::Matrix44* mat, void*, void* arg2)
-    {
-        hbCopyMatFront.fun(mat, 0, arg2);
-
-        static auto cc = FusionFixSettings.GetRef("PREF_CENTEREDCAMERAFOOT");
-        if (cc->get() && !bLoadedCenteredOnFootCamIVasi)
-        {
-            mat->pos += mat->right * fRightMult;
-            mat->pos += mat->at * fUpMult;
-            mat->pos -= mat->up * fForwardMult;
-        }
-    }
-
-    static inline injector::hook_back<void(__fastcall*)(rage::Matrix44*, void*, void*)> hbCopyMatBehind;
-    static void __fastcall CopyMatBehind(rage::Matrix44* mat, void*, void* arg2)
-    {
-        hbCopyMatBehind.fun(mat, 0, arg2);
-
-        static auto cc = FusionFixSettings.GetRef("PREF_CENTEREDCAMERAFOOT");
-        if (cc->get() && !bLoadedCenteredOnFootCamIVasi)
-        {
-            mat->pos += mat->right * fRightMult;
-            mat->pos += mat->at * fUpMult;
-            mat->pos -= mat->up * fForwardMult;
-        }
-    }
-
-    CenteredCamOnFoot()
-    {
-        FusionFix::onInitEventAsync() += []()
-        {
-            auto pattern = find_pattern("E8 ? ? ? ? 8A 86 ? ? ? ? 80 A6 ? ? ? ? ? 80 A6", "E8 ? ? ? ? 8A 8E ? ? ? ? 80 A6");
-            hbCopyMatFront.fun = injector::MakeCALL(pattern.get_first(0), CopyMatFront, true).get();
-
-            pattern = find_pattern("E8 ? ? ? ? 8B 8E ? ? ? ? 56 8D 44 24 74", "E8 ? ? ? ? 8B 8E ? ? ? ? 56 8D 94 24");
-            hbCopyMatBehind.fun = injector::MakeCALL(pattern.get_first(0), CopyMatBehind, true).get();
-
-            FusionFixSettings.SetCallback("PREF_CENTEREDCAMERAFOOT", [](int32_t value)
-            {
-                bMenuNeedsUpdate = 4;
-                bMenuNeedsUpdate2 = 4;
-            });
-
             auto HandleCenteredOnFootCamIVasi = []()
             {
                 bLoadedCenteredOnFootCamIVasi = true;
             };
 
+            CallbackHandler::RegisterCallback(L"CenteredVehicleCamIV.asi", HandleCenteredVehicleCamIVasi);
             CallbackHandler::RegisterCallback(L"CenteredOnFootCamIV.asi", HandleCenteredOnFootCamIVasi);
         };
     }
-} CenteredCamOnFoot;
+} CenteredCam;
