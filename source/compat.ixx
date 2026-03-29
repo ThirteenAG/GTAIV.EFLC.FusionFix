@@ -15,9 +15,9 @@ HRESULT CALLBACK TaskDialogCallbackProc(HWND hwnd, UINT uNotification, WPARAM wP
 {
     switch (uNotification)
     {
-    case TDN_HYPERLINK_CLICKED:
-        ShellExecuteW(hwnd, L"open", (LPCWSTR)lParam, NULL, NULL, SW_SHOW);
-        break;
+        case TDN_HYPERLINK_CLICKED:
+            ShellExecuteW(hwnd, L"open", (LPCWSTR)lParam, NULL, NULL, SW_SHOW);
+            break;
     }
 
     return S_OK;
@@ -38,7 +38,11 @@ export void CompatibilityWarnings()
     for (auto& e : dlls.m_moduleList)
     {
         if (iequals(std::get<std::wstring>(e), L"dsound") && !IsModuleUAL(std::get<HMODULE>(e)))
-            dsound_dll = true;
+        {
+            auto DirectSoundCreate = GetProcAddress(std::get<HMODULE>(e), "DirectSoundCreate");
+            if (DirectSoundCreate && injector::ReadMemory<uint16_t>(DirectSoundCreate, true) == uint16_t(0x25FF)) //jmp
+                dsound_dll = true;
+        }
 
         if (IsModuleUAL(std::get<HMODULE>(e)))
             ual_present = true;
@@ -47,7 +51,7 @@ export void CompatibilityWarnings()
     if (dsound_dll)
     {
         szHeader = L"dsound.dll found";
-        szContent = L"dsound.dll in the game's root folder is not compatible with this fix\n\n" \
+        szContent = L"dsound.dll in the game's root folder is not compatible with this fix.\n\n" \
             L"Please remove dsound.dll from the game's root folder and restart the game.";
     }
     else if (GetModuleHandleW(L"d3dx9_43.dll") == NULL)
