@@ -1,3 +1,6 @@
+call tools\EmbedPDB\EmbedPDB.exe bin\GTAIV.EFLC.FusionFix.asi
+call tools\EmbedPDB\EmbedPDB.exe bin\d3d9.dll
+
 copy bin\GTAIV.EFLC.FusionFix.asi data\plugins\GTAIV.EFLC.FusionFix.asi
 copy bin\d3d9.dll data\d3d9.dll
 
