@@ -280,25 +280,60 @@ bool __cdecl NATIVE_SLIDE_OBJECT_2(Object object, float x, float y, float z, flo
 
 namespace CPhysics
 {
-    int numSubsteps = 2;
-    float fSimStep = 0.0f;
+    static constexpr int NUM_SLICES = 2;
 
     SafetyHookInline shUpdate = {};
     void __cdecl Update()
     {
-        numSubsteps = 2;
-        fSimStep = *CTimer::fTimeStep;
-
-        // 45 fps, between 30 and 60; around 30 there are visible issues
-        constexpr float safetyThreshold = 15.0f;
-
-        if (*CTimer::fTimeStep < 1.0f / (30.0f + safetyThreshold))
+        CPhysics::ScanForBuildings();
+        CPhysics::UpdateRequestList();
+        auto v0 = *CWorld::ms_listProcessControlPtrs;
+        while (v0)
         {
-            numSubsteps = 1;
-            fSimStep = std::max(*CTimer::fTimeStep, 1.0f / 60.0f);
+            auto v1 = *(uintptr_t**)v0;
+            v0 = *(uintptr_t*)(v0 + 4);
+            if (v1)
+            {
+                auto v2 = (v1[10] >> 6) & 0xF;
+                if (v2 > 1 && v2 < 5)
+                    (*(void (__thiscall**)(uintptr_t*))(*v1 + 256))(v1);
+            }
         }
 
-        return shUpdate.unsafe_ccall();
+        CPhysics::ResetNumPoolGameCollisions();
+
+        float sliceDt = *CTimer::fTimeStep * (1.0f / (float)NUM_SLICES);
+
+        int NumTimeSlices = 0;
+        do
+        {
+            CPhysics::PreSimUpdate(std::clamp(sliceDt, 1.0f / 150.0f, FLT_MAX), NumTimeSlices);
+            CPhysics::SimUpdate(sliceDt);
+            CPhysics::IterateOverManifolds();
+            CPhysics::PostSimUpdate(NumTimeSlices, std::clamp(sliceDt, 1.0f / 150.0f, FLT_MAX));
+            ++NumTimeSlices;
+        } while (NumTimeSlices < NUM_SLICES);
+    }
+}
+
+namespace rage
+{
+    namespace ptxEffectInst
+    {
+        SafetyHookInline shSetEvolutionTime = {};
+        void __fastcall SetEvolutionTime(void* ptxEffectInst, void* edx, char* Key, float a3)
+        {
+            return shSetEvolutionTime.unsafe_fastcall(ptxEffectInst, edx, Key, a3 * (*CTimer::fTimeStep / (1.0f / 30.0f)));
+        }
+    }
+}
+
+namespace CWater
+{
+    SafetyHookInline shAddToDynamicWaterSpeed = {};
+    void __cdecl AddToDynamicWaterSpeed(int a1, int a2, float a3, char a4)
+    {
+        return shAddToDynamicWaterSpeed.unsafe_ccall(a1, a2, a3 * (*CTimer::fTimeStep / (1.0f / 30.0f)), a4);
     }
 }
 
@@ -343,78 +378,56 @@ public:
             }
 
             // Physics
-            pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 C1 56");
-            injector::WriteMemory(pattern.get_first(4), &CPhysics::fSimStep, true);
-
-            pattern = find_pattern("A1 ? ? ? ? F3 0F 10 0D ? ? ? ? 66 0F 6E C0 0F 5B C0");
-            injector::WriteMemory(pattern.get_first(1), &CPhysics::numSubsteps, true);
-
-            pattern = find_pattern("3B 35 ? ? ? ? 7C ? 5E 59");
-            injector::WriteMemory(pattern.get_first(2), &CPhysics::numSubsteps, true);
-
             pattern = find_pattern("51 56 E8 ? ? ? ? E8");
             CPhysics::shUpdate = safetyhook::create_inline(pattern.get_first(), CPhysics::Update);
 
             // Heli rotor break time
-            // Does not work yet!
-            // This already seems correct (it uses _fFrameTime * 300.0f) but for some reason it does not want to work. Even doing CTimer::fTimeStep * 30 * 300 won't work.
-            // The place is 100% correct too
             {
-                pattern = hook::pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 10 4C 24 ? F3 0F 5C C8");
+                pattern = hook::pattern("F3 0F 59 15 ? ? ? ? F3 0F 58 D0 F3 0F 10 87");
                 if (!pattern.empty())
                 {
                     injector::MakeNOP(pattern.get_first(0), 8, true);
                     static auto HeliRotorBreakTime1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        
+                        regs.xmm2.f32[0] *= 0.5f * *CTimer::fTimeStep / (1.0f / 30.0f);
                     });
                 }
                 else
                 {
-                    pattern = hook::pattern("F3 0F 10 0D ? ? ? ? F3 0F 59 0D ? ? ? ? F3 0F 10 44 24 ? F3 0F 5C C1 0F 57 C9");
-                    if (!pattern.empty())
-                    {
-                        injector::MakeNOP(pattern.get_first(0), 8, true);
-                        static auto HeliRotorBreakTime1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                        {
-                            
-                        });
-                    }
+
                 }
 
-                pattern = hook::pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 10 8F ? ? ? ? F3 0F 5C C8 0F 57 C0 0F 2F C1 F3 0F 11 8F");
+                pattern = hook::pattern("F3 0F 59 C3 F3 0F 58 C8 0F 57 C0 F3 0F 51 C1 0F 57 C9 F3 0F 59 D0 F3 0F 10 44 24 ? F3 0F 59 05 ? ? ? ? F3 0F 58 D0");
                 if (!pattern.empty())
                 {
-                    injector::MakeNOP(pattern.get_first(0), 8, true);
+                    injector::MakeNOP(pattern.get_first(0), 4, true);
                     static auto HeliRotorBreakTime2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        
+                        regs.xmm0.f32[0] *= regs.xmm3.f32[0] * *CTimer::fTimeStep / (1.0f / 30.0f);
                     });
                 }
                 else
                 {
-                    pattern = hook::pattern("F3 0F 10 0D ? ? ? ? F3 0F 59 0D ? ? ? ? F3 0F 10 86 ? ? ? ? F3 0F 5C C1 0F 57 C9 0F 2F C8 F3 0F 11 86 ? ? ? ? 72");
-                    if (!pattern.empty())
-                    {
-                        injector::MakeNOP(pattern.get_first(0), 8, true);
-                        static auto HeliRotorBreakTime2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                        {
-                            
-                        });
-                    }
+
                 }
             }
 
             // Heli downwash effect
-            // Does not work yet!
-            // This uses more exquisite timing checks, so it doesn't fix anything atm
-            pattern = find_pattern("03 05 ? ? ? ? 33 D2 F7 F7 85 D2 75 ? 8B 46 ? 52 52 52", "03 05 ? ? ? ? 33 D2 F7 F1 85 D2 75 ? D9 44 24 ? 8B 47 ? 52 52 52");
+            pattern = hook::pattern("56 8B F1 8B 46 ? 85 C0 74 ? 8B 88 ? ? ? ? 85 C9 74 ? FF 74 24 ? E8 ? ? ? ? 85 C0 78 ? F3 0F 10 44 24");
+            if (!pattern.empty())
+                rage::ptxEffectInst::shSetEvolutionTime = safetyhook::create_inline(pattern.get_first(), rage::ptxEffectInst::SetEvolutionTime);
+
+            pattern = hook::pattern("83 3D ? ? ? ? ? 74 ? A1 ? ? ? ? 3B 05 ? ? ? ? 75 ? 83 3D ? ? ? ? ? 74 ? 33 C0 EB ? B8 ? ? ? ? 3A 44 24");
+            if (!pattern.empty())
+                CWater::shAddToDynamicWaterSpeed = safetyhook::create_inline(pattern.get_first(), CWater::AddToDynamicWaterSpeed);
+
+            pattern = find_pattern("33 D2 F7 F7 85 D2 75");
             if (!pattern.empty())
             {
-                injector::MakeNOP(pattern.get_first(0), 6, true);
-                static auto HeliDownwashEffect = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                static auto CRippleManagerRegisterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                 {
-                    
+                    float rippleScale = std::min(*CTimer::fTimeStep * 30.0f, 1.0f);
+                    regs.edi = std::max((int)((float)regs.edi / rippleScale), 1);
                 });
             }
 

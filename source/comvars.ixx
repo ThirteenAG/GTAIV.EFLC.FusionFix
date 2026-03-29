@@ -798,7 +798,8 @@ export namespace rage
     public:
         Vector3() = default;
         Vector3(float x, float y, float z) : x(x), y(y), z(z)
-        {}
+        {
+        }
 
         Vector3 operator+(const Vector3& other) const
         {
@@ -919,9 +920,11 @@ export namespace rage
     public:
         Vector4() = default;
         Vector4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w)
-        {}
+        {
+        }
         Vector4(const Vector3& other) : x(other.x), y(other.y), z(other.z), w(0.0f)
-        {}
+        {
+        }
 
         operator Vector3() const
         {
@@ -1267,7 +1270,8 @@ export namespace rage
             , field_29(0)
             , field_2A(0)
             , mFormat(GRCFMT_UNKNOWN)
-        {}
+        {
+        }
 
         char field_0;
         int mMultisampleCount;
@@ -1406,7 +1410,8 @@ export namespace rage
                 , BlurResult(false)
                 , NeedResolve(true)
                 , MipMap(true)
-            {}
+            {
+            }
 
             float Depth;
             float BlurKernelSize;
@@ -1863,7 +1868,8 @@ export namespace rage
             Info(scrValue* resultPtr, int32_t parameterCount, scrValue* params) :
                 ResultPtr(resultPtr), ParamCount(parameterCount), Params(params),
                 BufferCount(0)
-            {}
+            {
+            }
         };
 
         struct InfoWithBuf : Info
@@ -2554,6 +2560,22 @@ export namespace CPhysical
     void (__fastcall* TransformOffsetToWorldSpace)(float*, void*, float*, float*, char, int) = nullptr;
 }
 
+export namespace CPhysics
+{
+    void (__stdcall* ScanForBuildings)() = nullptr;
+    void (*UpdateRequestList)() = nullptr;
+    void (*ResetNumPoolGameCollisions)() = nullptr;
+    void (__cdecl* PreSimUpdate)(float TimeStep, int NumTimeSlices) = nullptr;
+    void (__cdecl* SimUpdate)(float TimeStep) = nullptr;
+    void (__cdecl* PostSimUpdate)(int NumTimeSlices, float TimeStep) = nullptr;
+    void (__stdcall* IterateOverManifolds)() = nullptr;
+}
+
+export namespace CWorld
+{
+    uintptr_t* ms_listProcessControlPtrs = nullptr;
+}
+
 export enum eControllerButtons
 {
     BUTTON_BUMPER_LEFT = 4,
@@ -2888,5 +2910,29 @@ public:
 
         pattern = find_pattern("E8 ? ? ? ? F3 0F 10 B7 ? ? ? ? F3 0F 10 BF ? ? ? ? F3 0F 10 AF ? ? ? ? F3 0F 10 97", "E8 ? ? ? ? F3 0F 10 A6 ? ? ? ? F3 0F 10 6B");
         CPhysical::TransformOffsetToWorldSpace = (decltype(CPhysical::TransformOffsetToWorldSpace))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+
+        pattern = find_pattern("E8 ? ? ? ? E8 ? ? ? ? 8B 35 ? ? ? ? 85 F6 74 ? ? ? 8B 76", "E8 ? ? ? ? E8 ? ? ? ? 8B 35 ? ? ? ? 85 F6");
+        CPhysics::ScanForBuildings = (decltype(CPhysics::ScanForBuildings))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+
+        pattern = find_pattern("E8 ? ? ? ? 8B 35 ? ? ? ? 85 F6 74 ? ? ? 8B 76 ? 85 C9", "E8 ? ? ? ? 8B 35 ? ? ? ? 85 F6 74 ? ? ? 85 C9");
+        CPhysics::UpdateRequestList = (decltype(CPhysics::UpdateRequestList))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+
+        pattern = find_pattern("E8 ? ? ? ? A1 ? ? ? ? F3 0F 10 0D ? ? ? ? 66 0F 6E C0 0F 5B C0", "E8 ? ? ? ? A1 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 2A C8");
+        CPhysics::ResetNumPoolGameCollisions = (decltype(CPhysics::ResetNumPoolGameCollisions))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+
+        pattern = find_pattern("E8 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? 83 C4 ? ? ? ? ? ? E8", "E8 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? 83 C4 ? ? ? ? ? ? E8");
+        CPhysics::PreSimUpdate = (decltype(CPhysics::PreSimUpdate))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+
+        pattern = find_pattern("E8 ? ? ? ? E8 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 44 24", "E8 ? ? ? ? E8 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 44 24");
+        CPhysics::SimUpdate = (decltype(CPhysics::SimUpdate))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+
+        pattern = find_pattern("E8 ? ? ? ? F3 0F 10 4C 24 ? 46", "E8 ? ? ? ? 83 C6 ? 83 C4 ? 3B 35 ? ? ? ? 7C ? 5E");
+        CPhysics::PostSimUpdate = (decltype(CPhysics::PostSimUpdate))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+
+        pattern = find_pattern("E8 ? ? ? ? 83 C6 ? 83 C4 ? 3B 35 ? ? ? ? 7C ? 5E", "E8 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? ? ? ? ? ? 56");
+        CPhysics::IterateOverManifolds = (decltype(CPhysics::IterateOverManifolds))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+
+        pattern = find_pattern("8B 35 ? ? ? ? 85 F6 74 ? ? ? 8B 76 ? 85 C9", "8B 35 ? ? ? ? 85 F6 74 ? ? ? 85 C9");
+        CWorld::ms_listProcessControlPtrs = *pattern.get_first<uintptr_t*>(2);
     }
 } Common;
