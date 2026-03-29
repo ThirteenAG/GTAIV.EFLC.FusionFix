@@ -474,6 +474,48 @@ public:
     }
 };
 
+export class CShaderFx_PushForcedTechnique : public CBaseDC
+{
+public:
+    int32_t m_nTechId;
+
+public:
+    CShaderFx_PushForcedTechnique(int32_t techID) : CBaseDC()
+    {
+        m_nTechId = techID;
+    }
+
+    static inline void* DrawCommandAddr;
+    void DrawCommand() override
+    {
+        reinterpret_cast<void (__thiscall*)(CShaderFx_PushForcedTechnique*)>(DrawCommandAddr)(this);
+    }
+
+    int32_t GetSize() override
+    {
+        return sizeof(T_CB_Generic_NoArgs);
+    }
+};
+
+export class CShaderFx_PopForcedTechnique : public CBaseDC
+{
+public:
+    CShaderFx_PopForcedTechnique() : CBaseDC()
+    {
+    }
+
+    static inline void* DrawCommandAddr;
+    void DrawCommand() override
+    {
+        reinterpret_cast<void (__thiscall*)(CShaderFx_PopForcedTechnique*)>(DrawCommandAddr)(this);
+    }
+
+    int32_t GetSize() override
+    {
+        return sizeof(T_CB_Generic_NoArgs);
+    }
+};
+
 export namespace rage
 {
     #define POOL_FLAG_ISFREE 0x80
@@ -2561,6 +2603,12 @@ public:
 
         pattern = find_pattern("53 56 57 8B 7C 24 10 FF 74 24 14", "8B 44 24 08 56 57 8B 7C 24 0C 8B F7");
         CBaseDC::operator_newAddr = pattern.get_first(0);
+
+        pattern = find_pattern("56 57 8B F9 E8 ? ? ? ? 8B 35 ? ? ? ? FF 04 B5", "56 8B F1 E8 ? ? ? ? 8B 0D ? ? ? ? 83 04 8D");
+        CShaderFx_PushForcedTechnique::DrawCommandAddr = pattern.get_first();
+
+        pattern = find_pattern("56 8B 35 ? ? ? ? 8B 0C B5", "A1 ? ? ? ? 8B 0C 85 ? ? ? ? 8D 14 41");
+        CShaderFx_PopForcedTechnique::DrawCommandAddr = pattern.get_first();
 
         _dwCurrentEpisode = *find_pattern("83 3D ? ? ? ? ? 75 0F 6A 02", "89 35 ? ? ? ? 89 35 ? ? ? ? 6A 00 6A 01").get_first<int32_t*>(2);
 

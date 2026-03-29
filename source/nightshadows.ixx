@@ -10,28 +10,6 @@ import natives;
 import settings;
 
 bool bHighResolutionNightShadows = false;
-bool bIsDirLightShadows = false;
-
-void* fnAE3310 = nullptr;
-int __cdecl sub_AE3310(int a1, int a2, int a3, int a4, int a5)
-{
-    if (bVehicleNightShadows && !bIsDirLightShadows)
-    {
-        injector::cstd<int(int, int, int, int, int)>::call(fnAE3310, a1, 0, 0, 0, a5);
-    }
-
-    return injector::cstd<int (int, int, int, int, int)>::call(fnAE3310, a1, a2, a3, a4, a5);
-}
-
-uint32_t* dword_17F58E4;
-SafetyHookInline sh_grcSetRenderState{};
-void __stdcall grcSetRenderStateHook()
-{
-    if (dword_17F58E4 && *dword_17F58E4)
-    {
-        return sh_grcSetRenderState.unsafe_stdcall();
-    }
-}
 
 namespace CShadows
 {
@@ -122,35 +100,38 @@ public:
 
             // Vehicle night shadows
             // Allows rendering dynamic shadows of vehicles from artificial light sources
-            // Bugs: Vehicle tires and damage/dents/deformation do not get included in the shadow maps
             {
-                auto pattern = find_pattern("E8 ? ? ? ? 6A 00 6A 14 E8 ? ? ? ? 8B F8 83 C4 44", "E8 ? ? ? ? 53 6A 14 E8 ? ? ? ? 83 C4 44");
-                fnAE3310 = injector::GetBranchDestination(pattern.get_first(0)).get();
-                injector::MakeCALL(pattern.get_first(0), sub_AE3310, true);
-
-                pattern = find_pattern("89 35 ? ? ? ? E8 ? ? ? ? 5E C2 04 00", "89 1D ? ? ? ? 8B 07 8B 50 10 8B CF 89 1D");
-                dword_17F58E4 = *pattern.get_first<uint32_t*>(2);
-
-                pattern = find_pattern("51 53 55 8B 2D ? ? ? ? 56 0F B7 5D 1C 33 F6 85 DB 7E 3A 57 EB 09", "53 56 57 8B 3D ? ? ? ? 0F B7 5F 1C 33 F6 85 DB 7E 41 55 EB 0A");
-                sh_grcSetRenderState = safetyhook::create_inline(pattern.get_first(0), grcSetRenderStateHook);
-
-                // Limit rendering to night shadows only, fixes vehicle damage not being reflected on directional light shadows (aka. those from the sun/moon/thunderbolts)
-                pattern = hook::pattern("E8 ? ? ? ? 8B F0 83 C4 08 85 F6 74 17 8B 0D ? ? ? ? 8B 11 FF 52 28");
-                if (!pattern.count_hint(2).empty())
+                static int32_t nRenderListIndex;
+                auto pattern = hook::pattern("E8 ? ? ? ? 83 C4 08 57 56");
+                static auto ListIndexHook = safetyhook::create_mid(injector::GetBranchDestination(pattern.get_first(0)).get<void>(), [](SafetyHookContext& regs)
                 {
-                    static auto IsDirLightShadowsHook = safetyhook::create_mid(pattern.count_hint(2).get(1).get<void*>(0), [](SafetyHookContext& regs)
-                    {
-                        bIsDirLightShadows = *(bool*)(regs.esp + 0x1C - 0x04);
-                    });
-                }
-                else
+                    nRenderListIndex = *(int32_t*)(regs.esp + 0x04);
+                });
+
+                pattern = find_pattern("A1 ? ? ? ? 83 EC 40 56", "A1 ? ? ? ? 83 EC 40 85 C0");
+                auto registerTechniqueGroup = (int32_t(__cdecl*)(const char*))pattern.get_first(0);
+                static int32_t nLocalShadowTechId = registerTechniqueGroup("wd_local");
+
+                pattern = find_pattern("E8 ? ? ? ? 6A 00 6A 14 E8 ? ? ? ? 8B F8 83 C4 44", "E8 ? ? ? ? 53 6A 14 E8 ? ? ? ? 83 C4 44");
+                static void (__cdecl* AddToDrawListEntityListShadow)(int32_t, int32_t, int32_t, int32_t, int32_t) = injector::GetBranchDestination(pattern.get_first(0)).get();
+
+                pattern = find_pattern("74 ? 53 6A ? 6A ? 6A ? 55 E8 ? ? ? ? 53", "74 ? 56 53 53 53");
+                static auto VehicleShadowsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                 {
-                    pattern = hook::pattern("57 53 6A 0C E8 ? ? ? ? 8B F8 83 C4 08 3B FB 74 17");
-                    static auto IsDirLightShadowsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    if(bVehicleNightShadows && regs.eflags & 0x0040)
                     {
-                        bIsDirLightShadows = *(bool*)(regs.esp + 0x0C - 0x01);
-                    });
-                }
+                        auto pushTech = new CShaderFx_PushForcedTechnique(nLocalShadowTechId);
+                        if(pushTech)
+                            pushTech->Append();
+
+                        AddToDrawListEntityListShadow(nRenderListIndex, 0, 0, 0, -1);
+                        AddToDrawListEntityListShadow(nRenderListIndex, 1, 0, 0, -1);
+
+                        auto popTech = new CShaderFx_PopForcedTechnique();
+                        if(popTech)
+                            popTech->Append();
+                    }
+                });
             }
 
             // Headlight shadows
