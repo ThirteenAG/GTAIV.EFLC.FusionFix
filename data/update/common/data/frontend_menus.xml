@@ -444,6 +444,7 @@
             <optionspc action="MENUOPT_ADJUST" label="Bullet Traces" value="PREF_BULLETTRACES" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
 			<optionspc action="MENUOPT_ADJUST" label="Wardrobe Fading" value="PREF_NOWARDROBEFADING" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Stop Taxi" value="PREF_STOPTAXI" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+			<optionspc action="MENUOPT_ADJUST" label="Sprint Interior" value="PREF_SPRINTINTERIOR" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             
             <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
         </menu>
@@ -941,6 +942,7 @@
             <optionspc action="MENUOPT_ADJUST" label="Bullet Traces" value="PREF_BULLETTRACES" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
 			<optionspc action="MENUOPT_ADJUST" label="Wardrobe Fading" value="PREF_NOWARDROBEFADING" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Stop Taxi" value="PREF_STOPTAXI" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+			<optionspc action="MENUOPT_ADJUST" label="Sprint Interior" value="PREF_SPRINTINTERIOR" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             
             <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
         </menupc>

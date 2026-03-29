@@ -9,6 +9,10 @@ import comvars;
 import settings;
 import natives;
 
+namespace CTaskSimpleMovePlayer
+{
+    GameRef<bool> ms_bDefaultNoSprintingInInteriors;
+}
 class IKeepOnWalking
 {
 public:
@@ -80,6 +84,24 @@ public:
             });
             if (FusionFixSettings("PREF_ALWAYSRUN"))
                 GamepadCB.Write();
+
+
+            pattern = hook::pattern("80 3D ? ? ? ? 00 74 ? 83 BF ? ? ? ? 00");
+            if (!pattern.empty()) {
+
+                CTaskSimpleMovePlayer::ms_bDefaultNoSprintingInInteriors.SetAddress(*pattern.get_first<bool*>(2));
+                FusionFixSettings.SetCallback("PREF_SPRINTINTERIOR", [](int32_t value)
+                    {
+                        if (value)
+                            CTaskSimpleMovePlayer::ms_bDefaultNoSprintingInInteriors = false;
+                        else
+                            CTaskSimpleMovePlayer::ms_bDefaultNoSprintingInInteriors = true;
+                    });
+                if (FusionFixSettings("PREF_SPRINTINTERIOR")) {
+                    CTaskSimpleMovePlayer::ms_bDefaultNoSprintingInInteriors = false;
+                }
+            }
+
         };
     }
 } IKeepOnWalking;
