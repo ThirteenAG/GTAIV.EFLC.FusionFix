@@ -358,6 +358,13 @@
           <options text="FXAA" action="ACTION_NONE" value="2" />
           <options text="SMAA" action="ACTION_NONE" value="3" />
         </menupc>
+		       
+        <menupc enum="MENU_DISPLAY_ALWAYSRUN">
+          <options text="MO_OFF" action="ACTION_NONE" value="4" />
+          <options text="MO_ON" action="ACTION_NONE" value="5" />
+          <options text="Armed Only" action="ACTION_NONE" value="6" />
+          <options text="No Jogging" action="ACTION_NONE" value="7" />
+        </menupc>
 		
     </sMenuDisplayValue>
 
