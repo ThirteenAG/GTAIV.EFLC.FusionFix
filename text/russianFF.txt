@@ -37,6 +37,9 @@ Fusion Fix: Проверять Обновления
 [Always Run]
 Постоянный Бег
 
+[Sprint Interior]
+Спринт в помещении
+
 [Cover Centering]
 Центровка камеры в укрытии
 

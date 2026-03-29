@@ -37,6 +37,9 @@ Raw Input
 [Always Run]
 Immer rennen
 
+[Sprint Interior]
+Sprint in Innenräumen
+
 [Cover Centering]
 Deckungszentrierung
 

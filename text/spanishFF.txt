@@ -37,6 +37,9 @@ Entrada directa
 [Always Run]
 Correr siempre
 
+[Sprint Interior]
+Sprint en interiores
+
 [Cover Centering]
 Centrar cámara al cubrirse
 

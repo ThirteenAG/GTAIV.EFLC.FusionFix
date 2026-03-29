@@ -37,6 +37,9 @@ Raw Input
 [Always Run]
 Corri sempre
 
+[Sprint Interior]
+Scatto negli interni
+
 [Cover Centering]
 Centra camera al riparo
 

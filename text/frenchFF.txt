@@ -37,6 +37,9 @@ Raw input
 [Always Run]
 Toujours courir
 
+[Sprint Interior]
+Course à l'intérieur
+
 [Cover Centering]
 Centrage de la vue
 

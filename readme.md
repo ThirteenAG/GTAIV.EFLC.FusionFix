@@ -138,6 +138,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 #### Controls
 
 - **Always Run**, allows to run by default, like in classic GTA games
+- **Sprint In Interiors**, allows to sprint when player is located in interiors
 - **Allow Movement When Zoomed**, allows movement when aiming with a sniper rifle
 - **Extended Sniper Controls**, allows aiming with sniper rifles without using the scope, press Jump button to toggle between third-person aim and the scope
 - **Camera Shake**, shake effect has been fixed to work consistently at any frame rate and can be disabled with this option

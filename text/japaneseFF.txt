@@ -37,6 +37,9 @@ Raw Input
 [Always Run]
 常に走る
 
+[Sprint Interior]
+屋内でのダッシュ
+
 [Cover Centering]
 カバー時カメラのセンタリング
 

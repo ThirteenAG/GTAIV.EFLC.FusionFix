@@ -37,6 +37,9 @@ Raw Input
 [Always Run]
 Always Run
 
+[Sprint Interior]
+Sprint In Interiors
+
 [Cover Centering]
 Cover Centering
 
