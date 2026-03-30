@@ -183,6 +183,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Significantly sped up loading screens
 - Added various fixed weapon, movement and other animations
 - Added various fixed vehicle models
+- Fixed Johnny and Luis' broken head models
+- Workaround for Johnny's broken facial animations in cutscene
 - Fixed incorrect TBoGT bullet tracer position
 - Restored missing lamppost coronas and uncompressed corona texture from console
 - Fixed PC grass models stuck underground
