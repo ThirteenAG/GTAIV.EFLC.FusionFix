@@ -274,6 +274,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Workaround for burning Angels of Death member not triggering ragdoll and falling down on high framerates in mission "Action/Reaction"
 - Workaround for one scripted cutscene ending too late on high framerates in TBoGT ending credits
 - Fixed TLAD intro scripted cutscene cutting off distant world in several shots
+- Fixed Johnny being invisible in the second intro cutscene
 - Fixed possible issue where mission fails to continue for a significant amount of time even though Johnny has been close to Roman's Taxi in mission "Roman's Holiday"
 - Fixed Roman sometimes lacking clothes model or using incorrect clothes textures in TLAD ending credits
 - Fixed Malc's motorcycle using incorrect colors in TLAD ending credits
@@ -286,7 +287,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 - Fixed several sprite drawing speeding up on high framerates
 - Fixed computer email typing speeding up on high framerates
-- Fixed phone vibrate speeding up on high framerates
+- Fixed phone vibrate and photo taking speeding up on high framerates
 - Fixed phone being not usable after giving money to buskers
 - Fixed ammo reset when buying different pistol from gun shop in IV
 - Fixed ammo reset when buying different weapon from gun shop in TLAD/TBoGT
