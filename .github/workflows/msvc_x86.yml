@@ -107,6 +107,9 @@ jobs:
     - name: Pack binaries
       run: |
         ./release.bat
+      env:
+        CODE_SIGNING_PFX: ${{ github.ref_name == 'master' && (github.event_name == 'push' || github.event.inputs.release == 'true') && secrets.CODE_SIGNING_PFX || '' }}
+        CODE_SIGNING_PASSWORD: ${{ github.ref_name == 'master' && (github.event_name == 'push' || github.event.inputs.release == 'true') && secrets.CODE_SIGNING_PASSWORD || '' }}
 
     - name: Pack Legacy
       shell: cmd
