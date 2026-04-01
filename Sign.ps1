@@ -42,9 +42,10 @@ foreach ($pattern in $SearchPaths) {
         $filesToSign += Get-Item $clean
     } 
     elseif ($clean -like "*\*") {
-        # Wildcard pattern → recursive search
-        $filesToSign += Get-ChildItem -Path "." -Recurse -Include (Split-Path $clean -Leaf) -ErrorAction SilentlyContinue
-    } 
+        $dir = Split-Path $clean -Parent
+        if (-not $dir) { $dir = "." }
+        $filesToSign += Get-ChildItem -Path $dir -Recurse -Include (Split-Path $clean -Leaf) -ErrorAction SilentlyContinue
+    }
     else {
         # Folder
         $filesToSign += Get-ChildItem -Path $clean -Recurse -Include "*.asi","*.dll" -ErrorAction SilentlyContinue
@@ -52,9 +53,7 @@ foreach ($pattern in $SearchPaths) {
 }
 
 $filesToSign = $filesToSign | Where-Object { 
-    $_.FullName -notlike "*\Archives\*" -and 
-    $_.FullName -notlike "*\.git\*" -and 
-    $_.FullName -notlike "*\obj\*" 
+    $_.FullName -notlike "*\.git\*"
 } | Select-Object -Unique
 
 if ($filesToSign.Count -eq 0) {
