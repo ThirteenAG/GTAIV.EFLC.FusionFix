@@ -2381,36 +2381,8 @@ export namespace ShockingEvents
 {
     enum eShockingEvents
     {
-        SexyCar,
-        RunningPed,
-        VisibleWeapon,
-        VisibleWeaponMELEE,
-        VisibleWeaponTHROWN,
-        VisibleWeaponHANDGUN,
-        VisibleWeaponSHOTGUN,
-        VisibleWeaponSMG,
-        VisibleWeaponSNIPER,
-        VisibleWeaponRIFLE,
-        VisibleWeaponHEAVY,
-        HornSounded,
-        PlaneFlyby,
-        SeenCarStolen,
-        HelicopterOverhead,
-        SeenMeleeAction,
-        SeenGangFight,
-        PedRunOver,
-        PanickedPed,
-        InjuredPed,
-        DeadBody,
-        DrivingOnPavement,
-        MadDriver,
-        CarCrash,
-        CarPileUp,
-        Fire,
-        GunshotFired,
-        PedShot,
-        GunFight,
-        Explosion,
+        DrivingOnPavement = 22,
+        MadDriver = 23,
     };
 
     constexpr auto ShockingEventIndexSize = 4;

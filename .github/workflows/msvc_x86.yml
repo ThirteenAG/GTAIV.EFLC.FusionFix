@@ -43,7 +43,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2025-vs2026
 
     steps:
     - name: Checkout Repository
@@ -63,7 +63,7 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Configure build
-      run: ./premake5 vs2022 --with-version=${{ steps.versioning.outputs.version }}
+      run: ./premake5 vs2026 --with-version=${{ steps.versioning.outputs.version }}
 
     - name: Build
       run: |
@@ -71,7 +71,7 @@ jobs:
         & .\premake5.bat
         & .\builddist.bat
         Pop-Location
-        msbuild -m build/GTAIV.EFLC.FusionFix.sln /property:Configuration=Release /property:Platform=Win32
+        msbuild -m build/GTAIV.EFLC.FusionFix.slnx /property:Configuration=Release /property:Platform=Win32
 
     - name: Download Ultimate ASI Loader x86
       uses: robinraju/release-downloader@v1.12
@@ -107,6 +107,9 @@ jobs:
     - name: Pack binaries
       run: |
         ./release.bat
+      env:
+        CODE_SIGNING_PFX: ${{ github.ref_name == 'master' && (github.event_name == 'push' || github.event.inputs.release == 'true') && secrets.CODE_SIGNING_PFX || '' }}
+        CODE_SIGNING_PASSWORD: ${{ github.ref_name == 'master' && (github.event_name == 'push' || github.event.inputs.release == 'true') && secrets.CODE_SIGNING_PASSWORD || '' }}
 
     - name: Pack Legacy
       shell: cmd
