@@ -1,4 +1,4 @@
-﻿module;
+module;
 
 #include <common.hxx>
 
@@ -8,6 +8,7 @@ import common;
 import comvars;
 import natives;
 import settings;
+import classext;
 
 injector::hook_back<double(__fastcall*)(void* _this, void* edx, void* a2, void* a3)> hbsub_A18510;
 double __fastcall sub_A18510(void* _this, void* edx, void* a2, void* a3)
@@ -22,16 +23,19 @@ double __fastcall sub_A18510(void* _this, void* edx, void* a2, void* a3)
     return hbsub_A18510.fun(_this, edx, a2, a3) * (*CTimer::fTimeStep / (1.0f / 30.0f)) * f;
 }
 
-injector::hook_back<void(__fastcall*)(void* _this)> hbProcessStaticCounter;
-void __fastcall ProcessStaticCounter(void* _this)
+SafetyHookInline shProcessStaticCounter = {};
+void __fastcall ProcessStaticCounter(void* _this, void* edx)
 {
-    float* accumulator = (float*)((BYTE*)_this + 0x26C);
-    *accumulator += *CTimer::fTimeStep;
-    if (*accumulator >= (1.0f / 30.0f))
+    auto PIExt = GetPedIntelligenceExt((uintptr_t)_this);
+    if (PIExt)
     {
-        *accumulator = 0;
-        hbProcessStaticCounter.fun(_this);
+        PIExt->m_fTimeStepAccumulator += *CTimer::fTimeStep;
+        if (PIExt->m_fTimeStepAccumulator >= (1.0f / 30.0f))
+        {
+            PIExt->m_fTimeStepAccumulator = 0.0f;
+        }
     }
+    return shProcessStaticCounter.unsafe_fastcall(_this, edx);
 }
 
 int (__cdecl* game_rand)() = nullptr;
@@ -315,20 +319,9 @@ public:
             // At higher framerates these attempts occur faster, causing them to hit the limit early and abort the task.
             // (eg. causing NPCs to shove cars instead of walking around them)
             {
-                // Zero 0x26C during CPedIntelligence ctor, to use for storing accumulator
-                pattern = hook::pattern("C7 83 68 02 00 00 00 00 00 00");
-                struct CPedIntelligenceZero26CHook
-                {
-                    void operator()(injector::reg_pack& regs)
-                    {
-                        *(uint32_t*)(regs.ebx + 0x268) = 0;
-                        *(uint32_t*)(regs.ebx + 0x26C) = 0;
-                    }
-                }; injector::MakeInline<CPedIntelligenceZero26CHook>(pattern.get_first(0), pattern.get_first(10));
-
-                // Hook ProcessStaticCounter call to check/add to accumulator
-                pattern = find_pattern("E8 ? ? ? ? 8B 4F 40 6A 00 8B 89 80 0A 00 00");
-                hbProcessStaticCounter.fun = injector::MakeCALL(pattern.get_first(0), ProcessStaticCounter).get();
+                // Hook ProcessStaticCounter to check/add to accumulator
+                pattern = find_pattern("E8 ? ? ? ? 8B 4F ? 6A ? 8B 89 ? ? ? ? E8 ? ? ? ? 8D 9F", "E8 ? ? ? ? 8B 46 ? 8B 88 ? ? ? ? 6A");
+                shProcessStaticCounter = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first()).as_int(), ProcessStaticCounter);
             }
 
             // Handbrake Cam force
