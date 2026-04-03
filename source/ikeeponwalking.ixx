@@ -51,11 +51,15 @@ public:
                         force_return_address(loc_A2A60F);
                     }
 
-                    static auto alwaysrunPref = FusionFixSettings.GetRef("PREF_ALWAYSRUN");
-                    auto bShouldRun = alwaysrunPref->get();
+                    static auto sprintPref = FusionFixSettings.GetRef("PREF_SPRINT");
+                    if (sprintPref->get()) // hold
+                    {
+                        static auto alwaysrunPref = FusionFixSettings.GetRef("PREF_ALWAYSRUN");
+                        auto bShouldRun = alwaysrunPref->get();
 
-                    if (bShouldRun && bRunState)
-                        *(float*)(regs.esp + (flag ? 0x18 : 0x1C)) = 1.0f;
+                        if (bShouldRun && bRunState)
+                            *(float*)(regs.esp + (flag ? 0x18 : 0x1C)) = 1.0f;
+                    }
                 }
             }; injector::MakeInline<SprintHook>(pattern.get_first(0));
 
@@ -84,6 +88,10 @@ public:
             pattern = find_pattern("0F 2F C3 F3 0F 11 44 24 ? F3 0F 11 44 24", "0F 2F 05 ? ? ? ? F3 0F 11 4C 24 ? F3 0F 11 44 24 ? 0F 86");
             static auto SprintHook2 = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
             {
+                static auto sprintPref = FusionFixSettings.GetRef("PREF_SPRINT");
+                if (!sprintPref->get()) // toggle
+                    return;
+
                 static auto alwaysrunPref = FusionFixSettings.GetRef("PREF_ALWAYSRUN");
                 if (!alwaysrunPref->get())
                     return;
@@ -109,18 +117,18 @@ public:
                 {
                     if (*CTimer::m_snTimeInMilliseconds - sprintPressStart >= kHoldThreshold)
                     {
-                        // Hold — allow sprint, don't cap
+                        // Hold - allow sprint, don't cap
                         isHold = true;
                     }
                     else
                     {
-                        // Tap window — cap to prevent sprint early return
+                        // Tap window - cap to prevent sprint early return
                         regs.xmm0.f32[0] = std::min(regs.xmm0.f32[0], 1.0f);
                     }
                 }
                 else if (wasPressed && !isHold)
                 {
-                    // Falling edge after tap — toggle
+                    // Falling edge after tap - toggle
                     bRunState = !bRunState;
                 }
             });
