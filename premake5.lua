@@ -17,6 +17,7 @@ workspace "GTAIV.EFLC.FusionFix"
    staticruntime "On"
    characterset ("Unicode")
    multiprocessorcompile ("On")
+   startproject "GTAIV.EFLC.FusionFix"
 
    defines { "rsc_CompanyName=\"GTAIV.EFLC.FusionFix\"" }
    defines { "rsc_LegalCopyright=\"GPL-3.0 license\""}
@@ -89,6 +90,7 @@ workspace "GTAIV.EFLC.FusionFix"
    files { "external/injector/safetyhook/include/**.hpp", "external/injector/safetyhook/src/**.cpp" }
    files { "external/injector/zydis/**.h", "external/injector/zydis/**.c" }
    files { "source/gxt/src/**.h", "source/gxt/src/**.cpp" }
+   files { "data/plugins/*.ini" }
 
    prebuildcommands {
       "for /R \"../source/resources/snow/\" %%f in (*.ps) do (\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E main /Fo \"../source/resources/snow/%%~nfps.pso\" %%f)",
