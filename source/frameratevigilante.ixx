@@ -22,6 +22,18 @@ double __fastcall sub_A18510(void* _this, void* edx, void* a2, void* a3)
     return hbsub_A18510.fun(_this, edx, a2, a3) * (*CTimer::fTimeStep / (1.0f / 30.0f)) * f;
 }
 
+injector::hook_back<void(__fastcall*)(void* _this)> hbProcessStaticCounter;
+void __fastcall ProcessStaticCounter(void* _this)
+{
+    float* accumulator = (float*)((BYTE*)_this + 0x26C);
+    *accumulator += *CTimer::fTimeStep;
+    if (*accumulator >= (1.0f / 30.0f))
+    {
+        *accumulator = 0;
+        hbProcessStaticCounter.fun(_this);
+    }
+}
+
 int (__cdecl* game_rand)() = nullptr;
 uint32_t* dword_11F7060 = nullptr;
 uint32_t* dword_12088B4 = nullptr;
@@ -296,6 +308,27 @@ public:
                 static float dword_EDF6CC = 1.0f / 3000.0f;
                 pattern = hook::pattern("E8 ? ? ? ? 8B 44 24 ? 50 E8 ? ? ? ? E8");
                 injector::WriteMemory(injector::GetBranchDestination(pattern.get_first(0)).as_int() + 4, &dword_EDF6CC, true);
+            }
+
+            // Check 30FPS accumulator before calling CPedIntelligence::ProcessStaticCounter, which increments task attempt counter.
+            // Some CTasks check this attempt counter against a hardcoded limit of 30.
+            // At higher framerates these attempts occur faster, causing them to hit the limit early and abort the task.
+            // (eg. causing NPCs to shove cars instead of walking around them)
+            {
+                // Zero 0x26C during CPedIntelligence ctor, to use for storing accumulator
+                pattern = hook::pattern("C7 83 68 02 00 00 00 00 00 00");
+                struct CPedIntelligenceZero26CHook
+                {
+                    void operator()(injector::reg_pack& regs)
+                    {
+                        *(uint32_t*)(regs.ebx + 0x268) = 0;
+                        *(uint32_t*)(regs.ebx + 0x26C) = 0;
+                    }
+                }; injector::MakeInline<CPedIntelligenceZero26CHook>(pattern.get_first(0), pattern.get_first(10));
+
+                // Hook ProcessStaticCounter call to check/add to accumulator
+                pattern = find_pattern("E8 ? ? ? ? 8B 4F 40 6A 00 8B 89 80 0A 00 00");
+                hbProcessStaticCounter.fun = injector::MakeCALL(pattern.get_first(0), ProcessStaticCounter).get();
             }
 
             // Handbrake Cam force
