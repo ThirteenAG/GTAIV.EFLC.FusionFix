@@ -27,15 +27,17 @@ SafetyHookInline shProcessStaticCounter = {};
 void __fastcall ProcessStaticCounter(void* _this, void* edx)
 {
     auto PIExt = GetPedIntelligenceExt((uintptr_t)_this);
-    if (PIExt)
+    if (!PIExt)
     {
-        PIExt->m_fTimeStepAccumulator += *CTimer::fTimeStep;
-        if (PIExt->m_fTimeStepAccumulator >= (1.0f / 30.0f))
-        {
-            PIExt->m_fTimeStepAccumulator = 0.0f;
-        }
+        return shProcessStaticCounter.unsafe_fastcall(_this, edx);
     }
-    return shProcessStaticCounter.unsafe_fastcall(_this, edx);
+
+    PIExt->m_fTimeStepAccumulator += *CTimer::fTimeStep;
+    if (PIExt->m_fTimeStepAccumulator >= (1.0f / 30.0f))
+    {
+        PIExt->m_fTimeStepAccumulator = 0.0f;
+        return shProcessStaticCounter.unsafe_fastcall(_this, edx);
+    }
 }
 
 int (__cdecl* game_rand)() = nullptr;
