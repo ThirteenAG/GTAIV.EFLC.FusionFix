@@ -1017,6 +1017,26 @@ public:
                     return_to(loc_927DE0);
                 });
             }
+
+            {
+                // attempt to fix NPCs lane swerving due to trains above/below them, kind of hacky probably but it works (clippy95)
+                // CE only, non CE is 0F 2F C8 76 ? 3B F7
+                auto pattern = hook::pattern("0F 2F C8 76 ? 3B F1");
+                if (!pattern.empty()) {
+                    static auto CCarAI_WeaveThroughCarsSectorListHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs) {
+
+                        auto other_car = regs.esi;
+                        auto m_nVehicleType = *(uint32_t*)(other_car + 0x1304);
+                        if (m_nVehicleType == VEHICLETYPE_TRAIN) {
+                            // the delta height check is always 8.f
+                        constexpr float MaxCenterZDeltaForWeave_trains = 2.5f;
+                            regs.xmm1.f32[0] = MaxCenterZDeltaForWeave_trains;
+                        }
+
+                        });
+                }
+            }
+
         };
     }
 } Fixes;
