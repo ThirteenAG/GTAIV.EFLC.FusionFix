@@ -1017,6 +1017,18 @@ public:
                     return_to(loc_927DE0);
                 });
             }
+
+            {
+                auto pattern = hook::pattern("F3 0F 10 15 ? ? ? ? F3 0F 10 5C 24 ? 0F B6 C0");
+                if (!pattern.empty())
+                {
+                    static auto RenderMapCrosshairHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        float aspectratio = ((float)*rage::grcDevice::ms_nActiveWidth / (float)*rage::grcDevice::ms_nActiveHeight);
+                        *(float*)(regs.esp + 0x64 - 0x30) /= (aspectratio * 0.75f);
+                    });
+                }
+            }
         };
     }
 } Fixes;
