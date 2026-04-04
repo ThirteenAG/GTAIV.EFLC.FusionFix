@@ -196,10 +196,11 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            // By Sergeanur
-            auto pattern = find_pattern("74 20 83 FF 03 74 1B 83", "74 24 8B 44 24 2C");
-            injector::WriteMemory<uint8_t>(pattern.get_first(), 0xEB, true);
+            // Skip two additional checks in cutscene camera update code added by Toronto on PC which made cutscene jump cuts "flicker"
+            auto pattern = find_pattern("83 3D ? ? ? ? ? 0F 8E ? ? ? ? 83 FF", "83 3D ? ? ? ? ? 0F 8E ? ? ? ? 83 F8");
+            injector::MakeNOP(pattern.get_first(0), 27, true);
 
+            // By Sergeanur
             pattern = find_pattern("E8 ? ? ? ? 8B 4C 24 2C 5F 5E 33 CC B0 01", "E8 ? ? ? ? 8B 4C 24 2C 5F 5E 5B");
 
             static void* patchOffset = pattern.get_first();
