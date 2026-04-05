@@ -1016,6 +1016,26 @@ public:
 
                     return_to(loc_927DE0);
                 });
+
+                // Console pause menu info spacing
+                {
+                    // These also had a %s at the start on console but the sprintf call on PC doesn't support it and replacing it is too much for such a little thing
+                    static auto a02d02d_0 = "  /  %02d:%02d";
+                    static auto a02d02d_1 = "  /  %02d:%02d  /  %d$";
+                    static auto a02d02d_2 = "  /  %02d:%02d  /  $%d";
+
+                    auto pattern = find_pattern("68 ? ? ? ? 64 A1 ? ? ? ? 8B 00 05 ? ? ? ? 50 E8 ? ? ? ? 83 C4 ? 64 A1", "68 ? ? ? ? 81 C1 ? ? ? ? 51 E8 ? ? ? ? 83 C4");
+                    injector::WriteMemory(pattern.get_first(1), a02d02d_0, true);
+
+                    pattern = find_pattern("68 ? ? ? ? EB ? 83 3D ? ? ? ? ? 8B 0D ? ? ? ? 0F 45 0D ? ? ? ? 83 3D ? ? ? ? ? 51", "68 ? ? ? ? 81 C2 ? ? ? ? 52 EB ? E8");
+                    injector::WriteMemory(pattern.get_first(1), a02d02d_0, true);
+
+                    pattern = find_pattern("68 ? ? ? ? 64 A1 ? ? ? ? 8B 00 05 ? ? ? ? 50 E8 ? ? ? ? 83 C4 ? E9", "68 ? ? ? ? 50 E8 ? ? ? ? 83 C4 ? EB ? A1");
+                    injector::WriteMemory(pattern.get_first(1), a02d02d_1, true);
+
+                    pattern = find_pattern("68 ? ? ? ? EB ? 83 3D ? ? ? ? ? 8B 0D ? ? ? ? 0F 45 0D ? ? ? ? 83 3D ? ? ? ? ? 56", "68 ? ? ? ? 51 E8 ? ? ? ? 83 C4 ? E9 ? ? ? ? 56");
+                    injector::WriteMemory(pattern.get_first(1), a02d02d_2, true);
+                }
             }
         };
     }
