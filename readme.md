@@ -345,6 +345,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed some cutscenes and interiors models
 - Fixed and improved some lights and emissive materials
 - Fixed one font '9' using incorrect style in TBoGT
+- Restored missing color combination for blade
 - Added an option to enable shadows for some objects and vegetation that lack them
 - Added options to customize shadow blur, bias and cascade blending 
 - Various other fixes, like regular cops & fat cops will now spawn with their hat prop disabled when in a vehicle, like on the console version
