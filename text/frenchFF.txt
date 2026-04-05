@@ -226,5 +226,29 @@ Police Buffalo
 [USJ_FRST_KMB]
 Lorsque la caméra passe en mode saut unique, utilise ~INPUT_MOUSE_WHEEL_UP~ et ~INPUT_MOUSE_WHEEL_DOWN~ pour modifier la vitesse du ralenti.
 
+[0x416E3A2D]
+Utilise ~PAD_LSTICK_ALL~ pour déplacer le poids de ton corps. ~n~Utilise ~INPUT_MOUSE_LMB~ et ~INPUT_MOUSE_RMB~ pour utiliser les aérofreins de gauche et de droite.~n~Appuie sur ~INPUT_ENTER~ pour détacher le parachute. ~n~Maintiens ~INPUT_VEH_CIN_CAM~ pour changer de vue.
+
+[0x42B7E8E7]
+Utilise ~PAD_LSTICK_ALL~ pour déplacer le poids de ton corps. ~n~Utilise ~INPUT_MOUSE_LMB~ et ~INPUT_MOUSE_RMB~ pour utiliser les aérofreins de gauche et de droite. ~n~Appuie sur ~INPUT_ENTER~ pour détacher le parachute. ~n~Maintiens ~INPUT_VEH_CIN_CAM~ pour changer d'angle de caméra. ~n~Appuie sur ~INPUT_DUCK~ pour activer les fumigènes.
+
+[0x49914354]
+Utilise ~PAD_LSTICK_ALL~ pour te déplacer dans les airs. ~n~Appuie sur ~INPUT_SPRINT~ pour ouvrir ton parachute. ~n~Maintiens ~INPUT_VEH_CIN_CAM~ pour changer d'angle de caméra. ~n~Appuie sur ~INPUT_DUCK~ pour activer les fumigènes.
+
+[0x5B377EC0]
+Utilise ~PAD_LSTICK_ALL~ pour déplacer le poids de ton corps. ~n~Utilise ~INPUT_MOUSE_LMB~ et ~INPUT_MOUSE_RMB~ pour utiliser les aérofreins de gauche et de droite. ~n~Appuie sur ~INPUT_ENTER~ pour détacher le parachute. ~n~Maintiens ~INPUT_VEH_CIN_CAM~ pour changer d'angle de caméra. ~n~Appuie sur ~INPUT_DUCK~ pour activer les fumigènes.
+
+[0x6AC25A30]
+Utilise ~PAD_LSTICK_ALL~ pour déplacer le poids de ton corps. ~n~Utilise ~INPUT_MOUSE_LMB~ et ~INPUT_MOUSE_RMB~ pour utiliser les aérofreins gauche et droite. ~n~Appuie sur ~INPUT_ENTER~ pour détacher le parachute. ~n~Maintiens ~INPUT_VEH_CIN_CAM~ pour changer d'angle de caméra.
+
+[0xA4BE06BD]
+Utilise ~PAD_LSTICK_ALL~ pour te déplacer dans les airs. ~n~Appuie sur ~INPUT_MOUSE_LMB~ pour ouvrir ton parachute. ~n~Maintiens ~INPUT_VEH_CIN_CAM~ pour changer d'angle de caméra.
+
+[0x38FD019F]
+Utilise ~PAD_LSTICK_ALL~ pour te déplacer dans les airs. ~n~Appuie sur ~INPUT_MOUSE_LMB~ pour ouvrir ton parachute. ~n~Maintiens ~INPUT_VEH_CIN_CAM~ pour changer d'angle de caméra.
+
+[0xA6CCD9A1]
+Dans les airs, utilise ~PAD_LSTICK_ALL~ pour te déplacer. En chute libre, appuie sur ~INPUT_MOUSE_LMB~ pour ouvrir ton parachute. ~n~Maintiens ~INPUT_VEH_CIN_CAM~ pour changer d'angle de caméra.
+
 [DUMMY_l11]
 Option fictive.

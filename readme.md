@@ -145,7 +145,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **Centered On Foot Camera**, makes on foot camera centered, also for more options install the [original mod](https://github.com/gennariarmando/iv-centered-onfoot-cam)
 - **Turn Indicators**, allows the player to use vehicle turn indicators and hazard lights
 - **Always Show Bullet Traces**, shows bullet traces on every shot instead of randomly, like in the older games
-- **Disable Wardrobe Transition**, disables all screen fading in/out process when switching clothes in the wardrobe
+- **Disable Wardrobe Transition**, disables all screen fading in/out process when switching clothes in the wardrobe or buying clothes in the clothes stores
 - **Instant Taxi Stop**, makes the taxi stop immediately after skipping taxi ride journey
 - **Look-Around Sensitivity**, controls the look sensitivity when using controller
 - **Aiming Sensitivity**, controls the aim sensitivity when using controller
@@ -345,6 +345,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed some cutscenes and interiors models
 - Fixed and improved some lights and emissive materials
 - Fixed one font '9' using incorrect style in TBoGT
+- Restored missing color combination for blade
 - Added an option to enable shadows for some objects and vegetation that lack them
 - Added options to customize shadow blur, bias and cascade blending 
 - Various other fixes, like regular cops & fat cops will now spawn with their hat prop disabled when in a vehicle, like on the console version
