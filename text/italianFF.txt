@@ -226,5 +226,29 @@ Buffalo polizia
 [USJ_FRST_KMB]
 Durante la visualizzazione delle acrobazie usa ~INPUT_MOUSE_WHEEL_UP~ e ~INPUT_MOUSE_WHEEL_DOWN~ per controllare lo slow motion.
 
+[0x416E3A2D]
+Usa ~PAD_LSTICK_ALL~ per spostare il peso. ~n~Usa ~INPUT_MOUSE_LMB~ e ~INPUT_MOUSE_RMB~ per attivare i freni sinistro e destro. ~n~Premi ~INPUT_ENTER~ per staccare il paracadute. ~n~Tieni premuto ~INPUT_VEH_CIN_CAM~ per provare diverse visuali.
+
+[0x42B7E8E7]
+Usa ~PAD_LSTICK_ALL~ per spostare il peso. ~n~Usa ~INPUT_MOUSE_LMB~ e ~INPUT_MOUSE_RMB~ per attivare i freni sinistro e destro. ~n~Premi ~INPUT_ENTER~ per staccare il paracadute. ~n~Tieni premuto ~INPUT_VEH_CIN_CAM~ per provare diverse visuali. ~n~Premi ~INPUT_DUCK~ per attivare il fumo.
+
+[0x49914354]
+Usa ~PAD_LSTICK_ALL~ per muoverti in aria. ~n~Premi ~INPUT_SPRINT~ per aprire il paracadute. ~n~Tieni premuto ~INPUT_VEH_CIN_CAM~ per provare diverse visuali.~n~Premi ~INPUT_DUCK~ per attivare il fumo.
+
+[0x5B377EC0]
+Usa ~PAD_LSTICK_ALL~ per spostare il peso. ~n~Usa ~INPUT_MOUSE_LMB~ e ~INPUT_MOUSE_RMB~ per attivare i freni sinistro e destro. ~n~Premi ~INPUT_ENTER~ per staccare il paracadute. ~n~Tieni premuto ~INPUT_VEH_CIN_CAM~ per provare diverse visuali. ~n~Premi ~INPUT_DUCK~ per attivare il fumo.
+
+[0x6AC25A30]
+Usa ~PAD_LSTICK_ALL~ per spostare il peso. ~n~Usa ~INPUT_MOUSE_LMB~ e ~INPUT_MOUSE_RMB~ per attivare i freni sinistro e destro. ~n~Premi ~INPUT_ENTER~ per staccare il paracadute. ~n~Tieni premuto ~INPUT_VEH_CIN_CAM~ per provare diverse visuali.
+
+[0xA4BE06BD]
+Usa ~PAD_LSTICK_ALL~ per muoverti in aria. ~n~Premi ~INPUT_MOUSE_LMB~ per aprire il paracadute. ~n~Tieni premuto ~INPUT_VEH_CIN_CAM~ per provare diverse visuali.
+
+[0x38FD019F]
+Usa ~PAD_LSTICK_ALL~ per muoverti in aria. ~n~Premi ~INPUT_MOUSE_LMB~ per aprire il paracadute. ~n~Tieni premuto ~INPUT_VEH_CIN_CAM~ per provare diverse visuali.
+
+[0xA6CCD9A1]
+Quando sei in aria usa ~PAD_LSTICK_ALL~ per muoverti.~n~In caduta libera premi ~INPUT_MOUSE_LMB~ per aprire il paracadute.~n~Tieni premuto ~INPUT_VEH_CIN_CAM~ per provare diverse visuali.
+
 [DUMMY_l11]
 Dummy label.

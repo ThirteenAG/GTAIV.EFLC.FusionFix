@@ -226,5 +226,29 @@ Buffalo policía
 [USJ_FRST_KMB]
 Durante el modo cámara acrobática, usa ~INPUT_MOUSE_WHEEL_UP~ y ~INPUT_MOUSE_WHEEL_DOWN~ para controlar la velocidad de la cámara lenta.
 
+[0x416E3A2D]
+Usa ~PAD_LSTICK_ALL~ para cambiar el peso del cuerpo. ~n~Usa ~INPUT_MOUSE_LMB~ y ~INPUT_MOUSE_RMB~ para usar los frenos neumáticos izquierdo y derecho. ~n~Pulsa ~INPUT_ENTER~ para soltar el paracaídas ~n~Mantén ~INPUT_VEH_CIN_CAM~ para ver las distintas cámaras.
+
+[0x42B7E8E7]
+Usa ~PAD_LSTICK_ALL~ para cambiar el peso del cuerpo. ~n~Usa ~INPUT_MOUSE_LMB~ y ~INPUT_MOUSE_RMB~ para usar los frenos neumáticos izquierdo y derecho. ~n~Pulsa ~INPUT_ENTER~ para soltar el paracaídas. ~n~Mantén pulsado ~INPUT_VEH_CIN_CAM~ para ver las distintas cámaras. ~n~Pulsa ~INPUT_DUCK~ para activar el humo.
+
+[0x49914354]
+Usa ~PAD_LSTICK_ALL~ para moverte en el aire. ~n~Pulsa ~INPUT_SPRINT~ para abrir el paracaídas. ~n~Mantén pulsado ~INPUT_VEH_CIN_CAM~ para ver distintas cámaras. ~n~Pulsa ~INPUT_DUCK~ para activar el humo.
+
+[0x5B377EC0]
+Usa ~PAD_LSTICK_ALL~ para cambiar el peso del cuerpo. ~n~Usa ~INPUT_MOUSE_LMB~ y ~INPUT_MOUSE_RMB~ para usar los frenos neumáticos izquierdo y derecho. ~n~Pulsa ~INPUT_ENTER~ para soltar el paracaídas. ~n~Mantén pulsado ~INPUT_VEH_CIN_CAM~ para ver las distintas cámaras. ~n~Pulsa ~INPUT_DUCK~ para activar el humo.
+
+[0x6AC25A30]
+Usa ~PAD_LSTICK_ALL~ para cambiar el peso del cuerpo. ~n~Usa ~INPUT_MOUSE_LMB~ y ~INPUT_MOUSE_RMB~ para usar los frenos neumáticos izquierdo y derecho. ~n~Pulsa ~INPUT_ENTER~ para soltar el paracaídas. ~n~Mantén pulsado ~INPUT_VEH_CIN_CAM~ para ver las distintas cámaras.
+
+[0xA4BE06BD]
+Usa ~PAD_LSTICK_ALL~ para moverte en el aire.~n~Pulsa ~INPUT_MOUSE_LMB~ para abrir el paracaídas.~n~Mantén pulsado ~INPUT_VEH_CIN_CAM~ para ver las distintas cámaras.
+
+[0x38FD019F]
+Usa ~PAD_LSTICK_ALL~ para moverte en el aire. ~n~Pulsa ~INPUT_MOUSE_LMB~ para abrir el paracaídas. ~n~Mantén pulsado ~INPUT_VEH_CIN_CAM~ para ver las distintas cámaras.
+
+[0xA6CCD9A1]
+En el aire, usa ~PAD_LSTICK_ALL~ para moverte. En caída libre, pulsa ~INPUT_MOUSE_LMB~ para abrir el paracaídas. ~n~Mantén pulsado ~INPUT_VEH_CIN_CAM~ para ver las distintas cámaras.
+
 [DUMMY_l11]
 Dummy label.
