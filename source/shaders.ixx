@@ -629,7 +629,7 @@ public:
             {
                 if (!pHDRTexQuarter)
                 {
-                    pHDRTexQuarter = rage::grcTextureFactoryPC::GetRTByName("Quarter Screen 0");
+                    pHDRTexQuarter = rage::grcTextureFactoryPC::GetRTByName("FullScreenTex_temp1");
                 }
 
                 uintptr_t thisPtr;
