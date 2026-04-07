@@ -142,6 +142,7 @@ public:
     //IDirect3DSurface9* pShadowBlurSurf2 = nullptr;
 
     IDirect3DSurface9* PreAlphaDepthSurface = nullptr;
+    IDirect3DSurface9* HDRFullScreenSurface = nullptr;
 
     // shaders
     IDirect3DPixelShader9* FxaaPS = nullptr;
@@ -883,8 +884,33 @@ private:
         IDirect3DSurface9* prevDepthStencilSurface = nullptr;
         IDirect3DPixelShader9* prevPS = nullptr;
 
+        IDirect3DBaseTexture9* prevTex[2] = { nullptr };
+
+        // Previous sampler/render states
+        DWORD prevMinFilter[2] = { D3DTEXF_NONE };
+        DWORD prevMagFilter[2] = { D3DTEXF_NONE };
+        DWORD prevMipFilter[2] = { D3DTEXF_NONE };
+        DWORD prevAddressU[2] = { D3DTADDRESS_WRAP };
+        DWORD prevAddressV[2] = { D3DTADDRESS_WRAP };
+
+        // Store previous sampler states, renderstates, surfaces, textures, shaders
+        pDevice->GetSamplerState(0, D3DSAMP_MINFILTER, &prevMinFilter[0]);
+        pDevice->GetSamplerState(0, D3DSAMP_MAGFILTER, &prevMagFilter[0]);
+        pDevice->GetSamplerState(0, D3DSAMP_MIPFILTER, &prevMipFilter[0]);
+        pDevice->GetSamplerState(0, D3DSAMP_ADDRESSU, &prevAddressU[0]);
+        pDevice->GetSamplerState(0, D3DSAMP_ADDRESSV, &prevAddressV[0]);
+
+        pDevice->GetSamplerState(1, D3DSAMP_MINFILTER, &prevMinFilter[1]);
+        pDevice->GetSamplerState(1, D3DSAMP_MAGFILTER, &prevMagFilter[1]);
+        pDevice->GetSamplerState(1, D3DSAMP_MIPFILTER, &prevMipFilter[1]);
+        pDevice->GetSamplerState(1, D3DSAMP_ADDRESSU, &prevAddressU[1]);
+        pDevice->GetSamplerState(1, D3DSAMP_ADDRESSV, &prevAddressV[1]);
+
         pDevice->GetRenderTarget(0, &prevSurface);
         pDevice->GetDepthStencilSurface(&prevDepthStencilSurface);
+
+        pDevice->GetTexture(0, &prevTex[0]);
+        pDevice->GetTexture(1, &prevTex[1]);
 
         pDevice->GetPixelShader(&prevPS);
 
@@ -910,6 +936,38 @@ private:
                 }
             }
 
+            if (PostFxResources.FullScreenTex_temp1)
+            {
+                // Get custom rendertarget D3D surfaces
+                PostFxResources.FullScreenTex_temp1->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.HDRFullScreenSurface);
+
+                // Copy HDR fullscreen buffer at this stage to use it later in raindrop refraction shader
+                if(PostFxResources.HDRFullScreenSurface && PostFxResources.Blit_PS)
+                {
+                    pDevice->SetSamplerState(0, D3DSAMP_MINFILTER, prevMinFilter[1]);
+                    pDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, prevMagFilter[1]);
+                    pDevice->SetSamplerState(0, D3DSAMP_MIPFILTER, prevMipFilter[1]);
+                    pDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, prevAddressU[1]);
+                    pDevice->SetSamplerState(0, D3DSAMP_ADDRESSV, prevAddressV[1]);
+
+                    pDevice->SetRenderTarget(0, PostFxResources.HDRFullScreenSurface);
+                    pDevice->SetDepthStencilSurface(nullptr);
+
+                    pDevice->SetTexture(0, prevTex[1]);
+
+                    pDevice->SetPixelShader(PostFxResources.Blit_PS);
+
+                    pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
+
+                    pDevice->SetSamplerState(0, D3DSAMP_MINFILTER, prevMinFilter[0]);
+                    pDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, prevMagFilter[0]);
+                    pDevice->SetSamplerState(0, D3DSAMP_MIPFILTER, prevMipFilter[0]);
+                    pDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, prevAddressU[0]);
+                    pDevice->SetSamplerState(0, D3DSAMP_ADDRESSV, prevAddressV[0]);
+                    pDevice->SetTexture(0, prevTex[0]);
+                }
+            }
+
             // Restore fog pass
             if (prevPS)
             {
@@ -926,9 +984,13 @@ private:
         }
 
         SAFE_RELEASE(PostFxResources.PreAlphaDepthSurface);
+        SAFE_RELEASE(PostFxResources.HDRFullScreenSurface);
 
         SAFE_RELEASE(prevSurface);
         SAFE_RELEASE(prevDepthStencilSurface);
+
+        SAFE_RELEASE(prevTex[0]);
+        SAFE_RELEASE(prevTex[1]);
 
         SAFE_RELEASE(prevPS);
     }
