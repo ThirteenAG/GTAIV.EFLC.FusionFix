@@ -142,6 +142,13 @@ public:
             return true; // Return true to zoom out.
         }
 
+        // Reset EndTime to 0 if game reloads any save, or radar will zoom out automatically and keep this state after that.
+        if (zoomOutEndTime - currentTime >= nRadarZoomDelay)
+        {
+            zoomOutEndTime = 0;
+            return false;
+        }
+
         // The key is not pressed. Check if we are within the 3-second delay period.
         if (currentTime < zoomOutEndTime)
         {
