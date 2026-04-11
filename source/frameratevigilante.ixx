@@ -1,4 +1,4 @@
-﻿module;
+module;
 
 #include <common.hxx>
 
@@ -8,6 +8,7 @@ import common;
 import comvars;
 import natives;
 import settings;
+import classext;
 
 injector::hook_back<double(__fastcall*)(void* _this, void* edx, void* a2, void* a3)> hbsub_A18510;
 double __fastcall sub_A18510(void* _this, void* edx, void* a2, void* a3)
@@ -20,6 +21,23 @@ double __fastcall sub_A18510(void* _this, void* edx, void* a2, void* a3)
     }
 
     return hbsub_A18510.fun(_this, edx, a2, a3) * (*CTimer::fTimeStep / (1.0f / 30.0f)) * f;
+}
+
+SafetyHookInline shProcessStaticCounter = {};
+void __fastcall ProcessStaticCounter(void* _this, void* edx)
+{
+    auto PIExt = GetPedIntelligenceExt((uintptr_t)_this);
+    if (!PIExt)
+    {
+        return shProcessStaticCounter.unsafe_fastcall(_this, edx);
+    }
+
+    PIExt->m_fTimeStepAccumulator += *CTimer::fTimeStep;
+    if (PIExt->m_fTimeStepAccumulator >= (1.0f / 30.0f))
+    {
+        PIExt->m_fTimeStepAccumulator = 0.0f;
+        return shProcessStaticCounter.unsafe_fastcall(_this, edx);
+    }
 }
 
 int (__cdecl* game_rand)() = nullptr;
@@ -296,6 +314,16 @@ public:
                 static float dword_EDF6CC = 1.0f / 3000.0f;
                 pattern = hook::pattern("E8 ? ? ? ? 8B 44 24 ? 50 E8 ? ? ? ? E8");
                 injector::WriteMemory(injector::GetBranchDestination(pattern.get_first(0)).as_int() + 4, &dword_EDF6CC, true);
+            }
+
+            // Check 30FPS accumulator before calling CPedIntelligence::ProcessStaticCounter, which increments task attempt counter.
+            // Some CTasks check this attempt counter against a hardcoded limit of 30.
+            // At higher framerates these attempts occur faster, causing them to hit the limit early and abort the task.
+            // (eg. causing NPCs to shove cars instead of walking around them)
+            {
+                // Hook ProcessStaticCounter to check/add to accumulator
+                pattern = find_pattern("E8 ? ? ? ? 8B 4F ? 6A ? 8B 89 ? ? ? ? E8 ? ? ? ? 8D 9F", "E8 ? ? ? ? 8B 46 ? 8B 88 ? ? ? ? 6A");
+                shProcessStaticCounter = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first()).as_int(), ProcessStaticCounter);
             }
 
             // Handbrake Cam force
