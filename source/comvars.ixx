@@ -2212,6 +2212,7 @@ export bool bHighResolutionShadows = false;
 export bool bIsQUB3D = false;
 export float fMenuBlur = 0.0f;
 export bool bInSniperScope = false;
+export bool bSpeedupSimRateCheat = false;
 export eCamMode nCurrentCamera = NUM_CAM_MODES;
 
 export auto currentEpisodePath() -> std::filesystem::path

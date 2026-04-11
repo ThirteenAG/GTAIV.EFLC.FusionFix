@@ -399,22 +399,6 @@ public:
                 }
             });
 
-            // Physics simulation rate
-            static bool bSpeedupSimRateCheat = false;
-
-            // Seems to not be effective?
-            pattern = hook::pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? 83 C4 ? F3 0F 11 04 24 E8");
-            injector::MakeNOP(pattern.get_first(0), 8, true);
-            static auto SimRateSpeed = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-            {
-                regs.xmm0.f32[0] = *CTimer::fTimeStep;
-
-                if (bSpeedupSimRateCheat)
-                {
-                    regs.xmm0.f32[0] *= 2.0f;
-                }
-            });
-
             NativeOverride::RegisterPhoneCheat("6925550100", []
             {
                 bSpeedupSimRateCheat = !bSpeedupSimRateCheat;

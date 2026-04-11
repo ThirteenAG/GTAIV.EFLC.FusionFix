@@ -304,6 +304,11 @@ namespace CPhysics
 
         float sliceDt = *CTimer::fTimeStep * (1.0f / (float)NUM_SLICES);
 
+        if (bSpeedupSimRateCheat)
+        {
+            sliceDt *= 2.0f;
+        }
+
         int NumTimeSlices = 0;
         do
         {
