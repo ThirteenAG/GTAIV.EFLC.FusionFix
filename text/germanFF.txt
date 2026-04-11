@@ -226,5 +226,29 @@ Polizei-Buffalo
 [USJ_FRST_KMB]
 Verwende während der Stuntkamera ~INPUT_MOUSE_WHEEL_UP~ und ~INPUT_MOUSE_WHEEL_DOWN~, um das Zeitlupentempo zu regulieren.
 
+[0x416E3A2D]
+Mit ~PAD_LSTICK_ALL~ verlagerst du das Körpergewicht. ~n~Mit ~INPUT_MOUSE_LMB~ und ~INPUT_MOUSE_RMB~ setzt du die linke und rechte Luftbremse ein. ~n~Drücke ~INPUT_ENTER~, um den Fallschirm abzuwerfen. ~n~Halte ~INPUT_VEH_CIN_CAM~ gedrückt, um verschiedene Kameraperspektiven zu sehen.
+
+[0x42B7E8E7]
+Mit ~PAD_LSTICK_ALL~ verlagerst du das Körpergewicht. ~n~Mit ~INPUT_MOUSE_LMB~ und ~INPUT_MOUSE_RMB~ setzt du die linke und rechte Luftbremse ein. ~n~Drücke ~INPUT_ENTER~, um den Fallschirm abzuwerfen. ~n~Halte ~INPUT_VEH_CIN_CAM~ gedrückt, um verschiedene Kameraperspektiven zu sehen. ~n~Drücke ~INPUT_DUCK~, um den Rauch zu aktivieren.
+
+[0x49914354]
+Mit ~PAD_LSTICK_ALL~ bewegst du dich in der Luft. ~n~Drücke ~INPUT_SPRINT~, um den Fallschirm zu öffnen. ~n~Halte ~INPUT_VEH_CIN_CAM~ gedrückt, um verschiedene Kameraperspektiven zu sehen.~n~Drücke ~INPUT_DUCK~, um den Rauch zu aktivieren.
+
+[0x5B377EC0]
+Mit ~PAD_LSTICK_ALL~ verlagerst du das Körpergewicht. ~n~Mit ~INPUT_MOUSE_LMB~ und ~INPUT_MOUSE_RMB~ setzt du die linke und rechte Luftbremse ein. ~n~Drücke ~INPUT_ENTER~, um den Fallschirm abzuwerfen. ~n~Halte ~INPUT_VEH_CIN_CAM~ gedrückt, um verschiedene Kameraperspektiven zu sehen. ~n~Drücke ~INPUT_DUCK~, um den Rauch zu aktivieren.
+
+[0x6AC25A30]
+Mit ~PAD_LSTICK_ALL~ verlagerst du das Körpergewicht. ~n~Mit ~INPUT_MOUSE_LMB~ und ~INPUT_MOUSE_RMB~ setzt du die linke und rechte Luftbremse ein. ~n~Drücke ~INPUT_ENTER~, um den Fallschirm abzuwerfen. ~n~Halte ~INPUT_VEH_CIN_CAM~ gedrückt, um verschiedene Kameraperspektiven zu sehen.
+
+[0xA4BE06BD]
+Mit ~PAD_LSTICK_ALL~ bewegst du dich in der Luft. ~n~Drücke ~INPUT_MOUSE_LMB~, um den Fallschirm zu öffnen. ~n~Halte ~INPUT_VEH_CIN_CAM~ gedrückt, um verschiedene Kameraperspektiven zu sehen.
+
+[0x38FD019F]
+Mit ~PAD_LSTICK_ALL~ bewegst du dich in der Luft. ~n~Drücke ~INPUT_MOUSE_LMB~, um den Fallschirm zu öffnen. ~n~Halte ~INPUT_VEH_CIN_CAM~ gedrückt, um verschiedene Kameraperspektiven zu sehen.
+
+[0xA6CCD9A1]
+Steuere in der Luft mit ~PAD_LSTICK_ALL~. Drücke im freien Fall ~INPUT_MOUSE_LMB~, um den Fallschirm zu öffnen. ~n~Halte ~INPUT_VEH_CIN_CAM~ gedrückt, um verschiedene Kameraperspektiven zu sehen.
+
 [DUMMY_l11]
 Dummy label.

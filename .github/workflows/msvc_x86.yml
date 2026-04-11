@@ -131,6 +131,12 @@ jobs:
         archive: false
         path: GTAIV.EFLC.FusionFix.zip
 
+    - name: Upload artifact (asi)
+      uses: actions/upload-artifact@v7
+      with:
+        archive: false
+        path: data/plugins/GTAIV.EFLC.FusionFix.asi
+
     - name: Upload Web Installer
       uses: actions/upload-artifact@v7
       with:
