@@ -1658,7 +1658,6 @@ private:
     }
 
     static inline SafetyHookInline RenderPedAndVehicleFakeShadowsInlineHook;
-
     static DWORD __cdecl RenderPedAndVehicleFakeShadows(DWORD a1)
     {
         DWORD result = RenderPedAndVehicleFakeShadowsInlineHook.unsafe_ccall<DWORD>(a1);
@@ -1699,6 +1698,7 @@ public:
                             hbDrawCallFog.fun = injector::MakeCALL(pattern.get_first(4), DrawCallFog).get();
                         }
                     }
+
                     pattern = find_pattern("55 8B EC 83 E4 ? 8B 0D ? ? ? ? 8B 15 ? ? ? ? 8B 41", "55 8B EC 83 E4 ? 8B 0D ? ? ? ? 8B 41 ? 8B 15");
                     RenderPedAndVehicleFakeShadowsInlineHook = safetyhook::create_inline(pattern.get_first(0), RenderPedAndVehicleFakeShadows); 
                 }
