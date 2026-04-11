@@ -2883,28 +2883,28 @@ public:
         pattern = find_pattern("E8 ? ? ? ? F3 0F 10 B7 ? ? ? ? F3 0F 10 BF ? ? ? ? F3 0F 10 AF ? ? ? ? F3 0F 10 97", "E8 ? ? ? ? F3 0F 10 A6 ? ? ? ? F3 0F 10 6B");
         CPhysical::TransformOffsetToWorldSpace = (decltype(CPhysical::TransformOffsetToWorldSpace))injector::GetBranchDestination(pattern.get_first(0)).as_int();
 
-        pattern = find_pattern("E8 ? ? ? ? E8 ? ? ? ? 8B 35 ? ? ? ? 85 F6 74 ? ? ? 8B 76", "E8 ? ? ? ? E8 ? ? ? ? 8B 35 ? ? ? ? 85 F6");
+        pattern = hook::pattern("E8 ? ? ? ? E8 ? ? ? ? 8B 35 ? ? ? ? 85 F6 74 ? 8B 0E");
         CPhysics::ScanForBuildings = (decltype(CPhysics::ScanForBuildings))injector::GetBranchDestination(pattern.get_first(0)).as_int();
 
-        pattern = find_pattern("E8 ? ? ? ? 8B 35 ? ? ? ? 85 F6 74 ? ? ? 8B 76 ? 85 C9", "E8 ? ? ? ? 8B 35 ? ? ? ? 85 F6 74 ? ? ? 85 C9");
+        pattern = hook::pattern("E8 ? ? ? ? 8B 35 ? ? ? ? 85 F6 74 ? 8B 0E");
         CPhysics::UpdateRequestList = (decltype(CPhysics::UpdateRequestList))injector::GetBranchDestination(pattern.get_first(0)).as_int();
 
-        pattern = find_pattern("E8 ? ? ? ? A1 ? ? ? ? F3 0F 10 0D ? ? ? ? 66 0F 6E C0 0F 5B C0", "E8 ? ? ? ? A1 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 2A C8");
+        pattern = find_pattern("E8 ? ? ? ? A1 ? ? ? ? F3 0F 10 0D ? ? ? ? 66 0F 6E C0 0F 5B C0 33 F6", "E8 ? ? ? ? A1 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 2A C8");
         CPhysics::ResetNumPoolGameCollisions = (decltype(CPhysics::ResetNumPoolGameCollisions))injector::GetBranchDestination(pattern.get_first(0)).as_int();
 
-        pattern = find_pattern("E8 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? 83 C4 ? ? ? ? ? ? E8", "E8 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? 83 C4 ? ? ? ? ? ? E8");
+        pattern = hook::pattern("E8 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? 83 C4 ? F3 0F 11 04 24 E8");
         CPhysics::PreSimUpdate = (decltype(CPhysics::PreSimUpdate))injector::GetBranchDestination(pattern.get_first(0)).as_int();
 
-        pattern = find_pattern("E8 ? ? ? ? E8 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 44 24", "E8 ? ? ? ? E8 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 44 24");
+        pattern = hook::pattern("E8 ? ? ? ? E8 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 44 24");
         CPhysics::SimUpdate = (decltype(CPhysics::SimUpdate))injector::GetBranchDestination(pattern.get_first(0)).as_int();
 
-        pattern = find_pattern("E8 ? ? ? ? F3 0F 10 4C 24 ? 46", "E8 ? ? ? ? 83 C6 ? 83 C4 ? 3B 35 ? ? ? ? 7C ? 5E");
+        pattern = find_pattern("E8 ? ? ? ? F3 0F 10 4C 24 ? 46", "E8 ? ? ? ? 83 C6 ? 83 C4 ? 3B 35 ? ? ? ? 7C ? 5E 59 C3");
         CPhysics::PostSimUpdate = (decltype(CPhysics::PostSimUpdate))injector::GetBranchDestination(pattern.get_first(0)).as_int();
 
-        pattern = find_pattern("E8 ? ? ? ? 83 C6 ? 83 C4 ? 3B 35 ? ? ? ? 7C ? 5E", "E8 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? ? ? ? ? ? 56");
+        pattern = hook::pattern("E8 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? F3 0F 11 04 24");
         CPhysics::IterateOverManifolds = (decltype(CPhysics::IterateOverManifolds))injector::GetBranchDestination(pattern.get_first(0)).as_int();
 
-        pattern = find_pattern("8B 35 ? ? ? ? 85 F6 74 ? ? ? 8B 76 ? 85 C9", "8B 35 ? ? ? ? 85 F6 74 ? ? ? 85 C9");
+        pattern = hook::pattern("8B 35 ? ? ? ? 85 F6 74 ? 8B 0E");
         CWorld::ms_listProcessControlPtrs = *pattern.get_first<uintptr_t*>(2);
     }
 } Common;

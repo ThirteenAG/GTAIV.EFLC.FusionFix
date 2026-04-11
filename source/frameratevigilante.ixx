@@ -378,57 +378,96 @@ public:
             }
 
             // Physics
-            pattern = find_pattern("51 56 E8 ? ? ? ? E8");
-            CPhysics::shUpdate = safetyhook::create_inline(pattern.get_first(), CPhysics::Update);
+            pattern = hook::pattern("51 56 E8 ? ? ? ? E8");
+            CPhysics::shUpdate = safetyhook::create_inline(pattern.get_first(0), CPhysics::Update);
 
             // Heli rotor break time
             {
+                // Rear rotors
                 pattern = hook::pattern("F3 0F 59 15 ? ? ? ? F3 0F 58 D0 F3 0F 10 87");
                 if (!pattern.empty())
                 {
+                    // This is not effective for some reason
+                    static auto dword_FE8830 = *pattern.get_first<float*>(4);
                     injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto HeliRotorBreakTime1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CHeli_ApplyCollisionInternalHook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm2.f32[0] *= 0.5f * *CTimer::fTimeStep / (1.0f / 30.0f);
+                        regs.xmm2.f32[0] *= *dword_FE8830 * *CTimer::fTimeStep / (1.0f / 30.0f);
                     });
                 }
                 else
                 {
-
+                    // Needs better approach to patch, doesn't work
+                    pattern = hook::pattern("D8 0D ? ? ? ? DE C1 D8 4C 24 ? D9 5C 24 ? F3 0F 5C 44 24 ? 0F 2F C8 F3 0F 11 86 ? ? ? ? 72");
+                    static auto dword_D74010 = *pattern.get_first<float*>(2);
+                    injector::MakeNOP(pattern.get_first(0), 6, true);
+                    struct CHeli_ApplyCollisionInternalHook1
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            float RearRotorBreakTime = *dword_D74010 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                            _asm {fmul dword ptr [RearRotorBreakTime]};
+                        }
+                    }; injector::MakeInline<CHeli_ApplyCollisionInternalHook1>(pattern.get_first(0), pattern.get_first(6));
                 }
 
-                pattern = hook::pattern("F3 0F 59 C3 F3 0F 58 C8 0F 57 C0 F3 0F 51 C1 0F 57 C9 F3 0F 59 D0 F3 0F 10 44 24 ? F3 0F 59 05 ? ? ? ? F3 0F 58 D0");
+                // Main rotors
+                pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 58 D0 F3 0F 10 87");
                 if (!pattern.empty())
                 {
-                    injector::MakeNOP(pattern.get_first(0), 4, true);
-                    static auto HeliRotorBreakTime2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    // Works fine
+                    static auto dword_FE8B08 = *pattern.get_first<float*>(4);
+                    injector::MakeNOP(pattern.get_first(0), 8, true);
+                    static auto CHeli_ApplyCollisionInternalHook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm0.f32[0] *= regs.xmm3.f32[0] * *CTimer::fTimeStep / (1.0f / 30.0f);
+                        regs.xmm0.f32[0] *= *dword_FE8B08 * *CTimer::fTimeStep / (1.0f / 30.0f);
                     });
                 }
                 else
                 {
-
+                    // Needs better approach to patch, doesn't work
+                    pattern = hook::pattern("D8 0D ? ? ? ? DE C1 D8 4C 24 ? D9 5C 24 ? F3 0F 5C 44 24 ? 0F 2F C8 F3 0F 11 86 ? ? ? ? 0F 82");
+                    static auto dword_DB3010 = *pattern.get_first<float*>(2);
+                    injector::MakeNOP(pattern.get_first(0), 6, true);
+                    struct CHeli_ApplyCollisionInternalHook2
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            float MainRotorBreakTime = *dword_DB3010 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                            _asm {fmul dword ptr [MainRotorBreakTime]};
+                        }
+                    }; injector::MakeInline<CHeli_ApplyCollisionInternalHook2>(pattern.get_first(0), pattern.get_first(6));
                 }
             }
 
             // Heli downwash effect
-            pattern = hook::pattern("56 8B F1 8B 46 ? 85 C0 74 ? 8B 88 ? ? ? ? 85 C9 74 ? FF 74 24 ? E8 ? ? ? ? 85 C0 78 ? F3 0F 10 44 24");
-            if (!pattern.empty())
-                rage::ptxEffectInst::shSetEvolutionTime = safetyhook::create_inline(pattern.get_first(), rage::ptxEffectInst::SetEvolutionTime);
-
-            pattern = hook::pattern("83 3D ? ? ? ? ? 74 ? A1 ? ? ? ? 3B 05 ? ? ? ? 75 ? 83 3D ? ? ? ? ? 74 ? 33 C0 EB ? B8 ? ? ? ? 3A 44 24");
-            if (!pattern.empty())
-                CWater::shAddToDynamicWaterSpeed = safetyhook::create_inline(pattern.get_first(), CWater::AddToDynamicWaterSpeed);
-
-            pattern = find_pattern("33 D2 F7 F7 85 D2 75");
-            if (!pattern.empty())
             {
-                static auto CRippleManagerRegisterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                pattern = find_pattern("56 8B F1 8B 46 ? 85 C0 74 ? 8B 88 ? ? ? ? 85 C9 74 ? FF 74 24 ? E8 ? ? ? ? 85 C0 78 ? F3 0F 10 44 24",
+                                       "56 8B F1 8B 46 ? 85 C0 74 ? 8B 80 ? ? ? ? 85 C0 74 ? 8B 4C 24 ? E8 ? ? ? ? 85 C0 7C ? F3 0F 10 44 24");
+                rage::ptxEffectInst::shSetEvolutionTime = safetyhook::create_inline(pattern.get_first(0), rage::ptxEffectInst::SetEvolutionTime);
+
+                pattern = find_pattern("83 3D ? ? ? ? ? 74 ? A1 ? ? ? ? 3B 05 ? ? ? ? 75 ? 83 3D ? ? ? ? ? 74 ? 33 C0 EB ? B8 ? ? ? ? 3A 44 24",
+                                       "B8 ? ? ? ? 39 05 ? ? ? ? 74 ? 8B 0D ? ? ? ? 3B 0D ? ? ? ? 75 ? 83 3D ? ? ? ? ? 74 ? 33 C0 3A 44 24");
+                CWater::shAddToDynamicWaterSpeed = safetyhook::create_inline(pattern.get_first(0), CWater::AddToDynamicWaterSpeed);
+
+                pattern = hook::pattern("33 D2 F7 F7 85 D2 75");
+                if (!pattern.empty())
                 {
-                    float rippleScale = std::min(*CTimer::fTimeStep * 30.0f, 1.0f);
-                    regs.edi = std::max((int)((float)regs.edi / rippleScale), 1);
-                });
+                    static auto CRippleManager_RegisterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        float RippleScale = std::min(*CTimer::fTimeStep * 30.0f, 1.0f);
+                        regs.edi = std::max((int)((float)regs.edi / RippleScale), 1);
+                    });
+                }
+                else
+                {
+                    pattern = hook::pattern("33 D2 F7 F1 85 D2 75");
+                    static auto CRippleManager_RegisterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        float RippleScale = std::min(*CTimer::fTimeStep * 30.0f, 1.0f);
+                        regs.ecx = std::max((int)((float)regs.ecx / RippleScale), 1);
+                    });
+                }
             }
 
             // Heli rotor speed
