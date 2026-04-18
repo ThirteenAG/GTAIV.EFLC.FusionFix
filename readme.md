@@ -237,9 +237,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed Niko's hands being forced back to vanilla while switching clothes to Perseus suits
 - Fixed Esperanto being spawned instead of Roman's Taxi in Roman's cab depot
 
-#### Audio
+#### Voice Lines
 
-- The Desert Eagle and Micro SMG are now using their unique sounds when viewing them (required modifying the animation dictionary "missgunlockup.wad")
 - Fixed incorrect voice lines after exiting Chinatown gun shop when not buying something
 - Fixed Johnny's incorrect voice lines after exiting the gun shop when buying something (used to use voice lines from Higgin's Heli Tours)
 - Restored Luis' voice lines when exiting the gun shop (buying/not buying)
@@ -290,8 +289,9 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed phone being not usable after giving money to buskers
 - Fixed ammo reset when buying different pistol from gun shop in IV
 - Fixed ammo reset when buying different weapon from gun shop in TLAD/TBoGT
+- The Desert Eagle and Micro SMG are now using their unique sounds when viewing them (required modifying the animation dictionary "missgunlockup.wad")
 - Restored the temporary ban from the gun shop when attacking the owner in TLAD/TBoGT
-- Restored Roman's cab depot script in TLAD
+- Re-enabled Roman's cab depot script in TLAD
 - Superd2 is now accepted by car wash, meanwhile packer2, police3, police4, policew are now not accepted
 - Fixed incorrect car wash price help text for a one type of taxi
 - Fixed damaged vending machines being usable
@@ -301,7 +301,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed memorial wall photos not spawning while entering The Lost clubhouse from roof entry in TLAD
 - Fixed several motorcycles using incorrect paying animation in toll booths in TBoGT
 - Fixed Luis' vehicle always being removed after playing golf and drinking minigame
-- Partially fixed scripted depth of field not being removed after playing drinking minigame
+- Fixed scripted depth of field not being removed after playing drinking minigame
 
 ### Episodic content
 
