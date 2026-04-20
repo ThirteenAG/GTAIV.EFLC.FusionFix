@@ -1,4 +1,4 @@
-﻿module;
+module;
 
 #include <common.hxx>
 
@@ -8,6 +8,7 @@ import common;
 import comvars;
 import natives;
 import settings;
+import classext;
 
 injector::hook_back<double(__fastcall*)(void* _this, void* edx, void* a2, void* a3)> hbsub_A18510;
 double __fastcall sub_A18510(void* _this, void* edx, void* a2, void* a3)
@@ -20,6 +21,23 @@ double __fastcall sub_A18510(void* _this, void* edx, void* a2, void* a3)
     }
 
     return hbsub_A18510.fun(_this, edx, a2, a3) * (*CTimer::fTimeStep / (1.0f / 30.0f)) * f;
+}
+
+SafetyHookInline shProcessStaticCounter = {};
+void __fastcall ProcessStaticCounter(void* _this, void* edx)
+{
+    auto PIExt = GetPedIntelligenceExt((uintptr_t)_this);
+    if (!PIExt)
+    {
+        return shProcessStaticCounter.unsafe_fastcall(_this, edx);
+    }
+
+    PIExt->m_fTimeStepAccumulator += *CTimer::fTimeStep;
+    if (PIExt->m_fTimeStepAccumulator >= (1.0f / 30.0f))
+    {
+        PIExt->m_fTimeStepAccumulator = 0.0f;
+        return shProcessStaticCounter.unsafe_fastcall(_this, edx);
+    }
 }
 
 int (__cdecl* game_rand)() = nullptr;
@@ -278,6 +296,70 @@ bool __cdecl NATIVE_SLIDE_OBJECT_2(Object object, float x, float y, float z, flo
     return shNATIVE_SLIDE_OBJECT.unsafe_ccall<bool>(object, x, y, z, xs * Delta, ys * Delta, zs * Delta, flag);
 }
 
+namespace CPhysics
+{
+    static constexpr int NUM_SLICES = 2;
+
+    SafetyHookInline shUpdate = {};
+    void __cdecl Update()
+    {
+        CPhysics::ScanForBuildings();
+        CPhysics::UpdateRequestList();
+        auto v0 = *CWorld::ms_listProcessControlPtrs;
+        while (v0)
+        {
+            auto v1 = *(uintptr_t**)v0;
+            v0 = *(uintptr_t*)(v0 + 4);
+            if (v1)
+            {
+                auto v2 = (v1[10] >> 6) & 0xF;
+                if (v2 > 1 && v2 < 5)
+                    (*(void (__thiscall**)(uintptr_t*))(*v1 + 256))(v1);
+            }
+        }
+
+        CPhysics::ResetNumPoolGameCollisions();
+
+        float sliceDt = *CTimer::fTimeStep * (1.0f / (float)NUM_SLICES);
+
+        if (bSpeedupSimRateCheat)
+        {
+            sliceDt *= 2.0f;
+        }
+
+        int NumTimeSlices = 0;
+        do
+        {
+            CPhysics::PreSimUpdate(std::clamp(sliceDt, 1.0f / 150.0f, FLT_MAX), NumTimeSlices);
+            CPhysics::SimUpdate(sliceDt);
+            CPhysics::IterateOverManifolds();
+            CPhysics::PostSimUpdate(NumTimeSlices, std::clamp(sliceDt, 1.0f / 150.0f, FLT_MAX));
+            ++NumTimeSlices;
+        } while (NumTimeSlices < NUM_SLICES);
+    }
+}
+
+namespace rage
+{
+    namespace ptxEffectInst
+    {
+        SafetyHookInline shSetEvolutionTime = {};
+        void __fastcall SetEvolutionTime(void* ptxEffectInst, void* edx, char* Key, float a3)
+        {
+            return shSetEvolutionTime.unsafe_fastcall(ptxEffectInst, edx, Key, a3 * (*CTimer::fTimeStep / (1.0f / 30.0f)));
+        }
+    }
+}
+
+namespace CWater
+{
+    SafetyHookInline shAddToDynamicWaterSpeed = {};
+    void __cdecl AddToDynamicWaterSpeed(int a1, int a2, float a3, char a4)
+    {
+        return shAddToDynamicWaterSpeed.unsafe_ccall(a1, a2, a3 * (*CTimer::fTimeStep / (1.0f / 30.0f)), a4);
+    }
+}
+
 class FramerateVigilante
 {
 public:
@@ -296,6 +378,27 @@ public:
                 static float dword_EDF6CC = 1.0f / 3000.0f;
                 pattern = hook::pattern("E8 ? ? ? ? 8B 44 24 ? 50 E8 ? ? ? ? E8");
                 injector::WriteMemory(injector::GetBranchDestination(pattern.get_first(0)).as_int() + 4, &dword_EDF6CC, true);
+            }
+
+            // Check 30FPS accumulator before calling CPedIntelligence::ProcessStaticCounter, which increments task attempt counter.
+            // Some CTasks check this attempt counter against a hardcoded limit of 30.
+            // At higher framerates these attempts occur faster, causing them to hit the limit early and abort the task.
+            // (eg. causing NPCs to shove cars instead of walking around them)
+            {
+                // Hook ProcessStaticCounter to check/add to accumulator
+                pattern = find_pattern("E8 ? ? ? ? 8B 4F ? 6A ? 8B 89 ? ? ? ? E8 ? ? ? ? 8D 9F", "E8 ? ? ? ? 8B 46 ? 8B 88 ? ? ? ? 6A");
+                shProcessStaticCounter = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first()).as_int(), ProcessStaticCounter);
+            }
+
+            // CTaskComplexClimbLadder, change heading angle threshold passed to TaskAchieveHeading to match the threshold checked by CTaskSimpleSlideToCoord
+            // Fixes wrong order of tasks being completed at high FPS, causing stall when trying to climb ladder.
+            {
+                pattern = hook::pattern("F3 0F 10 05 ? ? ? ? 83 EC ? 8B C8 F3 0F 11 44 24 ? F3 0F 10 44 24 ? C7 44 24 04 00 00 00 40");
+                injector::MakeNOP(pattern.get_first(0), 8, true);
+                static auto ClimbLadderThresholdValue = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    regs.xmm0.f32[0] = 0.1f; // 0.02f -> 0.1f to match CTaskSimpleSlideToCoord
+                });
             }
 
             // Handbrake Cam force
@@ -318,31 +421,97 @@ public:
                 }
             }
 
-            // Bikes (By Sergeanur)
-            pattern = hook::pattern("F3 0F 10 45 ? 51 8B CF F3 0F 11 04 24 E8 ? ? ? ? 8A 8F");
-            if (!pattern.empty())
+            // Physics
+            pattern = hook::pattern("51 56 E8 ? ? ? ? E8");
+            CPhysics::shUpdate = safetyhook::create_inline(pattern.get_first(0), CPhysics::Update);
+
+            // Heli rotor break time
             {
-                struct FramerateVigilanteHook1
+                // Rear rotors
+                pattern = hook::pattern("F3 0F 59 15 ? ? ? ? F3 0F 58 D0 F3 0F 10 87");
+                if (!pattern.empty())
                 {
-                    void operator()(injector::reg_pack& regs)
+                    // This is not effective for some reason
+                    static auto dword_FE8830 = *pattern.get_first<float*>(4);
+                    injector::MakeNOP(pattern.get_first(0), 8, true);
+                    static auto CHeli_ApplyCollisionInternalHook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        float f = std::clamp(*(float*)(regs.ebp + 0x08), 1.0f / 150.0f, FLT_MAX);
-                        *(float*)(regs.ebp + 0x08) = f;
-                        regs.xmm0.f32[0] = f;
-                    }
-                }; injector::MakeInline<FramerateVigilanteHook1>(pattern.get_first(0));
+                        regs.xmm2.f32[0] *= *dword_FE8830 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                    });
+                }
+                else
+                {
+                    // Needs better approach to patch, doesn't work
+                    pattern = hook::pattern("D8 0D ? ? ? ? DE C1 D8 4C 24 ? D9 5C 24 ? F3 0F 5C 44 24 ? 0F 2F C8 F3 0F 11 86 ? ? ? ? 72");
+                    static auto dword_D74010 = *pattern.get_first<float*>(2);
+                    injector::MakeNOP(pattern.get_first(0), 6, true);
+                    struct CHeli_ApplyCollisionInternalHook1
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            float RearRotorBreakTime = *dword_D74010 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                            _asm {fmul dword ptr [RearRotorBreakTime]};
+                        }
+                    }; injector::MakeInline<CHeli_ApplyCollisionInternalHook1>(pattern.get_first(0), pattern.get_first(6));
+                }
+
+                // Main rotors
+                pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 58 D0 F3 0F 10 87");
+                if (!pattern.empty())
+                {
+                    // Works fine
+                    static auto dword_FE8B08 = *pattern.get_first<float*>(4);
+                    injector::MakeNOP(pattern.get_first(0), 8, true);
+                    static auto CHeli_ApplyCollisionInternalHook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm0.f32[0] *= *dword_FE8B08 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                    });
+                }
+                else
+                {
+                    // Needs better approach to patch, doesn't work
+                    pattern = hook::pattern("D8 0D ? ? ? ? DE C1 D8 4C 24 ? D9 5C 24 ? F3 0F 5C 44 24 ? 0F 2F C8 F3 0F 11 86 ? ? ? ? 0F 82");
+                    static auto dword_DB3010 = *pattern.get_first<float*>(2);
+                    injector::MakeNOP(pattern.get_first(0), 6, true);
+                    struct CHeli_ApplyCollisionInternalHook2
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            float MainRotorBreakTime = *dword_DB3010 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                            _asm {fmul dword ptr [MainRotorBreakTime]};
+                        }
+                    }; injector::MakeInline<CHeli_ApplyCollisionInternalHook2>(pattern.get_first(0), pattern.get_first(6));
+                }
             }
-            else
+
+            // Heli downwash effect
             {
-                pattern = hook::pattern("8B BE ? ? ? ? 33 C9 85 FF 7E 47 8A 5D 0C 33 D2 8D A4 24 ? ? ? ? 3B CF 7D 0A 8B 86 ? ? ? ? 03 C2 EB 02 33 C0 F6 80 ? ? ? ? ? 74 11 83 B8 ? ? ? ? ? 74 08 84 DB 0F 85 ? ? ? ? 83 C1 01 81 C2 ? ? ? ? 3B 8E ? ? ? ? 7C C5 D9 45 08 51 8B CE D9 1C 24 E8 ? ? ? ? 8A 86");
-                struct FramerateVigilanteHook1
+                pattern = find_pattern("56 8B F1 8B 46 ? 85 C0 74 ? 8B 88 ? ? ? ? 85 C9 74 ? FF 74 24 ? E8 ? ? ? ? 85 C0 78 ? F3 0F 10 44 24",
+                                       "56 8B F1 8B 46 ? 85 C0 74 ? 8B 80 ? ? ? ? 85 C0 74 ? 8B 4C 24 ? E8 ? ? ? ? 85 C0 7C ? F3 0F 10 44 24");
+                rage::ptxEffectInst::shSetEvolutionTime = safetyhook::create_inline(pattern.get_first(0), rage::ptxEffectInst::SetEvolutionTime);
+
+                pattern = find_pattern("83 3D ? ? ? ? ? 74 ? A1 ? ? ? ? 3B 05 ? ? ? ? 75 ? 83 3D ? ? ? ? ? 74 ? 33 C0 EB ? B8 ? ? ? ? 3A 44 24",
+                                       "B8 ? ? ? ? 39 05 ? ? ? ? 74 ? 8B 0D ? ? ? ? 3B 0D ? ? ? ? 75 ? 83 3D ? ? ? ? ? 74 ? 33 C0 3A 44 24");
+                CWater::shAddToDynamicWaterSpeed = safetyhook::create_inline(pattern.get_first(0), CWater::AddToDynamicWaterSpeed);
+
+                pattern = hook::pattern("33 D2 F7 F7 85 D2 75");
+                if (!pattern.empty())
                 {
-                    void operator()(injector::reg_pack& regs)
+                    static auto CRippleManager_RegisterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.edi = *(uint32_t*)(regs.esi + 0xFD4);
-                        *(float*)(regs.ebp + 0x08) = std::clamp(*(float*)(regs.ebp + 0x08), 1.0f / 150.0f, FLT_MAX);
-                    }
-                }; injector::MakeInline<FramerateVigilanteHook1>(pattern.get_first(0), pattern.get_first(6));
+                        float RippleScale = std::min(*CTimer::fTimeStep * 30.0f, 1.0f);
+                        regs.edi = std::max((int)((float)regs.edi / RippleScale), 1);
+                    });
+                }
+                else
+                {
+                    pattern = hook::pattern("33 D2 F7 F1 85 D2 75");
+                    static auto CRippleManager_RegisterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        float RippleScale = std::min(*CTimer::fTimeStep * 30.0f, 1.0f);
+                        regs.ecx = std::max((int)((float)regs.ecx / RippleScale), 1);
+                    });
+                }
             }
 
             // Heli rotor speed
@@ -631,6 +800,116 @@ public:
             {
                 pattern = hook::pattern("55 8B EC 83 E4 F0 8B 45 08 8B 0D ? ? ? ? 81 EC ? ? ? ? 56 50");
                 shNATIVE_SLIDE_OBJECT = safetyhook::create_inline(pattern.get_first(0), NATIVE_SLIDE_OBJECT_2);
+            }
+
+
+            // Drunk steering bias feedback loop fix
+            // In ProcessControlInputs, the drunk steering bias (m_fSteerBias) is added to
+            // the smoothed steering value and stored back to m_fSteer. This creates a
+            // feedback loop where the bias accumulates through the exponential smoothing
+            // filter each frame, causing far more steering drift than intended.
+            // Fix: After m_fSteerAngle is computed from the biased m_fSteer, subtract the
+            // bias from m_fSteer so the next frame's smoothing uses the unbiased value.
+            // CAutomobile adds the full bias; CBike adds bias * 0.5.
+            {
+                static ptrdiff_t SteerOffset;
+                static ptrdiff_t SteerBiasOffset;
+
+                static auto getVehicleFromModRM = [](uint8_t modrm, SafetyHookContext& regs) -> uintptr_t
+                {
+                    switch (modrm & 7)
+                    {
+                        case 0: return regs.eax;
+                        case 1: return regs.ecx;
+                        case 2: return regs.edx;
+                        case 3: return regs.ebx;
+                        case 6: return regs.esi;
+                        case 7: return regs.edi;
+                        default: return 0;
+                    }
+                };
+
+                // CAutomobile: movss [reg+SteerAngleOffset], xmm? ; test byte ptr [reg+F0h], 40h
+                auto pattern = find_pattern(
+                    "F3 0F 11 ? 88 10 00 00 F6 ? F0 00 00 00 40",
+                    "F3 0F 11 ? D8 10 00 00 F6 ? F0 00 00 00 40"
+                );
+                if (!pattern.empty())
+                {
+                    if (!hook::pattern("F3 0F 11 ? 88 10 00 00 F6 ? F0 00 00 00 40").count_hint(1).empty())
+                    {
+                        SteerOffset = 0x1080;
+                        SteerBiasOffset = 0x1084;
+                    }
+                    else
+                    {
+                        SteerOffset = 0x10D0;
+                        SteerBiasOffset = 0x10D4;
+                    }
+
+                    static uint8_t autoVehicleReg = *(uint8_t*)((uintptr_t)pattern.get_first(3)) & 7;
+
+                    // Mid-hook at the test byte instruction (offset +8), after steer angle is stored
+                    static auto AutoDrunkSteerBiasHook = safetyhook::create_mid(
+                        (uint8_t*)pattern.get_first(8),
+                        [](SafetyHookContext& regs)
+                        {
+                            uintptr_t vehicle = getVehicleFromModRM(autoVehicleReg, regs);
+                            if (!vehicle) return;
+
+                            float bias = *(float*)(vehicle + SteerBiasOffset);
+                            if (bias != 0.0f)
+                            {
+                                float& steer = *(float*)(vehicle + SteerOffset);
+                                steer -= bias;
+                                if (steer > 1.0f) steer = 1.0f;
+                                else if (steer < -1.0f) steer = -1.0f;
+                            }
+                        });
+                }
+
+                // CBike: movss [reg+SteerAngleOffset], xmm? ; cmp byte ptr [CFrontEnd::bActive], 0
+                // CBike adds bias * 0.5 instead of the full bias.
+                auto pattern2 = find_pattern(
+                    "F3 0F 11 ? 88 10 00 00 80 3D",
+                    "F3 0F 11 ? D8 10 00 00 80 3D"
+                );
+                if (!pattern2.empty())
+                {
+                    if (SteerOffset == 0)
+                    {
+                        if (!hook::pattern("F3 0F 11 ? 88 10 00 00 80 3D").count_hint(1).empty())
+                        {
+                            SteerOffset = 0x1080;
+                            SteerBiasOffset = 0x1084;
+                        }
+                        else
+                        {
+                            SteerOffset = 0x10D0;
+                            SteerBiasOffset = 0x10D4;
+                        }
+                    }
+
+                    static uint8_t bikeVehicleReg = *(uint8_t*)((uintptr_t)pattern2.get_first(3)) & 7;
+
+                    // Mid-hook at the cmp instruction (offset +8), after steer angle is stored
+                    static auto BikeDrunkSteerBiasHook = safetyhook::create_mid(
+                        (uint8_t*)pattern2.get_first(8),
+                        [](SafetyHookContext& regs)
+                        {
+                            uintptr_t vehicle = getVehicleFromModRM(bikeVehicleReg, regs);
+                            if (!vehicle) return;
+
+                            float bias = *(float*)(vehicle + SteerBiasOffset);
+                            if (bias != 0.0f)
+                            {
+                                float& steer = *(float*)(vehicle + SteerOffset);
+                                steer -= bias * 0.5f;
+                                if (steer > 1.0f) steer = 1.0f;
+                                else if (steer < -1.0f) steer = -1.0f;
+                            }
+                        });
+                }
             }
         };
     }
