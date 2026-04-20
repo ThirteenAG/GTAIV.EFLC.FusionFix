@@ -196,7 +196,8 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            // Skip two additional checks in cutscene camera update code added by Toronto on PC which made cutscene jump cuts "flicker"
+            // Skip two additional checks in cutscene camera update code added by Toronto on PC
+            // which made cutscenes zoom erratically depending on fps and their jump cuts "flickery" because of it
             auto pattern = find_pattern("83 3D ? ? ? ? ? 0F 8E ? ? ? ? 83 FF", "83 3D ? ? ? ? ? 0F 8E ? ? ? ? 83 F8");
             injector::MakeNOP(pattern.get_first(0), 27, true);
 
