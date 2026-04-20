@@ -145,7 +145,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **Centered On Foot Camera**, makes on foot camera centered, also for more options install the [original mod](https://github.com/gennariarmando/iv-centered-onfoot-cam)
 - **Turn Indicators**, allows the player to use vehicle turn indicators and hazard lights
 - **Always Show Bullet Traces**, shows bullet traces on every shot instead of randomly, like in the older games
-- **Disable Wardrobe Transition**, disables all screen fading in/out process when switching clothes in the wardrobe
+- **Disable Wardrobe Transition**, disables all screen fading in/out process when switching clothes in the wardrobe or buying clothes in the clothes stores
 - **Instant Taxi Stop**, makes the taxi stop immediately after skipping taxi ride journey
 - **Look-Around Sensitivity**, controls the look sensitivity when using controller
 - **Aiming Sensitivity**, controls the aim sensitivity when using controller
@@ -183,6 +183,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Significantly sped up loading screens
 - Added various fixed weapon, movement and other animations
 - Added various fixed vehicle models
+- Fixed Johnny and Luis' broken head models
+- Workaround for Johnny's broken facial animations in cutscene
 - Fixed incorrect TBoGT bullet tracer position
 - Restored missing lamppost coronas and uncompressed corona texture from console
 - Fixed PC grass models stuck underground
@@ -235,9 +237,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed Niko's hands being forced back to vanilla while switching clothes to Perseus suits
 - Fixed Esperanto being spawned instead of Roman's Taxi in Roman's cab depot
 
-#### Audio
+#### Voice Lines
 
-- The Desert Eagle and Micro SMG are now using their unique sounds when viewing them (required modifying the animation dictionary "missgunlockup.wad")
 - Fixed incorrect voice lines after exiting Chinatown gun shop when not buying something
 - Fixed Johnny's incorrect voice lines after exiting the gun shop when buying something (used to use voice lines from Higgin's Heli Tours)
 - Restored Luis' voice lines when exiting the gun shop (buying/not buying)
@@ -271,6 +272,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Workaround for burning Angels of Death member not triggering ragdoll and falling down on high framerates in mission "Action/Reaction"
 - Workaround for one scripted cutscene ending too late on high framerates in TBoGT ending credits
 - Fixed TLAD intro scripted cutscene cutting off distant world in several shots
+- Fixed Johnny being invisible in the second intro cutscene
 - Fixed possible issue where mission fails to continue for a significant amount of time even though Johnny has been close to Roman's Taxi in mission "Roman's Holiday"
 - Fixed Roman sometimes lacking clothes model or using incorrect clothes textures in TLAD ending credits
 - Fixed Malc's motorcycle using incorrect colors in TLAD ending credits
@@ -283,12 +285,13 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 - Fixed several sprite drawing speeding up on high framerates
 - Fixed computer email typing speeding up on high framerates
-- Fixed phone vibrate speeding up on high framerates
+- Fixed phone vibrate and photo taking speeding up on high framerates
 - Fixed phone being not usable after giving money to buskers
 - Fixed ammo reset when buying different pistol from gun shop in IV
 - Fixed ammo reset when buying different weapon from gun shop in TLAD/TBoGT
+- The Desert Eagle and Micro SMG are now using their unique sounds when viewing them (required modifying the animation dictionary "missgunlockup.wad")
 - Restored the temporary ban from the gun shop when attacking the owner in TLAD/TBoGT
-- Restored Roman's cab depot script in TLAD
+- Re-enabled Roman's cab depot script in TLAD
 - Superd2 is now accepted by car wash, meanwhile packer2, police3, police4, policew are now not accepted
 - Fixed incorrect car wash price help text for a one type of taxi
 - Fixed damaged vending machines being usable
@@ -298,7 +301,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed memorial wall photos not spawning while entering The Lost clubhouse from roof entry in TLAD
 - Fixed several motorcycles using incorrect paying animation in toll booths in TBoGT
 - Fixed Luis' vehicle always being removed after playing golf and drinking minigame
-- Partially fixed scripted depth of field not being removed after playing drinking minigame
+- Fixed scripted depth of field not being removed after playing drinking minigame
 
 ### Episodic content
 
@@ -342,6 +345,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed some cutscenes and interiors models
 - Fixed and improved some lights and emissive materials
 - Fixed one font '9' using incorrect style in TBoGT
+- Restored missing color combination for blade
 - Added an option to enable shadows for some objects and vegetation that lack them
 - Added options to customize shadow blur, bias and cascade blending 
 - Various other fixes, like regular cops & fat cops will now spawn with their hat prop disabled when in a vehicle, like on the console version

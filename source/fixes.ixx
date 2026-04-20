@@ -142,6 +142,13 @@ public:
             return true; // Return true to zoom out.
         }
 
+        // Reset EndTime to 0 if game reloads any save, or radar will zoom out automatically and keep this state after that.
+        if (zoomOutEndTime - currentTime >= nRadarZoomDelay)
+        {
+            zoomOutEndTime = 0;
+            return false;
+        }
+
         // The key is not pressed. Check if we are within the 3-second delay period.
         if (currentTime < zoomOutEndTime)
         {
@@ -610,6 +617,19 @@ public:
                             *(float*)(regs.esp + 0x20) = 30.0f * (1.0f / 1024.0f);
                         }
                     }; injector::MakeInline<MouseWidthHook>(pattern.get_first(0), pattern.get_first(6));
+                }
+            }
+
+            // Fix pause menu map crosshair lines scale
+            {
+                auto pattern = hook::pattern("F3 0F 10 15 ? ? ? ? F3 0F 10 5C 24 ? 0F B6 C0");
+                if (!pattern.empty())
+                {
+                    static auto RenderMapCrosshairHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            float aspectratio = ((float)*rage::grcDevice::ms_nActiveWidth / (float)*rage::grcDevice::ms_nActiveHeight);
+                            *(float*)(regs.esp + 0x64 - 0x30) /= (aspectratio * 0.75f);
+                        });
                 }
             }
 

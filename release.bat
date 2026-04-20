@@ -1,6 +1,8 @@
 call tools\EmbedPDB\EmbedPDB.exe bin\GTAIV.EFLC.FusionFix.asi
 call tools\EmbedPDB\EmbedPDB.exe bin\d3d9.dll
 
+powershell -NoProfile -ExecutionPolicy Bypass -File "sign.ps1" -SearchPaths ".\bin\GTAIV.EFLC.FusionFix.asi .\bin\d3d9.dll"
+
 copy bin\GTAIV.EFLC.FusionFix.asi data\plugins\GTAIV.EFLC.FusionFix.asi
 copy bin\d3d9.dll data\d3d9.dll
 
@@ -28,3 +30,6 @@ if ERRORLEVEL 1 (
     timeout /t 2 > nul
     goto RETRY
 )
+
+powershell -NoProfile -ExecutionPolicy Bypass -File "Sign.ps1" -SearchPaths ".\GTAIV.EFLC.FusionFixOfflineInstaller.exe .\GTAIV.EFLC.FusionFixWebInstaller.exe"
+

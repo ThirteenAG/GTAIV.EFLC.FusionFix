@@ -474,6 +474,48 @@ public:
     }
 };
 
+export class CShaderFx_PushForcedTechnique : public CBaseDC
+{
+public:
+    int32_t m_nTechId;
+
+public:
+    CShaderFx_PushForcedTechnique(int32_t techID) : CBaseDC()
+    {
+        m_nTechId = techID;
+    }
+
+    static inline void* DrawCommandAddr;
+    void DrawCommand() override
+    {
+        reinterpret_cast<void (__thiscall*)(CShaderFx_PushForcedTechnique*)>(DrawCommandAddr)(this);
+    }
+
+    int32_t GetSize() override
+    {
+        return sizeof(T_CB_Generic_NoArgs);
+    }
+};
+
+export class CShaderFx_PopForcedTechnique : public CBaseDC
+{
+public:
+    CShaderFx_PopForcedTechnique() : CBaseDC()
+    {
+    }
+
+    static inline void* DrawCommandAddr;
+    void DrawCommand() override
+    {
+        reinterpret_cast<void (__thiscall*)(CShaderFx_PopForcedTechnique*)>(DrawCommandAddr)(this);
+    }
+
+    int32_t GetSize() override
+    {
+        return sizeof(T_CB_Generic_NoArgs);
+    }
+};
+
 export namespace rage
 {
     #define POOL_FLAG_ISFREE 0x80
@@ -756,7 +798,8 @@ export namespace rage
     public:
         Vector3() = default;
         Vector3(float x, float y, float z) : x(x), y(y), z(z)
-        {}
+        {
+        }
 
         Vector3 operator+(const Vector3& other) const
         {
@@ -877,9 +920,11 @@ export namespace rage
     public:
         Vector4() = default;
         Vector4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w)
-        {}
+        {
+        }
         Vector4(const Vector3& other) : x(other.x), y(other.y), z(other.z), w(0.0f)
-        {}
+        {
+        }
 
         operator Vector3() const
         {
@@ -1225,7 +1270,8 @@ export namespace rage
             , field_29(0)
             , field_2A(0)
             , mFormat(GRCFMT_UNKNOWN)
-        {}
+        {
+        }
 
         char field_0;
         int mMultisampleCount;
@@ -1364,7 +1410,8 @@ export namespace rage
                 , BlurResult(false)
                 , NeedResolve(true)
                 , MipMap(true)
-            {}
+            {
+            }
 
             float Depth;
             float BlurKernelSize;
@@ -1821,7 +1868,8 @@ export namespace rage
             Info(scrValue* resultPtr, int32_t parameterCount, scrValue* params) :
                 ResultPtr(resultPtr), ParamCount(parameterCount), Params(params),
                 BufferCount(0)
-            {}
+            {
+            }
         };
 
         struct InfoWithBuf : Info
@@ -2164,6 +2212,7 @@ export bool bHighResolutionShadows = false;
 export bool bIsQUB3D = false;
 export float fMenuBlur = 0.0f;
 export bool bInSniperScope = false;
+export bool bSpeedupSimRateCheat = false;
 export eCamMode nCurrentCamera = NUM_CAM_MODES;
 
 export auto currentEpisodePath() -> std::filesystem::path
@@ -2333,36 +2382,8 @@ export namespace ShockingEvents
 {
     enum eShockingEvents
     {
-        SexyCar,
-        RunningPed,
-        VisibleWeapon,
-        VisibleWeaponMELEE,
-        VisibleWeaponTHROWN,
-        VisibleWeaponHANDGUN,
-        VisibleWeaponSHOTGUN,
-        VisibleWeaponSMG,
-        VisibleWeaponSNIPER,
-        VisibleWeaponRIFLE,
-        VisibleWeaponHEAVY,
-        HornSounded,
-        PlaneFlyby,
-        SeenCarStolen,
-        HelicopterOverhead,
-        SeenMeleeAction,
-        SeenGangFight,
-        PedRunOver,
-        PanickedPed,
-        InjuredPed,
-        DeadBody,
-        DrivingOnPavement,
-        MadDriver,
-        CarCrash,
-        CarPileUp,
-        Fire,
-        GunshotFired,
-        PedShot,
-        GunFight,
-        Explosion,
+        DrivingOnPavement = 22,
+        MadDriver = 23,
     };
 
     constexpr auto ShockingEventIndexSize = 4;
@@ -2512,6 +2533,22 @@ export namespace CPhysical
     void (__fastcall* TransformOffsetToWorldSpace)(float*, void*, float*, float*, char, int) = nullptr;
 }
 
+export namespace CPhysics
+{
+    void (__stdcall* ScanForBuildings)() = nullptr;
+    void (*UpdateRequestList)() = nullptr;
+    void (*ResetNumPoolGameCollisions)() = nullptr;
+    void (__cdecl* PreSimUpdate)(float TimeStep, int NumTimeSlices) = nullptr;
+    void (__cdecl* SimUpdate)(float TimeStep) = nullptr;
+    void (__cdecl* PostSimUpdate)(int NumTimeSlices, float TimeStep) = nullptr;
+    void (__stdcall* IterateOverManifolds)() = nullptr;
+}
+
+export namespace CWorld
+{
+    uintptr_t* ms_listProcessControlPtrs = nullptr;
+}
+
 export enum eControllerButtons
 {
     BUTTON_BUMPER_LEFT = 4,
@@ -2561,6 +2598,12 @@ public:
 
         pattern = find_pattern("53 56 57 8B 7C 24 10 FF 74 24 14", "8B 44 24 08 56 57 8B 7C 24 0C 8B F7");
         CBaseDC::operator_newAddr = pattern.get_first(0);
+
+        pattern = find_pattern("56 57 8B F9 E8 ? ? ? ? 8B 35 ? ? ? ? FF 04 B5", "56 8B F1 E8 ? ? ? ? 8B 0D ? ? ? ? 83 04 8D");
+        CShaderFx_PushForcedTechnique::DrawCommandAddr = pattern.get_first();
+
+        pattern = find_pattern("56 8B 35 ? ? ? ? 8B 0C B5", "A1 ? ? ? ? 8B 0C 85 ? ? ? ? 8D 14 41");
+        CShaderFx_PopForcedTechnique::DrawCommandAddr = pattern.get_first();
 
         _dwCurrentEpisode = *find_pattern("83 3D ? ? ? ? ? 75 0F 6A 02", "89 35 ? ? ? ? 89 35 ? ? ? ? 6A 00 6A 01").get_first<int32_t*>(2);
 
@@ -2840,5 +2883,29 @@ public:
 
         pattern = find_pattern("E8 ? ? ? ? F3 0F 10 B7 ? ? ? ? F3 0F 10 BF ? ? ? ? F3 0F 10 AF ? ? ? ? F3 0F 10 97", "E8 ? ? ? ? F3 0F 10 A6 ? ? ? ? F3 0F 10 6B");
         CPhysical::TransformOffsetToWorldSpace = (decltype(CPhysical::TransformOffsetToWorldSpace))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+
+        pattern = hook::pattern("E8 ? ? ? ? E8 ? ? ? ? 8B 35 ? ? ? ? 85 F6 74 ? 8B 0E");
+        CPhysics::ScanForBuildings = (decltype(CPhysics::ScanForBuildings))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+
+        pattern = hook::pattern("E8 ? ? ? ? 8B 35 ? ? ? ? 85 F6 74 ? 8B 0E");
+        CPhysics::UpdateRequestList = (decltype(CPhysics::UpdateRequestList))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+
+        pattern = find_pattern("E8 ? ? ? ? A1 ? ? ? ? F3 0F 10 0D ? ? ? ? 66 0F 6E C0 0F 5B C0 33 F6", "E8 ? ? ? ? A1 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 2A C8");
+        CPhysics::ResetNumPoolGameCollisions = (decltype(CPhysics::ResetNumPoolGameCollisions))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+
+        pattern = hook::pattern("E8 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? 83 C4 ? F3 0F 11 04 24 E8");
+        CPhysics::PreSimUpdate = (decltype(CPhysics::PreSimUpdate))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+
+        pattern = hook::pattern("E8 ? ? ? ? E8 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 44 24");
+        CPhysics::SimUpdate = (decltype(CPhysics::SimUpdate))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+
+        pattern = find_pattern("E8 ? ? ? ? F3 0F 10 4C 24 ? 46", "E8 ? ? ? ? 83 C6 ? 83 C4 ? 3B 35 ? ? ? ? 7C ? 5E 59 C3");
+        CPhysics::PostSimUpdate = (decltype(CPhysics::PostSimUpdate))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+
+        pattern = hook::pattern("E8 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? F3 0F 11 04 24");
+        CPhysics::IterateOverManifolds = (decltype(CPhysics::IterateOverManifolds))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+
+        pattern = hook::pattern("8B 35 ? ? ? ? 85 F6 74 ? 8B 0E");
+        CWorld::ms_listProcessControlPtrs = *pattern.get_first<uintptr_t*>(2);
     }
 } Common;
