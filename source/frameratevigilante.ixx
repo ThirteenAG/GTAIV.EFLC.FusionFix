@@ -367,18 +367,18 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            // Timestep clamp adjustment in CTimer::Initialise, fixes game speedup past 300fps, but not slowdown below 15fps as its kind of unnecessary
-            auto pattern = hook::pattern("E8 ? ? ? ? FF 74 24 ? E8 ? ? ? ? E8");
-            if (!pattern.empty())
-            {
-                injector::WriteMemory<float>(injector::GetBranchDestination(pattern.get_first(0)).as_int() + 6, 1.0f / 3000.0f, true);
-            }
-            else
-            {
-                static float dword_EDF6CC = 1.0f / 3000.0f;
-                pattern = hook::pattern("E8 ? ? ? ? 8B 44 24 ? 50 E8 ? ? ? ? E8");
-                injector::WriteMemory(injector::GetBranchDestination(pattern.get_first(0)).as_int() + 4, &dword_EDF6CC, true);
-            }
+            // Timestep clamp adjustment in CTimer::Initialise, fixes game speedup past 300fps, but not slowdown below 15fps as its kind of unnecessary (Caused TLAD mission "Shifting Weight" softlock in the final scripted cutscene on high framerates for some reasons)
+            // auto pattern = hook::pattern("E8 ? ? ? ? FF 74 24 ? E8 ? ? ? ? E8");
+            // if (!pattern.empty())
+            // {
+            //    injector::WriteMemory<float>(injector::GetBranchDestination(pattern.get_first(0)).as_int() + 6, 1.0f / 3000.0f, true);
+            // }
+            // else
+            // {
+            //    static float dword_EDF6CC = 1.0f / 3000.0f;
+            //    pattern = hook::pattern("E8 ? ? ? ? 8B 44 24 ? 50 E8 ? ? ? ? E8");
+            //    injector::WriteMemory(injector::GetBranchDestination(pattern.get_first(0)).as_int() + 4, &dword_EDF6CC, true);
+            // }
 
             // Check 30FPS accumulator before calling CPedIntelligence::ProcessStaticCounter, which increments task attempt counter.
             // Some CTasks check this attempt counter against a hardcoded limit of 30.
