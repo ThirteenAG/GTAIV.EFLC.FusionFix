@@ -390,6 +390,17 @@ public:
                 shProcessStaticCounter = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first()).as_int(), ProcessStaticCounter);
             }
 
+            // CTaskComplexClimbLadder, change heading angle threshold passed to TaskAchieveHeading to match the threshold checked by CTaskSimpleSlideToCoord
+            // Fixes wrong order of tasks being completed at high FPS, causing stall when trying to climb ladder.
+            {
+                pattern = hook::pattern("F3 0F 10 05 ? ? ? ? 83 EC ? 8B C8 F3 0F 11 44 24 ? F3 0F 10 44 24 ? C7 44 24 04 00 00 00 40");
+                injector::MakeNOP(pattern.get_first(0), 8, true);
+                static auto ClimbLadderThresholdValue = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    regs.xmm0.f32[0] = 0.1f; // 0.02f -> 0.1f to match CTaskSimpleSlideToCoord
+                });
+            }
+
             // Handbrake Cam force
             pattern = find_pattern("E8 ? ? ? ? D9 5C 24 7C F3 0F 10 4C 24", "E8 ? ? ? ? D9 5C 24 70 F3 0F 10 44 24 ? F3 0F 58 86");
             hbsub_A18510.fun = injector::MakeCALL(pattern.get_first(0), sub_A18510).get();
@@ -789,6 +800,116 @@ public:
             {
                 pattern = hook::pattern("55 8B EC 83 E4 F0 8B 45 08 8B 0D ? ? ? ? 81 EC ? ? ? ? 56 50");
                 shNATIVE_SLIDE_OBJECT = safetyhook::create_inline(pattern.get_first(0), NATIVE_SLIDE_OBJECT_2);
+            }
+
+
+            // Drunk steering bias feedback loop fix
+            // In ProcessControlInputs, the drunk steering bias (m_fSteerBias) is added to
+            // the smoothed steering value and stored back to m_fSteer. This creates a
+            // feedback loop where the bias accumulates through the exponential smoothing
+            // filter each frame, causing far more steering drift than intended.
+            // Fix: After m_fSteerAngle is computed from the biased m_fSteer, subtract the
+            // bias from m_fSteer so the next frame's smoothing uses the unbiased value.
+            // CAutomobile adds the full bias; CBike adds bias * 0.5.
+            {
+                static ptrdiff_t SteerOffset;
+                static ptrdiff_t SteerBiasOffset;
+
+                static auto getVehicleFromModRM = [](uint8_t modrm, SafetyHookContext& regs) -> uintptr_t
+                {
+                    switch (modrm & 7)
+                    {
+                        case 0: return regs.eax;
+                        case 1: return regs.ecx;
+                        case 2: return regs.edx;
+                        case 3: return regs.ebx;
+                        case 6: return regs.esi;
+                        case 7: return regs.edi;
+                        default: return 0;
+                    }
+                };
+
+                // CAutomobile: movss [reg+SteerAngleOffset], xmm? ; test byte ptr [reg+F0h], 40h
+                auto pattern = find_pattern(
+                    "F3 0F 11 ? 88 10 00 00 F6 ? F0 00 00 00 40",
+                    "F3 0F 11 ? D8 10 00 00 F6 ? F0 00 00 00 40"
+                );
+                if (!pattern.empty())
+                {
+                    if (!hook::pattern("F3 0F 11 ? 88 10 00 00 F6 ? F0 00 00 00 40").count_hint(1).empty())
+                    {
+                        SteerOffset = 0x1080;
+                        SteerBiasOffset = 0x1084;
+                    }
+                    else
+                    {
+                        SteerOffset = 0x10D0;
+                        SteerBiasOffset = 0x10D4;
+                    }
+
+                    static uint8_t autoVehicleReg = *(uint8_t*)((uintptr_t)pattern.get_first(3)) & 7;
+
+                    // Mid-hook at the test byte instruction (offset +8), after steer angle is stored
+                    static auto AutoDrunkSteerBiasHook = safetyhook::create_mid(
+                        (uint8_t*)pattern.get_first(8),
+                        [](SafetyHookContext& regs)
+                        {
+                            uintptr_t vehicle = getVehicleFromModRM(autoVehicleReg, regs);
+                            if (!vehicle) return;
+
+                            float bias = *(float*)(vehicle + SteerBiasOffset);
+                            if (bias != 0.0f)
+                            {
+                                float& steer = *(float*)(vehicle + SteerOffset);
+                                steer -= bias;
+                                if (steer > 1.0f) steer = 1.0f;
+                                else if (steer < -1.0f) steer = -1.0f;
+                            }
+                        });
+                }
+
+                // CBike: movss [reg+SteerAngleOffset], xmm? ; cmp byte ptr [CFrontEnd::bActive], 0
+                // CBike adds bias * 0.5 instead of the full bias.
+                auto pattern2 = find_pattern(
+                    "F3 0F 11 ? 88 10 00 00 80 3D",
+                    "F3 0F 11 ? D8 10 00 00 80 3D"
+                );
+                if (!pattern2.empty())
+                {
+                    if (SteerOffset == 0)
+                    {
+                        if (!hook::pattern("F3 0F 11 ? 88 10 00 00 80 3D").count_hint(1).empty())
+                        {
+                            SteerOffset = 0x1080;
+                            SteerBiasOffset = 0x1084;
+                        }
+                        else
+                        {
+                            SteerOffset = 0x10D0;
+                            SteerBiasOffset = 0x10D4;
+                        }
+                    }
+
+                    static uint8_t bikeVehicleReg = *(uint8_t*)((uintptr_t)pattern2.get_first(3)) & 7;
+
+                    // Mid-hook at the cmp instruction (offset +8), after steer angle is stored
+                    static auto BikeDrunkSteerBiasHook = safetyhook::create_mid(
+                        (uint8_t*)pattern2.get_first(8),
+                        [](SafetyHookContext& regs)
+                        {
+                            uintptr_t vehicle = getVehicleFromModRM(bikeVehicleReg, regs);
+                            if (!vehicle) return;
+
+                            float bias = *(float*)(vehicle + SteerBiasOffset);
+                            if (bias != 0.0f)
+                            {
+                                float& steer = *(float*)(vehicle + SteerOffset);
+                                steer -= bias * 0.5f;
+                                if (steer > 1.0f) steer = 1.0f;
+                                else if (steer < -1.0f) steer = -1.0f;
+                            }
+                        });
+                }
             }
         };
     }

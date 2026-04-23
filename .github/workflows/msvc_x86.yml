@@ -74,21 +74,21 @@ jobs:
         msbuild -m build/GTAIV.EFLC.FusionFix.slnx /property:Configuration=Release /property:Platform=Win32
 
     - name: Download Ultimate ASI Loader x86
-      uses: robinraju/release-downloader@v1.12
+      uses: robinraju/release-downloader@v1.13
       with:
         repository: "ThirteenAG/Ultimate-ASI-Loader"
         tag: "Win32-latest"
         fileName: "dinput8-Win32.zip"
 
     - name: Download DXVK
-      uses: robinraju/release-downloader@v1.12
+      uses: robinraju/release-downloader@v1.13
       with:
         repository: "doitsujin/dxvk"
         tag: 'v2.6.2'
         fileName: "dxvk-*.tar.gz"
 
     - name: Download Legacy Package
-      uses: robinraju/release-downloader@v1.12
+      uses: robinraju/release-downloader@v1.13
       with:
         repository: "GTAmodding/XLivelessAddon"
         tag: "latest"
