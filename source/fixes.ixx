@@ -18,7 +18,7 @@ public:
 
     static inline bool* bIsPhoneShowing = nullptr;
     static inline injector::hook_back<int32_t(__cdecl*)()> hbsub_B2CE30;
-    static int32_t sub_B2CE30() 
+    static int32_t sub_B2CE30()
     {
         if ((bIsPhoneShowing && *bIsPhoneShowing))
             return 1;
@@ -27,7 +27,7 @@ public:
     }
 
     static inline injector::hook_back<void(__fastcall*)(int32_t, int32_t)> hbsub_B07600;
-    static void __fastcall sub_B07600(int32_t _this, int32_t) 
+    static void __fastcall sub_B07600(int32_t _this, int32_t)
     {
         hbsub_B07600.fun(_this, 0);
 
@@ -37,7 +37,8 @@ public:
 
     static char sub_8D0A90()
     {
-        if (bMenuNeedsUpdate2 > 0) {
+        if (bMenuNeedsUpdate2 > 0)
+        {
             bMenuNeedsUpdate2--;
             return 0;
         }
@@ -266,7 +267,8 @@ public:
                 };
                 if (!pattern.empty())
                     injector::MakeInline<AimZoomHook1>(pattern.get_first(0), pattern.get_first(7));
-                else {
+                else
+                {
                     pattern = find_pattern("08 9E ? ? ? ? E9");
                     injector::MakeInline<AimZoomHook1>(pattern.get_first(0), pattern.get_first(6));
                 }
@@ -282,7 +284,8 @@ public:
                 };
                 if (!pattern.empty())
                     injector::MakeInline<AimZoomHook2>(pattern.get_first(2), pattern.get_first(9));
-                else {
+                else
+                {
                     pattern = find_pattern("80 A6 ? ? ? ? ? EB 25");
                     injector::MakeInline<AimZoomHook2>(pattern.get_first(0), pattern.get_first(7));
                 }
@@ -291,7 +294,8 @@ public:
                 pattern = hook::pattern("C6 05 ? ? ? ? ? 74 12 83 3D");
                 if (!pattern.empty())
                     injector::WriteMemory<uint8_t>(pattern.get_first(6), 0, true);
-                else {
+                else
+                {
                     pattern = hook::pattern("88 1D ? ? ? ? 74 10");
                     injector::WriteMemory<uint8_t>(pattern.get_first(1), 0x25, true); //mov ah
                 }
@@ -376,7 +380,8 @@ public:
                 auto pattern = hook::pattern("83 3D ? ? ? ? 01 0F 8C 18 01 00 00");
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get(0).get<int>(0), 13, true);
-                else {
+                else
+                {
                     pattern = hook::pattern("80 BE 18 02 00 00 00 0F 85 36 01 00 00 80 BE");
                     injector::MakeNOP(pattern.get(0).get<int>(0x21), 6, true);
                 }
@@ -417,7 +422,8 @@ public:
                 pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 10 8C 24");
                 if (!pattern.empty())
                     injector::WriteMemory<uint16_t>(pattern.get_first(7), 0xE990, true); // jnz -> jmp
-                else {
+                else
+                {
                     pattern = hook::pattern("83 3D ? ? ? ? ? 75 68 F3 0F 10 05");
                     injector::WriteMemory<uint8_t>(pattern.get_first(7), 0xEB, true); // jnz -> jmp
                 }
@@ -428,7 +434,7 @@ public:
                 static auto reg = *pattern.get_first<uint8_t>(5);
                 static auto nTimeToWaitBeforeCenteringCameraOnFootKB = FusionFixSettings.GetRef("PREF_KBCAMCENTERDELAY");
                 static auto nTimeToWaitBeforeCenteringCameraOnFootPad = FusionFixSettings.GetRef("PREF_PADCAMCENTERDELAY");
-                struct OnFootCamCenteringHook 
+                struct OnFootCamCenteringHook
                 {
                     void operator()(injector::reg_pack& regs)
                     {
@@ -443,7 +449,7 @@ public:
                         int32_t x = 0;
                         int32_t y = 0;
 
-                        if (pad) 
+                        if (pad)
                         {
                             Natives::GetPadState(0, 2, &x);
                             Natives::GetPadState(0, 3, &y);
@@ -463,7 +469,7 @@ public:
                             posX = 0.0f;
                     }
                 };
-                
+
                 if (reg != 0x48)
                     injector::MakeInline<OnFootCamCenteringHook>(pattern.get_first(0), pattern.get_first(6));
                 else
@@ -565,7 +571,8 @@ public:
                 pattern = find_pattern("E8 ? ? ? ? 84 C0 74 12 80 3D ? ? ? ? ? 0F B6 DB", "E8 ? ? ? ? 84 C0 74 0A 38 1D");
                 injector::MakeCALL(pattern.get_first(0), sub_8D0A90, true);
 
-                FusionFixSettings.SetCallback("PREF_CUSTOMFOV", [](int32_t value) {
+                FusionFixSettings.SetCallback("PREF_CUSTOMFOV", [](int32_t value)
+                {
                     bMenuNeedsUpdate = 2;
                     bMenuNeedsUpdate2 = 2;
                 });
@@ -626,10 +633,10 @@ public:
                 if (!pattern.empty())
                 {
                     static auto RenderMapCrosshairHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                        {
-                            float aspectratio = ((float)*rage::grcDevice::ms_nActiveWidth / (float)*rage::grcDevice::ms_nActiveHeight);
-                            *(float*)(regs.esp + 0x64 - 0x30) /= (aspectratio * 0.75f);
-                        });
+                    {
+                        float aspectratio = ((float)*rage::grcDevice::ms_nActiveWidth / (float)*rage::grcDevice::ms_nActiveHeight);
+                        *(float*)(regs.esp + 0x64 - 0x30) /= (aspectratio * 0.75f);
+                    });
                 }
             }
 
@@ -645,7 +652,7 @@ public:
                 if (!pattern.empty())
                 {
                     injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
-             
+
                     pattern = hook::pattern("0F 86 ? ? ? ? 0F 2E FA 9F F6 C4 44 7A 05");
                     if (!pattern.empty())
                     {
@@ -673,7 +680,7 @@ public:
 
             // Glass shards color fix
             {
-                static auto veh_glass_red   = "veh_glass_red";
+                static auto veh_glass_red = "veh_glass_red";
                 static auto veh_glass_amber = "veh_glass_amber";
 
                 auto pattern = find_pattern("68 ? ? ? ? EB E2 6A 00 68", "68 ? ? ? ? EB 07 6A 00 68 ? ? ? ? E8 ? ? ? ? 83 C4 08");
@@ -913,7 +920,8 @@ public:
                     pattern = find_pattern("72 ? 8B 56 ? 52");
                     static auto loc_B5D8D8 = resolve_displacement(pattern.get_first(0)).value();
                     injector::MakeNOP(pattern.get_first(0), 5);
-                    static auto BulletTracesHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs) {
+                    static auto BulletTracesHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
                         static auto esc = FusionFixSettings.GetRef("PREF_BULLETTRACES");
                         if (esc->get())
                         {
@@ -1062,30 +1070,34 @@ public:
                 constexpr float MaxCenterZDeltaForWeave_trains = 2.5f;
                 // attempt to fix NPCs lane swerving due to trains above/below them, kind of hacky probably but it works (clippy95)
                 auto pattern = hook::pattern("0F 2F C8 76 ? 3B F1");
-                if (!pattern.empty()) {
-                    static auto CCarAI_WeaveThroughCarsSectorListHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs) {
-
+                if (!pattern.empty())
+                {
+                    static auto CCarAI_WeaveThroughCarsSectorListHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                    {
                         auto other_car = regs.esi;
                         auto m_nVehicleType = *(uint32_t*)(other_car + 0x1304);
-                        if (m_nVehicleType == VEHICLETYPE_TRAIN) {
+                        if (m_nVehicleType == VEHICLETYPE_TRAIN)
+                        {
                             // the delta height check is always 8.f
                             regs.xmm1.f32[0] = MaxCenterZDeltaForWeave_trains;
                         }
-                        });
+                    });
                 }
-                else {
+                else
+                {
                     pattern = hook::pattern("0F 2F C8 76 ? 3B F7");
-                    if (!pattern.empty()) {
-                        static auto CCarAI_WeaveThroughCarsSectorListHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs) {
-
+                    if (!pattern.empty())
+                    {
+                        static auto CCarAI_WeaveThroughCarsSectorListHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                        {
                             auto other_car = regs.esi;
                             auto m_nVehicleType = *(uint32_t*)(other_car + 0x1354);
-                            if (m_nVehicleType == VEHICLETYPE_TRAIN) {
+                            if (m_nVehicleType == VEHICLETYPE_TRAIN)
+                            {
                                 // the delta height check is always 8.f
                                 regs.xmm1.f32[0] = MaxCenterZDeltaForWeave_trains;
                             }
-
-                            });
+                        });
                     }
                 }
             }
