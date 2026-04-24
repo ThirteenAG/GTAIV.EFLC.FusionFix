@@ -403,7 +403,7 @@ public:
             // Check 30FPS accumulator before calling CPedIntelligence::ProcessStaticCounter, which increments task attempt counter.
             // Some CTasks check this attempt counter against a hardcoded limit of 30.
             // At higher framerates these attempts occur faster, causing them to hit the limit early and abort the task.
-            // (eg. causing NPCs to shove cars instead of walking around them)
+            // (e.g. causing NPCs to shove cars instead of walking around them)
             {
                 // Hook ProcessStaticCounter to check/add to accumulator
                 pattern = find_pattern("E8 ? ? ? ? 8B 4F ? 6A ? 8B 89 ? ? ? ? E8 ? ? ? ? 8D 9F", "E8 ? ? ? ? 8B 46 ? 8B 88 ? ? ? ? 6A");
