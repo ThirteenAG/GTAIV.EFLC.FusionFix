@@ -386,7 +386,7 @@ public:
             // (eg. causing NPCs to shove cars instead of walking around them)
             {
                 // Hook ProcessStaticCounter to check/add to accumulator
-                pattern = find_pattern("E8 ? ? ? ? 8B 4F ? 6A ? 8B 89 ? ? ? ? E8 ? ? ? ? 8D 9F", "E8 ? ? ? ? 8B 46 ? 8B 88 ? ? ? ? 6A");
+                auto pattern = find_pattern("E8 ? ? ? ? 8B 4F ? 6A ? 8B 89 ? ? ? ? E8 ? ? ? ? 8D 9F", "E8 ? ? ? ? 8B 46 ? 8B 88 ? ? ? ? 6A");
                 shProcessStaticCounter = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first()).as_int(), ProcessStaticCounter);
             }
 
