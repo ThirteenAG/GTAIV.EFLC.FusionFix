@@ -367,42 +367,21 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            // Timestep clamp adjustment in CTimer::Initialise, fixes game speedup past 300fps, but not slowdown below 15fps as its kind of unnecessary
-            auto pattern = hook::pattern("E8 ? ? ? ? FF 74 24 ? E8 ? ? ? ? E8");
-            if (!pattern.empty())
-            {
-                injector::WriteMemory<float>(injector::GetBranchDestination(pattern.get_first(0)).as_int() + 6, 1.0f / 3000.0f, true);
-            }
-            else
-            {
-                static float dword_EDF6CC = 1.0f / 3000.0f;
-                pattern = hook::pattern("E8 ? ? ? ? 8B 44 24 ? 50 E8 ? ? ? ? E8");
-                injector::WriteMemory(injector::GetBranchDestination(pattern.get_first(0)).as_int() + 4, &dword_EDF6CC, true);
-            }
-
-            // Check 30FPS accumulator before calling CPedIntelligence::ProcessStaticCounter, which increments task attempt counter.
-            // Some CTasks check this attempt counter against a hardcoded limit of 30.
-            // At higher framerates these attempts occur faster, causing them to hit the limit early and abort the task.
-            // (eg. causing NPCs to shove cars instead of walking around them)
-            {
-                // Hook ProcessStaticCounter to check/add to accumulator
-                pattern = find_pattern("E8 ? ? ? ? 8B 4F ? 6A ? 8B 89 ? ? ? ? E8 ? ? ? ? 8D 9F", "E8 ? ? ? ? 8B 46 ? 8B 88 ? ? ? ? 6A");
-                shProcessStaticCounter = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first()).as_int(), ProcessStaticCounter);
-            }
-
-            // CTaskComplexClimbLadder, change heading angle threshold passed to TaskAchieveHeading to match the threshold checked by CTaskSimpleSlideToCoord
-            // Fixes wrong order of tasks being completed at high FPS, causing stall when trying to climb ladder.
-            {
-                pattern = hook::pattern("F3 0F 10 05 ? ? ? ? 83 EC ? 8B C8 F3 0F 11 44 24 ? F3 0F 10 44 24 ? C7 44 24 04 00 00 00 40");
-                injector::MakeNOP(pattern.get_first(0), 8, true);
-                static auto ClimbLadderThresholdValue = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                {
-                    regs.xmm0.f32[0] = 0.1f; // 0.02f -> 0.1f to match CTaskSimpleSlideToCoord
-                });
-            }
+            // Timestep clamp adjustment in CTimer::Initialise, fixes game speedup past 300fps, but not slowdown below 15fps as its kind of unnecessary (Caused TLAD mission "Shifting Weight" softlock in the final scripted cutscene on high framerates for some reasons)
+            // auto pattern = hook::pattern("E8 ? ? ? ? FF 74 24 ? E8 ? ? ? ? E8");
+            // if (!pattern.empty())
+            // {
+            //    injector::WriteMemory<float>(injector::GetBranchDestination(pattern.get_first(0)).as_int() + 6, 1.0f / 3000.0f, true);
+            // }
+            // else
+            // {
+            //    static float dword_EDF6CC = 1.0f / 3000.0f;
+            //    pattern = hook::pattern("E8 ? ? ? ? 8B 44 24 ? 50 E8 ? ? ? ? E8");
+            //    injector::WriteMemory(injector::GetBranchDestination(pattern.get_first(0)).as_int() + 4, &dword_EDF6CC, true);
+            // }
 
             // Handbrake Cam force
-            pattern = find_pattern("E8 ? ? ? ? D9 5C 24 7C F3 0F 10 4C 24", "E8 ? ? ? ? D9 5C 24 70 F3 0F 10 44 24 ? F3 0F 58 86");
+            auto pattern = find_pattern("E8 ? ? ? ? D9 5C 24 7C F3 0F 10 4C 24", "E8 ? ? ? ? D9 5C 24 70 F3 0F 10 44 24 ? F3 0F 58 86");
             hbsub_A18510.fun = injector::MakeCALL(pattern.get_first(0), sub_A18510).get();
 
             // CCamFollowVehicle auto centering force
@@ -419,6 +398,27 @@ public:
                 {
                     injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
                 }
+            }
+
+            // Check 30FPS accumulator before calling CPedIntelligence::ProcessStaticCounter, which increments task attempt counter.
+            // Some CTasks check this attempt counter against a hardcoded limit of 30.
+            // At higher framerates these attempts occur faster, causing them to hit the limit early and abort the task.
+            // (e.g. causing NPCs to shove cars instead of walking around them)
+            {
+                // Hook ProcessStaticCounter to check/add to accumulator
+                pattern = find_pattern("E8 ? ? ? ? 8B 4F ? 6A ? 8B 89 ? ? ? ? E8 ? ? ? ? 8D 9F", "E8 ? ? ? ? 8B 46 ? 8B 88 ? ? ? ? 6A");
+                shProcessStaticCounter = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first()).as_int(), ProcessStaticCounter);
+            }
+
+            // CTaskComplexClimbLadder, change heading angle threshold passed to TaskAchieveHeading to match the threshold checked by CTaskSimpleSlideToCoord
+            // Fixes wrong order of tasks being completed at high FPS, causing stall when trying to climb ladder.
+            {
+                pattern = hook::pattern("F3 0F 10 05 ? ? ? ? 83 EC ? 8B C8 F3 0F 11 44 24 ? F3 0F 10 44 24 ? C7 44 24 04 00 00 00 40");
+                injector::MakeNOP(pattern.get_first(0), 8, true);
+                static auto ClimbLadderThresholdValue = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    regs.xmm0.f32[0] = 0.1f; // 0.02f -> 0.1f to match CTaskSimpleSlideToCoord
+                });
             }
 
             // Physics
