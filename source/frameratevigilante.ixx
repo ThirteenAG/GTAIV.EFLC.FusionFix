@@ -428,32 +428,32 @@ public:
             // Heli rotor break time
             {
                 // Rear rotors
-                pattern = hook::pattern("F3 0F 59 15 ? ? ? ? F3 0F 58 D0 F3 0F 10 87");
-                if (!pattern.empty())
-                {
-                    // This is not effective for some reason
-                    static auto dword_FE8830 = *pattern.get_first<float*>(4);
-                    injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto CHeli_ApplyCollisionInternalHook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                    {
-                        regs.xmm2.f32[0] *= *dword_FE8830 * *CTimer::fTimeStep / (1.0f / 30.0f);
-                    });
-                }
-                else
-                {
-                    // Needs better approach to patch, doesn't work
-                    pattern = hook::pattern("D8 0D ? ? ? ? DE C1 D8 4C 24 ? D9 5C 24 ? F3 0F 5C 44 24 ? 0F 2F C8 F3 0F 11 86 ? ? ? ? 72");
-                    static auto dword_D74010 = *pattern.get_first<float*>(2);
-                    injector::MakeNOP(pattern.get_first(0), 6, true);
-                    struct CHeli_ApplyCollisionInternalHook1
-                    {
-                        void operator()(injector::reg_pack& regs)
-                        {
-                            float RearRotorBreakTime = *dword_D74010 * *CTimer::fTimeStep / (1.0f / 30.0f);
-                            _asm {fmul dword ptr [RearRotorBreakTime]};
-                        }
-                    }; injector::MakeInline<CHeli_ApplyCollisionInternalHook1>(pattern.get_first(0), pattern.get_first(6));
-                }
+                // pattern = hook::pattern("F3 0F 59 15 ? ? ? ? F3 0F 58 D0 F3 0F 10 87");
+                // if (!pattern.empty())
+                // {
+                //     // This is not effective for some reason
+                //     static auto dword_FE8830 = *pattern.get_first<float*>(4);
+                //     injector::MakeNOP(pattern.get_first(0), 8, true);
+                //     static auto CHeli_ApplyCollisionInternalHook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                //     {
+                //         regs.xmm2.f32[0] *= *dword_FE8830 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                //     });
+                // }
+                // else
+                // {
+                //     // Needs better approach to patch, doesn't work
+                //     pattern = hook::pattern("D8 0D ? ? ? ? DE C1 D8 4C 24 ? D9 5C 24 ? F3 0F 5C 44 24 ? 0F 2F C8 F3 0F 11 86 ? ? ? ? 72");
+                //     static auto dword_D74010 = *pattern.get_first<float*>(2);
+                //     injector::MakeNOP(pattern.get_first(0), 6, true);
+                //     struct CHeli_ApplyCollisionInternalHook1
+                //     {
+                //         void operator()(injector::reg_pack& regs)
+                //         {
+                //             float RearRotorBreakTime = *dword_D74010 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                //            _asm {fmul dword ptr [RearRotorBreakTime]};
+                //         }
+                //     }; injector::MakeInline<CHeli_ApplyCollisionInternalHook1>(pattern.get_first(0), pattern.get_first(6));
+                // }
 
                 // Main rotors
                 pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 58 D0 F3 0F 10 87");
@@ -467,21 +467,21 @@ public:
                         regs.xmm0.f32[0] *= *dword_FE8B08 * *CTimer::fTimeStep / (1.0f / 30.0f);
                     });
                 }
-                else
-                {
-                    // Needs better approach to patch, doesn't work
-                    pattern = hook::pattern("D8 0D ? ? ? ? DE C1 D8 4C 24 ? D9 5C 24 ? F3 0F 5C 44 24 ? 0F 2F C8 F3 0F 11 86 ? ? ? ? 0F 82");
-                    static auto dword_DB3010 = *pattern.get_first<float*>(2);
-                    injector::MakeNOP(pattern.get_first(0), 6, true);
-                    struct CHeli_ApplyCollisionInternalHook2
-                    {
-                        void operator()(injector::reg_pack& regs)
-                        {
-                            float MainRotorBreakTime = *dword_DB3010 * *CTimer::fTimeStep / (1.0f / 30.0f);
-                            _asm {fmul dword ptr [MainRotorBreakTime]};
-                        }
-                    }; injector::MakeInline<CHeli_ApplyCollisionInternalHook2>(pattern.get_first(0), pattern.get_first(6));
-                }
+                // else
+                // {
+                //     // Needs better approach to patch, doesn't work
+                //     pattern = hook::pattern("D8 0D ? ? ? ? DE C1 D8 4C 24 ? D9 5C 24 ? F3 0F 5C 44 24 ? 0F 2F C8 F3 0F 11 86 ? ? ? ? 0F 82");
+                //     static auto dword_DB3010 = *pattern.get_first<float*>(2);
+                //     injector::MakeNOP(pattern.get_first(0), 6, true);
+                //     struct CHeli_ApplyCollisionInternalHook2
+                //     {
+                //         void operator()(injector::reg_pack& regs)
+                //         {
+                //             float MainRotorBreakTime = *dword_DB3010 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                //             _asm {fmul dword ptr [MainRotorBreakTime]};
+                //         }
+                //     }; injector::MakeInline<CHeli_ApplyCollisionInternalHook2>(pattern.get_first(0), pattern.get_first(6));
+                // }
             }
 
             // Heli downwash effect
