@@ -514,6 +514,46 @@ public:
                 }
             }
 
+            // CCamFollowVehicle camera auto-centering force timestep'd
+            {
+
+                pattern = find_pattern("F3 0F 5C C8 F3 0F 59 87", "F2 0F 5A D0 74");
+                if (!pattern.empty()) {
+                    static auto camera_vehicle_auto_center_force1 = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs) {
+
+                        float dt = *CTimer::fTimeStep / (1.0f / 30.0f);
+                        regs.xmm0.f32[0] *= dt;
+
+                        });
+                }
+
+                pattern = hook::pattern("F3 0F 10 0D ? ? ? ? F3 0F 5C CA F3 0F 59 97");
+
+                if (!pattern.empty()) {
+
+                    static auto camera_vehicle_auto_center_force2 = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs) {
+
+                        float dt = *CTimer::fTimeStep / (1.0f / 30.0f);
+                        regs.xmm2.f32[0] *= dt;
+
+                        });
+
+                }
+
+                if (pattern.empty()) {
+                    pattern = hook::pattern("F3 0F 5C C4 F3 0F 59 A6");
+
+                    if (!pattern.empty()) {
+                        static auto camera_vehicle_auto_center_force2_legacy = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs) {
+
+                            float dt = *CTimer::fTimeStep / (1.0f / 30.0f);
+                            regs.xmm4.f32[0] *= dt;
+
+                            });
+                    }
+                }
+            }
+
             // Heli rotor speed
             {
                 pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 59 C4 F3 0F 5C C8");
