@@ -21,6 +21,8 @@
     def c0, 0.0773993805, 0.0549999997, 0.947867274, 0.0521326996
     def c1, 2.4000001, -0.0404499993, 4.5, 0
     def c2, 0.449999988, 1.09899998, -0.0989999995, -0.0179999992
+    def c3, 0.754877666247, 0.569840290998, 0, 0
+    def c4, -0.5, 0.003921568627451, 0, 0
     dcl_texcoord v0.xy
     dcl_2d s0
     texld r0, v0, s0
@@ -49,6 +51,12 @@
     mad r1.xyz, r2, c2.y, c2.z
     mul r2.xyz, r0, c1.z
     add r0.xyz, r0, c2.w
-    cmp oC0.xyz, r0, r1, r2
+    cmp r0.xyz, r0, r1, r2
+    
+    mul r1.xy, v0.xy, c44.xy // screen resolution
+    dp2add r0.w, r1.xy, c3.xy, c3.w
+    frc r0.w, r0.w
+    add r0.w, r0.w, c4.x
+    mad_sat oC0.xyz, r0.w, c4.y, r0.xyz
 
 // approximately 27 instruction slots used (1 texture, 26 arithmetic)
