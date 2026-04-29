@@ -20,8 +20,8 @@ import settings;
 
 bool bDrawReflections = false;
 
-float* dwC3F9A4 = nullptr;
-bool* dw1320FA8 = nullptr;
+float* m_InteriorBlendStrength = nullptr;
+bool* g_bRenderInteriorReflection = nullptr;
 
 class ReflectionMSAA
 {
@@ -113,7 +113,7 @@ private:
         }
     }
 
-    static void OnBeforeLighting()
+    static void OnBeforeGBuffer()
     {
         auto pDevice = rage::grcDevice::GetD3DDevice();
         if (!pDevice)
@@ -136,10 +136,16 @@ private:
         DWORD prevAlphaTestEnable = 0;
         DWORD prevSrcBlend = 0;
         DWORD prevDestBlend = 0;
+        DWORD prevBlendOp = 0;
 
         // Previous surfaces, depth/stencil, textures, shaders
         IDirect3DSurface9* prevSurface = nullptr;
         IDirect3DSurface9* prevDepthStencilSurface = nullptr;
+
+        IDirect3DVertexDeclaration9* prevVertexDecl = nullptr;
+        IDirect3DVertexBuffer9* prevVertexBuffer = nullptr;
+        UINT prevOffset = 0;
+        UINT prevStride = 0;
 
         IDirect3DBaseTexture9* prevTex = nullptr;
 
@@ -156,6 +162,8 @@ private:
         pDevice->GetRenderState(D3DRS_ALPHATESTENABLE, &prevAlphaTestEnable);
         pDevice->GetRenderState(D3DRS_SRCBLEND, &prevSrcBlend);
         pDevice->GetRenderState(D3DRS_DESTBLEND, &prevDestBlend);
+        pDevice->GetRenderState(D3DRS_DESTBLEND, &prevDestBlend);
+        pDevice->GetRenderState(D3DRS_BLENDOP, &prevBlendOp);
 
         pDevice->GetSamplerState(0, D3DSAMP_ADDRESSU, &prevAddressU);
         pDevice->GetSamplerState(0, D3DSAMP_ADDRESSV, &prevAddressV);
@@ -164,6 +172,9 @@ private:
         pDevice->GetSamplerState(0, D3DSAMP_MAGFILTER, &prevMagFilter);
         pDevice->GetSamplerState(0, D3DSAMP_MIPFILTER, &prevMipFilter);
 
+        pDevice->GetVertexDeclaration(&prevVertexDecl);
+        pDevice->GetStreamSource(0, &prevVertexBuffer, &prevOffset, &prevStride);
+
         pDevice->GetRenderTarget(0, &prevSurface);
         pDevice->GetDepthStencilSurface(&prevDepthStencilSurface);
 
@@ -171,7 +182,7 @@ private:
         pDevice->GetPixelShader(&prevPS);
 
         static auto rq = FusionFixSettings.GetRef("PREF_REFLECTION_RESOLUTION");
-        if (((rq && rq->get()) && bDrawReflections) || (dw1320FA8 && *dw1320FA8))
+        if (((rq && rq->get()) && bDrawReflections) || (g_bRenderInteriorReflection && *g_bRenderInteriorReflection))
         {
             pDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
             pDevice->SetRenderState(D3DRS_ZENABLE, D3DZB_FALSE);
@@ -201,22 +212,23 @@ private:
                     pDevice->SetRenderTarget(0, ReflectionMapColourSurface);
                     pDevice->SetDepthStencilSurface(nullptr);
 
-                    if (*dw1320FA8)
+                    if (*g_bRenderInteriorReflection)
                     {
                         pDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
                         pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
                         pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
                         pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+                        pDevice->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
 
                         PixelOffset.x = (0.5f / (float)(ReflectionMapColourRT->mWidth >> levels));
                         PixelOffset.y = (0.5f / (float)(ReflectionMapColourRT->mHeight >> levels));
                         RefMipBlurParams.z = 0.0f;
 
                         float blend = 1.0f;
-                        if ((1.0f - *dwC3F9A4) >= 0.0f)
+                        if ((1.0f - *m_InteriorBlendStrength) >= 0.0f)
                         {
-                            if ((1.0f - *dwC3F9A4) <= 1.0f)
-                                blend = 1.0f - *dwC3F9A4;
+                            if ((1.0f - *m_InteriorBlendStrength) <= 1.0f)
+                                blend = 1.0f - *m_InteriorBlendStrength;
                             else
                                 blend = 1.0f;
                         }
@@ -264,6 +276,7 @@ private:
         pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, prevAlphaTestEnable);
         pDevice->SetRenderState(D3DRS_SRCBLEND, prevSrcBlend);
         pDevice->SetRenderState(D3DRS_DESTBLEND, prevDestBlend);
+        pDevice->SetRenderState(D3DRS_BLENDOP, prevBlendOp);
 
         pDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, prevAddressU);
         pDevice->SetSamplerState(0, D3DSAMP_ADDRESSV, prevAddressV);
@@ -275,6 +288,9 @@ private:
         pDevice->SetRenderTarget(0, prevSurface);
         pDevice->SetDepthStencilSurface(prevDepthStencilSurface);
 
+        pDevice->SetVertexDeclaration(prevVertexDecl);
+        pDevice->SetStreamSource(0, prevVertexBuffer, prevOffset, prevStride);
+
         pDevice->SetTexture(0, prevTex);
 
         pDevice->SetVertexShader(prevVS);
@@ -283,6 +299,8 @@ private:
         // Release
         SAFE_RELEASE(prevSurface);
         SAFE_RELEASE(prevDepthStencilSurface);
+        SAFE_RELEASE(prevVertexDecl);
+        SAFE_RELEASE(prevVertexBuffer);
         SAFE_RELEASE(prevTex);
         SAFE_RELEASE(prevVS);
         SAFE_RELEASE(prevPS);
@@ -417,15 +435,15 @@ public:
                     });
                     
                     pattern = find_pattern("C6 05 ? ? ? ? ? 8B 97", "C6 05 ? ? ? ? ? 8B 8E ? ? ? ? 85 C9");
-                    dw1320FA8 = *pattern.get_first<bool*>(2);
+                    g_bRenderInteriorReflection = *pattern.get_first<bool*>(2);
 
                     pattern = hook::pattern("F3 0F 11 05 ? ? ? ? F3 0F 10 4F");
                     if (!pattern.empty())
-                        dwC3F9A4 = *pattern.get_first<float*>(4);
+                        m_InteriorBlendStrength = *pattern.get_first<float*>(4);
                     else
                     {
                         pattern = hook::pattern("D9 05 ? ? ? ? F3 0F 10 43 ? 51");
-                        dwC3F9A4 = *pattern.get_first<float*>(2);
+                        m_InteriorBlendStrength = *pattern.get_first<float*>(2);
                     }
 
                     // Skip game's reflection mip and blur pass (exterior & interior)
@@ -436,12 +454,12 @@ public:
                     injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true);
 
                     // Our custom reflection mip and blur pass to work around MSAA/mip problem
-                    CRenderPhaseDeferredLighting_LightsToScreen::OnBuildRenderList() += []()
+                    CRenderPhaseDeferredLighting_SceneToGBuffer::OnBuildRenderList() += []()
                     {
                         Init();
-                        auto mBeforeLightingCB = new T_CB_Generic_NoArgs(OnBeforeLighting);
-                        if (mBeforeLightingCB)
-                            mBeforeLightingCB->Append();
+                        auto mBeforeGBufferCB = new T_CB_Generic_NoArgs(OnBeforeGBuffer);
+                        if (mBeforeGBufferCB)
+                            mBeforeGBufferCB->Append();
                     };
                 }
             }

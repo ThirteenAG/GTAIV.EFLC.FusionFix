@@ -524,13 +524,13 @@ public:
 
                     // FXAA, Gamma
                     {
-                        static auto gamma = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA");
+                        //static auto gamma = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA");
                         static auto mblur = FusionFixSettings.GetRef("PREF_MOTIONBLUR");
                         static auto ae = FusionFixSettings.GetRef("PREF_AUTOEXPOSURE");
                         static float arr3[4];
                         arr3[0] = (ae->get() ? 1.0f / 9.0f : 1.0f / 16.0f);
                         arr3[1] = (bSmoothShorelines ? 1.0f : 0.0f);
-                        arr3[2] = static_cast<float>(gamma->get());
+                        //arr3[2] = static_cast<float>(gamma->get());
                         static float mblurscale = 1.0f;
                         switch(mblur->get())
                         {
@@ -629,7 +629,7 @@ public:
             {
                 if (!pHDRTexQuarter)
                 {
-                    pHDRTexQuarter = rage::grcTextureFactoryPC::GetRTByName("Quarter Screen 0");
+                    pHDRTexQuarter = rage::grcTextureFactoryPC::GetRTByName("FullScreenTex_temp1");
                 }
 
                 uintptr_t thisPtr;

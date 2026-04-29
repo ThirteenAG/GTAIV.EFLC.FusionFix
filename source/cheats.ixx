@@ -225,7 +225,7 @@ public:
                 PED_COMPONENT_FACE,
             };
 
-            //IV Beta Gloves
+            // IV Beta Gloves
             NativeOverride::RegisterPhoneCheat("4585550100", []
             {
                 if (*_dwCurrentEpisode == 0)
@@ -250,7 +250,7 @@ public:
                 }
             });
 
-            //IV Beta Hair
+            // IV Beta Hair
             NativeOverride::RegisterPhoneCheat("2885550100", []
             {
                 if (*_dwCurrentEpisode == 0)
@@ -275,7 +275,7 @@ public:
                 }
             });
 
-            //TLAD Pants
+            // TLAD Pants
             NativeOverride::RegisterPhoneCheat("7265550100", []
             {
                 if (*_dwCurrentEpisode == 1)
@@ -309,7 +309,7 @@ public:
             pattern = find_pattern("55 8B EC 83 E4 F0 81 EC 58 01 00 00 56 57 8B 7D ? 85 FF", "55 8B EC 83 E4 F0 81 EC 84 01 00 00 53 56 57 8B 7D");
             SpawnCar = (decltype(SpawnCar))pattern.get_first();
 
-            //Spawn Tampa
+            // Spawn Tampa
             NativeOverride::RegisterPhoneCheat("2275558267", []
             {
                 if (*_dwCurrentEpisode == 1 || *_dwCurrentEpisode == 2)
@@ -319,7 +319,7 @@ public:
                 }
             });
 
-            //Spawn DoubleT
+            // Spawn DoubleT
             NativeOverride::RegisterPhoneCheat("2455550125", []
             {
                 if (*_dwCurrentEpisode == 2)
@@ -329,7 +329,7 @@ public:
                 }
             });
 
-            //Spawn Hakuchou
+            // Spawn Hakuchou
             NativeOverride::RegisterPhoneCheat("2455550199", []
             {
                 if (*_dwCurrentEpisode == 2)
@@ -339,7 +339,7 @@ public:
                 }
             });
 
-            //Spawn Hexer
+            // Spawn Hexer
             NativeOverride::RegisterPhoneCheat("2455550150", []
             {
                 if (*_dwCurrentEpisode == 2)
@@ -349,7 +349,7 @@ public:
                 }
             });
 
-            //Spawn Slamvan
+            // Spawn Slamvan
             NativeOverride::RegisterPhoneCheat("8265550100", []
             {
                 if (*_dwCurrentEpisode == 2)
@@ -359,7 +359,7 @@ public:
                 }
             });
 
-            //Spawn Police Bike
+            // Spawn Police Bike
             NativeOverride::RegisterPhoneCheat("6255556752", []
             {
                 if (*_dwCurrentEpisode == 2)
@@ -369,7 +369,7 @@ public:
                 }
             });
 
-            //Spawn Police Buffalo
+            // Spawn Police Buffalo
             NativeOverride::RegisterPhoneCheat("2275552833", []
             {
                 if (*_dwCurrentEpisode == 2)
@@ -379,7 +379,7 @@ public:
                 }
             });
 
-            //Spawn Police Stinger
+            // Spawn Police Stinger
             NativeOverride::RegisterPhoneCheat("2275557864", []
             {
                 if (*_dwCurrentEpisode == 2)
@@ -389,7 +389,7 @@ public:
                 }
             });
 
-            //Spawn Brickade
+            // Spawn Brickade
             NativeOverride::RegisterPhoneCheat("2725552826", []
             {
                 if (*_dwCurrentEpisode == 2)
@@ -397,6 +397,15 @@ public:
                     SpawnCar(ModelNameId::Brickade.nModelId);
                     Natives::PrintHelp((char*)"CHEAT1");
                 }
+            });
+
+            NativeOverride::RegisterPhoneCheat("6925550100", []
+            {
+                bSpeedupSimRateCheat = !bSpeedupSimRateCheat;
+                if (bSpeedupSimRateCheat)
+                    Natives::PrintHelp((char*)"CHEAT1");
+                else
+                    Natives::PrintHelp((char*)"CHEAT2");
             });
         };
     }

@@ -1305,7 +1305,11 @@ public:
     operator T& () { return get(); }
     operator const T& () const { return get(); }
 
-    T& operator=(const T& value) { return get() = value; }
+    T& operator=(const T& value)
+    {
+        *reinterpret_cast<volatile T*>(*ptr) = value;
+        return **ptr;
+    }
     T& operator=(T&& value) { return get() = std::move(value); }
 
     template<typename U> T& operator+=(const U& v) { return get() += v; }
@@ -1353,8 +1357,21 @@ public:
     T& operator*() { return get(); }
     const T& operator*() const { return get(); }
 
-    T* operator->() { return &get(); }
-    const T* operator->() const { return &get(); }
+    auto operator->()
+    {
+        if constexpr (std::is_pointer_v<T>)
+            return get();
+        else
+            return &get();
+    }
+
+    auto operator->() const
+    {
+        if constexpr (std::is_pointer_v<T>)
+            return get();
+        else
+            return &get();
+    }
 
     template<typename U>
     auto operator[](const U& index) { return get()[index]; }

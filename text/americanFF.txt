@@ -226,5 +226,29 @@ Police Buffalo
 [USJ_FRST_KMB]
 During the stunt camera mode use ~INPUT_MOUSE_WHEEL_UP~ and ~INPUT_MOUSE_WHEEL_DOWN~ to control the slow motion speed.
 
+[0x416E3A2D]
+Use ~PAD_LSTICK_ALL~ to shift body weight. ~n~Use ~INPUT_MOUSE_LMB~ and ~INPUT_MOUSE_RMB~ to apply left and right air brakes. ~n~Press ~INPUT_ENTER~ to detach the parachute. ~n~Hold ~INPUT_VEH_CIN_CAM~ to view different cameras.
+
+[0x42B7E8E7]
+Use ~PAD_LSTICK_ALL~ to shift body weight. ~n~Use ~INPUT_MOUSE_LMB~ and ~INPUT_MOUSE_RMB~ to apply left and right air brakes. ~n~Press ~INPUT_ENTER~ to detach the parachute. ~n~Hold ~INPUT_VEH_CIN_CAM~ to view different cameras. ~n~Press ~INPUT_DUCK~ to activate smoke.
+
+[0x49914354]
+Use ~PAD_LSTICK_ALL~ to move in the air. ~n~Press ~INPUT_SPRINT~ to activate parachute. ~n~Hold ~INPUT_VEH_CIN_CAM~ to view different cameras. ~n~Press ~INPUT_DUCK~ to activate smoke.
+
+[0x5B377EC0]
+Use ~PAD_LSTICK_ALL~ to shift body weight. ~n~Use ~INPUT_MOUSE_LMB~ and ~INPUT_MOUSE_RMB~ to apply left and right air brakes. ~n~Press ~INPUT_ENTER~ to detach the parachute. ~n~Hold ~INPUT_VEH_CIN_CAM~ to view different cameras. ~n~Press ~INPUT_DUCK~ to activate smoke.
+
+[0x6AC25A30]
+Use ~PAD_LSTICK_ALL~ to shift body weight. ~n~Use ~INPUT_MOUSE_LMB~ and ~INPUT_MOUSE_RMB~ to apply left and right air brakes. ~n~Press ~INPUT_ENTER~ to detach the parachute. ~n~Hold ~INPUT_VEH_CIN_CAM~ to view different cameras.
+
+[0xA4BE06BD]
+Use ~PAD_LSTICK_ALL~ to move in the air. ~n~Press ~INPUT_MOUSE_LMB~ to activate parachute. ~n~Hold ~INPUT_VEH_CIN_CAM~ to view different cameras.
+
+[0x38FD019F]
+Use ~PAD_LSTICK_ALL~ to move in the air. ~n~Press ~INPUT_MOUSE_LMB~ to activate parachute. ~n~Hold ~INPUT_VEH_CIN_CAM~ to view different cameras.
+
+[0xA6CCD9A1]
+When airborne use ~PAD_LSTICK_ALL~ to move. In freefall press ~INPUT_MOUSE_LMB~ to activate parachute. ~n~Hold ~INPUT_VEH_CIN_CAM~ to view different cameras.
+
 [DUMMY_l11]
 Dummy label.
