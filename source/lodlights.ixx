@@ -204,38 +204,38 @@ bool IsBlinkingNeeded(int BlinkType)
 
     switch (BlinkType)
     {
-    case BlinkTypes::DEFAULT:
-        return false;
-    case BlinkTypes::RANDOM_FLASHING:
-        nOnDuration = 500;
-        nOffDuration = 500;
-        break;
-    case BlinkTypes::T_1S_ON_1S_OFF:
-        nOnDuration = 1000;
-        nOffDuration = 1000;
-        break;
-    case BlinkTypes::T_2S_ON_2S_OFF:
-        nOnDuration = 2000;
-        nOffDuration = 2000;
-        break;
-    case BlinkTypes::T_3S_ON_3S_OFF:
-        nOnDuration = 3000;
-        nOffDuration = 3000;
-        break;
-    case BlinkTypes::T_4S_ON_4S_OFF:
-        nOnDuration = 4000;
-        nOffDuration = 4000;
-        break;
-    case BlinkTypes::T_5S_ON_5S_OFF:
-        nOnDuration = 5000;
-        nOffDuration = 5000;
-        break;
-    case BlinkTypes::T_6S_ON_4S_OFF:
-        nOnDuration = 6000;
-        nOffDuration = 4000;
-        break;
-    default:
-        return false;
+        case BlinkTypes::DEFAULT:
+            return false;
+        case BlinkTypes::RANDOM_FLASHING:
+            nOnDuration = 500;
+            nOffDuration = 500;
+            break;
+        case BlinkTypes::T_1S_ON_1S_OFF:
+            nOnDuration = 1000;
+            nOffDuration = 1000;
+            break;
+        case BlinkTypes::T_2S_ON_2S_OFF:
+            nOnDuration = 2000;
+            nOffDuration = 2000;
+            break;
+        case BlinkTypes::T_3S_ON_3S_OFF:
+            nOnDuration = 3000;
+            nOffDuration = 3000;
+            break;
+        case BlinkTypes::T_4S_ON_4S_OFF:
+            nOnDuration = 4000;
+            nOffDuration = 4000;
+            break;
+        case BlinkTypes::T_5S_ON_5S_OFF:
+            nOnDuration = 5000;
+            nOffDuration = 5000;
+            break;
+        case BlinkTypes::T_6S_ON_4S_OFF:
+            nOnDuration = 6000;
+            nOffDuration = 4000;
+            break;
+        default:
+            return false;
     }
 
     return *CTimer::m_snTimeInMilliseconds % (nOnDuration + nOffDuration) < nOnDuration;
@@ -365,13 +365,14 @@ struct Timecycle
 };
 
 Timecycle* mTimeCycle = nullptr;
-int(__cdecl *DrawCorona2)(int id, char r, char g, char b, float a5, CVector* pos, float radius, float a8, float a9, int a10, float a11, char a12, char a13, int a14);
+int(__cdecl* DrawCorona2)(int id, char r, char g, char b, float a5, CVector* pos, float radius, float a8, float a9, int a10, float a11, char a12, char a13, int a14);
 
 void RegisterCustomCoronas()
 {
     constexpr unsigned int nModelID = 0xFFFFFFFF;
 
-    auto foundElements = *pFileContentMMap | std::views::filter([&nModelID](auto& v) {
+    auto foundElements = *pFileContentMMap | std::views::filter([&nModelID](auto& v)
+    {
         return v.first == nModelID;
     });
 
@@ -570,24 +571,22 @@ void RegisterLODLights()
             bool isRedTime = ((curMin >= 0 && curMin < 9) || (curMin >= 20 && curMin < 29) || (curMin >= 40 && curMin < 49));
             bool isGreenTime = ((curMin > 9 && curMin < 19) || (curMin > 29 && curMin < 39) || (curMin > 49 && curMin < 59));
 
-            // Heading check
-            float absHeading = std::abs(lamppost.fHeading);
-            bool isInHeadingRange = (absHeading >= (M_PI / 6.0f) && absHeading <= (5.0f * M_PI / 6.0f));
+            // Determine orientation based on heading
+            float heading = lamppost.fHeading;
+            bool isFacingEastWest = (heading >= -5.0f * M_PI / 6.0f && heading <= -M_PI / 6.0f) ||
+                (heading >= M_PI / 6.0f && heading <= 5.0f * M_PI / 6.0f);
 
-            bool shouldDraw = false;
+            // Swap phases for E/W traffic lights
+            bool redPhase = isRedTime;
+            bool greenPhase = isGreenTime;
+            if (isFacingEastWest)
+            {
+                std::swap(redPhase, greenPhase);
+            }
 
-            if (isYellow && isYellowTime)
-            {
-                shouldDraw = true;
-            }
-            else if (isInHeadingRange)
-            {
-                shouldDraw = (isRed && isRedTime) || (isGreen && isGreenTime);
-            }
-            else
-            {
-                shouldDraw = (isGreenAlt && isRedTime) || (isRed && isGreenTime);
-            }
+            bool shouldDraw = (isYellow && isYellowTime) ||
+                (isRed && redPhase) ||
+                ((isGreen || isGreenAlt) && greenPhase);
 
             if (shouldDraw)
             {
@@ -623,7 +622,7 @@ public:
             mTimeCycle = *pattern.get_first<Timecycle*>(1);
 
             pattern = find_pattern("8B 15 ? ? ? ? 56 8D 72 01", "A1 ? ? ? ? 56 8D 70 01 81 FE");
-            DrawCorona2 = (int(__cdecl*)(int id, char r, char g, char b, float a5, CVector* pos, float radius, float a8, float a9, int a10, float a11, char a12, char a13, int a14))(pattern.get(0).get<uintptr_t>(0));
+            DrawCorona2 = (int(__cdecl*)(int id, char r, char g, char b, float a5, CVector * pos, float radius, float a8, float a9, int a10, float a11, char a12, char a13, int a14))(pattern.get(0).get<uintptr_t>(0));
 
             pattern = find_pattern("E8 ? ? ? ? 83 3D ? ? ? ? ? 74 05 E8 ? ? ? ? 6A 05", "E8 ? ? ? ? 83 3D ? ? ? ? 00 74 05 E8 ? ? ? ? 6A 05");
             static raw_mem RegisterLODLightsAddr(pattern.get_first(0), { 0x90, 0x90, 0x90, 0x90, 0x90 });
@@ -681,7 +680,8 @@ public:
             pattern = find_pattern("F3 0F 59 45 ? F3 0F 11 45 ? 0F 28 85");
             if (!pattern.empty())
             {
-                WaterMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs) {
+                WaterMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                {
                     static auto dl = FusionFixSettings.GetRef("PREF_DISTANTLIGHTS");
                     if (dl->get())
                         regs.xmm0.f32[0] = 1.0f;
@@ -692,7 +692,8 @@ public:
                 pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 C4 F3 0F 11 45");
                 static float* dword_F17AA8 = *pattern.get_first<float*>(4);
                 injector::MakeNOP(pattern.get_first(0), 12, true);
-                WaterMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs) {
+                WaterMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                {
                     regs.xmm0.f32[0] = *dword_F17AA8;
                     static auto dl = FusionFixSettings.GetRef("PREF_DISTANTLIGHTS");
                     if (dl->get())
