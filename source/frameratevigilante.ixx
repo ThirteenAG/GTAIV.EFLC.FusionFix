@@ -414,11 +414,20 @@ public:
             // Fixes wrong order of tasks being completed at high FPS, causing stall when trying to climb ladder.
             {
                 pattern = hook::pattern("F3 0F 10 05 ? ? ? ? 83 EC ? 8B C8 F3 0F 11 44 24 ? F3 0F 10 44 24 ? C7 44 24 04 00 00 00 40");
-                injector::MakeNOP(pattern.get_first(0), 8, true);
-                static auto ClimbLadderThresholdValue = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                if (!pattern.empty())
                 {
-                    regs.xmm0.f32[0] = 0.1f; // 0.02f -> 0.1f to match CTaskSimpleSlideToCoord
-                });
+                    injector::MakeNOP(pattern.get_first(0), 8, true);
+                    static auto ClimbLadderThresholdValue = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm0.f32[0] = 0.1f; // 0.02f -> 0.1f to match CTaskSimpleSlideToCoord
+                    });
+                }
+                else
+                {
+                    static float f01 = 0.1f;
+                    pattern = hook::pattern("D9 05 ? ? ? ? 83 EC 0C D9 5C 24 ? 8B C8 D9 46 ? D9 5C 24 ? D9 44 24 ? D9 1C 24 E8 ? ? ? ? EB 02 33 C0 50 8B CF E8");
+                    injector::WriteMemory(pattern.count_hint(2).get(1).get<void*>(2), &f01, true);
+                }
             }
 
             // Physics
@@ -853,19 +862,19 @@ public:
                     static auto AutoDrunkSteerBiasHook = safetyhook::create_mid(
                         (uint8_t*)pattern.get_first(8),
                         [](SafetyHookContext& regs)
-                        {
-                            uintptr_t vehicle = getVehicleFromModRM(autoVehicleReg, regs);
-                            if (!vehicle) return;
+                    {
+                        uintptr_t vehicle = getVehicleFromModRM(autoVehicleReg, regs);
+                        if (!vehicle) return;
 
-                            float bias = *(float*)(vehicle + SteerBiasOffset);
-                            if (bias != 0.0f)
-                            {
-                                float& steer = *(float*)(vehicle + SteerOffset);
-                                steer -= bias;
-                                if (steer > 1.0f) steer = 1.0f;
-                                else if (steer < -1.0f) steer = -1.0f;
-                            }
-                        });
+                        float bias = *(float*)(vehicle + SteerBiasOffset);
+                        if (bias != 0.0f)
+                        {
+                            float& steer = *(float*)(vehicle + SteerOffset);
+                            steer -= bias;
+                            if (steer > 1.0f) steer = 1.0f;
+                            else if (steer < -1.0f) steer = -1.0f;
+                        }
+                    });
                 }
 
                 // CBike: movss [reg+SteerAngleOffset], xmm? ; cmp byte ptr [CFrontEnd::bActive], 0
@@ -896,19 +905,19 @@ public:
                     static auto BikeDrunkSteerBiasHook = safetyhook::create_mid(
                         (uint8_t*)pattern2.get_first(8),
                         [](SafetyHookContext& regs)
-                        {
-                            uintptr_t vehicle = getVehicleFromModRM(bikeVehicleReg, regs);
-                            if (!vehicle) return;
+                    {
+                        uintptr_t vehicle = getVehicleFromModRM(bikeVehicleReg, regs);
+                        if (!vehicle) return;
 
-                            float bias = *(float*)(vehicle + SteerBiasOffset);
-                            if (bias != 0.0f)
-                            {
-                                float& steer = *(float*)(vehicle + SteerOffset);
-                                steer -= bias * 0.5f;
-                                if (steer > 1.0f) steer = 1.0f;
-                                else if (steer < -1.0f) steer = -1.0f;
-                            }
-                        });
+                        float bias = *(float*)(vehicle + SteerBiasOffset);
+                        if (bias != 0.0f)
+                        {
+                            float& steer = *(float*)(vehicle + SteerOffset);
+                            steer -= bias * 0.5f;
+                            if (steer > 1.0f) steer = 1.0f;
+                            else if (steer < -1.0f) steer = -1.0f;
+                        }
+                    });
                 }
             }
         };
