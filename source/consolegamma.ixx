@@ -39,11 +39,14 @@ private:
 
     static void __fastcall OnDeviceLost()
     {
-        SAFE_RELEASE(pSceneTex);
         SAFE_RELEASE(pSceneSurf);
+        SAFE_RELEASE(pSceneTex);
 
         SAFE_RELEASE(mQuadVertexBuffer);
         SAFE_RELEASE(mQuadVertexDecl);
+
+        SAFE_RELEASE(VS_BlitGamma);
+        SAFE_RELEASE(PS_BlitGamma);
     }
 
     static void __fastcall OnDeviceReset()
@@ -67,7 +70,6 @@ private:
 
         pSceneTex->GetSurfaceLevel(0, &pSceneSurf);
 
-        // Create vertex declaration
         if (!mQuadVertexDecl)
         {
             D3DVERTEXELEMENT9 VertexDeclElements[] =
@@ -84,7 +86,6 @@ private:
             }
         }
 
-        // Create and fill the fullscreen-quad VB
         if (!mQuadVertexBuffer)
         {
             if (FAILED(pDevice->CreateVertexBuffer(6 * sizeof(VertexFormat), 0, 0, D3DPOOL_DEFAULT, &mQuadVertexBuffer, nullptr)))
@@ -109,6 +110,32 @@ private:
             VertexData[5] = { 1.0f, 1.0f, 0.0f, 1.0f + (0.5f / (float)nScreenWidth), 0.0f + (0.5f / (float)nScreenHeight) };
 
             mQuadVertexBuffer->Unlock();
+        }
+
+        HMODULE hModule = NULL;
+        GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)&Initialize, &hModule);
+
+        ID3DXBuffer* ppShader = nullptr;
+        ID3DXBuffer* ppErrorMsgs = nullptr;
+
+        if (!VS_BlitGamma)
+        {
+            if (SUCCEEDED(D3DXAssembleShaderFromResourceW(hModule, MAKEINTRESOURCEW(IDR_VS_BlitGamma), NULL, NULL, 0, &ppShader, &ppErrorMsgs)))
+            {
+                pDevice->CreateVertexShader((DWORD*)ppShader->GetBufferPointer(), &VS_BlitGamma);
+                SAFE_RELEASE(ppShader);
+                SAFE_RELEASE(ppErrorMsgs);
+            }
+        }
+
+        if (!PS_BlitGamma)
+        {
+            if (SUCCEEDED(D3DXAssembleShaderFromResourceW(hModule, MAKEINTRESOURCEW(IDR_PS_BlitGamma), NULL, NULL, 0, &ppShader, &ppErrorMsgs)))
+            {
+                pDevice->CreatePixelShader((DWORD*)ppShader->GetBufferPointer(), &PS_BlitGamma);
+                SAFE_RELEASE(ppShader);
+                SAFE_RELEASE(ppErrorMsgs);
+            }
         }
     }
 
@@ -288,7 +315,7 @@ private:
         SAFE_RELEASE(prevPS);
     }
 
-    static void Initalize()
+    static void Initialize()
     {
         static bool bInitialized = false;
         if (bInitialized)
@@ -302,33 +329,7 @@ private:
         auto OnResetCB = rage::grcDevice::Functor0(NULL, OnDeviceReset, NULL, 0);
         rage::grcDevice::RegisterDeviceCallbacks(OnLostCB, OnResetCB);
 
-        HMODULE hModule = NULL;
-        GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)&Initalize, &hModule);
-
-        ID3DXBuffer* ppShader = nullptr;
-        ID3DXBuffer* ppErrorMsgs = nullptr;
-
-        //Shader ASM
-        if (!VS_BlitGamma)
-        {
-            if (SUCCEEDED(D3DXAssembleShaderFromResourceW(hModule, MAKEINTRESOURCEW(IDR_VS_BlitGamma), NULL, NULL, 0, &ppShader, &ppErrorMsgs)))
-            {
-                pDevice->CreateVertexShader((DWORD*)ppShader->GetBufferPointer(), &VS_BlitGamma);
-                SAFE_RELEASE(ppShader);
-                SAFE_RELEASE(ppErrorMsgs);
-            }
-        }
-
-        if (!PS_BlitGamma)
-        {
-            if (SUCCEEDED(D3DXAssembleShaderFromResourceW(hModule, MAKEINTRESOURCEW(IDR_PS_BlitGamma), NULL, NULL, 0, &ppShader, &ppErrorMsgs)))
-            {
-                pDevice->CreatePixelShader((DWORD*)ppShader->GetBufferPointer(), &PS_BlitGamma);
-                SAFE_RELEASE(ppShader);
-                SAFE_RELEASE(ppErrorMsgs);
-            }
-        }
-
+        // Shader creation moved to OnDeviceReset() so they are recreated after every device loss
         OnDeviceReset();
 
         bInitialized = true;
@@ -342,7 +343,7 @@ public:
             {
                 FusionFix::onEndScene() += []()
                 {
-                    Initalize();
+                    Initialize();
                     RenderConsoleGamma();
                 };
             }
