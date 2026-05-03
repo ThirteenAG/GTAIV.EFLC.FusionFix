@@ -26,12 +26,11 @@ private:
         float TexCoord[2];
     };
 
-    static inline IDirect3DVertexBuffer9* mQuadVertexBuffer = nullptr;
-    static inline IDirect3DVertexDeclaration9* mQuadVertexDecl = nullptr;
+    static inline IDirect3DVertexBuffer9* mQuadVertexBuffer;
+    static inline IDirect3DVertexDeclaration9* mQuadVertexDecl;
 
-    // grc render target
+    // DX9 textures/surfaces
     static inline rage::grcRenderTargetPC* pSceneRT = nullptr;
-    static inline IDirect3DTexture9* pSceneTex = nullptr;
     static inline IDirect3DSurface9* pSceneSurf = nullptr;
 
     // Shaders
@@ -41,7 +40,6 @@ private:
     static void __fastcall OnDeviceLost()
     {
         SAFE_RELEASE(pSceneSurf);
-        pSceneTex = nullptr;
 
         if (pSceneRT)
         {
@@ -51,61 +49,54 @@ private:
 
         SAFE_RELEASE(mQuadVertexBuffer);
         SAFE_RELEASE(mQuadVertexDecl);
-
-        SAFE_RELEASE(VS_BlitGamma);
-        SAFE_RELEASE(PS_BlitGamma);
     }
 
     static void __fastcall OnDeviceReset()
     {
         auto pDevice = rage::grcDevice::GetD3DDevice();
-        if (!pDevice) return;
+        if (!pDevice)
+            return;
 
-        // Get backbuffer resolution
         IDirect3DSurface9* pBackBuffer = GetRealBackBuffer(pDevice);
-        if (!pBackBuffer) return;
+        if (!pBackBuffer)
+            return;
 
         D3DSURFACE_DESC desc{};
         pBackBuffer->GetDesc(&desc);
-        UINT Width = desc.Width;
-        UINT Height = desc.Height;
+        auto nScreenWidth = desc.Width;
+        auto nScreenHeight = desc.Height;
         SAFE_RELEASE(pBackBuffer);
 
-        // ==================== CreateEmptyRT Workaround ====================
-        if (!pSceneRT)
-        {
-            rage::grcRenderTargetDesc rtDesc{};
-            rtDesc.mMultisampleCount = 0;
-            rtDesc.field_0 = 1;
-            rtDesc.field_12 = 1;
-            rtDesc.mDepthRT = nullptr;
-            rtDesc.field_8 = 1;
-            rtDesc.field_10 = 1;
-            rtDesc.field_11 = 1;
-            rtDesc.field_24 = false;
-            rtDesc.mFormat = rage::GRCFMT_A8R8G8B8;
-
-            auto CreateEmptyRT = [&](const char* name, uint32_t w, uint32_t h) -> rage::grcRenderTargetPC*
-            {
-                auto rt = rage::grcTextureFactory::GetInstance()->CreateRenderTarget(name, 3, w, h, 32, &rtDesc);
-
-                rage::grcDevice::grcResolveFlags resolveFlags{};
-                rage::grcTextureFactoryPC::GetInstance()->LockRenderTarget(0, rt, nullptr);
-                rage::grcTextureFactoryPC::GetInstance()->UnlockRenderTarget(0, &resolveFlags);
-
-                return rt;
-            };
-
-            pSceneRT = CreateEmptyRT("ConsoleGammaScene", Width, Height);
-        }
-
+        SAFE_RELEASE(pSceneSurf);
         if (pSceneRT)
         {
-            pSceneTex = pSceneRT->mD3DTexture;
-            pSceneRT->mD3DTexture->GetSurfaceLevel(0, &pSceneSurf);
+            pSceneRT->Destroy();
+            pSceneRT = nullptr;
         }
 
-        // Vertex Declaration
+        rage::grcRenderTargetDesc rtDesc{};
+        rtDesc.mMultisampleCount = 0;
+        rtDesc.field_0 = 1;
+        rtDesc.field_12 = 1;
+        rtDesc.mDepthRT = nullptr;
+        rtDesc.field_8 = 1;
+        rtDesc.field_10 = 1;
+        rtDesc.field_11 = 1;
+        rtDesc.field_24 = false;
+        rtDesc.mFormat = rage::getEngineTextureFormat(desc.Format);
+
+        auto rt = rage::grcTextureFactory::GetInstance()->CreateRenderTarget("ConsoleGammaScene", 3, nScreenWidth, nScreenHeight, desc.Width == nScreenWidth ? 32 : 32, &rtDesc);
+        rage::grcDevice::grcResolveFlags resolveFlags{};
+        rage::grcTextureFactoryPC::GetInstance()->LockRenderTarget(0, rt, nullptr);
+        rage::grcTextureFactoryPC::GetInstance()->UnlockRenderTarget(0, &resolveFlags);
+        pSceneRT = rt;
+
+        if (!pSceneRT || !pSceneRT->mD3DTexture)
+            return;
+
+        pSceneRT->mD3DTexture->GetSurfaceLevel(0, &pSceneSurf);
+
+        // Create vertex declaration
         if (!mQuadVertexDecl)
         {
             D3DVERTEXELEMENT9 VertexDeclElements[] =
@@ -115,58 +106,38 @@ private:
                 D3DDECL_END()
             };
 
-            pDevice->CreateVertexDeclaration(VertexDeclElements, &mQuadVertexDecl);
+            if (FAILED(pDevice->CreateVertexDeclaration(VertexDeclElements, &mQuadVertexDecl)))
+            {
+                mQuadVertexDecl = nullptr;
+                return;
+            }
         }
 
-        // Fullscreen Quad
+        // Create and fill the fullscreen-quad VB
         if (!mQuadVertexBuffer)
         {
             if (FAILED(pDevice->CreateVertexBuffer(6 * sizeof(VertexFormat), 0, 0, D3DPOOL_DEFAULT, &mQuadVertexBuffer, nullptr)))
+            {
+                mQuadVertexBuffer = nullptr;
                 return;
+            }
 
             VertexFormat* VertexData = nullptr;
-            if (SUCCEEDED(mQuadVertexBuffer->Lock(0, 0, reinterpret_cast<void**>(&VertexData), 0)))
+            if (FAILED(mQuadVertexBuffer->Lock(0, 0, reinterpret_cast<void**>(&VertexData), 0)))
             {
-                float hx = 0.5f / (float)Width;
-                float hy = 0.5f / (float)Height;
-
-                VertexData[0] = { -1.0f,  1.0f, 0.0f, 0.0f + hx, 0.0f + hy };
-                VertexData[1] = { -1.0f, -1.0f, 0.0f, 0.0f + hx, 1.0f + hy };
-                VertexData[2] = { 1.0f,  1.0f, 0.0f, 1.0f + hx, 0.0f + hy };
-                VertexData[3] = { -1.0f, -1.0f, 0.0f, 0.0f + hx, 1.0f + hy };
-                VertexData[4] = { 1.0f, -1.0f, 0.0f, 1.0f + hx, 1.0f + hy };
-                VertexData[5] = { 1.0f,  1.0f, 0.0f, 1.0f + hx, 0.0f + hy };
-
-                mQuadVertexBuffer->Unlock();
+                mQuadVertexBuffer->Release();
+                mQuadVertexBuffer = nullptr;
+                return;
             }
-        }
 
-        // Load Shaders
-        HMODULE hModule = NULL;
-        GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                           (LPCWSTR)&Initialize, &hModule);
+            VertexData[0] = { -1.0f, 1.0f, 0.0f, 0.0f + (0.5f / (float)nScreenWidth), 0.0f + (0.5f / (float)nScreenHeight) };
+            VertexData[1] = { -1.0f, -1.0f, 0.0f, 0.0f + (0.5f / (float)nScreenWidth), 1.0f + (0.5f / (float)nScreenHeight) };
+            VertexData[2] = { 1.0f, 1.0f, 0.0f, 1.0f + (0.5f / (float)nScreenWidth), 0.0f + (0.5f / (float)nScreenHeight) };
+            VertexData[3] = { -1.0f, -1.0f, 0.0f, 0.0f + (0.5f / (float)nScreenWidth), 1.0f + (0.5f / (float)nScreenHeight) };
+            VertexData[4] = { 1.0f, -1.0f, 0.0f, 1.0f + (0.5f / (float)nScreenWidth), 1.0f + (0.5f / (float)nScreenHeight) };
+            VertexData[5] = { 1.0f, 1.0f, 0.0f, 1.0f + (0.5f / (float)nScreenWidth), 0.0f + (0.5f / (float)nScreenHeight) };
 
-        ID3DXBuffer* ppShader = nullptr;
-        ID3DXBuffer* ppErrorMsgs = nullptr;
-
-        if (!VS_BlitGamma)
-        {
-            if (SUCCEEDED(D3DXAssembleShaderFromResourceW(hModule, MAKEINTRESOURCEW(IDR_VS_BlitGamma), NULL, NULL, 0, &ppShader, &ppErrorMsgs)))
-            {
-                pDevice->CreateVertexShader((DWORD*)ppShader->GetBufferPointer(), &VS_BlitGamma);
-            }
-            SAFE_RELEASE(ppShader);
-            SAFE_RELEASE(ppErrorMsgs);
-        }
-
-        if (!PS_BlitGamma)
-        {
-            if (SUCCEEDED(D3DXAssembleShaderFromResourceW(hModule, MAKEINTRESOURCEW(IDR_PS_BlitGamma), NULL, NULL, 0, &ppShader, &ppErrorMsgs)))
-            {
-                pDevice->CreatePixelShader((DWORD*)ppShader->GetBufferPointer(), &PS_BlitGamma);
-            }
-            SAFE_RELEASE(ppShader);
-            SAFE_RELEASE(ppErrorMsgs);
+            mQuadVertexBuffer->Unlock();
         }
     }
 
@@ -185,16 +156,17 @@ private:
     static void RenderConsoleGamma()
     {
         static auto cg = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA");
-        if (!cg->get()) return;
+        if (!cg->get())
+            return;
 
         auto pDevice = rage::grcDevice::GetD3DDevice();
-        if (!pDevice || !pSceneRT || !pSceneSurf || !VS_BlitGamma || !PS_BlitGamma || !mQuadVertexDecl || !mQuadVertexBuffer)
+        if (!pDevice || !pSceneRT || !pSceneRT->mD3DTexture || !pSceneSurf || !VS_BlitGamma || !PS_BlitGamma || !mQuadVertexDecl || !mQuadVertexBuffer)
             return;
 
         IDirect3DSurface9* pRealBB = GetRealBackBuffer(pDevice);
-        if (!pRealBB) return;
+        if (!pRealBB)
+            return;
 
-        // Capture current frame
         IDirect3DSurface9* pCurrentRT = nullptr;
         pDevice->GetRenderTarget(0, &pCurrentRT);
         if (pCurrentRT)
@@ -203,123 +175,193 @@ private:
             SAFE_RELEASE(pCurrentRT);
         }
 
-        // Save previous state
-        DWORD prevCullMode, prevZEnable, prevZWrite, prevZFunc, prevAlphaBlend, prevAlphaTest, prevScissor, prevLighting, prevFog;
-        pDevice->GetRenderState(D3DRS_CULLMODE, &prevCullMode);
-        pDevice->GetRenderState(D3DRS_ZENABLE, &prevZEnable);
-        pDevice->GetRenderState(D3DRS_ZWRITEENABLE, &prevZWrite);
-        pDevice->GetRenderState(D3DRS_ZFUNC, &prevZFunc);
-        pDevice->GetRenderState(D3DRS_ALPHABLENDENABLE, &prevAlphaBlend);
-        pDevice->GetRenderState(D3DRS_ALPHATESTENABLE, &prevAlphaTest);
-        pDevice->GetRenderState(D3DRS_SCISSORTESTENABLE, &prevScissor);
-        pDevice->GetRenderState(D3DRS_LIGHTING, &prevLighting);
-        pDevice->GetRenderState(D3DRS_FOGENABLE, &prevFog);
+        DWORD prevAddressV = 0;
+        DWORD prevAddressU = 0;
+        DWORD prevAddressW = 0;
+        DWORD prevMinFilter = 0;
+        DWORD prevMagFilter = 0;
+        DWORD prevMipFilter = 0;
 
-        DWORD prevAddressU, prevAddressV, prevAddressW, prevMin, prevMag, prevMip;
-        pDevice->GetSamplerState(0, D3DSAMP_ADDRESSU, &prevAddressU);
-        pDevice->GetSamplerState(0, D3DSAMP_ADDRESSV, &prevAddressV);
-        pDevice->GetSamplerState(0, D3DSAMP_ADDRESSW, &prevAddressW);
-        pDevice->GetSamplerState(0, D3DSAMP_MINFILTER, &prevMin);
-        pDevice->GetSamplerState(0, D3DSAMP_MAGFILTER, &prevMag);
-        pDevice->GetSamplerState(0, D3DSAMP_MIPFILTER, &prevMip);
+        DWORD prevCullMode = 0;
+        DWORD prevZEnable = 0;
+        DWORD prevZWriteEnable = 0;
+        DWORD prevZFunc = 0;
+        DWORD prevAlphaBlendEnable = 0;
+        DWORD prevAlphaTestEnable = 0;
+        DWORD prevScissorTestEnable = 0;
+        DWORD prevLighting = 0;
+        DWORD prevFogEnable = 0;
 
+        // Previous surfaces, depth/stencil, textures, shaders
         IDirect3DSurface9* prevSurface = nullptr;
-        IDirect3DSurface9* prevDS = nullptr;
-        pDevice->GetRenderTarget(0, &prevSurface);
-        pDevice->GetDepthStencilSurface(&prevDS);
+        IDirect3DSurface9* prevDepthStencilSurface = nullptr;
 
-        IDirect3DVertexDeclaration9* prevDecl = nullptr;
-        IDirect3DVertexBuffer9* prevVB = nullptr;
-        UINT prevOffset = 0, prevStride = 0;
-        pDevice->GetVertexDeclaration(&prevDecl);
-        pDevice->GetStreamSource(0, &prevVB, &prevOffset, &prevStride);
+        IDirect3DVertexDeclaration9* prevVertexDecl = nullptr;
+        IDirect3DVertexBuffer9* prevVertexBuffer = nullptr;
+        UINT prevOffset = 0;
+        UINT prevStride = 0;
 
         IDirect3DBaseTexture9* prevTex = nullptr;
-        pDevice->GetTexture(0, &prevTex);
 
         IDirect3DVertexShader9* prevVS = nullptr;
         IDirect3DPixelShader9* prevPS = nullptr;
+
+        // Store previous sampler states, renderstates, surfaces, textures, shaders
+        pDevice->GetRenderState(D3DRS_CULLMODE, &prevCullMode);
+        pDevice->GetRenderState(D3DRS_ZENABLE, &prevZEnable);
+        pDevice->GetRenderState(D3DRS_ZWRITEENABLE, &prevZWriteEnable);
+        pDevice->GetRenderState(D3DRS_ZFUNC, &prevZFunc);
+        pDevice->GetRenderState(D3DRS_ALPHABLENDENABLE, &prevAlphaBlendEnable);
+        pDevice->GetRenderState(D3DRS_ALPHATESTENABLE, &prevAlphaTestEnable);
+        pDevice->GetRenderState(D3DRS_SCISSORTESTENABLE, &prevScissorTestEnable);
+        pDevice->GetRenderState(D3DRS_LIGHTING, &prevLighting);
+        pDevice->GetRenderState(D3DRS_FOGENABLE, &prevFogEnable);
+
+        pDevice->GetSamplerState(0, D3DSAMP_ADDRESSU, &prevAddressU);
+        pDevice->GetSamplerState(0, D3DSAMP_ADDRESSV, &prevAddressV);
+        pDevice->GetSamplerState(0, D3DSAMP_ADDRESSW, &prevAddressW);
+        pDevice->GetSamplerState(0, D3DSAMP_MINFILTER, &prevMinFilter);
+        pDevice->GetSamplerState(0, D3DSAMP_MAGFILTER, &prevMagFilter);
+        pDevice->GetSamplerState(0, D3DSAMP_MIPFILTER, &prevMipFilter);
+
+        pDevice->GetRenderTarget(0, &prevSurface);
+        pDevice->GetDepthStencilSurface(&prevDepthStencilSurface);
+
+        pDevice->GetVertexDeclaration(&prevVertexDecl);
+        pDevice->GetStreamSource(0, &prevVertexBuffer, &prevOffset, &prevStride);
+
+        pDevice->GetTexture(0, &prevTex);
+
         pDevice->GetVertexShader(&prevVS);
         pDevice->GetPixelShader(&prevPS);
 
-        // Draw gamma corrected image
         {
             pDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
             pDevice->SetRenderState(D3DRS_ZENABLE, D3DZB_FALSE);
             pDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+            pDevice->SetRenderState(D3DRS_ZFUNC, D3DCMP_ALWAYS);
             pDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+            pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
+            pDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
             pDevice->SetRenderState(D3DRS_LIGHTING, FALSE);
             pDevice->SetRenderState(D3DRS_FOGENABLE, FALSE);
 
             pDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
             pDevice->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+            pDevice->SetSamplerState(0, D3DSAMP_ADDRESSW, D3DTADDRESS_WRAP);
             pDevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
             pDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+            pDevice->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);
+
+            pDevice->SetRenderTarget(0, nullptr);
+            pDevice->SetDepthStencilSurface(nullptr);
 
             pDevice->SetRenderTarget(0, pRealBB);
-            pDevice->SetDepthStencilSurface(nullptr);
+
+            pDevice->SetVertexDeclaration(nullptr);
+            pDevice->SetStreamSource(0, nullptr, 0, 0);
 
             pDevice->SetVertexDeclaration(mQuadVertexDecl);
             pDevice->SetStreamSource(0, mQuadVertexBuffer, 0, sizeof(VertexFormat));
-            pDevice->SetTexture(0, pSceneTex);
+
+            pDevice->SetTexture(0, nullptr);
+
+            pDevice->SetTexture(0, pSceneRT->mD3DTexture);
 
             pDevice->SetVertexShader(VS_BlitGamma);
             pDevice->SetPixelShader(PS_BlitGamma);
 
             pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
+
+            SAFE_RELEASE(pRealBB);
         }
 
-        // Restore previous state
         pDevice->SetRenderState(D3DRS_CULLMODE, prevCullMode);
         pDevice->SetRenderState(D3DRS_ZENABLE, prevZEnable);
-        pDevice->SetRenderState(D3DRS_ZWRITEENABLE, prevZWrite);
+        pDevice->SetRenderState(D3DRS_ZWRITEENABLE, prevZWriteEnable);
         pDevice->SetRenderState(D3DRS_ZFUNC, prevZFunc);
-        pDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, prevAlphaBlend);
-        pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, prevAlphaTest);
-        pDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, prevScissor);
+        pDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, prevAlphaBlendEnable);
+        pDevice->SetRenderState(D3DRS_ALPHATESTENABLE, prevAlphaTestEnable);
+        pDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, prevScissorTestEnable);
         pDevice->SetRenderState(D3DRS_LIGHTING, prevLighting);
-        pDevice->SetRenderState(D3DRS_FOGENABLE, prevFog);
+        pDevice->SetRenderState(D3DRS_FOGENABLE, prevFogEnable);
 
         pDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, prevAddressU);
         pDevice->SetSamplerState(0, D3DSAMP_ADDRESSV, prevAddressV);
         pDevice->SetSamplerState(0, D3DSAMP_ADDRESSW, prevAddressW);
-        pDevice->SetSamplerState(0, D3DSAMP_MINFILTER, prevMin);
-        pDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, prevMag);
-        pDevice->SetSamplerState(0, D3DSAMP_MIPFILTER, prevMip);
+        pDevice->SetSamplerState(0, D3DSAMP_MINFILTER, prevMinFilter);
+        pDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, prevMagFilter);
+        pDevice->SetSamplerState(0, D3DSAMP_MIPFILTER, prevMipFilter);
 
         pDevice->SetRenderTarget(0, prevSurface);
-        pDevice->SetDepthStencilSurface(prevDS);
-        pDevice->SetVertexDeclaration(prevDecl);
-        pDevice->SetStreamSource(0, prevVB, prevOffset, prevStride);
+        pDevice->SetDepthStencilSurface(prevDepthStencilSurface);
+
+        pDevice->SetVertexDeclaration(prevVertexDecl);
+        pDevice->SetStreamSource(0, prevVertexBuffer, prevOffset, prevStride);
+
         pDevice->SetTexture(0, prevTex);
+
         pDevice->SetVertexShader(prevVS);
         pDevice->SetPixelShader(prevPS);
 
-        // Cleanup
-        SAFE_RELEASE(pRealBB);
+        // Release
         SAFE_RELEASE(prevSurface);
-        SAFE_RELEASE(prevDS);
-        SAFE_RELEASE(prevDecl);
-        SAFE_RELEASE(prevVB);
+        SAFE_RELEASE(prevDepthStencilSurface);
+
+        SAFE_RELEASE(prevVertexDecl);
+        SAFE_RELEASE(prevVertexBuffer);
+
         SAFE_RELEASE(prevTex);
+
         SAFE_RELEASE(prevVS);
         SAFE_RELEASE(prevPS);
     }
 
-    static void Initialize()
+    static void Initalize()
     {
         static bool bInitialized = false;
-        if (bInitialized) return;
+        if (bInitialized)
+            return;
+
+        auto pDevice = rage::grcDevice::GetD3DDevice();
+        if (!pDevice)
+            return;
 
         auto OnLostCB = rage::grcDevice::Functor0(NULL, OnDeviceLost, NULL, 0);
         auto OnResetCB = rage::grcDevice::Functor0(NULL, OnDeviceReset, NULL, 0);
         rage::grcDevice::RegisterDeviceCallbacks(OnLostCB, OnResetCB);
 
+        HMODULE hModule = NULL;
+        GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)&Initalize, &hModule);
+
+        ID3DXBuffer* ppShader = nullptr;
+        ID3DXBuffer* ppErrorMsgs = nullptr;
+
+        //Shader ASM
+        if (!VS_BlitGamma)
+        {
+            if (SUCCEEDED(D3DXAssembleShaderFromResourceW(hModule, MAKEINTRESOURCEW(IDR_VS_BlitGamma), NULL, NULL, 0, &ppShader, &ppErrorMsgs)))
+            {
+                pDevice->CreateVertexShader((DWORD*)ppShader->GetBufferPointer(), &VS_BlitGamma);
+                SAFE_RELEASE(ppShader);
+                SAFE_RELEASE(ppErrorMsgs);
+            }
+        }
+
+        if (!PS_BlitGamma)
+        {
+            if (SUCCEEDED(D3DXAssembleShaderFromResourceW(hModule, MAKEINTRESOURCEW(IDR_PS_BlitGamma), NULL, NULL, 0, &ppShader, &ppErrorMsgs)))
+            {
+                pDevice->CreatePixelShader((DWORD*)ppShader->GetBufferPointer(), &PS_BlitGamma);
+                SAFE_RELEASE(ppShader);
+                SAFE_RELEASE(ppErrorMsgs);
+            }
+        }
+
         OnDeviceReset();
 
         bInitialized = true;
     }
-
 public:
     ConsoleGamma()
     {
@@ -329,7 +371,7 @@ public:
             {
                 FusionFix::onEndScene() += []()
                 {
-                    Initialize();
+                    Initalize();
                     RenderConsoleGamma();
                 };
             }
