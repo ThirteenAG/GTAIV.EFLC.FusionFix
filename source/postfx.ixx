@@ -57,78 +57,61 @@ std::optional<std::reference_wrapper<int32_t>> UsePostFxAA;
 class PostFxResource
 {
 public:
-
     ID3DXEffect* AOEffect = nullptr;
 
-    // --------- load --------- 
-    IDirect3DTexture9* SMAA_areaTex = nullptr; // loaded from file
-    IDirect3DTexture9* SMAA_searchTex = nullptr; // loaded from file
+    // --------- load ---------
+    IDirect3DTexture9* SMAA_areaTex = nullptr;
+    IDirect3DTexture9* SMAA_searchTex = nullptr;
 
-    // --------- game textures --------- 
-    IDirect3DTexture9* FullScreenTex = nullptr; // game hdr texture
-    IDirect3DTexture9* HalfScreenTex = nullptr; // game half res screen texture
-    // IDirect3DTexture9* pQuarterHDRTex = nullptr; //  game 1/4 res screen texture
-    // IDirect3DTexture9* CascadeAtlasTex = nullptr;
-    // IDirect3DSurface9* CascadeAtlasSurf = nullptr;
+    // --------- game textures ---------
+    IDirect3DTexture9* FullScreenTex = nullptr;
+    IDirect3DTexture9* HalfScreenTex = nullptr;
 
-    // IDirect3DTexture9* NormalTex = nullptr;
     IDirect3DTexture9* DiffuseTex = nullptr;
     IDirect3DTexture9* SpecularTex = nullptr;
     IDirect3DTexture9* DepthTex = nullptr;
-    // IDirect3DTexture9* StencilTex = nullptr;
-    // IDirect3DTexture9* BloomTex = nullptr;
-    // IDirect3DTexture9* CurrentLumTex = nullptr;
-
 
     //------- full screen ---------
-    // postfx textures created
-    rage::grcRenderTargetPC* FullScreenTex_temp1 = nullptr; // main temp texture
-    rage::grcRenderTargetPC* FullScreenTex_temp2 = nullptr; // main temp texture
-
-    //rage::grcRenderTargetPC* pShadowBlurTex1 = nullptr; // main shadow temp texture
-    //rage::grcRenderTargetPC* pShadowBlurTex2 = nullptr; // main shadow temp texture
+    rage::grcRenderTargetPC* FullScreenTex_temp1 = nullptr;
+    rage::grcRenderTargetPC* FullScreenTex_temp2 = nullptr;
 
     // smaa textures
-    rage::grcRenderTargetPC* edgesTex = nullptr; // smaa gen
-    rage::grcRenderTargetPC* blendTex = nullptr; // smaa gen
+    rage::grcRenderTargetPC* edgesTex = nullptr;
+    rage::grcRenderTargetPC* blendTex = nullptr;
 
-    // temp set and used in postfx
+    // temp
     IDirect3DTexture9* renderTargetTex = nullptr;
     IDirect3DTexture9* textureRead = nullptr;
     IDirect3DSurface9* renderTargetSurf = nullptr;
     IDirect3DSurface9* surfaceRead = nullptr;
 
+    // Ambient Occlusion Textures
     IDirect3DTexture9* AOCamDepthTex = nullptr;
     IDirect3DTexture9* AOTex = nullptr;
     IDirect3DTexture9* AOBlurTex = nullptr;
+
     std::vector<IDirect3DSurface9*> AOCamDepthSurf = {};
     IDirect3DSurface9* AOSurf = nullptr;
     IDirect3DSurface9* AOBlurSurf = nullptr;
     bool AOEnabled = true;
 
+    rage::grcRenderTargetPC* AOCamDepthRT = nullptr;
+    rage::grcRenderTargetPC* AORT = nullptr;
+    rage::grcRenderTargetPC* AOBlurRT = nullptr;
+
     // Pre alpha pass depth texture copy
     rage::grcRenderTargetPC* PreAlphaDepthCopyRT = nullptr;
 
     //-------- half resolution screen --------------
-    rage::grcRenderTargetPC* FullScreenDownsampleTex = nullptr; // main downsampled texture
-    rage::grcRenderTargetPC* FullScreenDownsampleTex2 = nullptr; // main downsampled texture
-
+    rage::grcRenderTargetPC* FullScreenDownsampleTex = nullptr;
+    rage::grcRenderTargetPC* FullScreenDownsampleTex2 = nullptr;
 
     // game render targets
-    // rage::grcRenderTargetPC* mSpecularAoRT = nullptr;
-    // rage::grcRenderTargetPC* mNormalRT = nullptr;
     rage::grcRenderTargetPC* mDiffuseRT = nullptr;
     rage::grcRenderTargetPC* mSpecularRT = nullptr;
     rage::grcRenderTargetPC* mDepthRT = nullptr;
-    // rage::grcRenderTargetPC* mStencilRT = nullptr;
     rage::grcRenderTargetPC* mFullScreenRT = nullptr;
-    // rage::grcRenderTargetPC* mFullScreenRT2 = nullptr;
     rage::grcRenderTargetPC* mHalfScreenRT = nullptr;
-    // rage::grcRenderTargetPC* mCascadeAtlasRT = nullptr;
-    // rage::grcRenderTargetPC* mQuarterScreenRT = nullptr;
-    // rage::grcRenderTargetPC* mBloomRT = nullptr;
-    // rage::grcRenderTargetPC* mCurrentLum = nullptr;
-
 
     // surfaces
     IDirect3DSurface9* FullScreenSurface = nullptr;
@@ -139,58 +122,29 @@ public:
     IDirect3DSurface9* backBuffer = nullptr;
     IDirect3DSurface9* edgesSurf = nullptr;
     IDirect3DSurface9* blendSurf = nullptr;
-    //IDirect3DSurface9* pShadowBlurSurf1 = nullptr;
-    //IDirect3DSurface9* pShadowBlurSurf2 = nullptr;
-
     IDirect3DSurface9* PreAlphaDepthSurface = nullptr;
     IDirect3DSurface9* HDRFullScreenSurface = nullptr;
 
     // shaders
     IDirect3DPixelShader9* FxaaPS = nullptr;
-
     IDirect3DPixelShader9* SSDraw_PS = nullptr;
     IDirect3DPixelShader9* SSAdd_PS = nullptr;
     IDirect3DPixelShader9* SSPrepass_PS = nullptr;
-    // IDirect3DPixelShader9* SSAO_gen_ps = nullptr;
-    // IDirect3DPixelShader9* SSAO_blend_ps = nullptr;
-
-
     IDirect3DPixelShader9* dof_blur_ps = nullptr;
     IDirect3DPixelShader9* dof_coc_ps = nullptr;
-
     IDirect3DPixelShader9* depth_of_field_tent_ps = nullptr;
-
     IDirect3DPixelShader9* stipple_filter_ps = nullptr;
-
     IDirect3DPixelShader9* SMAA_EdgeDetection = nullptr;
     IDirect3DPixelShader9* SMAA_BlendingWeightsCalculation = nullptr;
     IDirect3DPixelShader9* SMAA_NeighborhoodBlending = nullptr;
     IDirect3DVertexShader9* SMAA_EdgeDetectionVS = nullptr;
     IDirect3DVertexShader9* SMAA_BlendingWeightsCalculationVS = nullptr;
     IDirect3DVertexShader9* SMAA_NeighborhoodBlendingVS = nullptr;
-
     IDirect3DPixelShader9* Blit_PS = nullptr;
 
-    //IDirect3DPixelShader9* DeferredShadowGen_ps = nullptr;
-    //IDirect3DPixelShader9* DeferredShadowBlurH_ps = nullptr;
-    //IDirect3DPixelShader9* DeferredShadowBlurV_ps = nullptr;
-    //IDirect3DPixelShader9* DeferredShadowBlurCircle_ps = nullptr;
-    // IDirect3DPixelShader9* deferred_lighting_PS1 = nullptr;
-    // IDirect3DPixelShader9* deferred_lighting_PS2 = nullptr;
-
-    // IDirect3DPixelShader9* CascadeAtlasGen = nullptr;
-
-    //std::unordered_map<IDirect3DPixelShader9*, int> ShaderListPS;
-    //std::unordered_map<IDirect3DVertexShader9*, int> ShaderListVS;
-
     bool EnablePostfx = false;
-
-    // 0 off, 1 horizontal, 2 vertical, 3 horizontal e vertical.
-    //int useScreenSpaceShadowsBlur = 3;
     bool useStippleFilter = true;
-
     bool shadersLoaded = false;
-
     bool bEnablePreAlphaDepth = false;
 
     int nAmbientOcclusionSamples = 9;
@@ -207,7 +161,6 @@ public:
     struct
     {
         D3DXHANDLE AOTexture2D, AOCamDepthTexture2D, DepthTex2D;
-
         D3DXHANDLE vec2InvViewportSize;
         D3DXHANDLE fNearPlane;
         D3DXHANDLE fFarPlane;
@@ -535,71 +488,25 @@ public:
 
     void ReleaseTextures()
     {
-        // NormalTex = nullptr;
         DiffuseTex = nullptr;
-        // SpecularTex = nullptr;
-        // StencilTex = nullptr;
-        // BloomTex = nullptr;
-        // CurrentLumTex = nullptr;
-        // DepthTex = nullptr;
-        // CascadeAtlasTex = nullptr;
-
         FullScreenTex = nullptr;
         HalfScreenTex = nullptr;
-        // pQuarterHDRTex = nullptr;
 
-        if (FullScreenTex_temp1)
-        {
-            FullScreenTex_temp1->Destroy();
-            FullScreenTex_temp1 = nullptr;
-        }
+        if (FullScreenTex_temp1) { FullScreenTex_temp1->Destroy(); FullScreenTex_temp1 = nullptr; }
+        if (FullScreenTex_temp2) { FullScreenTex_temp2->Destroy(); FullScreenTex_temp2 = nullptr; }
+        if (edgesTex) { edgesTex->Destroy(); edgesTex = nullptr; }
+        if (blendTex) { blendTex->Destroy(); blendTex = nullptr; }
+        if (FullScreenDownsampleTex) { FullScreenDownsampleTex->Destroy(); FullScreenDownsampleTex = nullptr; }
+        if (FullScreenDownsampleTex2) { FullScreenDownsampleTex2->Destroy(); FullScreenDownsampleTex2 = nullptr; }
+        if (PreAlphaDepthCopyRT) { PreAlphaDepthCopyRT->Destroy(); PreAlphaDepthCopyRT = nullptr; }
 
-        if (FullScreenTex_temp2)
-        {
-            FullScreenTex_temp2->Destroy();
-            FullScreenTex_temp2 = nullptr;
-        }
+        if (AOCamDepthRT) { AOCamDepthRT->Destroy(); AOCamDepthRT = nullptr; }
+        if (AORT) { AORT->Destroy();         AORT = nullptr; }
+        if (AOBlurRT) { AOBlurRT->Destroy();     AOBlurRT = nullptr; }
 
-        if (edgesTex)
-        {
-            edgesTex->Destroy();
-            edgesTex = nullptr;
-        }
-
-        if (blendTex)
-        {
-            blendTex->Destroy();
-            blendTex = nullptr;
-        }
-
-        if (FullScreenDownsampleTex)
-        {
-            FullScreenDownsampleTex->Destroy();
-            FullScreenDownsampleTex = nullptr;
-        }
-
-        if (FullScreenDownsampleTex2)
-        {
-            FullScreenDownsampleTex2->Destroy();
-            FullScreenDownsampleTex2 = nullptr;
-        }
-
-        if (PreAlphaDepthCopyRT)
-        {
-            PreAlphaDepthCopyRT->Destroy();
-            PreAlphaDepthCopyRT = nullptr;
-        }
-        //if (pShadowBlurTex1)
-        //{
-        //    pShadowBlurTex1->Destroy();
-        //    pShadowBlurTex1 = nullptr;
-        //}
-        //
-        //if (pShadowBlurTex2)
-        //{
-        //    pShadowBlurTex2->Destroy();
-        //    pShadowBlurTex2 = nullptr;
-        //}
+        SAFE_RELEASE(AOCamDepthTex);
+        SAFE_RELEASE(AOTex);
+        SAFE_RELEASE(AOBlurTex);
     }
 
     bool ShadersFinishedLoading()
@@ -762,8 +669,7 @@ private:
     {
         PostFxResources.ReleaseTextures();
 
-        // PostFxResources.mSpecularAoRT    =nullptr;
-        // PostFxResources.mNormalRT        =nullptr;
+        // Reset game render target pointers
         PostFxResources.mDiffuseRT = nullptr;
         // PostFxResources.mSpecularRT      =nullptr;
         // PostFxResources.mDepthRT         =nullptr;
@@ -776,6 +682,7 @@ private:
         // PostFxResources.mBloomRT         =nullptr;
         // PostFxResources.mCurrentLum      =nullptr;
 
+        // Release fullscreen quad resources
         if (mQuadVertexBuffer)
         {
             mQuadVertexBuffer->Release();
@@ -788,40 +695,56 @@ private:
             mQuadVertexDecl = nullptr;
         }
 
+        // Release AO effect
         if (PostFxResources.AOEffect)
             PostFxResources.AOEffect->OnLostDevice();
 
+        // Release AO surfaces
         for (auto i = 0; i < PostFxResources.nAmbientOcclusionMaxMipLevel; ++i)
             SAFE_RELEASE(PostFxResources.AOCamDepthSurf[i]);
 
         SAFE_RELEASE(PostFxResources.AOSurf);
         SAFE_RELEASE(PostFxResources.AOBlurSurf);
 
+        // Release AO textures
         SAFE_RELEASE(PostFxResources.AOCamDepthTex);
         SAFE_RELEASE(PostFxResources.AOTex);
         SAFE_RELEASE(PostFxResources.AOBlurTex);
+
+        // Release grc render targets
+        if (PostFxResources.AOCamDepthRT)
+        {
+            PostFxResources.AOCamDepthRT->Destroy();
+            PostFxResources.AOCamDepthRT = nullptr;
+        }
+        if (PostFxResources.AORT)
+        {
+            PostFxResources.AORT->Destroy();
+            PostFxResources.AORT = nullptr;
+        }
+        if (PostFxResources.AOBlurRT)
+        {
+            PostFxResources.AOBlurRT->Destroy();
+            PostFxResources.AOBlurRT = nullptr;
+        }
     }
 
     static void __fastcall OnDeviceReset()
     {
-        // PostFxResources.mNormalRT       = rage::grcTextureFactoryPC::GetRTByName( "_DEFERRED_GBUFFER_1_"  );
+        // Retrieve game render targets
         PostFxResources.mDiffuseRT = rage::grcTextureFactoryPC::GetRTByName("_DEFERRED_GBUFFER_0_");
         PostFxResources.mSpecularRT = rage::grcTextureFactoryPC::GetRTByName("_DEFERRED_GBUFFER_2_");
         PostFxResources.mDepthRT = rage::grcTextureFactoryPC::GetRTByName("_DEFERRED_GBUFFER_3_");
-        // PostFxResources.mStencilRT      = rage::grcTextureFactoryPC::GetRTByName( "_STENCIL_BUFFER_"      );
-        // PostFxResources.mCascadeAtlasRT = rage::grcTextureFactoryPC::GetRTByName( "CASCADE_ATLAS"         );
         PostFxResources.mFullScreenRT = rage::grcTextureFactoryPC::GetRTByName("FullScreenCopy");
-        // PostFxResources.mFullScreenRT2  = rage::grcTextureFactoryPC::GetRTByName( "FullScreenCopy2"       );
         PostFxResources.mHalfScreenRT = rage::grcTextureFactoryPC::GetRTByName("Quarter Screen 0");
-        // PostFxResources.mQuarterScreenRT= rage::grcTextureFactoryPC::GetRTByName( "Blur Screen 0"         );
-        // PostFxResources.mBloomRT        = rage::grcTextureFactoryPC::GetRTByName( "Blur Screen 2 Copy"    );
-        // PostFxResources.mCurrentLum     = rage::grcTextureFactoryPC::GetRTByName( "Current Lum"           );
 
         auto width = *rage::grcDevice::ms_nActiveWidth;
         auto height = *rage::grcDevice::ms_nActiveHeight;
 
+        // Create other postfx textures
         PostFxResources.createTextures(width, height, hm);
 
+        // Create fullscreen quad
         D3DVERTEXELEMENT9 vertexDeclElements[] =
         {
             {0, 0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
@@ -833,44 +756,83 @@ private:
 
         rage::grcDevice::GetD3DDevice()->CreateVertexBuffer(6 * sizeof(VertexFormat), 0, 0, D3DPOOL_DEFAULT, &mQuadVertexBuffer, NULL);
 
-        VertexFormat* vertexData = 0;
+        VertexFormat* vertexData = nullptr;
         D3DXVECTOR2 pixelSize = D3DXVECTOR2(1.0f / width, 1.0f / height);
 
         mQuadVertexBuffer->Lock(0, 0, (void**)&vertexData, 0);
 
         vertexData[0] = { -1.0f - pixelSize.x, -1.0f + pixelSize.y, 0.0f, 0.0f, 1.0f };
         vertexData[1] = { -1.0f - pixelSize.x,  1.0f + pixelSize.y, 0.0f, 0.0f, 0.0f };
-        vertexData[2] = { 1.0f - pixelSize.x, -1.0f + pixelSize.y, 0.0f, 1.0f, 1.0f };
+        vertexData[2] = { 1.0f - pixelSize.x,  -1.0f + pixelSize.y, 0.0f, 1.0f, 1.0f };
         vertexData[3] = { -1.0f - pixelSize.x,  1.0f + pixelSize.y, 0.0f, 0.0f, 0.0f };
-        vertexData[4] = { 1.0f - pixelSize.x,  1.0f + pixelSize.y, 0.0f, 1.0f, 0.0f };
-        vertexData[5] = { 1.0f - pixelSize.x, -1.0f + pixelSize.y, 0.0f, 1.0f, 1.0f };
+        vertexData[4] = { 1.0f - pixelSize.x,   1.0f + pixelSize.y, 0.0f, 1.0f, 0.0f };
+        vertexData[5] = { 1.0f - pixelSize.x,  -1.0f + pixelSize.y, 0.0f, 1.0f, 1.0f };
 
         mQuadVertexBuffer->Unlock();
 
         if (PostFxResources.AOEffect)
             PostFxResources.AOEffect->OnResetDevice();
 
+        // Cleanup previous resources
         SAFE_RELEASE(PostFxResources.AOCamDepthTex);
         SAFE_RELEASE(PostFxResources.AOTex);
         SAFE_RELEASE(PostFxResources.AOBlurTex);
+
+        if (PostFxResources.AOCamDepthRT) { PostFxResources.AOCamDepthRT->Destroy(); PostFxResources.AOCamDepthRT = nullptr; }
+        if (PostFxResources.AORT) { PostFxResources.AORT->Destroy();         PostFxResources.AORT = nullptr; }
+        if (PostFxResources.AOBlurRT) { PostFxResources.AOBlurRT->Destroy();     PostFxResources.AOBlurRT = nullptr; }
+
         for (auto i = 0; i < PostFxResources.nAmbientOcclusionMaxMipLevel; ++i)
             SAFE_RELEASE(PostFxResources.AOCamDepthSurf[i]);
+
         SAFE_RELEASE(PostFxResources.AOSurf);
         SAFE_RELEASE(PostFxResources.AOBlurSurf);
-        auto pDevice = rage::grcDevice::GetD3DDevice();
 
-        pDevice->CreateTexture(width, height, PostFxResources.nAmbientOcclusionMaxMipLevel, D3DUSAGE_RENDERTARGET,
-            D3DFMT_R32F, D3DPOOL_DEFAULT, &PostFxResources.AOCamDepthTex, nullptr);
-        pDevice->CreateTexture(width, height, 1, D3DUSAGE_RENDERTARGET,
-            D3DFMT_L8, D3DPOOL_DEFAULT, &PostFxResources.AOTex, nullptr);
-        pDevice->CreateTexture(width, height, 1, D3DUSAGE_RENDERTARGET,
-            D3DFMT_L8, D3DPOOL_DEFAULT, &PostFxResources.AOBlurTex, nullptr);
+        rage::grcRenderTargetDesc desc{};
+        desc.mMultisampleCount = 0;
+        desc.field_0 = 1;
+        desc.field_12 = 1;
+        desc.mDepthRT = nullptr;
+        desc.field_8 = 1;
+        desc.field_10 = 1;
+        desc.field_11 = 1;
+        desc.field_24 = false;
 
-        for (auto i = 0; i < PostFxResources.nAmbientOcclusionMaxMipLevel; ++i)
-            PostFxResources.AOCamDepthTex->GetSurfaceLevel(i, &PostFxResources.AOCamDepthSurf[i]);
+        auto CreateEmptyRT = [](const char* name, int32_t a2, uint32_t w, uint32_t h, uint32_t bpp, rage::grcRenderTargetDesc* d) -> rage::grcRenderTargetPC*
+        {
+            auto rt = rage::grcTextureFactory::GetInstance()->CreateRenderTarget(name, a2, w, h, bpp, d);
+            rage::grcDevice::grcResolveFlags resolveFlags{};
+            rage::grcTextureFactoryPC::GetInstance()->LockRenderTarget(0, rt, nullptr);
+            rage::grcTextureFactoryPC::GetInstance()->UnlockRenderTarget(0, &resolveFlags);
+            return rt;
+        };
 
-        PostFxResources.AOTex->GetSurfaceLevel(0, &PostFxResources.AOSurf);
-        PostFxResources.AOBlurTex->GetSurfaceLevel(0, &PostFxResources.AOBlurSurf);
+        // AOCamDepthTex - R32F with mip levels
+        desc.mFormat = rage::GRCFMT_R32F;
+        PostFxResources.AOCamDepthRT = CreateEmptyRT("AOCamDepth", 3, width, height, 32, &desc);
+        PostFxResources.AOCamDepthTex = PostFxResources.AOCamDepthRT ? PostFxResources.AOCamDepthRT->mD3DTexture : nullptr;
+
+        // AOTex - L8
+        desc.mFormat = rage::GRCFMT_L8;
+        PostFxResources.AORT = CreateEmptyRT("AO", 3, width, height, 8, &desc);
+        PostFxResources.AOTex = PostFxResources.AORT ? PostFxResources.AORT->mD3DTexture : nullptr;
+
+        // AOBlurTex - L8
+        PostFxResources.AOBlurRT = CreateEmptyRT("AOBlur", 3, width, height, 8, &desc);
+        PostFxResources.AOBlurTex = PostFxResources.AOBlurRT ? PostFxResources.AOBlurRT->mD3DTexture : nullptr;
+
+        // Get surfaces for rendering
+        if (PostFxResources.AOCamDepthTex)
+        {
+            for (auto i = 0; i < PostFxResources.nAmbientOcclusionMaxMipLevel; ++i)
+                PostFxResources.AOCamDepthTex->GetSurfaceLevel(i, &PostFxResources.AOCamDepthSurf[i]);
+        }
+
+        if (PostFxResources.AOTex)
+            PostFxResources.AOTex->GetSurfaceLevel(0, &PostFxResources.AOSurf);
+
+        if (PostFxResources.AOBlurTex)
+            PostFxResources.AOBlurTex->GetSurfaceLevel(0, &PostFxResources.AOBlurSurf);
     }
 
     static void Init()

@@ -8,7 +8,8 @@ import common;
 import comvars;
 import settings;
 
-namespace CGameLogic {
+namespace CGameLogic
+{
     GameRef<uint32_t> GameState;
 }
 
@@ -30,45 +31,46 @@ public:
     // game originally only tried playing DEATH_MUSIC_6
     static void DeathMusicsprintf(char* buffer, size_t size, const char* music_string, uint32_t index)
     {
-        sprintf_s(buffer, size, music_string, GetRandomNumberInRange(1,6));
+        sprintf_s(buffer, size, music_string, GetRandomNumberInRange(1, 6));
     }
 
     deathmusic()
     {
         FusionFix::onInitEvent() += []()
+        {
+            CIniReader iniReader("");
+
+            auto bDeathMusic = iniReader.ReadInteger("MISC", "DeathMusic", 0) != 0;
+            if (bDeathMusic)
             {
-                CIniReader iniReader("");
+                // restores check for is dead / getting arrested, restoring this makes the death music play (clippy95)
+                auto pattern = find_pattern("83 3D ? ? ? ? 00 75 ? E8 ? ? ? ? 39 05");
+                if (!pattern.empty())
+                {
+                    CGameLogic::GameState.SetAddress(*pattern.get_first<uint32_t*>(2));
 
-                auto bDeathMusic = iniReader.ReadInteger("MISC", "DeathMusic", 0) != 0;
-                if (bDeathMusic) {
-                    // restores check for is dead / getting arrested, restoring this makes the death music play (clippy95)
-                    static auto pattern = find_pattern("83 3D ? ? ? ? 00 75 ? E8 ? ? ? ? 39 05");
+                    pattern = find_pattern("E8 ? ? ? ? 84 C0 0F 84 ? ? ? ? C7 86 ? ? ? ? 00 00 00 00 C7 86 ? ? ? ? 00 00 00 00", "E8 ? ? ? ? 84 C0 0F 84 ? ? ? ? 0F 57 C0 F3 0F 11 86");
+                    auto call1 = pattern.get_first();
+                    pattern = find_pattern("E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? C7 86 ? ? ? ? ? ? ? ? E9");
+                    auto call2 = pattern.get_first();
+                    pattern = find_pattern("E8 ? ? ? ? 84 C0 74 ? 8B BE ? ? ? ? 85 FF", "E8 ? ? ? ? 84 C0 74 ? 8B BE ? ? ? ? 3B FB");
+                    auto call3 = pattern.get_first();
 
-                    if (!pattern.empty()) {
+                    if (call1 && call2 && call3)
+                    {
+                        injector::MakeCALL(call1, AreWeDeadOrGettingArrested);
+                        injector::MakeCALL(call2, AreWeDeadOrGettingArrested);
+                        injector::MakeCALL(call3, AreWeDeadOrGettingArrested);
+                    }
 
-                        CGameLogic::GameState.SetAddress(*pattern.get_first<uint32_t*>(2));
-
-                        pattern = find_pattern("E8 ? ? ? ? 84 C0 0F 84 ? ? ? ? C7 86 ? ? ? ? 00 00 00 00 C7 86 ? ? ? ? 00 00 00 00");
-                        auto call1 = pattern.get_first();
-                        pattern = find_pattern("E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? C7 86 ? ? ? ? ? ? ? ? E9");
-                        auto call2 = pattern.get_first();
-                        pattern = find_pattern("E8 ? ? ? ? 84 C0 74 ? 8B BE ? ? ? ? 85 FF");
-                        auto call3 = pattern.get_first();
-
-                        if (call1 && call2 && call3) {
-                            injector::MakeCALL(call1, AreWeDeadOrGettingArrested);
-                            injector::MakeCALL(call2, AreWeDeadOrGettingArrested);
-                            injector::MakeCALL(call3, AreWeDeadOrGettingArrested);
-                        }
-
-                        pattern = find_pattern("E8 ? ? ? ? 83 C4 ? 8D 4C 24 ? E8 ? ? ? ? FF 35 ? ? ? ? 8D 44 24");
-                        if (!pattern.empty()) {
-                            injector::MakeCALL(pattern.get_first(), DeathMusicsprintf);
-                        }
-
+                    pattern = find_pattern("E8 ? ? ? ? 83 C4 ? 8D 4C 24 ? E8 ? ? ? ? FF 35 ? ? ? ? 8D 44 24", "E8 ? ? ? ? 83 C4 ? 8D 8C 24 ? ? ? ? E8 ? ? ? ? 8B 15 ? ? ? ? 52");
+                    if (!pattern.empty())
+                    {
+                        injector::MakeCALL(pattern.get_first(), DeathMusicsprintf);
                     }
                 }
+            }
 
-            };
+        };
     }
 } deathmusic;
