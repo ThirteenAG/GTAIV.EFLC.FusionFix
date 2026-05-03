@@ -1,0 +1,164 @@
+module;
+
+#include <common.hxx>
+
+export module preloadlist;
+
+import common;
+import comvars;
+
+std::vector<std::string> gFxcNames{};
+std::vector<std::string> gFxcLoadedNames{};
+
+namespace rage
+{
+    void* ASSET = nullptr;
+
+    namespace fiAssetManager
+    {
+        int (__stdcall* FindPath)(void* assetManager, void*) = nullptr;
+    }
+
+    namespace grmShaderFxTemplate
+    {
+        SafetyHookInline shLoadIntoSlot = {};
+        void __fastcall LoadIntoSlot(const char* a1, int a2)
+        {
+            if (a1)
+                gFxcLoadedNames.push_back(a1);
+            return shLoadIntoSlot.unsafe_fastcall(a1, a2);
+        }
+
+        SafetyHookInline shLoadIntoSlotEFLC = {};
+        void __cdecl LoadIntoSlotEFLC(const char* a1, int a2)
+        {
+            if (a1)
+                gFxcLoadedNames.push_back(a1);
+            return shLoadIntoSlotEFLC.unsafe_ccall(a1, a2);
+        }
+    }
+
+    namespace grmShaderFactoryStandard
+    {
+        static auto ResolveVirtualPath(const char* in) -> std::filesystem::path
+        {
+            if (!in || !*in)
+                return {};
+
+            std::string s(in);
+
+            std::replace(s.begin(), s.end(), '\\', '/');
+
+            s.erase(std::remove_if(s.begin(), s.end(), [](char c)
+            {
+                return !std::isalnum(c) && c != '/' && c != '.' && c != '_' && c != '-' && c != ' ';
+            }), s.end());
+
+            while (!s.empty() && (s.front() == '/' || s.front() == '.'))
+                s.erase(s.begin());
+
+            if (!s.empty() && s.back() == '/')
+                s.pop_back();
+
+            std::wstring path;
+            path.resize(MAX_PATH, L'\0');
+            if (!UAL::GetOverloadPathW || !UAL::GetOverloadPathW(path.data(), path.size()))
+            {
+                path = GetExeModulePath() / L"update";
+            }
+
+            return std::filesystem::path(path.data()) / std::filesystem::path(s);
+        }
+
+        static auto CollectFxcNames(const std::filesystem::path& dir) -> std::vector<std::string>
+        {
+            std::vector<std::string> out;
+            std::error_code ec;
+
+            if (dir.empty() || !std::filesystem::exists(dir, ec) || !std::filesystem::is_directory(dir, ec))
+                return out;
+
+            std::filesystem::recursive_directory_iterator it(dir, std::filesystem::directory_options::skip_permission_denied | std::filesystem::directory_options::follow_directory_symlink, ec);
+            std::filesystem::recursive_directory_iterator end;
+
+            for (; !ec && it != end; it.increment(ec))
+            {
+                std::error_code fileEc;
+                if (!it->is_regular_file(fileEc))
+                    continue;
+
+                auto ext = it->path().extension().string();
+                if (iequals(ext, ".fxc"))
+                    out.push_back(it->path().stem().string());
+            }
+
+            std::sort(out.begin(), out.end());
+            out.erase(std::unique(out.begin(), out.end()), out.end());
+            return out;
+        }
+
+        SafetyHookInline shPreloadShaders = {};
+        void __fastcall PreloadShaders(void* a1, void* edx, char* a2, bool a3)
+        {
+            static bool scanned = false;
+            if (!scanned)
+            {
+                auto realPath = ResolveVirtualPath(a2);
+                gFxcNames = CollectFxcNames(realPath);
+                scanned = true;
+            }
+
+            shPreloadShaders.unsafe_fastcall(a1, edx, a2, a3);
+
+            if (!gFxcNames.empty())
+            {
+                for (const auto& loaded : gFxcLoadedNames)
+                {
+                    std::erase_if(gFxcNames, [&](const std::string& name)
+                    {
+                        return iequals(name, loaded);
+                    });
+                }
+            }
+
+            for (const auto& name : gFxcNames)
+            {
+                if (rage::grmShaderFxTemplate::shLoadIntoSlot)
+                    rage::grmShaderFxTemplate::shLoadIntoSlot.unsafe_fastcall(name.c_str(), rage::fiAssetManager::FindPath(rage::ASSET, nullptr));
+
+                if (rage::grmShaderFxTemplate::shLoadIntoSlotEFLC)
+                    rage::grmShaderFxTemplate::shLoadIntoSlotEFLC.unsafe_ccall(name.c_str(), rage::fiAssetManager::FindPath(rage::ASSET, nullptr));
+            }
+
+            gFxcNames.clear();
+            gFxcLoadedNames.clear();
+        }
+    };
+}
+
+class PreloadList
+{
+public:
+    PreloadList()
+    {
+        FusionFix::onInitEvent() += []()
+        {
+            auto pattern = find_pattern("B9 ? ? ? ? E8 ? ? ? ? 8B F8 85 FF 0F 84 ? ? ? ? 83 EC", "B9 ? ? ? ? E8 ? ? ? ? 8B F8 3B FB");
+            rage::ASSET = *pattern.get_first<void*>(1);
+
+            pattern = find_pattern("81 EC ? ? ? ? B9 ? ? ? ? 53 55", "81 EC ? ? ? ? 53 56 8B B4 24 ? ? ? ? 57 56", "81 EC ? ? ? ? 53 55 56 8B B4 24 ? ? ? ? 57");
+            rage::grmShaderFactoryStandard::shPreloadShaders = safetyhook::create_inline(pattern.get_first(), rage::grmShaderFactoryStandard::PreloadShaders);
+
+            pattern = find_pattern("E8 ? ? ? ? 8B D8 68 ? ? ? ? 8D 84 24", "E8 ? ? ? ? 8B E8 68");
+            rage::fiAssetManager::FindPath = (decltype(rage::fiAssetManager::FindPath))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+
+            pattern = find_pattern("E8 ? ? ? ? 68 ? ? ? ? 8D 84 24 ? ? ? ? 50 8D 4C 24");
+            if (!pattern.empty())
+                rage::grmShaderFxTemplate::shLoadIntoSlot = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first(0)).as_int(), rage::grmShaderFxTemplate::LoadIntoSlot);
+
+            pattern = find_pattern("E8 ? ? ? ? 83 C4 ? 68 ? ? ? ? 8D 44 24 ? 50 8D 8C 24");
+            if (!pattern.empty())
+                rage::grmShaderFxTemplate::shLoadIntoSlotEFLC = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first(0)).as_int(), rage::grmShaderFxTemplate::LoadIntoSlotEFLC);
+        };
+    }
+} PreloadList;

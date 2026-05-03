@@ -13,3 +13,5 @@ echo D | xcopy "%%i" "%win32_30%" /K /H /Y
 )
 
 echo D | xcopy "%cd%/shaders/GTAIV.EFLC.FusionShaders/resources" "%cd%/data/update" /K /H /Y /S
+
+del /F /Q "%cd%\data\update\common\shaders\preload.list" 2>nul
