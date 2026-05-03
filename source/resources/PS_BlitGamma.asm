@@ -57,6 +57,6 @@
     dp2add r0.w, r1.xy, c3.xy, c3.w
     frc r0.w, r0.w
     add r0.w, r0.w, c4.x
-    mad_sat oC0.xyz, r0.w, c4.y, r0.xyz
+    mad oC0.xyz, r0.w, c4.y, r0.xyz
 
 // approximately 27 instruction slots used (1 texture, 26 arithmetic)
