@@ -495,9 +495,9 @@ public:
 
             // Heli downwash effect
             {
-                pattern = find_pattern("56 8B F1 8B 46 ? 85 C0 74 ? 8B 88 ? ? ? ? 85 C9 74 ? FF 74 24 ? E8 ? ? ? ? 85 C0 78 ? F3 0F 10 44 24",
-                                       "56 8B F1 8B 46 ? 85 C0 74 ? 8B 80 ? ? ? ? 85 C0 74 ? 8B 4C 24 ? E8 ? ? ? ? 85 C0 7C ? F3 0F 10 44 24");
-                rage::ptxEffectInst::shSetEvolutionTime = safetyhook::create_inline(pattern.get_first(0), rage::ptxEffectInst::SetEvolutionTime);
+                // pattern = find_pattern("56 8B F1 8B 46 ? 85 C0 74 ? 8B 88 ? ? ? ? 85 C9 74 ? FF 74 24 ? E8 ? ? ? ? 85 C0 78 ? F3 0F 10 44 24",
+                //                        "56 8B F1 8B 46 ? 85 C0 74 ? 8B 80 ? ? ? ? 85 C0 74 ? 8B 4C 24 ? E8 ? ? ? ? 85 C0 7C ? F3 0F 10 44 24");
+                // rage::ptxEffectInst::shSetEvolutionTime = safetyhook::create_inline(pattern.get_first(0), rage::ptxEffectInst::SetEvolutionTime);
 
                 pattern = find_pattern("83 3D ? ? ? ? ? 74 ? A1 ? ? ? ? 3B 05 ? ? ? ? 75 ? 83 3D ? ? ? ? ? 74 ? 33 C0 EB ? B8 ? ? ? ? 3A 44 24",
                                        "B8 ? ? ? ? 39 05 ? ? ? ? 74 ? 8B 0D ? ? ? ? 3B 0D ? ? ? ? 75 ? 83 3D ? ? ? ? ? 74 ? 33 C0 3A 44 24");
@@ -803,7 +803,7 @@ public:
 
 
             // Native patches
-            hbSET_CAM_FOV.fun = NativeOverride::Register(Natives::NativeHashes::SET_CAM_FOV, NATIVE_SET_CAM_FOV, "E8 ? ? ? ? 83 C4 08 C3", 30);
+            // hbSET_CAM_FOV.fun = NativeOverride::Register(Natives::NativeHashes::SET_CAM_FOV, NATIVE_SET_CAM_FOV, "E8 ? ? ? ? 83 C4 08 C3", 30);
             hbSLIDE_OBJECT.fun = NativeOverride::Register(Natives::NativeHashes::SLIDE_OBJECT, NATIVE_SLIDE_OBJECT_1, "E8 ? ? ? ? 0F B6 C8", 107);
             if (!hbSLIDE_OBJECT.fun)
             {

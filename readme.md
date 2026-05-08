@@ -259,6 +259,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed vehicles being removed too early after parking it in garage in Brucie's web email vehicles theft
 - Fixed Ilyena call and Brycebug content not triggering after loading save (From Ilyena's random encounter and Stubbs' job)
 - Fixed scripted depth of field not being removed properly in several missions (e.g. "Catch the Wave")
+- Fixed several scripted cutscene camera zoom speeding up on high framerates in mission "It's your call"
 - Fixed Faustin execution animation sync issue in mission "The Master and the Molotov"
 - Fixed Playboy/Dwayne execution animations sync issues on high framerates in mission "...The Holland Play"
 - Fixed one dialogue couldn't be restored and continue if Niko is too far away from Packie in mission "Diamonds are a Girl's Best Friend"
@@ -337,8 +338,10 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Pressed radar zoom out button now will make it stay zoomed out for a few seconds
 - Fixed helicopter searchlights flickering violently when more than one helicopter is present
 - Fixed radio reset after cutscene
+- Fixed NPC lanes swerving suddenly on the Algonquin Bridge when there is a running train under it
 - Workaround for lights & motion blur flickering intermittently when player is drunk
 - Made stunt jump camera be controlled by mouse wheel when using keyboard and mouse
+- Added an option to restore unused death music in IV
 - Fixed not being able to give money to beggars normally on PC
 - Fixed TLAD phone keypad rendering on top of the plastic cover
 - Fixed TLAD incorrect traffic cops head texture
