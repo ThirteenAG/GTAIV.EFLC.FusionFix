@@ -259,7 +259,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed vehicles being removed too early after parking it in garage in Brucie's web email vehicles theft
 - Fixed Ilyena call and Brycebug content not triggering after loading save (From Ilyena's random encounter and Stubbs' job)
 - Fixed scripted depth of field not being removed properly in several missions (e.g. "Catch the Wave")
-- Fixed several scripted cutscene camera zoom speeding up on high framerates in mission "It's your call"
+- Fixed several scripted cutscene camera zoom speeding up on high framerates in mission "It's Your Call"
 - Fixed Faustin execution animation sync issue in mission "The Master and the Molotov"
 - Fixed Playboy/Dwayne execution animations sync issues on high framerates in mission "...The Holland Play"
 - Fixed one dialogue couldn't be restored and continue if Niko is too far away from Packie in mission "Diamonds are a Girl's Best Friend"
