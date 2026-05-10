@@ -353,6 +353,16 @@ public:
                 });
             }
 
+            pattern = find_pattern("E8 ? ? ? ? 83 C4 ? E8 ? ? ? ? 8B F0", "E8 ? ? ? ? 83 C4 ? E8 ? ? ? ? 8B F0 85 F6 74");
+            if (!pattern.empty())
+            {
+                static auto CCutsceneManagerPostSceneUpdateHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                {
+                    if (*CCutscenes::m_dwCutsceneState >= 10) // actually doesn't avoid the softlock if used with CCamera::isScreenFadedOut()
+                        LoadingFpsLimiter.Sync();
+                });
+            }
+
             pattern = find_pattern("FF 05 ? ? ? ? C3 E8", "83 05 ? ? ? ? ? C3 E8 ? ? ? ? 8B C8");
             if (!pattern.empty())
             {

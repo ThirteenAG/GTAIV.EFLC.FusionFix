@@ -2549,6 +2549,11 @@ export namespace CWorld
     uintptr_t* ms_listProcessControlPtrs = nullptr;
 }
 
+export namespace CCamera
+{
+    bool (__cdecl* isScreenFadedOut)() = nullptr;
+}
+
 export enum eControllerButtons
 {
     BUTTON_BUMPER_LEFT = 4,
@@ -2907,5 +2912,8 @@ public:
 
         pattern = hook::pattern("8B 35 ? ? ? ? 85 F6 74 ? 8B 0E");
         CWorld::ms_listProcessControlPtrs = *pattern.get_first<uintptr_t*>(2);
+
+        pattern = find_pattern("E8 ? ? ? ? 84 C0 74 ? F3 0F 10 86 ? ? ? ? F3 0F 58 05", "E8 ? ? ? ? 50 56 E8 ? ? ? ? 83 C4 ? E8");
+        CCamera::isScreenFadedOut = (decltype(CCamera::isScreenFadedOut))injector::GetBranchDestination(pattern.get_first()).as_int();
     }
 } Common;
