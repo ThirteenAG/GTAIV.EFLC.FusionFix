@@ -232,7 +232,7 @@ public:
                 CutsceneFpsLimiter.Init(mode, fCutsceneFpsLimit);
                 ScriptCutsceneFpsLimiter.Init(mode, fScriptCutsceneFpsLimit);
                 LoadingFpsLimiter.Init(mode, std::clamp(fLoadingFpsLimit, 30.0f, FLT_MAX));
-                LoadingFpsLimiter2.Init(mode, 240.0f);
+                LoadingFpsLimiter2.Init(mode, 60.0f);
                 MinigamesFpsLimiter.Init(mode, fMinigamesFpsLimit);
 
                 auto pattern = find_pattern("A3 ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 50 8B 08");
@@ -350,16 +350,6 @@ public:
                 static auto InfiniteLoadingWorkaround2 = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                 {
                     LoadingFpsLimiter.Sync();
-                });
-            }
-
-            pattern = find_pattern("E8 ? ? ? ? 83 C4 ? E8 ? ? ? ? 8B F0", "E8 ? ? ? ? 83 C4 ? E8 ? ? ? ? 8B F0 85 F6 74");
-            if (!pattern.empty())
-            {
-                static auto CCutsceneManagerPostSceneUpdateHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
-                {
-                    if (*CCutscenes::m_dwCutsceneState >= 10) // actually doesn't avoid the softlock if used with CCamera::isScreenFadedOut()
-                        LoadingFpsLimiter.Sync();
                 });
             }
 
