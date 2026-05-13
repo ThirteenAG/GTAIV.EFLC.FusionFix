@@ -7,11 +7,10 @@ export module postfx;
 
 import common;
 import comvars;
-import natives;
-import shaders;
-import fusiondxhook;
-import settings;
 import d3dx9_43;
+import natives;
+import settings;
+import shaders;
 
 #define IDR_FXAA                                 101
 #define IDR_SMAA                                 102
@@ -1762,32 +1761,31 @@ public:
             {
                 PostFxResources.Readini();
 
-                //if(PostFxResources.EnablePostfx)
+                auto pattern = find_pattern("E8 ? ? ? ? 8B 4F ? E8 ? ? ? ? 8B 4F ? E8 ? ? ? ? 5F", "E8 ? ? ? ? 8B 4F ? E8 ? ? ? ? 8B 4F ? E8 ? ? ? ? 33 C0");
+                hbDrawPrimitivePostFX.fun = injector::MakeCALL(pattern.get_first(0), DrawPrimitivePostFX).get();
+
+                pattern = find_pattern("E8 ? ? ? ? 8D 44 24 ? 50 8B CF E8 ? ? ? ? 8D 84 24", "E8 ? ? ? ? 8D 44 24 ? 50 8B CE E8 ? ? ? ? 8D 8C 24 ? ? ? ? 51 8B CE E8 ? ? ? ? 8D 94 24");
+                hbDrawSkyHook.fun = injector::MakeCALL(pattern.get_first(0), DrawSky).get();
+
+                pattern = find_pattern("E8 ? ? ? ? 6A ? FF B7 ? ? ? ? 8B CF FF 77 ? E8 ? ? ? ? 5F", "E8 ? ? ? ? 8B 8E ? ? ? ? 8B 56 ? 6A ? 51");
+                hbDrawCallPostFX.fun = injector::MakeCALL(pattern.get_first(0), DrawCallPostFX).get();
+
+                if (PostFxResources.bEnablePreAlphaDepth)
                 {
-                    auto pattern = find_pattern("E8 ? ? ? ? 8B 4F 60 E8 ? ? ? ? 8B 4F 60", "E8 ? ? ? ? 8B 4F 60 E8 ? ? ? ? 8B 4F 60");
-                    hbDrawPrimitivePostFX.fun = injector::MakeCALL(pattern.get_first(0), DrawPrimitivePostFX).get();
-
-                    pattern = find_pattern("E8 ? ? ? ? 8D 44 24 60 50 8B CF E8 ? ? ? ? 8D 84 24", "E8 ? ? ? ? 8D 44 24 40 50 8B CE E8 ? ? ? ? 8D 8C 24");
-                    hbDrawSkyHook.fun = injector::MakeCALL(pattern.get_first(0), DrawSky).get();
-
-                    pattern = find_pattern("E8 ? ? ? ? 6A 0A FF B7", "E8 ? ? ? ? 8B 8E ? ? ? ? 8B 56 10");
-                    hbDrawCallPostFX.fun = injector::MakeCALL(pattern.get_first(0), DrawCallPostFX).get();
-
-                    if (PostFxResources.bEnablePreAlphaDepth)
+                    pattern = hook::pattern("6A ? E8 ? ? ? ? 5E 8B E5 5D C3");
+                    if (!pattern.empty())
                     {
-                        pattern = hook::pattern("6A ? E8 ? ? ? ? 5E 8B E5 5D C3");
-                        if (!pattern.empty())
-                            hbDrawCallFog.fun = injector::MakeCALL(pattern.get_first(2), DrawCallFog).get();
-                        else
-                        {
-                            pattern = hook::pattern("6A ? 8B CE E8 ? ? ? ? 5E 8B E5");
-                            hbDrawCallFog.fun = injector::MakeCALL(pattern.get_first(4), DrawCallFog).get();
-                        }
+                        hbDrawCallFog.fun = injector::MakeCALL(pattern.get_first(2), DrawCallFog).get();
                     }
-
-                    pattern = find_pattern("55 8B EC 83 E4 ? 8B 0D ? ? ? ? 8B 15 ? ? ? ? 8B 41", "55 8B EC 83 E4 ? 8B 0D ? ? ? ? 8B 41 ? 8B 15");
-                    RenderPedAndVehicleFakeShadowsInlineHook = safetyhook::create_inline(pattern.get_first(0), RenderPedAndVehicleFakeShadows);
+                    else
+                    {
+                        pattern = hook::pattern("6A ? 8B CE E8 ? ? ? ? 5E 8B E5");
+                        hbDrawCallFog.fun = injector::MakeCALL(pattern.get_first(4), DrawCallFog).get();
+                    }
                 }
+
+                pattern = find_pattern("55 8B EC 83 E4 ? 8B 0D ? ? ? ? 8B 15 ? ? ? ? 8B 41", "55 8B EC 83 E4 ? 8B 0D ? ? ? ? 8B 41 ? 8B 15");
+                RenderPedAndVehicleFakeShadowsInlineHook = safetyhook::create_inline(pattern.get_first(0), RenderPedAndVehicleFakeShadows); 
             }
         };
     }
