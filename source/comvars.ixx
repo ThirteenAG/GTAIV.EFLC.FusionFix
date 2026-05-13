@@ -2554,6 +2554,11 @@ export namespace CCamera
     bool (__cdecl* isScreenFadedOut)() = nullptr;
 }
 
+export namespace CTreeImposters
+{
+    float* ms_windAng = nullptr;
+}
+
 export enum eControllerButtons
 {
     BUTTON_BUMPER_LEFT = 4,
@@ -2915,5 +2920,16 @@ public:
 
         pattern = find_pattern("E8 ? ? ? ? 84 C0 74 ? F3 0F 10 86 ? ? ? ? F3 0F 58 05", "E8 ? ? ? ? 50 56 E8 ? ? ? ? 83 C4 ? E8");
         CCamera::isScreenFadedOut = (decltype(CCamera::isScreenFadedOut))injector::GetBranchDestination(pattern.get_first()).as_int();
+
+        pattern = hook::pattern("C7 05 ? ? ? ? ? ? ? ? 0F 85 ? ? ? ? 6A ? 6A");
+        if (!pattern.empty())
+        {
+            CTreeImposters::ms_windAng = *pattern.get_first<float*>(2);
+        }
+        else
+        {
+            pattern = hook::pattern("F3 0F 11 05 ? ? ? ? 0F 85");
+            CTreeImposters::ms_windAng = *pattern.get_first<float*>(4);
+        }
     }
 } Common;
