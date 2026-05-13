@@ -2008,19 +2008,20 @@ export namespace CCamera
 
 export namespace CTimer
 {
-    float* fTimeStep;
-    float* fTimeScale1;
-    float* fTimeScale2;
+    float* fTimeStep = nullptr;
+    float* fTimeScale1 = nullptr;
+    float* fTimeScale2 = nullptr;
     uint8_t* m_UserPause = nullptr;
     uint8_t* m_CodePause = nullptr;
     int32_t* m_snTimeInMilliseconds = nullptr;
     int32_t* m_snTimeInMillisecondsPauseMode = nullptr;
 }
 
-export namespace CTimeCycle
+export namespace TimeCycle
 {
-    void(__cdecl* Initialise)() = nullptr;
-    void(__cdecl* InitialiseModifiers)() = nullptr;
+    void (__cdecl* Initialise)() = nullptr;
+    void (__cdecl* InitialiseModifiers)() = nullptr;
+    float* m_InteriorBlendStrength = nullptr;
 }
 
 export namespace CWeather
@@ -2706,10 +2707,13 @@ public:
         CViewport3DScene::pStencilRT = *pattern.get_first<rage::grcRenderTargetPC**>(1);
 
         pattern = find_pattern("55 8B EC 83 E4 F0 81 EC ? ? ? ? 8B 0D ? ? ? ? 53 0F B7 41 04", "55 8B EC 83 E4 F0 81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 8B 0D ? ? ? ? 0F B7 41 04");
-        CTimeCycle::Initialise = pattern.get_first<void(__cdecl)()>(0);
+        TimeCycle::Initialise = pattern.get_first<void(__cdecl)()>(0);
 
         pattern = find_pattern("68 ? ? ? ? E8 ? ? ? ? 68 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 68");
-        CTimeCycle::InitialiseModifiers = pattern.get_first<void(__cdecl)()>(0);
+        TimeCycle::InitialiseModifiers = pattern.get_first<void(__cdecl)()>(0);
+
+        pattern = find_pattern("F3 0F 11 05 ? ? ? ? F3 0F 10 4F", "F3 0F 11 05 ? ? ? ? D9 05 ? ? ? ? F3 0F 10 43");
+        TimeCycle::m_InteriorBlendStrength = *pattern.get_first<float*>(4);
 
         pattern = find_pattern("56 57 6A 00 FF 74 24 10 8B F9 E8 ? ? ? ? 0F B7 77 0C", "8B 44 24 04 56 57 6A 00 50 8B F9");
         rage::grmShaderInfo::getParamIndex = (decltype(rage::grmShaderInfo::getParamIndex))pattern.get_first(0);

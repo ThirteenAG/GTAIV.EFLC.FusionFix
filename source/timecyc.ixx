@@ -5,11 +5,11 @@ module;
 export module timecyc;
 
 import common;
-import settings;
 import comvars;
 import natives;
-import timecycext;
 import seasonal;
+import settings;
+import timecycext;
 
 float fVolFogFarClip = 4500.0f;
 
@@ -344,7 +344,7 @@ public:
             fVolFogFarClip = iniReader.ReadFloat("FOG", "VolFogFarClip", 4500.0f);
 
             FusionFixSettings.SetCallback("PREF_TIMECYC", [](int32_t value) {
-                CTimeCycle::Initialise();
+                TimeCycle::Initialise();
                 bMenuNeedsUpdate = 200;
             });
 
@@ -408,12 +408,12 @@ public:
             injector::MakeCALL(pattern.get_first(0), timecyc_scanf, true);
 
             FusionFixSettings.SetCallback("PREF_TCYC_DOF", [](int32_t value) {
-                CTimeCycle::Initialise();
+                TimeCycle::Initialise();
                 bMenuNeedsUpdate = 200;
             });
 
             FusionFixSettings.SetCallback("PREF_BLOOM", [](int32_t value) {
-                CTimeCycle::Initialise();
+                TimeCycle::Initialise();
                 bMenuNeedsUpdate = 200;
             });
 
@@ -422,8 +422,8 @@ public:
             });
 
             FusionFixSettings.SetCallback("PREF_VOLUMETRICFOG", [](int32_t value) {
-                CTimeCycle::Initialise();
-                CTimeCycle::InitialiseModifiers();
+                TimeCycle::Initialise();
+                TimeCycle::InitialiseModifiers();
                 bMenuNeedsUpdate = 200;
             });
 

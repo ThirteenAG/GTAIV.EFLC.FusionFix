@@ -10,10 +10,9 @@ export module settings;
 import common;
 import comvars;
 import d3dx9_43;
-import fusiondxhook;
 import gxtloader;
-import timecycext;
 import natives;
+import timecycext;
 
 namespace CText
 {
@@ -1260,8 +1259,8 @@ public:
                     auto curState = IsKeyboardKeyPressed(VK_F3);
                     if (!oldState && curState)
                     {
-                        CTimeCycle::Initialise();
-                        CTimeCycle::InitialiseModifiers();
+                        TimeCycle::Initialise();
+                        TimeCycle::InitialiseModifiers();
                     }
                     oldState = curState;
                 };
