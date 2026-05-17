@@ -230,6 +230,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored console player transparency on air hockey minigame
 - Restored traffic cops in toll booths
 - Restored non-cop pedestrians in helicopters flying around city
+- Restored missing book from one kind of preacher's hands in IV
 - Restored own unique soda can model for eCola vending machines instead of reusing Sprunk ones
 - Restored TLAD combat shotgun own unique prop model (prop_e1_pumpshot) instead of reusing IV model (cj_prop_pumpshot)
 - Restored the gun shop owner own unique model (M_M_GunNut_01) instead of using the strip club bouncer model (M_Y_bouncer_01)
