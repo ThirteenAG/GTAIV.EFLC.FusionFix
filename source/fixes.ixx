@@ -1102,6 +1102,18 @@ public:
                 }
             }
 
+            // Fix for time going backwards when dying between 12pm and 11pm, and respraying between 9pm and 11:59pm https://github.com/GTAmodding/GTAIV-Issues-List/issues/164
+            {
+                auto pattern = find_pattern("6A ? 56 53 55 E8 ? ? ? ? 69 FF", "6A ? 53 55 56");
+
+                uint8_t* ptr = (uint8_t*)pattern.get_first(0);
+                injector::scoped_unprotect protect{ptr, 3};
+                // push day register
+                ptr[0] = ptr[2];
+                // push 0xFF
+                ptr[1] = 0x6A;
+                ptr[2] = 0xFF;
+            }
         };
     }
 } Fixes;
