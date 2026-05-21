@@ -337,6 +337,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored console rain density
 - Sped up menu and pause transitions
 - Pressed radar zoom out button now will make it stay zoomed out for a few seconds
+- Fixed date advancement after dead, busted and respraying
 - Fixed helicopter searchlights flickering violently when more than one helicopter is present
 - Fixed radio reset after cutscene
 - Fixed NPC lanes swerving suddenly on the Algonquin Bridge when there is a running train under it
