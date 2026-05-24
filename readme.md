@@ -194,10 +194,11 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Added an option to allow depth related postfx effect to render behind transparent objects properly
 - Added an option to apply MSAA for various reflection maps
 - Made night shadows resolution be adjusted by night shadows option
+- Restored night shadow for vehicles
 - Restored higher shadow render distance from old versions of the game
 - Improved cascaded shadows performance, and added an option to double their resolution
 - Added dynamic shadows for trees
-- Reduced water flickering issue (need to disable **Extra Night Shadows**)
+- Reduced water flickering issue (only when **Extra Night Shadows** is off)
 - Added several cheat code to enable seasonal events, restore some unused player assets for Niko and Johnny, and spawn some vehicles in TLAD and TBoGT, they can be found hidden in relevant locations, or finding them [here](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/blob/master/source/cheats.ixx)
 
 ### Scripts
@@ -210,27 +211,27 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed possible crash when The Lost clubhouse memorial wall photos are full
 - Fixed busker script terminating too early in TBoGT, now Luis can give money to buskers normally
 - Fixed Armando and Henrique's respect not increasing after finishing hang out friend activity
-- Restored Star Junction BurgerShot blip in TBoGT
+- Restored Star Junction Burger Shot blip in TBoGT
 
 #### Controls
 
-- Fixed bowling ball rolling direction control speeding up on high framerates when using controller
-- Fixed computer web mouse sensitivity decreasing on high framerates when using keyboard and mouse
-- Fixed computer web scrolling speeding up on high framerates when using controller
-- Fixed phone and binocular camera zoom speeding up on high framerates
-- Fixed golf shot aiming sensitivity decreasing on high framerates when using keyboard and mouse
-- Fixed some scripted look-around camera movements speeding up on high framerates when using controller, and improved their mouse controls
+- Fixed bowling ball rolling direction control speeding up at high frame rates when using controller
+- Fixed computer web mouse sensitivity decreasing at high frame rates when using keyboard and mouse
+- Fixed computer web scrolling speeding up at high frame rates when using controller
+- Fixed phone and binocular camera zoom speeding up at high frame rates
+- Fixed golf shot aiming sensitivity decreasing at high frame rates when using keyboard and mouse
+- Fixed some scripted look-around camera movements speeding up at high frame rates when using controller, and improved their mouse controls
 - Added support to use mouse wheel when using phone keypad
 
 #### Models
 
-- Fixed some object animations speeding up on high framerates, like gun car weapon and pinsetter
+- Fixed some object animations speeding up at high frame rates, like gun car weapon and pinsetter
 - Fixed pool ball shadows flickering in Playboy apartment's pool table
 - Restored transparency on pool minigame
 - Restored console player transparency on air hockey minigame
 - Restored traffic cops in toll booths
 - Restored non-cop pedestrians in helicopters flying around city
-- Restored missing book from one kind of preacher's hands in IV
+- Restored missing book from one kind of preacher in IV
 - Restored own unique soda can model for eCola vending machines instead of reusing Sprunk ones
 - Restored TLAD combat shotgun own unique prop model (prop_e1_pumpshot) instead of reusing IV model (cj_prop_pumpshot)
 - Restored the gun shop owner own unique model (M_M_GunNut_01) instead of using the strip club bouncer model (M_Y_bouncer_01)
@@ -260,35 +261,37 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed vehicles being removed too early after parking it in garage in Brucie's web email vehicles theft
 - Fixed Ilyena call and Brycebug content not triggering after loading save (From Ilyena's random encounter and Stubbs' job)
 - Fixed scripted depth of field not being removed properly in several missions (e.g. "Catch the Wave")
-- Fixed several scripted cutscene camera zoom speeding up on high framerates in mission "It's Your Call"
+- Fixed certain scripted cutscene camera zoom speeding up at high frame rates in some missions (e.g. "It's Your Call")
 - Fixed Faustin execution animation sync issue in mission "The Master and the Molotov"
-- Fixed Playboy/Dwayne execution animations sync issues on high framerates in mission "...The Holland Play"
+- Fixed Playboy/Dwayne execution animations sync issues at high frame rates in mission "...The Holland Play"
 - Fixed one dialogue couldn't be restored and continue if Niko is too far away from Packie in mission "Diamonds are a Girl's Best Friend"
 - Fixed the FIB arriving too early at the abandoned mansion in mission "To Live and Die in Alderney"
-- Fixed the truck climb QTE becoming harder on high framerates in mission "Truck Hustle"
-- Fixed the heli climb QTE being impossible on really high framerates
+- Fixed the truck climb QTE becoming harder at high frame rates in mission "Truck Hustle"
+- Fixed the heli climb QTE being impossible at really high frame rates
 - Workaround for a bug where Niko dies after being kicked off of Dimitri's helicopter and falling into the water (Deal Ending)
-- Workaround for a bug where Jacob crashes the Annihilator on high framerates (Deal Ending)
+- Workaround for a bug where Jacob crashes the Annihilator at high frame rates (Deal Ending)
 - Workaround for possible issue where one burned target fails to fall from hotel rooftop in mission "Late Checkout"
-- Workaround for a bug where Turismo fails to hit Jeff on high framerates in Jeff's final encounter
-- Workaround for burning Angels of Death member not triggering ragdoll and falling down on high framerates in mission "Action/Reaction"
-- Workaround for one scripted cutscene ending too late on high framerates in TBoGT ending credits
+- Workaround for a bug where Turismo fails to hit Jeff at high frame rates in Jeff's final encounter
+- Workaround for burning Angels of Death member not triggering ragdoll and falling down at high frame rates in mission "Action/Reaction"
+- Workaround for one scripted cutscene ending too late at high frame rates in TBoGT ending credits
 - Fixed TLAD intro scripted cutscene cutting off distant world in several shots
 - Fixed Johnny being invisible in the second intro cutscene
 - Fixed possible issue where mission fails to continue for a significant amount of time even though Johnny has been close to Roman's Taxi in mission "Roman's Holiday"
 - Fixed Roman sometimes lacking clothes model or using incorrect clothes textures in TLAD ending credits
 - Fixed Malc's motorcycle using incorrect colors in TLAD ending credits
 - Fixed Yusuf's hand passing through the crane cabin glass during one scripted cutscene in mission "Caught With Your Pants Down"
-- Fixed Luis' movement on top of subway train speeding up on high framerates in mission "For The Man Who Has Everything" and TBoGT ending credits
+- Fixed Luis' movement on top of subway train speeding up at high frame rates in mission "For The Man Who Has Everything" and TBoGT ending credits
 - Fixed delayed animations in two scripted cutscenes in mission "Departure Time"
 - Fixed Luis sometimes leaving cover automatically while shooting behind cover in Bulgarin's plane in mission "Departure Time"
 
 #### Misc
 
-- Fixed several sprite drawing speeding up on high framerates
-- Fixed computer email typing speeding up on high framerates
-- Fixed phone vibrate and photo taking speeding up on high framerates
+- Fixed some sprite drawing speeding up at high frame rates, like phone animated background
+- Fixed darts aim shake becoming weaker at high frame rates
+- Fixed computer email typing speeding up at high frame rates
+- Fixed phone vibrate and photo taking speeding up at high frame rates
 - Fixed phone being not usable after giving money to buskers
+- Fixed using phone camera will terminate beggar script immediately
 - Fixed ammo reset when buying different pistol from gun shop in IV
 - Fixed ammo reset when buying different weapon from gun shop in TLAD/TBoGT
 - The Desert Eagle and Micro SMG are now using their unique sounds when viewing them (required modifying the animation dictionary "missgunlockup.wad")
@@ -340,9 +343,9 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed date advancement after dead, busted and respraying
 - Fixed helicopter searchlights flickering violently when more than one helicopter is present
 - Fixed radio reset after cutscene
-- Fixed NPC lanes swerving suddenly on the Algonquin Bridge when there is a running train under it
+- Fixed NPC lanes swerving suddenly on the Algonquin Bridge when there is a train under it
 - Workaround for lights & motion blur flickering intermittently when player is drunk
-- Made stunt jump camera be controlled by mouse wheel when using keyboard and mouse
+- Made stunt jump camera speed be controlled by mouse wheel when using keyboard and mouse
 - Added an option to restore unused death music in IV
 - Fixed not being able to give money to beggars normally on PC
 - Fixed TLAD phone keypad rendering on top of the plastic cover
@@ -436,7 +439,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed particles flickering in some interiors
 - Fixed stuttery particle animations caused by patch 1.0.5.0
 - Fixed rain being almost invisible, especially at night
-- Fixed rain streaks becoming shorter at high framerates
+- Fixed rain streaks becoming shorter at high frame rates
 
 #### Water
 
