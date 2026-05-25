@@ -426,43 +426,43 @@ public:
                 }
                     
                 pattern = hook::pattern("83 3D ? ? ? ? ? 75 0C 80 3D ? ? ? ? ? 74 03"); // Check if player had a parachute
-                    if (!pattern.empty())
-                        injector::MakeNOP(pattern.get_first(7), 2, true);
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
 
                 pattern = hook::pattern("83 3D ? ? ? ? ? 75 20 E8 ? ? ? ? 85 C0"); // Check for parachute during savegame
-                    if (!pattern.empty())
-                        injector::MakeNOP(pattern.get_first(7), 2, true);
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
 
                 pattern = hook::pattern("83 3D ? ? ? ? ? 75 18 0F B6 05"); // Check for parachute during savegame
-                    if (!pattern.empty())
-                        injector::MakeNOP(pattern.get_first(7), 2, true);
-                    else {
-                        pattern = hook::pattern("83 3D ? ? ? ? ? 75 0D 80 7E 7D 00");
-                        injector::MakeNOP(pattern.get_first(7), 2, true);
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                else {
+                    pattern = hook::pattern("83 3D ? ? ? ? ? 75 0D 80 7E 7D 00");
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
                 }
 
                 pattern = hook::pattern("83 3D ? ? ? ? ? 5D 75 1E"); // Give parachute during load save
-                    if (!pattern.empty())
-                        injector::MakeNOP(pattern.get_first(8), 2, true);
-                    else {
-                        pattern = hook::pattern("83 3D ? ? ? ? ? 75 1E E8");
-                        injector::MakeNOP(pattern.get_first(7), 2, true);
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(8), 2, true);
+                else {
+                    pattern = hook::pattern("83 3D ? ? ? ? ? 75 1E E8");
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
                 }
 
                 pattern = hook::pattern("83 3D ? ? ? ? ? 53 57 8B 7C 24 20"); // TBoGT counter anims fix
-                    if (!pattern.empty())
-                        injector::MakeNOP(pattern.get_first(15), 2, true);
-                    else {
-                        pattern = hook::pattern("83 3D ? ? ? ? ? 53 55 8B 6C 24 20");
-                        injector::MakeNOP(pattern.get_first(21), 2, true);
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(15), 2, true);
+                else {
+                    pattern = hook::pattern("83 3D ? ? ? ? ? 53 55 8B 6C 24 20");
+                    injector::MakeNOP(pattern.get_first(21), 2, true);
                 }
 
                 pattern = hook::pattern("83 3D ? ? ? ? ? 75 36 80 7B 28 00"); // TBoGT counter anims fix
-                    if (!pattern.empty())
-                        injector::MakeNOP(pattern.get_first(7), 2, true);
-                    else {
-                        pattern = hook::pattern("39 1D ? ? ? ? 75 2A 80 7F 28 00");
-                        injector::MakeNOP(pattern.get_first(7), 2, true);
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                else {
+                    pattern = hook::pattern("39 1D ? ? ? ? 75 2A 80 7F 28 00");
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
                 }
             }
             

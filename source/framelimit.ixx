@@ -216,7 +216,7 @@ public:
                 }
             } catch (const std::exception&)
             {
-                minigamesNames = { "pool_game", "air_hockey", "arm_wrestling", "tenpinbowl", "darts", "drinking" };
+                minigamesNames = { "pool_game", "air_hockey", "arm_wrestling", "tenpinbowl", "drinking" };
             }
             bUnlockFramerateDuringLoadscreens = iniReader.ReadInteger("FRAMELIMIT", "UnlockFramerateDuringLoadscreens", 0) != 0;
 
