@@ -168,13 +168,13 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - [Fixed various issues related to high frame rates](https://github.com/GTAmodding/GTAIV-Issues-List/issues/112)
 - [Added various frame limiting options to address fps related issues](https://github.com/GTAmodding/GTAIV-Issues-List/issues/1)
 - [Fixed aiming zoom in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/19)
-- [Fixed P90 being selectable in vehicles on keyboard](https://github.com/GTAmodding/GTAIV-Issues-List/issues/90)
 - [Fixed possible crash when manually dialing a phone number using the keypad in TLAD](https://github.com/GTAmodding/GTAIV-Issues-List/issues/232)
 - [Fixed possible crash in TLAD mission "Marta Full of Grace"](https://github.com/GTAmodding/GTAIV-Issues-List/issues/235)
 - [Added an option to fix a bug that only make taxis spawn](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/issues/85)
 - [Added a file overload solution that allows to replace game files without actually replacing them](https://github.com/ThirteenAG/Ultimate-ASI-Loader?tab=readme-ov-file#update-folder-overload-from-folder)
 - Added IMG Loader (from update folder)
-- Added GXT Overloading, allow game to load additional gxt files to overwrite vanilla lines or add new lines, without changing vanilla gxt files
+- Added GXT Overloading, allow game to load additional gxt files to overwrite vanilla lines or add new lines, without editing vanilla gxt files
+- Added a solution to add entries to shader preload list dynamically
 - Increased corona limit to avoid heavy flickering of game's lights
 - Improved ultrawide support
 - Fixed improper VRAM detection on some setups
@@ -270,7 +270,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed the heli climb QTE being impossible at really high frame rates
 - Workaround for a bug where Niko dies after being kicked off of Dimitri's helicopter and falling into the water (Deal Ending)
 - Workaround for a bug where Jacob crashes the Annihilator at high frame rates (Deal Ending)
-- Workaround for possible issue where one burned target fails to fall from hotel rooftop in mission "Late Checkout"
+- Workaround for a bug where one burned target fails to fall from hotel rooftop in mission "Late Checkout"
 - Workaround for a bug where Turismo fails to hit Jeff at high frame rates in Jeff's final encounter
 - Workaround for burning Angels of Death member not triggering ragdoll and falling down at high frame rates in mission "Action/Reaction"
 - Workaround for one scripted cutscene ending too late at high frame rates in TBoGT ending credits
@@ -279,7 +279,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed possible issue where mission fails to continue for a significant amount of time even though Johnny has been close to Roman's Taxi in mission "Roman's Holiday"
 - Fixed Roman sometimes lacking clothes model or using incorrect clothes textures in TLAD ending credits
 - Fixed Malc's motorcycle using incorrect colors in TLAD ending credits
-- Fixed Yusuf's hand passing through the crane cabin glass during one scripted cutscene in mission "Caught With Your Pants Down"
+- Fixed some nitro related behavior speeding up at high frame rates in mission "This Ain't Checkers" and Triathlon
+- Fixed Yusuf's incorrect position during one scripted cutscene in mission "Caught With Your Pants Down"
 - Fixed Luis' movement on top of subway train speeding up at high frame rates in mission "For The Man Who Has Everything" and TBoGT ending credits
 - Fixed delayed animations in two scripted cutscenes in mission "Departure Time"
 - Fixed Luis sometimes leaving cover automatically while shooting behind cover in Bulgarin's plane in mission "Departure Time"
@@ -328,7 +329,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored particle file from console, and fixed some broken particles
 - Restored environment reflection intensity from consoles
 - Added an option to restore the more reflective cars from consoles
-- Fixed incorrect water texture and post processing noise tiling on "Water Quality" levels other than medium
+- Fixed incorrect water texture and post processing noise tiling on **Water Quality** levels other than medium
 - Restored Xbox360 contrast slider behavior
 - Disabled Z-write behavior for emissive shaders to fix some visual issues
 - Improved phone screen resolution
@@ -340,10 +341,11 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored console rain density
 - Sped up menu and pause transitions
 - Pressed radar zoom out button now will make it stay zoomed out for a few seconds
-- Fixed date advancement after dead, busted and respraying
+- Fixed date skip after dying, being busted or respraying at certain time
 - Fixed helicopter searchlights flickering violently when more than one helicopter is present
 - Fixed radio reset after cutscene
 - Fixed NPC lanes swerving suddenly on the Algonquin Bridge when there is a train under it
+- Partially fixed P90 being selectable in vehicles on keyboard
 - Workaround for lights & motion blur flickering intermittently when player is drunk
 - Made stunt jump camera speed be controlled by mouse wheel when using keyboard and mouse
 - Added an option to restore unused death music in IV
