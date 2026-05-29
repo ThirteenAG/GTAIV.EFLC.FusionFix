@@ -237,51 +237,6 @@ void __fastcall HoodCameraBumping(float* this_ptr, void*, float* vehicle, float*
     this_ptr[187] = angvel[3];
 }
 
-std::unordered_map<int, float> last_fov_values;
-std::unordered_map<int, bool> fov_cache_initialized;
-injector::hook_back<decltype(&Natives::SetCamFov)> hbSET_CAM_FOV;
-void __cdecl NATIVE_SET_CAM_FOV(int cam, float targetFOV)
-{
-    float fov;
-    Natives::GetCamFov(cam, &fov);
-
-    if (fov_cache_initialized.find(cam) == fov_cache_initialized.end() || !fov_cache_initialized[cam])
-    {
-        last_fov_values[cam] = fov;
-        fov_cache_initialized[cam] = true;
-    }
-
-    // Calculate how much the original code wanted to increment
-    float desired_increment = targetFOV - last_fov_values[cam];
-
-    // Define a threshold for what constitutes a "small increment" vs a "jump"
-    constexpr float SMALL_INCREMENT_THRESHOLD = 0.06f; // Adjust this value as needed
-
-    float new_fov;
-
-    if (fabsf(desired_increment) <= SMALL_INCREMENT_THRESHOLD)
-    {
-        // Small increment - apply time-based scaling
-        float time_scaled_increment = desired_increment * *CTimer::fTimeStep / (1.0f / 30.0f);
-        new_fov = fov + time_scaled_increment;
-    }
-    else
-    {
-        // Large jump - apply immediately without time scaling
-        new_fov = targetFOV;
-        // Reset the cache since we're jumping to a new value
-        last_fov_values[cam] = targetFOV;
-    }
-
-    // Update cache only for small increments
-    if (fabsf(desired_increment) <= SMALL_INCREMENT_THRESHOLD)
-    {
-        last_fov_values[cam] = targetFOV;
-    }
-
-    return hbSET_CAM_FOV.fun(cam, new_fov);
-}
-
 injector::hook_back<decltype(&Natives::SlideObject)> hbSLIDE_OBJECT;
 bool __cdecl NATIVE_SLIDE_OBJECT_1(Object object, float x, float y, float z, float xs, float ys, float zs, bool flag)
 {
@@ -336,18 +291,6 @@ namespace CPhysics
             CPhysics::PostSimUpdate(NumTimeSlices, std::clamp(sliceDt, 1.0f / 150.0f, FLT_MAX));
             ++NumTimeSlices;
         } while (NumTimeSlices < NUM_SLICES);
-    }
-}
-
-namespace rage
-{
-    namespace ptxEffectInst
-    {
-        SafetyHookInline shSetEvolutionTime = {};
-        void __fastcall SetEvolutionTime(void* ptxEffectInst, void* edx, char* Key, float a3)
-        {
-            return shSetEvolutionTime.unsafe_fastcall(ptxEffectInst, edx, Key, a3 * (*CTimer::fTimeStep / (1.0f / 30.0f)));
-        }
     }
 }
 
@@ -493,34 +436,55 @@ public:
                 // }
             }
 
-            // Heli downwash effect
+            // Water effects/physics
+            // Interesting insight:
+            // Because these effects are not scaled with fps in the vanilla game, they get called faster the higher the fps is, and since they are also taxing on the GPU due to heavy alpha usage,
+            // they end up hitting performance progressively as well. Absolute Cinema moment.
+            // As such, the fixes here can be considered as performance optimizations as well, at high fps at least.
             {
-                // pattern = find_pattern("56 8B F1 8B 46 ? 85 C0 74 ? 8B 88 ? ? ? ? 85 C9 74 ? FF 74 24 ? E8 ? ? ? ? 85 C0 78 ? F3 0F 10 44 24",
-                //                        "56 8B F1 8B 46 ? 85 C0 74 ? 8B 80 ? ? ? ? 85 C0 74 ? 8B 4C 24 ? E8 ? ? ? ? 85 C0 7C ? F3 0F 10 44 24");
-                // rage::ptxEffectInst::shSetEvolutionTime = safetyhook::create_inline(pattern.get_first(0), rage::ptxEffectInst::SetEvolutionTime);
-
                 pattern = find_pattern("83 3D ? ? ? ? ? 74 ? A1 ? ? ? ? 3B 05 ? ? ? ? 75 ? 83 3D ? ? ? ? ? 74 ? 33 C0 EB ? B8 ? ? ? ? 3A 44 24",
                                        "B8 ? ? ? ? 39 05 ? ? ? ? 74 ? 8B 0D ? ? ? ? 3B 0D ? ? ? ? 75 ? 83 3D ? ? ? ? ? 74 ? 33 C0 3A 44 24");
                 CWater::shAddToDynamicWaterSpeed = safetyhook::create_inline(pattern.get_first(0), CWater::AddToDynamicWaterSpeed);
 
+                // Heli downwash effect
                 pattern = hook::pattern("33 D2 F7 F7 85 D2 75");
                 if (!pattern.empty())
                 {
-                    static auto CRippleManager_RegisterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CVehicleFx_UpdateFxHeliDownwash_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        float RippleScale = std::min(*CTimer::fTimeStep * 30.0f, 1.0f);
-                        regs.edi = std::max((int)((float)regs.edi / RippleScale), 1);
+                        float f = std::min(*CTimer::fTimeStep / (1.0f / 30.0f), 1.0f);
+
+                        regs.edi = std::max((int)((float)regs.edi / f), 1);
                     });
                 }
                 else
                 {
-                    pattern = hook::pattern("33 D2 F7 F1 85 D2 75");
-                    static auto CRippleManager_RegisterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    pattern = hook::pattern("33 D2 F7 F1 85 D2 75 ? D9 44 24");
+                    static auto CVehicleFx_UpdateFxHeliDownwash_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        float RippleScale = std::min(*CTimer::fTimeStep * 30.0f, 1.0f);
-                        regs.ecx = std::max((int)((float)regs.ecx / RippleScale), 1);
+                        float f = std::min(*CTimer::fTimeStep / (1.0f / 30.0f), 1.0f);
+
+                        regs.ecx = std::max((int)((float)regs.ecx / f), 1);
                     });
                 }
+
+                // Boat ripples
+                pattern = hook::pattern("03 45 ? F7 F1");
+                static auto CWaterFx_RegisterWakePoint_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    float f = std::min(*CTimer::fTimeStep / (1.0f / 30.0f), 1.0f);
+
+                    regs.ecx = std::max((int)((float)regs.ecx / f), 1);
+                });
+
+                // Swim splashes
+                pattern = hook::pattern("03 44 24 ? F7 F1");
+                static auto CBuoyancy_ProcessSplashVfx_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    float f = std::min(*CTimer::fTimeStep / (1.0f / 30.0f), 1.0f);
+
+                    regs.ecx = std::max((int)((float)regs.ecx / f), 1);
+                });
             }
 
             // Heli rotor speed
@@ -659,22 +623,39 @@ public:
             }
 
             // Loading screen animation speed
-            // Fixes loading screen animations running at double the intended speed in comparison to consoles.
-            // That is normally pretty noticeable when using the console loading screens with the default console loadingscreens.dat files.
-            // Note: This does not fix the somewhat fps dependent loadscreen animations on itself, but just slows them down so they match consoles at 30fps.
             {
-                auto pattern = hook::pattern("F3 0F 59 0D ? ? ? ? C7 84 18");
+                // Fix Y axis loading screen animations not scaling properly with fps. Seems like Toronto forgot to also scale this.
+                pattern = find_pattern("F3 0F 58 2D ? ? ? ? F3 0F 11 AC 18");
+                if (!pattern.empty())
+                {
+                    static auto dword_18B6F30 = *pattern.get_first<float*>(4);
+
+                    pattern = hook::pattern("F3 0F 58 EC F3 0F 11 AC 18");
+                    if (!pattern.empty())
+                    {
+                        injector::MakeNOP(pattern.get_first(0), 4, true);
+                        static auto CLoadingScreens_RenderSegmentSprites_Hook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            regs.xmm5.f32[0] += *dword_18B6F30; // regs.xmm4.f32[0] --> dword_18B6F30
+                        });
+                    }
+                }
+
+                // Fix loading screen animations running at double the intended speed in comparison to consoles.
+                // That is normally pretty noticeable when using the console loading screens with the default console loadingscreens.dat files.
+                // As a side effect this also makes PC loading screens animate way slower.
+                pattern = hook::pattern("F3 0F 59 0D ? ? ? ? C7 84 18");
                 if (!pattern.empty())
                 {
                     injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto LoadingScreenAnimationSpeed1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CLoadingScreens_RenderSegmentSprites_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         regs.xmm1.f32[0] *= 33.3f; // 66.6f --> 33.3f
                     });
 
                     pattern = hook::pattern("F3 0F 59 25 ? ? ? ? C7 84 18");
                     injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto LoadingScreenAnimationSpeed2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CLoadingScreens_RenderSegmentSprites_Hook3 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         regs.xmm4.f32[0] *= 33.3f; // 66.6f --> 33.3f
                     });
@@ -683,14 +664,14 @@ public:
                 {
                     pattern = hook::pattern("F3 0F 10 15 ? ? ? ? F3 0F 59 E3 F3 0F 59 E2");
                     injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto LoadingScreenAnimationSpeed1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CLoadingScreens_RenderSegmentSprites_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         regs.xmm2.f32[0] = 33.3f; // 66.6f --> 33.3f
                     });
 
                     pattern = hook::pattern("F3 0F 10 15 ? ? ? ? F3 0F 10 A4 37");
                     injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto LoadingScreenAnimationSpeed2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CLoadingScreens_RenderSegmentSprites_Hook3 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         regs.xmm2.f32[0] = 33.3f; // 66.6f --> 33.3f
                     });
@@ -801,9 +782,41 @@ public:
             pattern = find_pattern("55 8B EC 83 E4 F0 83 EC 28 F3 0F 10 05 ? ? ? ? 56 8B 75 ? 57 6A 00", "55 8B EC 83 E4 F0 83 EC 24 F3 0F 10 05 ? ? ? ? 53 8B 5D ? 56 57 8B 7D");
             shHoodCameraBumping = safetyhook::create_inline(pattern.get_first(), HoodCameraBumping);
 
+            // Aim zooming
+            {
+                // Weapons
+                pattern = find_pattern("F3 0F 10 15 ? ? ? ? F3 0F 59 CA F3 0F 58 4E", "F3 0F 10 15 ? ? ? ? F3 0F 5C C1 F3 0F 59 C2 F3 0F 58 C1 74");
+                static auto dword_FE8830 = *pattern.get_first<float*>(4);
+                injector::MakeNOP(pattern.get_first(0), 8, true);
+                static auto CCamAimWeapon_AimFree_Hook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    regs.xmm2.f32[0] = 1.0f - expf(-*dword_FE8830 * *CTimer::fTimeStep / (1.0f / 30.0f));
+                });
+
+                // Melee
+                pattern = hook::pattern("F3 0F 59 0D ? ? ? ? F3 0F 58 4C 24 ? F3 0F 11 49");
+                if (!pattern.empty())
+                {
+                    static auto dword_FE8830 = *pattern.get_first<float*>(4);
+                    injector::MakeNOP(pattern.get_first(0), 8, true);
+                    static auto CCamAimWeapon_AimFree_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm1.f32[0] *= 1.0f - expf(-*dword_FE8830 * *CTimer::fTimeStep / (1.0f / 30.0f));
+                    });
+                }
+                else
+                {
+                    pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 58 C1 F3 0F 11 41");
+                    static auto dword_DB6F80 = *pattern.get_first<float*>(4);
+                    injector::MakeNOP(pattern.get_first(0), 8, true);
+                    static auto CCamAimWeapon_AimFree_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm0.f32[0] *= 1.0f - expf(-*dword_DB6F80 * *CTimer::fTimeStep / (1.0f / 30.0f));
+                    });
+                }
+            }
 
             // Native patches
-            // hbSET_CAM_FOV.fun = NativeOverride::Register(Natives::NativeHashes::SET_CAM_FOV, NATIVE_SET_CAM_FOV, "E8 ? ? ? ? 83 C4 08 C3", 30);
             hbSLIDE_OBJECT.fun = NativeOverride::Register(Natives::NativeHashes::SLIDE_OBJECT, NATIVE_SLIDE_OBJECT_1, "E8 ? ? ? ? 0F B6 C8", 107);
             if (!hbSLIDE_OBJECT.fun)
             {
