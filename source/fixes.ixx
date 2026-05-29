@@ -1066,9 +1066,9 @@ public:
                 }
             }
 
+            // Fix NPCs lane swerving due to trains above/below them, kind of hacky probably but it works (clippy95)
             {
                 constexpr float MaxCenterZDeltaForWeave_trains = 2.5f;
-                // attempt to fix NPCs lane swerving due to trains above/below them, kind of hacky probably but it works (clippy95)
                 auto pattern = hook::pattern("0F 2F C8 76 ? 3B F1");
                 if (!pattern.empty())
                 {
@@ -1102,7 +1102,7 @@ public:
                 }
             }
 
-            // Fix for time going backwards when dying between 12pm and 11pm, and respraying between 9pm and 11:59pm https://github.com/GTAmodding/GTAIV-Issues-List/issues/164
+            // Fix for time going backwards when dying or being busted between 12pm and 11pm, and respraying between 9pm and 11:59pm (https://github.com/GTAmodding/GTAIV-Issues-List/issues/164)
             {
                 auto pattern = find_pattern("6A ? 56 53 55 E8 ? ? ? ? 69 FF", "6A ? 53 55 56");
 
