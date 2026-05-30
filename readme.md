@@ -290,7 +290,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed some sprite drawing speeding up at high frame rates, like phone animated background
 - Fixed darts aim shake becoming weaker at high frame rates
 - Fixed computer email typing speeding up at high frame rates
-- Fixed phone vibrate and photo taking speeding up at high frame rates
+- Fixed phone vibrate, photo taking and sending speeding up at high frame rates
 - Fixed phone being not usable after giving money to buskers
 - Fixed using phone camera will terminate beggar script immediately
 - Fixed ammo reset when buying different pistol from gun shop in IV
