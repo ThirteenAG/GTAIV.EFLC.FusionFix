@@ -196,6 +196,9 @@ Disabilita transizione guardaroba
 [Stop Taxi]
 Fermata istantanea del taxi
 
+[CP_6AXIS]
+Salvataggio rapido
+
 [POLICE3]
 Buffalo polizia
 

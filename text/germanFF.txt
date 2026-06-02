@@ -196,6 +196,9 @@ Garderobenübergang deaktivieren
 [Stop Taxi]
 Sofortiger Taxi-Stopp
 
+[CP_6AXIS]
+Schnellspeichern
+
 [POLICE3]
 Polizei-Buffalo
 

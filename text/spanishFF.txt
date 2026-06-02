@@ -196,6 +196,9 @@ Desactivar transición de vestuario
 [Stop Taxi]
 Parada instantánea de taxi
 
+[CP_6AXIS]
+Guardado rápido
+
 [POLICE3]
 Buffalo policía
 

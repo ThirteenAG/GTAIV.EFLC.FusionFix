@@ -196,6 +196,9 @@ Désactiver la transition de garde-robe
 [Stop Taxi]
 Arrêt instantané du taxi
 
+[CP_6AXIS]
+Sauvegarde rapide
+
 [POLICE3]
 Police Buffalo
 

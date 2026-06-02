@@ -196,6 +196,9 @@ FPSリミッター
 [Stop Taxi]
 タクシー即時停止
 
+[CP_6AXIS]
+クイックセーブ
+
 [FF_WARN0]
 ~p~IMGファイル:
 
