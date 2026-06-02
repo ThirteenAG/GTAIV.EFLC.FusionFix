@@ -205,6 +205,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 #### General
 
+- Added a new phone option to save game anywhere
 - Fixed police computer softlock where one interface from it couldn't be closed with the keyboard
 - Fixed too sensitive arrow keys inputs in police computer virtual keyboard
 - Fixed possible issue where food buying animation playing with several seconds delay in fast-food restaurants

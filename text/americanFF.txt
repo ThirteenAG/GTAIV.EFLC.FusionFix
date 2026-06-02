@@ -196,6 +196,9 @@ Disable Wardrobe Transition
 [Stop Taxi]
 Instant Stop Taxi
 
+[CP_6AXIS]
+Quick Save
+
 [POLICE3]
 Police Buffalo
 
