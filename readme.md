@@ -4,6 +4,8 @@
 <p align="center">
   <a href="https://fusionfix.io/iv" target="_blank"><img width="600" src="https://raw.githubusercontent.com/ThirteenAG/GTAIV.EFLC.FusionFix/refs/heads/master/installer/ff_iv_outline.svg"></a>
   <br />
+  <a href="https://www.patreon.com/ThirteenAG" target="_blank"><img width="100%" src="https://fusionlegacyinitiative.com/wp-content/uploads/sc-sponsors/sponsors-progress-light-flat-no-goal.svg"></a>
+  <br />
   <a href="https://discord.gg/2ckFCS572Z" target="_blank"><img width="200" src="https://raw.githubusercontent.com/ThirteenAG/GTAIV.EFLC.FusionFix/refs/heads/master/installer/discord.svg"></a>
   &nbsp;&nbsp;&nbsp;
   <a href="https://t.me/fusionfix" target="_blank"><img width="200" src="https://raw.githubusercontent.com/ThirteenAG/GTAIV.EFLC.FusionFix/refs/heads/master/installer/telegram.svg"></a>
