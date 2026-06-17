@@ -347,7 +347,6 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Workaround for lights & motion blur flickering intermittently when player is drunk
 - Made stunt jump camera speed be controlled by mouse wheel when using keyboard and mouse
 - Added an option to restore unused death music in IV
-- Fixed broken fatcop mirror reflection
 - Fixed not being able to give money to beggars normally on PC
 - Fixed TLAD phone keypad rendering on top of the plastic cover
 - Fixed TLAD incorrect traffic cops head texture
