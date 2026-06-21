@@ -399,6 +399,7 @@ public:
                 }
             });
 
+            // Double physics' rate speed
             NativeOverride::RegisterPhoneCheat("6925550100", []
             {
                 bSpeedupSimRateCheat = !bSpeedupSimRateCheat;

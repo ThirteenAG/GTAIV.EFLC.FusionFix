@@ -187,7 +187,11 @@ public:
                         "ts_roads12_dc9", "ts_roads14_dc9", "ts_roads15_dc9", "ts_roads18_dc9", "ts_roads19_dc9", "ts_roads21_dc9", "ts_roads22_dc9", "ts_roads23_dc9", "ts_roads29_dc9", "ts_roads31_dc9",
                         "ts_roads32_dc9", "ts_roads58_dc9", "ts_roads60_dc9", "ts_rtheat1_det_dc9", "intbild1_d_mh12", "intbild2_d_mh12", "rez_bild8_33d_ix06", "bxw_coastfortwds", "bxw_constalpha",
                         "sb4b_alpha", "sb6_glues", "sb7_alpha", "sb8_wires", "sbx4_weeds", "percyshpsd_mh8", "bc_clam_alpha", "bxwmanny_alpha", "hp_2_plants_alpha03", "hp1_alpha", "nj01_casino_alpha",
-                        "plant_weeds_bxe_e02", "plant_weeds_bxe_e03"
+                        "plant_weeds_bxe_e02", "plant_weeds_bxe_e03", "bkn_wi3_sigs2", "dmb_brokerd_bkn", "dmb_midg02_bkn", "hunts_p03_market", "03_waredet", "hl_warehsedet_02_mh3", "bm_aerial",
+                        "bxe_road_40", "bxe_road_54", "bxe_road_66", "bxe_road_81", "beacon1_mh8", "beacon2_mh8", "bears_lbayalfa", "hk_slumber01det_mh3", "nj05_bridge_ivy", "nj05_ivy_test",
+                        "nj05_plntgngat01", "pave_treehole4a_mxr", "brown_accomd_mh4", "cc1_gardn_01a", "b4_gcdet02_mh7", "blk02_05det_mh10", "blk07_03det_mh10", "blk10_01det_mh10", "blk10_06det_mh10",
+                        "road_qe_21", "agld04_03", "municipal_det17_mh2", "tg_cimidrf", "qm_fh_hedge", "et_firestation01", "gastation1d_mh8", "cop_det01_mh2", "coptrain_det", "coop_police_shops2",
+                        "qw_nwcost", "qw2_lic7"
                     };
 
                     modelNames.insert(modelNames.end(), miscNames.begin(), miscNames.end());
