@@ -4,7 +4,7 @@ module;
 #include <dxgi1_4.h>
 #include <psapi.h>
 
-export module vram;
+export module memory;
 
 import common;
 import comvars;
@@ -297,10 +297,10 @@ void __cdecl sub_B1DEE0(int a1, int16_t a2, int a3)
     return hbsub_B1DEE0.fun(a1, a2, a3);
 }
 
-class VRam
+class Memory
 {
 public:
-    VRam()
+    Memory()
     {
         FusionFix::onInitEvent() += []()
         {
@@ -373,4 +373,4 @@ public:
             }
         };
     }
-} VRam;
+} Memory;
