@@ -3,7 +3,6 @@ module;
 #include <common.hxx>
 #include <dxgi1_4.h>
 #include <psapi.h>
-#include <D3D9Types.h>
 
 export module vram;
 
@@ -11,189 +10,198 @@ import common;
 import comvars;
 import settings;
 
-export unsigned int nStreamingMemory = 0;
-
 constexpr uint64_t _2048mb = 2147483648ull;
 
 uint64_t GetProcessPreferredGPUMemory()
 {
-    uint64_t memory = _2048mb;
+    uint64_t Memory = _2048mb;
 
-    IDirect3DDevice9* device = rage::grcDevice::GetD3DDevice();
-    if (!device)
-        return memory;
+    IDirect3DDevice9* Device = rage::grcDevice::GetD3DDevice();
+    if (!Device)
+        return Memory;
 
-    // Get D3D9 adapter details
-    D3DDEVICE_CREATION_PARAMETERS params;
-    if (FAILED(device->GetCreationParameters(&params)))
-        return memory;
+    // Get d3d9 adapter details
+    D3DDEVICE_CREATION_PARAMETERS CreationParams;
+    if (FAILED(Device->GetCreationParameters(&CreationParams)))
+        return Memory;
 
     IDirect3D9* d3d9 = nullptr;
-    if (FAILED(device->GetDirect3D(&d3d9)) || !d3d9)
-        return memory;
+    if (FAILED(Device->GetDirect3D(&d3d9)) || !d3d9)
+        return Memory;
 
-    D3DADAPTER_IDENTIFIER9 identifier;
-    if (FAILED(d3d9->GetAdapterIdentifier(params.AdapterOrdinal, 0, &identifier)))
+    D3DADAPTER_IDENTIFIER9 Identifier;
+    if (FAILED(d3d9->GetAdapterIdentifier(CreationParams.AdapterOrdinal, 0, &Identifier)))
     {
         d3d9->Release();
-        return memory;
+
+        return Memory;
     }
     d3d9->Release();
 
     HMODULE hDxgi = LoadLibraryA("dxgi.dll");
     if (!hDxgi)
-        return memory;
+        return Memory;
 
-    // Helper to get system RAM
-    MEMORYSTATUSEX memInfo;
-    memInfo.dwLength = sizeof(MEMORYSTATUSEX);
-    GlobalMemoryStatusEx(&memInfo);
-    uint64_t total_system_ram = memInfo.ullTotalPhys;
+    // Helper to get system memory
+    MEMORYSTATUSEX MemoryInfo;
+    MemoryInfo.dwLength = sizeof(MEMORYSTATUSEX);
+    GlobalMemoryStatusEx(&MemoryInfo);
+    uint64_t TotalSystemMemory = MemoryInfo.ullTotalPhys;
 
-    IDXGIAdapter* selected_adapter = nullptr;
-    uint64_t max_dedicated = 0;
+    IDXGIAdapter* SelectedAdapter = nullptr;
+    uint64_t MaxDedicated = 0;
 
-    auto EnumerateAdapters = [&](IDXGIFactory* factory) -> bool {
-        if (!factory) return false;
+    auto EnumerateAdapters = [&](IDXGIFactory* Factory) -> bool
+    {
+        if (!Factory)
+            return false;
 
-        UINT adapter_index = 0;
-        IDXGIAdapter* adapter = nullptr;
-        while (SUCCEEDED(factory->EnumAdapters(adapter_index, &adapter)))
+        UINT AdapterID = 0;
+        IDXGIAdapter* Adapter = nullptr;
+
+        while (SUCCEEDED(Factory->EnumAdapters(AdapterID, &Adapter)))
         {
-            DXGI_ADAPTER_DESC desc;
-            if (SUCCEEDED(adapter->GetDesc(&desc)))
+            DXGI_ADAPTER_DESC Description;
+
+            if (SUCCEEDED(Adapter->GetDesc(&Description)))
             {
-                // Match with D3D9 identifier
-                if (desc.VendorId == identifier.VendorId &&
-                    desc.DeviceId == identifier.DeviceId &&
-                    desc.SubSysId == identifier.SubSysId &&
-                    desc.Revision == identifier.Revision)
+                // Match with d3d9 identifier
+                if (Description.VendorId == Identifier.VendorId &&
+                    Description.DeviceId == Identifier.DeviceId &&
+                    Description.SubSysId == Identifier.SubSysId &&
+                    Description.Revision == Identifier.Revision)
                 {
-                    if (selected_adapter)
-                        selected_adapter->Release();
-                    selected_adapter = adapter;
-                    selected_adapter->AddRef();
-                    adapter->Release();  // Release the Enum ref
-                    return true;  // Found match, done
+                    if (SelectedAdapter)
+                        SelectedAdapter->Release();
+
+                    SelectedAdapter = Adapter;
+                    SelectedAdapter->AddRef();
+                    Adapter->Release(); // Release the enum ref
+
+                    return true; // Found match, done
                 }
+
                 // Track max dedicated as fallback
-                if (desc.DedicatedVideoMemory > max_dedicated)
+                if (Description.DedicatedVideoMemory > MaxDedicated)
                 {
-                    max_dedicated = desc.DedicatedVideoMemory;
-                    if (selected_adapter)
-                        selected_adapter->Release();
-                    selected_adapter = adapter;
-                    selected_adapter->AddRef();
+                    MaxDedicated = Description.DedicatedVideoMemory;
+
+                    if (SelectedAdapter)
+                        SelectedAdapter->Release();
+
+                    SelectedAdapter = Adapter;
+                    SelectedAdapter->AddRef();
                 }
             }
-            adapter->Release();
-            adapter_index++;
+
+            Adapter->Release();
+            AdapterID++;
         }
-        return false;  // No match found
+
+        return false; // No match found
     };
 
     // Prefer CreateDXGIFactory2 with IDXGIFactory3
-    IDXGIFactory* factory_to_use = nullptr;
-    typedef HRESULT(WINAPI* CreateDXGIFactory2_t)(UINT Flags, REFIID riid, void** ppFactory);
-    CreateDXGIFactory2_t CreateDXGIFactory2_fn = (CreateDXGIFactory2_t)GetProcAddress(hDxgi, "CreateDXGIFactory2");
-    if (CreateDXGIFactory2_fn)
+    IDXGIFactory* FactoryToUse = nullptr;
+    typedef HRESULT(WINAPI* CreateDXGIFactory2_T)(UINT Flags, REFIID riid, void** ppFactory);
+    CreateDXGIFactory2_T CreateDXGIFactory2_fun = (CreateDXGIFactory2_T)GetProcAddress(hDxgi, "CreateDXGIFactory2");
+
+    if (CreateDXGIFactory2_fun)
     {
-        IDXGIFactory3* factory3 = nullptr;
-        if (SUCCEEDED(CreateDXGIFactory2_fn(0, __uuidof(IDXGIFactory3), (void**)&factory3)))
+        IDXGIFactory3* Factory3 = nullptr;
+
+        if (SUCCEEDED(CreateDXGIFactory2_fun(0, __uuidof(IDXGIFactory3), (void**)&Factory3)))
         {
-            factory_to_use = static_cast<IDXGIFactory*>(factory3);
+            FactoryToUse = static_cast<IDXGIFactory*>(Factory3);
         }
     }
 
     // Fallback to CreateDXGIFactory if Factory2 not available
-    if (!factory_to_use)
+    if (!FactoryToUse)
     {
-        typedef HRESULT(WINAPI* CreateDXGIFactory_t)(REFIID riid, void** ppFactory);
-        CreateDXGIFactory_t CreateDXGIFactory_fn = (CreateDXGIFactory_t)GetProcAddress(hDxgi, "CreateDXGIFactory");
-        if (CreateDXGIFactory_fn)
+        typedef HRESULT(WINAPI* CreateDXGIFactory_T)(REFIID riid, void** ppFactory);
+        CreateDXGIFactory_T CreateDXGIFactory_fun = (CreateDXGIFactory_T)GetProcAddress(hDxgi, "CreateDXGIFactory");
+
+        if (CreateDXGIFactory_fun)
         {
-            IDXGIFactory* factory = nullptr;
-            if (SUCCEEDED(CreateDXGIFactory_fn(__uuidof(IDXGIFactory), (void**)&factory)))
+            IDXGIFactory* Factory = nullptr;
+
+            if (SUCCEEDED(CreateDXGIFactory_fun(__uuidof(IDXGIFactory), (void**)&Factory)))
             {
-                factory_to_use = factory;
+                FactoryToUse = Factory;
             }
         }
     }
 
     // Enumerate using the preferred factory
-    if (factory_to_use)
+    if (FactoryToUse)
     {
-        EnumerateAdapters(factory_to_use);
-        factory_to_use->Release();
+        EnumerateAdapters(FactoryToUse);
+
+        FactoryToUse->Release();
     }
 
-    if (!selected_adapter)
+    if (!SelectedAdapter)
     {
         FreeLibrary(hDxgi);
-        return memory;
+
+        return Memory;
     }
 
-    // Now query the selected adapter
-    uint64_t dedicated = 0;
-    uint64_t shared = 0;
-    uint64_t budget = 0;
+    // Query the selected adapter
+    uint64_t Dedicated = 0;
+    uint64_t Shared = 0;
+    uint64_t Budget = 0;
 
-    DXGI_ADAPTER_DESC desc;
-    if (SUCCEEDED(selected_adapter->GetDesc(&desc)))
+    DXGI_ADAPTER_DESC Description;
+    if (SUCCEEDED(SelectedAdapter->GetDesc(&Description)))
     {
-        dedicated = desc.DedicatedVideoMemory;
-        shared = desc.SharedSystemMemory;
+        Dedicated = Description.DedicatedVideoMemory;
+        Shared = Description.SharedSystemMemory;
     }
 
-    IDXGIAdapter3* adapter3 = nullptr;
-    if (SUCCEEDED(selected_adapter->QueryInterface(__uuidof(IDXGIAdapter3), (void**)&adapter3)))
+    IDXGIAdapter3* Adapter3 = nullptr;
+    if (SUCCEEDED(SelectedAdapter->QueryInterface(__uuidof(IDXGIAdapter3), (void**)&Adapter3)))
     {
-        DXGI_QUERY_VIDEO_MEMORY_INFO videoMemoryInfo;
-        if (SUCCEEDED(adapter3->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &videoMemoryInfo)))
+        DXGI_QUERY_VIDEO_MEMORY_INFO VRAMInfo;
+
+        if (SUCCEEDED(Adapter3->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &VRAMInfo)))
         {
-            budget = videoMemoryInfo.Budget;
+            Budget = VRAMInfo.Budget;
         }
-        adapter3->Release();
+
+        Adapter3->Release();
     }
     else
     {
-        IDXGIAdapter2* adapter2 = nullptr;
-        if (SUCCEEDED(selected_adapter->QueryInterface(__uuidof(IDXGIAdapter2), (void**)&adapter2)))
+        IDXGIAdapter2* Adapter2 = nullptr;
+
+        if (SUCCEEDED(SelectedAdapter->QueryInterface(__uuidof(IDXGIAdapter2), (void**)&Adapter2)))
         {
-            DXGI_ADAPTER_DESC2 desc2;
-            if (SUCCEEDED(adapter2->GetDesc2(&desc2)))
+            DXGI_ADAPTER_DESC2 Description2;
+
+            if (SUCCEEDED(Adapter2->GetDesc2(&Description2)))
             {
-                dedicated = desc2.DedicatedVideoMemory;
-                shared = desc2.SharedSystemMemory;
+                Dedicated = Description2.DedicatedVideoMemory;
+                Shared = Description2.SharedSystemMemory;
             }
-            adapter2->Release();
+
+            Adapter2->Release();
         }
     }
 
-    selected_adapter->Release();
+    SelectedAdapter->Release();
 
-    FreeLibrary(hDxgi);  // Free only after all interfaces are released
+    FreeLibrary(hDxgi); // Free only after all interfaces are released
 
     // Safety caps
-    memory = std::max(std::max(budget, dedicated), _2048mb);
-    memory = std::min(memory, total_system_ram / 2);
+    Memory = std::max(std::max(Budget, Dedicated), _2048mb);
+    Memory = std::min(Memory, TotalSystemMemory / 2);
 
-    return memory;
+    return Memory;
 }
 
-SafetyHookInline shGetAvailableVidMem = {};
-int64_t GetAvailableVidMem()
-{
-    auto ret = shGetAvailableVidMem.call<int64_t>();
-    if (ret < static_cast<int64_t>(_2048mb))
-    {
-        static auto vram = GetProcessPreferredGPUMemory();
-        static auto d3d9vram = static_cast<uint64_t>(rage::grcDevice::GetD3DDevice()->GetAvailableTextureMem());
-        static auto totalVRAM = std::max(std::max(vram, d3d9vram), _2048mb);
-        ret = static_cast<int64_t>(totalVRAM);
-    }
-    return ret;
-}
+bool bExtraStreamingMemory = false;
 
 class ExtraStreamingMemory
 {
@@ -206,58 +214,86 @@ private:
 public:
     static float GetDynamicMultiplier()
     {
-        PROCESS_MEMORY_COUNTERS pmc;
-        if (!GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc)))
+        PROCESS_MEMORY_COUNTERS ProcessMemoryCounters;
+        if (!GetProcessMemoryInfo(GetCurrentProcess(), &ProcessMemoryCounters, sizeof(ProcessMemoryCounters)))
         {
             return MIN_MULTIPLIER; // Fallback to safe value
         }
 
-        size_t currentMemory = pmc.WorkingSetSize;
+        size_t CurrentMemory = ProcessMemoryCounters.WorkingSetSize;
 
         // Below 2GB - use maximum multiplier (1.5)
-        if (currentMemory < MIN_MEMORY_THRESHOLD)
+        if (CurrentMemory < MIN_MEMORY_THRESHOLD)
         {
             return MAX_MULTIPLIER;
         }
 
         // Above 2.9GB - use minimum multiplier (0.9)
-        if (currentMemory >= MAX_MEMORY_THRESHOLD)
+        if (CurrentMemory >= MAX_MEMORY_THRESHOLD)
         {
             return MIN_MULTIPLIER;
         }
 
         // Between 2GB and 2.9GB - linear interpolation
-        float memoryRange = (float)(MAX_MEMORY_THRESHOLD - MIN_MEMORY_THRESHOLD);
-        float currentRange = (float)(currentMemory - MIN_MEMORY_THRESHOLD);
-        float ratio = currentRange / memoryRange; // 0.0 to 1.0
+        float MemoryRange = (float)(MAX_MEMORY_THRESHOLD - MIN_MEMORY_THRESHOLD);
+        float CurrentRange = (float)(CurrentMemory - MIN_MEMORY_THRESHOLD);
+        float Ratio = CurrentRange / MemoryRange; // 0.0 to 1.0
 
         // Linear interpolation: 1.5 at 2GB -> 0.9 at 2.9GB
-        return MAX_MULTIPLIER - (ratio * (MAX_MULTIPLIER - MIN_MULTIPLIER));
+        return MAX_MULTIPLIER - (Ratio * (MAX_MULTIPLIER - MIN_MULTIPLIER));
     }
 };
 
-static bool bExtraStreamingMemory = false;
-static SafetyHookInline streamingBudgetHook = {};
-static unsigned int __fastcall CalculateStreamingMemoryBudget(void* _this, void* edx, float a2)
+namespace grcDevice
 {
-    if (bExtraStreamingMemory)
-        a2 = ExtraStreamingMemory::GetDynamicMultiplier();
+    SafetyHookInline shGetAvailableVideoMemory = {};
+    uint64_t GetAvailableVideoMemory()
+    {
+        auto ret = shGetAvailableVideoMemory.call<uint64_t>();
 
-    nStreamingMemory = streamingBudgetHook.unsafe_fastcall<unsigned int>(_this, edx, a2);
-    return nStreamingMemory;
+        if (ret < _2048mb)
+        {
+            static auto VRAM = GetProcessPreferredGPUMemory();
+            static auto d3d9VRAM = static_cast<uint64_t>(rage::grcDevice::GetD3DDevice()->GetAvailableTextureMem());
+            static auto TotalVRAM = std::max(std::max(VRAM, d3d9VRAM), _2048mb);
+
+            ret = TotalVRAM;
+        }
+
+        return ret;
+    }
+}
+
+namespace grcResourceCache
+{
+    SafetyHookInline shGetAvailableFreeMemory = {};
+    int64_t __fastcall GetAvailableFreeMemory(void* _this, void* edx, float Multiplier)
+    {
+        if (bExtraStreamingMemory)
+        {
+            Multiplier = ExtraStreamingMemory::GetDynamicMultiplier();
+        }
+
+        return shGetAvailableFreeMemory.unsafe_fastcall<int64_t>(_this, edx, Multiplier);
+    }
 }
 
 bool bEnableHighDetailReflections = false;
 bool bRemoveBBoxCulling = false;
+
 injector::hook_back<void(__cdecl*)(int, int16_t, int)> hbsub_B1DEE0;
 void __cdecl sub_B1DEE0(int a1, int16_t a2, int a3)
 {
     if (bEnableHighDetailReflections)
     {
         for (int i = 0; i <= 11; ++i)
+        {
             hbsub_B1DEE0.fun(i, 285, 0);
+        }
+
         return;
     }
+
     return hbsub_B1DEE0.fun(a1, a2, a3);
 }
 
@@ -275,17 +311,22 @@ public:
             bEnableHighDetailReflections = iniReader.ReadInteger("EXPERIMENTAL", "EnableHighDetailReflections", 0) != 0;
             bRemoveBBoxCulling = iniReader.ReadInteger("EXPERIMENTAL", "RemoveBBoxCulling", 0) != 0;
 
-            auto pattern = find_pattern("8B 0D ? ? ? ? 83 EC ? 33 C0", "A1 ? ? ? ? 8B 08 83 EC ? 56 57");
-            if (!pattern.empty())
+            auto pattern = hook::pattern("8B 0D ? ? ? ? 83 EC ? 33 C0");
+            grcDevice::shGetAvailableVideoMemory = safetyhook::create_inline(pattern.get_first(0), grcDevice::GetAvailableVideoMemory);
+
+            if (bExtraStreamingMemory)
             {
-                shGetAvailableVidMem = safetyhook::create_inline(pattern.get_first(0), GetAvailableVidMem);
+                pattern = find_pattern("55 8B EC 83 E4 ? F3 0F 10 55 ? 83 EC", "55 8B EC 83 E4 ? D9 45 ? 83 EC ? 53 56 57 51 D9 1C 24 8B D9");
+                grcResourceCache::shGetAvailableFreeMemory = safetyhook::create_inline(pattern.get_first(0), grcResourceCache::GetAvailableFreeMemory);
             }
 
+            // Force the -nomemrestrict commandline arg. Fixes delayed streaming in some circumstances although not when Texture Quality is either Medium or Low.
             pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? A1 ? ? ? ? 85 C0 74");
             if (!pattern.empty())
             {
-                static int* g_cmdarg_nomemrestrict = *pattern.get_first<int*>(2);
+                //static auto g_cmdarg_nomemrestrict = *pattern.get_first<int32_t*>(2);
                 static auto loc_427FC9 = resolve_next_displacement(pattern.get_first(0)).value();
+
                 struct NoMemRestrictHook
                 {
                     void operator()(injector::reg_pack& regs)
@@ -300,41 +341,29 @@ public:
                         }
 
                         // Original code for reference
-                        if (*g_cmdarg_nomemrestrict)
-                        {
-                            return_to(loc_427FC9);
-                        }
+                        //if (*g_cmdarg_nomemrestrict)
+                        //{
+                        //    return_to(loc_427FC9);
+                        //}
                     }
                 }; injector::MakeInline<NoMemRestrictHook>(pattern.get_first(0), pattern.get_first(13));
             }
             else
             {
-                pattern = find_pattern("75 7E A1 ? ? ? ? 85 C0");
-                if (!pattern.empty())
-                {
-                    injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz --> jmp
-                }
-            }
-
-            if (bExtraStreamingMemory)
-            {
-                pattern = find_pattern("55 8B EC 83 E4 ? F3 0F 10 55 ? 83 EC", "55 8B EC 83 E4 ? D9 45 ? 83 EC ? 53 56 57 51");
-                if (!pattern.empty())
-                {
-                    streamingBudgetHook = safetyhook::create_inline(pattern.get_first(0), CalculateStreamingMemoryBudget);
-                }
+                pattern = hook::pattern("75 ? A1 ? ? ? ? 85 C0 74 ? 80 38");
+                injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz --> jmp
             }
 
             if (bEnableHighDetailReflections)
             {
-                auto pattern = find_pattern("FF B6 ? ? ? ? E8 ? ? ? ? 6A ? 6A ? E8 ? ? ? ? 83 C4 ? 85 C0 74 ? 6A ? 6A", "68 ? ? ? ? 50 E8 ? ? ? ? 6A ? 6A ? E8 ? ? ? ? 83 C4 ? 85 C0 74 ? 6A");
+                pattern = find_pattern("FF B6 ? ? ? ? E8 ? ? ? ? 6A ? 6A ? E8 ? ? ? ? 83 C4 ? 85 C0 74 ? 6A ? 6A", "68 ? ? ? ? 50 E8 ? ? ? ? 6A ? 6A ? E8 ? ? ? ? 83 C4 ? 85 C0 74 ? 6A");
                 if (!pattern.empty())
                 {
                     hbsub_B1DEE0.fun = injector::MakeCALL(pattern.get_first(6), sub_B1DEE0, true).get();
 
                     if (bRemoveBBoxCulling)
                     {
-                        auto pattern = hook::pattern("0F 85 ? ? ? ? E8 ? ? ? ? 80 3D ? ? ? ? ? 8B 75");
+                        pattern = hook::pattern("0F 85 ? ? ? ? E8 ? ? ? ? 80 3D ? ? ? ? ? 8B 75");
                         if (!pattern.empty())
                         {
                             injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true);
