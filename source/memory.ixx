@@ -8,7 +8,6 @@ export module memory;
 
 import common;
 import comvars;
-import settings;
 
 constexpr uint64_t _2048mb = 2147483648ull;
 
@@ -21,16 +20,16 @@ uint64_t GetProcessPreferredGPUMemory()
         return Memory;
 
     // Get d3d9 adapter details
-    D3DDEVICE_CREATION_PARAMETERS CreationParams;
-    if (FAILED(Device->GetCreationParameters(&CreationParams)))
+    D3DDEVICE_CREATION_PARAMETERS DeviceCreationParams;
+    if (FAILED(Device->GetCreationParameters(&DeviceCreationParams)))
         return Memory;
 
     IDirect3D9* d3d9 = nullptr;
     if (FAILED(Device->GetDirect3D(&d3d9)) || !d3d9)
         return Memory;
 
-    D3DADAPTER_IDENTIFIER9 Identifier;
-    if (FAILED(d3d9->GetAdapterIdentifier(CreationParams.AdapterOrdinal, 0, &Identifier)))
+    D3DADAPTER_IDENTIFIER9 AdapterIdentifier;
+    if (FAILED(d3d9->GetAdapterIdentifier(DeviceCreationParams.AdapterOrdinal, 0, &AdapterIdentifier)))
     {
         d3d9->Release();
 
@@ -66,10 +65,10 @@ uint64_t GetProcessPreferredGPUMemory()
             if (SUCCEEDED(Adapter->GetDesc(&Description)))
             {
                 // Match with d3d9 identifier
-                if (Description.VendorId == Identifier.VendorId &&
-                    Description.DeviceId == Identifier.DeviceId &&
-                    Description.SubSysId == Identifier.SubSysId &&
-                    Description.Revision == Identifier.Revision)
+                if (Description.VendorId == AdapterIdentifier.VendorId &&
+                    Description.DeviceId == AdapterIdentifier.DeviceId &&
+                    Description.SubSysId == AdapterIdentifier.SubSysId &&
+                    Description.Revision == AdapterIdentifier.Revision)
                 {
                     if (SelectedAdapter)
                         SelectedAdapter->Release();
@@ -201,6 +200,26 @@ uint64_t GetProcessPreferredGPUMemory()
     return Memory;
 }
 
+namespace grcDevice
+{
+    SafetyHookInline shGetAvailableVideoMemory = {};
+    uint64_t GetAvailableVideoMemory()
+    {
+        auto ret = shGetAvailableVideoMemory.call<uint64_t>();
+
+        if (ret < _2048mb)
+        {
+            static auto VRAM = GetProcessPreferredGPUMemory();
+            static auto d3d9VRAM = static_cast<uint64_t>(rage::grcDevice::GetD3DDevice()->GetAvailableTextureMem());
+            static auto TotalVRAM = std::max(std::max(VRAM, d3d9VRAM), _2048mb);
+
+            ret = TotalVRAM;
+        }
+
+        return ret;
+    }
+}
+
 bool bExtraStreamingMemory = false;
 
 class ExtraStreamingMemory
@@ -244,26 +263,6 @@ public:
     }
 };
 
-namespace grcDevice
-{
-    SafetyHookInline shGetAvailableVideoMemory = {};
-    uint64_t GetAvailableVideoMemory()
-    {
-        auto ret = shGetAvailableVideoMemory.call<uint64_t>();
-
-        if (ret < _2048mb)
-        {
-            static auto VRAM = GetProcessPreferredGPUMemory();
-            static auto d3d9VRAM = static_cast<uint64_t>(rage::grcDevice::GetD3DDevice()->GetAvailableTextureMem());
-            static auto TotalVRAM = std::max(std::max(VRAM, d3d9VRAM), _2048mb);
-
-            ret = TotalVRAM;
-        }
-
-        return ret;
-    }
-}
-
 namespace grcResourceCache
 {
     SafetyHookInline shGetAvailableFreeMemory = {};
@@ -278,25 +277,6 @@ namespace grcResourceCache
     }
 }
 
-bool bEnableHighDetailReflections = false;
-bool bRemoveBBoxCulling = false;
-
-injector::hook_back<void(__cdecl*)(int, int16_t, int)> hbsub_B1DEE0;
-void __cdecl sub_B1DEE0(int a1, int16_t a2, int a3)
-{
-    if (bEnableHighDetailReflections)
-    {
-        for (int i = 0; i <= 11; ++i)
-        {
-            hbsub_B1DEE0.fun(i, 285, 0);
-        }
-
-        return;
-    }
-
-    return hbsub_B1DEE0.fun(a1, a2, a3);
-}
-
 class Memory
 {
 public:
@@ -308,8 +288,6 @@ public:
 
             // [EXPERIMENTAL]
             bExtraStreamingMemory = iniReader.ReadInteger("EXPERIMENTAL", "ExtraStreamingMemory", 0) != 0;
-            bEnableHighDetailReflections = iniReader.ReadInteger("EXPERIMENTAL", "EnableHighDetailReflections", 0) != 0;
-            bRemoveBBoxCulling = iniReader.ReadInteger("EXPERIMENTAL", "RemoveBBoxCulling", 0) != 0;
 
             auto pattern = hook::pattern("8B 0D ? ? ? ? 83 EC ? 33 C0");
             grcDevice::shGetAvailableVideoMemory = safetyhook::create_inline(pattern.get_first(0), grcDevice::GetAvailableVideoMemory);
@@ -352,24 +330,6 @@ public:
             {
                 pattern = hook::pattern("75 ? A1 ? ? ? ? 85 C0 74 ? 80 38");
                 injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz --> jmp
-            }
-
-            if (bEnableHighDetailReflections)
-            {
-                pattern = find_pattern("FF B6 ? ? ? ? E8 ? ? ? ? 6A ? 6A ? E8 ? ? ? ? 83 C4 ? 85 C0 74 ? 6A ? 6A", "68 ? ? ? ? 50 E8 ? ? ? ? 6A ? 6A ? E8 ? ? ? ? 83 C4 ? 85 C0 74 ? 6A");
-                if (!pattern.empty())
-                {
-                    hbsub_B1DEE0.fun = injector::MakeCALL(pattern.get_first(6), sub_B1DEE0, true).get();
-
-                    if (bRemoveBBoxCulling)
-                    {
-                        pattern = hook::pattern("0F 85 ? ? ? ? E8 ? ? ? ? 80 3D ? ? ? ? ? 8B 75");
-                        if (!pattern.empty())
-                        {
-                            injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true);
-                        }
-                    }
-                }
             }
         };
     }
