@@ -100,7 +100,7 @@ jobs:
         uses: robinraju/release-downloader@v1.13
         with:
           repository: "doitsujin/dxvk"
-          tag: "latest"
+          latest: true
           fileName: "dxvk-*.tar.gz"
           out-file-path: "dxvk-dl/latest"
 
