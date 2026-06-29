@@ -2560,6 +2560,11 @@ export namespace CTreeImposters
     float* ms_windAng = nullptr;
 }
 
+export namespace CPhoneMgr
+{
+    bool* bDisplayMobile = nullptr;
+}
+
 export enum eControllerButtons
 {
     BUTTON_BUMPER_LEFT = 4,
@@ -2935,5 +2940,8 @@ public:
             pattern = hook::pattern("F3 0F 11 05 ? ? ? ? 0F 85");
             CTreeImposters::ms_windAng = *pattern.get_first<float*>(4);
         }
+
+        pattern = find_pattern("C6 05 ? ? ? ? ? C6 05 ? ? ? ? ? C7 05 ? ? ? ? ? ? ? ? 8B 01", "88 1D ? ? ? ? 88 1D ? ? ? ? 89 1D ? ? ? ? 8B 11");
+        CPhoneMgr::bDisplayMobile = *pattern.get_first<bool*>(2);
     }
 } Common;

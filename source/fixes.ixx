@@ -10,21 +10,23 @@ import natives;
 import settings;
 import shaders;
 
+namespace CTaskComplexGangDriveby
+{
+    SafetyHookInline shPlayerWantsToDoDriveby = {};
+    char __cdecl PlayerWantsToDoDriveby(int a1)
+    {
+        if (CPhoneMgr::bDisplayMobile && *CPhoneMgr::bDisplayMobile)
+            return 0;
+
+        return shPlayerWantsToDoDriveby.unsafe_ccall<char>(a1);
+    }
+}
+
 class Fixes
 {
 public:
     static inline int32_t nTimeToPassBeforeCenteringCameraOnFoot = 0;
     static inline int32_t nTimeToPassBeforeCenteringCameraInVehicle = 0;
-
-    static inline bool* bIsPhoneShowing = nullptr;
-    static inline injector::hook_back<int32_t(__cdecl*)()> hbsub_B2CE30;
-    static int32_t sub_B2CE30()
-    {
-        if ((bIsPhoneShowing && *bIsPhoneShowing))
-            return 1;
-
-        return hbsub_B2CE30.fun();
-    }
 
     static inline injector::hook_back<void(__fastcall*)(int32_t, int32_t)> hbsub_B07600;
     static void __fastcall sub_B07600(int32_t _this, int32_t)
@@ -234,7 +236,6 @@ public:
             // [MAIN]
             int32_t nAimingZoomFix = iniReader.ReadInteger("MAIN", "AimingZoomFix", 1);
             bool bRecoilFix = iniReader.ReadInteger("MAIN", "RecoilFix", 1) != 0;
-            //bool bForceNoMemRestrict = iniReader.ReadInteger("MAIN", "ForceNoMemRestrict", 1) != 0;
 
             // [MISC]
             bool bDefaultCameraAngleInTLaD = iniReader.ReadInteger("MISC", "DefaultCameraAngleInTLaD", 0) != 0;
@@ -341,32 +342,12 @@ public:
                 }
             }
 
-            {
-                // static constexpr float xmm_0 = FLT_MAX / 2.0f;
-                // unsigned char bytes[4];
-                // auto n = (uint32_t)&xmm_0;
-                // bytes[0] = (n >> 24) & 0xFF;
-                // bytes[1] = (n >> 16) & 0xFF;
-                // bytes[2] = (n >> 8) & 0xFF;
-                // bytes[3] = (n >> 0) & 0xFF;
-                // 
-                // auto pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 47 ? F3 0F 11 47 ? 8B D1 89 54 24 10", "F3 0F 10 05 ? ? ? ? F3 0F 58 46 ? 89 8C 24");
-                // static raw_mem CoverCB(pattern.get_first(4), { bytes[3], bytes[2], bytes[1], bytes[0] });
-                // FusionFixSettings.SetCallback("PREF_COVERCENTERING", [](int32_t value) {
-                //     if (value)
-                //         CoverCB.Restore();
-                //     else
-                //         CoverCB.Write();
-                // });
-                // if (!FusionFixSettings("PREF_COVERCENTERING"))
-                //     CoverCB.Write();
 
-                if (bDisableCameraCenteringInCover)
-                {
-                    static constexpr float xmm_0 = FLT_MAX / 2.0f;
-                    auto pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 47 ? F3 0F 11 47 ? 8B D1 89 54 24 10", "F3 0F 10 05 ? ? ? ? F3 0F 58 46 ? 89 8C 24");
-                    injector::WriteMemory(pattern.get_first(4), &xmm_0, true);
-                }
+            if (bDisableCameraCenteringInCover)
+            {
+                static constexpr float xmm_0 = FLT_MAX / 2.0f;
+                auto pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 47 ? F3 0F 11 47 ? 8B D1 89 54 24 10", "F3 0F 10 05 ? ? ? ? F3 0F 58 46 ? 89 8C 24");
+                injector::WriteMemory(pattern.get_first(4), &xmm_0, true);
             }
 
             // reverse lights fix
@@ -393,22 +374,6 @@ public:
                 auto sub_477300 = injector::GetBranchDestination(pattern.get_first(0));
                 pattern = find_pattern("E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? 83 C4 2C C3", "E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? 8B 35 ? ? ? ? E8 ? ? ? ? 25 FF FF 00 00");
                 injector::MakeCALL(pattern.get_first(0), sub_477300, true);
-
-                // related to the same issue
-                //if (bForceNoMemRestrict)
-                //{
-                //    pattern = find_pattern("0F 85 ? ? ? ? A1 ? ? ? ? 85 C0 74 5C", "0F 85 ? ? ? ? A1 ? ? ? ? 85 C0 74 5A");
-                //    if (!pattern.empty())
-                //    {
-                //        injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jnz -> jmp
-                //    }
-                //    else
-                //    {
-                //        pattern = find_pattern("75 7E A1 ? ? ? ? 85 C0");
-                //        if (!pattern.empty())
-                //            injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz -> jmp
-                //    }
-                //}
             }
 
             // Make LOD lights appear at the appropriate time like on the console version (consoles: 7 PM, pc: 10 PM)
@@ -558,9 +523,8 @@ public:
 
             // Disable drive-by while using cellphone
             {
-                auto pattern = find_pattern("E8 ? ? ? ? 85 C0 0F 85 ? ? ? ? 84 DB 74 5A 85 F6 0F 84", "E8 ? ? ? ? 85 C0 0F 85 ? ? ? ? 84 DB 74 61");
-                bIsPhoneShowing = *find_pattern("C6 05 ? ? ? ? ? E8 ? ? ? ? 6A 00 E8 ? ? ? ? 8B 80", "88 1D ? ? ? ? 88 1D ? ? ? ? E8 ? ? ? ? 6A 00").get_first<bool*>(2);
-                hbsub_B2CE30.fun = injector::MakeCALL(pattern.get_first(0), sub_B2CE30, true).get();
+                auto pattern = find_pattern("51 57 8B 7C 24 ? 80 BF ? ? ? ? ? 75", "55 8B 6C 24 ? 80 BD ? ? ? ? ? 75 ? 80 BD ? ? ? ? ? 74 ? 8B 85");
+                CTaskComplexGangDriveby::shPlayerWantsToDoDriveby = safetyhook::create_inline(pattern.get_first(0), CTaskComplexGangDriveby::PlayerWantsToDoDriveby);
             }
 
             // Custom FOV
@@ -759,45 +723,6 @@ public:
                     injector::MakeNOP(pattern.get_first(6), 6, true);
                 }
             }
-
-            // Skybox Black Bottom Fix -- causes holes in the map to be more visible.
-            // {
-            //     auto PatchVertices = [](float* ptr)
-            //     {
-            //         for (auto i = 0; i < ((6156 / 4) / 3); i++)
-            //         {
-            //             auto pVertex = (ptr + i * 3);
-            //             if (i < 32)
-            //             {
-            //                 if (pVertex[1] < 0.0f)
-            //                 {
-            //                     injector::WriteMemory<float>(pVertex, 0.0f, true);
-            //                     injector::WriteMemory<float>(pVertex + 2, 0.0f, true);
-            //                 }
-            //             }
-            //             else
-            //             {
-            //                 injector::WriteMemory<float>(pVertex + 1, (pVertex[1] - 0.16037700f) * 1.78f - 1.0f, true);
-            //             }
-            //         }
-            //     };
-
-            //     auto pattern = hook::pattern("C7 44 24 ? ? ? ? ? C7 44 24 ? ? ? ? ? E8 ? ? ? ? 8B 44 24 44");
-            //     if (!pattern.empty())
-            //     {
-            //         auto addr = pattern.get_first<float*>(4);
-            //         PatchVertices(*addr);
-            //     }
-            //     else
-            //     {
-            //         pattern = hook::pattern("C7 46 ? ? ? ? ? C7 46 ? ? ? ? ? 5E 59 C3");
-            //         if (!pattern.empty())
-            //         {
-            //             auto addr = pattern.get_first<float*>(3);
-            //             PatchVertices(*addr);
-            //         }
-            //     }
-            // }
 
             // HACK: Visually hide the mouse cursor when using a gamepad, doesn't actually disable the cursor so it might still interact with UI, also still shows in the start menu because...??
             {
