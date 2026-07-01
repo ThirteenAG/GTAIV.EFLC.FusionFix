@@ -103,15 +103,17 @@ namespace rage
         {
             if (a1)
                 gFxcLoadedNames.push_back(a1);
+
             return shLoadIntoSlot.unsafe_fastcall(a1, a2);
         }
 
-        SafetyHookInline shLoadIntoSlotEFLC = {};
-        void __cdecl LoadIntoSlotEFLC(const char* a1, int a2)
+        SafetyHookInline shLoadIntoSlot_2 = {};
+        void __cdecl LoadIntoSlot_2(const char* a1, int a2)
         {
             if (a1)
                 gFxcLoadedNames.push_back(a1);
-            return shLoadIntoSlotEFLC.unsafe_ccall(a1, a2);
+
+            return shLoadIntoSlot_2.unsafe_ccall(a1, a2);
         }
     }
 
@@ -120,12 +122,13 @@ namespace rage
         SafetyHookInline shPreloadShaders = {};
         void __fastcall PreloadShaders(void* a1, void* edx, char* a2, bool a3)
         {
-            static bool scanned = false;
-            if (!scanned)
+            static bool Scanned = false;
+
+            if (!Scanned)
             {
-                auto realPath = ResolveVirtualPath(a2);
-                gFxcNames = CollectFxcNames(realPath);
-                scanned = true;
+                auto RealPath = ResolveVirtualPath(a2);
+                gFxcNames = CollectFxcNames(RealPath);
+                Scanned = true;
             }
 
             shPreloadShaders.unsafe_fastcall(a1, edx, a2, a3);
@@ -143,57 +146,61 @@ public:
             auto pattern = find_pattern("B9 ? ? ? ? E8 ? ? ? ? 8B F8 85 FF 0F 84 ? ? ? ? 83 EC", "B9 ? ? ? ? E8 ? ? ? ? 8B F8 3B FB");
             rage::ASSET = *pattern.get_first<void*>(1);
 
-            pattern = find_pattern("81 EC ? ? ? ? B9 ? ? ? ? 53 55", "81 EC ? ? ? ? 53 56 8B B4 24 ? ? ? ? 57 56", "81 EC ? ? ? ? 53 55 56 8B B4 24 ? ? ? ? 57");
-            rage::grmShaderFactoryStandard::shPreloadShaders = safetyhook::create_inline(pattern.get_first(), rage::grmShaderFactoryStandard::PreloadShaders);
+            pattern = find_pattern("E8 ? ? ? ? 8B D8 68 ? ? ? ? 8D 84 24", "E8 ? ? ? ? 8B E8 68 ? ? ? ? 8D 84 24 ? ? ? ? 50 8D 4C 24", "E8 ? ? ? ? 8B E8 68 ? ? ? ? 8D 44 24");
+            rage::fiAssetManager::FindPath = (decltype(rage::fiAssetManager::FindPath))injector::GetBranchDestination(pattern.get_first(0)).as_int();
 
-            pattern = find_pattern("83 7F ? ? 75 ? 83 7F ? ? 74 ? 8B CF E8 ? ? ? ? ? ? FF 77 ? ? ? FF 50 ? C7 47 ? ? ? ? ? ? ? ? ? ? ? EB", "39 5F ? 5D 75 ? 39 5F ? 74 ? 8B CF E8", "39 5F ? 75 ? 39 5F ? 74 ? 8B CF E8 ? ? ? ? ? ? ? ? 8B 47");
-            static auto PreloadShadersHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+            pattern = hook::pattern("E8 ? ? ? ? 68 ? ? ? ? 8D 84 24 ? ? ? ? 50 8D 4C 24");
+            if (!pattern.empty())
             {
-                static bool scanned = false;
-                if (!scanned)
+                rage::grmShaderFxTemplate::shLoadIntoSlot = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first(0)).as_int(), rage::grmShaderFxTemplate::LoadIntoSlot);
+            }
+            else
+            {
+                pattern = find_pattern("E8 ? ? ? ? 83 C4 ? 68 ? ? ? ? 8D 84 24 ? ? ? ? 50 8D 4C 24 ? E8", "E8 ? ? ? ? 83 C4 ? 68 ? ? ? ? 8D 44 24 ? 50 8D 8C 24");
+                rage::grmShaderFxTemplate::shLoadIntoSlot_2 = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first(0)).as_int(), rage::grmShaderFxTemplate::LoadIntoSlot_2);
+            }
+
+            pattern = find_pattern("81 EC ? ? ? ? B9 ? ? ? ? 53 55", "81 EC ? ? ? ? 53 55 56 8B B4 24 ? ? ? ? 57 56", "81 EC ? ? ? ? 53 56 8B B4 24 ? ? ? ? 57 56 B9");
+            rage::grmShaderFactoryStandard::shPreloadShaders = safetyhook::create_inline(pattern.get_first(0), rage::grmShaderFactoryStandard::PreloadShaders);
+
+            pattern = find_pattern("83 7F ? ? 75 ? 83 7F ? ? 74 ? 8B CF E8 ? ? ? ? 8B 0F FF 77 ? 8B 01 FF 50 ? C7 47 ? ? ? ? ? C7 07 ? ? ? ? EB", "39 5F ? 75 ? 39 5F ? 74 ? 8B CF E8 ? ? ? ? 8B 0F 8B 11", "39 5F ? 5D 75");
+            static auto rage__grmShaderFactoryStandard__PreloadShaders_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+            {
+                static bool Scanned = false;
+
+                if (!Scanned)
                 {
                     if (!gFxcNames.empty())
                     {
-                        for (const auto& loaded : gFxcLoadedNames)
+                        for (const auto& Loaded : gFxcLoadedNames)
                         {
-                            std::erase_if(gFxcNames, [&](const std::string& name)
+                            std::erase_if(gFxcNames, [&](const std::string& Name)
                             {
-                                return iequals(name, loaded);
+                                return iequals(Name, Loaded);
                             });
                         }
 
-                        std::erase_if(gFxcNames, [&](const std::string& name)
+                        std::erase_if(gFxcNames, [&](const std::string& Name)
                         {
-                            return gEmbeddedShaders.contains(name);
+                            return gEmbeddedShaders.contains(Name);
                         });
                     }
 
-                    for (const auto& name : gFxcNames)
+                    for (const auto& Name : gFxcNames)
                     {
                         if (rage::grmShaderFxTemplate::shLoadIntoSlot)
-                            rage::grmShaderFxTemplate::shLoadIntoSlot.unsafe_fastcall(name.c_str(), regs.ebx);
+                            rage::grmShaderFxTemplate::shLoadIntoSlot.unsafe_fastcall(Name.c_str(), regs.ebx);
 
-                        if (rage::grmShaderFxTemplate::shLoadIntoSlotEFLC)
-                            rage::grmShaderFxTemplate::shLoadIntoSlotEFLC.unsafe_ccall(name.c_str(), regs.ebp);
+                        if (rage::grmShaderFxTemplate::shLoadIntoSlot_2)
+                            rage::grmShaderFxTemplate::shLoadIntoSlot_2.unsafe_ccall(Name.c_str(), regs.ebp);
                     }
 
                     gFxcNames.clear();
                     gFxcLoadedNames.clear();
 
-                    scanned = true;
+                    Scanned = true;
                 }
             });
-
-            pattern = find_pattern("E8 ? ? ? ? 8B D8 68 ? ? ? ? 8D 84 24", "E8 ? ? ? ? 8B E8 68");
-            rage::fiAssetManager::FindPath = (decltype(rage::fiAssetManager::FindPath))injector::GetBranchDestination(pattern.get_first(0)).as_int();
-
-            pattern = find_pattern("E8 ? ? ? ? 68 ? ? ? ? 8D 84 24 ? ? ? ? 50 8D 4C 24");
-            if (!pattern.empty())
-                rage::grmShaderFxTemplate::shLoadIntoSlot = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first(0)).as_int(), rage::grmShaderFxTemplate::LoadIntoSlot);
-
-            pattern = find_pattern("E8 ? ? ? ? 83 C4 ? 68 ? ? ? ? 8D 44 24 ? 50 8D 8C 24", "E8 ? ? ? ? 83 C4 ? 68 ? ? ? ? 8D 84 24 ? ? ? ? 50 8D 4C 24 ? E8");
-            if (!pattern.empty())
-                rage::grmShaderFxTemplate::shLoadIntoSlotEFLC = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first(0)).as_int(), rage::grmShaderFxTemplate::LoadIntoSlotEFLC);
         };
     }
 } PreloadList;
