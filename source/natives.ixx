@@ -205,7 +205,7 @@ public:
         NativeContext cxt;
         (cxt.Push(args), ...);
 
-        if (CTimer::m_CodePause && !*CTimer::m_CodePause)
+        if (CTimer::ms_bScriptPause && !*CTimer::ms_bScriptPause)
         {
             if (!m_IndexTable[Index])
             {

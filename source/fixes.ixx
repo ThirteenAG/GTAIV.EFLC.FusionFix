@@ -22,30 +22,24 @@ namespace CTaskComplexGangDriveby
     }
 }
 
+namespace CCamGame
+{
+    SafetyHookInline shPostProcessHeightBasedFOV = {};
+    void __fastcall PostProcessHeightBasedFOV(int _this, void* edx)
+    {
+        shPostProcessHeightBasedFOV.unsafe_fastcall<void>(_this, edx);
+
+        static auto FieldOfView = FusionFixSettings.GetRef("PREF_CUSTOMFOV");
+
+        *(float*)(_this + 0x60) += FieldOfView->get() * 5.0f;
+    }
+}
+
 class Fixes
 {
 public:
     static inline int32_t nTimeToPassBeforeCenteringCameraOnFoot = 0;
     static inline int32_t nTimeToPassBeforeCenteringCameraInVehicle = 0;
-
-    static inline injector::hook_back<void(__fastcall*)(int32_t, int32_t)> hbsub_B07600;
-    static void __fastcall sub_B07600(int32_t _this, int32_t)
-    {
-        hbsub_B07600.fun(_this, 0);
-
-        static auto nCustomFOV = FusionFixSettings.GetRef("PREF_CUSTOMFOV");
-        *(float*)(_this + 0x60) += nCustomFOV->get() * 5.0f;
-    }
-
-    static char sub_8D0A90()
-    {
-        if (bMenuNeedsUpdate2 > 0)
-        {
-            bMenuNeedsUpdate2--;
-            return 0;
-        }
-        return *CTimer::m_UserPause;
-    }
 
     static inline injector::hook_back<int(__fastcall*)(int* _this, void* edx, int a2)> hbsub_B64D60;
     static int __fastcall sub_B64D60(int* _this, void* edx, int a2)
@@ -521,7 +515,7 @@ public:
                 }; injector::MakeInline<InVehicleVerticalCamCenteringHook>(pattern.get_first(0), pattern.get_first(9));
             }
 
-            // Disable drive-by while using cellphone
+            // Disable driveby while using the cellphone
             {
                 auto pattern = find_pattern("51 57 8B 7C 24 ? 80 BF ? ? ? ? ? 75", "55 8B 6C 24 ? 80 BD ? ? ? ? ? 75 ? 80 BD ? ? ? ? ? 74 ? 8B 85");
                 CTaskComplexGangDriveby::shPlayerWantsToDoDriveby = safetyhook::create_inline(pattern.get_first(0), CTaskComplexGangDriveby::PlayerWantsToDoDriveby);
@@ -529,16 +523,13 @@ public:
 
             // Custom FOV
             {
-                auto pattern = find_pattern("E8 ? ? ? ? F6 87 ? ? ? ? ? 5B", "E8 ? ? ? ? 8B CE E8 ? ? ? ? F6 86 ? ? ? ? ? 5F");
-                hbsub_B07600.fun = injector::MakeCALL(pattern.get_first(0), sub_B07600, true).get();
-
-                pattern = find_pattern("E8 ? ? ? ? 84 C0 74 12 80 3D ? ? ? ? ? 0F B6 DB", "E8 ? ? ? ? 84 C0 74 0A 38 1D");
-                injector::MakeCALL(pattern.get_first(0), sub_8D0A90, true);
+                auto pattern = hook::pattern("56 6A ? 6A ? 8B F1 E8 ? ? ? ? 85 C0 0F 85");
+                CCamGame::shPostProcessHeightBasedFOV = safetyhook::create_inline(pattern.get_first(0), CCamGame::PostProcessHeightBasedFOV);
 
                 FusionFixSettings.SetCallback("PREF_CUSTOMFOV", [](int32_t value)
                 {
-                    bMenuNeedsUpdate = 2;
-                    bMenuNeedsUpdate2 = 2;
+                    nCameraUnpauseTimer1 = 2;
+                    nCameraUnpauseTimer2 = 2;
                 });
             }
 

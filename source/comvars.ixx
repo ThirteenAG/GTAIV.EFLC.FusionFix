@@ -2011,8 +2011,8 @@ export namespace CTimer
     float* fTimeStep = nullptr;
     float* fTimeScale1 = nullptr;
     float* fTimeScale2 = nullptr;
-    uint8_t* m_UserPause = nullptr;
-    uint8_t* m_CodePause = nullptr;
+    uint8_t* ms_bUserPause = nullptr;
+    uint8_t* ms_bScriptPause = nullptr;
     int32_t* m_snTimeInMilliseconds = nullptr;
     int32_t* m_snTimeInMillisecondsPauseMode = nullptr;
 }
@@ -2204,8 +2204,9 @@ export HWND gWnd;
 export RECT gRect;
 export bool bDynamicShadowsForTrees = true;
 export bool bLoadingShown = false;
-export int bMenuNeedsUpdate = 0;
-export int bMenuNeedsUpdate2 = 0;
+export int nTimecycleUnpauseTimer = 0;
+export int nCameraUnpauseTimer1 = 0;
+export int nCameraUnpauseTimer2 = 0;
 export bool bExtraNightShadows = false;
 export bool bHeadlightShadows = false;
 export bool bVehicleNightShadows = true;
@@ -2624,8 +2625,8 @@ public:
         _dwCurrentEpisode = *find_pattern("83 3D ? ? ? ? ? 75 0F 6A 02", "89 35 ? ? ? ? 89 35 ? ? ? ? 6A 00 6A 01").get_first<int32_t*>(2);
 
         pattern = find_pattern("0A 05 ? ? ? ? 0A 05 ? ? ? ? 75 38", "0A 05 ? ? ? ? 0A 05");
-        CTimer::m_UserPause = *pattern.get_first<uint8_t*>(2);
-        CTimer::m_CodePause = *pattern.get_first<uint8_t*>(8);
+        CTimer::ms_bUserPause = *pattern.get_first<uint8_t*>(2);
+        CTimer::ms_bScriptPause = *pattern.get_first<uint8_t*>(8);
 
         pattern = find_pattern("A1 ? ? ? ? A3 ? ? ? ? EB 3A", "A1 ? ? ? ? 39 05 ? ? ? ? 76 1F");
         CTimer::m_snTimeInMilliseconds = *pattern.get_first<int32_t*>(1);
