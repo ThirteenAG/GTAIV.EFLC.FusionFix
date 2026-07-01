@@ -4,32 +4,32 @@ on:
   push:
     paths-ignore:
       - "**/*.md"
-      - '**/*.txt'
+      - "**/*.txt"
     branches:
-      - '**'
+      - "**"
   pull_request:
     paths-ignore:
       - "**/*.md"
-      - '**/*.txt'
+      - "**/*.txt"
   workflow_dispatch:
     inputs:
       release:
         description: "Create a release"
         type: choice
         required: false
-        default: 'false'
+        default: "false"
         options:
-          - 'true'
-          - 'false'
+          - "true"
+          - "false"
       version_increment:
         description: "Default semantic version release type"
         type: choice
         required: false
-        default: 'minor'
+        default: "minor"
         options:
-          - 'major'
-          - 'minor'
-          - 'patch'
+          - "major"
+          - "minor"
+          - "patch"
 
 env:
   VERINC: ${{ github.event.inputs.version_increment || 'patch' }}
@@ -46,127 +46,157 @@ jobs:
     runs-on: windows-2025-vs2026
 
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v7
-      with:
-        submodules: recursive
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
 
-    - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@main
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@main
 
-    - name: Auto Increment Version
-      uses: MCKanpolat/auto-semver-action@1.0.12
-      id: versioning
-      with:
-        releaseType: ${{ env.VERINC }}
-        incrementPerCommit: false
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Auto Increment Version
+        uses: MCKanpolat/auto-semver-action@1.0.12
+        id: versioning
+        with:
+          releaseType: ${{ env.VERINC }}
+          incrementPerCommit: false
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Configure build
-      run: ./premake5 vs2026 --with-version=${{ steps.versioning.outputs.version }}
+      - name: Configure build
+        run: ./premake5 vs2026 --with-version=${{ steps.versioning.outputs.version }}
 
-    - name: Build
-      run: |
-        Push-Location external\modupdater
-        & .\premake5.bat
-        & .\builddist.bat
-        Pop-Location
-        msbuild -m build/GTAIV.EFLC.FusionFix.slnx /property:Configuration=Release /property:Platform=Win32
+      - name: Build
+        run: |
+          Push-Location external\modupdater
+          & .\premake5.bat
+          & .\builddist.bat
+          Pop-Location
+          msbuild -m build/GTAIV.EFLC.FusionFix.slnx /property:Configuration=Release /property:Platform=Win32
 
-    - name: Download Ultimate ASI Loader x86
-      uses: robinraju/release-downloader@v1.13
-      with:
-        repository: "ThirteenAG/Ultimate-ASI-Loader"
-        tag: "Win32-latest"
-        fileName: "dinput8-Win32.zip"
+      - name: Download Ultimate ASI Loader x86
+        uses: robinraju/release-downloader@v1.13
+        with:
+          repository: "ThirteenAG/Ultimate-ASI-Loader"
+          tag: "Win32-latest"
+          fileName: "dinput8-Win32.zip"
 
-    - name: Download DXVK
-      uses: robinraju/release-downloader@v1.13
-      with:
-        repository: "doitsujin/dxvk"
-        tag: 'v2.6.2'
-        fileName: "dxvk-*.tar.gz"
+      - name: Download DXVK v2.6.2
+        uses: robinraju/release-downloader@v1.13
+        with:
+          repository: "doitsujin/dxvk"
+          tag: "v2.6.2"
+          fileName: "dxvk-*.tar.gz"
+          out-file-path: "dxvk-dl/262"
 
-    - name: Download Legacy Package
-      uses: robinraju/release-downloader@v1.13
-      with:
-        repository: "GTAmodding/XLivelessAddon"
-        tag: "latest"
-        fileName: "XLivelessAddon.zip"
+      - name: Download DXVK v2.7.1
+        uses: robinraju/release-downloader@v1.13
+        with:
+          repository: "doitsujin/dxvk"
+          tag: "v2.7.1"
+          fileName: "dxvk-*.tar.gz"
+          out-file-path: "dxvk-dl/271"
 
-    - name: Unpack dependencies
-      shell: cmd
-      run: |
+      - name: Download latest DXVK
+        uses: robinraju/release-downloader@v1.13
+        with:
+          repository: "doitsujin/dxvk"
+          latest: true
+          fileName: "dxvk-*.tar.gz"
+          out-file-path: "dxvk-dl/latest"
+
+      - name: Unpack DXVK DLLs
+        shell: cmd
+        run: |
+          7z x -so dxvk-dl\262\dxvk-*.tar.gz | 7z x -si -ttar -ot262
+          for /d %%d in (t262\dxvk-*) do copy "%%d\x32\d3d9.dll" "data\vulkan262.dll"
+          rmdir /s /q t262
+
+          7z x -so dxvk-dl\271\dxvk-*.tar.gz | 7z x -si -ttar -ot271
+          for /d %%d in (t271\dxvk-*) do copy "%%d\x32\d3d9.dll" "data\vulkan271.dll"
+          rmdir /s /q t271
+
+          7z x -so dxvk-dl\latest\dxvk-*.tar.gz | 7z x -si -ttar -ot3
+          for /d %%d in (t3\dxvk-*) do copy "%%d\x32\d3d9.dll" "data\vulkan.dll"
+          rmdir /s /q t3
+
+          rmdir /s /q dxvk-dl
+
+      - name: Download Legacy Package
+        uses: robinraju/release-downloader@v1.13
+        with:
+          repository: "GTAmodding/XLivelessAddon"
+          tag: "latest"
+          fileName: "XLivelessAddon.zip"
+
+      - name: Unpack other dependencies
+        shell: cmd
+        run: |
           7z x dinput8-Win32.zip -odata/ -y
           del dinput8-Win32.zip
           del data\dinput8-Win32.SHA512
-          for %%f in (dxvk-*.tar.gz) do 7z x -so "%%f" | 7z x -si -ttar -odxvk
-          for /d %%d in (dxvk\dxvk-*) do if exist "%%d\x32\d3d9.dll" copy "%%d\x32\d3d9.dll" "data\vulkan.dll"
-          rmdir /s /q dxvk
 
-    - name: Pack binaries
-      run: |
-        ./release.bat
-      env:
-        CODE_SIGNING_PFX: ${{ github.ref_name == 'master' && (github.event_name == 'push' || github.event.inputs.release == 'true') && secrets.CODE_SIGNING_PFX || '' }}
-        CODE_SIGNING_PASSWORD: ${{ github.ref_name == 'master' && (github.event_name == 'push' || github.event.inputs.release == 'true') && secrets.CODE_SIGNING_PASSWORD || '' }}
+      - name: Pack binaries
+        run: |
+          ./release.bat
+        env:
+          CODE_SIGNING_PFX: ${{ github.ref_name == 'master' && (github.event_name == 'push' || github.event.inputs.release == 'true') && secrets.CODE_SIGNING_PFX || '' }}
+          CODE_SIGNING_PASSWORD: ${{ github.ref_name == 'master' && (github.event_name == 'push' || github.event.inputs.release == 'true') && secrets.CODE_SIGNING_PASSWORD || '' }}
 
-    - name: Pack Legacy
-      shell: cmd
-      run: |
-        7z e XLivelessAddon.zip plugins/XLivelessAddon.asi -y
-        mkdir legacy
-        copy data\dinput8.dll legacy\xlive.dll
-        mkdir legacy\plugins
-        copy XLivelessAddon.asi legacy\plugins\
-        cd legacy
-        7z a -tzip ..\GTAIV.EFLC.FusionFixLegacyAddon.zip *
-        cd ..
-        rmdir /s /q legacy
-        del XLivelessAddon.asi
+      - name: Pack Legacy
+        shell: cmd
+        run: |
+          7z e XLivelessAddon.zip plugins/XLivelessAddon.asi -y
+          mkdir legacy
+          copy data\dinput8.dll legacy\xlive.dll
+          mkdir legacy\plugins
+          copy XLivelessAddon.asi legacy\plugins\
+          cd legacy
+          7z a -tzip ..\GTAIV.EFLC.FusionFixLegacyAddon.zip *
+          cd ..
+          rmdir /s /q legacy
+          del XLivelessAddon.asi
 
-    - name: Upload artifact
-      uses: actions/upload-artifact@v7
-      with:
-        archive: false
-        path: GTAIV.EFLC.FusionFix.zip
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          path: GTAIV.EFLC.FusionFix.zip
 
-    - name: Upload artifact (asi)
-      uses: actions/upload-artifact@v7
-      with:
-        archive: false
-        path: data/plugins/GTAIV.EFLC.FusionFix.asi
+      - name: Upload artifact (asi)
+        uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          path: data/plugins/GTAIV.EFLC.FusionFix.asi
 
-    - name: Upload Web Installer
-      uses: actions/upload-artifact@v7
-      with:
-        archive: false
-        path: GTAIV.EFLC.FusionFixWebInstaller.exe
+      - name: Upload Web Installer
+        uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          path: GTAIV.EFLC.FusionFixWebInstaller.exe
 
-    - name: Upload Offline Installer
-      uses: actions/upload-artifact@v7
-      with:
-        archive: false
-        path: GTAIV.EFLC.FusionFixOfflineInstaller.exe
+      - name: Upload Offline Installer
+        uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          path: GTAIV.EFLC.FusionFixOfflineInstaller.exe
 
-    - name: Upload Legacy Addon
-      uses: actions/upload-artifact@v7
-      with:
-        archive: false
-        path: GTAIV.EFLC.FusionFixLegacyAddon.zip
+      - name: Upload Legacy Addon
+        uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          path: GTAIV.EFLC.FusionFixLegacyAddon.zip
 
-    - name: Upload Release
-      if: |
-        github.event.inputs.release == 'true' &&
-        github.ref_name == 'master' &&
-        (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
-        github.repository == 'ThirteenAG/GTAIV.EFLC.FusionFix'
-      uses: ncipollo/release-action@main
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        allowUpdates: false
-        name: GTAIV.EFLC.FusionFix v${{ steps.versioning.outputs.version }}
-        body: "[README](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix#readme)"
-        tag: v${{ steps.versioning.outputs.version }}
-        artifacts: GTAIV.EFLC.FusionFix.zip, GTAIV.EFLC.FusionFixWebInstaller.exe, GTAIV.EFLC.FusionFixOfflineInstaller.exe, GTAIV.EFLC.FusionFixLegacyAddon.zip
-
+      - name: Upload Release
+        if: |
+          github.event.inputs.release == 'true' &&
+          github.ref_name == 'master' &&
+          (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+          github.repository == 'ThirteenAG/GTAIV.EFLC.FusionFix'
+        uses: ncipollo/release-action@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          allowUpdates: false
+          name: GTAIV.EFLC.FusionFix v${{ steps.versioning.outputs.version }}
+          body: "[README](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix#readme)"
+          tag: v${{ steps.versioning.outputs.version }}
+          artifacts: GTAIV.EFLC.FusionFix.zip, GTAIV.EFLC.FusionFixWebInstaller.exe, GTAIV.EFLC.FusionFixOfflineInstaller.exe, GTAIV.EFLC.FusionFixLegacyAddon.zip
