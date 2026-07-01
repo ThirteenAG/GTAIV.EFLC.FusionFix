@@ -6,6 +6,7 @@
 #include <cassert>
 #include <stdexcept>
 #include <type_traits>
+#include <cstdint>
 #include "injector\injector.hpp"
 
 template<typename T, bool AutoUnprotect = false>
@@ -82,12 +83,23 @@ public:
     GameRef(GameRef&& other) noexcept = default;
     GameRef& operator=(GameRef&& other) noexcept = default;
 
-    void SetAddress(T* address)
+    template<typename AddressT>
+        requires (std::is_pointer_v<std::remove_reference_t<AddressT>> || std::is_integral_v<std::remove_reference_t<AddressT>>)
+    void SetAddress(AddressT address)
     {
-        if (address == nullptr)
+        using RawAddressT = std::remove_cvref_t<AddressT>;
+        auto resolvedAddress = [&]() -> T*
+        {
+            if constexpr (std::is_pointer_v<RawAddressT>)
+                return reinterpret_cast<T*>(address);
+            else
+                return reinterpret_cast<T*>(static_cast<std::uintptr_t>(address));
+        }();
+
+        if (resolvedAddress == nullptr)
             throw std::invalid_argument("GameRef::SetAddress called with null pointer");
 
-        ptr = address;
+        ptr = resolvedAddress;
         deferredResolver.reset();
     }
 
