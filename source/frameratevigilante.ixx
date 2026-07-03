@@ -377,13 +377,12 @@ public:
             pattern = hook::pattern("51 56 E8 ? ? ? ? E8");
             CPhysics::shUpdate = safetyhook::create_inline(pattern.get_first(0), CPhysics::Update);
 
-            // Heli rotor break time
-            {
+            // Heli rotor break time (Not work for some reasons)
+            // {
                 // Rear rotors
                 // pattern = hook::pattern("F3 0F 59 15 ? ? ? ? F3 0F 58 D0 F3 0F 10 87");
                 // if (!pattern.empty())
                 // {
-                //     // This is not effective for some reason
                 //     static auto dword_FE8830 = *pattern.get_first<float*>(4);
                 //     injector::MakeNOP(pattern.get_first(0), 8, true);
                 //     static auto CHeli_ApplyCollisionInternalHook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
@@ -393,7 +392,6 @@ public:
                 // }
                 // else
                 // {
-                //     // Needs better approach to patch, doesn't work
                 //     pattern = hook::pattern("D8 0D ? ? ? ? DE C1 D8 4C 24 ? D9 5C 24 ? F3 0F 5C 44 24 ? 0F 2F C8 F3 0F 11 86 ? ? ? ? 72");
                 //     static auto dword_D74010 = *pattern.get_first<float*>(2);
                 //     injector::MakeNOP(pattern.get_first(0), 6, true);
@@ -408,20 +406,18 @@ public:
                 // }
 
                 // Main rotors
-                pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 58 D0 F3 0F 10 87");
-                if (!pattern.empty())
-                {
-                    // Works fine
-                    static auto dword_FE8B08 = *pattern.get_first<float*>(4);
-                    injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto CHeli_ApplyCollisionInternalHook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                    {
-                        regs.xmm0.f32[0] *= *dword_FE8B08 * *CTimer::fTimeStep / (1.0f / 30.0f);
-                    });
-                }
+                // pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 58 D0 F3 0F 10 87");
+                // if (!pattern.empty())
+                // {
+                //     static auto dword_FE8B08 = *pattern.get_first<float*>(4);
+                //     injector::MakeNOP(pattern.get_first(0), 8, true);
+                //     static auto CHeli_ApplyCollisionInternalHook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                //     {
+                //         regs.xmm0.f32[0] *= *dword_FE8B08 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                //     });
+                // }
                 // else
                 // {
-                //     // Needs better approach to patch, doesn't work
                 //     pattern = hook::pattern("D8 0D ? ? ? ? DE C1 D8 4C 24 ? D9 5C 24 ? F3 0F 5C 44 24 ? 0F 2F C8 F3 0F 11 86 ? ? ? ? 0F 82");
                 //     static auto dword_DB3010 = *pattern.get_first<float*>(2);
                 //     injector::MakeNOP(pattern.get_first(0), 6, true);
@@ -434,7 +430,7 @@ public:
                 //         }
                 //     }; injector::MakeInline<CHeli_ApplyCollisionInternalHook2>(pattern.get_first(0), pattern.get_first(6));
                 // }
-            }
+            // }
 
             // Water effects/physics
             // Interesting insight:
