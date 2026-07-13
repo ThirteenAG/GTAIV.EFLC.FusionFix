@@ -271,6 +271,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Re-enabled Roman's cab depot script in TLAD
 - Superd2 is now accepted by car wash, meanwhile packer2, police3, police4, policew are now not accepted
 - Fixed incorrect car wash price help text for a one type of taxi
+- Fixed time won't advance after skipping taxi ride journey
 - Fixed 200 pigeons extermination annihilator reward preventing Brucie from landing helicopter at Star Junction landing site
 - Fixed damaged vending machines being usable
 - Fixed phone being not usable after giving money to buskers
@@ -315,7 +316,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored console rain density
 - Sped up menu and pause transitions
 - Pressed radar zoom out button now will make it stay zoomed out for a few seconds
-- Fixed date skip after dying, being busted or respraying at certain time
+- Fixed date won't advance after dying, being busted or respraying at certain time
 - Fixed helicopter searchlights flickering violently when more than one helicopter is present
 - Fixed radio reset after cutscene
 - Fixed incorrect TBoGT bullet tracer position
