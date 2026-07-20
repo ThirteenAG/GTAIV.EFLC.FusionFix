@@ -162,7 +162,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - [Fixed recoil behavior that was different when playing with keyboard/mouse and gamepad](https://github.com/GTAmodding/GTAIV-Issues-List/issues/6)
 - [Fixed forced "definition off" setting in cutscenes, now cutscenes will respect the menu setting](https://github.com/GTAmodding/GTAIV-Issues-List/issues/5)
 - [Fixed DLC car lights in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/3)
-- [Fixed various issues related to high frame rate](https://github.com/GTAmodding/GTAIV-Issues-List/issues/112)
+- [Fixed various issues related to frame rate](https://github.com/GTAmodding/GTAIV-Issues-List/issues/112)
 - [Fixed aiming zoom in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/19)
 - [Fixed possible crash when manually dialing a phone number using the keypad in TLAD](https://github.com/GTAmodding/GTAIV-Issues-List/issues/232)
 - [Fixed possible crash in TLAD mission "Marta Full of Grace"](https://github.com/GTAmodding/GTAIV-Issues-List/issues/235)
