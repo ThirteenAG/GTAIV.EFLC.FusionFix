@@ -2008,19 +2008,20 @@ export namespace CCamera
 
 export namespace CTimer
 {
-    float* fTimeStep;
-    float* fTimeScale1;
-    float* fTimeScale2;
-    uint8_t* m_UserPause = nullptr;
-    uint8_t* m_CodePause = nullptr;
+    float* fTimeStep = nullptr;
+    float* fTimeScale1 = nullptr;
+    float* fTimeScale2 = nullptr;
+    uint8_t* ms_bUserPause = nullptr;
+    uint8_t* ms_bScriptPause = nullptr;
     int32_t* m_snTimeInMilliseconds = nullptr;
     int32_t* m_snTimeInMillisecondsPauseMode = nullptr;
 }
 
-export namespace CTimeCycle
+export namespace TimeCycle
 {
-    void(__cdecl* Initialise)() = nullptr;
-    void(__cdecl* InitialiseModifiers)() = nullptr;
+    void (__cdecl* Initialise)() = nullptr;
+    void (__cdecl* InitialiseModifiers)() = nullptr;
+    float* m_InteriorBlendStrength = nullptr;
 }
 
 export namespace CWeather
@@ -2203,8 +2204,9 @@ export HWND gWnd;
 export RECT gRect;
 export bool bDynamicShadowsForTrees = true;
 export bool bLoadingShown = false;
-export int bMenuNeedsUpdate = 0;
-export int bMenuNeedsUpdate2 = 0;
+export int nTimecycleUnpauseTimer = 0;
+export int nCameraUnpauseTimer1 = 0;
+export int nCameraUnpauseTimer2 = 0;
 export bool bExtraNightShadows = false;
 export bool bHeadlightShadows = false;
 export bool bVehicleNightShadows = true;
@@ -2554,6 +2556,16 @@ export namespace CCamera
     bool (__cdecl* isScreenFadedOut)() = nullptr;
 }
 
+export namespace CTreeImposters
+{
+    float* ms_windAng = nullptr;
+}
+
+export namespace CPhoneMgr
+{
+    bool* bDisplayMobile = nullptr;
+}
+
 export enum eControllerButtons
 {
     BUTTON_BUMPER_LEFT = 4,
@@ -2613,8 +2625,8 @@ public:
         _dwCurrentEpisode = *find_pattern("83 3D ? ? ? ? ? 75 0F 6A 02", "89 35 ? ? ? ? 89 35 ? ? ? ? 6A 00 6A 01").get_first<int32_t*>(2);
 
         pattern = find_pattern("0A 05 ? ? ? ? 0A 05 ? ? ? ? 75 38", "0A 05 ? ? ? ? 0A 05");
-        CTimer::m_UserPause = *pattern.get_first<uint8_t*>(2);
-        CTimer::m_CodePause = *pattern.get_first<uint8_t*>(8);
+        CTimer::ms_bUserPause = *pattern.get_first<uint8_t*>(2);
+        CTimer::ms_bScriptPause = *pattern.get_first<uint8_t*>(8);
 
         pattern = find_pattern("A1 ? ? ? ? A3 ? ? ? ? EB 3A", "A1 ? ? ? ? 39 05 ? ? ? ? 76 1F");
         CTimer::m_snTimeInMilliseconds = *pattern.get_first<int32_t*>(1);
@@ -2701,10 +2713,13 @@ public:
         CViewport3DScene::pStencilRT = *pattern.get_first<rage::grcRenderTargetPC**>(1);
 
         pattern = find_pattern("55 8B EC 83 E4 F0 81 EC ? ? ? ? 8B 0D ? ? ? ? 53 0F B7 41 04", "55 8B EC 83 E4 F0 81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 8B 0D ? ? ? ? 0F B7 41 04");
-        CTimeCycle::Initialise = pattern.get_first<void(__cdecl)()>(0);
+        TimeCycle::Initialise = pattern.get_first<void(__cdecl)()>(0);
 
         pattern = find_pattern("68 ? ? ? ? E8 ? ? ? ? 68 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 68");
-        CTimeCycle::InitialiseModifiers = pattern.get_first<void(__cdecl)()>(0);
+        TimeCycle::InitialiseModifiers = pattern.get_first<void(__cdecl)()>(0);
+
+        pattern = find_pattern("F3 0F 11 05 ? ? ? ? F3 0F 10 4F", "F3 0F 11 05 ? ? ? ? D9 05 ? ? ? ? F3 0F 10 43");
+        TimeCycle::m_InteriorBlendStrength = *pattern.get_first<float*>(4);
 
         pattern = find_pattern("56 57 6A 00 FF 74 24 10 8B F9 E8 ? ? ? ? 0F B7 77 0C", "8B 44 24 04 56 57 6A 00 50 8B F9");
         rage::grmShaderInfo::getParamIndex = (decltype(rage::grmShaderInfo::getParamIndex))pattern.get_first(0);
@@ -2915,5 +2930,19 @@ public:
 
         pattern = find_pattern("E8 ? ? ? ? 84 C0 74 ? F3 0F 10 86 ? ? ? ? F3 0F 58 05", "E8 ? ? ? ? 50 56 E8 ? ? ? ? 83 C4 ? E8");
         CCamera::isScreenFadedOut = (decltype(CCamera::isScreenFadedOut))injector::GetBranchDestination(pattern.get_first()).as_int();
+
+        pattern = hook::pattern("C7 05 ? ? ? ? ? ? ? ? 0F 85 ? ? ? ? 6A ? 6A");
+        if (!pattern.empty())
+        {
+            CTreeImposters::ms_windAng = *pattern.get_first<float*>(2);
+        }
+        else
+        {
+            pattern = hook::pattern("F3 0F 11 05 ? ? ? ? 0F 85");
+            CTreeImposters::ms_windAng = *pattern.get_first<float*>(4);
+        }
+
+        pattern = find_pattern("C6 05 ? ? ? ? ? C6 05 ? ? ? ? ? C7 05 ? ? ? ? ? ? ? ? 8B 01", "88 1D ? ? ? ? 88 1D ? ? ? ? 89 1D ? ? ? ? 8B 11");
+        CPhoneMgr::bDisplayMobile = *pattern.get_first<bool*>(2);
     }
 } Common;

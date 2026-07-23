@@ -8,9 +8,9 @@ import fusiondxhook;
 injector::hook_back<void(*)()> hbCGameProcess;
 void CGameProcessHook()
 {
-    if (CTimer::m_UserPause && CTimer::m_CodePause)
+    if (CTimer::ms_bUserPause && CTimer::ms_bScriptPause)
     {
-        if (!*CTimer::m_UserPause && !*CTimer::m_CodePause)
+        if (!*CTimer::ms_bUserPause && !*CTimer::ms_bScriptPause)
         {
             static std::once_flag of;
             std::call_once(of, []() {

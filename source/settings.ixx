@@ -2,7 +2,6 @@ module;
 
 #include <common.hxx>
 #include <shlobj.h>
-#include <filesystem>
 #include <d3dx9.h>
 
 export module settings;
@@ -10,10 +9,9 @@ export module settings;
 import common;
 import comvars;
 import d3dx9_43;
-import fusiondxhook;
 import gxtloader;
-import timecycext;
 import natives;
+import timecycext;
 
 namespace CText
 {
@@ -73,13 +71,52 @@ namespace CText
 
         pattern = find_pattern("E8 ? ? ? ? 50 68 ? ? ? ? 8D 84 24 ? ? ? ? 68 ? ? ? ? 50 E8 ? ? ? ? 83 C4 18", "E8 ? ? ? ? 50 8D 84 24 ? ? ? ? 68 ? ? ? ? 50 BA ? ? ? ? E8 ? ? ? ? 83 C4 14");
         Get = (const wchar_t* (__fastcall*)(void*, void*, const char*))injector::GetBranchDestination(pattern.get_first(0)).as_int();
-        //shGetText = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first()).as_int(), getText);
 
         pattern = find_pattern("E8 ? ? ? ? 50 8D 86 ? ? ? ? 50 E8 ? ? ? ? 83 C4 0C EB 27", "E8 ? ? ? ? 50 8D 8F ? ? ? ? 51");
         shGetTextByKey = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first()).as_int(), getTextByKey);
 
         pattern = find_pattern("51 8B 44 24 08 53 8B D9 C6 44 24", "51 8B 44 24 08 85 C0 53 8B D9");
         shDoesTextLabelExist = safetyhook::create_inline(pattern.get_first(), doesTextLabelExist);
+    }
+}
+
+namespace CTimer
+{
+    char IsUserPaused()
+    {
+        if (nCameraUnpauseTimer1 > 0)
+        {
+            nCameraUnpauseTimer1--;
+
+            return 0;
+        }
+
+        return *CTimer::ms_bUserPause;
+    }
+
+    injector::hook_back<int(*)()> hbIsGamePaused;
+    int IsGamePaused_1()
+    {
+        if (nCameraUnpauseTimer2 > 0)
+        {
+            nCameraUnpauseTimer2--;
+
+            return 0;
+        }
+
+        return hbIsGamePaused.fun();
+    }
+
+    int IsGamePaused_2()
+    {
+        if (nTimecycleUnpauseTimer > 0)
+        {
+            nTimecycleUnpauseTimer--;
+
+            return 0;
+        }
+
+        return hbIsGamePaused.fun();
     }
 }
 
@@ -1260,8 +1297,8 @@ public:
                     auto curState = IsKeyboardKeyPressed(VK_F3);
                     if (!oldState && curState)
                     {
-                        CTimeCycle::Initialise();
-                        CTimeCycle::InitialiseModifiers();
+                        TimeCycle::Initialise();
+                        TimeCycle::InitialiseModifiers();
                     }
                     oldState = curState;
                 };
@@ -1362,6 +1399,81 @@ public:
                     }
                 }
             });
+
+            // Make camera changes visible in menus
+            {
+                pattern = find_pattern("E8 ? ? ? ? 84 C0 74 12 80 3D ? ? ? ? ? 0F B6 DB", "E8 ? ? ? ? 84 C0 74 0A 38 1D");
+                injector::MakeCALL(pattern.get_first(0), CTimer::IsUserPaused);
+
+                pattern = hook::pattern("0A 05 ? ? ? ? 0A 05 ? ? ? ? 74 12");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(0), 6, true);
+                    static auto CCam__BaseProcess_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        *(uint8_t*)&regs.eax |= *CTimer::ms_bUserPause;
+
+                        if (nCameraUnpauseTimer2 > 0)
+                        {
+                            *(uint8_t*)&regs.eax = 0;
+
+                            nCameraUnpauseTimer2--;
+                        }
+                    });
+                }
+                else
+                {
+                    pattern = hook::pattern("E8 ? ? ? ? 84 C0 74 ? 80 3D ? ? ? ? ? 75 ? 80 3D ? ? ? ? ? 74 ? 84 DB");
+                    CTimer::hbIsGamePaused.fun = injector::MakeCALL(pattern.get_first(0), CTimer::IsGamePaused_1).get();
+                }
+            }
+
+            // Make timecycle changes visible in menus
+            {
+                pattern = hook::pattern("0A 05 ? ? ? ? 0A 05 ? ? ? ? 0F 85 ? ? ? ? E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 11 04 24");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(0), 6, true);
+                    static auto CVisualEffects__Update_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        *(uint8_t*)&regs.eax |= *CTimer::ms_bUserPause;
+
+                        if (nTimecycleUnpauseTimer > 0)
+                        {
+                            *(uint8_t*)&regs.eax = 0;
+
+                            nTimecycleUnpauseTimer--;
+                        }
+                    });
+                }
+                else
+                {
+                    pattern = hook::pattern("E8 ? ? ? ? 84 C0 5F 0F 85");
+                    CTimer::hbIsGamePaused.fun = injector::MakeCALL(pattern.get_first(0), CTimer::IsGamePaused_2).get();
+                }
+
+                pattern = hook::pattern("0A 05 ? ? ? ? 0A 05 ? ? ? ? 74 ? 8B 0D");
+                if (!pattern.empty())
+                {
+                    injector::MakeNOP(pattern.get_first(0), 6, true);
+                    static auto TimeCycle__UpdateFinalize_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        *(uint8_t*)&regs.eax |= *CTimer::ms_bUserPause;
+
+                        if (nTimecycleUnpauseTimer > 0)
+                        {
+                            *(uint8_t*)&regs.eax = 0;
+
+                            nTimecycleUnpauseTimer--;
+                        }
+                    });
+                }
+                else
+                {
+                    pattern = hook::pattern("E8 ? ? ? ? 84 C0 74 ? A1 ? ? ? ? 69 C0");
+                    CTimer::hbIsGamePaused.fun = injector::MakeCALL(pattern.get_first(0), CTimer::IsGamePaused_2).get();
+                }
+            }
 
             hbGET_NUMBER_OF_INSTANCES_OF_STREAMED_SCRIPT.fun = NativeOverride::Register(Natives::NativeHashes::GET_NUMBER_OF_INSTANCES_OF_STREAMED_SCRIPT, NATIVE_GET_NUMBER_OF_INSTANCES_OF_STREAMED_SCRIPT, "E8", 30);
         }
