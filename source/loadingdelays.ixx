@@ -26,18 +26,24 @@ public:
     {
         FusionFix::onInitEvent() += []()
         {
-            auto pattern = find_pattern("68 ? ? ? ? FF 15 ? ? ? ? 83 3D ? ? ? ? ? 75 05", "68 ? ? ? ? FF 15 ? ? ? ? 39 1D");
+            CIniReader iniReader("");
+
+            // [MISC]
+            auto bSkipLoadingSpinner = iniReader.ReadInteger("MISC", "SkipLoadingSpinner", 1) != 0;
+
+            auto pattern = find_pattern("68 ? ? ? ? FF 15 ? ? ? ? 83 3D ? ? ? ? ? 75 ? E8 ? ? ? ? 8D 0C 24", "68 ? ? ? ? FF 15 ? ? ? ? 39 1D");
             injector::WriteMemory(pattern.get_first(1), 0, true);
 
-            pattern = find_pattern("FF 35 ? ? ? ? EB 06 FF 35 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? C6 44 24", "8B 0D ? ? ? ? 51 EB 07 8B 15 ? ? ? ? 52 B9 ? ? ? ? E8 ? ? ? ? C6 44 24");
-            injector::MakeJMP(pattern.get_first(), hook::get_pattern("6A FF 6A 01 6A 00 6A 01 6A 01 6A 00 6A 01 6A 01 6A 00 6A 00 6A 00 6A 00 6A 00 6A 00 B9 ? ? ? ? C6 46 04 00"));
+            if (bSkipLoadingSpinner)
+            {
+                pattern = find_pattern("FF 35 ? ? ? ? EB ? FF 35 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? C6 44 24", "8B 0D ? ? ? ? 51 EB ? 8B 15 ? ? ? ? 52 B9 ? ? ? ? E8 ? ? ? ? C6 44 24");
+                injector::MakeJMP(pattern.get_first(0), hook::get_pattern("6A ? 6A ? 6A ? 6A ? 6A ? 6A ? 6A ? 6A ? 6A ? 6A ? 6A ? 6A ? 6A ? 6A ? B9 ? ? ? ? C6 46"));
+            }
         };
 
         FusionFix::onInitEvent() += []()
         {
-            IATHook::Replace(GetModuleHandleA(NULL), "kernel32.DLL",
-                std::forward_as_tuple("Sleep", FusionSleep)
-            );
+            IATHook::Replace(GetModuleHandleA(NULL), "kernel32.DLL", std::forward_as_tuple("Sleep", FusionSleep));
         };
     }
 } LoadingDelays;

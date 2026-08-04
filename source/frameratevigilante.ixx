@@ -4,293 +4,60 @@ module;
 
 export module frameratevigilante;
 
+import classext;
 import common;
 import comvars;
 import natives;
 import settings;
-import classext;
 
-injector::hook_back<double(__fastcall*)(void* _this, void* edx, void* a2, void* a3)> hbsub_A18510;
-double __fastcall sub_A18510(void* _this, void* edx, void* a2, void* a3)
+uint32_t CTimerExt::m_logicalFrameCounter;
+uint32_t CTimerExt::m_logicalFramesPassed;
+
+namespace CTimer
 {
-    float f = 1.0f;
-
-    if (!Natives::IsUsingController())
+    SafetyHookInline shInit = {};
+    void __cdecl Init()
     {
-        f = 3.0f;
+        shInit.unsafe_ccall();
+
+        CTimerExt::m_logicalFrameCounter = 0;
+        CTimerExt::m_logicalFramesPassed = 0;
     }
-
-    return hbsub_A18510.fun(_this, edx, a2, a3) * (*CTimer::fTimeStep / (1.0f / 30.0f)) * f;
-}
-
-SafetyHookInline shProcessStaticCounter = {};
-void __fastcall ProcessStaticCounter(void* _this, void* edx)
-{
-    auto PIExt = GetPedIntelligenceExt((uintptr_t)_this);
-    if (!PIExt)
-    {
-        return shProcessStaticCounter.unsafe_fastcall(_this, edx);
-    }
-
-    PIExt->m_fTimeStepAccumulator += *CTimer::fTimeStep;
-    if (PIExt->m_fTimeStepAccumulator >= (1.0f / 30.0f))
-    {
-        PIExt->m_fTimeStepAccumulator = 0.0f;
-        return shProcessStaticCounter.unsafe_fastcall(_this, edx);
-    }
-}
-
-int (__cdecl* game_rand)() = nullptr;
-uint32_t* dword_11F7060 = nullptr;
-uint32_t* dword_12088B4 = nullptr;
-uint32_t* dword_1037720 = nullptr;
-uint32_t* dword_11F704C = nullptr;
-SafetyHookInline shOnFootCameraShake = {};
-void __fastcall OnFootCameraShake(float* CameraData, void* edx, float Multiplier)
-{
-    static auto CameraShake = FusionFixSettings.GetRef("PREF_CAMERASHAKE");
-    if (!CameraShake->get())
-    {
-        float Output[] = { 0.0f, 0.0f, 0.0f };
-        return Matrix34::fromEulersXYZ(CameraData, 0, Output);
-    }
-
-    float DeltaTime = *CTimer::fTimeStep;
-
-    float TimeScale = DeltaTime * 30.0f;
-    if (*dword_11F7060 == 1 || *dword_12088B4 != -1 || *dword_1037720 == 18)
-    {
-        TimeScale = *dword_11F704C * 0.001f;
-        TimeScale *= 30.0f;
-    }
-
-    static float NoiseTimer = 0.0f;
-    static float CamX = 0.0f;
-    static float CamY = 0.0f;
-    static float CamZ = 0.0f;
-
-    NoiseTimer += DeltaTime;
-
-    if (NoiseTimer >= 1.0f / 30.0f)
-    {
-        NoiseTimer = 0.0f;
-
-        CamX = fabs(CameraData[16] / CameraData[20]) * (CameraData[37] - CameraData[36]) + CameraData[36];
-        CamY = fabs(CameraData[17] / CameraData[21]) * (CameraData[37] - CameraData[36]) + CameraData[36];
-        CamZ = fabs(CameraData[18] / CameraData[22]) * (CameraData[37] - CameraData[36]) + CameraData[36];
-
-        if (CameraData[16] > 0.0f && CameraData[28] > 0.0f || CameraData[16] < 0.0f && CameraData[28] < 0.0f)
-            CamX *= CameraData[32];
-        if (CameraData[17] > 0.0f && CameraData[29] > 0.0f || CameraData[17] < 0.0f && CameraData[29] < 0.0f)
-            CamY *= CameraData[33];
-        if (CameraData[18] > 0.0f && CameraData[30] > 0.0f || CameraData[18] < 0.0f && CameraData[30] < 0.0f)
-            CamZ *= CameraData[34];
-
-        CamX *= game_rand() / 32767.0f * CameraData[24];
-        CamY *= game_rand() / 32767.0f * CameraData[25];
-        CamZ *= game_rand() / 32767.0f * CameraData[26];
-
-        if (CameraData[16] > 0.0f)
-            CamX *= -1.0f;
-        if (CameraData[17] > 0.0f)
-            CamY *= -1.0f;
-        if (CameraData[18] > 0.0f)
-            CamZ *= -1.0f;
-
-        if ((int)(game_rand() / 32768.0f * ((int)CameraData[38] - 1)) == 1)
-        {
-            CamX += CameraData[39] * (game_rand() / 32767.0f * 2.0f - 1.0f);
-            CamY += CameraData[39] * (game_rand() / 32767.0f * 2.0f - 1.0f);
-            CamZ += CameraData[39] * (game_rand() / 32767.0f * 2.0f - 1.0f);
-        }
-
-        CameraData[28] += CamX;
-        CameraData[29] += CamY;
-        CameraData[30] += CamZ;
-    }
-
-    CameraData[16] = std::clamp(CameraData[28] * TimeScale + CameraData[16], -CameraData[20], CameraData[20]);
-    CameraData[17] = std::clamp(CameraData[29] * TimeScale + CameraData[17], -CameraData[21], CameraData[21]);
-    CameraData[18] = std::clamp(CameraData[30] * TimeScale + CameraData[18], -CameraData[22], CameraData[22]);
-
-    float Output[] = { CameraData[16] * Multiplier, CameraData[17] * Multiplier, CameraData[18] * Multiplier };
-
-    Matrix34::fromEulersXYZ(CameraData, 0, Output);
-}
-
-SafetyHookInline shHoodCameraBumping = {};
-void __fastcall HoodCameraBumping(float* this_ptr, void*, float* vehicle, float* input_vector, float* out_offset, float a5)
-{
-    float real_dt = *CTimer::fTimeStep;
-
-    constexpr float FIXED_RATE = 30.0f;
-    constexpr float FIXED_DT = 1.0f / FIXED_RATE;
-
-    static float accumulator = 0.0f;
-    accumulator += real_dt;
-
-    float* right_vec = *(float**)((char*)vehicle + 0x20);
-
-    // Save state before physics update to use in interpolation
-    static float last_x = 0.0f;
-    static float last_y = 0.0f;
-    static float last_z = 0.0f;
-
-    if (accumulator >= FIXED_DT)
-    {
-        last_x = this_ptr[176];
-        last_y = this_ptr[177];
-        last_z = this_ptr[178];
-    }
-
-    while (accumulator >= FIXED_DT)
-    {
-        accumulator -= FIXED_DT;
-        float dt = FIXED_DT;
-
-        float outWorldPos[4];
-        CPhysical::TransformOffsetToWorldSpace(vehicle, 0, outWorldPos, input_vector, 0, 0);
-
-        float prev_ref_x = this_ptr[180];
-        float prev_ref_y = this_ptr[181];
-        float prev_ref_z = this_ptr[182];
-
-        float tmp1 = prev_ref_y + this_ptr[186] * input_vector[0] - this_ptr[184] * input_vector[2];
-        float tmp2 = prev_ref_x + this_ptr[185] * input_vector[2] - this_ptr[186] * input_vector[1];
-        float tmp3 = prev_ref_z + this_ptr[184] * input_vector[1] - this_ptr[185] * input_vector[0];
-
-        float dx = outWorldPos[1] - tmp1;
-        float dy = outWorldPos[0] - tmp2;
-        float dz = outWorldPos[2] - tmp3;
-
-        float frame_time_mul = *(&*CTimer::fTimeStep + 1);
-        dx *= frame_time_mul;
-        dy *= frame_time_mul;
-        dz *= frame_time_mul;
-
-        float dot_a = right_vec[1] * dx + right_vec[0] * dy + right_vec[2] * dz; // lateral
-        float dot_b = right_vec[5] * dx + right_vec[4] * dy + right_vec[6] * dz; // longitudinal
-
-        float clamped_a = std::clamp(dot_a, -5.0f, 5.0f);
-        float clamped_b = std::clamp(dot_b, -5.0f, 5.0f);
-
-        float accum_x = this_ptr[172];
-        float accum_y = this_ptr[173];
-        float accum_z = this_ptr[174];
-
-        float prev_x = this_ptr[176];
-        float prev_y = this_ptr[177];
-        float prev_z = this_ptr[178];
-
-        // Impulse — correct original axis mapping
-        accum_x += 0.025f * dt * clamped_b; // longitudinal
-        accum_y += 0.025f * dt * clamped_a; // lateral
-
-        // Linear decay
-        accum_x -= prev_x * 7.0f * dt;
-        accum_y -= prev_y * 3.0f * dt;
-        accum_z -= prev_z * 0.0f * dt;
-
-        // Exponential decay
-        accum_x *= powf(0.017999999f, dt);
-        accum_y *= powf(0.0099999998f, dt);
-        accum_z *= powf(0.0f, dt);
-
-        // Write back accumulators & integrated values
-        this_ptr[172] = accum_x;
-        this_ptr[173] = accum_y;
-        this_ptr[174] = accum_z;
-
-        this_ptr[176] = prev_x + accum_x;
-        this_ptr[177] = prev_y + accum_y;
-        this_ptr[178] = prev_z + accum_z;
-    }
-
-    // Interpolate between physics steps based on time remainder inside accumulator
-    float alpha = accumulator / FIXED_DT;
-
-    float interp_x = last_x + (this_ptr[176] - last_x) * alpha;
-    float interp_y = last_y + (this_ptr[177] - last_y) * alpha;
-    float interp_z = last_z + (this_ptr[178] - last_z) * alpha;
-
-    out_offset[0] += interp_x * a5;
-    out_offset[1] += interp_y * a5;
-    out_offset[2] += interp_z * a5;
-
-    // Matrix / reference position (must run every frame)
-    float temp[4]{};
-    auto get_matrix_func = (float* (__fastcall*)(void*, void*, float*))(*(uintptr_t*)(*(uintptr_t*)vehicle + 0xEC));
-    float* ref = get_matrix_func(vehicle, 0, temp);
-
-    this_ptr[180] = ref[0];
-    this_ptr[181] = ref[1];
-    this_ptr[182] = ref[2];
-    this_ptr[183] = ref[3];
-
-    // Angular velocity (must run every frame)
-    float angvel[4];
-    CPhysical::getAngularVelocity(vehicle, 0, angvel);
-
-    this_ptr[184] = angvel[0];
-    this_ptr[185] = angvel[1];
-    this_ptr[186] = angvel[2];
-    this_ptr[187] = angvel[3];
-}
-
-injector::hook_back<decltype(&Natives::SlideObject)> hbSLIDE_OBJECT;
-bool __cdecl NATIVE_SLIDE_OBJECT_1(Object object, float x, float y, float z, float xs, float ys, float zs, bool flag)
-{
-    float Delta = *CTimer::fTimeStep / (1.0f / 30.0f);
-    return hbSLIDE_OBJECT.fun(object, x, y, z, xs * Delta, ys * Delta, zs * Delta, flag);
-}
-
-SafetyHookInline shNATIVE_SLIDE_OBJECT{};
-bool __cdecl NATIVE_SLIDE_OBJECT_2(Object object, float x, float y, float z, float xs, float ys, float zs, bool flag)
-{
-    float Delta = *CTimer::fTimeStep / (1.0f / 30.0f);
-    return shNATIVE_SLIDE_OBJECT.unsafe_ccall<bool>(object, x, y, z, xs * Delta, ys * Delta, zs * Delta, flag);
 }
 
 namespace CPhysics
 {
-    static constexpr int NUM_SLICES = 2;
-
     SafetyHookInline shUpdate = {};
-    void __cdecl Update()
+    void __stdcall Update()
     {
         CPhysics::ScanForBuildings();
         CPhysics::UpdateRequestList();
-        auto v0 = *CWorld::ms_listProcessControlPtrs;
+
+        int v0 = *CWorld::ms_listProcessControlPtrs;
         while (v0)
         {
-            auto v1 = *(uintptr_t**)v0;
-            v0 = *(uintptr_t*)(v0 + 4);
+            DWORD* v1 = *(DWORD**)v0;
+            v0 = *(DWORD*)(v0 + 4);
+
             if (v1)
             {
-                auto v2 = (v1[10] >> 6) & 0xF;
+                uint32_t v2 = (v1[10] >> 6) & 0xF;
                 if (v2 > 1 && v2 < 5)
-                    (*(void (__thiscall**)(uintptr_t*))(*v1 + 256))(v1);
+                    (*(void(__thiscall**)(DWORD*))(*v1 + 256))(v1);
             }
         }
 
         CPhysics::ResetNumPoolGameCollisions();
 
-        float sliceDt = *CTimer::fTimeStep * (1.0f / (float)NUM_SLICES);
+        float v3 = 1.0f / (float)*CPhysics::ms_NumTimeSlices;
 
-        if (bSpeedupSimRateCheat)
+        for (int i = 0; i < *CPhysics::ms_NumTimeSlices; i++)
         {
-            sliceDt *= 2.0f;
-        }
-
-        int NumTimeSlices = 0;
-        do
-        {
-            CPhysics::PreSimUpdate(std::clamp(sliceDt, 1.0f / 150.0f, FLT_MAX), NumTimeSlices);
-            CPhysics::SimUpdate(sliceDt);
+            CPhysics::PreSimUpdate(*CTimer::fTimeStep * v3, i);
+            CPhysics::SimUpdate(*CTimer::fTimeStep * v3);
             CPhysics::IterateOverManifolds();
-            CPhysics::PostSimUpdate(NumTimeSlices, std::clamp(sliceDt, 1.0f / 150.0f, FLT_MAX));
-            ++NumTimeSlices;
-        } while (NumTimeSlices < NUM_SLICES);
+            CPhysics::PostSimUpdate(i, *CTimer::fTimeStep * v3);
+        }
     }
 }
 
@@ -301,6 +68,291 @@ namespace CWater
     {
         return shAddToDynamicWaterSpeed.unsafe_ccall(a1, a2, a3 * (*CTimer::fTimeStep / (1.0f / 30.0f)), a4);
     }
+
+    SafetyHookInline shModifyDynamicWaterSpeed = {};
+    void __cdecl ModifyDynamicWaterSpeed(int a1, int a2, float a3, float a4, char a5)
+    {
+        return shModifyDynamicWaterSpeed.unsafe_ccall(a1, a2, a3, a4 * (*CTimer::fTimeStep / (1.0f / 30.0f)), a5);
+    }
+}
+
+namespace CPedIntelligence
+{
+    SafetyHookInline shProcessStaticCounter = {};
+    void __fastcall ProcessStaticCounter(void* _this, void* edx)
+    {
+        auto PIExt = GetPedIntelligenceExt((uintptr_t)_this);
+        if (!PIExt)
+        {
+            return shProcessStaticCounter.unsafe_fastcall(_this, edx);
+        }
+
+        PIExt->m_fTimeStepAccumulator += *CTimer::fTimeStep;
+
+        if (PIExt->m_fTimeStepAccumulator >= (1.0f / 30.0f))
+        {
+            PIExt->m_fTimeStepAccumulator = 0.0f;
+
+            return shProcessStaticCounter.unsafe_fastcall(_this, edx);
+        }
+    }
+}
+
+namespace CHandShaker
+{
+    SafetyHookInline shProcess = {};
+    void __fastcall Process(float* _this, void* edx, float a2)
+    {
+        float v0 = *(_this + 16);
+        float v1 = *(_this + 17);
+        float v2 = *(_this + 18);
+        float v3 = *(_this + 36);
+
+        float v4 = (float)(fabs(v0 / *(_this + 20)) * (float)(*(_this + 37) - v3)) + v3;
+        float v5 = (float)(fabs(v1 / *(_this + 21)) * (float)(*(_this + 37) - v3)) + v3;
+        float v6 = (float)(fabs(v2 / *(_this + 22)) * (float)(*(_this + 37) - v3)) + v3;
+
+        float v7 = v4;
+        float v8 = v5;
+        float v9 = v6;
+
+        if (v0 > 0.0f && *(_this + 28) > 0.0f || v0 < 0.0f && *(_this + 28) < 0.0f)
+            v7 = *(_this + 32) * v4;
+
+        if (v1 > 0.0f && *(_this + 29) > 0.0f || v1 < 0.0f && *(_this + 29) < 0.0f)
+            v8 = *(_this + 33) * v5;
+
+        if (v2 > 0.0f && *(_this + 30) > 0.0f || v2 < 0.0f && *(_this + 30) < 0.0f)
+            v9 = *(_this + 34) * v6;
+
+        float v10 = *(_this + 26);
+        float v11 = (float)game_rand() * 0.000030518509f;
+
+        float v12 = *(_this + 25);
+        float v13 = (float)game_rand() * 0.000030518509f;
+
+        float v14 = *(_this + 24);
+        float v15 = (float)game_rand() * 0.000030518509f;
+
+        float v16 = (float)(v13 * v12) * v8;
+        float v17 = (float)(v11 * v10) * v9;
+        float v18 = (float)(v15 * v14) * v7;
+
+        if (*(_this + 16) > 0.0f)
+            v18 *= -1.0f;
+
+        if (*(_this + 17) > 0.0f)
+            v16 *= -1.0f;
+
+        if (*(_this + 18) > 0.0f)
+            v17 *= -1.0f;
+
+        *(_this + 28) += v18;
+        *(_this + 29) += v16;
+        *(_this + 30) += v17;
+
+        float v19 = *CTimer::fCamTimeStep * 30.0f;
+        float v20 = *CTimer::fCamTimeStep * 30.0f;
+        if (*CReplayMgr::dword_11F7060 == 1 || *CReplayMgr::dword_12088B4 != (HANDLE)-1 || *CReplayMgr::dword_1037720 == 18)
+        {
+            v19 = (float)((float)(uint32_t)*CReplayMgr::dword_11F704C * 0.001f) * 30.0f;
+            v20 = v19;
+        }
+
+        int v21 = (int)v19 * (int)*(_this + 38);
+        if ((int)(float)((float)((float)(uint16_t)game_rand() * 0.000030517578f) * (float)(v21 - 1)) == 1)
+        {
+            float v22 = *(_this + 39);
+            float v23 = (float)game_rand() * 0.000030518509f;
+
+            float v24 = *(_this + 39);
+            float v25 = (float)game_rand() * 0.000030518509f;
+
+            float v26 = *(_this + 39);
+            float v27 = (float)game_rand() * 0.000030518509f;
+
+            *(_this + 30) += (float)((float)((float)(v22 - (float)-v22) * v23) - v22);
+            *(_this + 28) += (float)((float)((float)(v26 - (float)-v26) * v27) - v26);
+            *(_this + 29) += (float)((float)((float)(v24 - (float)-v24) * v25) - v24);
+        }
+
+        float v28 = (float)(*(_this + 28) * v20) + *(_this + 16);
+        float v29 = (float)(*(_this + 29) * v20) + *(_this + 17);
+        float v30 = (float)(*(_this + 30) * v20) + *(_this + 18);
+
+        *(_this + 16) = v28;
+        *(_this + 17) = v29;
+        *(_this + 18) = v30;
+
+        float v31 = *(_this + 16);
+        float v32 = *(_this + 17);
+        float v33 = *(_this + 18);
+
+        float v34 = *(_this + 20);
+        float v35 = *(_this + 21);
+        float v36 = *(_this + 22);
+
+        if (v31 <= (float)-v34)
+            v31 = -v34;
+
+        if (v34 <= v31)
+            v31 = v34;
+
+        if (v32 <= (float)-v35)
+            v32 = -v35;
+
+        if (v35 <= v32)
+            v32 = v35;
+
+        if (v33 <= (float)-v36)
+            v33 = -v36;
+
+        if (v36 <= v33)
+            v33 = v36;
+
+        *(_this + 16) = v31;
+        *(_this + 17) = v32;
+        *(_this + 18) = v33;
+
+        float v37[4] =
+        {
+            v31 * a2,
+            v32 * a2,
+            v33 * a2
+        };
+
+        rage::Matrix34::FromEulersXYZ(_this, edx, v37);
+    }
+}
+
+namespace CCamFollowVehicle
+{
+    float ms_accelLimit = 5.0f;
+    float dword_103B984 = 5.0f;
+
+    float ms_vehAccelForce = 0.025f;
+    float dword_103B974 = 0.025f;
+
+    float ms_springForce = 7.0f;
+    float dword_103B9A4 = 3.0f;
+    float dword_103B9A8 = 0.0f;
+
+    float ms_dampForce = 0.018f;
+    float dword_103B994 = 0.01f;
+    float dword_103B998 = 0.0f;
+
+    SafetyHookInline shSprungMounting = {};
+    void __fastcall SprungMounting(int _this, void* edx, DWORD* a2, float* a3, float* a4, float a5)
+    {
+        float v0 = *CTimer::fTimeStep;
+
+        float v1[4];
+        CPhysical::GetLocalSpeed(a2, edx, v1, a3, 0, 0);
+
+        float *v2 = (float*)a2[8];
+        float v3 = (float)(v1[1] - (float)(*(float*)(_this + 724) + (float)((float)(*(float*)(_this + 744) * *a3) - (float)(*(float*)(_this + 736) * a3[2])))) * *(CTimer::fTimeStep + 1);
+        float v4 = (float)(v1[0] - (float)(*(float*)(_this + 720) + (float)((float)(*(float*)(_this + 740) * a3[2]) - (float)(*(float*)(_this + 744) * a3[1])))) * *(CTimer::fTimeStep + 1);
+        float v5 = (float)(v1[2] - (float)(*(float*)(_this + 728) + (float)((float)(*(float*)(_this + 736) * a3[1]) - (float)(*(float*)(_this + 740) * *a3)))) * *(CTimer::fTimeStep + 1);
+
+        float v6 = v2[1] * v3;
+        float v7 = v2[5] * v3;
+
+        float v8 = (float)(v6 + (float)(*v2 * v4)) + (float)(v2[2] * v5);
+        float v9 = (float)(v7 + (float)(v4 * v2[4])) + (float)(v2[6] * v5);
+
+        float v10 = ms_accelLimit;
+        float v11 = -ms_accelLimit;
+
+        if ((float)-ms_accelLimit <= v8)
+            v11 = v8;
+
+        if (v11 <= ms_accelLimit)
+            v10 = v11;
+
+        float v12 = dword_103B984;
+        float v13 = -dword_103B984;
+
+        if ((float)-dword_103B984 <= v9)
+            v13 = v9;
+
+        if (v13 <= dword_103B984)
+            v12 = v13;
+
+        float v14 = *(float*)(_this + 704);
+        float v15 = *(float*)(_this + 708);
+        float v16 = *(float*)(_this + 712);
+        
+        *(float*)(_this + 688) += (float)((float)(ms_vehAccelForce * v0) * v12);
+        *(float*)(_this + 692) += (float)((float)(dword_103B974 * v0) * v10);
+
+        *(float*)(_this + 688) -= (float)((float)(v14 * ms_springForce) * v0);
+        *(float*)(_this + 692) -= (float)((float)(v15 * dword_103B9A4) * v0);;
+        *(float*)(_this + 696) -= (float)((float)(v16 * dword_103B9A8) * v0);
+
+        *(float*)(_this + 688) *= powf(ms_dampForce, v0);
+        *(float*)(_this + 692) *= powf(dword_103B994, v0);
+        *(float*)(_this + 696) *= powf(dword_103B998, v0);
+
+        *(float*)(_this + 704) += *(float*)(_this + 688);
+        *(float*)(_this + 708) += *(float*)(_this + 692);
+        *(float*)(_this + 712) += *(float*)(_this + 696);
+
+        DWORD v17[4];
+        DWORD* v18 = (DWORD*)(*(int (__thiscall**)(DWORD*, DWORD*))(*a2 + 236))(a2, v17);
+        int v19 = v18[1];
+        int v20 = v18[2];
+
+        *(DWORD*)(_this + 720) = *v18;
+        *(DWORD*)(_this + 724) = v19;
+        *(DWORD*)(_this + 728) = v20;
+        *(DWORD*)(_this + 732) = v18[3];
+
+        int* v21 = (int*)CPhysical::GetTurnSpeed(a2, edx, (float*)v17);
+        int v22 = v21[2];
+        int v23 = *v21;
+
+        *(DWORD*)(_this + 740) = v21[1];
+        *(DWORD*)(_this + 736) = v23;
+        *(DWORD*)(_this + 744) = v22;
+        *(DWORD*)(_this + 748) = v21[3];
+
+        float v24 = *(float*)(_this + 708) * a5;
+        float v25 = *(float*)(_this + 712) * a5;
+
+        *a4 = *a4 + (float)(a5 * *(float*)(_this + 704));
+
+        a4[1] = a4[1] + v24;
+        a4[2] = a4[2] + v25;
+    }
+
+    SafetyHookInline shProcessHandBrakeSwing = {};
+    double __fastcall ProcessHandBrakeSwing(DWORD* _this, void* edx, DWORD* a2, int a3)
+    {
+        float f = 1.0f;
+
+        if (!Natives::IsUsingController())
+        {
+            f = 3.0f;
+        }
+
+        return shProcessHandBrakeSwing.unsafe_fastcall<double>(_this, edx, a2, a3) * (*CTimer::fTimeStep / (1.0f / 30.0f)) * f;
+    }
+}
+
+injector::hook_back<decltype(&Natives::SlideObject)> hbSLIDE_OBJECT;
+bool __cdecl NATIVE_SLIDE_OBJECT_1(Object object, float x, float y, float z, float xs, float ys, float zs, bool flag)
+{
+    float f = *CTimer::fTimeStep / (1.0f / 30.0f);
+
+    return hbSLIDE_OBJECT.fun(object, x, y, z, xs * f, ys * f, zs * f, flag);
+}
+
+SafetyHookInline shNATIVE_SLIDE_OBJECT = {};
+bool __cdecl NATIVE_SLIDE_OBJECT_2(Object object, float x, float y, float z, float xs, float ys, float zs, bool flag)
+{
+    float f = *CTimer::fTimeStep / (1.0f / 30.0f);
+
+    return shNATIVE_SLIDE_OBJECT.unsafe_ccall<bool>(object, x, y, z, xs * f, ys * f, zs * f, flag);
 }
 
 class FramerateVigilante
@@ -310,143 +362,134 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            // Timestep clamp adjustment in CTimer::Initialise, fixes game speedup past 300fps, but not slowdown below 15fps as its kind of unnecessary (Caused TLAD mission "Shifting Weight" softlock in the final scripted cutscene on high framerates for some reasons)
-            // auto pattern = hook::pattern("E8 ? ? ? ? FF 74 24 ? E8 ? ? ? ? E8");
-            // if (!pattern.empty())
-            // {
-            //    injector::WriteMemory<float>(injector::GetBranchDestination(pattern.get_first(0)).as_int() + 6, 1.0f / 3000.0f, true);
-            // }
-            // else
-            // {
-            //    static float dword_EDF6CC = 1.0f / 3000.0f;
-            //    pattern = hook::pattern("E8 ? ? ? ? 8B 44 24 ? 50 E8 ? ? ? ? E8");
-            //    injector::WriteMemory(injector::GetBranchDestination(pattern.get_first(0)).as_int() + 4, &dword_EDF6CC, true);
-            // }
-
-            // Handbrake Cam force
-            auto pattern = find_pattern("E8 ? ? ? ? D9 5C 24 7C F3 0F 10 4C 24", "E8 ? ? ? ? D9 5C 24 70 F3 0F 10 44 24 ? F3 0F 58 86");
-            hbsub_A18510.fun = injector::MakeCALL(pattern.get_first(0), sub_A18510).get();
-
-            // CCamFollowVehicle auto centering force
+            // Add a logical frame counter alongside the regular one that counts frames as if we're running at 30 fps, which is going to be useful for fixing some fps issues
             {
-                // Skips some clamps set in the vehicle camera code that prevent auto centering from scaling properly with the frame rate
-                pattern = find_pattern("77 ? 0F 28 C2 F3 0F 5C 8F", "77 ? 0F 28 D3 F3 0F 10 8E");
+                // Initialize logical frame counter variables to 0 in CTimer::Init
+                auto pattern = find_pattern("E8 ? ? ? ? FF 74 24 ? E8 ? ? ? ? E8", "E8 ? ? ? ? 8B 44 24 ? 50 E8 ? ? ? ? E8");
+                CTimer::shInit = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first(0)).get<void*>(), CTimer::Init);
+
+                // Implement the logical frame counter right next to the regular one in CTimer::Update
+                pattern = hook::pattern("FF 05 ? ? ? ? F3 0F 2C C0 F3 0F 10 05");
                 if (!pattern.empty())
                 {
-                    injector::MakeNOP(pattern.get_first(0), 2, true);
-                }
-
-                pattern = find_pattern("76 ? 0F 28 C8 EB ? F3 0F 10 4C 24 ? 80 7C 24", "76 ? 0F 28 CE EB ? 0F 28 CF 84 D2");
-                if (!pattern.empty())
-                {
-                    injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
-                }
-            }
-
-            // Check 30FPS accumulator before calling CPedIntelligence::ProcessStaticCounter, which increments task attempt counter.
-            // Some CTasks check this attempt counter against a hardcoded limit of 30.
-            // At higher framerates these attempts occur faster, causing them to hit the limit early and abort the task.
-            // (e.g. causing NPCs to shove cars instead of walking around them)
-            {
-                // Hook ProcessStaticCounter to check/add to accumulator
-                pattern = find_pattern("E8 ? ? ? ? 8B 4F ? 6A ? 8B 89 ? ? ? ? E8 ? ? ? ? 8D 9F", "E8 ? ? ? ? 8B 46 ? 8B 88 ? ? ? ? 6A");
-                shProcessStaticCounter = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first()).as_int(), ProcessStaticCounter);
-            }
-
-            // CTaskComplexClimbLadder, change heading angle threshold passed to TaskAchieveHeading to match the threshold checked by CTaskSimpleSlideToCoord
-            // Fixes wrong order of tasks being completed at high FPS, causing stall when trying to climb ladder.
-            {
-                pattern = hook::pattern("F3 0F 10 05 ? ? ? ? 83 EC ? 8B C8 F3 0F 11 44 24 ? F3 0F 10 44 24 ? C7 44 24 04 00 00 00 40");
-                if (!pattern.empty())
-                {
-                    injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto ClimbLadderThresholdValue = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    injector::MakeNOP(pattern.get_first(0), 6, true);
+                    static auto CTimer__Update_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm0.f32[0] = 0.1f; // 0.02f -> 0.1f to match CTaskSimpleSlideToCoord
+                        ++*CTimer::m_frameCount;
+
+                        // Logical frame counter
+                        static double logicalFrameTime = 0.0;
+
+                        CTimerExt::m_logicalFramesPassed = 0;
+
+                        logicalFrameTime += *(float*)(regs.esp + 0x14 - 0x10) * 1000.0;
+
+                        while (logicalFrameTime >= (1000.0 / 30.0))
+                        {
+                            logicalFrameTime -= (1000.0 / 30.0);
+
+                            ++CTimerExt::m_logicalFramesPassed;
+                        }
+
+                        CTimerExt::m_logicalFrameCounter += CTimerExt::m_logicalFramesPassed;
                     });
                 }
                 else
                 {
-                    static float f01 = 0.1f;
-                    pattern = hook::pattern("D9 05 ? ? ? ? 83 EC 0C D9 5C 24 ? 8B C8 D9 46 ? D9 5C 24 ? D9 44 24 ? D9 1C 24 E8 ? ? ? ? EB 02 33 C0 50 8B CF E8");
-                    injector::WriteMemory(pattern.count_hint(2).get(1).get<void*>(2), &f01, true);
+                    pattern = hook::pattern("83 05 ? ? ? ? ? D9 3C 24");
+                    injector::MakeNOP(pattern.get_first(0), 7, true);
+                    static auto CTimer__Update_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        ++*CTimer::m_frameCount;
+
+                        // Logical frame counter
+                        static double logicalFrameTime = 0.0;
+
+                        CTimerExt::m_logicalFramesPassed = 0;
+
+                        logicalFrameTime += *(float*)(regs.esp + 0x10 - 0xC) * 1000.0;
+
+                        while (logicalFrameTime >= (1000.0 / 30.0))
+                        {
+                            logicalFrameTime -= (1000.0 / 30.0);
+
+                            ++CTimerExt::m_logicalFramesPassed;
+                        }
+
+                        CTimerExt::m_logicalFrameCounter += CTimerExt::m_logicalFramesPassed;
+                    });
                 }
             }
 
-            // Physics
-            pattern = hook::pattern("51 56 E8 ? ? ? ? E8");
-            CPhysics::shUpdate = safetyhook::create_inline(pattern.get_first(0), CPhysics::Update);
-
-            // Heli rotor break time (Not work for some reasons)
-            // {
-                // Rear rotors
-                // pattern = hook::pattern("F3 0F 59 15 ? ? ? ? F3 0F 58 D0 F3 0F 10 87");
-                // if (!pattern.empty())
-                // {
-                //     static auto dword_FE8830 = *pattern.get_first<float*>(4);
-                //     injector::MakeNOP(pattern.get_first(0), 8, true);
-                //     static auto CHeli_ApplyCollisionInternalHook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                //     {
-                //         regs.xmm2.f32[0] *= *dword_FE8830 * *CTimer::fTimeStep / (1.0f / 30.0f);
-                //     });
-                // }
-                // else
-                // {
-                //     pattern = hook::pattern("D8 0D ? ? ? ? DE C1 D8 4C 24 ? D9 5C 24 ? F3 0F 5C 44 24 ? 0F 2F C8 F3 0F 11 86 ? ? ? ? 72");
-                //     static auto dword_D74010 = *pattern.get_first<float*>(2);
-                //     injector::MakeNOP(pattern.get_first(0), 6, true);
-                //     struct CHeli_ApplyCollisionInternalHook1
-                //     {
-                //         void operator()(injector::reg_pack& regs)
-                //         {
-                //             float RearRotorBreakTime = *dword_D74010 * *CTimer::fTimeStep / (1.0f / 30.0f);
-                //            _asm {fmul dword ptr [RearRotorBreakTime]};
-                //         }
-                //     }; injector::MakeInline<CHeli_ApplyCollisionInternalHook1>(pattern.get_first(0), pattern.get_first(6));
-                // }
-
-                // Main rotors
-                // pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 58 D0 F3 0F 10 87");
-                // if (!pattern.empty())
-                // {
-                //     static auto dword_FE8B08 = *pattern.get_first<float*>(4);
-                //     injector::MakeNOP(pattern.get_first(0), 8, true);
-                //     static auto CHeli_ApplyCollisionInternalHook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                //     {
-                //         regs.xmm0.f32[0] *= *dword_FE8B08 * *CTimer::fTimeStep / (1.0f / 30.0f);
-                //     });
-                // }
-                // else
-                // {
-                //     pattern = hook::pattern("D8 0D ? ? ? ? DE C1 D8 4C 24 ? D9 5C 24 ? F3 0F 5C 44 24 ? 0F 2F C8 F3 0F 11 86 ? ? ? ? 0F 82");
-                //     static auto dword_DB3010 = *pattern.get_first<float*>(2);
-                //     injector::MakeNOP(pattern.get_first(0), 6, true);
-                //     struct CHeli_ApplyCollisionInternalHook2
-                //     {
-                //         void operator()(injector::reg_pack& regs)
-                //         {
-                //             float MainRotorBreakTime = *dword_DB3010 * *CTimer::fTimeStep / (1.0f / 30.0f);
-                //             _asm {fmul dword ptr [MainRotorBreakTime]};
-                //         }
-                //     }; injector::MakeInline<CHeli_ApplyCollisionInternalHook2>(pattern.get_first(0), pattern.get_first(6));
-                // }
-            // }
-
-            // Water effects/physics
-            // Interesting insight:
-            // Because these effects are not scaled with fps in the vanilla game, they get called faster the higher the fps is, and since they are also taxing on the GPU due to heavy alpha usage,
-            // they end up hitting performance progressively as well. Absolute Cinema moment.
-            // As such, the fixes here can be considered as performance optimizations as well, at high fps at least.
+            // Fix frame rate issues caused by the original frame counter
+            // Note: There are 111 instances of the original counter across the executable. It's likely at least half of those need replacing with the logical one MANUALLY. Craziness...
             {
-                pattern = find_pattern("83 3D ? ? ? ? ? 74 ? A1 ? ? ? ? 3B 05 ? ? ? ? 75 ? 83 3D ? ? ? ? ? 74 ? 33 C0 EB ? B8 ? ? ? ? 3A 44 24",
-                                       "B8 ? ? ? ? 39 05 ? ? ? ? 74 ? 8B 0D ? ? ? ? 3B 0D ? ? ? ? 75 ? 83 3D ? ? ? ? ? 74 ? 33 C0 3A 44 24");
+                // UI animations
+                {
+                    // Cop blips' animation speed
+                    auto pattern = find_pattern("A1 ? ? ? ? 6B C0 ? 53", "A1 ? ? ? ? 6B C0 ? C1 EA");
+                    injector::MakeNOP(pattern.get_first(0), 5, true);
+                    static auto CVehicle__UpdateChaseRadarBlip_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.eax = CTimerExt::GetLogicalFrameCounter();
+                    });
+
+                    // Saving/Loading spinner animation speed
+                    pattern = find_pattern("8B 0D ? ? ? ? F3 0F 11 44 24 ? 39 0D", "8B 0D ? ? ? ? 39 0D ? ? ? ? 74");
+                    injector::MakeNOP(pattern.get_first(0), 6, true);
+                    static auto CHelpMessage__DrawTextMessages_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.ecx = CTimerExt::GetLogicalFrameCounter();
+                    });
+                }
+
+                // Misc
+                {
+                    // Helicopter blinkers' speed
+                    auto pattern = hook::pattern("03 0D ? ? ? ? F3 0F 10 0D");
+                    if (!pattern.empty())
+                    {
+                        injector::MakeNOP(pattern.get_first(0), 6, true);
+                        static auto CHeli__PreRender2_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            regs.ecx += CTimerExt::GetLogicalFrameCounter();
+                        });
+                    }
+                    else
+                    {
+                        pattern = hook::pattern("8B 15 ? ? ? ? F3 0F 10 15 ? ? ? ? F3 0F 10 0D");
+                        injector::MakeNOP(pattern.get_first(0), 6, true);
+                        static auto CHeli__PreRender2_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            regs.edx = CTimerExt::GetLogicalFrameCounter();
+                        });
+                    }
+                }
+            }
+
+            // Fix physics (Affects automobile physics, object physics, Euphoria ragdolls, etc.)
+            {
+                auto pattern = hook::pattern("51 56 E8 ? ? ? ? E8");
+                CPhysics::shUpdate = safetyhook::create_inline(pattern.get_first(0), CPhysics::Update);
+            }
+
+            // Fix water physics and effects
+            {
+                // Helicopter downwash force
+                auto pattern = find_pattern("83 3D ? ? ? ? ? 74 ? A1 ? ? ? ? 3B 05 ? ? ? ? 75 ? 83 3D ? ? ? ? ? 74 ? 33 C0 EB ? B8 ? ? ? ? 3A 44 24",
+                                            "B8 ? ? ? ? 39 05 ? ? ? ? 74 ? 8B 0D ? ? ? ? 3B 0D ? ? ? ? 75 ? 83 3D ? ? ? ? ? 74 ? 33 C0 3A 44 24");
                 CWater::shAddToDynamicWaterSpeed = safetyhook::create_inline(pattern.get_first(0), CWater::AddToDynamicWaterSpeed);
 
-                // Heli downwash effect
-                pattern = hook::pattern("33 D2 F7 F7 85 D2 75");
+                // Buoyancy (Affects everything floating on any body of water that is flagged as physical)
+                pattern = find_pattern("83 3D ? ? ? ? ? 74 ? A1 ? ? ? ? 3B 05 ? ? ? ? 75 ? 83 3D ? ? ? ? ? 74 ? 33 C0 EB ? B8 ? ? ? ? 8A 4C 24",
+                                       "B8 ? ? ? ? 39 05 ? ? ? ? 74 ? 8B 0D ? ? ? ? 3B 0D ? ? ? ? 75 ? 83 3D ? ? ? ? ? 74 ? 33 C0 53");
+                CWater::shModifyDynamicWaterSpeed = safetyhook::create_inline(pattern.get_first(0), CWater::ModifyDynamicWaterSpeed);
+
+                // Helicopter downwash wind particles
+                pattern = hook::pattern("F7 F7 85 D2 75");
                 if (!pattern.empty())
                 {
-                    static auto CVehicleFx_UpdateFxHeliDownwash_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CVehicleFx__UpdateFxHeliDownwash_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         float f = std::min(*CTimer::fTimeStep / (1.0f / 30.0f), 1.0f);
 
@@ -455,8 +498,8 @@ public:
                 }
                 else
                 {
-                    pattern = hook::pattern("33 D2 F7 F1 85 D2 75 ? D9 44 24");
-                    static auto CVehicleFx_UpdateFxHeliDownwash_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    pattern = hook::pattern("F7 F1 85 D2 75 ? D9 44 24");
+                    static auto CVehicleFx__UpdateFxHeliDownwash_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         float f = std::min(*CTimer::fTimeStep / (1.0f / 30.0f), 1.0f);
 
@@ -464,18 +507,18 @@ public:
                     });
                 }
 
-                // Boat ripples
-                pattern = hook::pattern("03 45 ? F7 F1");
-                static auto CWaterFx_RegisterWakePoint_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                // Boat ripple particles
+                pattern = hook::pattern("F7 F1 85 D2 75 ? 8B 45");
+                static auto CWaterFx__RegisterWakePoint_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                 {
                     float f = std::min(*CTimer::fTimeStep / (1.0f / 30.0f), 1.0f);
 
                     regs.ecx = std::max((int)((float)regs.ecx / f), 1);
                 });
 
-                // Swim splashes
-                pattern = hook::pattern("03 44 24 ? F7 F1");
-                static auto CBuoyancy_ProcessSplashVfx_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                // Swim ripple particles
+                pattern = find_pattern("F7 F1 85 D2 0F 85 ? ? ? ? FF 74 24", "F7 F1 85 D2 0F 85 ? ? ? ? 8B 54 24");
+                static auto CBuoyancy__ProcessSplashVfx_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                 {
                     float f = std::min(*CTimer::fTimeStep / (1.0f / 30.0f), 1.0f);
 
@@ -483,332 +526,467 @@ public:
                 });
             }
 
-            // Heli rotor speed
+            // Fix NPC pathfinding
+            // Check a 30fps accumulator before calling CPedIntelligence::ProcessStaticCounter, which increments the task attempt counter.
+            // Some CTasks check this attempt counter against a hardcoded limit of 30. At higher frame rates these attempts occur faster, causing them to hit the limit early and abort the task.
             {
-                pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 59 C4 F3 0F 5C C8");
+                auto pattern = find_pattern("83 EC ? 56 8B F1 57 8B 46 ? C7 44 24", "55 8B EC 83 E4 ? 83 EC ? 56 8B F1 8B 46 ? 8B 88 ? ? ? ? 57");
+                CPedIntelligence::shProcessStaticCounter = safetyhook::create_inline(pattern.get_first(0), CPedIntelligence::ProcessStaticCounter);
+            }
+
+            // Fix stalls when trying to climb ladders
+            // Change the heading angle threshold in CTaskComplexClimbLadder passed to CTaskSimpleMoveAchieveHeading to match the threshold checked by CTaskSimpleSlideToCoord. Fixes the wrong order of tasks being completed at high FPS, causing said stalls.
+            {
+                auto pattern = hook::pattern("F3 0F 10 05 ? ? ? ? 83 EC ? 8B C8 F3 0F 11 44 24 ? F3 0F 10 44 24 ? C7 44 24 ? ? ? ? ? F3 0F 11 04 24 E8 ? ? ? ? EB");
                 if (!pattern.empty())
                 {
-                    static auto dword_1046AF0 = *pattern.get_first<float*>(4);
                     injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto HeliRotorSpeed1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CTaskComplexClimbLadder__CreateSubTask_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm0.f32[0] *= *dword_1046AF0 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                        regs.xmm0.f32[0] = 0.1f; // 0.02f --> 0.1f to match CTaskSimpleSlideToCoord
                     });
                 }
                 else
                 {
-                    pattern = hook::pattern("F3 0F 59 15 ? ? ? ? F3 0F 59 D4");
-                    static auto dword_F46598 = *pattern.get_first<float*>(4);
-                    injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto HeliRotorSpeed1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                    {
-                        regs.xmm2.f32[0] *= *dword_F46598 * *CTimer::fTimeStep / (1.0f / 30.0f);
-                    });
+                    static float flt_DD5CFC = 0.1f;
+                    pattern = hook::pattern("D9 05 ? ? ? ? 83 EC ? D9 5C 24 ? 8B C8 D9 05 ? ? ? ? D9 5C 24 ? D9 44 24 ? D9 1C 24 E8 ? ? ? ? EB ? 33 C0 D9 EE 51 D9 1C 24 8B CE");
+                    injector::WriteMemory(pattern.get_first(2), &flt_DD5CFC, true); // 0.02f --> 0.1f to match CTaskSimpleSlideToCoord
                 }
+            }
 
-                pattern = hook::pattern("F3 0F 59 1D ? ? ? ? F3 0F 10 87 ? ? ? ? F3 0F 59 DC");
+            // Fix vehicle steer biases while drunk
+            {
+                // Automobiles
+                auto pattern = hook::pattern("F3 0F 58 8F ? ? ? ? 0F 2F C8");
                 if (!pattern.empty())
                 {
-                    static auto dword_1046AF4 = *pattern.get_first<float*>(4);
                     injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto HeliRotorSpeed2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CAutomobile__ProcessControlInputs_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm3.f32[0] *= *dword_1046AF4 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                        regs.xmm1.f32[0] += *(float*)(regs.edi + 0x1084) * *CTimer::fTimeStep / (1.0f / 30.0f);
                     });
                 }
                 else
                 {
-                    pattern = hook::pattern("F3 0F 59 0D ? ? ? ? F3 0F 10 86 ? ? ? ? F3 0F 59 CC");
-                    static auto dword_F46594 = *pattern.get_first<float*>(4);
+                    pattern = hook::pattern("F3 0F 58 86 ? ? ? ? F3 0F 58 C1 F3 0F 10 0D");
                     injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto HeliRotorSpeed2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CAutomobile__ProcessControlInputs_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm1.f32[0] *= *dword_F46594 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                        regs.xmm0.f32[0] += *(float*)(regs.esi + 0x10D4) * *CTimer::fTimeStep / (1.0f / 30.0f);
                     });
                 }
-            }
 
-            // Heli blinkers' speed
-            pattern = hook::pattern("03 0D ? ? ? ? F3 0F 10 0D");
-            if (!pattern.empty())
-            {
-                injector::MakeNOP(pattern.get_first(0), 6, true);
-                static auto HeliBlinkersSpeed = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                {
-                    regs.ecx += *CTimer::m_snTimeInMilliseconds / (1000 / 30);
-                });
-            }
-            else
-            {
-                pattern = hook::pattern("8B 15 ? ? ? ? F3 0F 10 15 ? ? ? ? F3 0F 10 0D");
-                injector::MakeNOP(pattern.get_first(0), 6, true);
-                static auto HeliBlinkersSpeed = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                {
-                    regs.edx = *CTimer::m_snTimeInMilliseconds / (1000 / 30);
-                });
-            }
-
-            // Loading text flash speed (IV and TLAD)
-            {
-                // Skips an else path which post-processes the flash speed unnecessarily.
-                // The speed previously worked correctly at variable frame rates on patches 1050 and lower,
-                // but this check added in patch 1060 along with TBoGT's sparks prevents it from working properly.
-                pattern = hook::pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 C1 F3 0F 11 05 ? ? ? ? EB");
+                // Bikes
+                pattern = hook::pattern("F3 0F 59 15 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 58 96");
                 if (!pattern.empty())
                 {
-                    injector::MakeNOP(pattern.get_first(0), 20, true);
-                }
-                else
-                {
-                    pattern = hook::pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 05 ? ? ? ? F3 0F 11 05 ? ? ? ? EB");
-                    injector::MakeNOP(pattern.get_first(0), 24, true);
-                }
-
-                // This just slightly corrects Toronto's old fix from 1040 to be fully accurate to the other patches
-                pattern = hook::pattern("F3 0F 10 44 24 ? F3 0F 59 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 05");
-                if (!pattern.empty())
-                {
-                    injector::MakeNOP(pattern.get_first(0), 22, true);
-                    static auto LoadingTextFlashSpeed = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto dword_FE8830 = *pattern.get_first<float*>(4);
+                    injector::MakeNOP(pattern.get_first(0), 8, true);
+                    static auto CBike__ProcessControlInputs_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        // Ends up being dword_1175C40 += dword_1032790 * (SomeTimer * (1000 / 30));
-                        regs.xmm0.f32[0] = *(float*)(regs.esp + 0x34);
-                        regs.xmm0.f32[0] *= (1000.0f / 30.0f);
+                        regs.xmm2.f32[0] *= *dword_FE8830 * *CTimer::fTimeStep / (1.0f / 30.0f);
                     });
                 }
                 else
                 {
-                    pattern = hook::pattern("F3 0F 10 44 24 ? F3 0F 59 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 05");
-                    injector::MakeNOP(pattern.get_first(0), 14, true);
-                    static auto LoadingTextFlashSpeed = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 58 86 ? ? ? ? F3 0F 10 0D ? ? ? ? 0F 2F C1 F3 0F 11 86 ? ? ? ? 77");
+                    static auto dword_D95B68 = *pattern.get_first<float*>(4);
+                    injector::MakeNOP(pattern.get_first(0), 8, true);
+                    static auto CBike__ProcessControlInputs_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        // Ends up being dword_11FB434 += dword_F38420 * (SomeTimer * (1000 / 30));
-                        regs.xmm0.f32[0] = *(float*)(regs.esp + 0x44);
-                        regs.xmm0.f32[0] *= (1000.0f / 30.0f);
+                        regs.xmm0.f32[0] *= *dword_D95B68 * *CTimer::fTimeStep / (1.0f / 30.0f);
                     });
                 }
             }
 
-            // Loading text sparks' speed (TBoGT)
+            // Fix camera animations
             {
-                // So for IV's flashing we had an initial speed and then a secondary speed.
-                // Here its similar, however the secondary speed might actually drive everything as the initial one is just * 0.001 while the secondary one is * 0.085.
-                // So we're just taking the timer variable Toronto used for IV in 1040 and scale the secondary value with that.
-                pattern = hook::pattern("F3 0F 58 0D ? ? ? ? 0F 5B C0 F3 0F 11 0D");
-                if (!pattern.empty())
+                // Camera shake
+                // The function is used by several cameras and not only cameras. Even helicopter searchlights use it so that the light doesn't stay so glued to the player. Pretty cool.
                 {
-                    static auto dword_E81598 = *pattern.get_first<float*>(4);
-                    injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto LoadingTextSparksSpeed = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                    {
-                        // Ends up being dword_1175770 += dword_E81598 * (SomeTimer * (1000 / 30));
-                        regs.xmm1.f32[0] += *dword_E81598 * *(float*)(regs.esp + 0x34) * (1000.0f / 30.0f);
-                    });
+                    auto pattern = find_pattern("55 8B EC 83 E4 ? 83 EC ? 56 57 8B F9 F3 0F 10 05", "55 8B EC 83 E4 ? 0F 57 E4 F3 0F 10 1D");
+                    CHandShaker::shProcess = safetyhook::create_inline(pattern.get_first(0), CHandShaker::Process);
                 }
-                else
+
+                // Vehicle first person "hood-mode" camera bumps
                 {
-                    pattern = hook::pattern("F3 0F 58 05 ? ? ? ? F3 0F 2A 0D");
-                    static auto flt_DEF584 = *pattern.get_first<float*>(4);
-                    injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto LoadingTextSparksSpeed = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    auto pattern = find_pattern("55 8B EC 83 E4 ? 83 EC ? F3 0F 10 05 ? ? ? ? 56 8B 75 ? 57 6A", "55 8B EC 83 E4 ? 83 EC ? F3 0F 10 05 ? ? ? ? 53 8B 5D ? 56 57 8B 7D ? 6A");
+                    CCamFollowVehicle::shSprungMounting = safetyhook::create_inline(pattern.get_first(0), CCamFollowVehicle::SprungMounting);
+                }
+
+                // Handbrake Cam swings
+                {
+                    auto pattern = find_pattern("55 8B EC 83 E4 ? 83 EC ? 83 3D ? ? ? ? ? 56 57 89 4C 24 ? C7 44 24", "55 8B EC 83 E4 ? 83 EC ? 83 3D ? ? ? ? ? 0F 57 C0 53");
+                    CCamFollowVehicle::shProcessHandBrakeSwing = safetyhook::create_inline(pattern.get_first(0), CCamFollowVehicle::ProcessHandBrakeSwing);
+                }
+
+                // CCamFollowVehicle auto centering force
+                // Skips some clamps set in the vehicle camera code that prevent auto centering from scaling properly with the frame rate (These also seem to be done on Xbox, maybe this is just north vision?)
+                {
+                    auto pattern = find_pattern("77 ? 0F 28 C2 F3 0F 5C 8F", "77 ? 0F 28 D3 F3 0F 10 8E");
+                    if (!pattern.empty())
                     {
-                        // Ends up being dword_11FB41C += flt_DEF584 * (SomeTimer * (1000 / 30));
-                        regs.xmm0.f32[0] += *flt_DEF584 * *(float*)(regs.esp + 0x44) * (1000.0f / 30.0f);
+                        injector::MakeNOP(pattern.get_first(0), 2, true);
+                    }
+
+                    pattern = find_pattern("76 ? 0F 28 C8 EB ? F3 0F 10 4C 24 ? 80 7C 24", "76 ? 0F 28 CE EB ? 0F 28 CF 84 D2");
+                    if (!pattern.empty())
+                    {
+                        injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
+                    }
+                }
+
+                // Aim zooming
+                {
+                    // Weapons
+                    auto pattern = find_pattern("F3 0F 10 15 ? ? ? ? F3 0F 59 CA F3 0F 58 4E", "F3 0F 10 15 ? ? ? ? F3 0F 5C C1 F3 0F 59 C2 F3 0F 58 C1 74");
+                    static auto dword_FE8830 = *pattern.get_first<float*>(4);
+                    injector::MakeNOP(pattern.get_first(0), 8, true);
+                    static auto CCamAimWeapon__AimFree_Hook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        regs.xmm2.f32[0] = 1.0f - powf(1.0f - *dword_FE8830, *CTimer::fTimeStep / (1.0f / 30.0f));
                     });
+
+                    // Melee
+                    pattern = hook::pattern("F3 0F 59 0D ? ? ? ? F3 0F 58 4C 24 ? F3 0F 11 49");
+                    if (!pattern.empty())
+                    {
+                        static auto dword_FE8830 = *pattern.get_first<float*>(4);
+                        injector::MakeNOP(pattern.get_first(0), 8, true);
+                        static auto CCamAimWeapon__AimFree_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            regs.xmm1.f32[0] *= 1.0f - powf(1.0f - *dword_FE8830, *CTimer::fTimeStep / (1.0f / 30.0f));
+                        });
+                    }
+                    else
+                    {
+                        pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 58 C1 F3 0F 11 41");
+                        static auto dword_DB6F80 = *pattern.get_first<float*>(4);
+                        injector::MakeNOP(pattern.get_first(0), 8, true);
+                        static auto CCamAimWeapon__AimFree_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            regs.xmm0.f32[0] *= 1.0f - powf(1.0f - *dword_DB6F80, *CTimer::fTimeStep / (1.0f / 30.0f));
+                        });
+                    }
                 }
             }
 
-            // Loading screen animation speed
+            // Fix vehicle issues
             {
-                // Fix Y axis loading screen animations not scaling properly with fps. Seems like Toronto forgot to also scale this.
-                pattern = find_pattern("F3 0F 58 2D ? ? ? ? F3 0F 11 AC 18");
-                if (!pattern.empty())
+                // Helicopter rotor/tail break times
                 {
+                    // Main rotors
+                    auto pattern = hook::pattern("F3 0F 59 15 ? ? ? ? F3 0F 58 D0 F3 0F 10 87");
+                    if (!pattern.empty())
+                    {
+                        static auto dword_FE8830 = *pattern.get_first<float*>(4);
+                        injector::MakeNOP(pattern.get_first(0), 8, true);
+                        static auto CHeli__ApplyCollisionInternal_Hook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            regs.xmm2.f32[0] *= *dword_FE8830 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                        });
+                    }
+                    else
+                    {
+                        pattern = hook::pattern("D8 0D ? ? ? ? D9 44 24 ? D8 0D");
+                        static auto dword_D95B68 = *pattern.get_first<float*>(2);
+                        struct CHeli__ApplyCollisionInternal_Hook1
+                        {
+                            void operator()(injector::reg_pack& regs)
+                            {
+                                float f = *dword_D95B68 * *CTimer::fTimeStep / (1.0f / 30.0f);
+
+                                _asm { fmul dword ptr [f] };
+                            }
+                        }; injector::MakeInline<CHeli__ApplyCollisionInternal_Hook1>(pattern.get_first(0), pattern.get_first(6));
+                    }
+
+                    // Rear rotors
+                    pattern = hook::pattern("F3 0F 59 D0 F3 0F 10 44 24 ? F3 0F 59 05 ? ? ? ? F3 0F 58 D0");
+                    if (!pattern.empty())
+                    {
+                        injector::MakeNOP(pattern.get_first(0), 4, true);
+                        static auto CHeli__ApplyCollisionInternal_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            regs.xmm2.f32[0] *= regs.xmm0.f32[0] * *CTimer::fTimeStep / (1.0f / 30.0f);
+                        });
+                    }
+                    else
+                    {
+                        pattern = hook::pattern("DE C9 D9 44 24 ? D8 0D");
+                        struct CHeli__ApplyCollisionInternal_Hook2
+                        {
+                            void operator()(injector::reg_pack& regs)
+                            {
+                                float f = *CTimer::fTimeStep / (1.0f / 30.0f);
+
+                                _asm
+                                {
+                                    fld [f]
+
+                                    fmulp st(1), st
+                                    fmulp st(1), st
+
+                                    fld [esp + 0x100 - 0xEC]
+                                };
+                            }
+                        }; injector::MakeInline<CHeli__ApplyCollisionInternal_Hook2>(pattern.get_first(0), pattern.get_first(6));
+                    }
+
+                    // Tails ???
+                    pattern = hook::pattern("F3 0F 59 0D ? ? ? ? F3 0F 59 4C 24 ? F3 0F 5C C1");
+                    if (!pattern.empty())
+                    {
+                        static auto dword_FE8AE0 = *pattern.get_first<float*>(4);
+                        injector::MakeNOP(pattern.get_first(0), 8, true);
+                        static auto CHeli__ApplyCollisionInternal_Hook3 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            regs.xmm1.f32[0] *= *dword_FE8AE0 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                        });
+                    }
+                    else
+                    {
+                        pattern = hook::pattern("D8 0D ? ? ? ? D8 4C 24 ? D9 5C 24 ? F3 0F 5C 44 24");
+                        static auto flt_D7A9C8 = *pattern.get_first<float*>(2);
+                        struct CHeli__ApplyCollisionInternal_Hook3
+                        {
+                            void operator()(injector::reg_pack& regs)
+                            {
+                                float f = *flt_D7A9C8 * *CTimer::fTimeStep / (1.0f / 30.0f);
+
+                                _asm { fmul dword ptr [f] };
+                            }
+                        }; injector::MakeInline<CHeli__ApplyCollisionInternal_Hook3>(pattern.get_first(0), pattern.get_first(6));
+                    }
+                }
+
+                // Helicopter rotor speeds
+                {
+                    auto pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 59 C4 F3 0F 5C C8");
+                    if (!pattern.empty())
+                    {
+                        static auto dword_1046AF0 = *pattern.get_first<float*>(4);
+                        injector::MakeNOP(pattern.get_first(0), 8, true);
+                        static auto CHeli__PreRender_Hook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            regs.xmm0.f32[0] *= *dword_1046AF0 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                        });
+                    }
+                    else
+                    {
+                        pattern = hook::pattern("F3 0F 59 15 ? ? ? ? F3 0F 59 D4");
+                        static auto dword_F46598 = *pattern.get_first<float*>(4);
+                        injector::MakeNOP(pattern.get_first(0), 8, true);
+                        static auto CHeli__PreRender_Hook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            regs.xmm2.f32[0] *= *dword_F46598 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                        });
+                    }
+
+                    pattern = hook::pattern("F3 0F 59 1D ? ? ? ? F3 0F 10 87 ? ? ? ? F3 0F 59 DC");
+                    if (!pattern.empty())
+                    {
+                        static auto dword_1046AF4 = *pattern.get_first<float*>(4);
+                        injector::MakeNOP(pattern.get_first(0), 8, true);
+                        static auto CHeli__PreRender_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            regs.xmm3.f32[0] *= *dword_1046AF4 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                        });
+                    }
+                    else
+                    {
+                        pattern = hook::pattern("F3 0F 59 0D ? ? ? ? F3 0F 10 86 ? ? ? ? F3 0F 59 CC");
+                        static auto dword_F46594 = *pattern.get_first<float*>(4);
+                        injector::MakeNOP(pattern.get_first(0), 8, true);
+                        static auto CHeli__PreRender_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            regs.xmm1.f32[0] *= *dword_F46594 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                        });
+                    }
+                }
+            }
+
+            // Fix UI issues
+            {
+                // Loading screen animations' speed
+                {
+                    // Fix Y axis loading screen animations not scaling properly with the frame rate. Seems like the devs forgot to also scale this.
+                    auto pattern = find_pattern("F3 0F 58 2D ? ? ? ? F3 0F 11 AC 18", "F3 0F 58 15 ? ? ? ? F3 0F 11 94 37");
                     static auto dword_18B6F30 = *pattern.get_first<float*>(4);
 
                     pattern = hook::pattern("F3 0F 58 EC F3 0F 11 AC 18");
                     if (!pattern.empty())
                     {
                         injector::MakeNOP(pattern.get_first(0), 4, true);
-                        static auto CLoadingScreens_RenderSegmentSprites_Hook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        static auto CLoadingScreens__RenderSegmentSprites_Hook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                         {
-                            regs.xmm5.f32[0] += *dword_18B6F30; // regs.xmm4.f32[0] --> dword_18B6F30
+                            regs.xmm5.f32[0] += *dword_18B6F30; // regs.xmm5.f32[0] --> dword_18B6F30
+                        });
+                    }
+
+                    // Fix loading screen animations running at double the intended speed.
+                    // This was made into an issue on PC because the devs thought capping loading screens to 64fps would be a good idea,
+                    // so the loading screen clocks (Which actually affect the overall animation speed instead of a fixed rate) were also tied to that target frame rate,
+                    // which essentially doubles the speed of loading screen animations.
+                    //
+                    // On consoles, there are no such clocks in place. Instead, loading screen animation speed is entirely fps dependent (On both axis),
+                    // and this means the Xbox 360 version also exhibits the same issue as PC essentially, due to the 60fps target with VSync even on real hardware.
+                    //
+                    // The PS3 version, being capped at 30fps, behaves correctly here. So we change these clocks to be 33.3f so that it matches the 30fps speed.
+                    // As a side effect however, this significantly slows down PC loading screens, so these should probably have their speed values doubled in the .dat files instead.
+                    pattern = hook::pattern("F3 0F 59 0D ? ? ? ? C7 84 18");
+                    if (!pattern.empty())
+                    {
+                        injector::MakeNOP(pattern.get_first(0), 8, true);
+                        static auto CLoadingScreens__RenderSegmentSprites_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            regs.xmm1.f32[0] *= 33.3f; // 66.6f --> 33.3f
+                        });
+
+                        pattern = hook::pattern("F3 0F 59 25 ? ? ? ? C7 84 18");
+                        injector::MakeNOP(pattern.get_first(0), 8, true);
+                        static auto CLoadingScreens__RenderSegmentSprites_Hook3 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            regs.xmm4.f32[0] *= 33.3f; // 66.6f --> 33.3f
+                        });
+                    }
+                    else
+                    {
+                        pattern = hook::pattern("F3 0F 10 15 ? ? ? ? F3 0F 59 E3 F3 0F 59 E2");
+                        injector::MakeNOP(pattern.get_first(0), 8, true);
+                        static auto CLoadingScreens__RenderSegmentSprites_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            regs.xmm2.f32[0] = 33.3f; // 66.6f --> 33.3f
+                        });
+
+                        pattern = hook::pattern("F3 0F 10 15 ? ? ? ? F3 0F 10 A4 37");
+                        injector::MakeNOP(pattern.get_first(0), 8, true);
+                        static auto CLoadingScreens__RenderSegmentSprites_Hook3 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            regs.xmm2.f32[0] = 33.3f; // 66.6f --> 33.3f
                         });
                     }
                 }
 
-                // Fix loading screen animations running at double the intended speed in comparison to consoles.
-                // That is normally pretty noticeable when using the console loading screens with the default console loadingscreens.dat files.
-                // As a side effect this also makes PC loading screens animate way slower.
-                pattern = hook::pattern("F3 0F 59 0D ? ? ? ? C7 84 18");
-                if (!pattern.empty())
+                // Loading text animations' speed
                 {
-                    injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto CLoadingScreens_RenderSegmentSprites_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    // Loading text flashing (IV and TLAD)
+                    // Skips an else path which post-processes the flash speed unnecessarily.
+                    // The speed was previously fixed to work correctly at variable frame rates on patches 1050 and lower,
+                    // but this check added in patch 1060 along with TBoGT's sparks prevents it from working properly.
+                    auto pattern = hook::pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 C1 F3 0F 11 05 ? ? ? ? EB");
+                    if (!pattern.empty())
                     {
-                        regs.xmm1.f32[0] *= 33.3f; // 66.6f --> 33.3f
-                    });
+                        injector::MakeNOP(pattern.get_first(0), 20, true);
+                    }
+                    else
+                    {
+                        pattern = hook::pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 05 ? ? ? ? F3 0F 11 05 ? ? ? ? EB");
+                        injector::MakeNOP(pattern.get_first(0), 24, true);
+                    }
 
-                    pattern = hook::pattern("F3 0F 59 25 ? ? ? ? C7 84 18");
-                    injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto CLoadingScreens_RenderSegmentSprites_Hook3 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    // This just slightly corrects the devs' old fix from 1050 and lower to be fully accurate to what we generally do here.
+                    pattern = hook::pattern("F3 0F 10 44 24 ? F3 0F 59 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 05");
+                    if (!pattern.empty())
                     {
-                        regs.xmm4.f32[0] *= 33.3f; // 66.6f --> 33.3f
-                    });
+                        injector::MakeNOP(pattern.get_first(0), 22, true);
+                        static auto CRenderThreadInterface__LoadingRenderFunction_Hook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            // Equivalent to: dword_1175C40 += dword_1032790 * SomeTimer * (1000.0f / 30.0f);
+                            regs.xmm0.f32[0] = *(float*)(regs.esp + 0x34);
+                            regs.xmm0.f32[0] *= (1000.0f / 30.0f);
+                        });
+                    }
+                    else
+                    {
+                        pattern = hook::pattern("F3 0F 10 44 24 ? F3 0F 59 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 05");
+                        injector::MakeNOP(pattern.get_first(0), 14, true);
+                        static auto CRenderThreadInterface__LoadingRenderFunction_Hook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            // Equivalent to: dword_11FB434 += dword_F38420 * SomeTimer * (1000.0f / 30.0f);
+                            regs.xmm0.f32[0] = *(float*)(regs.esp + 0x0EE0 - 0xE9C);
+                            regs.xmm0.f32[0] *= (1000.0f / 30.0f);
+                        });
+                    }
+
+                    // Loading text sparks (TBoGT)
+                    // So for IV's flashing we had an initial speed and then a secondary speed (Which was unnecessary).
+                    // Here its similar, however the secondary speed might actually drive everything as the initial one is just * 0.001f while the secondary one is * 0.085f.
+                    // So we're just taking the timer variable Toronto used for IV in 1040 and scale the secondary value with that.
+                    pattern = hook::pattern("F3 0F 58 0D ? ? ? ? 0F 5B C0 F3 0F 11 0D");
+                    if (!pattern.empty())
+                    {
+                        static auto dword_E81598 = *pattern.get_first<float*>(4);
+                        injector::MakeNOP(pattern.get_first(0), 8, true);
+                        static auto CRenderThreadInterface__LoadingRenderFunction_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            // Equivalent to: dword_1175770 += dword_E81598 * SomeTimer * (1000.0f / 30.0f);
+                            regs.xmm1.f32[0] += *dword_E81598 * *(float*)(regs.esp + 0x34) * (1000.0f / 30.0f);
+                        });
+                    }
+                    else
+                    {
+                        pattern = hook::pattern("F3 0F 58 05 ? ? ? ? F3 0F 2A 0D");
+                        static auto flt_DEF584 = *pattern.get_first<float*>(4);
+                        injector::MakeNOP(pattern.get_first(0), 8, true);
+                        static auto CRenderThreadInterface__LoadingRenderFunction_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            // Equivalent to: dword_11FB41C += flt_DEF584 * SomeTimer * (1000.0f / 30.0f);
+                            regs.xmm0.f32[0] += *flt_DEF584 * *(float*)(regs.esp + 0x0EE0 - 0xE9C) * (1000.0f / 30.0f);
+                        });
+                    }
                 }
-                else
-                {
-                    pattern = hook::pattern("F3 0F 10 15 ? ? ? ? F3 0F 59 E3 F3 0F 59 E2");
-                    injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto CLoadingScreens_RenderSegmentSprites_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                    {
-                        regs.xmm2.f32[0] = 33.3f; // 66.6f --> 33.3f
-                    });
 
-                    pattern = hook::pattern("F3 0F 10 15 ? ? ? ? F3 0F 10 A4 37");
-                    injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto CLoadingScreens_RenderSegmentSprites_Hook3 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                    {
-                        regs.xmm2.f32[0] = 33.3f; // 66.6f --> 33.3f
-                    });
-                }
-            }
-
-            // CD/Busy spinner speed
-            // Note:
-            // This does not work for the spinner that shows up while loading saved games, as CTimer::fTimeStep does not work in menus.
-            // It is not a big deal, because we skip that spinner so saves load faster. But if we ever want to restore it, that should be looked into.
-            pattern = hook::pattern("F3 0F 58 05 ? ? ? ? 33 C0 A3");
-            if (!pattern.empty())
-            {
-                static auto dword_E841A8 = *pattern.get_first<float*>(4);
-                injector::MakeNOP(pattern.get_first(0), 8, true);
-                static auto CDSpinnerSpeed = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                // Radar zoom animations' speed
                 {
-                    regs.xmm0.f32[0] += *dword_E841A8 * *CTimer::fTimeStep / (1.0f / 30.0f);
-                });
-            }
-            else
-            {
-                pattern = hook::pattern("F3 0F 58 15 ? ? ? ? 33 C0 F3 0F 11 15");
-                static auto dword_DD6B68 = *pattern.get_first<float*>(4);
-                injector::MakeNOP(pattern.get_first(0), 8, true);
-                static auto CDSpinnerSpeed = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                {
-                    regs.xmm2.f32[0] += *dword_DD6B68 * *CTimer::fTimeStep / (1.0f / 30.0f);
-                });
-            }
-
-            // Cop blips' speed
-            pattern = hook::pattern("A1 ? ? ? ? 6B C0 15");
-            if (!pattern.empty())
-            {
-                injector::MakeNOP(pattern.get_first(0), 5, true);
-                static auto CopBlipsSpeed = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                {
-                    regs.eax = *CTimer::m_snTimeInMillisecondsPauseMode / (1000 / 30);
-                });
-            }
-
-            // Radar zoom speed
-            {
-                // This skips a check that determines after how many frames the radar zooming is updated.
-                // Normally it updates every 30 milliseconds, which visually makes the zooming always update at a "30hz" rate regardless of fps.
-                pattern = find_pattern("0F 86 ? ? ? ? F3 0F 10 15 ? ? ? ? 0F 2E CA", "0F 86 ? ? ? ? F3 0F 10 0D ? ? ? ? 0F 2E C1");
-                if (!pattern.empty())
-                {
+                    // This skips a check that gates how often the entire radar update code is updated.
+                    // Normally it updates every 30 milliseconds, which visually makes the entire radar always update at a 30hz rate regardless of frame rate.
+                    auto pattern = find_pattern("0F 86 ? ? ? ? F3 0F 10 15 ? ? ? ? 0F 2E CA", "0F 86 ? ? ? ? F3 0F 10 0D ? ? ? ? 0F 2E C1");
                     injector::MakeNOP(pattern.get_first(0), 6, true);
-                }
 
-                // Zoom in speed
-                pattern = hook::pattern("F3 0F 58 15 ? ? ? ? 0F 2F CA EB");
-                if (!pattern.empty())
-                {
-                    static auto dword_FE8B5C = *pattern.get_first<float*>(4);
-                    injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto RadarZoomInSpeed = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    // This makes the radar zoom-in speed fps independent, as we removed the update throttle and thus made this an issue.
+                    pattern = hook::pattern("F3 0F 58 15 ? ? ? ? 0F 2F CA EB");
+                    if (!pattern.empty())
                     {
-                        regs.xmm2.f32[0] += *dword_FE8B5C * *CTimer::fTimeStep / (1.0f / 30.0f);
-                    });
-                }
-                else
-                {
-                    pattern = hook::pattern("F3 0F 58 0D ? ? ? ? 0F 2F C1 EB");
-                    static auto dword_E52BF8 = *pattern.get_first<float*>(4);
-                    injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto RadarZoomInSpeed = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        static auto CRadar__fRange = *pattern.get_first<float*>(4);
+                        injector::MakeNOP(pattern.get_first(0), 8, true);
+                        static auto CRadarNY__UpdateTask_Hook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            regs.xmm2.f32[0] += *CRadar__fRange * *CTimer::fTimeStep / (1.0f / 30.0f);
+                        });
+                    }
+                    else
                     {
-                        regs.xmm1.f32[0] += *dword_E52BF8 * *CTimer::fTimeStep / (1.0f / 30.0f);
-                    });
-                }
+                        pattern = hook::pattern("F3 0F 58 0D ? ? ? ? 0F 2F C1 EB");
+                        static auto CRadar__fRange = *pattern.get_first<float*>(4);
+                        injector::MakeNOP(pattern.get_first(0), 8, true);
+                        static auto CRadarNY__UpdateTask_Hook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            regs.xmm1.f32[0] += *CRadar__fRange * *CTimer::fTimeStep / (1.0f / 30.0f);
+                        });
+                    }
 
-                // Zoom out speed
-                pattern = hook::pattern("F3 0F 5C 15 ? ? ? ? 0F 2F D1 76 ? 0F 28 CA");
-                if (!pattern.empty())
-                {
-                    static auto dword_FE8B5C = *pattern.get_first<float*>(4);
-                    injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto RadarZoomOutSpeed = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    // This makes the radar zoom-out speed fps independent, as we removed the update throttle and thus also made this an issue.
+                    pattern = hook::pattern("F3 0F 5C 15 ? ? ? ? 0F 2F D1 76 ? 0F 28 CA");
+                    if (!pattern.empty())
                     {
-                        regs.xmm2.f32[0] -= *dword_FE8B5C * *CTimer::fTimeStep / (1.0f / 30.0f);
-                    });
-                }
-                else
-                {
-                    pattern = hook::pattern("F3 0F 5C 0D ? ? ? ? 0F 2F C8 76 ? 0F 28 C1");
-                    static auto dword_E52BF8 = *pattern.get_first<float*>(4);
-                    injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto RadarZoomOutSpeed = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        static auto CRadar__fRange = *pattern.get_first<float*>(4);
+                        injector::MakeNOP(pattern.get_first(0), 8, true);
+                        static auto CRadarNY__UpdateTask_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            regs.xmm2.f32[0] -= *CRadar__fRange * *CTimer::fTimeStep / (1.0f / 30.0f);
+                        });
+                    }
+                    else
                     {
-                        regs.xmm1.f32[0] -= *dword_E52BF8 * *CTimer::fTimeStep / (1.0f / 30.0f);
-                    });
-                }
-            }
-
-            // On foot camera shake
-            game_rand = (decltype(game_rand))injector::GetBranchDestination(find_pattern("E8 ? ? ? ? F3 0F 10 4C 24 ? F3 0F 5C 4C 24 ? F3 0F 10 5C 24", "E8 ? ? ? ? F3 0F 10 4C 24 ? F3 0F 59 4C 24 ? F3 0F 59 4C 24").get_first()).as_int();
-            dword_11F7060 = *find_pattern("83 3D ? ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 C1", "83 3D ? ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 05").get_first<uint32_t*>(2);
-            dword_12088B4 = *find_pattern("A1 ? ? ? ? 3B 05 ? ? ? ? 75 ? 83 3D ? ? ? ? ? 75 ? A1", "A1 ? ? ? ? 3B 05 ? ? ? ? 75 ? 83 3D ? ? ? ? ? 75 ? 8B 0D ? ? ? ? DB 05").get_first<uint32_t*>(1);
-            dword_1037720 = *find_pattern("83 3D ? ? ? ? ? 75 ? A1 ? ? ? ? 66 0F 6E C0", "83 3D ? ? ? ? ? 75 ? 8B 0D ? ? ? ? DB 05").get_first<uint32_t*>(2);
-            dword_11F704C = *find_pattern("A1 ? ? ? ? 66 0F 6E C0 F3 0F E6 C0 C1 E8 ? F2 0F 58 04 C5 ? ? ? ? 66 0F 5A C0 F3 0F 59 05 ? ? ? ? F3 0F 59 C1", "0D ? ? ? ? DB 05 ? ? ? ? 85 C9 7D ? D8 05 ? ? ? ? D8 0D").get_first<uint32_t*>(1);
-            pattern = find_pattern("55 8B EC 83 E4 ? 83 EC ? 56 57 8B F9 F3 0F 10 05", "55 8B EC 83 E4 ? 0F 57 E4 F3 0F 10 1D");
-            shOnFootCameraShake = safetyhook::create_inline(pattern.get_first(), OnFootCameraShake);
-
-            // Hood camera bumping
-            pattern = find_pattern("55 8B EC 83 E4 F0 83 EC 28 F3 0F 10 05 ? ? ? ? 56 8B 75 ? 57 6A 00", "55 8B EC 83 E4 F0 83 EC 24 F3 0F 10 05 ? ? ? ? 53 8B 5D ? 56 57 8B 7D");
-            shHoodCameraBumping = safetyhook::create_inline(pattern.get_first(), HoodCameraBumping);
-
-            // Aim zooming
-            {
-                // Weapons
-                pattern = find_pattern("F3 0F 10 15 ? ? ? ? F3 0F 59 CA F3 0F 58 4E", "F3 0F 10 15 ? ? ? ? F3 0F 5C C1 F3 0F 59 C2 F3 0F 58 C1 74");
-                static auto dword_FE8830 = *pattern.get_first<float*>(4);
-                injector::MakeNOP(pattern.get_first(0), 8, true);
-                static auto CCamAimWeapon_AimFree_Hook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                {
-                    regs.xmm2.f32[0] = 1.0f - expf(-*dword_FE8830 * *CTimer::fTimeStep / (1.0f / 30.0f));
-                });
-
-                // Melee
-                pattern = hook::pattern("F3 0F 59 0D ? ? ? ? F3 0F 58 4C 24 ? F3 0F 11 49");
-                if (!pattern.empty())
-                {
-                    static auto dword_FE8830 = *pattern.get_first<float*>(4);
-                    injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto CCamAimWeapon_AimFree_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                    {
-                        regs.xmm1.f32[0] *= 1.0f - expf(-*dword_FE8830 * *CTimer::fTimeStep / (1.0f / 30.0f));
-                    });
-                }
-                else
-                {
-                    pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 58 C1 F3 0F 11 41");
-                    static auto dword_DB6F80 = *pattern.get_first<float*>(4);
-                    injector::MakeNOP(pattern.get_first(0), 8, true);
-                    static auto CCamAimWeapon_AimFree_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                    {
-                        regs.xmm0.f32[0] *= 1.0f - expf(-*dword_DB6F80 * *CTimer::fTimeStep / (1.0f / 30.0f));
-                    });
+                        pattern = hook::pattern("F3 0F 5C 0D ? ? ? ? 0F 2F C8 76 ? 0F 28 C1");
+                        static auto CRadar__fRange = *pattern.get_first<float*>(4);
+                        injector::MakeNOP(pattern.get_first(0), 8, true);
+                        static auto CRadarNY__UpdateTask_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            regs.xmm1.f32[0] -= *CRadar__fRange * *CTimer::fTimeStep / (1.0f / 30.0f);
+                        });
+                    }
                 }
             }
 
@@ -816,146 +994,8 @@ public:
             hbSLIDE_OBJECT.fun = NativeOverride::Register(Natives::NativeHashes::SLIDE_OBJECT, NATIVE_SLIDE_OBJECT_1, "E8 ? ? ? ? 0F B6 C8", 107);
             if (!hbSLIDE_OBJECT.fun)
             {
-                pattern = hook::pattern("55 8B EC 83 E4 F0 8B 45 08 8B 0D ? ? ? ? 81 EC ? ? ? ? 56 50");
+                auto pattern = hook::pattern("55 8B EC 83 E4 ? 8B 45 ? 8B 0D ? ? ? ? 81 EC ? ? ? ? 56");
                 shNATIVE_SLIDE_OBJECT = safetyhook::create_inline(pattern.get_first(0), NATIVE_SLIDE_OBJECT_2);
-            }
-
-
-            // Drunk steering bias feedback loop fix
-            {
-                CIniReader iniReader("");
-                static float fDrunkDrivingHandlingFixIntensity = std::clamp(iniReader.ReadFloat("MISC", "DrunkDrivingHandlingFixIntensity", 1.0f), 0.0f, 1.0f);
-
-                if (fDrunkDrivingHandlingFixIntensity > 0.0f)
-                {
-                    static ptrdiff_t SteerOffset;
-                    static ptrdiff_t SteerBiasOffset;
-
-                    static auto getVehicleFromModRM = [](uint8_t modrm, SafetyHookContext& regs) -> uintptr_t
-                    {
-                        switch (modrm & 7)
-                        {
-                            case 0: return regs.eax;
-                            case 1: return regs.ecx;
-                            case 2: return regs.edx;
-                            case 3: return regs.ebx;
-                            case 6: return regs.esi;
-                            case 7: return regs.edi;
-                            default: return 0;
-                        }
-                    };
-
-                    auto pattern = find_pattern(
-                        "F3 0F 11 ? 88 10 00 00 F6 ? F0 00 00 00 40",
-                        "F3 0F 11 ? D8 10 00 00 F6 ? F0 00 00 00 40"
-                    );
-                    if (!pattern.empty())
-                    {
-                        if (!hook::pattern("F3 0F 11 ? 88 10 00 00 F6 ? F0 00 00 00 40").count_hint(1).empty())
-                        {
-                            SteerOffset = 0x1080;
-                            SteerBiasOffset = 0x1084;
-                        }
-                        else
-                        {
-                            SteerOffset = 0x10D0;
-                            SteerBiasOffset = 0x10D4;
-                        }
-
-                        static uint8_t autoVehicleReg = *(uint8_t*)((uintptr_t)pattern.get_first(3)) & 7;
-
-                        static auto AutoDrunkSteerBiasHook = safetyhook::create_mid(
-                            (uint8_t*)pattern.get_first(8),
-                            [](SafetyHookContext& regs)
-                            {
-                                uintptr_t vehicle = getVehicleFromModRM(autoVehicleReg, regs);
-                                if (!vehicle) return;
-
-                                float bias = *(float*)(vehicle + SteerBiasOffset);
-                                if (bias != 0.0f)
-                                {
-                                    float& steer = *(float*)(vehicle + SteerOffset);
-                                    steer -= bias * fDrunkDrivingHandlingFixIntensity;
-                                    if (steer > 1.0f) steer = 1.0f;
-                                    else if (steer < -1.0f) steer = -1.0f;
-                                }
-                            });
-                    }
-
-                    auto pattern2 = find_pattern(
-                        "F3 0F 11 ? 88 10 00 00 80 3D",
-                        "F3 0F 11 ? D8 10 00 00 80 3D"
-                    );
-                    if (!pattern2.empty())
-                    {
-                        if (SteerOffset == 0)
-                        {
-                            if (!hook::pattern("F3 0F 11 ? 88 10 00 00 80 3D").count_hint(1).empty())
-                            {
-                                SteerOffset = 0x1080;
-                                SteerBiasOffset = 0x1084;
-                            }
-                            else
-                            {
-                                SteerOffset = 0x10D0;
-                                SteerBiasOffset = 0x10D4;
-                            }
-                        }
-
-                        static uint8_t bikeVehicleReg = *(uint8_t*)((uintptr_t)pattern2.get_first(3)) & 7;
-
-                        static auto BikeDrunkSteerBiasHook = safetyhook::create_mid(
-                            (uint8_t*)pattern2.get_first(8),
-                            [](SafetyHookContext& regs)
-                            {
-                                uintptr_t vehicle = getVehicleFromModRM(bikeVehicleReg, regs);
-                                if (!vehicle) return;
-
-                                float bias = *(float*)(vehicle + SteerBiasOffset);
-                                if (bias != 0.0f)
-                                {
-                                    float& steer = *(float*)(vehicle + SteerOffset);
-                                    steer -= bias * 0.5f * fDrunkDrivingHandlingFixIntensity;
-                                    if (steer > 1.0f) steer = 1.0f;
-                                    else if (steer < -1.0f) steer = -1.0f;
-                                }
-                            });
-                    }
-                }
-            }
-
-            // Drunk camera shake fix at high FPS
-            {
-                CIniReader iniReader("");
-                static float fDrunkDrivingCamFixIntensity = std::clamp(iniReader.ReadFloat("MISC", "DrunkDrivingCamFixIntensity", 1.0f), 0.0f, 1.0f);
-
-                if (fDrunkDrivingCamFixIntensity > 0.0f)
-                {
-                    pattern = hook::pattern("F3 0F 10 54 24 4C F3 0F 10 44 24 50 F3 0F 10 4C 24 54");
-                    if (!pattern.empty())
-                    {
-                        static auto DrunkShakeScale = safetyhook::create_mid(
-                            pattern.get_first(0),
-                            [](SafetyHookContext& regs)
-                            {
-                                float fps_scale = *CTimer::fTimeStep * 30.0f;
-                                if (fps_scale > 1.0f) fps_scale = 1.0f;
-                                else if (fps_scale < 0.0f) fps_scale = 0.0f;
-
-                                float target = 1.0f + fDrunkDrivingCamFixIntensity * (fps_scale - 1.0f);
-
-                                static float smoothed_scale = 1.0f;
-                                constexpr float kSmoothingAlpha = 0.15f;
-                                smoothed_scale += (target - smoothed_scale) * kSmoothingAlpha;
-
-                                float* outputs = (float*)(regs.esp + 0x4C);
-                                for (int i = 0; i < 13; ++i)
-                                {
-                                    outputs[i] *= smoothed_scale;
-                                }
-                            });
-                    }
-                }
             }
         };
     }

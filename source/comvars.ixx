@@ -1805,6 +1805,11 @@ export namespace rage
             shsub_436D70.unsafe_fastcall(_this, edx, a2, index, pDataArr, nArrSize, a6, a7);
         }
     };
+
+    namespace Matrix34
+    {
+        void (__fastcall* FromEulersXYZ)(float* _this, void* edx, float* a2) = nullptr;
+    };
 }
 
 export namespace rage
@@ -2009,12 +2014,13 @@ export namespace CCamera
 export namespace CTimer
 {
     float* fTimeStep;
+    float* fCamTimeStep;
     float* fTimeScale1;
     float* fTimeScale2;
     uint8_t* m_UserPause = nullptr;
     uint8_t* m_CodePause = nullptr;
     int32_t* m_snTimeInMilliseconds = nullptr;
-    int32_t* m_snTimeInMillisecondsPauseMode = nullptr;
+    uint32_t* m_frameCount = nullptr;
 }
 
 export namespace CTimeCycle
@@ -2185,10 +2191,16 @@ export namespace CTxdStore
     int* (__cdecl* at)(int);
 }
 
-export namespace Matrix34
+export namespace CReplayMgr
 {
-    void (__fastcall* fromEulersXYZ)(float* _this, void* edx, float* a2);
+    uint32_t* dword_11F7060 = nullptr;
+    HANDLE* dword_12088B4 = nullptr;
+    uint32_t* dword_1037720 = nullptr;
+    uint32_t* dword_11F704C = nullptr;
 }
+
+// Game libraries
+export int (__cdecl* game_rand)();
 
 export uint8_t(*GTAIV_ENCRYPTION_KEY)[32] = nullptr;
 
@@ -2529,8 +2541,8 @@ export bool IsKeyboardKeyPressed(int vkeycode, int type = 1, const char* hint = 
 
 export namespace CPhysical
 {
-    float* (__fastcall* getAngularVelocity)(void*, void*, float*) = nullptr;
-    void (__fastcall* TransformOffsetToWorldSpace)(float*, void*, float*, float*, char, int) = nullptr;
+    void (__fastcall* GetLocalSpeed)(void*, void*, float*, float*, char, int) = nullptr;
+    float* (__fastcall* GetTurnSpeed)(void*, void*, float*);
 }
 
 export namespace CPhysics
@@ -2538,6 +2550,7 @@ export namespace CPhysics
     void (__stdcall* ScanForBuildings)() = nullptr;
     void (*UpdateRequestList)() = nullptr;
     void (*ResetNumPoolGameCollisions)() = nullptr;
+    int* ms_NumTimeSlices = nullptr;
     void (__cdecl* PreSimUpdate)(float TimeStep, int NumTimeSlices) = nullptr;
     void (__cdecl* SimUpdate)(float TimeStep) = nullptr;
     void (__cdecl* PostSimUpdate)(int NumTimeSlices, float TimeStep) = nullptr;
@@ -2546,7 +2559,7 @@ export namespace CPhysics
 
 export namespace CWorld
 {
-    uintptr_t* ms_listProcessControlPtrs = nullptr;
+    int* ms_listProcessControlPtrs = nullptr;
 }
 
 export namespace CCamera
@@ -2619,8 +2632,8 @@ public:
         pattern = find_pattern("A1 ? ? ? ? A3 ? ? ? ? EB 3A", "A1 ? ? ? ? 39 05 ? ? ? ? 76 1F");
         CTimer::m_snTimeInMilliseconds = *pattern.get_first<int32_t*>(1);
 
-        pattern = find_pattern("89 0D ? ? ? ? F3 0F 11 05 ? ? ? ? A3 ? ? ? ? E8 ? ? ? ? F3 0F 10 0D ? ? ? ? F3 0F 10 44 24 ? 84 C0 74 ? 0F 2F C1 77 ? EB ? 0F 2F C1 76 ? 0F 28 C8 F3 0F 10 05 ? ? ? ? 0F 2F C1 77 03 0F 28 C8 80 3D", "89 0D ? ? ? ? D9 2C 24 E8 ? ? ? ? 84 C0 F3 0F 10 05 ? ? ? ? F3 0F 10 4C 24 ? 74 ? 0F 2F C8 77 ? EB ? 0F 2F C8 76 ? 0F 28 C1 F3 0F 10 0D ? ? ? ? 0F 2F C8 77 03 0F 28 C1 80 3D");
-        CTimer::m_snTimeInMillisecondsPauseMode = *pattern.get_first<int32_t*>(2);
+        pattern = find_pattern("FF 05 ? ? ? ? F3 0F 2C C0 F3 0F 10 05", "83 05 ? ? ? ? ? D9 3C 24");
+        CTimer::m_frameCount = *pattern.get_first<uint32_t*>(2);
 
         pattern = find_pattern("83 3D ? ? ? ? ? 74 17 8B 4D 14", "83 3D ? ? ? ? ? 74 15 8B 44 24 1C", "83 3D ? ? ? ? ? 74 EF");
         rage::grcDevice::ms_pD3DDevice = *pattern.get_first<IDirect3DDevice9**>(2);
@@ -2656,6 +2669,9 @@ public:
 
         pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? 8B 43 20 53", "F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? 83 C4 04 83 7C 24");
         CTimer::fTimeStep = *pattern.get_first<float*>(4);
+
+        pattern = find_pattern("F3 0F 11 0D ? ? ? ? 74 ? 80 3D", "F3 0F 11 05 ? ? ? ? 74 ? 80 3D ? ? ? ? ? 74 ? D9 05");
+        CTimer::fCamTimeStep = *pattern.get_first<float*>(4);
 
         pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 10 0D ? ? ? ? 0F 2F C8 F3 0F 11 44 24", "F3 0F 10 05 ? ? ? ? 0F 2F C8 77 ? F3 0F 10 05");
         CTimer::fTimeScale1 = *pattern.get_first<float*>(4);
@@ -2758,7 +2774,7 @@ public:
         CTxdStore::getEntryByKey = pattern.get_first<rage::grcTexturePC * (__fastcall)(int*, void*, unsigned int)>(0);
 
         pattern = find_pattern("55 8B EC 83 E4 ? 83 EC ? F3 0F 10 05 ? ? ? ? 56 8B 75 ? 0F 57 DB F3 0F 10 0E 0F 2E CB 57 9F 8B F9 F3 0F 11 44 24 ? F6 C4 ? 7A ? 0F 28 CB F3 0F 11 44 24", "55 8B EC 83 E4 ? 0F 57 D2 83 EC ? 56 57");
-        Matrix34::fromEulersXYZ = pattern.get_first<void(__fastcall)(float*, void*, float*)>(0);
+        rage::Matrix34::FromEulersXYZ = pattern.get_first<void(__fastcall)(float*, void*, float*)>(0);
 
         pattern = hook::pattern("68 ? ? ? ? 68 ? ? ? ? 68 ? ? ? ? 68 ? ? ? ? E8 ? ? ? ? 8B C8 E8 ? ? ? ? A3 ? ? ? ? 5E");
         CTxdStore::at = (int* (__cdecl*)(int))injector::ReadMemory<uint32_t>(pattern.get_first(1), true);
@@ -2883,11 +2899,11 @@ public:
         KeyboardBuffer = *pattern.get_first<void**>(1);
         pIsKeyboardKeyPressed = (decltype(pIsKeyboardKeyPressed))injector::GetBranchDestination(pattern.get_first(5)).as_int();
 
-        pattern = find_pattern("E8 ? ? ? ? F3 0F 10 40 ? F3 0F 10 48 ? 8B 08 F3 0F 11 87 ? ? ? ? F3 0F 10 45", "E8 ? ? ? ? D9 00 F3 0F 10 40 ? F3 0F 10 48 ? D9 9E ? ? ? ? F3 0F 11 86 ? ? ? ? F3 0F 10 5D");
-        CPhysical::getAngularVelocity = (decltype(CPhysical::getAngularVelocity))injector::GetBranchDestination(pattern.get_first(0)).as_int();
-
         pattern = find_pattern("E8 ? ? ? ? F3 0F 10 B7 ? ? ? ? F3 0F 10 BF ? ? ? ? F3 0F 10 AF ? ? ? ? F3 0F 10 97", "E8 ? ? ? ? F3 0F 10 A6 ? ? ? ? F3 0F 10 6B");
-        CPhysical::TransformOffsetToWorldSpace = (decltype(CPhysical::TransformOffsetToWorldSpace))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+        CPhysical::GetLocalSpeed = (decltype(CPhysical::GetLocalSpeed))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+
+        pattern = find_pattern("E8 ? ? ? ? F3 0F 10 40 ? F3 0F 10 48 ? 8B 08 F3 0F 11 87 ? ? ? ? F3 0F 10 45", "E8 ? ? ? ? D9 00 F3 0F 10 40 ? F3 0F 10 48 ? D9 9E ? ? ? ? F3 0F 11 86 ? ? ? ? F3 0F 10 5D");
+        CPhysical::GetTurnSpeed = (decltype(CPhysical::GetTurnSpeed))injector::GetBranchDestination(pattern.get_first(0)).as_int();
 
         pattern = hook::pattern("E8 ? ? ? ? E8 ? ? ? ? 8B 35 ? ? ? ? 85 F6 74 ? 8B 0E");
         CPhysics::ScanForBuildings = (decltype(CPhysics::ScanForBuildings))injector::GetBranchDestination(pattern.get_first(0)).as_int();
@@ -2895,8 +2911,14 @@ public:
         pattern = hook::pattern("E8 ? ? ? ? 8B 35 ? ? ? ? 85 F6 74 ? 8B 0E");
         CPhysics::UpdateRequestList = (decltype(CPhysics::UpdateRequestList))injector::GetBranchDestination(pattern.get_first(0)).as_int();
 
-        pattern = find_pattern("E8 ? ? ? ? A1 ? ? ? ? F3 0F 10 0D ? ? ? ? 66 0F 6E C0 0F 5B C0 33 F6", "E8 ? ? ? ? A1 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 2A C8");
+        pattern = hook::pattern("8B 35 ? ? ? ? 85 F6 74 ? 8B 0E");
+        CWorld::ms_listProcessControlPtrs = *pattern.get_first<int*>(2);
+
+        pattern = find_pattern("E8 ? ? ? ? A1 ? ? ? ? F3 0F 10 0D ? ? ? ? 66 0F 6E C0 0F 5B C0", "E8 ? ? ? ? A1 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 2A C8");
         CPhysics::ResetNumPoolGameCollisions = (decltype(CPhysics::ResetNumPoolGameCollisions))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+
+        pattern = find_pattern("A1 ? ? ? ? F3 0F 10 0D ? ? ? ? 66 0F 6E C0 0F 5B C0", "A1 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 2A C8 33 F6");
+        CPhysics::ms_NumTimeSlices = *pattern.get_first<int*>(1);
 
         pattern = hook::pattern("E8 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? 83 C4 ? F3 0F 11 04 24 E8");
         CPhysics::PreSimUpdate = (decltype(CPhysics::PreSimUpdate))injector::GetBranchDestination(pattern.get_first(0)).as_int();
@@ -2904,16 +2926,36 @@ public:
         pattern = hook::pattern("E8 ? ? ? ? E8 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 44 24");
         CPhysics::SimUpdate = (decltype(CPhysics::SimUpdate))injector::GetBranchDestination(pattern.get_first(0)).as_int();
 
-        pattern = find_pattern("E8 ? ? ? ? F3 0F 10 4C 24 ? 46", "E8 ? ? ? ? 83 C6 ? 83 C4 ? 3B 35 ? ? ? ? 7C ? 5E 59 C3");
-        CPhysics::PostSimUpdate = (decltype(CPhysics::PostSimUpdate))injector::GetBranchDestination(pattern.get_first(0)).as_int();
-
         pattern = hook::pattern("E8 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? F3 0F 11 04 24");
         CPhysics::IterateOverManifolds = (decltype(CPhysics::IterateOverManifolds))injector::GetBranchDestination(pattern.get_first(0)).as_int();
 
-        pattern = hook::pattern("8B 35 ? ? ? ? 85 F6 74 ? 8B 0E");
-        CWorld::ms_listProcessControlPtrs = *pattern.get_first<uintptr_t*>(2);
+        pattern = find_pattern("E8 ? ? ? ? F3 0F 10 4C 24 ? 46", "E8 ? ? ? ? 83 C6 ? 83 C4 ? 3B 35 ? ? ? ? 7C ? 5E");
+        CPhysics::PostSimUpdate = (decltype(CPhysics::PostSimUpdate))injector::GetBranchDestination(pattern.get_first(0)).as_int();
 
         pattern = find_pattern("E8 ? ? ? ? 84 C0 74 ? F3 0F 10 86 ? ? ? ? F3 0F 58 05", "E8 ? ? ? ? 50 56 E8 ? ? ? ? 83 C4 ? E8");
         CCamera::isScreenFadedOut = (decltype(CCamera::isScreenFadedOut))injector::GetBranchDestination(pattern.get_first()).as_int();
+
+        pattern = hook::pattern("E8 ? ? ? ? 8B 48 ? 69 C9");
+        game_rand = *pattern.get_first<int(__cdecl)()>(0);
+
+        pattern = find_pattern("83 3D ? ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 C1", "83 3D ? ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 05");
+        CReplayMgr::dword_11F7060 = *pattern.get_first<uint32_t*>(2);
+
+        pattern = find_pattern("A1 ? ? ? ? 3B 05 ? ? ? ? 75 ? 83 3D ? ? ? ? ? 75 ? A1", "A1 ? ? ? ? 3B 05 ? ? ? ? 75 ? 83 3D ? ? ? ? ? 75 ? 8B 0D ? ? ? ? DB 05");
+        CReplayMgr::dword_12088B4 = *pattern.get_first<HANDLE*>(1);
+
+        pattern = find_pattern("83 3D ? ? ? ? ? 75 ? A1 ? ? ? ? 66 0F 6E C0", "83 3D ? ? ? ? ? 75 ? 8B 0D ? ? ? ? DB 05");
+        CReplayMgr::dword_1037720 = *pattern.get_first<uint32_t*>(2);
+
+        pattern = hook::pattern("A1 ? ? ? ? 66 0F 6E C0 F3 0F E6 C0 C1 E8 ? F2 0F 58 04 C5 ? ? ? ? 66 0F 5A C0 F3 0F 59 05 ? ? ? ? F3 0F 59 C1");
+        if (!pattern.empty())
+        {
+            CReplayMgr::dword_11F704C = *pattern.get_first<uint32_t*>(1);
+        }
+        else
+        {
+            pattern = hook::pattern("8B 0D ? ? ? ? DB 05 ? ? ? ? 85 C9 7D ? D8 05 ? ? ? ? D8 0D");
+            CReplayMgr::dword_11F704C = *pattern.get_first<uint32_t*>(2);
+        }
     }
 } Common;
