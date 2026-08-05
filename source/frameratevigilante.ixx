@@ -499,30 +499,26 @@ namespace CCamFollowVehicle
 
         DWORD v17[4];
         DWORD* v18 = (DWORD*)(*(int(__thiscall**)(DWORD*, DWORD*))(*a2 + 236))(a2, v17);
-        int v19 = v18[1];
-        int v20 = v18[2];
 
         *(DWORD*)(_this + 720) = *v18;
-        *(DWORD*)(_this + 724) = v19;
-        *(DWORD*)(_this + 728) = v20;
+        *(DWORD*)(_this + 724) = v18[1];
+        *(DWORD*)(_this + 728) = v18[2];
         *(DWORD*)(_this + 732) = v18[3];
 
-        int* v21 = (int*)CPhysical::GetTurnSpeed(a2, edx, (float*)v17);
-        int v22 = v21[2];
-        int v23 = *v21;
+        int* v19 = (int*)CPhysical::GetTurnSpeed(a2, edx, (float*)v17);
 
-        *(DWORD*)(_this + 740) = v21[1];
-        *(DWORD*)(_this + 736) = v23;
-        *(DWORD*)(_this + 744) = v22;
-        *(DWORD*)(_this + 748) = v21[3];
+        *(DWORD*)(_this + 736) = *v19;
+        *(DWORD*)(_this + 740) = v19[1];
+        *(DWORD*)(_this + 744) = v19[2];
+        *(DWORD*)(_this + 748) = v19[3];
 
-        float v24 = *(float*)(_this + 704) * a5;
-        float v25 = *(float*)(_this + 708) * a5;
-        float v26 = *(float*)(_this + 712) * a5;
+        float v20 = *(float*)(_this + 704) * a5;
+        float v21 = *(float*)(_this + 708) * a5;
+        float v22 = *(float*)(_this + 712) * a5;
 
-        a4[0] += v24;
-        a4[1] += v25;
-        a4[2] += v26;
+        a4[0] += v20;
+        a4[1] += v21;
+        a4[2] += v22;
     }
 
     SafetyHookInline shProcessHandBrakeSwing = {};
