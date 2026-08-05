@@ -449,7 +449,7 @@ namespace CCamFollowVehicle
         float v1[4];
         CPhysical::GetLocalSpeed(a2, edx, v1, a3, 0, 0);
 
-        float *v2 = (float*)a2[8];
+        float* v2 = (float*)a2[8];
         float v3 = (float)(v1[1] - (float)(*(float*)(_this + 724) + (float)((float)(*(float*)(_this + 744) * *a3) - (float)(*(float*)(_this + 736) * a3[2])))) * *(CTimer::fTimeStep + 1);
         float v4 = (float)(v1[0] - (float)(*(float*)(_this + 720) + (float)((float)(*(float*)(_this + 740) * a3[2]) - (float)(*(float*)(_this + 744) * a3[1])))) * *(CTimer::fTimeStep + 1);
         float v5 = (float)(v1[2] - (float)(*(float*)(_this + 728) + (float)((float)(*(float*)(_this + 736) * a3[1]) - (float)(*(float*)(_this + 740) * *a3)))) * *(CTimer::fTimeStep + 1);
@@ -486,7 +486,7 @@ namespace CCamFollowVehicle
         *(float*)(_this + 692) += (float)((float)(dword_103B974 * v0) * v10);
 
         *(float*)(_this + 688) -= (float)((float)(v14 * ms_springForce) * v0);
-        *(float*)(_this + 692) -= (float)((float)(v15 * dword_103B9A4) * v0);;
+        *(float*)(_this + 692) -= (float)((float)(v15 * dword_103B9A4) * v0);
         *(float*)(_this + 696) -= (float)((float)(v16 * dword_103B9A8) * v0);
 
         *(float*)(_this + 688) *= powf(ms_dampForce, v0);
@@ -498,7 +498,7 @@ namespace CCamFollowVehicle
         *(float*)(_this + 712) += *(float*)(_this + 696);
 
         DWORD v17[4];
-        DWORD* v18 = (DWORD*)(*(int (__thiscall**)(DWORD*, DWORD*))(*a2 + 236))(a2, v17);
+        DWORD* v18 = (DWORD*)(*(int(__thiscall**)(DWORD*, DWORD*))(*a2 + 236))(a2, v17);
         int v19 = v18[1];
         int v20 = v18[2];
 
@@ -516,13 +516,13 @@ namespace CCamFollowVehicle
         *(DWORD*)(_this + 744) = v22;
         *(DWORD*)(_this + 748) = v21[3];
 
-        float v24 = *(float*)(_this + 708) * a5;
-        float v25 = *(float*)(_this + 712) * a5;
+        float v24 = *(float*)(_this + 704) * a5;
+        float v25 = *(float*)(_this + 708) * a5;
+        float v26 = *(float*)(_this + 712) * a5;
 
-        *a4 = *a4 + (float)(a5 * *(float*)(_this + 704));
-
-        a4[1] = a4[1] + v24;
-        a4[2] = a4[2] + v25;
+        a4[0] += v24;
+        a4[1] += v25;
+        a4[2] += v26;
     }
 
     SafetyHookInline shProcessHandBrakeSwing = {};
