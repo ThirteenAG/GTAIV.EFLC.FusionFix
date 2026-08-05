@@ -27,8 +27,8 @@ namespace CTimer
 
 namespace CPhysics
 {
-    SafetyHookInline shUpdate = {};
-    void __stdcall Update()
+    // Original function, for reference
+    /*void __stdcall Update()
     {
         CPhysics::ScanForBuildings();
         CPhysics::UpdateRequestList();
@@ -57,6 +57,49 @@ namespace CPhysics
             CPhysics::SimUpdate(*CTimer::fTimeStep * v3);
             CPhysics::IterateOverManifolds();
             CPhysics::PostSimUpdate(i, *CTimer::fTimeStep * v3);
+        }
+    }*/
+
+    SafetyHookInline shUpdate = {};
+    void __stdcall Update()
+    {
+        CPhysics::ScanForBuildings();
+        CPhysics::UpdateRequestList();
+
+        int v0 = *CWorld::ms_listProcessControlPtrs;
+        while (v0)
+        {
+            DWORD* v1 = *(DWORD**)v0;
+            v0 = *(DWORD*)(v0 + 4);
+
+            if (v1)
+            {
+                uint32_t v2 = (v1[10] >> 6) & 0xF;
+                if (v2 > 1 && v2 < 5)
+                    (*(void(__thiscall**)(DWORD*))(*v1 + 256))(v1);
+            }
+        }
+
+        CPhysics::ResetNumPoolGameCollisions();
+
+        // Correct halved time slices by timestep (Earlier than vanilla, i.e. not inside the function inputs anymore)
+        float v3 = *CTimer::fTimeStep * (1.0f / (float)*CPhysics::ms_NumTimeSlices);
+
+        // Add a cheat to speed up the simulation rate by 2x. Can be pretty fun.
+        if (bSpeedupSimRateCheat)
+        {
+            v3 *= 2.0f;
+        }
+
+        // Floor timestep at half the max timestep (1.0f / 300.0f) for PreSim and PostSim updates. Prevents some overshooting at high fps.
+        float v4 = std::clamp(v3, 1.0f / 150.0f, FLT_MAX);
+
+        for (int i = 0; i < *CPhysics::ms_NumTimeSlices; i++)
+        {
+            CPhysics::PreSimUpdate(v4, i);
+            CPhysics::SimUpdate(v3); // This is probably the most important thing to correct but its kind of volatile to touch. Better ideas are welcome for handling all this.
+            CPhysics::IterateOverManifolds();
+            CPhysics::PostSimUpdate(i, v4);
         }
     }
 }
@@ -467,7 +510,7 @@ public:
                 }
             }
 
-            // Fix physics (Affects automobile physics, object physics, Euphoria ragdolls, etc.)
+            // Improve physics (Affects automobile physics, object physics, Euphoria ragdolls, etc.)
             {
                 auto pattern = hook::pattern("51 56 E8 ? ? ? ? E8");
                 CPhysics::shUpdate = safetyhook::create_inline(pattern.get_first(0), CPhysics::Update);
