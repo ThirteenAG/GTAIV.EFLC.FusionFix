@@ -143,8 +143,8 @@ namespace CPedIntelligence
 
 namespace CHandShaker
 {
-    SafetyHookInline shProcess = {};
-    void __fastcall Process(float* _this, void* edx, float a2)
+    // Original function, for reference
+    /*void __fastcall Process(float* _this, void* edx, float a2)
     {
         float v0 = *(_this + 16);
         float v1 = *(_this + 17);
@@ -265,6 +265,163 @@ namespace CHandShaker
         };
 
         rage::Matrix34::FromEulersXYZ(_this, edx, v37);
+    }*/
+
+    SafetyHookInline shProcess = {};
+    void __fastcall Process(float* _this, void* edx, float a2)
+    {
+        float v0 = *(_this + 16);
+        float v1 = *(_this + 17);
+        float v2 = *(_this + 18);
+        float v3 = *(_this + 36);
+
+        float v4 = *CTimer::fCamTimeStep * 30.0f;
+        float v5 = *CTimer::fCamTimeStep * 30.0f;
+        if (*CReplayMgr::dword_11F7060 == 1 || *CReplayMgr::dword_12088B4 != (HANDLE)-1 || *CReplayMgr::dword_1037720 == 18)
+        {
+            v4 = (float)((float)(uint32_t)*CReplayMgr::dword_11F704C * 0.001f) * 30.0f;
+            v5 = v4;
+        }
+
+        static float v6 = 0.0f;
+        float v7 = *CTimer::fCamTimeStep;
+
+        v6 += v7;
+
+        // Gate the random noise generators and impulse accumulators against a 30hz timer, fixing their fps dependency.
+        while (v6 >= 1.0f / 30.0f)
+        {
+            v6 -= 1.0f / 30.0f;
+
+            float v8 = (float)(fabs(v0 / *(_this + 20)) * (float)(*(_this + 37) - v3)) + v3;
+            float v9 = (float)(fabs(v1 / *(_this + 21)) * (float)(*(_this + 37) - v3)) + v3;
+            float v10 = (float)(fabs(v2 / *(_this + 22)) * (float)(*(_this + 37) - v3)) + v3;
+
+            float v11 = v8;
+            float v12 = v9;
+            float v13 = v10;
+
+            if (v0 > 0.0f && *(_this + 28) > 0.0f || v0 < 0.0f && *(_this + 28) < 0.0f)
+                v11 = *(_this + 32) * v8;
+
+            if (v1 > 0.0f && *(_this + 29) > 0.0f || v1 < 0.0f && *(_this + 29) < 0.0f)
+                v12 = *(_this + 33) * v9;
+
+            if (v2 > 0.0f && *(_this + 30) > 0.0f || v2 < 0.0f && *(_this + 30) < 0.0f)
+                v13 = *(_this + 34) * v10;
+
+            float v14 = *(_this + 26);
+            float v15 = (float)game_rand() * 0.000030518509f;
+
+            float v16 = *(_this + 25);
+            float v17 = (float)game_rand() * 0.000030518509f;
+
+            float v18 = *(_this + 24);
+            float v19 = (float)game_rand() * 0.000030518509f;
+
+            float v20 = (float)(v17 * v16) * v12;
+            float v21 = (float)(v15 * v14) * v13;
+            float v22 = (float)(v19 * v18) * v11;
+
+            if (*(_this + 16) > 0.0f)
+                v22 *= -1.0f;
+
+            if (*(_this + 17) > 0.0f)
+                v20 *= -1.0f;
+
+            if (*(_this + 18) > 0.0f)
+                v21 *= -1.0f;
+
+            *(_this + 28) += v22;
+            *(_this + 29) += v20;
+            *(_this + 30) += v21;
+
+            // This bit in the original version causes (int)v4 * (int)*(_this + 38) to truncate to 0 if the frame rate is even 1 frame above 30fps, thus killing the effect.
+            // The fix for that is to cast their result to int, so that the effect can still run past 30fps, albeit sped up (Which is arguably a lot worse).
+            // This is also the case on consoles, and for example the same bug can be noticed when emulating the Xbox 360 version (Officially or unofficially), due to the 60fps VSync cap.
+            //
+            // In this version of the function we do not need to scale *(_this + 38) by the camera timestep at all, because we gate everything here behind a 30hz timer which would mess up things.
+            // Hence, we simply assign an int-cast *(_this + 38) to v23, which fixes fps dependencies further.
+            int v23 = (int)*(_this + 38);
+            if ((int)(float)((float)((float)(uint16_t)game_rand() * 0.000030517578f) * (float)(v23 - 1)) == 1)
+            {
+                float v24 = *(_this + 39);
+                float v25 = (float)game_rand() * 0.000030518509f;
+
+                float v26 = *(_this + 39);
+                float v27 = (float)game_rand() * 0.000030518509f;
+
+                float v28 = *(_this + 39);
+                float v29 = (float)game_rand() * 0.000030518509f;
+
+                *(_this + 30) += (float)((float)((float)(v24 - (float)-v24) * v25) - v24);
+                *(_this + 28) += (float)((float)((float)(v28 - (float)-v28) * v29) - v28);
+                *(_this + 29) += (float)((float)((float)(v26 - (float)-v26) * v27) - v26);
+            }
+        }
+
+        float v30 = (float)(*(_this + 28) * v5) + *(_this + 16);
+        float v31 = (float)(*(_this + 29) * v5) + *(_this + 17);
+        float v32 = (float)(*(_this + 30) * v5) + *(_this + 18);
+
+        *(_this + 16) = v30;
+        *(_this + 17) = v31;
+        *(_this + 18) = v32;
+
+        float v33 = *(_this + 16);
+        float v34 = *(_this + 17);
+        float v35 = *(_this + 18);
+
+        float v36 = *(_this + 20);
+        float v37 = *(_this + 21);
+        float v38 = *(_this + 22);
+
+        if (v33 <= (float)-v36)
+            v33 = -v36;
+
+        if (v36 <= v33)
+            v33 = v36;
+
+        if (v34 <= (float)-v37)
+            v34 = -v37;
+
+        if (v37 <= v34)
+            v34 = v37;
+
+        if (v35 <= (float)-v38)
+            v35 = -v38;
+
+        if (v38 <= v35)
+            v35 = v38;
+
+        *(_this + 16) = v33;
+        *(_this + 17) = v34;
+        *(_this + 18) = v35;
+
+        // Gate the output behind a menu option, which would allow disabling the shake (Of cameras only) for convenience.
+        static auto CameraShake = FusionFixSettings.GetRef("PREF_CAMERASHAKE");
+        if (CameraShake->get() || a2 == 75.0f /* Special condition to avoid disabling shaky helicopter searchlights if Camera Shake is disabled */)
+        {
+            float v39[4] =
+            {
+                v33 * a2,
+                v34 * a2,
+                v35 * a2
+            };
+
+            rage::Matrix34::FromEulersXYZ(_this, edx, v39);
+        }
+        else
+        {
+            float v39[4] =
+            {
+                0.0f,
+                0.0f,
+                0.0f
+            };
+
+            rage::Matrix34::FromEulersXYZ(_this, edx, v39);
+        }
     }
 }
 
