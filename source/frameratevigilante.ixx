@@ -441,8 +441,8 @@ namespace CCamFollowVehicle
     float dword_103B994 = 0.01f;
     float dword_103B998 = 0.0f;
 
-    SafetyHookInline shSprungMounting = {};
-    void __fastcall SprungMounting(int _this, void* edx, DWORD* a2, float* a3, float* a4, float a5)
+    // Original function, for reference
+    /*void __fastcall SprungMounting(int _this, void* edx, DWORD* a2, float* a3, float* a4, float a5)
     {
         float v0 = *CTimer::fTimeStep;
 
@@ -519,6 +519,112 @@ namespace CCamFollowVehicle
         a4[0] += v20;
         a4[1] += v21;
         a4[2] += v22;
+    }*/
+
+    SafetyHookInline shSprungMounting = {};
+    void __fastcall SprungMounting(int _this, void* edx, DWORD* a2, float* a3, float* a4, float a5)
+    {
+        // Fixed 30fps delta variables
+        float v0 = 1.0f / 30.0f;
+        float v1 = 1.0f / v0;
+
+        // Retrieve CCamFollowVehicleExt members, if not possible (Shouldn't happen), bail out.
+        auto CFVExt = GetCamFollowVehicleExt((uintptr_t)_this);
+        if (!CFVExt)
+        {
+            return;
+        }
+
+        // The original function updates the spring simulation just by CTimer::fTimeStep, which naturally causes fps dependencies.
+        // Gate the spring simulation against a 30hz timer, replace the old timestep usage with fixed 30fps values and interpolate the result later to gain back the lost smoothness.
+        CFVExt->m_fTimeStepAccumulator += *CTimer::fTimeStep;
+
+        while (CFVExt->m_fTimeStepAccumulator >= v0)
+        {
+            CFVExt->m_fTimeStepAccumulator -= v0;
+
+            float v2[4];
+            CPhysical::GetLocalSpeed(a2, edx, v2, a3, 0, 0);
+
+            float* v3 = (float*)a2[8];
+            float v4 = (float)(v2[1] - (float)(*(float*)(_this + 724) + (float)((float)(*(float*)(_this + 744) * *a3) - (float)(*(float*)(_this + 736) * a3[2])))) * v1;
+            float v5 = (float)(v2[0] - (float)(*(float*)(_this + 720) + (float)((float)(*(float*)(_this + 740) * a3[2]) - (float)(*(float*)(_this + 744) * a3[1])))) * v1;
+            float v6 = (float)(v2[2] - (float)(*(float*)(_this + 728) + (float)((float)(*(float*)(_this + 736) * a3[1]) - (float)(*(float*)(_this + 740) * *a3)))) * v1;
+
+            float v7 = v3[1] * v4;
+            float v8 = v3[5] * v4;
+
+            float v9 = (float)(v7 + (float)(*v3 * v5)) + (float)(v3[2] * v6);
+            float v10 = (float)(v8 + (float)(v5 * v3[4])) + (float)(v3[6] * v6);
+
+            float v11 = ms_accelLimit;
+            float v12 = -ms_accelLimit;
+
+            if ((float)-ms_accelLimit <= v9)
+                v12 = v9;
+
+            if (v12 <= ms_accelLimit)
+                v11 = v12;
+
+            float v13 = dword_103B984;
+            float v14 = -dword_103B984;
+
+            if ((float)-dword_103B984 <= v10)
+                v14 = v10;
+
+            if (v14 <= dword_103B984)
+                v13 = v14;
+
+            // Save the previous spring offsets for interpolating against later.
+            CFVExt->m_fOldSpringOffsetX = *(float*)(_this + 704);
+            CFVExt->m_fOldSpringOffsetY = *(float*)(_this + 708);
+            CFVExt->m_fOldSpringOffsetZ = *(float*)(_this + 712);
+
+            float v15 = *(float*)(_this + 704);
+            float v16 = *(float*)(_this + 708);
+            float v17 = *(float*)(_this + 712);
+
+            *(float*)(_this + 688) += (float)((float)(ms_vehAccelForce * v0) * v13);
+            *(float*)(_this + 692) += (float)((float)(dword_103B974 * v0) * v11);
+
+            *(float*)(_this + 688) -= (float)((float)(v15 * ms_springForce) * v0);
+            *(float*)(_this + 692) -= (float)((float)(v16 * dword_103B9A4) * v0);
+            *(float*)(_this + 696) -= (float)((float)(v17 * dword_103B9A8) * v0);
+
+            *(float*)(_this + 688) *= powf(ms_dampForce, v0);
+            *(float*)(_this + 692) *= powf(dword_103B994, v0);
+            *(float*)(_this + 696) *= powf(dword_103B998, v0);
+
+            *(float*)(_this + 704) += *(float*)(_this + 688);
+            *(float*)(_this + 708) += *(float*)(_this + 692);
+            *(float*)(_this + 712) += *(float*)(_this + 696);
+
+            DWORD v18[4];
+            DWORD* v19 = (DWORD*)(*(int(__thiscall**)(DWORD*, DWORD*))(*a2 + 236))(a2, v18);
+
+            *(DWORD*)(_this + 720) = *v19;
+            *(DWORD*)(_this + 724) = v19[1];
+            *(DWORD*)(_this + 728) = v19[2];
+            *(DWORD*)(_this + 732) = v19[3];
+
+            int* v20 = (int*)CPhysical::GetTurnSpeed(a2, edx, (float*)v18);
+
+            *(DWORD*)(_this + 736) = *v20;
+            *(DWORD*)(_this + 740) = v20[1];
+            *(DWORD*)(_this + 744) = v20[2];
+            *(DWORD*)(_this + 748) = v20[3];
+        }
+
+        // Interpolate between the previous and current spring states to smooth out the 30hz visual rate.
+        float v21 = CFVExt->m_fTimeStepAccumulator / v0;
+
+        float v22 = CFVExt->m_fOldSpringOffsetX + (*(float*)(_this + 704) - CFVExt->m_fOldSpringOffsetX) * v21;
+        float v23 = CFVExt->m_fOldSpringOffsetY + (*(float*)(_this + 708) - CFVExt->m_fOldSpringOffsetY) * v21;
+        float v24 = CFVExt->m_fOldSpringOffsetZ + (*(float*)(_this + 712) - CFVExt->m_fOldSpringOffsetZ) * v21;
+
+        a4[0] += v22 * a5;
+        a4[1] += v23 * a5;
+        a4[2] += v24 * a5;
     }
 
     SafetyHookInline shProcessHandBrakeSwing = {};
