@@ -124,17 +124,20 @@ namespace CPedIntelligence
     SafetyHookInline shProcessStaticCounter = {};
     void __fastcall ProcessStaticCounter(void* _this, void* edx)
     {
+        // Retrieve CPedIntelligenceExt members, if not possible (Shouldn't happen), fall back to the original function.
         auto PIExt = GetPedIntelligenceExt((uintptr_t)_this);
         if (!PIExt)
         {
             return shProcessStaticCounter.unsafe_fastcall(_this, edx);
         }
 
+        // Check a 30hz accumulator before calling CPedIntelligence::ProcessStaticCounter, which increments the task attempt counter.
+        // Some CTasks check this attempt counter against a hardcoded limit of 30. At higher frame rates these attempts occur faster, causing them to hit the limit early and abort the task.
         PIExt->m_fTimeStepAccumulator += *CTimer::fTimeStep;
 
-        if (PIExt->m_fTimeStepAccumulator >= (1.0f / 30.0f))
+        while (PIExt->m_fTimeStepAccumulator >= (1.0f / 30.0f))
         {
-            PIExt->m_fTimeStepAccumulator = 0.0f;
+            PIExt->m_fTimeStepAccumulator -= (1.0f / 30.0f);
 
             return shProcessStaticCounter.unsafe_fastcall(_this, edx);
         }
@@ -283,15 +286,15 @@ namespace CHandShaker
             v5 = v4;
         }
 
+        // Check a 30hz accumulator against the random noise generators and impulse accumulators, fixing their fps dependency.
         static float v6 = 0.0f;
-        float v7 = *CTimer::fCamTimeStep;
+        float v7 = *CTimer::fTimeStep;
 
         v6 += v7;
 
-        // Gate the random noise generators and impulse accumulators against a 30hz timer, fixing their fps dependency.
-        while (v6 >= 1.0f / 30.0f)
+        while (v6 >= (1.0f / 30.0f))
         {
-            v6 -= 1.0f / 30.0f;
+            v6 -= (1.0f / 30.0f);
 
             float v8 = (float)(fabs(v0 / *(_this + 20)) * (float)(*(_this + 37) - v3)) + v3;
             float v9 = (float)(fabs(v1 / *(_this + 21)) * (float)(*(_this + 37) - v3)) + v3;
@@ -536,7 +539,7 @@ namespace CCamFollowVehicle
         }
 
         // The original function updates the spring simulation just by CTimer::fTimeStep, which naturally causes fps dependencies.
-        // Gate the spring simulation against a 30hz timer, replace the old timestep usage with fixed 30fps values and interpolate the result later to gain back the lost smoothness.
+        // Check a 30hz accumulator against the spring simulation, replace the old timestep usage with fixed 30fps values and interpolate the result later to gain back the lost smoothness.
         CFVExt->m_fTimeStepAccumulator += *CTimer::fTimeStep;
 
         while (CFVExt->m_fTimeStepAccumulator >= v0)
@@ -829,8 +832,6 @@ public:
             }
 
             // Fix NPC pathfinding
-            // Check a 30fps accumulator before calling CPedIntelligence::ProcessStaticCounter, which increments the task attempt counter.
-            // Some CTasks check this attempt counter against a hardcoded limit of 30. At higher frame rates these attempts occur faster, causing them to hit the limit early and abort the task.
             {
                 auto pattern = find_pattern("83 EC ? 56 8B F1 57 8B 46 ? C7 44 24", "55 8B EC 83 E4 ? 83 EC ? 56 8B F1 8B 46 ? 8B 88 ? ? ? ? 57");
                 CPedIntelligence::shProcessStaticCounter = safetyhook::create_inline(pattern.get_first(0), CPedIntelligence::ProcessStaticCounter);
