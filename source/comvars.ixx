@@ -2169,14 +2169,6 @@ public:
         static FusionFix::Event<> BuildRenderListEvent;
         return BuildRenderListEvent;
     }
-    //static FusionFix::Event<>& onBeforePostFX() {
-    //    static FusionFix::Event<> BeforePostFX;
-    //    return BeforePostFX;
-    //}
-    //static FusionFix::Event<>& onAfterPostFX() {
-    //    static FusionFix::Event<> AfterPostFX;
-    //    return AfterPostFX;
-    //}
 
     static inline SafetyHookInline shBuildRenderList{};
     static void __fastcall BuildRenderList(CBaseDC* _this, void* edx)
@@ -2577,6 +2569,16 @@ export namespace CTreeImposters
 export namespace CPhoneMgr
 {
     bool* bDisplayMobile = nullptr;
+}
+
+export namespace CGameLogic
+{
+    int32_t* GameState = nullptr;
+}
+
+export namespace CRandom
+{
+    int (__cdecl* GetRandomNumberInRange)(int a1, int a2) = nullptr;
 }
 
 export enum eControllerButtons
@@ -2986,5 +2988,11 @@ public:
             pattern = hook::pattern("8B 0D ? ? ? ? DB 05 ? ? ? ? 85 C9 7D ? D8 05 ? ? ? ? D8 0D");
             CReplayMgr::dword_11F704C = *pattern.get_first<uint32_t*>(2);
         }
+
+        pattern = hook::pattern("83 3D ? ? ? ? ? 53 56 57 75 ? E8 ? ? ? ? 84 C0");
+        CGameLogic::GameState = *pattern.get_first<int32_t*>(2);
+
+        pattern = find_pattern("E8 ? ? ? ? 25 ? ? ? ? 66 0F 6E C8 8B 44 24", "E8 ? ? ? ? 8B 4C 24 ? 25 ? ? ? ? F3 0F 2A C0");
+        CRandom::GetRandomNumberInRange = pattern.get_first<int(__cdecl)(int, int)>(0);
     }
 } Common;
