@@ -2644,9 +2644,18 @@ public:
 
         _dwCurrentEpisode = *find_pattern("83 3D ? ? ? ? ? 75 0F 6A 02", "89 35 ? ? ? ? 89 35 ? ? ? ? 6A 00 6A 01").get_first<int32_t*>(2);
 
-        pattern = find_pattern("0A 05 ? ? ? ? 0A 05 ? ? ? ? 75 38", "0A 05 ? ? ? ? 0A 05");
-        CTimer::ms_bUserPause = *pattern.get_first<uint8_t*>(2);
-        CTimer::ms_bScriptPause = *pattern.get_first<uint8_t*>(8);
+        pattern = hook::pattern("0F B6 0D ? ? ? ? 0F B6 C0 0B C1");
+        if (!pattern.empty())
+        {
+            CTimer::ms_bUserPause = *pattern.get_first<uint8_t*>(3);
+            CTimer::ms_bScriptPause = *pattern.get_first<uint8_t*>(15);
+        }
+        else
+        {
+            pattern = hook::pattern("0F B6 0D ? ? ? ? 0F B6 15 ? ? ? ? 33 C0 0B C1");
+            CTimer::ms_bUserPause = *pattern.get_first<uint8_t*>(3);
+            CTimer::ms_bScriptPause = *pattern.get_first<uint8_t*>(10);
+        }
 
         pattern = find_pattern("A1 ? ? ? ? A3 ? ? ? ? EB 3A", "A1 ? ? ? ? 39 05 ? ? ? ? 76 1F");
         CTimer::m_snTimeInMilliseconds = *pattern.get_first<int32_t*>(1);
