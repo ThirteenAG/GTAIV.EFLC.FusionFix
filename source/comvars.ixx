@@ -2581,6 +2581,11 @@ export namespace CRandom
     int (__cdecl* GetRandomNumberInRange)(int a1, int a2) = nullptr;
 }
 
+export namespace CTaskSimpleMovePlayer
+{
+    bool* ms_bDefaultNoSprintingInInteriors = nullptr;
+}
+
 export enum eControllerButtons
 {
     BUTTON_BUMPER_LEFT = 4,
@@ -2994,5 +2999,8 @@ public:
 
         pattern = find_pattern("E8 ? ? ? ? 25 ? ? ? ? 66 0F 6E C8 8B 44 24", "E8 ? ? ? ? 8B 4C 24 ? 25 ? ? ? ? F3 0F 2A C0");
         CRandom::GetRandomNumberInRange = pattern.get_first<int(__cdecl)(int, int)>(0);
+
+        pattern = find_pattern("80 3D ? ? ? ? ? 74 ? 8B 8F ? ? ? ? 85 C9", "80 3D ? ? ? ? ? 74 ? 83 BE ? ? ? ? ? 74");
+        CTaskSimpleMovePlayer::ms_bDefaultNoSprintingInInteriors = *pattern.get_first<bool*>(2);
     }
 } Common;
