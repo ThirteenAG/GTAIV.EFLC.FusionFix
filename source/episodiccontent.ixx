@@ -78,7 +78,7 @@ public:
                     injector::MakeNOP(pattern.get_first(21), 2, true);
                 }
 
-                pattern = hook::pattern("83 3D ? ? ? ? ? 75 08 3B 05"); // APC respray
+                pattern = hook::pattern("83 3D ? ? ? ? ? 75 08 3B 05"); // apc respray
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 2, true);
 
@@ -98,7 +98,7 @@ public:
                     injector::MakeNOP(pattern.get_first(7), 2, true);
                 }
 
-                pattern = hook::pattern("83 3D ? ? ? ? ? 75 21 8B 87"); // APC rotation sound
+                pattern = hook::pattern("83 3D ? ? ? ? ? 75 21 8B 87"); // apc rotation sound
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 2, true);
                 else {
@@ -130,7 +130,7 @@ public:
                     injector::MakeNOP(pattern.get_first(7), 2, true);
                 }
 
-                pattern = hook::pattern("83 3D ? ? ? ? ? 7C 10 FF 76 18 E8 ? ? ? ? 83 C4 04 83 38 27 74 07"); // BUZZARD rubble effects
+                pattern = hook::pattern("83 3D ? ? ? ? ? 7C 10 FF 76 18 E8 ? ? ? ? 83 C4 04 83 38 27 74 07"); // buzzard rubble effects
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 2, true);
                 else {
@@ -142,11 +142,11 @@ public:
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(11), 6, true);
 
-                pattern = hook::pattern("83 3D ? ? ? ? ? 7C 64"); // EpisodicVehicleSupport (BUZZARD & SWIFT) smoke effects
+                pattern = hook::pattern("83 3D ? ? ? ? ? 7C 64"); // EpisodicVehicleSupport (buzzard & swift) smoke effects
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 2, true);
 
-                pattern = hook::pattern("83 3D ? ? ? ? ? 7C 10 FF 76 18 E8 ? ? ? ? 83 C4 04 83 38 27 74 0A"); // BUZZARD BULLET_IMPACT_WATER
+                pattern = hook::pattern("83 3D ? ? ? ? ? 7C 10 FF 76 18 E8 ? ? ? ? 83 C4 04 83 38 27 74 0A"); // buzzard BULLET_IMPACT_WATER
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 2, true);
                 else {
@@ -261,7 +261,7 @@ public:
                     injector::MakeNOP(pattern.get_first(7), 2, true);
                 }
 
-                pattern = hook::pattern("85 C0 74 0D 83 7E 18 1C");    //pipe bomb drop hud
+                pattern = hook::pattern("85 C0 74 0D 83 7E 18 1C");    // Pipe bomb drop hud
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(2), 2, true);
                 else {
@@ -269,7 +269,7 @@ public:
                     injector::MakeNOP(pattern.get_first(7), 2, true);
                 }
 
-                pattern = hook::pattern("83 F8 02 75 24 8B CE E8 ? ? ? ? 84 C0 74 14"); // sticky bomb drop hud
+                pattern = hook::pattern("83 F8 02 75 24 8B CE E8 ? ? ? ? 84 C0 74 14"); // Sticky bomb drop hud
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(3), 2, true);
                 else {
@@ -277,7 +277,7 @@ public:
                     injector::MakeNOP(pattern.get_first(7), 2, true);
                 }
 
-                pattern = hook::pattern("83 3D ? ? ? ? ? 7C 75"); // sticky bomb activation
+                pattern = hook::pattern("83 3D ? ? ? ? ? 7C 75"); // Sticky bomb activation
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 2, true);
                 else {
@@ -285,7 +285,7 @@ public:
                     injector::MakeNOP(pattern.get_first(7), 2, true);
                 }
 
-                pattern = hook::pattern("83 3D ? ? ? ? ? 75 59 8B 07"); // sticky bomb planting animation freeze
+                pattern = hook::pattern("83 3D ? ? ? ? ? 75 59 8B 07"); // Sticky bomb planting animation freeze
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 2, true);
                 else {
@@ -293,7 +293,7 @@ public:
                     injector::MakeNOP(pattern.get_first(7), 2, true);
                 }
 
-                pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? 8B 47 4C"); // sticky bomb planting camera freeze
+                pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? 8B 47 4C"); // Sticky bomb planting camera freeze
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(7), 6, true);
                 else {
