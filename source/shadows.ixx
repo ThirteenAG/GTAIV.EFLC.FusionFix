@@ -191,7 +191,8 @@ public:
                         "bxe_road_40", "bxe_road_54", "bxe_road_66", "bxe_road_81", "beacon1_mh8", "beacon2_mh8", "bears_lbayalfa", "hk_slumber01det_mh3", "nj05_bridge_ivy", "nj05_ivy_test",
                         "nj05_plntgngat01", "pave_treehole4a_mxr", "brown_accomd_mh4", "cc1_gardn_01a", "b4_gcdet02_mh7", "blk02_05det_mh10", "blk07_03det_mh10", "blk10_01det_mh10", "blk10_06det_mh10",
                         "road_qe_21", "agld04_03", "municipal_det17_mh2", "tg_cimidrf", "qm_fh_hedge", "et_firestation01", "gastation1d_mh8", "cop_det01_mh2", "coptrain_det", "coop_police_shops2",
-                        "qw_nwcost", "qw2_lic7"
+                        "qw_nwcost", "qw2_lic7", "bigfish_d_mh10", "gm_16_09", "gm_16_24", "gm-08_07", "gm-19_09wire02", "nj5_gm12_ivy", "qw_drainpip", "newj_indbuild43", "newsky_det_mh7",
+                        "nj5_plat1_hid", "nj5derlct04b", "nj5sport", "dm_hoteldet02_mh7", "dm_hoteldet12_mh7", "hospitald1_mh8", "ld03_glue", "dm_un_cordn_mh7"
                     };
 
                     modelNames.insert(modelNames.end(), miscNames.begin(), miscNames.end());
