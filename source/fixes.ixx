@@ -1031,7 +1031,7 @@ public:
                 ptr[2] = 0xFF;
             }
 
-            // Fix for lack of background radio in Romnan's cab depot during cutscenes
+            // Fix for lack of background radio in Roman's cab depot during cutscenes
             {
                 auto pattern = find_pattern("75 19 80 3D ? ? ? ? ? 74 10 F3 0F 10 05");
                 if (!pattern.empty())
