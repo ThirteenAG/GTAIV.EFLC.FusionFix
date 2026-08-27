@@ -187,6 +187,9 @@ GTA IV muss neu gestartet werden, um die Einstellungen anzuwenden.
 [Extended Sniper]
 Erweiterte Sniper-Steuerung
 
+[Ladder Climb]
+Automatisches Leiternklettern
+
 [Bullet Traces]
 Schussspuren immer sichtbar
 

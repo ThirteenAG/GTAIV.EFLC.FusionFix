@@ -36,7 +36,9 @@ public:
         FusionFix::onInitEventAsync() += []()
         {
             CIniReader iniReader("");
-            if (!iniReader.ReadInteger("MISC", "AutoClimbLadders", 0))
+
+            static auto acl = FusionFixSettings.GetRef("PREF_AUTOCLIMBLADDER");
+            if (!acl->get())
                 return;
 
             fAutoClimbRadius = iniReader.ReadFloat("MISC", "AutoClimbLaddersRange", 1.5f);
