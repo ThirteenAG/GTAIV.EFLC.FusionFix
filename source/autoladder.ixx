@@ -37,7 +37,7 @@ public:
         {
             CIniReader iniReader("");
 
-            static auto acl = FusionFixSettings.GetRef("PREF_AUTOCLIMBLADDER");
+            static auto acl = FusionFixSettings.GetRef("PREF_AUTOCLIMBLADDERS");
             if (!acl->get())
                 return;
 

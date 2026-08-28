@@ -187,8 +187,8 @@ GTA IV must be restarted in order to apply settings.
 [Extended Sniper]
 Extended Sniper Controls
 
-[Ladder Climb]
-Auto Climb Ladder
+[Ladders Climb]
+Auto Climb Ladders
 
 [Bullet Traces]
 Always Show Bullet Traces

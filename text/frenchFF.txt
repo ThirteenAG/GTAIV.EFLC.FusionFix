@@ -187,7 +187,7 @@ GTA IV doit être redémarré pour appliquer les paramètres.
 [Extended Sniper]
 Commande étendue du fusil de sniper
 
-[Ladder Climb]
+[Ladders Climb]
 Grimper automatiquement à l'échelle
 
 [Bullet Traces]

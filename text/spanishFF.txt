@@ -187,7 +187,7 @@ Es necesario reiniciar GTA IV para aplicar el ajuste.
 [Extended Sniper]
 Controles extendidos del rifle de francotirador
 
-[Ladder Climb]
+[Ladders Climb]
 Escalada automática de escaleras
 
 [Bullet Traces]

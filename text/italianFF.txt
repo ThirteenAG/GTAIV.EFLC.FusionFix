@@ -187,7 +187,7 @@ GTA IV deve essere riavviato per applicare le impostazioni.
 [Extended Sniper]
 Controlli estesi del fucile di precisione
 
-[Ladder Climb]
+[Ladders Climb]
 Arrampicata automatica sulla scala
 
 [Bullet Traces]
