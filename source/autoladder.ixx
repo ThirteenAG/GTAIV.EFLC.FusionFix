@@ -15,7 +15,7 @@ static float fAutoClimbRadius = 1.5f;
 
 static int32_t nLastLadderExitTime = -nRegrabCooldownMs;
 
-static void* (__cdecl* orgScanForLadderToClimb)(void* pPed, int32_t* pOutSection, bool bPlayer) = nullptr;
+static injector::hook_back<void*(__cdecl*)(void*, int32_t*, bool)> hbScanForLadderToClimb;
 
 static void* __cdecl ScanForLadderToClimb(void* pPed, int32_t* pOutSection, bool bPlayer)
 {
@@ -23,7 +23,7 @@ static void* __cdecl ScanForLadderToClimb(void* pPed, int32_t* pOutSection, bool
         return nullptr;
 
     fLadderScanRadius = fAutoClimbRadius;
-    auto pLadder = orgScanForLadderToClimb(pPed, pOutSection, bPlayer);
+    auto pLadder = hbScanForLadderToClimb.fun(pPed, pOutSection, bPlayer);
     fLadderScanRadius = 4.0f;
     return pLadder;
 }
@@ -37,17 +37,19 @@ public:
         {
             CIniReader iniReader("");
 
-            static auto acl = FusionFixSettings.GetRef("PREF_AUTOCLIMBLADDERS");
-            if (!acl->get())
-                return;
-
             fAutoClimbRadius = iniReader.ReadFloat("MISC", "AutoClimbLaddersRange", 1.5f);
 
-            auto pattern = find_pattern("8A 81 CE 26 00 00 32 C2 3C 7F 76 ? 8A 81 CF 26 00 00 32 C2 3C 7F 76 ? F7 87 70 02 00 00 00 00 02 80 74");
+            auto pattern = find_pattern("76 ? 8A 81 ? ? ? ? 32 C2 3C ? 76 ? F7 87 ? ? ? ? ? ? ? ? 74");
             if (pattern.empty())
                 return;
 
-            static raw_mem AlwaysScanForLadder(pattern.get_first(10), { 0xEB, 0x18 });
+            static auto loc_A72375 = resolve_next_displacement(pattern.get_first(2)).value();
+            static auto AlwaysScanForLadder = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+            {
+                static auto acl = FusionFixSettings.GetRef("PREF_AUTOCLIMBLADDERS");
+                if (acl->get())
+                    return_to(loc_A72375);
+            });
 
             auto scanCall = find_pattern("6A 01 8D 44 24 2C 50 57 E8 ? ? ? ?");
             auto ladderExit = find_pattern("56 57 8B 7C 24 0C 57 8B F1 E8 ? ? ? ? 57 8B CE E8 ? ? ? ? 8B 8F 80 0A 00 00"); // CTaskSimpleClimbLadder::CleanUpBeforeExit
@@ -55,8 +57,7 @@ public:
             if (scanCall.empty() || ladderExit.empty() || scanRadius.empty() || !CTimer::m_snTimeInMilliseconds)
                 return;
 
-            orgScanForLadderToClimb = (decltype(orgScanForLadderToClimb))injector::GetBranchDestination(scanCall.get_first(8)).as_int();
-            injector::MakeCALL(scanCall.get_first(8), ScanForLadderToClimb, true);
+            hbScanForLadderToClimb.fun = injector::MakeCALL(scanCall.get_first(8), ScanForLadderToClimb, true).get();
 
             injector::WriteMemory<float*>(scanRadius.get_first(4), &fLadderScanRadius, true);
 
@@ -64,8 +65,6 @@ public:
             {
                 nLastLadderExitTime = *CTimer::m_snTimeInMilliseconds;
             });
-
-            AlwaysScanForLadder.Write();
         };
     }
 } AutoLadder;
