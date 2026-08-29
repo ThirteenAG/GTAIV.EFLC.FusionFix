@@ -115,7 +115,7 @@ private:
     }
 };
 
-bool __cdecl sub_411F50(uint32_t* a1, uint32_t* a2)
+bool __cdecl rage__operator_eq_FunctorBase(uint32_t* a1, uint32_t* a2)
 {
     bLoadingShown = false;
     if (!a1[2] && !a2[2])
@@ -141,7 +141,7 @@ FrameLimiter LoadingFpsLimiter2;
 FrameLimiter MinigamesFpsLimiter;
 bool bUnlockFramerateDuringLoadscreens = true;
 bool bNeedsToLimitFpsForThisMinigame = false;
-void __cdecl sub_855640()
+void __cdecl frameLimitSync()
 {
     static auto preset = FusionFixSettings.GetRef("PREF_FPS_LIMIT_PRESET");
 
@@ -176,11 +176,11 @@ void __cdecl sub_855640()
         MinigamesFpsLimiter.Sync();
 }
 
-injector::hook_back<void(__cdecl*)(void*)> hbsub_C64CB0;
-void __cdecl sub_C64CB0(void* a1)
+injector::hook_back<void(__cdecl*)(void*)> hbLoadingFpsSyncHook;
+void __cdecl loadingFpsSyncHook(void* a1)
 {
     LoadingFpsLimiter.Sync();
-    return hbsub_C64CB0.fun(a1);
+    return hbLoadingFpsSyncHook.fun(a1);
 }
 
 class Framelimit
@@ -284,7 +284,7 @@ public:
 
                 pattern = find_pattern("8B 35 ? ? ? ? 8B 0D ? ? ? ? 8B 15 ? ? ? ? A1", "A1 ? ? ? ? 83 F8 01 8B 0D");
                 injector::WriteMemory(pattern.get_first(0), 0x901CC483, true); //nop + add esp,1C
-                injector::MakeJMP(pattern.get_first(4), sub_855640, true); // + jmp
+                injector::MakeJMP(pattern.get_first(4), frameLimitSync, true); // + jmp
 
                 FusionFixSettings.SetCallback("PREF_FPS_LIMIT_PRESET", [](int32_t value)
                 {
@@ -308,7 +308,7 @@ public:
                 // Unlimit in-game loading screens' FPS
                 pattern = find_pattern("8B 4C 24 04 8B 54 24 08 8B 41 08", "8B 54 24 04 8B 42 08 85 C0 8B 4C 24 08 75 12");
                 if (!pattern.empty())
-                    injector::MakeJMP(pattern.get_first(0), sub_411F50, true);
+                    injector::MakeJMP(pattern.get_first(0), rage__operator_eq_FunctorBase, true);
 
                 // Unlimit initial loading screens' FPS
                 static float f0 = 0.0f;
@@ -342,7 +342,7 @@ public:
             // Off Route infinite loading (CCutsceneObject method causes CRenderer::removeAllTexturesFromDictionary to softlock for unidentified reason)
             auto pattern = find_pattern("E8 ? ? ? ? 83 C4 0C C7 04 B5 ? ? ? ? ? ? ? ? 4E", "E8 ? ? ? ? 83 C4 0C 89 3C B5 ? ? ? ? 83 C6 01");
             if (!pattern.empty())
-                hbsub_C64CB0.fun = injector::MakeCALL(pattern.get_first(0), sub_C64CB0).get();
+                hbLoadingFpsSyncHook.fun = injector::MakeCALL(pattern.get_first(0), loadingFpsSyncHook).get();
 
             pattern = find_pattern("83 EC 28 83 3D ? ? ? ? ? 56 8B F1", "83 EC 28 B8 ? ? ? ? 39 05 ? ? ? ? 56 8B F1");
             if (!pattern.empty())

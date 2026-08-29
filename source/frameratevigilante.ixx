@@ -199,9 +199,9 @@ namespace CHandShaker
 
         float v19 = *CTimer::fCamTimeStep * 30.0f;
         float v20 = *CTimer::fCamTimeStep * 30.0f;
-        if (*CReplayMgr::dword_11F7060 == 1 || *CReplayMgr::dword_12088B4 != (HANDLE)-1 || *CReplayMgr::dword_1037720 == 18)
+        if (*CReplayMgr::gCameraMode == 1 || *CReplayMgr::ms_lastFrameLocalPlayerPool != (HANDLE)-1 || *CReplayMgr::gGameState == 18)
         {
-            v19 = (float)((float)(uint32_t)*CReplayMgr::dword_11F704C * 0.001f) * 30.0f;
+            v19 = (float)((float)(uint32_t)*CReplayMgr::ms_uFrameTimeMs * 0.001f) * 30.0f;
             v20 = v19;
         }
 
@@ -280,9 +280,9 @@ namespace CHandShaker
 
         float v4 = *CTimer::fCamTimeStep * 30.0f;
         float v5 = *CTimer::fCamTimeStep * 30.0f;
-        if (*CReplayMgr::dword_11F7060 == 1 || *CReplayMgr::dword_12088B4 != (HANDLE)-1 || *CReplayMgr::dword_1037720 == 18)
+        if (*CReplayMgr::gCameraMode == 1 || *CReplayMgr::ms_lastFrameLocalPlayerPool != (HANDLE)-1 || *CReplayMgr::gGameState == 18)
         {
-            v4 = (float)((float)(uint32_t)*CReplayMgr::dword_11F704C * 0.001f) * 30.0f;
+            v4 = (float)((float)(uint32_t)*CReplayMgr::ms_uFrameTimeMs * 0.001f) * 30.0f;
             v5 = v4;
         }
 
@@ -431,18 +431,18 @@ namespace CHandShaker
 namespace CCamFollowVehicle
 {
     float ms_accelLimit = 5.0f;
-    float dword_103B984 = 5.0f;
+    float ms_accelLimitY = 5.0f;
 
     float ms_vehAccelForce = 0.025f;
-    float dword_103B974 = 0.025f;
+    float ms_vehAccelForceY = 0.025f;
 
     float ms_springForce = 7.0f;
-    float dword_103B9A4 = 3.0f;
-    float dword_103B9A8 = 0.0f;
+    float ms_springForceY = 3.0f;
+    float ms_springForceZ = 0.0f;
 
     float ms_dampForce = 0.018f;
-    float dword_103B994 = 0.01f;
-    float dword_103B998 = 0.0f;
+    float ms_dampForceY = 0.01f;
+    float ms_dampForceZ = 0.0f;
 
     // Original function, for reference
     /*void __fastcall SprungMounting(int _this, void* edx, DWORD* a2, float* a3, float* a4, float a5)
@@ -472,13 +472,13 @@ namespace CCamFollowVehicle
         if (v11 <= ms_accelLimit)
             v10 = v11;
 
-        float v12 = dword_103B984;
-        float v13 = -dword_103B984;
+        float v12 = ms_accelLimitY;
+        float v13 = -ms_accelLimitY;
 
-        if ((float)-dword_103B984 <= v9)
+        if ((float)-ms_accelLimitY <= v9)
             v13 = v9;
 
-        if (v13 <= dword_103B984)
+        if (v13 <= ms_accelLimitY)
             v12 = v13;
 
         float v14 = *(float*)(_this + 704);
@@ -486,15 +486,15 @@ namespace CCamFollowVehicle
         float v16 = *(float*)(_this + 712);
         
         *(float*)(_this + 688) += (float)((float)(ms_vehAccelForce * v0) * v12);
-        *(float*)(_this + 692) += (float)((float)(dword_103B974 * v0) * v10);
+        *(float*)(_this + 692) += (float)((float)(ms_vehAccelForceY * v0) * v10);
 
         *(float*)(_this + 688) -= (float)((float)(v14 * ms_springForce) * v0);
-        *(float*)(_this + 692) -= (float)((float)(v15 * dword_103B9A4) * v0);
-        *(float*)(_this + 696) -= (float)((float)(v16 * dword_103B9A8) * v0);
+        *(float*)(_this + 692) -= (float)((float)(v15 * ms_springForceY) * v0);
+        *(float*)(_this + 696) -= (float)((float)(v16 * ms_springForceZ) * v0);
 
         *(float*)(_this + 688) *= powf(ms_dampForce, v0);
-        *(float*)(_this + 692) *= powf(dword_103B994, v0);
-        *(float*)(_this + 696) *= powf(dword_103B998, v0);
+        *(float*)(_this + 692) *= powf(ms_dampForceY, v0);
+        *(float*)(_this + 696) *= powf(ms_dampForceZ, v0);
 
         *(float*)(_this + 704) += *(float*)(_this + 688);
         *(float*)(_this + 708) += *(float*)(_this + 692);
@@ -569,13 +569,13 @@ namespace CCamFollowVehicle
             if (v12 <= ms_accelLimit)
                 v11 = v12;
 
-            float v13 = dword_103B984;
-            float v14 = -dword_103B984;
+            float v13 = ms_accelLimitY;
+            float v14 = -ms_accelLimitY;
 
-            if ((float)-dword_103B984 <= v10)
+            if ((float)-ms_accelLimitY <= v10)
                 v14 = v10;
 
-            if (v14 <= dword_103B984)
+            if (v14 <= ms_accelLimitY)
                 v13 = v14;
 
             // Save the previous spring offsets for interpolating against later.
@@ -588,15 +588,15 @@ namespace CCamFollowVehicle
             float v17 = *(float*)(_this + 712);
 
             *(float*)(_this + 688) += (float)((float)(ms_vehAccelForce * v0) * v13);
-            *(float*)(_this + 692) += (float)((float)(dword_103B974 * v0) * v11);
+            *(float*)(_this + 692) += (float)((float)(ms_vehAccelForceY * v0) * v11);
 
             *(float*)(_this + 688) -= (float)((float)(v15 * ms_springForce) * v0);
-            *(float*)(_this + 692) -= (float)((float)(v16 * dword_103B9A4) * v0);
-            *(float*)(_this + 696) -= (float)((float)(v17 * dword_103B9A8) * v0);
+            *(float*)(_this + 692) -= (float)((float)(v16 * ms_springForceY) * v0);
+            *(float*)(_this + 696) -= (float)((float)(v17 * ms_springForceZ) * v0);
 
             *(float*)(_this + 688) *= powf(ms_dampForce, v0);
-            *(float*)(_this + 692) *= powf(dword_103B994, v0);
-            *(float*)(_this + 696) *= powf(dword_103B998, v0);
+            *(float*)(_this + 692) *= powf(ms_dampForceY, v0);
+            *(float*)(_this + 696) *= powf(ms_dampForceZ, v0);
 
             *(float*)(_this + 704) += *(float*)(_this + 688);
             *(float*)(_this + 708) += *(float*)(_this + 692);
@@ -851,9 +851,9 @@ public:
                 }
                 else
                 {
-                    static float flt_DD5CFC = 0.1f;
+                    static float kLadderSlideSpeed = 0.1f;
                     pattern = hook::pattern("D9 05 ? ? ? ? 83 EC ? D9 5C 24 ? 8B C8 D9 05 ? ? ? ? D9 5C 24 ? D9 44 24 ? D9 1C 24 E8 ? ? ? ? EB ? 33 C0 D9 EE 51 D9 1C 24 8B CE");
-                    injector::WriteMemory(pattern.get_first(2), &flt_DD5CFC, true); // 0.02f --> 0.1f to match CTaskSimpleSlideToCoord
+                    injector::WriteMemory(pattern.get_first(2), &kLadderSlideSpeed, true); // 0.02f --> 0.1f to match CTaskSimpleSlideToCoord
                 }
             }
 
@@ -883,21 +883,21 @@ public:
                 pattern = hook::pattern("F3 0F 59 15 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 58 96");
                 if (!pattern.empty())
                 {
-                    static auto dword_FE8830 = *pattern.get_first<float*>(4);
+                    static auto pBikeLeanCoef = *pattern.get_first<float*>(4);
                     injector::MakeNOP(pattern.get_first(0), 8, true);
                     static auto CBike__ProcessControlInputs_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm2.f32[0] *= *dword_FE8830 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                        regs.xmm2.f32[0] *= *pBikeLeanCoef * *CTimer::fTimeStep / (1.0f / 30.0f);
                     });
                 }
                 else
                 {
                     pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 58 86 ? ? ? ? F3 0F 10 0D ? ? ? ? 0F 2F C1 F3 0F 11 86 ? ? ? ? 77");
-                    static auto dword_D95B68 = *pattern.get_first<float*>(4);
+                    static auto pBikeLeanCoef = *pattern.get_first<float*>(4);
                     injector::MakeNOP(pattern.get_first(0), 8, true);
                     static auto CBike__ProcessControlInputs_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm0.f32[0] *= *dword_D95B68 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                        regs.xmm0.f32[0] *= *pBikeLeanCoef * *CTimer::fTimeStep / (1.0f / 30.0f);
                     });
                 }
             }
@@ -943,32 +943,32 @@ public:
                 {
                     // Weapons
                     auto pattern = find_pattern("F3 0F 10 15 ? ? ? ? F3 0F 59 CA F3 0F 58 4E", "F3 0F 10 15 ? ? ? ? F3 0F 5C C1 F3 0F 59 C2 F3 0F 58 C1 74");
-                    static auto dword_FE8830 = *pattern.get_first<float*>(4);
+                    static auto pAimZoomCoef = *pattern.get_first<float*>(4);
                     injector::MakeNOP(pattern.get_first(0), 8, true);
                     static auto CCamAimWeapon__AimFree_Hook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.xmm2.f32[0] = 1.0f - powf(1.0f - *dword_FE8830, *CTimer::fTimeStep / (1.0f / 30.0f));
+                        regs.xmm2.f32[0] = 1.0f - powf(1.0f - *pAimZoomCoef, *CTimer::fTimeStep / (1.0f / 30.0f));
                     });
 
                     // Melee
                     pattern = hook::pattern("F3 0F 59 0D ? ? ? ? F3 0F 58 4C 24 ? F3 0F 11 49");
                     if (!pattern.empty())
                     {
-                        static auto dword_FE8830 = *pattern.get_first<float*>(4);
+                        static auto pMeleeZoomCoef = *pattern.get_first<float*>(4);
                         injector::MakeNOP(pattern.get_first(0), 8, true);
                         static auto CCamAimWeapon__AimFree_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                         {
-                            regs.xmm1.f32[0] *= 1.0f - powf(1.0f - *dword_FE8830, *CTimer::fTimeStep / (1.0f / 30.0f));
+                            regs.xmm1.f32[0] *= 1.0f - powf(1.0f - *pMeleeZoomCoef, *CTimer::fTimeStep / (1.0f / 30.0f));
                         });
                     }
                     else
                     {
                         pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 58 C1 F3 0F 11 41");
-                        static auto dword_DB6F80 = *pattern.get_first<float*>(4);
+                        static auto pMeleeZoomCoef = *pattern.get_first<float*>(4);
                         injector::MakeNOP(pattern.get_first(0), 8, true);
                         static auto CCamAimWeapon__AimFree_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                         {
-                            regs.xmm0.f32[0] *= 1.0f - powf(1.0f - *dword_DB6F80, *CTimer::fTimeStep / (1.0f / 30.0f));
+                            regs.xmm0.f32[0] *= 1.0f - powf(1.0f - *pMeleeZoomCoef, *CTimer::fTimeStep / (1.0f / 30.0f));
                         });
                     }
                 }
@@ -982,22 +982,22 @@ public:
                     auto pattern = hook::pattern("F3 0F 59 15 ? ? ? ? F3 0F 58 D0 F3 0F 10 87");
                     if (!pattern.empty())
                     {
-                        static auto dword_FE8830 = *pattern.get_first<float*>(4);
+                        static auto pRotorBreakCoef = *pattern.get_first<float*>(4);
                         injector::MakeNOP(pattern.get_first(0), 8, true);
                         static auto CHeli__ApplyCollisionInternal_Hook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                         {
-                            regs.xmm2.f32[0] *= *dword_FE8830 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                            regs.xmm2.f32[0] *= *pRotorBreakCoef * *CTimer::fTimeStep / (1.0f / 30.0f);
                         });
                     }
                     else
                     {
                         pattern = hook::pattern("D8 0D ? ? ? ? D9 44 24 ? D8 0D");
-                        static auto dword_D95B68 = *pattern.get_first<float*>(2);
+                        static auto pRotorBreakCoef = *pattern.get_first<float*>(2);
                         struct CHeli__ApplyCollisionInternal_Hook1
                         {
                             void operator()(injector::reg_pack& regs)
                             {
-                                float f = *dword_D95B68 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                                float f = *pRotorBreakCoef * *CTimer::fTimeStep / (1.0f / 30.0f);
 
                                 _asm { fmul dword ptr [f] };
                             }
@@ -1040,22 +1040,22 @@ public:
                     pattern = hook::pattern("F3 0F 59 0D ? ? ? ? F3 0F 59 4C 24 ? F3 0F 5C C1");
                     if (!pattern.empty())
                     {
-                        static auto dword_FE8AE0 = *pattern.get_first<float*>(4);
+                        static auto pTailBreakCoef = *pattern.get_first<float*>(4);
                         injector::MakeNOP(pattern.get_first(0), 8, true);
                         static auto CHeli__ApplyCollisionInternal_Hook3 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                         {
-                            regs.xmm1.f32[0] *= *dword_FE8AE0 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                            regs.xmm1.f32[0] *= *pTailBreakCoef * *CTimer::fTimeStep / (1.0f / 30.0f);
                         });
                     }
                     else
                     {
                         pattern = hook::pattern("D8 0D ? ? ? ? D8 4C 24 ? D9 5C 24 ? F3 0F 5C 44 24");
-                        static auto flt_D7A9C8 = *pattern.get_first<float*>(2);
+                        static auto pTailBreakCoef = *pattern.get_first<float*>(2);
                         struct CHeli__ApplyCollisionInternal_Hook3
                         {
                             void operator()(injector::reg_pack& regs)
                             {
-                                float f = *flt_D7A9C8 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                                float f = *pTailBreakCoef * *CTimer::fTimeStep / (1.0f / 30.0f);
 
                                 _asm { fmul dword ptr [f] };
                             }
@@ -1068,42 +1068,42 @@ public:
                     auto pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 59 C4 F3 0F 5C C8");
                     if (!pattern.empty())
                     {
-                        static auto dword_1046AF0 = *pattern.get_first<float*>(4);
+                        static auto pMainRotorFlareSpeed = *pattern.get_first<float*>(4);
                         injector::MakeNOP(pattern.get_first(0), 8, true);
                         static auto CHeli__PreRender_Hook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                         {
-                            regs.xmm0.f32[0] *= *dword_1046AF0 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                            regs.xmm0.f32[0] *= *pMainRotorFlareSpeed * *CTimer::fTimeStep / (1.0f / 30.0f);
                         });
                     }
                     else
                     {
                         pattern = hook::pattern("F3 0F 59 15 ? ? ? ? F3 0F 59 D4");
-                        static auto dword_F46598 = *pattern.get_first<float*>(4);
+                        static auto pMainRotorFlareSpeed = *pattern.get_first<float*>(4);
                         injector::MakeNOP(pattern.get_first(0), 8, true);
                         static auto CHeli__PreRender_Hook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                         {
-                            regs.xmm2.f32[0] *= *dword_F46598 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                            regs.xmm2.f32[0] *= *pMainRotorFlareSpeed * *CTimer::fTimeStep / (1.0f / 30.0f);
                         });
                     }
 
                     pattern = hook::pattern("F3 0F 59 1D ? ? ? ? F3 0F 10 87 ? ? ? ? F3 0F 59 DC");
                     if (!pattern.empty())
                     {
-                        static auto dword_1046AF4 = *pattern.get_first<float*>(4);
+                        static auto pRearRotorFlareSpeed = *pattern.get_first<float*>(4);
                         injector::MakeNOP(pattern.get_first(0), 8, true);
                         static auto CHeli__PreRender_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                         {
-                            regs.xmm3.f32[0] *= *dword_1046AF4 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                            regs.xmm3.f32[0] *= *pRearRotorFlareSpeed * *CTimer::fTimeStep / (1.0f / 30.0f);
                         });
                     }
                     else
                     {
                         pattern = hook::pattern("F3 0F 59 0D ? ? ? ? F3 0F 10 86 ? ? ? ? F3 0F 59 CC");
-                        static auto dword_F46594 = *pattern.get_first<float*>(4);
+                        static auto pRearRotorFlareSpeed = *pattern.get_first<float*>(4);
                         injector::MakeNOP(pattern.get_first(0), 8, true);
                         static auto CHeli__PreRender_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                         {
-                            regs.xmm1.f32[0] *= *dword_F46594 * *CTimer::fTimeStep / (1.0f / 30.0f);
+                            regs.xmm1.f32[0] *= *pRearRotorFlareSpeed * *CTimer::fTimeStep / (1.0f / 30.0f);
                         });
                     }
                 }
@@ -1115,7 +1115,7 @@ public:
                 {
                     // Fix Y axis loading screen animations not scaling properly with the frame rate. Seems like the devs forgot to also scale this.
                     auto pattern = find_pattern("F3 0F 58 2D ? ? ? ? F3 0F 11 AC 18", "F3 0F 58 15 ? ? ? ? F3 0F 11 94 37");
-                    static auto dword_18B6F30 = *pattern.get_first<float*>(4);
+                    static auto pLoadingAnimYStep = *pattern.get_first<float*>(4);
 
                     pattern = hook::pattern("F3 0F 58 EC F3 0F 11 AC 18");
                     if (!pattern.empty())
@@ -1123,7 +1123,7 @@ public:
                         injector::MakeNOP(pattern.get_first(0), 4, true);
                         static auto CLoadingScreens__RenderSegmentSprites_Hook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                         {
-                            regs.xmm5.f32[0] += *dword_18B6F30; // regs.xmm5.f32[0] --> dword_18B6F30
+                            regs.xmm5.f32[0] += *pLoadingAnimYStep; // regs.xmm5.f32[0] --> pLoadingAnimYStep
                         });
                     }
 
@@ -1219,23 +1219,23 @@ public:
                     pattern = hook::pattern("F3 0F 58 0D ? ? ? ? 0F 5B C0 F3 0F 11 0D");
                     if (!pattern.empty())
                     {
-                        static auto dword_E81598 = *pattern.get_first<float*>(4);
+                        static auto pLoadingSparkStep = *pattern.get_first<float*>(4);
                         injector::MakeNOP(pattern.get_first(0), 8, true);
                         static auto CRenderThreadInterface__LoadingRenderFunction_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                         {
-                            // Equivalent to: dword_1175770 += dword_E81598 * SomeTimer * (1000.0f / 30.0f);
-                            regs.xmm1.f32[0] += *dword_E81598 * *(float*)(regs.esp + 0x34) * (1000.0f / 30.0f);
+                            // Equivalent to: dword_1175770 += pLoadingSparkStep * SomeTimer * (1000.0f / 30.0f);
+                            regs.xmm1.f32[0] += *pLoadingSparkStep * *(float*)(regs.esp + 0x34) * (1000.0f / 30.0f);
                         });
                     }
                     else
                     {
                         pattern = hook::pattern("F3 0F 58 05 ? ? ? ? F3 0F 2A 0D");
-                        static auto flt_DEF584 = *pattern.get_first<float*>(4);
+                        static auto pLoadingSparkStep = *pattern.get_first<float*>(4);
                         injector::MakeNOP(pattern.get_first(0), 8, true);
                         static auto CRenderThreadInterface__LoadingRenderFunction_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                         {
-                            // Equivalent to: dword_11FB41C += flt_DEF584 * SomeTimer * (1000.0f / 30.0f);
-                            regs.xmm0.f32[0] += *flt_DEF584 * *(float*)(regs.esp + 0x0EE0 - 0xE9C) * (1000.0f / 30.0f);
+                            // Equivalent to: dword_11FB41C += pLoadingSparkStep * SomeTimer * (1000.0f / 30.0f);
+                            regs.xmm0.f32[0] += *pLoadingSparkStep * *(float*)(regs.esp + 0x0EE0 - 0xE9C) * (1000.0f / 30.0f);
                         });
                     }
                 }

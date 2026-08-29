@@ -249,16 +249,16 @@ static unsigned int __fastcall CalculateStreamingMemoryBudget(void* _this, void*
 
 bool bEnableHighDetailReflections = false;
 bool bRemoveBBoxCulling = false;
-injector::hook_back<void(__cdecl*)(int, int16_t, int)> hbsub_B1DEE0;
-void __cdecl sub_B1DEE0(int a1, int16_t a2, int a3)
+injector::hook_back<void(__cdecl*)(int, int16_t, int)> hbCRenderListBuilder_Render;
+void __cdecl CRenderListBuilder_Render(int a1, int16_t a2, int a3)
 {
     if (bEnableHighDetailReflections)
     {
         for (int i = 0; i <= 11; ++i)
-            hbsub_B1DEE0.fun(i, 285, 0);
+            hbCRenderListBuilder_Render.fun(i, 285, 0);
         return;
     }
-    return hbsub_B1DEE0.fun(a1, a2, a3);
+    return hbCRenderListBuilder_Render.fun(a1, a2, a3);
 }
 
 class VRam
@@ -330,7 +330,7 @@ public:
                 auto pattern = find_pattern("FF B6 ? ? ? ? E8 ? ? ? ? 6A ? 6A ? E8 ? ? ? ? 83 C4 ? 85 C0 74 ? 6A ? 6A", "68 ? ? ? ? 50 E8 ? ? ? ? 6A ? 6A ? E8 ? ? ? ? 83 C4 ? 85 C0 74 ? 6A");
                 if (!pattern.empty())
                 {
-                    hbsub_B1DEE0.fun = injector::MakeCALL(pattern.get_first(6), sub_B1DEE0, true).get();
+                    hbCRenderListBuilder_Render.fun = injector::MakeCALL(pattern.get_first(6), CRenderListBuilder_Render, true).get();
 
                     if (bRemoveBBoxCulling)
                     {

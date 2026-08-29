@@ -45,7 +45,7 @@ double __cdecl GetRIMouseAxisData(int32_t requestedAxis)
     return GetMouseAxisData(0, requestedAxis);
 }
 
-int __cdecl sub_8EFE40_PlayerCam(int a1, int a2)
+int __cdecl GetMouseAxisValue_PlayerCam(int a1, int a2)
 {
     static auto ri = FusionFixSettings.GetRef("PREF_RAWINPUT");
     if (ri->get())
@@ -58,7 +58,7 @@ int __cdecl sub_8EFE40_PlayerCam(int a1, int a2)
     return (int)(GetMouseAxisData(a1, a2) * 127.5f);
 }
 
-int __cdecl sub_8EFE40(int a1, int a2)
+int __cdecl GetMouseAxisValue(int a1, int a2)
 {
     static auto ri = FusionFixSettings.GetRef("PREF_RAWINPUT");
     if (ri->get())
@@ -169,8 +169,8 @@ public:
             auto pattern = hook::pattern("0F 48 C1 A3 ? ? ? ? 5F");
             if (!pattern.empty())
             {
-                static auto dword_18B7A8C = *pattern.get_first<int32_t*>(4);
-                static auto dword_18B7A80 = dword_18B7A8C - 3;
+                static auto gMouseCursorY = *pattern.get_first<int32_t*>(4);
+                static auto gMouseCursorX = gMouseCursorY - 3;
                 struct RawInputMenu
                 {
                     void operator()(injector::reg_pack& regs)
@@ -181,17 +181,22 @@ public:
                         {
                             POINT pt;
                             RECT rec;
+                            // ClipCursor takes screen coordinates, and the game keeps the cursor
+                            // in client space clamped to 0..width / 0..height, so map both ways.
+                            // The two are identical fullscreen at (0,0), which hid this in windowed mode.
                             GetClientRect(gWnd, &rec);
+                            MapWindowPoints(gWnd, nullptr, (LPPOINT)&rec, 2);
                             if (gWnd == GetFocus())
                                 ClipCursor(&rec);
                             GetCursorPos(&pt);
+                            ScreenToClient(gWnd, &pt);
 
-                            *dword_18B7A80 = pt.x;
-                            *dword_18B7A8C = pt.y;
+                            *gMouseCursorX = pt.x;
+                            *gMouseCursorY = pt.y;
                         }
                         else
                         {
-                            *dword_18B7A8C = regs.eax;
+                            *gMouseCursorY = regs.eax;
                         }
                     }
                 }; injector::MakeInline<RawInputMenu>(pattern.get_first(3));
@@ -199,8 +204,8 @@ public:
             else
             {
                 pattern = hook::pattern("89 15 ? ? ? ? 5F 5E 5B C3");
-                static auto dword_18B7A8C = *pattern.get_first<int32_t*>(2);
-                static auto dword_18B7A80 = dword_18B7A8C - 3;
+                static auto gMouseCursorY = *pattern.get_first<int32_t*>(2);
+                static auto gMouseCursorX = gMouseCursorY - 3;
                 struct RawInputMenu
                 {
                     void operator()(injector::reg_pack& regs)
@@ -211,17 +216,22 @@ public:
                         {
                             POINT pt;
                             RECT rec;
-                            GetWindowRect(gWnd, &rec);
+                            // ClipCursor takes screen coordinates, and the game keeps the cursor
+                            // in client space clamped to 0..width / 0..height, so map both ways.
+                            // The two are identical fullscreen at (0,0), which hid this in windowed mode.
+                            GetClientRect(gWnd, &rec);
+                            MapWindowPoints(gWnd, nullptr, (LPPOINT)&rec, 2);
                             if (gWnd == GetFocus())
                                 ClipCursor(&rec);
                             GetCursorPos(&pt);
+                            ScreenToClient(gWnd, &pt);
 
-                            *dword_18B7A80 = pt.x;
-                            *dword_18B7A8C = pt.y;
+                            *gMouseCursorX = pt.x;
+                            *gMouseCursorY = pt.y;
                         }
                         else
                         {
-                            *dword_18B7A8C = regs.edx;
+                            *gMouseCursorY = regs.edx;
                         }
                     }
                 }; injector::MakeInline<RawInputMenu>(pattern.get_first(0), pattern.get_first(6));
@@ -253,28 +263,28 @@ public:
             pattern = hook::pattern("51 FF 74 24 0C FF 74 24 0C E8 ? ? ? ? D9 5C 24 08");
             if (!pattern.empty())
             {
-                injector::MakeJMP(pattern.get_first(0), sub_8EFE40_PlayerCam, true);
+                injector::MakeJMP(pattern.get_first(0), GetMouseAxisValue_PlayerCam, true);
                 pattern = hook::pattern("E8 ? ? ? ? D9 5C 24 20 F3 0F 10 44 24 ? 0F 57 05 ? ? ? ? 83 C4 08 8B CF");
                 injector::MakeCALL(pattern.get_first(0), GetMouseAxisData2, true);
                 pattern = hook::pattern("E8 ? ? ? ? D9 5C 24 20 F3 0F 10 44 24 ? 0F 57 05 ? ? ? ? 83 C4 08 F3 0F 11 44 24");
                 injector::MakeCALL(pattern.get_first(0), GetMouseAxisData2, true);
                 pattern = hook::pattern("E8 ? ? ? ? 83 C4 08 89 07 83 3D");
-                injector::MakeCALL(pattern.get_first(0), sub_8EFE40, true);
+                injector::MakeCALL(pattern.get_first(0), GetMouseAxisValue, true);
                 pattern = hook::pattern("E8 ? ? ? ? 83 C4 08 89 06 5F");
-                injector::MakeCALL(pattern.get_first(0), sub_8EFE40, true);
+                injector::MakeCALL(pattern.get_first(0), GetMouseAxisValue, true);
             }
             else
             {
                 pattern = hook::pattern("8B 44 24 08 8B 4C 24 04 50 51 E8 ? ? ? ? D8 0D");
-                injector::MakeJMP(pattern.get_first(0), sub_8EFE40_PlayerCam, true);
+                injector::MakeJMP(pattern.get_first(0), GetMouseAxisValue_PlayerCam, true);
                 pattern = hook::pattern("E8 ? ? ? ? D9 E0 83 C4 08 D9 5C 24 14");
                 injector::MakeCALL(pattern.get_first(0), GetMouseAxisData2, true);
                 pattern = hook::pattern("E8 ? ? ? ? D9 E0 D9 5C 24 18");
                 injector::MakeCALL(pattern.get_first(0), GetMouseAxisData2, true);
                 pattern = hook::pattern("E8 ? ? ? ? 83 C4 08 89 06 83 3D");
-                injector::MakeCALL(pattern.get_first(0), sub_8EFE40, true);
+                injector::MakeCALL(pattern.get_first(0), GetMouseAxisValue, true);
                 pattern = hook::pattern("E8 ? ? ? ? 83 C4 08 89 07");
-                injector::MakeCALL(pattern.get_first(0), sub_8EFE40, true);
+                injector::MakeCALL(pattern.get_first(0), GetMouseAxisValue, true);
             }
 
             // Sniper Camera

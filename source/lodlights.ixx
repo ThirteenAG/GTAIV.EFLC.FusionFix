@@ -690,11 +690,11 @@ public:
             else
             {
                 pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 C4 F3 0F 11 45");
-                static float* dword_F17AA8 = *pattern.get_first<float*>(4);
+                static float* pWaterLightMultiplier = *pattern.get_first<float*>(4);
                 injector::MakeNOP(pattern.get_first(0), 12, true);
                 WaterMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                 {
-                    regs.xmm0.f32[0] = *dword_F17AA8;
+                    regs.xmm0.f32[0] = *pWaterLightMultiplier;
                     static auto dl = FusionFixSettings.GetRef("PREF_DISTANTLIGHTS");
                     if (dl->get())
                         regs.xmm0.f32[0] = 1.0f;

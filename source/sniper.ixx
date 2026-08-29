@@ -9,7 +9,7 @@ import comvars;
 import settings;
 import natives;
 
-float __cdecl sub_8EFA20(uint8_t* a1)
+float __cdecl CControl__ioValueToAxisf(uint8_t* a1)
 {
     auto input = (float)((uint8_t)(a1[4] ^ a1[6]));
 
@@ -65,8 +65,8 @@ float __cdecl sub_8EFA20(uint8_t* a1)
 
 bool bWantsSniperScope = false;
 bool cancelInitiated = false;
-injector::hook_back<char(__cdecl*)(char)> hbsub_A72820;
-char __cdecl sub_A72820(char a1)
+injector::hook_back<char(__cdecl*)(char)> hbCTaskComplexPlayerOnFoot__IsPlayerAiming;
+char __cdecl CTaskComplexPlayerOnFoot__IsPlayerAiming(char a1)
 {
     static auto esc = FusionFixSettings.GetRef("PREF_EXTENDEDSNIPERCONTROLS");
     if (esc->get())
@@ -104,7 +104,7 @@ char __cdecl sub_A72820(char a1)
             cancel = false;
     }
 
-    return hbsub_A72820.fun(a1);
+    return hbCTaskComplexPlayerOnFoot__IsPlayerAiming.fun(a1);
 }
 
 class Sniper
@@ -130,7 +130,7 @@ public:
 
             // Swap aiming with controller
             pattern = find_pattern("E8 ? ? ? ? D9 5C 24 ? 8B 4C 24 ? F3 0F 10 54 24 ? 83 C4", "E8 ? ? ? ? D9 5C 24 ? F3 0F 10 4C 24 ? 83 C4 ? 0F 57 C0 0F 2F C1");
-            injector::MakeCALL(pattern.get_first(0), sub_8EFA20, true);
+            injector::MakeCALL(pattern.get_first(0), CControl__ioValueToAxisf, true);
 
             // Extended sniper controls
             static auto OverrideSniperFlags = [](uintptr_t& reg)
@@ -176,11 +176,11 @@ public:
             // Toggle
             pattern = hook::pattern("E8 ? ? ? ? 83 C4 ? 84 C0 75 ? 38 05 ? ? ? ? 0F 84");
             if (!pattern.empty())
-                hbsub_A72820.fun = injector::MakeCALL(pattern.get_first(), sub_A72820).get();
+                hbCTaskComplexPlayerOnFoot__IsPlayerAiming.fun = injector::MakeCALL(pattern.get_first(), CTaskComplexPlayerOnFoot__IsPlayerAiming).get();
 
             pattern = find_pattern("E8 ? ? ? ? 83 C4 ? 84 C0 75 ? 8A 87", "E8 ? ? ? ? 83 C4 04 84 C0 75 17 8A 8E ? ? ? ? 80 E1 0F 80 F9 02");
             if (!pattern.empty())
-                hbsub_A72820.fun = injector::MakeCALL(pattern.get_first(), sub_A72820).get();
+                hbCTaskComplexPlayerOnFoot__IsPlayerAiming.fun = injector::MakeCALL(pattern.get_first(), CTaskComplexPlayerOnFoot__IsPlayerAiming).get();
 
             // Recoil
             pattern = find_pattern("F3 0F 59 05 ? ? ? ? F3 0F 10 64 24 ? F3 0F 10 54 24", "D8 0D ? ? ? ? F3 0F 10 5C 24 ? F3 0F 10 64 24 ? F3 0F 10 6C 24");

@@ -36,10 +36,10 @@ void LoadCustomGXT(std::filesystem::path& path)
     }();
 }
 
-SafetyHookInline shsub_8C5D70{};
-char* __fastcall sub_8C5D70(void* _this, void* edx, int a2, char* a3, char a4)
+SafetyHookInline shCText__GetGxtFilename{};
+char* __fastcall CText__GetGxtFilename(void* _this, void* edx, int a2, char* a3, char a4)
 {
-    auto ret = shsub_8C5D70.fastcall<char*>(_this, edx, a2, a3, a4);
+    auto ret = shCText__GetGxtFilename.fastcall<char*>(_this, edx, a2, a3, a4);
 
     gxtEntries.clear();
 
@@ -68,7 +68,7 @@ public:
         FusionFix::onInitEvent() += []()
         {
             auto pattern = find_pattern("53 56 57 FF 74 24 10 8B F1 E8 ? ? ? ? 8B 5C 24 14", "8B 44 24 04 53 56 57 50 8B F1 E8 ? ? ? ? 8B 5C 24 14");
-            shsub_8C5D70 = safetyhook::create_inline(pattern.get_first(), sub_8C5D70);
+            shCText__GetGxtFilename = safetyhook::create_inline(pattern.get_first(), CText__GetGxtFilename);
         };
     }
 } GXTLoader;

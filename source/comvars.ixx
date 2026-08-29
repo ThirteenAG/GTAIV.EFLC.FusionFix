@@ -1775,7 +1775,7 @@ export namespace rage
         static inline int(__cdecl* getGlobalParameterIndexByName)(const char* a1) = nullptr;
         static inline int(__fastcall* getParamIndex)(grmShaderInfo* instance, void* edx, const char* name, int a3) = nullptr;
 
-        static inline SafetyHookInline shsub_436D70{};
+        static inline SafetyHookInline shSetShaderParam{};
         static void __fastcall setShaderParam(grmShaderInfo* _this, void* edx, void* a2, int index, void* pDataArr, int nArrSize, int a6, int a7)
         {
             if (_this->m_parameters.wCount)
@@ -1797,12 +1797,12 @@ export namespace rage
                     setShaderParamData(idx, pDataArr, nArrSize);
                 }
             }
-            shsub_436D70.unsafe_fastcall(_this, edx, a2, index, pDataArr, nArrSize, a6, a7);
+            shSetShaderParam.unsafe_fastcall(_this, edx, a2, index, pDataArr, nArrSize, a6, a7);
         }
 
         static void __fastcall setShaderParamOriginal(grmShaderInfo* _this, void* edx, void* a2, int index, void* pDataArr, int nArrSize, int a6, int a7)
         {
-            shsub_436D70.unsafe_fastcall(_this, edx, a2, index, pDataArr, nArrSize, a6, a7);
+            shSetShaderParam.unsafe_fastcall(_this, edx, a2, index, pDataArr, nArrSize, a6, a7);
         }
     };
 
@@ -2193,10 +2193,10 @@ export namespace CTxdStore
 
 export namespace CReplayMgr
 {
-    uint32_t* dword_11F7060 = nullptr;
-    HANDLE* dword_12088B4 = nullptr;
-    uint32_t* dword_1037720 = nullptr;
-    uint32_t* dword_11F704C = nullptr;
+    uint32_t* gCameraMode = nullptr;
+    HANDLE* ms_lastFrameLocalPlayerPool = nullptr;
+    uint32_t* gGameState = nullptr;
+    uint32_t* ms_uFrameTimeMs = nullptr;
 }
 
 // Game libraries
@@ -2729,7 +2729,7 @@ public:
         rage::grmShaderInfo::getGlobalParameterIndexByName = pattern.get_first<int(__cdecl)(const char*)>(0);
 
         pattern = find_pattern("8B 54 24 08 85 D2 74 62", "56 8B 74 24 0C 85 F6 74 62");
-        rage::grmShaderInfo::shsub_436D70 = safetyhook::create_inline(pattern.get_first(0), rage::grmShaderInfo::setShaderParam);
+        rage::grmShaderInfo::shSetShaderParam = safetyhook::create_inline(pattern.get_first(0), rage::grmShaderInfo::setShaderParam);
 
         pattern = find_pattern("F3 0F 11 44 24 ? E8 ? ? ? ? 83 C6 ? 3B F3");
         if (!pattern.empty())
@@ -2939,23 +2939,23 @@ public:
         game_rand = *pattern.get_first<int(__cdecl)()>(0);
 
         pattern = find_pattern("83 3D ? ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 C1", "83 3D ? ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 05");
-        CReplayMgr::dword_11F7060 = *pattern.get_first<uint32_t*>(2);
+        CReplayMgr::gCameraMode = *pattern.get_first<uint32_t*>(2);
 
         pattern = find_pattern("A1 ? ? ? ? 3B 05 ? ? ? ? 75 ? 83 3D ? ? ? ? ? 75 ? A1", "A1 ? ? ? ? 3B 05 ? ? ? ? 75 ? 83 3D ? ? ? ? ? 75 ? 8B 0D ? ? ? ? DB 05");
-        CReplayMgr::dword_12088B4 = *pattern.get_first<HANDLE*>(1);
+        CReplayMgr::ms_lastFrameLocalPlayerPool = *pattern.get_first<HANDLE*>(1);
 
         pattern = find_pattern("83 3D ? ? ? ? ? 75 ? A1 ? ? ? ? 66 0F 6E C0", "83 3D ? ? ? ? ? 75 ? 8B 0D ? ? ? ? DB 05");
-        CReplayMgr::dword_1037720 = *pattern.get_first<uint32_t*>(2);
+        CReplayMgr::gGameState = *pattern.get_first<uint32_t*>(2);
 
         pattern = hook::pattern("A1 ? ? ? ? 66 0F 6E C0 F3 0F E6 C0 C1 E8 ? F2 0F 58 04 C5 ? ? ? ? 66 0F 5A C0 F3 0F 59 05 ? ? ? ? F3 0F 59 C1");
         if (!pattern.empty())
         {
-            CReplayMgr::dword_11F704C = *pattern.get_first<uint32_t*>(1);
+            CReplayMgr::ms_uFrameTimeMs = *pattern.get_first<uint32_t*>(1);
         }
         else
         {
             pattern = hook::pattern("8B 0D ? ? ? ? DB 05 ? ? ? ? 85 C9 7D ? D8 05 ? ? ? ? D8 0D");
-            CReplayMgr::dword_11F704C = *pattern.get_first<uint32_t*>(2);
+            CReplayMgr::ms_uFrameTimeMs = *pattern.get_first<uint32_t*>(2);
         }
     }
 } Common;

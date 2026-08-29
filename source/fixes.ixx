@@ -17,25 +17,25 @@ public:
     static inline int32_t nTimeToPassBeforeCenteringCameraInVehicle = 0;
 
     static inline bool* bIsPhoneShowing = nullptr;
-    static inline injector::hook_back<int32_t(__cdecl*)()> hbsub_B2CE30;
-    static int32_t sub_B2CE30()
+    static inline injector::hook_back<int32_t(__cdecl*)()> hbCGarages__GarageCameraShouldBeOutside;
+    static int32_t CGarages__GarageCameraShouldBeOutside()
     {
         if ((bIsPhoneShowing && *bIsPhoneShowing))
             return 1;
 
-        return hbsub_B2CE30.fun();
+        return hbCGarages__GarageCameraShouldBeOutside.fun();
     }
 
-    static inline injector::hook_back<void(__fastcall*)(int32_t, int32_t)> hbsub_B07600;
-    static void __fastcall sub_B07600(int32_t _this, int32_t)
+    static inline injector::hook_back<void(__fastcall*)(int32_t, int32_t)> hbCCamGame__PostProcessLookBehindAimWeaponInCover;
+    static void __fastcall CCamGame__PostProcessLookBehindAimWeaponInCover(int32_t _this, int32_t)
     {
-        hbsub_B07600.fun(_this, 0);
+        hbCCamGame__PostProcessLookBehindAimWeaponInCover.fun(_this, 0);
 
         static auto nCustomFOV = FusionFixSettings.GetRef("PREF_CUSTOMFOV");
         *(float*)(_this + 0x60) += nCustomFOV->get() * 5.0f;
     }
 
-    static char sub_8D0A90()
+    static char CTimer__IsUserPaused()
     {
         if (bMenuNeedsUpdate2 > 0)
         {
@@ -45,19 +45,19 @@ public:
         return *CTimer::m_UserPause;
     }
 
-    static inline injector::hook_back<int(__fastcall*)(int* _this, void* edx, int a2)> hbsub_B64D60;
-    static int __fastcall sub_B64D60(int* _this, void* edx, int a2)
+    static inline injector::hook_back<int(__fastcall*)(int* _this, void* edx, int a2)> hbCPedWeaponMgr__GetNextActiveSlot;
+    static int __fastcall CPedWeaponMgr__GetNextActiveSlot(int* _this, void* edx, int a2)
     {
-        auto r = hbsub_B64D60.fun(_this, edx, a2);
+        auto r = hbCPedWeaponMgr__GetNextActiveSlot.fun(_this, edx, a2);
 
         if (r == 4 && _this[21] == 32) // P90
-            r = hbsub_B64D60.fun(_this, edx, r);
+            r = hbCPedWeaponMgr__GetNextActiveSlot.fun(_this, edx, r);
 
         return r;
     }
 
-    static inline injector::hook_back<void(*)()> hbsub_AD1240;
-    static void sub_AD1240()
+    static inline injector::hook_back<void(*)()> hbApplyPedDeferredMaterial;
+    static void ApplyPedDeferredMaterial()
     {
         Cam rootCam = 0;
         Natives::GetRootCam(&rootCam);
@@ -73,15 +73,14 @@ public:
             }
         }
 
-        return hbsub_AD1240.fun();
+        return hbApplyPedDeferredMaterial.fun();
     }
 
-    static inline uint32_t* dword_1670CD0 = nullptr;
-    static inline uint32_t* dwFrameCount = nullptr;
+    static inline uint32_t* CHeli_ms_LastSearchlightFrame = nullptr;
     static inline void* g_pSearchlightHeli = nullptr; // Pointer to the helicopter that has the light
     static inline int32_t g_dwSearchlightLockTime = 0; // Timestamp of when the lock expires
-    static inline SafetyHookInline shCHelisub_B69D80 = {};
-    static void __fastcall CHelisub_B69D80(void* _this, void* edx)
+    static inline SafetyHookInline shCHeli__DoVehicleLights = {};
+    static void __fastcall CHeli__DoVehicleLights(void* _this, void* edx)
     {
         // Check if this helicopter's searchlight is supposed to be on.
         // This mirrors the check inside the original function.
@@ -104,14 +103,14 @@ public:
                 // To allow the original function to draw the light, we make sure its
                 // "once-per-frame" check will pass. We do this by setting the "last drawn frame"
                 // variable to something different than the current frame counter.
-                *dword_1670CD0 = *dwFrameCount - 1;
+                *CHeli_ms_LastSearchlightFrame = *CTimer::m_frameCount - 1;
             }
             else
             {
                 // Another helicopter has the lock and it's not expired.
                 // To prevent the original function from drawing, we make its
                 // "once-per-frame" check fail by setting the variables to be equal.
-                *dword_1670CD0 = *dwFrameCount;
+                *CHeli_ms_LastSearchlightFrame = *CTimer::m_frameCount;
             }
         }
         else
@@ -125,18 +124,18 @@ public:
 
         // Finally, call the original function. It will now behave correctly based on
         // how we manipulated the global lock variable.
-        shCHelisub_B69D80.unsafe_fastcall(_this, edx);
+        shCHeli__DoVehicleLights.unsafe_fastcall(_this, edx);
     }
 
     static inline int32_t nRadarZoomDelay = 0;
-    static inline injector::hook_back<bool(*)()> hbsub_5DCA80;
-    static bool sub_5DCA80()
+    static inline injector::hook_back<bool(*)()> hbCRadarNY__ShouldZoomOutRadar;
+    static bool CRadarNY__ShouldZoomOutRadar()
     {
         static int32_t zoomOutEndTime = 0;
         auto currentTime = *CTimer::m_snTimeInMilliseconds;
 
         // Call the original function to check the actual key state.
-        if (hbsub_5DCA80.fun())
+        if (hbCRadarNY__ShouldZoomOutRadar.fun())
         {
             // The key is pressed. Set our timer to end 3 seconds from now.
             zoomOutEndTime = currentTime + nRadarZoomDelay;
@@ -250,7 +249,7 @@ public:
             if (nAimingZoomFix)
             {
                 auto pattern = find_pattern("8A C1 32 05 ? ? ? ? 24 01 32 C1", "8A D0 32 15");
-                static auto& byte_F47AB1 = **pattern.get_first<uint8_t*>(4);
+                static auto& bTBoGTAimZoomFlag = **pattern.get_first<uint8_t*>(4);
                 if (nAimingZoomFix > 1)
                     injector::MakeNOP(pattern.get_first(-2), 2, true);
                 else if (nAimingZoomFix < 0)
@@ -262,7 +261,7 @@ public:
                     void operator()(injector::reg_pack& regs)
                     {
                         *(uint8_t*)(regs.esi + 0x200) |= 1;
-                        byte_F47AB1 = 1;
+                        bTBoGTAimZoomFlag = 1;
                     }
                 };
                 if (!pattern.empty())
@@ -279,7 +278,7 @@ public:
                     void operator()(injector::reg_pack& regs)
                     {
                         *(uint8_t*)(regs.esi + 0x200) &= 0xFE;
-                        byte_F47AB1 = 0;
+                        bTBoGTAimZoomFlag = 0;
                     }
                 };
                 if (!pattern.empty())
@@ -309,7 +308,7 @@ public:
                         void operator()(injector::reg_pack& regs)
                         {
                             *(uint8_t*)(regs.esi + 0x200) = regs.ecx & 0xFF;
-                            byte_F47AB1 = *(uint8_t*)(regs.esi + 0x200);
+                            bTBoGTAimZoomFlag = *(uint8_t*)(regs.esi + 0x200);
                         }
                     }; injector::MakeInline<AimZoomHook3>(pattern.get_first(0), pattern.get_first(6));
                 }
@@ -390,9 +389,9 @@ public:
             // Fix for lods appearing inside normal models, unless the graphics menu was opened once (draw distances aren't set properly?)
             {
                 auto pattern = find_pattern("E8 ? ? ? ? 8D 4C 24 10 F3 0F 11 05 ? ? ? ? E8 ? ? ? ? 8B F0 E8 ? ? ? ? DF 2D", "E8 ? ? ? ? 8D 44 24 10 83 C4 04 50");
-                auto sub_477300 = injector::GetBranchDestination(pattern.get_first(0));
+                auto applyGraphicsSettings = injector::GetBranchDestination(pattern.get_first(0));
                 pattern = find_pattern("E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? 83 C4 2C C3", "E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? 8B 35 ? ? ? ? E8 ? ? ? ? 25 FF FF 00 00");
-                injector::MakeCALL(pattern.get_first(0), sub_477300, true);
+                injector::MakeCALL(pattern.get_first(0), applyGraphicsSettings, true);
 
                 // related to the same issue
                 //if (bForceNoMemRestrict)
@@ -560,16 +559,16 @@ public:
             {
                 auto pattern = find_pattern("E8 ? ? ? ? 85 C0 0F 85 ? ? ? ? 84 DB 74 5A 85 F6 0F 84", "E8 ? ? ? ? 85 C0 0F 85 ? ? ? ? 84 DB 74 61");
                 bIsPhoneShowing = *find_pattern("C6 05 ? ? ? ? ? E8 ? ? ? ? 6A 00 E8 ? ? ? ? 8B 80", "88 1D ? ? ? ? 88 1D ? ? ? ? E8 ? ? ? ? 6A 00").get_first<bool*>(2);
-                hbsub_B2CE30.fun = injector::MakeCALL(pattern.get_first(0), sub_B2CE30, true).get();
+                hbCGarages__GarageCameraShouldBeOutside.fun = injector::MakeCALL(pattern.get_first(0), CGarages__GarageCameraShouldBeOutside, true).get();
             }
 
             // Custom FOV
             {
                 auto pattern = find_pattern("E8 ? ? ? ? F6 87 ? ? ? ? ? 5B", "E8 ? ? ? ? 8B CE E8 ? ? ? ? F6 86 ? ? ? ? ? 5F");
-                hbsub_B07600.fun = injector::MakeCALL(pattern.get_first(0), sub_B07600, true).get();
+                hbCCamGame__PostProcessLookBehindAimWeaponInCover.fun = injector::MakeCALL(pattern.get_first(0), CCamGame__PostProcessLookBehindAimWeaponInCover, true).get();
 
                 pattern = find_pattern("E8 ? ? ? ? 84 C0 74 12 80 3D ? ? ? ? ? 0F B6 DB", "E8 ? ? ? ? 84 C0 74 0A 38 1D");
-                injector::MakeCALL(pattern.get_first(0), sub_8D0A90, true);
+                injector::MakeCALL(pattern.get_first(0), CTimer__IsUserPaused, true);
 
                 FusionFixSettings.SetCallback("PREF_CUSTOMFOV", [](int32_t value)
                 {
@@ -696,7 +695,7 @@ public:
             {
                 auto pattern = hook::pattern("E8 ? ? ? ? 8B F0 3B 37 75 88");
                 if (!pattern.empty())
-                    hbsub_B64D60.fun = injector::MakeCALL(pattern.get_first(0), sub_B64D60).get();
+                    hbCPedWeaponMgr__GetNextActiveSlot.fun = injector::MakeCALL(pattern.get_first(0), CPedWeaponMgr__GetNextActiveSlot).get();
             }
 
             // Disable Z-write for emissive shaders. Fixes visual bugs e.g. strobe lights in Bahama Mamas (TBoGT) and more
@@ -859,26 +858,23 @@ public:
             {
                 auto pattern = find_pattern("E8 ? ? ? ? 84 C0 74 ? F3 0F 10 05 ? ? ? ? F3 0F 11 44 24 ? 6A");
                 if (!pattern.empty())
-                    hbsub_5DCA80.fun = injector::MakeCALL(pattern.get_first(0), sub_5DCA80, true).get();
+                    hbCRadarNY__ShouldZoomOutRadar.fun = injector::MakeCALL(pattern.get_first(0), CRadarNY__ShouldZoomOutRadar, true).get();
             }
 
             // Workaround for drunk cam lights issue
             {
                 auto pattern = find_pattern("E8 ? ? ? ? 6A ? FF 74 24 ? FF 74 24 ? 6A", "E8 ? ? ? ? 83 FF ? 6A");
                 if (!pattern.empty())
-                    hbsub_AD1240.fun = injector::MakeCALL(pattern.get_first(0), sub_AD1240, true).get();
+                    hbApplyPedDeferredMaterial.fun = injector::MakeCALL(pattern.get_first(0), ApplyPedDeferredMaterial, true).get();
             }
 
             // Helicopter lights fix
             {
                 auto pattern = find_pattern("8B 0D ? ? ? ? 84 C0 8B 47", "8B 15 ? ? ? ? 3B 15 ? ? ? ? 0F 84 ? ? ? ? E8");
-                dword_1670CD0 = *pattern.get_first<uint32_t*>(2);
-
-                pattern = find_pattern("3B 05 ? ? ? ? 0F 84 ? ? ? ? E8 ? ? ? ? F3 0F 10 87", "3B 15 ? ? ? ? 0F 84 ? ? ? ? E8");
-                dwFrameCount = *pattern.get_first<uint32_t*>(2);
+                CHeli_ms_LastSearchlightFrame = *pattern.get_first<uint32_t*>(2);
 
                 pattern = find_pattern("55 8B EC 83 E4 ? 81 EC ? ? ? ? 57 8B F9", "55 8B EC 83 E4 ? 81 EC ? ? ? ? 56 57 8B F1 E8 ? ? ? ? 8B 46");
-                shCHelisub_B69D80 = safetyhook::create_inline(pattern.get_first(), CHelisub_B69D80);
+                shCHeli__DoVehicleLights = safetyhook::create_inline(pattern.get_first(), CHeli__DoVehicleLights);
             }
 
             // Menu input lag

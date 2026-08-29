@@ -9,7 +9,7 @@ import comvars;
 import settings;
 import natives;
 
-uint8_t* (__fastcall* sub_8F0080)(uint8_t* _this, void* edx) = nullptr;
+uint8_t* (__fastcall* CControl_GetSprintValue)(uint8_t* _this, void* edx) = nullptr;
 
 namespace CTaskSimpleMovePlayer
 {
@@ -29,7 +29,7 @@ public:
             CTaskSimpleMovePlayer::ms_bDefaultNoSprintingInInteriors.SetAddress(*pattern.get_first<bool*>(2));
 
             pattern = find_pattern("E8 ? ? ? ? 8A 48 ? 32 48 ? 80 F9 ? 76 ? 8B 86", "E8 ? ? ? ? 8A 48 ? 32 48 ? F3 0F 10 05");
-            sub_8F0080 = (decltype(sub_8F0080))injector::GetBranchDestination(pattern.get_first()).as_int();
+            CControl_GetSprintValue = (decltype(CControl_GetSprintValue))injector::GetBranchDestination(pattern.get_first()).as_int();
 
             pattern = hook::pattern("D9 44 24 18 5F 5B 5D");
             static auto flag = false;
@@ -96,7 +96,7 @@ public:
                 if (!alwaysrunPref->get())
                     return;
 
-                auto ret = sub_8F0080((uint8_t*)regs.ebp, 0);
+                auto ret = CControl_GetSprintValue((uint8_t*)regs.ebp, 0);
 
                 uint8_t sprintCur = ret[6];
                 uint8_t sprintPrev = ret[7];

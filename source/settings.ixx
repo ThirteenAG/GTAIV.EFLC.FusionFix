@@ -842,12 +842,12 @@ public:
             {
                 pattern = hook::pattern("83 3D ? ? ? ? ? 75 13 8B 0D ? ? ? ? 51 E8 ? ? ? ? 83 C4 04 85 C0 7D 21");
                 static auto loc_5C27AD = resolve_displacement(pattern.get_first(7)).value();
-                static auto dword_10FBF24 = *pattern.get_first<uint32_t>(2);
+                static auto pCurMenuTab = *pattern.get_first<int32_t*>(2);
                 struct MenuBackgroundHook1
                 {
                     void operator()(injector::reg_pack& regs)
                     {
-                        if (dword_10FBF24 == 49 && !shouldModifyMenuBackground(dword_10FBF24))
+                        if (*pCurMenuTab != 49 && !shouldModifyMenuBackground(*pCurMenuTab))
                         {
                             return_to(loc_5C27AD);
                         }

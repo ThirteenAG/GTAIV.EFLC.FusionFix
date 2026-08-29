@@ -96,15 +96,15 @@ LONG WINAPI SetWindowLongA_Hook(HWND hWnd, int nIndex, LONG dwNewLong)
     return SetWindowLongA(hWnd, nIndex, dwNewLong);
 }
 
-injector::hook_back<void(__cdecl*)(char)> hbsub_7870A0;
-void __cdecl sub_69F0C0(char a1)
+injector::hook_back<void(__cdecl*)(char)> hbCControlMgr_UpdateInputDevices;
+void __cdecl CControlMgr_UpdateInputDevices(char a1)
 {
     if (*rage::grcWindow::ms_bWindowed)
     {
         if (*rage::grcWindow::ms_bFocusLost)
             return;
     }
-    return hbsub_7870A0.fun(a1);
+    return hbCControlMgr_UpdateInputDevices.fun(a1);
 }
 
 class Windowed
@@ -189,7 +189,7 @@ public:
 
             // Do not process input on focus loss
             pattern = find_pattern("E8 ? ? ? ? A1 ? ? ? ? A3 ? ? ? ? A1 ? ? ? ? 83 C4 04", "E8 ? ? ? ? 8B 0D ? ? ? ? 8B 15 ? ? ? ? 83 C4 04 83 3D");
-            hbsub_7870A0.fun = injector::MakeCALL(pattern.get_first(), sub_69F0C0).get();
+            hbCControlMgr_UpdateInputDevices.fun = injector::MakeCALL(pattern.get_first(), CControlMgr_UpdateInputDevices).get();
 
             FusionFixSettings.SetCallback("PREF_BLOCKONLOSTFOCUS", [](int32_t value) {
                 *rage::grcDevice::ms_bNoBlockOnLostFocus = value;

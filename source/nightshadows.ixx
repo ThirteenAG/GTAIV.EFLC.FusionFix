@@ -35,11 +35,11 @@ namespace CShadows
     }
 }
 
-static inline SafetyHookInline shsub_925DB0{};
-static inline SafetyHookInline shsub_D77A00{};
+static inline SafetyHookInline shCWarpShadow_FindCacheIndex{};
+static inline SafetyHookInline shCRenderPhaseWarpShadow_BuildDrawList{};
 
 // Lamppost shadows workaround 1
-static int __cdecl sub_925DB0(int a1, int a2, int flags)
+static int __cdecl CWarpShadow_FindCacheIndex(int a1, int a2, int flags)
 {
     if (!bExtraNightShadows)
     {
@@ -49,11 +49,11 @@ static int __cdecl sub_925DB0(int a1, int a2, int flags)
         }
     }
 
-    return shsub_925DB0.ccall<int>(a1, a2, flags);
+    return shCWarpShadow_FindCacheIndex.ccall<int>(a1, a2, flags);
 }
 
 // Lamppost shadows workaround 2
-static void __fastcall sub_D77A00(void* _this, void* edx)
+static void __fastcall CRenderPhaseWarpShadow_BuildDrawList(void* _this, void* edx)
 {
     if (!bExtraNightShadows)
     {
@@ -63,7 +63,7 @@ static void __fastcall sub_D77A00(void* _this, void* edx)
         }
     }
 
-    return shsub_D77A00.unsafe_fastcall(_this, edx);
+    return shCRenderPhaseWarpShadow_BuildDrawList.unsafe_fastcall(_this, edx);
 }
 
 int GetNightShadowQuality()
@@ -95,7 +95,7 @@ public:
             // Make the night shadow options adjust the night shadow resolution
             {
                 auto pattern = find_pattern("8B 0D ? ? ? ? 85 C9 7E 1B", "8B 0D ? ? ? ? 33 C0 85 C9 7E 1B");
-                static auto shsub_925E70 = safetyhook::create_inline(pattern.get_first(0), GetNightShadowQuality);
+                static auto shGetNightShadowQuality = safetyhook::create_inline(pattern.get_first(0), GetNightShadowQuality);
             }
 
             // Vehicle night shadows
@@ -292,11 +292,11 @@ public:
             {
                 // Lamppost shadows workaround 1
                 auto pattern = hook::pattern("80 3D ? ? ? ? ? 75 04 83 C8 FF");
-                shsub_925DB0 = safetyhook::create_inline(pattern.get_first(), sub_925DB0);
+                shCWarpShadow_FindCacheIndex = safetyhook::create_inline(pattern.get_first(), CWarpShadow_FindCacheIndex);
 
                 // Lamppost shadows workaround 2
                 pattern = find_pattern("83 EC 3C 80 3D ? ? ? ? ? 56 8B F1", "83 EC 3C 53 33 DB");
-                shsub_D77A00 = safetyhook::create_inline(pattern.get_first(0), sub_D77A00);
+                shCRenderPhaseWarpShadow_BuildDrawList = safetyhook::create_inline(pattern.get_first(0), CRenderPhaseWarpShadow_BuildDrawList);
 
                 // This code tests every light source for a custom flag.
                 // When Extra Night Shadows is disabled, any light that holds that custom flag has its static and dynamic shadow bits removed if present.

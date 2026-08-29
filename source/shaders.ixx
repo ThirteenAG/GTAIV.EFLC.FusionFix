@@ -195,26 +195,26 @@ public:
             auto pattern = hook::pattern("8B 04 8D ? ? ? ? A3 ? ? ? ? 8B 44 24 04");
             if (!pattern.empty())
             {
-                static auto off_1045520 = *pattern.get_first<const char**>(3);
+                static auto ppShaderPath = *pattern.get_first<const char**>(3);
                 struct ShaderPathHook
                 {
                     void operator()(injector::reg_pack& regs)
                     {
                         regs.ecx = 0;
-                        *(const char**)&regs.eax = *off_1045520;
+                        *(const char**)&regs.eax = *ppShaderPath;
                     }
                 }; injector::MakeInline<ShaderPathHook>(pattern.get_first(0), pattern.get_first(7));
             }
             else
             {
                 pattern = hook::pattern("8B 14 85 ? ? ? ? A3 ? ? ? ? 8B 44 24 04");
-                static auto off_1045520 = *pattern.get_first<const char**>(3);
+                static auto ppShaderPath = *pattern.get_first<const char**>(3);
                 struct ShaderPathHook
                 {
                     void operator()(injector::reg_pack& regs)
                     {
                         regs.eax = 0;
-                        *(const char**)&regs.edx = *off_1045520;
+                        *(const char**)&regs.edx = *ppShaderPath;
                     }
                 }; injector::MakeInline<ShaderPathHook>(pattern.get_first(0), pattern.get_first(7));
             }
@@ -229,15 +229,15 @@ public:
                     auto pattern = hook::pattern("A1 ? ? ? ? A3 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? C3");
                     for (size_t i = 0; i < pattern.size(); ++i)
                     {
-                        auto off_110ECB0 = *pattern.get(i).get<void***>(16);
-                        if (!IsBadReadPtr(off_110ECB0, sizeof(uint32_t)))
+                        auto ppFxcPath = *pattern.get(i).get<void***>(16);
+                        if (!IsBadReadPtr(ppFxcPath, sizeof(uint32_t)))
                         {
-                            if (!IsBadReadPtr(off_110ECB0[0], strlen("win32_30/rage_perlinnoise.fxc")))
+                            if (!IsBadReadPtr(ppFxcPath[0], strlen("win32_30/rage_perlinnoise.fxc")))
                             {
-                                auto str = std::string_view((const char*)off_110ECB0[0]);
+                                auto str = std::string_view((const char*)ppFxcPath[0]);
                                 if (str == "win32_30/rage_perlinnoise.fxc")
                                 {
-                                    injector::WriteMemory(&off_110ECB0[1], rage_perlinnoise.data(), true);
+                                    injector::WriteMemory(&ppFxcPath[1], rage_perlinnoise.data(), true);
                                     break;
                                 }
                             }

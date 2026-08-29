@@ -104,8 +104,8 @@ enum Lights
     LIGHT_REAR_RIGHT = 57
 };
 
-SafetyHookInline sh_sub_A3FF30{};
-void __fastcall sub_A3FF30(void* pVehicleStruct, void* edx, int light, float a3, int a4, int a5)
+SafetyHookInline shCVehicle__DoIndicatorLightEffect{};
+void __fastcall CVehicle__DoIndicatorLightEffect(void* pVehicleStruct, void* edx, int light, float a3, int a4, int a5)
 {
     // Find the current player vehicle in our queue
     for (auto& pair : recent_vehicles)
@@ -128,7 +128,7 @@ void __fastcall sub_A3FF30(void* pVehicleStruct, void* edx, int light, float a3,
         }
     }
 
-    return sh_sub_A3FF30.unsafe_fastcall(pVehicleStruct, edx, light, a3, a4, a5);
+    return shCVehicle__DoIndicatorLightEffect.unsafe_fastcall(pVehicleStruct, edx, light, a3, a4, a5);
 }
 
 class TurnIndicators
@@ -157,7 +157,7 @@ public:
             auto pattern = find_pattern("55 8B EC 83 E4 ? 8B 45 ? 83 EC ? 8B 80");
             if (!pattern.empty())
             {
-                sh_sub_A3FF30 = safetyhook::create_inline(pattern.get_first(0), sub_A3FF30);
+                shCVehicle__DoIndicatorLightEffect = safetyhook::create_inline(pattern.get_first(0), CVehicle__DoIndicatorLightEffect);
                 SteerAngleOffset = 0x1088;
                 pDriverOffset = 0xF50;
                 VehicleFlagsOffset = 0xF16;
@@ -165,7 +165,7 @@ public:
             else
             {
                 pattern = find_pattern("55 8B EC 83 E4 ? 8B 45 ? 83 EC ? 53 8B 5D ? 56 8B F1 8B 88");
-                sh_sub_A3FF30 = safetyhook::create_inline(pattern.get_first(0), sub_A3FF30);
+                shCVehicle__DoIndicatorLightEffect = safetyhook::create_inline(pattern.get_first(0), CVehicle__DoIndicatorLightEffect);
                 SteerAngleOffset = 0x10D8;
                 pDriverOffset = 0xFA0;
                 VehicleFlagsOffset = 0xF66;

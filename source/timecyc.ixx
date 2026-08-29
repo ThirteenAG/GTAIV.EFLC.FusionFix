@@ -352,12 +352,11 @@ public:
             auto pattern = hook::pattern("0A 05 ? ? ? ? 0A 05 ? ? ? ? 0F 85 ? ? ? ? E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 11 04 24");
             if (!pattern.empty())
             {
-                static auto byte_1173590 = *pattern.get_first<uint8_t*>(2);
                 struct MenuTimecycHook
                 {
                     void operator()(injector::reg_pack& regs)
                     {
-                        *(uint8_t*)&regs.eax |= *byte_1173590;
+                        *(uint8_t*)&regs.eax |= *CTimer::m_UserPause;
                         if (bMenuNeedsUpdate > 0) {
                             *(uint8_t*)&regs.eax = 0;
                             bMenuNeedsUpdate--;
@@ -371,34 +370,34 @@ public:
             }
             else
             {
-                static injector::hook_back<int(*)()> hbsub_4B18F0;
+                static injector::hook_back<int(*)()> hbMenuTimecycHook;
                 static auto MenuTimecycHook = []() -> int
                 {
                     if (bMenuNeedsUpdate > 0) {
                         bMenuNeedsUpdate--;
                         return 0;
                     }
-                    return hbsub_4B18F0.fun();
+                    return hbMenuTimecycHook.fun();
                 };
 
                 pattern = hook::pattern("E8 ? ? ? ? 84 C0 5F 0F 85");
-                hbsub_4B18F0.fun = injector::MakeCALL(pattern.get_first(), static_cast<int(*)()>(MenuTimecycHook), true).get();
+                hbMenuTimecycHook.fun = injector::MakeCALL(pattern.get_first(), static_cast<int(*)()>(MenuTimecycHook), true).get();
 
                 pattern = hook::pattern("E8 ? ? ? ? 84 C0 74 ? A1 ? ? ? ? 69 C0");
-                hbsub_4B18F0.fun = injector::MakeCALL(pattern.get_first(), static_cast<int(*)()>(MenuTimecycHook), true).get();
+                hbMenuTimecycHook.fun = injector::MakeCALL(pattern.get_first(), static_cast<int(*)()>(MenuTimecycHook), true).get();
 
-                static injector::hook_back<char(*)()> hbsub_8AC010;
+                static injector::hook_back<char(*)()> hbMenuTimecycHook2;
                 static auto MenuTimecycHook2 = []() -> char {
                     if (bMenuNeedsUpdate > 0)
                     {
                         bMenuNeedsUpdate--;
                         return 0;
                     }
-                    return hbsub_8AC010.fun();
+                    return hbMenuTimecycHook2.fun();
                 };
 
                 pattern = hook::pattern("E8 ? ? ? ? 84 C0 74 ? 38 1D ? ? ? ? 75 ? B3");
-                hbsub_8AC010.fun = injector::MakeCALL(pattern.get_first(), static_cast<char(*)()>(MenuTimecycHook2), true).get();
+                hbMenuTimecycHook2.fun = injector::MakeCALL(pattern.get_first(), static_cast<char(*)()>(MenuTimecycHook2), true).get();
 
                 pattern = hook::pattern("80 3D ? ? ? ? ? 74 ? 84 DB 74 ? 8B 06");
                 injector::MakeNOP(pattern.get_first(0), 9, true);

@@ -11,17 +11,15 @@ import natives;
 import settings;
 
 uint32_t* dwEpisodeID1 = nullptr;
-uint8_t* g_cutsceneAudio = nullptr;
-int* dword_12957B8 = nullptr;
-float* float_129574C = nullptr;
-float* float_11735BC = nullptr;
-float* float_117359C = nullptr;
+uint8_t* g_CutsceneAudioEntity = nullptr;
+float* CCutsceneManager_ms_fTimePassedSinceLastAudioStart = nullptr;
+float* CTimer_m_systemTime_fTimeStep = nullptr;
 
 namespace rage
 {
     namespace audCutsceneAudioEntity
     {
-        int getAudioTimeMs(uint8_t* audioEntity)
+        int GetPlayTimeMs(uint8_t* audioEntity)
         {
             // Get the next buffer index in the ping-pong buffer system
             uint8_t nextBufferIndex = (audioEntity[160] + 1) % 2;
@@ -35,89 +33,65 @@ namespace rage
     }
 }
 
+struct AudioDriftRamp
+{
+    float t0, off0, rate0; // held at off0 until t0, then ramps towards off1
+    float t1, off1, rate1; // from t1 ramps from off1 towards off2
+    float t2, off2;        // pinned at off2 from t2 onwards
+
+    constexpr float operator()(float t) const
+    {
+        float off = off0;
+        if (t >= t0)
+            off = (t - t0) * rate0 * (off1 - off0) + off0;
+        if (t >= t1)
+            off = (t - t1) * rate1 * (off2 - off1) + off1;
+        if (t >= t2)
+            off = off2;
+        return off;
+    }
+};
+
+static constexpr AudioDriftRamp rampE2Int  { 120.0f, 0.0f, 0.016666668f,  180.0f, -300.0f, 0.0058823531f, 350.0f, -500.0f };
+static constexpr AudioDriftRamp rampGT06AA {  45.0f, 0.0f, 0.0074074073f, 180.0f, -400.0f, 0.0058823531f, 350.0f, -400.0f };
+
 std::chrono::steady_clock::time_point syncStartTime{};
 bool syncTimerActive = false;
 bool applicationLostFocus = false;
-void __cdecl sub_9C2C80(float* a1)
+void __cdecl CCutsceneManager__GetTimeStep(float* a1)
 {
-    // Initialize variables
-    constexpr float flt_1295798 = 120.0f;  // Start time for e2_int
-    constexpr float flt_129579C = 0.0f;    // Initial offset
-    constexpr float flt_12957A4 = 180.0f;  // Second phase start
-    constexpr float flt_12957A8 = -300.0f; // Second phase offset
-    constexpr float flt_12957B0 = 350.0f;  // Final phase start
-    constexpr float flt_12957B4 = -500.0f; // Final offset
-    constexpr float flt_12957A0 = 0.016666668f; // First phase multiplier
-    constexpr float flt_12957AC = 0.0058823531f; // Second phase multiplier
-
-    constexpr float flt_12957BC = 45.0f;   // Start time for GT06_AA
-    constexpr float flt_12957C0 = 0.0f;    // Initial offset
-    constexpr float flt_12957C8 = 180.0f;  // Second phase start
-    constexpr float flt_12957CC = -400.0f; // Second phase offset
-    constexpr float flt_12957D4 = 350.0f;  // Final phase start
-    constexpr float flt_12957D8 = -400.0f; // Final offset
-    constexpr float flt_12957C4 = 0.0074074073f; // First phase multiplier
-    constexpr float flt_12957D0 = 0.0058823531f; // Second phase multiplier
-
-    float time_offset = 0.0; // Animation timing offset
-    int audio_time_ms = rage::audCutsceneAudioEntity::getAudioTimeMs(g_cutsceneAudio);
+    float time_offset = 0.0f; // Animation timing offset, in milliseconds
+    int audio_time_ms = rage::audCutsceneAudioEntity::GetPlayTimeMs(g_CutsceneAudioEntity);
     float initial_time = *a1; // Store initial output time
+    int raw_time;      // Pre-clamp sum, whose flags the original jnz reads
     int adjusted_time; // Adjusted time to return
-    float final_time; // Final output time
+    float final_time;  // Final output time
 
     // Apply timing adjustments for Episode ID 2
     if (*dwEpisodeID1 == 2)
     {
-        int flags = *dword_12957B8;
-        if (!(flags & 1))
-        {
-            *dword_12957B8 |= 1;
-        }
-        if (!(flags & 2))
-        {
-            *dword_12957B8 |= 2;
-        }
-
         // Convert audio time to seconds
         float audio_time_sec = audio_time_ms * 0.001f;
 
-        // Adjust offset for cutscene "e2_int"
         if (!_stricmp(pszCurrentCutsceneName, "e2_int"))
-        {
-            if (audio_time_sec < flt_1295798)
-                time_offset = flt_129579C;
-            else
-                time_offset = ((audio_time_sec - flt_1295798) * flt_12957A0) * (flt_12957A8 - flt_129579C) + flt_129579C;
-            if (audio_time_sec >= flt_12957A4)
-                time_offset = ((audio_time_sec - flt_12957A4) * flt_12957AC) * (flt_12957B4 - flt_12957A8) + flt_12957A8;
-            if (audio_time_sec >= flt_12957B0)
-                time_offset = flt_12957B4;
-        }
-        // Adjust offset for cutscene "GT06_AA"
+            time_offset = rampE2Int(audio_time_sec);
         else if (!_stricmp(pszCurrentCutsceneName, "GT06_AA"))
-        {
-            if (audio_time_sec < flt_12957BC)
-                time_offset = flt_12957C0;
-            else
-                time_offset = ((audio_time_sec - flt_12957BC) * flt_12957C4) * (flt_12957CC - flt_12957C0) + flt_12957C0;
-            if (audio_time_sec >= flt_12957C8)
-                time_offset = ((audio_time_sec - flt_12957C8) * flt_12957D0) * (flt_12957D8 - flt_12957CC) + flt_12957CC;
-            if (audio_time_sec >= flt_12957D4)
-                time_offset = flt_12957D8;
-        }
+            time_offset = rampGT06AA(audio_time_sec);
     }
 
     // Handle invalid audio time
     if (audio_time_ms == -1)
     {
+        raw_time = -1; // original: or eax, edi
         adjusted_time = -1;
     }
     else
     {
         // Calculate adjusted time with clamping
-        adjusted_time = audio_time_ms + (int)time_offset;
+        raw_time = audio_time_ms + (int)time_offset; // original: add eax, edi
+        adjusted_time = raw_time;
         if (adjusted_time < 0)
-            adjusted_time = 0;
+            adjusted_time = 0; // original: cmovs eax, ecx
     }
 
     static auto cas = FusionFixSettings.GetRef("PREF_CUTSCENEAUDIOSYNC");
@@ -152,37 +126,37 @@ void __cdecl sub_9C2C80(float* a1)
         // Apply cutscene state-specific timing
         if (*CCutscenes::m_dwCutsceneState != 8)
         {
-            final_time = *float_11735BC * 1000.0f + initial_time;
+            final_time = *CTimer::fTimeStep * 1000.0f + initial_time;
         }
         else if (adjusted_time == -1)
         {
-            final_time = *float_117359C * 1000.0f + initial_time;
+            final_time = *CTimer_m_systemTime_fTimeStep * 1000.0f + initial_time;
         }
         else
         {
-            final_time = (float)adjusted_time - *float_129574C;
+            final_time = (float)adjusted_time - *CCutsceneManager_ms_fTimePassedSinceLastAudioStart;
             if (final_time < 0.0f)
                 final_time = 0.0f;
         }
     }
     else
     {
-        if ((adjusted_time + audio_time_ms != 0) || ((adjusted_time | audio_time_ms) != 0)) // the hell is this? equivalent to noping `cmp     CCutscenes__m_dwCutsceneState, 8`
+        // Equivalent to NOPing `cmp CCutsceneManager::ms_State, 8` at 0x9C2EFB: the
+        // following `jnz` then tests the flags left by the `or eax, edi` / `add eax, edi`
+        // above, i.e. ZF is set only when the pre-clamp sum is exactly zero.
+        if (raw_time != 0)
         {
-            final_time = *float_11735BC * 1000.0f + initial_time;
+            final_time = *CTimer::fTimeStep * 1000.0f + initial_time;
+        }
+        else if (adjusted_time == -1)
+        {
+            final_time = *CTimer_m_systemTime_fTimeStep * 1000.0f + initial_time;
         }
         else
         {
-            if (adjusted_time == -1)
-            {
-                final_time = *float_117359C * 1000.0f + initial_time;
-            }
-            else
-            {
-                final_time = (float)adjusted_time - *float_129574C;
-                if (final_time < 0.0f)
-                    final_time = 0.0f;
-            }
+            final_time = (float)adjusted_time - *CCutsceneManager_ms_fTimePassedSinceLastAudioStart;
+            if (final_time < 0.0f)
+                final_time = 0.0f;
         }
     }
 
@@ -278,31 +252,19 @@ public:
 
             // timing? audio sync?
             pattern = find_pattern("B9 ? ? ? ? F3 0F 11 44 24 ? E8 ? ? ? ? 83 3D");
-            g_cutsceneAudio = *pattern.get_first<uint8_t*>(1);
-
-            pattern = find_pattern("8B 0D ? ? ? ? F6 C1 ? 75 ? 83 C9 ? 89 0D ? ? ? ? C7 05");
-            if (!pattern.empty())
-                dword_12957B8 = *pattern.get_first<int*>(2);
-            else
-            {
-                pattern = hook::pattern("A1 ? ? ? ? A8 01 F3 0F 10 05 ? ? ? ? F3 0F 10 0D ? ? ? ? F3 0F 10 15 ? ? ? ? 75 68");
-                dword_12957B8 = *pattern.get_first<int*>(1);
-            }
+            g_CutsceneAudioEntity = *pattern.get_first<uint8_t*>(1);
 
             pattern = find_pattern("F3 0F 5C 05 ? ? ? ? 0F 2F D0 76 ? 5F", "F3 0F 5C 05 ? ? ? ? 0F 2F E8 76 1E F3 0F 11 2F 5F 5E 59 C3");
-            float_129574C = *pattern.get_first<float*>(4);
-
-            pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 44 24 ? 5F", "F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 44 24 ? F3 0F 11 07 5F 5E 59 C3");
-            float_11735BC = *pattern.get_first<float*>(4);
+            CCutsceneManager_ms_fTimePassedSinceLastAudioStart = *pattern.get_first<float*>(4);
 
             pattern = find_pattern("F3 0F 10 05 ? ? ? ? EB ? 66 0F 6E C0", "F3 0F 10 05 ? ? ? ? EB 21 F3 0F 2A C0 F3 0F 5C 05 ? ? ? ? 0F 2F E8 76 1E F3 0F 11 2F 5F 5E 59 C3");
-            float_117359C = *pattern.get_first<float*>(4);
+            CTimer_m_systemTime_fTimeStep = *pattern.get_first<float*>(4);
 
             pattern = find_pattern("83 3D ? ? ? ? ? 0F 57 D2", "83 3D ? ? ? ? ? 0F 57 ED 8B F0");
             dwEpisodeID1 = *pattern.get_first<uint32_t*>(2);
 
             pattern = find_pattern("51 56 8B 74 24 ? 57 F3 0F 10 06", "51 56 57 8B 7C 24 10 F3 0F 10 07 B9 ? ? ? ? F3 0F 11 44 24 ? E8 ? ? ? ? 83 3D ? ? ? ? ? 0F 57 ED 8B F0");
-            static auto shCutscAudioSync = safetyhook::create_inline(pattern.get_first(), sub_9C2C80);
+            static auto shCutscAudioSync = safetyhook::create_inline(pattern.get_first(), CCutsceneManager__GetTimeStep);
 
             FusionFix::onActivateApp() += [](bool wParam)
             {

@@ -90,11 +90,11 @@ public:
 
         // Snow on vehicles: replace textures
         pattern = find_pattern("8B 49 18 85 C9 74 05 8B 01 FF 60 3C", "83 79 18 00 74 0A 8B 49 18 8B 01 8B 50 38", "55 8B EC 83 E4 F0 8B 01 8B 50 38 83 EC 10 FF D2 85 C0 74 0F 8B 10 8B 52 34");
-        shsub_41B920 = safetyhook::create_inline(pattern.get_first(), sub_41B920);
+        shGrcTextureReferenceGetTexture = safetyhook::create_inline(pattern.get_first(), rage__grcTextureReference__GetTexture);
 
         // Particles: can't change color, disabling
         pattern = find_pattern("83 EC ? FF 35 ? ? ? ? FF 15", "83 EC ? E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? E8");
-        shsub_A9F2D0 = safetyhook::create_inline(pattern.get_first(), sub_A9F2D0);
+        shCreateParticle = safetyhook::create_inline(pattern.get_first(), CreateParticle);
 
         pattern = find_pattern("81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 53 55 56 57 8B BC 24 ? ? ? ? 8D B4 24", "81 EC ? ? ? ? A1 ? ? ? ? 33 C4 89 84 24 ? ? ? ? 55 56 8B B4 24 ? ? ? ? 8D 94 24 ? ? ? ? 57");
         static auto readMaterialsDatHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
@@ -598,8 +598,8 @@ private:
     static inline rage::grcTexturePC* vehicle_genericmud_car_snow;
     static inline rage::grcTexturePC* vehicle_genericmud_truck_snow;
 
-    static inline SafetyHookInline shsub_41B920{};
-    static auto __fastcall sub_41B920(rage::grcTextureReference* tex, void* edx) -> rage::grcTexturePC*
+    static inline SafetyHookInline shGrcTextureReferenceGetTexture{};
+    static auto __fastcall rage__grcTextureReference__GetTexture(rage::grcTextureReference* tex, void* edx) -> rage::grcTexturePC*
     {
         if (snowEnabled)
         {
@@ -644,11 +644,11 @@ private:
                 return vehicle_genericmud_truck_snow;
         }
 
-        return shsub_41B920.unsafe_fastcall<rage::grcTexturePC*>(tex, edx);
+        return shGrcTextureReferenceGetTexture.unsafe_fastcall<rage::grcTexturePC*>(tex, edx);
     }
 
-    static inline SafetyHookInline shsub_A9F2D0{};
-    static auto __stdcall sub_A9F2D0(unsigned int hash, int a2, char a3) -> void*
+    static inline SafetyHookInline shCreateParticle{};
+    static auto __stdcall CreateParticle(unsigned int hash, int a2, char a3) -> void*
     {
         if (snowEnabled)
         {
@@ -666,7 +666,7 @@ private:
                 return nullptr;
         }
 
-        return shsub_A9F2D0.unsafe_stdcall<void*>(hash, a2, a3);
+        return shCreateParticle.unsafe_stdcall<void*>(hash, a2, a3);
     }
 
     struct MaterialBackup
