@@ -79,9 +79,22 @@ public:
     }
 
     GameRef(const GameRef& other) = default;
-    GameRef& operator=(const GameRef& other) = default;
-    GameRef(GameRef&& other) noexcept = default;
-    GameRef& operator=(GameRef&& other) noexcept = default;
+    GameRef(GameRef&& other) noexcept
+        : ptr(other.ptr), deferredResolver(other.deferredResolver)
+    {
+    }
+
+    GameRef& operator=(const GameRef& other)
+    {
+        assign(other.get());
+        return *this;
+    }
+
+    GameRef& operator=(GameRef&& other)
+    {
+        assign(other.get());
+        return *this;
+    }
 
     template<typename AddressT>
         requires (std::is_pointer_v<std::remove_reference_t<AddressT>> || std::is_integral_v<std::remove_reference_t<AddressT>>)
