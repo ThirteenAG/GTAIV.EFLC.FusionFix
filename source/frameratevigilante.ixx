@@ -1013,6 +1013,15 @@ public:
                         {
                             regs.xmm2.f32[0] *= regs.xmm0.f32[0] * *CTimer::fTimeStep / (1.0f / 30.0f);
                         });
+
+                        // Scale the addend (mulss xmm0, [rate]; addss xmm2, xmm0) like main rotors.
+                        // Hook2 only scaled xmm2 *= xmm0; the per-frame increment stayed fps-dependent.
+                        static auto rear_break_rate = *pattern.get_first<float*>(14);
+                        injector::MakeNOP(pattern.get_first(10), 8, true);
+                        static auto CHeli__ApplyCollisionInternal_Hook2b = safetyhook::create_mid(pattern.get_first(10), [](SafetyHookContext& regs)
+                        {
+                            regs.xmm0.f32[0] *= *rear_break_rate * *CTimer::fTimeStep / (1.0f / 30.0f);
+                        });
                     }
                     else
                     {
