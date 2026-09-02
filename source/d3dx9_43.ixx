@@ -3792,7 +3792,7 @@ public:
         pD3DXComputeBoundingSphere = (decltype(D3DXComputeBoundingSphere)*)(GetProcAddress(dll, "D3DXComputeBoundingSphere"));
         pD3DXComputeIMTFromPerTexelSignal = (decltype(D3DXComputeIMTFromPerTexelSignal)*)(GetProcAddress(dll, "D3DXComputeIMTFromPerTexelSignal"));
         pD3DXComputeIMTFromPerVertexSignal = (decltype(D3DXComputeIMTFromPerVertexSignal)*)(GetProcAddress(dll, "D3DXComputeIMTFromPerVertexSignal"));
-        pD3DXComputeIMTFromSignal = (decltype(D3DXComputeIMTFromSignal)*)(GetProcAddress(dll, "D3DXComputeIMTFromSignal("));
+        pD3DXComputeIMTFromSignal = (decltype(D3DXComputeIMTFromSignal)*)(GetProcAddress(dll, "D3DXComputeIMTFromSignal"));
         pD3DXComputeIMTFromTexture = (decltype(D3DXComputeIMTFromTexture)*)(GetProcAddress(dll, "D3DXComputeIMTFromTexture"));
         pD3DXComputeNormalMap = (decltype(D3DXComputeNormalMap)*)(GetProcAddress(dll, "D3DXComputeNormalMap"));
         pD3DXComputeNormals = (decltype(D3DXComputeNormals)*)(GetProcAddress(dll, "D3DXComputeNormals"));
@@ -4027,8 +4027,8 @@ public:
         pD3DXSHMultiply2 = (decltype(D3DXSHMultiply2)*)(GetProcAddress(dll, "D3DXSHMultiply2"));
         pD3DXSHMultiply3 = (decltype(D3DXSHMultiply3)*)(GetProcAddress(dll, "D3DXSHMultiply3"));
         pD3DXSHMultiply4 = (decltype(D3DXSHMultiply4)*)(GetProcAddress(dll, "D3DXSHMultiply4"));
-        pD3DXSHMultiply5 = (decltype(D3DXSHMultiply5)*)(GetProcAddress(dll, "D3DXSHMultiply5("));
-        pD3DXSHMultiply6 = (decltype(D3DXSHMultiply6)*)(GetProcAddress(dll, "D3DXSHMultiply6("));
+        pD3DXSHMultiply5 = (decltype(D3DXSHMultiply5)*)(GetProcAddress(dll, "D3DXSHMultiply5"));
+        pD3DXSHMultiply6 = (decltype(D3DXSHMultiply6)*)(GetProcAddress(dll, "D3DXSHMultiply6"));
         pD3DXSHPRTCompSplitMeshSC = (decltype(D3DXSHPRTCompSplitMeshSC)*)(GetProcAddress(dll, "D3DXSHPRTCompSplitMeshSC"));
         pD3DXSHPRTCompSuperCluster = (decltype(D3DXSHPRTCompSuperCluster)*)(GetProcAddress(dll, "D3DXSHPRTCompSuperCluster"));
         pD3DXSHProjectCubeMap = (decltype(D3DXSHProjectCubeMap)*)(GetProcAddress(dll, "D3DXSHProjectCubeMap"));
@@ -4063,7 +4063,7 @@ public:
         pD3DXUVAtlasPack = (decltype(D3DXUVAtlasPack)*)(GetProcAddress(dll, "D3DXUVAtlasPack"));
         pD3DXUVAtlasPartition = (decltype(D3DXUVAtlasPartition)*)(GetProcAddress(dll, "D3DXUVAtlasPartition"));
         pD3DXValidMesh = (decltype(D3DXValidMesh)*)(GetProcAddress(dll, "D3DXValidMesh"));
-        pD3DXValidPatchMesh = (decltype(D3DXValidPatchMesh)*)(GetProcAddress(dll, "D3DXValidPatchMesh("));
+        pD3DXValidPatchMesh = (decltype(D3DXValidPatchMesh)*)(GetProcAddress(dll, "D3DXValidPatchMesh"));
         pD3DXVec2BaryCentric = (decltype(D3DXVec2BaryCentric)*)(GetProcAddress(dll, "D3DXVec2BaryCentric"));
         pD3DXVec2CatmullRom = (decltype(D3DXVec2CatmullRom)*)(GetProcAddress(dll, "D3DXVec2CatmullRom"));
         pD3DXVec2Hermite = (decltype(D3DXVec2Hermite)*)(GetProcAddress(dll, "D3DXVec2Hermite"));
