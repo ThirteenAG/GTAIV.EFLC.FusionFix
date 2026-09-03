@@ -122,7 +122,7 @@ public:
             camFollowVehicleExtensions.reserve(32);
 
             pattern = find_pattern("C7 06 ? ? ? ? 8B CE C7 86", "C7 06 ? ? ? ? 8B CE 89 86 ? ? ? ? 89 86");
-            static auto CCamFollowVehicle__ctor_Hook = safetyhook::create_mid(pattern.count(2).get(0).get<void*>(0), [](SafetyHookContext& regs)
+            static auto CCamFollowVehicle__ctor_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
             {
                 camFollowVehicleExtensions[regs.esi] = CCamFollowVehicleExt{};
             });

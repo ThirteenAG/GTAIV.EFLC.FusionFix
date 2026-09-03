@@ -187,6 +187,9 @@ FPSリミッター
 [Extended Sniper]
 スナイパーライフルの追加操作
 
+[Ladders Climb]
+自動はしご登り
+
 [Bullet Traces]
 常に弾道を表示する
 
