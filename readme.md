@@ -135,6 +135,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **Always Run**, allows running by default and sprinting in interiors, tap Sprint button to toggle between walk and run
 - **Allow Movement When Zoomed**, allows movement when aiming with a sniper rifle
 - **Extended Sniper Controls**, allows aiming with sniper rifles without using the scope, press Jump button to toggle between third-person aim and the scope
+- **Auto Climb Ladders**, makes player climb ladder automatically when getting close to ladder
 - **Camera Shake**, shake effect has been fixed to work consistently at any frame rate and can be disabled with this option
 - **Centered Vehicle Camera**, makes vehicle camera centered, for more options install the [original mod](https://github.com/gennariarmando/iv-centered-vehicle-cam) separately
 - **Centered On Foot Camera**, makes on foot camera centered, also for more options install the [original mod](https://github.com/gennariarmando/iv-centered-onfoot-cam)
