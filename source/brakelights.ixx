@@ -33,7 +33,7 @@ public:
             CIniReader iniReader("");
 
             // [MISC]
-            auto bBrakeLightsWhenStopped = iniReader.ReadInteger("MISC", "BrakeLightsWhenStopped", 0) != 0;
+            static bool bBrakeLightsWhenStopped = iniReader.ReadInteger("MISC", "BrakeLightsWhenStopped", 0) != 0;
 
             if (bBrakeLightsWhenStopped)
             {

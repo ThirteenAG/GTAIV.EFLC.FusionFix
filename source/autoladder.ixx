@@ -15,17 +15,22 @@ static float fAutoClimbRadius = 1.5f;
 
 static int32_t nLastLadderExitTime = -nRegrabCooldownMs;
 
-static injector::hook_back<void*(__cdecl*)(void*, int32_t*, bool)> hbScanForLadderToClimb;
-
-static void* __cdecl ScanForLadderToClimb(void* pPed, int32_t* pOutSection, bool bPlayer)
+namespace CTaskComplexClimbLadder
 {
-    if (*CTimer::m_snTimeInMilliseconds - nLastLadderExitTime < nRegrabCooldownMs)
-        return nullptr;
+    static injector::hook_back<int(__cdecl*)(int, DWORD*, char)> hbScanForLadderToClimb;
+    static int __cdecl ScanForLadderToClimb(int a1, DWORD* a2, char a3)
+    {
+        if (*CTimer::m_snTimeInMilliseconds - nLastLadderExitTime < nRegrabCooldownMs)
+            return 0;
 
-    fLadderScanRadius = fAutoClimbRadius;
-    auto pLadder = hbScanForLadderToClimb.fun(pPed, pOutSection, bPlayer);
-    fLadderScanRadius = 4.0f;
-    return pLadder;
+        fLadderScanRadius = fAutoClimbRadius;
+
+        auto pLadder = hbScanForLadderToClimb.fun(a1, a2, a3);
+
+        fLadderScanRadius = 4.0f;
+
+        return pLadder;
+    }
 }
 
 class AutoLadder
@@ -37,31 +42,26 @@ public:
         {
             CIniReader iniReader("");
 
+            // [MISC]
             fAutoClimbRadius = iniReader.ReadFloat("MISC", "AutoClimbLaddersRange", 1.5f);
 
-            auto pattern = find_pattern("76 ? 8A 81 ? ? ? ? 32 C2 3C ? 76 ? F7 87 ? ? ? ? ? ? ? ? 74");
-            if (pattern.empty())
-                return;
-
-            static auto loc_A72375 = resolve_next_displacement(pattern.get_first(2)).value();
-            static auto AlwaysScanForLadder = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+            auto pattern = find_pattern("76 ? 8A 81 ? ? ? ? 32 C2 3C ? 76 ? F7 87 ? ? ? ? ? ? ? ? 74", "76 ? 8A 96 ? ? ? ? 32 D0 80 FA ? 76 ? F7 83 ? ? ? ? ? ? ? ? 74 ? 8B 44 24");
+            static auto loc_A72369 = resolve_next_displacement(pattern.get_first(2)).value();
+            static auto CTaskComplexPlayerOnFoot__HandlePlayerInput_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
             {
-                static auto acl = FusionFixSettings.GetRef("PREF_AUTOCLIMBLADDERS");
-                if (acl->get())
-                    return_to(loc_A72375);
+                static auto AutoClimbLadders = FusionFixSettings.GetRef("PREF_AUTOCLIMBLADDERS");
+                if (AutoClimbLadders->get())
+                    return_to(loc_A72369);
             });
 
-            auto scanCall = find_pattern("6A 01 8D 44 24 2C 50 57 E8 ? ? ? ?");
-            auto ladderExit = find_pattern("56 57 8B 7C 24 0C 57 8B F1 E8 ? ? ? ? 57 8B CE E8 ? ? ? ? 8B 8F 80 0A 00 00"); // CTaskSimpleClimbLadder::CleanUpBeforeExit
-            auto scanRadius = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 51 CC");
-            if (scanCall.empty() || ladderExit.empty() || scanRadius.empty() || !CTimer::m_snTimeInMilliseconds)
-                return;
+            pattern = find_pattern("E8 ? ? ? ? 83 C4 ? 89 44 24 ? F6 87", "E8 ? ? ? ? 83 C4 ? 89 44 24 ? EB ? 8B 74 24");
+            CTaskComplexClimbLadder::hbScanForLadderToClimb.fun = injector::MakeCALL(pattern.get_first(0), CTaskComplexClimbLadder::ScanForLadderToClimb).get();
 
-            hbScanForLadderToClimb.fun = injector::MakeCALL(scanCall.get_first(8), ScanForLadderToClimb, true).get();
+            pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 51 CC", "F3 0F 10 25 ? ? ? ? 0F 28 C1 0F 28 D3");
+            injector::WriteMemory<float*>(pattern.get_first(4), &fLadderScanRadius, true);
 
-            injector::WriteMemory<float*>(scanRadius.get_first(4), &fLadderScanRadius, true);
-
-            static auto LadderExitHook = safetyhook::create_mid(ladderExit.get_first(), [](SafetyHookContext& regs)
+            pattern = find_pattern("56 57 8B 7C 24 ? 57 8B F1 E8 ? ? ? ? 57 8B CE E8 ? ? ? ? 8B 8F", "56 8B 74 24 ? 57 56 8B F9 E8 ? ? ? ? 56 8B CF E8 ? ? ? ? 8B 8E");
+            static auto CTaskSimpleClimbLadder__CleanUpBeforeExit_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
             {
                 nLastLadderExitTime = *CTimer::m_snTimeInMilliseconds;
             });
