@@ -14,8 +14,11 @@ import settings;
 #define SAFE_RELEASE(p) { if (p) { (p)->Release(); (p)=NULL; } }
 #endif
 
-#define IDR_VS_BlitGamma 134
-#define IDR_PS_BlitGamma 135
+#define IDR_VS_BlitXenonGamma 136
+#define IDR_PS_BlitXenonGamma 137
+
+#define IDR_VS_BlitCellGamma 138
+#define IDR_PS_BlitCellGamma 139
 
 class ConsoleGamma
 {
@@ -26,16 +29,83 @@ private:
         float TexCoord[2];
     };
 
+    struct ShaderProgram
+    {
+        int vsResourceId;
+        int psResourceId;
+        IDirect3DVertexShader9** vs;
+        IDirect3DPixelShader9** ps;
+    };
+
+    static inline bool g_initialized = false;
+    static inline int g_lastGammaSetting = -1; // Very ugly
+
     static inline IDirect3DVertexBuffer9* mQuadVertexBuffer;
     static inline IDirect3DVertexDeclaration9* mQuadVertexDecl;
 
-    // DX9 textures/surfaces
     static inline rage::grcRenderTargetPC* pSceneRT = nullptr;
     static inline IDirect3DSurface9* pSceneSurf = nullptr;
 
-    // Shaders
-    static inline IDirect3DVertexShader9* VS_BlitGamma = nullptr;
-    static inline IDirect3DPixelShader9* PS_BlitGamma = nullptr;
+    static inline IDirect3DVertexShader9* g_vertexShader = nullptr;
+    static inline IDirect3DPixelShader9* g_pixelShader = nullptr;
+
+    static inline IDirect3DVertexShader9* VS_BlitXenonGamma = nullptr;
+    static inline IDirect3DPixelShader9* PS_BlitXenonGamma = nullptr;
+
+    static inline IDirect3DVertexShader9* VS_BlitCellGamma = nullptr;
+    static inline IDirect3DPixelShader9* PS_BlitCellGamma = nullptr;
+
+    // Size is not needed for dx9. Maybe it can be removed? In general all of this would look nicer if it would be closer to api specifications etc, this is just a lame port from dx11 for now.
+    static bool LoadCompiledShaderResource(HMODULE hModule, int resourceId, const void** data, UINT* size)
+    {
+        HRSRC hRes = FindResourceW(hModule, MAKEINTRESOURCEW(resourceId), RT_RCDATA);
+        if (!hRes)
+            return false;
+
+        HGLOBAL hGlob = LoadResource(hModule, hRes);
+        if (!hGlob)
+            return false;
+
+        *data = LockResource(hGlob);
+        if (!*data)
+            return false;
+
+        *size = SizeofResource(hModule, hRes);
+        return *size != 0;
+    }
+
+    static ShaderProgram GetShaderProgram(int ConsoleGamma)
+    {
+        if (ConsoleGamma == 1) // Xenon gamma
+        {
+            return { IDR_VS_BlitXenonGamma, IDR_PS_BlitXenonGamma, &VS_BlitXenonGamma, &PS_BlitXenonGamma };
+        }
+        else if (ConsoleGamma == 2) // Cell gamma
+        {
+            return { IDR_VS_BlitCellGamma, IDR_PS_BlitCellGamma, &VS_BlitCellGamma, &PS_BlitCellGamma };
+        }
+
+        return { 0, 0, nullptr, nullptr };
+    };
+
+    // It would be nice to create an onMenuOptionChanged event for this, to just call it each time the option is changed
+    static void ReloadShaders()
+    {
+        // Force reinitialization
+        g_initialized = false;
+
+        // Release current shaders and vertex stuff (Is this needed?)
+        SAFE_RELEASE(g_vertexShader);
+        SAFE_RELEASE(g_pixelShader);
+        SAFE_RELEASE(mQuadVertexBuffer);
+        SAFE_RELEASE(mQuadVertexDecl);
+
+        // Release all cached shaders so they get recreated
+        SAFE_RELEASE(VS_BlitXenonGamma);
+        SAFE_RELEASE(PS_BlitXenonGamma);
+        SAFE_RELEASE(VS_BlitCellGamma);
+        SAFE_RELEASE(PS_BlitCellGamma);
+    }
 
     static void __fastcall OnDeviceLost()
     {
@@ -153,14 +223,89 @@ private:
         return pBB;
     }
 
-    static void RenderConsoleGamma()
+    static bool Initialize()
     {
-        static auto cg = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA");
-        if (!cg->get())
+        if (g_initialized)
+            return g_initialized;
+
+        auto pDevice = rage::grcDevice::GetD3DDevice();
+        if (!pDevice)
+            return false;
+
+        auto OnLostCB = rage::grcDevice::Functor0(NULL, OnDeviceLost, NULL, 0);
+        auto OnResetCB = rage::grcDevice::Functor0(NULL, OnDeviceReset, NULL, 0);
+        rage::grcDevice::RegisterDeviceCallbacks(OnLostCB, OnResetCB);
+
+        static auto ConsoleGamma = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA");
+        if (ConsoleGamma->get() != 1 && ConsoleGamma->get() != 2)
+            return false;
+
+        HMODULE hModule = NULL;
+        GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)&Initialize, &hModule);
+
+        auto shaderProgram = GetShaderProgram(ConsoleGamma->get());
+
+        if (shaderProgram.vsResourceId == 0)
+            return false;
+
+        const void* vsData = nullptr;
+        UINT vsSize = 0;
+        const void* psData = nullptr;
+        UINT psSize = 0;
+
+        HRESULT hResult;
+
+        // Load compiled vertex shader 
+        if (!*shaderProgram.vs)
+        {
+            if (!LoadCompiledShaderResource(hModule, shaderProgram.vsResourceId, &vsData, &vsSize))
+                return false;
+
+            hResult = pDevice->CreateVertexShader(reinterpret_cast<const DWORD*>(vsData), shaderProgram.vs);
+            if (FAILED(hResult))
+                return false;
+        }
+
+        // Load compiled pixel shader
+        if (!*shaderProgram.ps)
+        {
+            if (!LoadCompiledShaderResource(hModule, shaderProgram.psResourceId, &psData, &psSize))
+                return false;
+
+            hResult = pDevice->CreatePixelShader(reinterpret_cast<const DWORD*>(psData), shaderProgram.ps);
+            if (FAILED(hResult))
+                return false;
+        }
+
+        g_vertexShader = *shaderProgram.vs;
+        g_pixelShader = *shaderProgram.ps;
+
+        OnDeviceReset();
+
+        g_initialized = true;
+        g_lastGammaSetting = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA")->get();
+        return true;
+    }
+
+    static void Render()
+    {
+        static auto ConsoleGamma = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA");
+        int current = ConsoleGamma->get();
+
+        if (current != g_lastGammaSetting)
+        {
+            ReloadShaders();
+            g_lastGammaSetting = current;
+        }
+
+        if (!current)
+            return;
+
+        if (!g_initialized && !Initialize())
             return;
 
         auto pDevice = rage::grcDevice::GetD3DDevice();
-        if (!pDevice || !pSceneRT || !pSceneRT->mD3DTexture || !pSceneSurf || !VS_BlitGamma || !PS_BlitGamma || !mQuadVertexDecl || !mQuadVertexBuffer)
+        if (!pDevice || !pSceneRT || !pSceneRT->mD3DTexture || !pSceneSurf || !g_vertexShader || !g_pixelShader || !mQuadVertexDecl || !mQuadVertexBuffer)
             return;
 
         IDirect3DSurface9* pRealBB = GetRealBackBuffer(pDevice);
@@ -268,8 +413,8 @@ private:
 
             pDevice->SetTexture(0, pSceneRT->mD3DTexture);
 
-            pDevice->SetVertexShader(VS_BlitGamma);
-            pDevice->SetPixelShader(PS_BlitGamma);
+            pDevice->SetVertexShader(g_vertexShader);
+            pDevice->SetPixelShader(g_pixelShader);
 
             pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
 
@@ -316,52 +461,6 @@ private:
         SAFE_RELEASE(prevVS);
         SAFE_RELEASE(prevPS);
     }
-
-    static void Initalize()
-    {
-        static bool bInitialized = false;
-        if (bInitialized)
-            return;
-
-        auto pDevice = rage::grcDevice::GetD3DDevice();
-        if (!pDevice)
-            return;
-
-        auto OnLostCB = rage::grcDevice::Functor0(NULL, OnDeviceLost, NULL, 0);
-        auto OnResetCB = rage::grcDevice::Functor0(NULL, OnDeviceReset, NULL, 0);
-        rage::grcDevice::RegisterDeviceCallbacks(OnLostCB, OnResetCB);
-
-        HMODULE hModule = NULL;
-        GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)&Initalize, &hModule);
-
-        ID3DXBuffer* ppShader = nullptr;
-        ID3DXBuffer* ppErrorMsgs = nullptr;
-
-        //Shader ASM
-        if (!VS_BlitGamma)
-        {
-            if (SUCCEEDED(D3DXAssembleShaderFromResourceW(hModule, MAKEINTRESOURCEW(IDR_VS_BlitGamma), NULL, NULL, 0, &ppShader, &ppErrorMsgs)))
-            {
-                pDevice->CreateVertexShader((DWORD*)ppShader->GetBufferPointer(), &VS_BlitGamma);
-                SAFE_RELEASE(ppShader);
-                SAFE_RELEASE(ppErrorMsgs);
-            }
-        }
-
-        if (!PS_BlitGamma)
-        {
-            if (SUCCEEDED(D3DXAssembleShaderFromResourceW(hModule, MAKEINTRESOURCEW(IDR_PS_BlitGamma), NULL, NULL, 0, &ppShader, &ppErrorMsgs)))
-            {
-                pDevice->CreatePixelShader((DWORD*)ppShader->GetBufferPointer(), &PS_BlitGamma);
-                SAFE_RELEASE(ppShader);
-                SAFE_RELEASE(ppErrorMsgs);
-            }
-        }
-
-        OnDeviceReset();
-
-        bInitialized = true;
-    }
 public:
     ConsoleGamma()
     {
@@ -371,8 +470,7 @@ public:
             {
                 FusionFix::onEndScene() += []()
                 {
-                    Initalize();
-                    RenderConsoleGamma();
+                    ConsoleGamma::Render();
                 };
             }
         };
