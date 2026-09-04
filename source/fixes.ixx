@@ -550,7 +550,7 @@ public:
                     auto pattern = hook::pattern("F3 0F 5E C8 F3 0F 10 04 85");
                     if (!pattern.empty())
                     {
-                        static auto dword_E9AA1C = *pattern.get_first<float*>(9);
+                        static auto dword_E9AA1C = *pattern.get_first<uintptr_t*>(9);
                         injector::MakeNOP(pattern.get_first(0), 22, true);
                         static auto CCamFollowVehicle__Process_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                         {
@@ -559,7 +559,7 @@ public:
 
                             int TurnSpeed = IsUsingPad ? nCameraTurnSpeedFollowVehicle_Pad->get() : nCameraTurnSpeedFollowVehicle_KB->get();
                             float f = regs.xmm1.f32[0] / (regs.xmm0.f32[0] * (1.0f - TurnSpeed * 0.1f));
-                            regs.xmm0.f32[0] = *(float*)(dword_E9AA1C + regs.eax * 4);
+                            regs.xmm0.f32[0] = reinterpret_cast<float*>(dword_E9AA1C)[regs.eax];
 
                             float& AutoCenterValue = *(float*)(regs.esp + 0x110 - 0x90);
 
