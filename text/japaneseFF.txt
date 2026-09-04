@@ -145,6 +145,9 @@ FPSリミッター
 [Camera Shake]
 カメラの振動
 
+[FE_STEAMPAD]
+Steam Controller
+
 [CutscAudioSync]
 カットシーンの音声同期
 

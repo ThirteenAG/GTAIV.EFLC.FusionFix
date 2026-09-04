@@ -145,6 +145,9 @@ Zentrierte Zu-Fuß-Kamera
 [Camera Shake]
 Kamerawackeln
 
+[FE_STEAMPAD]
+Steam Controller
+
 [CutscAudioSync]
 Synchronen Ton in Zwischensequenzen erzwingen
 

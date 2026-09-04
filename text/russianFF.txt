@@ -145,6 +145,9 @@ Fusion Fix: Проверять Обновления
 [Camera Shake]
 Тряска камеры
 
+[FE_STEAMPAD]
+Steam Controller
+
 [CutscAudioSync]
 Синхронизация аудио катсцен
 

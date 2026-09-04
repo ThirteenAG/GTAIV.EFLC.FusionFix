@@ -145,6 +145,9 @@ Centered On Foot Camera
 [Camera Shake]
 Camera Shake
 
+[FE_STEAMPAD]
+Steam Controller
+
 [CutscAudioSync]
 Cutscene Audio Sync
 
