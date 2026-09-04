@@ -1999,13 +1999,6 @@ export namespace CMenu
     }
 }
 
-export namespace CCutscenes
-{
-    uint32_t* m_dwCutsceneState;
-
-    bool(*hasCutsceneFinished)();
-}
-
 export namespace CCamera
 {
     bool(*isWidescreenBordersActive)();
@@ -2017,6 +2010,8 @@ export namespace CTimer
     float* fCamTimeStep;
     float* fTimeScale1;
     float* fTimeScale2;
+    float* m_gameTime = nullptr;
+    float* m_systemTime = nullptr;
     uint8_t* m_UserPause = nullptr;
     uint8_t* m_CodePause = nullptr;
     int32_t* m_snTimeInMilliseconds = nullptr;
@@ -2567,6 +2562,23 @@ export namespace CCamera
     bool (__cdecl* isScreenFadedOut)() = nullptr;
 }
 
+export namespace audCutsceneAudioEntity
+{
+    int (__thiscall* GetPlayTimeMs)(uint8_t*) = nullptr;
+}
+
+export namespace CCutsceneManager
+{
+    uint32_t* ms_State = nullptr;
+
+    bool IsRunning()
+    {
+        return ms_State != 0;
+    }
+
+    float* ms_fTimePassedSinceLastAudioStart = nullptr;
+}
+
 export enum eControllerButtons
 {
     BUTTON_BUMPER_LEFT = 4,
@@ -2682,9 +2694,6 @@ public:
         pattern = find_pattern("BE ? ? ? ? 8D 44 24 0C 50 8D 46 10 50", "BE ? ? ? ? 8D 44 24 0C 50 8D 4E 10 51");
         CGameConfigReader::ms_imgFiles = *pattern.get_first<decltype(CGameConfigReader::ms_imgFiles)>(1);
 
-        pattern = hook::pattern("A1 ? ? ? ? 83 F8 08 74 05");
-        CCutscenes::m_dwCutsceneState = *pattern.get_first<uint32_t*>(1);
-
         pattern = find_pattern("89 3D ? ? ? ? A3 ? ? ? ? C7 05", "89 1D ? ? ? ? A3 ? ? ? ? 89 35");
         rage::grcWindow::ms_nActiveWidth = *pattern.get_first<int32_t*>(2);
         rage::grcWindow::ms_nActiveHeight = *pattern.get_first<int32_t*>(7);
@@ -2785,8 +2794,6 @@ public:
         pattern = find_pattern("A1 ? ? ? ? 83 F8 08 74 17", "A1 ? ? ? ? 83 F8 08 74 0C");
         pMenuTab = *pattern.get_first<int32_t*>(1);
 
-        pattern = find_pattern("E8 ? ? ? ? 84 C0 75 89", "E8 ? ? ? ? 84 C0 75 15 38 05");
-        CCutscenes::hasCutsceneFinished = (bool(*)())injector::GetBranchDestination(pattern.get_first(0)).get();
         pattern = find_pattern("E8 ? ? ? ? 84 C0 75 44 38 05 ? ? ? ? 74 26", "E8 ? ? ? ? 84 C0 75 42 38 05");
         CCamera::isWidescreenBordersActive = (bool(*)())injector::GetBranchDestination(pattern.get_first(0)).get();
 
@@ -2957,5 +2964,20 @@ public:
             pattern = hook::pattern("8B 0D ? ? ? ? DB 05 ? ? ? ? 85 C9 7D ? D8 05 ? ? ? ? D8 0D");
             CReplayMgr::dword_11F704C = *pattern.get_first<uint32_t*>(2);
         }
+
+        pattern = hook::pattern("83 3D ? ? ? ? ? 75 ? 83 F8 ? 75 ? F3 0F 10 05 ? ? ? ? EB");
+        CCutsceneManager::ms_State = *pattern.get_first<uint32_t*>(2);
+
+        pattern = find_pattern("0F B6 81 ? ? ? ? 40", "0F B6 91 ? ? ? ? 83 C2");
+        audCutsceneAudioEntity::GetPlayTimeMs = (decltype(audCutsceneAudioEntity::GetPlayTimeMs))pattern.get_first(0);
+
+        pattern = find_pattern("F3 0F 5C 05 ? ? ? ? 0F 2F D0 76 ? 5F", "F3 0F 5C 05 ? ? ? ? 0F 2F E8 76 ? F3 0F 11 2F");
+        CCutsceneManager::ms_fTimePassedSinceLastAudioStart = *pattern.get_first<float*>(4);
+
+        pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 44 24 ? 5F", "F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 44 24 ? F3 0F 11 07");
+        CTimer::m_gameTime = *pattern.get_first<float*>(4);
+
+        pattern = find_pattern("F3 0F 10 05 ? ? ? ? EB ? 66 0F 6E C0", "F3 0F 10 05 ? ? ? ? EB ? F3 0F 2A C0");
+        CTimer::m_systemTime = *pattern.get_first<float*>(4);
     }
 } Common;

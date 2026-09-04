@@ -156,7 +156,7 @@ void __cdecl sub_855640()
 
     if (CCamera::isWidescreenBordersActive())
     {
-        if (CCutscenes::hasCutsceneFinished())
+        if (CCutsceneManager::IsRunning())
         {
             if (fCutsceneFpsLimit)
                 CutsceneFpsLimiter.Sync();
@@ -164,9 +164,9 @@ void __cdecl sub_855640()
                 ScriptCutsceneFpsLimiter.Sync();
 
             // To avoid more softlocks with high fps
-            if (!fCutsceneFpsLimit && CCutscenes::m_dwCutsceneState)
+            if (!fCutsceneFpsLimit && CCutsceneManager::ms_State)
             {
-                if (*CCutscenes::m_dwCutsceneState == 9 || *CCutscenes::m_dwCutsceneState == 10)
+                if (*CCutsceneManager::ms_State == 9 || *CCutsceneManager::ms_State == 10)
                     LoadingFpsLimiter2.Sync();
             }
         }
