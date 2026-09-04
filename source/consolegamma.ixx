@@ -1,7 +1,6 @@
 module;
 
 #include <common.hxx>
-#include <d3dx9tex.h>
 
 export module consolegamma;
 
@@ -14,11 +13,11 @@ import settings;
 #define SAFE_RELEASE(p) { if (p) { (p)->Release(); (p)=NULL; } }
 #endif
 
-#define IDR_VS_BlitXenonGamma 136
-#define IDR_PS_BlitXenonGamma 137
+#define IDR_VS_BlitXenonGamma 134
+#define IDR_PS_BlitXenonGamma 135
 
-#define IDR_VS_BlitCellGamma 138
-#define IDR_PS_BlitCellGamma 139
+#define IDR_VS_BlitCellGamma 136
+#define IDR_PS_BlitCellGamma 137
 
 class ConsoleGamma
 {
