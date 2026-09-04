@@ -2586,6 +2586,11 @@ export namespace CTaskSimpleMovePlayer
     bool* ms_bDefaultNoSprintingInInteriors = nullptr;
 }
 
+export namespace CRenderPhase
+{
+    int32_t* sm_pCurrent = nullptr;
+}
+
 export enum eControllerButtons
 {
     BUTTON_BUMPER_LEFT = 4,
@@ -2769,8 +2774,14 @@ public:
             injector::MakeCALL(pattern.get_first(6), rage::grmShaderInfo::setShaderParamOriginal, true);
         }
 
+        pattern = find_pattern("89 0D ? ? ? ? 8B 01 FF 50 ? C7 05", "89 0D ? ? ? ? 8B 01 8B 50");
+        CRenderPhase::sm_pCurrent = *pattern.get_first<int32_t*>(2);
+
         pattern = find_pattern("55 8B EC 83 E4 F0 81 EC ? ? ? ? 53 8B D9 56 F7 83", "55 8B EC 83 E4 F0 81 EC ? ? ? ? 53 56 57 8B F9 33 DB");
         CRenderPhaseDeferredLighting_LightsToScreen::shBuildRenderList = safetyhook::create_inline(pattern.get_first(), CRenderPhaseDeferredLighting_LightsToScreen::BuildRenderList);
+
+        pattern = hook::pattern("51 56 8B F1 83 BE ? ? ? ? ? 0F 84 ? ? ? ? 68");
+        CRenderPhaseDeferredLighting_SceneToGBuffer::shBuildRenderList = safetyhook::create_inline(pattern.get_first(0), CRenderPhaseDeferredLighting_SceneToGBuffer::BuildRenderList);
 
         pattern = find_pattern("E8 ? ? ? ? F3 0F 10 44 24 ? 51 F3 0F 11 04 24 56 E8 ? ? ? ? 83 C4 08 FF 05", "E8 ? ? ? ? D9 44 24 0C 51 D9 1C 24 56 E8 ? ? ? ? 83 C4 08");
         CRenderPhaseDeferredLighting_LightsToScreen::shCopyLight = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first()).get<void*>(), CRenderPhaseDeferredLighting_LightsToScreen::CopyLight);
@@ -2835,9 +2846,6 @@ public:
             CClock::ms_nGameClockMinutes = *pattern.get_first<uint8_t*>(23);
             CClock::ms_nGameClockSeconds = *pattern.get_first<uint16_t*>(28);
         }
-
-        pattern = hook::pattern("51 56 8B F1 83 BE ? ? ? ? ? 0F 84 ? ? ? ? 68");
-        CRenderPhaseDeferredLighting_SceneToGBuffer::shBuildRenderList = safetyhook::create_inline(pattern.get_first(0), CRenderPhaseDeferredLighting_SceneToGBuffer::BuildRenderList);
 
         pattern = find_pattern("83 3D ? ? ? ? ? 8D 81 ? ? ? ? 75 ? 8D 81 ? ? ? ? 50", "83 3D ? ? ? ? ? 74 ? 8D 8B");
         dwSniperInverted = *pattern.get_first<int*>(2);
