@@ -149,10 +149,13 @@ Camera Shake
 Cutscene Audio Sync
 
 [CutscAudioSync0]
-Cutscene Audio Sync deactivated
+Cutscene Audio Sync - Off
 
 [CutscAudioSync1]
-Cutscene Audio Sync activated
+Cutscene Audio Sync - Alternative
+
+[CutscAudioSync2]
+Cutscene Audio Sync - On
 
 [Turn Indicators]
 Turn Indicators
@@ -207,6 +210,9 @@ Police Buffalo
 
 [FF_WARN0]
 ~p~IMG Files:
+
+[MO_ALT]
+Alternative
 
 [FF_WARN1]
 ; ~r~WARNING: 255 IMG limit exceeded, will cause streaming issues.
