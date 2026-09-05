@@ -149,10 +149,13 @@ Kamerawackeln
 Synchronen Ton in Zwischensequenzen erzwingen
 
 [CutscAudioSync0]
-Synchroner Zwischensequenzton deaktiviert
+Synchronen Ton in Zwischensequenzen erzwingen - Aus
 
 [CutscAudioSync1]
-Synchroner Zwischensequenzton aktiviert
+Synchronen Ton in Zwischensequenzen erzwingen - Alternativ
+
+[CutscAudioSync2]
+Synchronen Ton in Zwischensequenzen erzwingen - An
 
 [Turn Indicators]
 Blinker
@@ -207,6 +210,9 @@ Polizei-Buffalo
 
 [FF_WARN0]
 ~p~IMG-Dateien:
+
+[MO_ALT]
+Alternativ
 
 [FF_WARN1]
 ; ~r~ACHTUNG: Obergrenze von 255 IMG-Dateien überschritten, was zu Streaming-Problemen führt.

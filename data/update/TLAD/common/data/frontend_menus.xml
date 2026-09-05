@@ -130,8 +130,9 @@
       <options360 text="LB_RANKED" action="ACTION_NONE" value="0" />
     </menu360>
     <menupc enum="MENU_DISPLAY_NETSTATS_GAMETYPE">
-      <optionspc text="LB_UNRANKED" action="ACTION_NONE" value="0" />
-      <optionspc text="LB_RANKED" action="ACTION_NONE" value="0" />
+      <options text="MO_OFF" action="ACTION_NONE" value="0" />
+      <options text="MO_ALT" action="ACTION_NONE" value="1" />
+      <options text="MO_ON" action="ACTION_NONE" value="2" />
     </menupc>
     <menu enum="MENU_DISPLAY_NETSTATS_SCORES">
       <options text="MO_OFF" action="ACTION_NONE" value="0" />
@@ -575,7 +576,7 @@
             <optionspc action="MENUOPT_ADJUST" label="Turn Indicators" value="PREF_TURNINDICATORS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Bullet Traces" value="PREF_BULLETTRACES" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
 			<optionspc action="MENUOPT_ADJUST" label="Stop Taxi" value="PREF_STOPTAXI" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<optionspc action="MENUOPT_ADJUST" label="Ladders Climb" value="PREF_AUTOCLIMBLADDERS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="Ladders Climb" value="PREF_AUTOCLIMBLADDERS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       
       <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
     </menu>
@@ -655,7 +656,7 @@
       
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="Alt. Dialogues" value="PREF_ALTDIALOGUE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-            <optionspc action="MENUOPT_ADJUST" label="CutscAudioSync" value="PREF_CUTSCENEAUDIOSYNC" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="CutscAudioSync" value="PREF_CUTSCENEAUDIOSYNC" scaler="3" displayValue="MENU_DISPLAY_NETSTATS_GAMETYPE" />
       
       <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="0" />
     </menu>
@@ -1323,7 +1324,7 @@
             <optionspc action="MENUOPT_ADJUST" label="Turn Indicators" value="PREF_TURNINDICATORS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Bullet Traces" value="PREF_BULLETTRACES" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
 			<optionspc action="MENUOPT_ADJUST" label="Stop Taxi" value="PREF_STOPTAXI" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-			<optionspc action="MENUOPT_ADJUST" label="Ladders Climb" value="PREF_AUTOCLIMBLADDERS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="Ladders Climb" value="PREF_AUTOCLIMBLADDERS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       
       <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
     </menupc>
@@ -1341,7 +1342,7 @@
       
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="Alt. Dialogues" value="PREF_ALTDIALOGUE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-            <optionspc action="MENUOPT_ADJUST" label="CutscAudioSync" value="PREF_CUTSCENEAUDIOSYNC" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="CutscAudioSync" value="PREF_CUTSCENEAUDIOSYNC" scaler="3" displayValue="MENU_DISPLAY_NETSTATS_GAMETYPE" />
       
       <options action="END_OF_MENU_OPTIONS" label="" value="0" scaler="0" displayValue="MENU_DISPLAY_NONE" />
     </menupc>
