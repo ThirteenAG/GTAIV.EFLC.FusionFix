@@ -10,183 +10,216 @@ import comvars;
 import natives;
 import settings;
 
-uint32_t* dwEpisodeID1 = nullptr;
-uint8_t* g_cutsceneAudio = nullptr;
+uint8_t* g_CutsceneAudioEntity = nullptr;
 int* dword_12957B8 = nullptr;
-float* float_129574C = nullptr;
-float* float_11735BC = nullptr;
-float* float_117359C = nullptr;
 
-namespace rage
+bool LostFocusResyncTimerActive = false;
+std::chrono::steady_clock::time_point LostFocusResyncTimerStart{};
+
+namespace CCutsceneManager
 {
-    namespace audCutsceneAudioEntity
+    static inline float dword_1295798;
+    static inline float dword_129579C;
+    static inline float dword_12957A4;
+    static inline float dword_12957A8;
+    static inline float dword_12957B0;
+    static inline float dword_12957B4;
+    static inline float dword_12957A0;
+    static inline float dword_12957AC;
+
+    static inline float dword_12957BC;
+    static inline float dword_12957C0;
+    static inline float dword_12957C8;
+    static inline float dword_12957CC;
+    static inline float dword_12957D4;
+    static inline float dword_12957D8;
+    static inline float dword_12957C4;
+    static inline float dword_12957D0;
+
+    SafetyHookInline shGetTimeStep = {};
+    void __cdecl GetTimeStep(float* a1)
     {
-        int getAudioTimeMs(uint8_t* audioEntity)
+        float v1 = *a1;
+        float v2 = 0.0f;
+        int v3 = audCutsceneAudioEntity::GetPlayTimeMs(g_CutsceneAudioEntity);
+
+        if (*_dwCurrentEpisode == 2)
         {
-            // Get the next buffer index in the ping-pong buffer system
-            uint8_t nextBufferIndex = (audioEntity[160] + 1) % 2;
+            int v4 = *dword_12957B8;
 
-            // Get pointer to the audio buffer using the calculated index
-            uint32_t* audioBuffer = *(uint32_t**)(&audioEntity[8 + (nextBufferIndex * 4)]);
-
-            // Return audio time from buffer or -1 if buffer is null
-            return audioBuffer ? *(uint32_t*)((uint8_t*)audioBuffer + 184) : -1;
-        }
-    }
-}
-
-std::chrono::steady_clock::time_point syncStartTime{};
-bool syncTimerActive = false;
-bool applicationLostFocus = false;
-void __cdecl sub_9C2C80(float* a1)
-{
-    // Initialize variables
-    constexpr float flt_1295798 = 120.0f;  // Start time for e2_int
-    constexpr float flt_129579C = 0.0f;    // Initial offset
-    constexpr float flt_12957A4 = 180.0f;  // Second phase start
-    constexpr float flt_12957A8 = -300.0f; // Second phase offset
-    constexpr float flt_12957B0 = 350.0f;  // Final phase start
-    constexpr float flt_12957B4 = -500.0f; // Final offset
-    constexpr float flt_12957A0 = 0.016666668f; // First phase multiplier
-    constexpr float flt_12957AC = 0.0058823531f; // Second phase multiplier
-
-    constexpr float flt_12957BC = 45.0f;   // Start time for GT06_AA
-    constexpr float flt_12957C0 = 0.0f;    // Initial offset
-    constexpr float flt_12957C8 = 180.0f;  // Second phase start
-    constexpr float flt_12957CC = -400.0f; // Second phase offset
-    constexpr float flt_12957D4 = 350.0f;  // Final phase start
-    constexpr float flt_12957D8 = -400.0f; // Final offset
-    constexpr float flt_12957C4 = 0.0074074073f; // First phase multiplier
-    constexpr float flt_12957D0 = 0.0058823531f; // Second phase multiplier
-
-    float time_offset = 0.0; // Animation timing offset
-    int audio_time_ms = rage::audCutsceneAudioEntity::getAudioTimeMs(g_cutsceneAudio);
-    float initial_time = *a1; // Store initial output time
-    int adjusted_time; // Adjusted time to return
-    float final_time; // Final output time
-
-    // Apply timing adjustments for Episode ID 2
-    if (*dwEpisodeID1 == 2)
-    {
-        int flags = *dword_12957B8;
-        if (!(flags & 1))
-        {
-            *dword_12957B8 |= 1;
-        }
-        if (!(flags & 2))
-        {
-            *dword_12957B8 |= 2;
-        }
-
-        // Convert audio time to seconds
-        float audio_time_sec = audio_time_ms * 0.001f;
-
-        // Adjust offset for cutscene "e2_int"
-        if (!_stricmp(pszCurrentCutsceneName, "e2_int"))
-        {
-            if (audio_time_sec < flt_1295798)
-                time_offset = flt_129579C;
-            else
-                time_offset = ((audio_time_sec - flt_1295798) * flt_12957A0) * (flt_12957A8 - flt_129579C) + flt_129579C;
-            if (audio_time_sec >= flt_12957A4)
-                time_offset = ((audio_time_sec - flt_12957A4) * flt_12957AC) * (flt_12957B4 - flt_12957A8) + flt_12957A8;
-            if (audio_time_sec >= flt_12957B0)
-                time_offset = flt_12957B4;
-        }
-        // Adjust offset for cutscene "GT06_AA"
-        else if (!_stricmp(pszCurrentCutsceneName, "GT06_AA"))
-        {
-            if (audio_time_sec < flt_12957BC)
-                time_offset = flt_12957C0;
-            else
-                time_offset = ((audio_time_sec - flt_12957BC) * flt_12957C4) * (flt_12957CC - flt_12957C0) + flt_12957C0;
-            if (audio_time_sec >= flt_12957C8)
-                time_offset = ((audio_time_sec - flt_12957C8) * flt_12957D0) * (flt_12957D8 - flt_12957CC) + flt_12957CC;
-            if (audio_time_sec >= flt_12957D4)
-                time_offset = flt_12957D8;
-        }
-    }
-
-    // Handle invalid audio time
-    if (audio_time_ms == -1)
-    {
-        adjusted_time = -1;
-    }
-    else
-    {
-        // Calculate adjusted time with clamping
-        adjusted_time = audio_time_ms + (int)time_offset;
-        if (adjusted_time < 0)
-            adjusted_time = 0;
-    }
-
-    static auto cas = FusionFixSettings.GetRef("PREF_CUTSCENEAUDIOSYNC");
-    static auto oldState = IsKeyboardKeyPressed(VK_UP);
-    auto curState = IsKeyboardKeyPressed(VK_UP);
-    if (((oldState) == 0 && (curState)) || Natives::IsButtonJustPressed(0, BUTTON_DPAD_UP))
-    {
-        FusionFixSettings.Set("PREF_CUTSCENEAUDIOSYNC", cas->get() ? 0 : 1);
-
-        if (cas->get())
-            Natives::PrintBig((char*)"CutscAudioSync1", 1000, 2);
-        else
-            Natives::PrintBig((char*)"CutscAudioSync0", 1000, 2);
-    }
-    oldState = curState;
-
-    if (syncTimerActive)
-    {
-        auto currentTime = std::chrono::steady_clock::now();
-        auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - syncStartTime);
-
-        if (elapsedTime.count() >= 5000)
-        {
-            syncTimerActive = false;
-            syncStartTime = std::chrono::steady_clock::time_point{};
-        }
-    }
-
-    if (cas->get() || syncTimerActive || applicationLostFocus)
-    {
-        // Original code
-        // Apply cutscene state-specific timing
-        if (*CCutscenes::m_dwCutsceneState != 8)
-        {
-            final_time = *float_11735BC * 1000.0f + initial_time;
-        }
-        else if (adjusted_time == -1)
-        {
-            final_time = *float_117359C * 1000.0f + initial_time;
-        }
-        else
-        {
-            final_time = (float)adjusted_time - *float_129574C;
-            if (final_time < 0.0f)
-                final_time = 0.0f;
-        }
-    }
-    else
-    {
-        if ((adjusted_time + audio_time_ms != 0) || ((adjusted_time | audio_time_ms) != 0)) // the hell is this? equivalent to noping `cmp     CCutscenes__m_dwCutsceneState, 8`
-        {
-            final_time = *float_11735BC * 1000.0f + initial_time;
-        }
-        else
-        {
-            if (adjusted_time == -1)
+            if ((*dword_12957B8 & 1) == 0)
             {
-                final_time = *float_117359C * 1000.0f + initial_time;
+                v4 = *dword_12957B8 | 1;
+                *dword_12957B8 |= 1u;
+                dword_1295798 = 120.0f;
+                dword_129579C = 0.0f;
+                dword_12957A4 = 180.0f;
+                dword_12957A8 = -300.0f;
+                dword_12957B0 = 350.0f;
+                dword_12957B4 = -500.0f;
+                dword_12957A0 = 0.016666668f;
+                dword_12957AC = 0.0058823531f;
+            }
+
+            if ((v4 & 2) == 0)
+            {
+                *dword_12957B8 = v4 | 2;
+                dword_12957BC = 45.0f;
+                dword_12957C0 = 0.0f;
+                dword_12957C8 = 180.0f;
+                dword_12957CC = -400.0f;
+                dword_12957D4 = 350.0f;
+                dword_12957D8 = -400.0f;
+                dword_12957C4 = 0.0074074073f;
+                dword_12957D0 = 0.0058823531f;
+            }
+
+            if (!_stricmp(pszCurrentCutsceneName, "e2_int"))
+            {
+                float v5 = v3 * 0.001f;
+
+                if ((v5 - dword_1295798) < 0.0f)
+                    v2 = dword_129579C;
+                else
+                    v2 = (((v5 - dword_1295798) * dword_12957A0) * (dword_12957A8 - dword_129579C)) + dword_129579C;
+
+                if ((v5 - dword_12957A4) >= 0.0f)
+                    v2 = (((v5 - dword_12957A4) * dword_12957AC) * (dword_12957B4 - dword_12957A8)) + dword_12957A8;
+
+                if ((v5 - dword_12957B0) >= 0.0f)
+                    v2 = dword_12957B4;
+            }
+            else if (!_stricmp(pszCurrentCutsceneName, "GT06_AA"))
+            {
+                float v6 = v3 * 0.001f;
+
+                if ((v6 - dword_12957BC) < 0.0f)
+                    v2 = dword_12957C0;
+                else
+                    v2 = (((v6 - dword_12957BC) * dword_12957C4) * (dword_12957CC - dword_12957C0)) + dword_12957C0;
+
+                if ((v6 - dword_12957C8) >= 0.0f)
+                    v2 = (((v6 - dword_12957C8) * dword_12957D0) * (dword_12957D8 - dword_12957CC)) + dword_12957CC;
+
+                if ((v6 - dword_12957D4) >= 0.0f)
+                    v2 = dword_12957D8;
             }
             else
             {
-                final_time = (float)adjusted_time - *float_129574C;
-                if (final_time < 0.0f)
-                    final_time = 0.0f;
+                v2 = 0.0f;
             }
         }
-    }
 
-    *a1 = final_time;
+        // Result
+        int v7 = 0;
+
+        if (v3 == -1)
+        {
+            v7 = -1;
+        }
+        else
+        {
+            v7 = v3 + (int)v2;
+            if (v7 < 0)
+                v7 = 0;
+        }
+
+        static auto CutsceneAudioSync = FusionFixSettings.GetRef("PREF_CUTSCENEAUDIOSYNC");
+        static auto OldState = IsKeyboardKeyPressed(VK_UP);
+        auto CurrentState = IsKeyboardKeyPressed(VK_UP);
+
+        if (((OldState) == 0 && (CurrentState)) || Natives::IsButtonJustPressed(0, BUTTON_DPAD_UP))
+        {
+            int Mode = (CutsceneAudioSync->get() + 1) % 3;
+            FusionFixSettings.Set("PREF_CUTSCENEAUDIOSYNC", Mode);
+
+            switch (Mode)
+            {
+                case 0: // Off
+                    Natives::PrintBig((char*)"CutscAudioSync0", 1000, 2);
+                    break;
+
+                case 1: // Alternative
+                    Natives::PrintBig((char*)"CutscAudioSync1", 1000, 2);
+                    break;
+
+                case 2: // On
+                    Natives::PrintBig((char*)"CutscAudioSync2", 1000, 2);
+                    break;
+            }
+        }
+        OldState = CurrentState;
+
+        if (LostFocusResyncTimerActive)
+        {
+            auto Elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - LostFocusResyncTimerStart);
+
+            if (Elapsed.count() >= 1000) // One second sync, should be enough
+            {
+                LostFocusResyncTimerActive = false;
+            }
+        }
+
+        float v8 = 0.0f;
+
+        if (CutsceneAudioSync->get() == 2 || LostFocusResyncTimerActive)
+        {
+            // Vanilla code, only desyncs during section changes and fading
+            if (*CCutsceneManager::ms_State != 8)
+            {
+                v8 = (*CTimer::m_gameTime * 1000.0f) + v1;
+            }
+            else if (v7 == -1)
+            {
+                v8 = (*CTimer::m_systemTime * 1000.0f) + v1;
+            }
+            else
+            {
+                v8 = (float)v7 - *CCutsceneManager::ms_fTimePassedSinceLastAudioStart;
+                if (v8 < 0.0f)
+                    v8 = 0.0f;
+            }
+        }
+        else if (CutsceneAudioSync->get() == 1)
+        {
+            // Flipped vanilla code, only syncs during section changes and fading
+            // NOTE: This may cause visible stutter, perhaps even half refresh frame drops (Sometimes) when sections change.
+            if (*CCutsceneManager::ms_State == 8)
+            {
+                v8 = (*CTimer::m_gameTime * 1000.0f) + v1;
+            }
+            else if (v7 == -1)
+            {
+                v8 = (*CTimer::m_systemTime * 1000.0f) + v1;
+            }
+            else
+            {
+                v8 = (float)v7 - *CCutsceneManager::ms_fTimePassedSinceLastAudioStart;
+                if (v8 < 0.0f)
+                    v8 = 0.0f;
+            }
+        }
+        else if (CutsceneAudioSync->get() == 0)
+        {
+            // Always runs, may inevitably result in desync, which can then be mitigated manually unfortunately
+            if ((v7 + v3 != 0) || ((v7 | v3) != 0))
+            {
+                v8 = *CTimer::m_gameTime * 1000.0f + v1;
+            }
+            else if (v7 == -1)
+            {
+                v8 = *CTimer::m_systemTime * 1000.0f + v1;
+            }
+            else
+            {
+                v8 = (float)v7 - *CCutsceneManager::ms_fTimePassedSinceLastAudioStart;
+                if (v8 < 0.0f)
+                    v8 = 0.0f;
+            }
+        }
+
+        *a1 = v8;
+    }
 }
 
 class CutsceneCam
@@ -201,123 +234,119 @@ public:
             auto pattern = find_pattern("83 3D ? ? ? ? ? 0F 8E ? ? ? ? 83 FF", "83 3D ? ? ? ? ? 0F 8E ? ? ? ? 83 F8");
             injector::MakeNOP(pattern.get_first(0), 27, true);
 
-            // By Sergeanur
-            pattern = find_pattern("E8 ? ? ? ? 8B 4C 24 2C 5F 5E 33 CC B0 01", "E8 ? ? ? ? 8B 4C 24 2C 5F 5E 5B");
-
-            static void* patchOffset = pattern.get_first();
-
-            static void* originalHookster = injector::GetBranchDestination(patchOffset).get<void*>();
-
-            pattern = find_pattern("C6 44 24 ? ? A1 ? ? ? ? 83 FF 03", "C6 44 24 ? ? 83 F9 03");
-            static void* originalHooksterBytePatch = pattern.get_first(4);
-            static double incrementalTimeStep = 0.0;
-
-            struct CutsceneCamJitterWorkaround
+            // Cutscene jitter workarounds
             {
-                float data[320];
+                // By Sergeanur
+                pattern = find_pattern("E8 ? ? ? ? 8B 4C 24 2C 5F 5E 33 CC B0 01", "E8 ? ? ? ? 8B 4C 24 2C 5F 5E 5B");
 
-                bool OriginalHookster(float a2)
+                static void* patchOffset = pattern.get_first(0);
+
+                static void* originalHookster = injector::GetBranchDestination(patchOffset).get<void*>();
+
+                pattern = find_pattern("C6 44 24 ? ? A1 ? ? ? ? 83 FF 03", "C6 44 24 ? ? 83 F9 03");
+                static void* originalHooksterBytePatch = pattern.get_first(4);
+                static double incrementalTimeStep = 0.0;
+
+                struct CutsceneCamJitterWorkaround
                 {
-                    return ((bool(__thiscall*)(CutsceneCamJitterWorkaround*, float))originalHookster)(this, a2);
-                }
+                    float data[320];
 
-                bool Hookster(float a2)
-                {
-                    #if 1
-                    incrementalTimeStep += *CTimer::fTimeStep;
-
-                    CutsceneCamJitterWorkaround temp = *this;
-
-                    injector::WriteMemory<uint8_t>(originalHooksterBytePatch, 1, true);
-                    bool result = OriginalHookster(a2) != 0.0;
-
-                    CutsceneCamJitterWorkaround temp2 = *this;
-
-                    if (incrementalTimeStep < 0.3333)
-                        return result;
-
-                    *this = temp;
-
-                    injector::WriteMemory<uint8_t>(originalHooksterBytePatch, 0, true);
-                    bool result2 = OriginalHookster(a2) != 0.0;
-
-                    temp = *this;
-
-                    if (fabs(temp.data[8] - temp2.data[8]) > 0.03333f
-                        || fabs(temp.data[9] - temp2.data[9]) > 0.03333f
-                        || fabs(temp.data[10] - temp2.data[10]) > 0.03333f
-                        || fabs(temp.data[16] - temp2.data[16]) > 0.3333f
-                        || fabs(temp.data[17] - temp2.data[17]) > 0.3333f
-                        || fabs(temp.data[18] - temp2.data[18]) > 0.3333f)
+                    bool OriginalHookster(float a2)
                     {
-                        incrementalTimeStep = 0.0;
-                        *this = temp2;
-                        return result;
+                        return ((bool(__thiscall*)(CutsceneCamJitterWorkaround*, float))originalHookster)(this, a2);
                     }
-                    return result2;
-                    #else
-                    return OriginalHookster(a2) != 0.0;
-                    #endif
-                }
-            };
 
-            auto dest = &CutsceneCamJitterWorkaround::Hookster;
-            injector::MakeCALL(patchOffset, *(void**)&dest, true);
+                    bool Hookster(float a2)
+                    {
+#if 1
+                        incrementalTimeStep += *CTimer::fTimeStep;
 
-            pattern = find_pattern("E8 ? ? ? ? 8B CD 88 44 24 0F", "E8 ? ? ? ? 8B CF 88 44 24 0F");
-            injector::MakeCALL(pattern.get_first(), *(void**)&dest, true);
+                        CutsceneCamJitterWorkaround temp = *this;
 
-            // ??? kinda affects anims idk ???
-            pattern = find_pattern("F3 0F 11 86 ? ? ? ? 5E 5B 8B 4C 24 30 33 CC E8 ? ? ? ? 83 C4 34 C2 04 00", "F3 0F 11 8F ? ? ? ? 5F 5E B8 ? ? ? ? 5D 83 C4 2C C2 04 00");
-            if (!pattern.empty())
-                injector::MakeNOP(pattern.get_first(), 8, true);
+                        injector::WriteMemory<uint8_t>(originalHooksterBytePatch, 1, true);
+                        bool result = OriginalHookster(a2) != 0.0;
 
-            pattern = find_pattern("F3 0F 11 86 ? ? ? ? 5F 5E B8 ? ? ? ? 5B 8B 4C 24 30 33 CC E8 ? ? ? ? 83 C4 34 C2 04 00", "F3 0F 11 8F ? ? ? ? C6 87 ? ? ? ? ? 5F 5E B8 ? ? ? ? 5D 83 C4 2C C2 04 00");
-            if (!pattern.empty())
-                injector::MakeNOP(pattern.get_first(), 8, true);
+                        CutsceneCamJitterWorkaround temp2 = *this;
 
-            // timing? audio sync?
-            pattern = find_pattern("B9 ? ? ? ? F3 0F 11 44 24 ? E8 ? ? ? ? 83 3D");
-            g_cutsceneAudio = *pattern.get_first<uint8_t*>(1);
+                        if (incrementalTimeStep < 0.3333)
+                            return result;
 
-            pattern = find_pattern("8B 0D ? ? ? ? F6 C1 ? 75 ? 83 C9 ? 89 0D ? ? ? ? C7 05");
-            if (!pattern.empty())
-                dword_12957B8 = *pattern.get_first<int*>(2);
-            else
-            {
-                pattern = hook::pattern("A1 ? ? ? ? A8 01 F3 0F 10 05 ? ? ? ? F3 0F 10 0D ? ? ? ? F3 0F 10 15 ? ? ? ? 75 68");
-                dword_12957B8 = *pattern.get_first<int*>(1);
+                        *this = temp;
+
+                        injector::WriteMemory<uint8_t>(originalHooksterBytePatch, 0, true);
+                        bool result2 = OriginalHookster(a2) != 0.0;
+
+                        temp = *this;
+
+                        if (fabs(temp.data[8] - temp2.data[8]) > 0.03333f
+                            || fabs(temp.data[9] - temp2.data[9]) > 0.03333f
+                            || fabs(temp.data[10] - temp2.data[10]) > 0.03333f
+                            || fabs(temp.data[16] - temp2.data[16]) > 0.3333f
+                            || fabs(temp.data[17] - temp2.data[17]) > 0.3333f
+                            || fabs(temp.data[18] - temp2.data[18]) > 0.3333f)
+                        {
+                            incrementalTimeStep = 0.0;
+                            *this = temp2;
+                            return result;
+                        }
+                        return result2;
+#else
+                        return OriginalHookster(a2) != 0.0;
+#endif
+                    }
+                };
+
+                auto dest = &CutsceneCamJitterWorkaround::Hookster;
+                injector::MakeCALL(patchOffset, *(void**)&dest, true);
+
+                pattern = find_pattern("E8 ? ? ? ? 8B CD 88 44 24 0F", "E8 ? ? ? ? 8B CF 88 44 24 0F");
+                injector::MakeCALL(pattern.get_first(0), *(void**)&dest, true);
+
+                // ??? kinda affects anims idk ???
+                pattern = find_pattern("F3 0F 11 86 ? ? ? ? 5E 5B 8B 4C 24 30 33 CC E8 ? ? ? ? 83 C4 34 C2 04 00", "F3 0F 11 8F ? ? ? ? 5F 5E B8 ? ? ? ? 5D 83 C4 2C C2 04 00");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(0), 8, true);
+
+                pattern = find_pattern("F3 0F 11 86 ? ? ? ? 5F 5E B8 ? ? ? ? 5B 8B 4C 24 30 33 CC E8 ? ? ? ? 83 C4 34 C2 04 00", "F3 0F 11 8F ? ? ? ? C6 87 ? ? ? ? ? 5F 5E B8 ? ? ? ? 5D 83 C4 2C C2 04 00");
+                if (!pattern.empty())
+                    injector::MakeNOP(pattern.get_first(0), 8, true);
             }
 
-            pattern = find_pattern("F3 0F 5C 05 ? ? ? ? 0F 2F D0 76 ? 5F", "F3 0F 5C 05 ? ? ? ? 0F 2F E8 76 1E F3 0F 11 2F 5F 5E 59 C3");
-            float_129574C = *pattern.get_first<float*>(4);
-
-            pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 44 24 ? 5F", "F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 44 24 ? F3 0F 11 07 5F 5E 59 C3");
-            float_11735BC = *pattern.get_first<float*>(4);
-
-            pattern = find_pattern("F3 0F 10 05 ? ? ? ? EB ? 66 0F 6E C0", "F3 0F 10 05 ? ? ? ? EB 21 F3 0F 2A C0 F3 0F 5C 05 ? ? ? ? 0F 2F E8 76 1E F3 0F 11 2F 5F 5E 59 C3");
-            float_117359C = *pattern.get_first<float*>(4);
-
-            pattern = find_pattern("83 3D ? ? ? ? ? 0F 57 D2", "83 3D ? ? ? ? ? 0F 57 ED 8B F0");
-            dwEpisodeID1 = *pattern.get_first<uint32_t*>(2);
-
-            pattern = find_pattern("51 56 8B 74 24 ? 57 F3 0F 10 06", "51 56 57 8B 7C 24 10 F3 0F 10 07 B9 ? ? ? ? F3 0F 11 44 24 ? E8 ? ? ? ? 83 3D ? ? ? ? ? 0F 57 ED 8B F0");
-            static auto shCutscAudioSync = safetyhook::create_inline(pattern.get_first(), sub_9C2C80);
-
-            FusionFix::onActivateApp() += [](bool wParam)
+            // Cutscene animation-audio sync adjustments
             {
-                if (!wParam)
+                pattern = hook::pattern("B9 ? ? ? ? F3 0F 11 44 24 ? E8 ? ? ? ? 83 3D");
+                g_CutsceneAudioEntity = *pattern.get_first<uint8_t*>(1);
+
+                pattern = hook::pattern("8B 0D ? ? ? ? F6 C1 ? 75 ? 83 C9 ? 89 0D ? ? ? ? C7 05");
+                if (!pattern.empty())
                 {
-                    applicationLostFocus = true;
-                    syncTimerActive = false;
+                    dword_12957B8 = *pattern.get_first<int*>(2);
                 }
                 else
                 {
-                    applicationLostFocus = false;
-                    syncStartTime = std::chrono::steady_clock::now();
-                    syncTimerActive = true;
+                    pattern = hook::pattern("A1 ? ? ? ? A8 ? F3 0F 10 05");
+                    dword_12957B8 = *pattern.get_first<int*>(1);
                 }
-            };
+
+                pattern = find_pattern("51 56 8B 74 24 ? 57 F3 0F 10 06", "51 56 57 8B 7C 24 ? F3 0F 10 07");
+                CCutsceneManager::shGetTimeStep = safetyhook::create_inline(pattern.get_first(0), CCutsceneManager::GetTimeStep);
+
+                // Alt-tab handler
+                FusionFix::onActivateApp() += [](bool wParam)
+                {
+                    if (!wParam)
+                    {
+                        // Lost focus
+                        LostFocusResyncTimerActive = false;
+                    }
+                    else
+                    {
+                        // Regained focus
+                        LostFocusResyncTimerActive = true;
+                        LostFocusResyncTimerStart = std::chrono::steady_clock::now();
+                    }
+                };
+            }
         };
     }
 } CutsceneCam;

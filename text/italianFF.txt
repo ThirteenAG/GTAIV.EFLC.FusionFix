@@ -152,10 +152,13 @@ Steam Controller
 Sincronizzazione audio cinematiche
 
 [CutscAudioSync0]
-Sincronizzazione audio cinematiche disattivata
+Sincronizzazione audio cinematiche - No
 
 [CutscAudioSync1]
-Sincronizzazione audio cinematiche attivata
+Sincronizzazione audio cinematiche - Alternativo
+
+[CutscAudioSync2]
+Sincronizzazione audio cinematiche - Sì
 
 [Turn Indicators]
 Indicatori di direzione
@@ -210,6 +213,9 @@ Buffalo polizia
 
 [FF_WARN0]
 ~p~Archivi IMG:
+
+[MO_ALT]
+Alternativo
 
 [FF_WARN1]
 ; ~r~ATTENZIONE: È stato superato il limite di 255 archivi IMG, potrebbero verificarsi problemi di streaming.

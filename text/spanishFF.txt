@@ -152,10 +152,13 @@ Steam Controller
 Sincronizar audio durante las escenas cinemáticas
 
 [CutscAudioSync0]
-Sincronizar audio durante las escenas cinemáticas: Desactivada
+Sincronizar audio durante las escenas cinemáticas - No
 
 [CutscAudioSync1]
-Sincronizar audio durante las escenas cinemáticas: Activada
+Sincronizar audio durante las escenas cinemáticas - Alternativo
+
+[CutscAudioSync2]
+Sincronizar audio durante las escenas cinemáticas - Sí
 
 [Turn Indicators]
 Indicadores de giro
@@ -210,6 +213,9 @@ Buffalo policía
 
 [FF_WARN0]
 ~p~Archivos IMG:
+
+[MO_ALT]
+Alternativo
 
 [FF_WARN1]
 ; ~r~NOTA: Se ha superado el límite de 255 IMG, lo que provocará problemas de «streaming». 

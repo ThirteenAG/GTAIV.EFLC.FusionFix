@@ -152,10 +152,13 @@ Steam Controller
 Synchronisation audio des cinématiques
 
 [CutscAudioSync0]
-Synchronisation audio des cinématiques désactivée
+Synchronisation audio des cinématiques - Sans
 
 [CutscAudioSync1]
-Synchronisation audio des cinématiques activée
+Synchronisation audio des cinématiques - Alternatif
+
+[CutscAudioSync2]
+Synchronisation audio des cinématiques - Avec
 
 [Turn Indicators]
 Clignotants
@@ -211,6 +214,9 @@ Police Buffalo
 [FF_WARN0]
 ~p~Fichiers IMG:
 
+[MO_ALT]
+Alternatif
+
 [FF_WARN1]
 ; ~r~AVERTISSEMENT : la limite de 255 IMG est dépassée, des problèmes de streaming peuvent survenir.
 
@@ -254,4 +260,4 @@ Utilise ~PAD_LSTICK_ALL~ pour te déplacer dans les airs. ~n~Appuie sur ~INPUT_M
 Dans les airs, utilise ~PAD_LSTICK_ALL~ pour te déplacer. En chute libre, appuie sur ~INPUT_MOUSE_LMB~ pour ouvrir ton parachute. ~n~Maintiens ~INPUT_VEH_CIN_CAM~ pour changer d'angle de caméra.
 
 [DUMMY_l11]
-Option fictive.
+Dummy label.
