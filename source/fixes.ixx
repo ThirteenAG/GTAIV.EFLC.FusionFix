@@ -1132,6 +1132,12 @@ public:
                         shNATIVE_COMPARE_STRING = safetyhook::create_inline(pattern.get_first(0), NATIVE_COMPARE_STRING_2);
                     }
                 }
+
+                // Allow ACTIVATE_SAVE_MENU to work while in vehicles, this complements the quick save feature from the scripts side
+                {
+                    auto pattern = find_pattern("F6 80 ? ? ? ? ? 75 ? 8D 04 24", "F6 80 ? ? ? ? ? 75 ? 0F 57 C0 8D 04 24");
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                }
             }
         };
     }
