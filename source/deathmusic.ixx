@@ -8,69 +8,55 @@ import common;
 import comvars;
 import settings;
 
-namespace CGameLogic
-{
-    GameRef<uint32_t> GameState;
-}
+bool bEpisodicDeathMusic = false;
 
-bool AreWeDeadOrGettingArrested()
+bool IsDeathArrest()
 {
-    if (CText::hasViceCityStrings() || (!_dwCurrentEpisode || *_dwCurrentEpisode != 0))
+    if (CText::hasViceCityStrings() || !bEpisodicDeathMusic && (!_dwCurrentEpisode || *_dwCurrentEpisode != 0))
         return false;
-    return CGameLogic::GameState == 1;
+
+    return *CGameLogic::GameState == 1 || *CGameLogic::GameState == 2;
 }
 
-int __cdecl GetRandomNumberInRange(int min, int max)
-{
-    return min + rand() % (max - min + 1);
-}
-
-class deathmusic
+class DeathMusic
 {
 public:
-    // game originally only tried playing DEATH_MUSIC_6
-    static void DeathMusicsprintf(char* buffer, size_t size, const char* music_string, uint32_t index)
+    static void DeathMusic_sprintf_s(char* Buffer, size_t BufferCount, const char* Format)
     {
-        sprintf_s(buffer, size, music_string, GetRandomNumberInRange(1, 6));
+        int g_DeathMusicIndex = CRandom::GetRandomNumberInRange(1, 7); // Since a2 is exclusive when using this function, a2 needs to be 7 to cover all 6 audio files
+
+        sprintf_s(Buffer, BufferCount, Format, g_DeathMusicIndex);
     }
 
-    deathmusic()
+    DeathMusic()
     {
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
             CIniReader iniReader("");
 
+            // [MISC]
             auto bDeathMusic = iniReader.ReadInteger("MISC", "DeathMusic", 0) != 0;
+
+            // [EPISODICCONTENT]
+            bEpisodicDeathMusic = iniReader.ReadInteger("EPISODICCONTENT", "EpisodicDeathMusic", 0) != 0;
+
+            // By Clippy95
             if (bDeathMusic)
             {
-                // restores check for is dead / getting arrested, restoring this makes the death music play (clippy95)
-                auto pattern = find_pattern("83 3D ? ? ? ? 00 75 ? E8 ? ? ? ? 39 05");
-                if (!pattern.empty())
-                {
-                    CGameLogic::GameState.SetAddress(*pattern.get_first<uint32_t*>(2));
+                // Replace stub functions a long time ago responsible for making the death music play with a new function that checks if the player is dead or arrested, restoring the death music
+                auto pattern = find_pattern("E8 ? ? ? ? 84 C0 0F 84 ? ? ? ? C7 86 ? ? ? ? ? ? ? ? C7 86", "E8 ? ? ? ? 84 C0 0F 84 ? ? ? ? 0F 57 C0 F3 0F 11 86");
+                injector::MakeCALL(pattern.get_first(0), IsDeathArrest);
 
-                    pattern = find_pattern("E8 ? ? ? ? 84 C0 0F 84 ? ? ? ? C7 86 ? ? ? ? 00 00 00 00 C7 86 ? ? ? ? 00 00 00 00", "E8 ? ? ? ? 84 C0 0F 84 ? ? ? ? 0F 57 C0 F3 0F 11 86");
-                    auto call1 = pattern.get_first();
-                    pattern = find_pattern("E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? C7 86 ? ? ? ? ? ? ? ? E9");
-                    auto call2 = pattern.get_first();
-                    pattern = find_pattern("E8 ? ? ? ? 84 C0 74 ? 8B BE ? ? ? ? 85 FF", "E8 ? ? ? ? 84 C0 74 ? 8B BE ? ? ? ? 3B FB");
-                    auto call3 = pattern.get_first();
+                pattern = find_pattern("E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? C7 86 ? ? ? ? ? ? ? ? E9");
+                injector::MakeCALL(pattern.get_first(0), IsDeathArrest);
 
-                    if (call1 && call2 && call3)
-                    {
-                        injector::MakeCALL(call1, AreWeDeadOrGettingArrested);
-                        injector::MakeCALL(call2, AreWeDeadOrGettingArrested);
-                        injector::MakeCALL(call3, AreWeDeadOrGettingArrested);
-                    }
+                pattern = find_pattern("E8 ? ? ? ? 84 C0 74 ? 8B BE ? ? ? ? 85 FF", "E8 ? ? ? ? 84 C0 74 ? 8B BE ? ? ? ? 3B FB");
+                injector::MakeCALL(pattern.get_first(0), IsDeathArrest);
 
-                    pattern = find_pattern("E8 ? ? ? ? 83 C4 ? 8D 4C 24 ? E8 ? ? ? ? FF 35 ? ? ? ? 8D 44 24", "E8 ? ? ? ? 83 C4 ? 8D 8C 24 ? ? ? ? E8 ? ? ? ? 8B 15 ? ? ? ? 52");
-                    if (!pattern.empty())
-                    {
-                        injector::MakeCALL(pattern.get_first(), DeathMusicsprintf);
-                    }
-                }
+                // Edit the death music sprintf_s call to randomize the playing of death music audio files instead of always playing DEATH_MUSIC_06
+                pattern = find_pattern("E8 ? ? ? ? 83 C4 ? 8D 4C 24 ? E8 ? ? ? ? FF 35 ? ? ? ? 8D 44 24", "E8 ? ? ? ? 83 C4 ? 8D 8C 24 ? ? ? ? E8 ? ? ? ? 8B 15 ? ? ? ? 52");
+                injector::MakeCALL(pattern.get_first(0), DeathMusic_sprintf_s);
             }
-
         };
     }
-} deathmusic;
+} DeathMusic;

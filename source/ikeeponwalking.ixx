@@ -11,11 +11,6 @@ import natives;
 
 uint8_t* (__fastcall* sub_8F0080)(uint8_t* _this, void* edx) = nullptr;
 
-namespace CTaskSimpleMovePlayer
-{
-    GameRef<bool> ms_bDefaultNoSprintingInInteriors;
-}
-
 bool bRunState = true;
 
 class IKeepOnWalking
@@ -25,10 +20,7 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            auto pattern = find_pattern("80 3D ? ? ? ? ? 74 ? F7 46 ? ? ? ? ? 74", "80 3D ? ? ? ? ? 74 ? F7 47 ? ? ? ? ? 74");
-            CTaskSimpleMovePlayer::ms_bDefaultNoSprintingInInteriors.SetAddress(*pattern.get_first<bool*>(2));
-
-            pattern = find_pattern("E8 ? ? ? ? 8A 48 ? 32 48 ? 80 F9 ? 76 ? 8B 86", "E8 ? ? ? ? 8A 48 ? 32 48 ? F3 0F 10 05");
+            auto pattern = find_pattern("E8 ? ? ? ? 8A 48 ? 32 48 ? 80 F9 ? 76 ? 8B 86", "E8 ? ? ? ? 8A 48 ? 32 48 ? F3 0F 10 05");
             sub_8F0080 = (decltype(sub_8F0080))injector::GetBranchDestination(pattern.get_first()).as_int();
 
             pattern = hook::pattern("D9 44 24 18 5F 5B 5D");
@@ -69,19 +61,19 @@ public:
             {
                 if (value)
                 {
-                    CTaskSimpleMovePlayer::ms_bDefaultNoSprintingInInteriors = false;
+                    *CTaskSimpleMovePlayer::ms_bDefaultNoSprintingInInteriors = false;
                     GamepadCB.Write();
                 }
                 else
                 {
-                    CTaskSimpleMovePlayer::ms_bDefaultNoSprintingInInteriors = true;
+                    *CTaskSimpleMovePlayer::ms_bDefaultNoSprintingInInteriors = true;
                     GamepadCB.Restore();
                 }
             });
 
             if (FusionFixSettings("PREF_ALWAYSRUN"))
             {
-                CTaskSimpleMovePlayer::ms_bDefaultNoSprintingInInteriors = false;
+                *CTaskSimpleMovePlayer::ms_bDefaultNoSprintingInInteriors = false;
                 GamepadCB.Write();
             }
 

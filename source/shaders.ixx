@@ -7,12 +7,12 @@ export module shaders;
 
 import common;
 import comvars;
-import settings;
+import d3dx9_43;
 import natives;
+import seasonal;
+import settings;
 import shadows;
 import timecycext;
-import seasonal;
-import d3dx9_43;
 
 template<typename T, typename ... U>
 concept IsAnyOf = (std::same_as<T, U> || ...);
@@ -129,10 +129,6 @@ class Shaders
         }
     }
 
-    //static void OnBeforeGBuffer()
-    //{
-    //
-    //}
 public:
     Shaders()
     {
@@ -365,43 +361,26 @@ public:
 
         FusionFix::onGameInitEvent() += []()
         {
-            auto pattern = hook::pattern("80 7C 24 ? ? 74 3F 80 BE ? ? ? ? ? 74 36");
-            static auto BeginSceneHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+            auto pattern = find_pattern("80 7C 24 ? ? 74 ? 80 BE ? ? ? ? ? 74 ? 8B 0D", "80 7C 24 ? ? 74 ? 80 BE ? ? ? ? ? 74 ? A1");
+            static auto grcSetup_BeginDraw_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
             {
                 auto pDevice = rage::grcDevice::GetD3DDevice();
 
                 // Setup variables for shaders
-                static auto dw11A2948 = *find_pattern("C7 05 ? ? ? ? ? ? ? ? 0F 85 ? ? ? ? 6A 00", "D8 05 ? ? ? ? D9 1D ? ? ? ? 83 05").get_first<float*>(2);
                 static auto dw103E49C = *find_pattern("8B 0D ? ? ? ? 8B 01 FF 50 ? B9 ? ? ? ? E9", "8B 0D ? ? ? ? 8B 11 8B 42 ? FF D0 B9").get_first<void**>(2);
                 auto bLoadscreenActive = (CMenuManager::bLoadscreenShown && *CMenuManager::bLoadscreenShown) || bLoadingShown;
 
                 if (*dw103E49C && !bLoadscreenActive)
                 {
-                    //static Cam cam = 0;
-                    //Natives::GetRootCam(&cam);
-                    //if (cam)
-                    //{
-                    //    static float farclip;
-                    //    static float nearclip;
-                    //
-                    //    Natives::GetCamFarClip(cam, &farclip);
-                    //    Natives::GetCamNearClip(cam, &nearclip);
-                    //
-                    //    static float arr[4];
-                    //    arr[0] = nearclip;
-                    //    arr[1] = farclip;
-                    //    arr[2] = 0.0f;
-                    //    arr[3] = 0.0f;
-                    //    pDevice->SetVertexShaderConstantF(227, &arr[0], 1);
-                    //}
-
-                    // DynamicShadowForTrees Wind Sway
+                    // DynamicShadowsForTrees wind sway
                     {
                         static float arr2[4];
-                        arr2[0] = (Natives::IsInteriorScene() || bNoWindSway) ? 0.0f : *dw11A2948;
+
+                        arr2[0] = (Natives::IsInteriorScene() || bNoWindSway) ? 0.0f : *CTreeImposters::ms_windAng;
                         arr2[1] = SeasonalManager::GetCurrent() == SeasonalType::Snow ? 0.005f : std::clamp(*CTimer::fTimeScale2 * 0.015f, 0.0015f, 0.015f);
                         arr2[2] = 0.0f;
                         arr2[3] = 0.0f;
+
                         pDevice->SetVertexShaderConstantF(233, &arr2[0], 1);
                     }
 
@@ -674,13 +653,6 @@ public:
                     if (mBeforeLightingCB)
                         mBeforeLightingCB->Append();
                 };
-
-                //CRenderPhaseDeferredLighting_SceneToGBuffer::OnBuildRenderList() += []()
-                //{
-                //    auto mBeforeGBuffer = new T_CB_Generic_NoArgs(OnBeforeGBuffer);
-                //    if (mBeforeGBuffer)
-                //        mBeforeGBuffer->Append();
-                //};
             }
         };
     };

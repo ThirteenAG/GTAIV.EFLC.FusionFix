@@ -128,7 +128,7 @@ public:
         unsub_OnAfterCopyLight = CRenderPhaseDeferredLighting_LightsToScreen::OnAfterCopyLight() += OnAfterCopyLight;
         unsub_onCTimeCycleExtInit = CTimeCycleExt::onCTimeCycleExtInit() += onCTimeCycleExtInit;
 
-        CTimeCycle::Initialise();
+        TimeCycle::Initialise();
         applySnowRenderParams();
         applyMaterialsDatParams();
         applyShockingEventsParams();
@@ -141,7 +141,7 @@ public:
         unsub_OnAfterCopyLight();
         unsub_onCTimeCycleExtInit();
 
-        CTimeCycle::Initialise();
+        TimeCycle::Initialise();
         restoreSnowRenderParams();
         restoreMaterialsDatParams();
         restoreShockingEventsParams();

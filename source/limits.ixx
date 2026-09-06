@@ -132,12 +132,13 @@ public:
             // Increasing all pools is not safe, leads to crashing
             static std::vector<std::string> poolNames = { "Task" };
 
-            //[BudgetedIV]
+            // [BudgetedIV]
             uint32_t nVehicleBudget = iniReader.ReadInteger("BudgetedIV", "VehicleBudget", 0);
             uint32_t nPedBudget = iniReader.ReadInteger("BudgetedIV", "PedBudget", 0);
             auto bExtendedLimits = iniReader.ReadInteger("BudgetedIV", "ExtendedLimits", 0);
             auto nLiveriesLimit = std::clamp(iniReader.ReadInteger("BudgetedIV", "LiveriesLimit", CHAR_MAX), 0, CHAR_MAX);
 
+            // Pools
             if (bExtendedLimits)
             {
                 poolNames.push_back("Anim Manager");    // .wad
@@ -177,8 +178,10 @@ public:
                     void operator()(injector::reg_pack& regs)
                     {
                         auto name = std::string_view(*(const char**)(regs.esp + 16));
+
                         if (std::any_of(poolNames.begin(), poolNames.end(), [&name](auto& i) { return i == name; }) || (name == "VehicleStruct" && CText::hasViceCityStrings()))
                             regs.edi *= 2;
+
                         regs.eax = regs.edi * regs.edx;
                     }
                 }; injector::MakeInline<atPool>(pattern.get_first(0));
@@ -191,8 +194,10 @@ public:
                     void operator()(injector::reg_pack& regs)
                     {
                         auto name = std::string_view(*(const char**)(regs.esp + 16));
+
                         if (std::any_of(poolNames.begin(), poolNames.end(), [&name](auto& i) { return i == name; }) || (name == "VehicleStruct" && CText::hasViceCityStrings()))
                             regs.edi *= 2;
+
                         regs.ecx = regs.edi * regs.eax;
                     }
                 }; injector::MakeInline<atPool>(pattern.get_first(0));
@@ -202,7 +207,9 @@ public:
             {
                 auto pattern = hook::pattern("68 C8 32 00 00 E8 ? FF FF FF C3");
                 if (!pattern.empty())
+                {
                     injector::WriteMemory(pattern.get_first(1), 20000, true);
+                }
             }
 
             // Liveries
@@ -348,7 +355,9 @@ public:
 
                 pattern = find_pattern("83 FB 04 7D 45 8D 44 24 24 6A 00", "83 FB 04 7D 47 8D 54 24 20 6A 00");
                 if (!pattern.empty())
+                {
                     injector::WriteMemory<uint8_t>(pattern.get_first(2), nLiveriesLimit, true);
+                }
             }
         };
     }
@@ -392,10 +401,12 @@ public:
         {
             CIniReader iniReader("");
 
+            // [BudgetedIV]
             auto bExtendedLimits = iniReader.ReadInteger("BudgetedIV", "ExtendedLimits", 0);
 
             if (bExtendedLimits)
             {
+                // Stores
                 {
                     enum CModelInfoStore
                     {
@@ -437,21 +448,20 @@ public:
                     auto pattern = hook::pattern("8B C8 E8 ? ? ? ? B9 ? ? ? ? A3");
                     auto CModelInfoStore__ms_baseModels = *pattern.get_first<CDataStore*>(8);
 
-                    pattern = find_pattern("B9 ? ? ? ? E8 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? FF 35", "B9 ? ? ? ? E8 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 33 F6");
-                    if (pattern.empty())
-                        return;
-
                     for (size_t i = CModelInfoStore::ms_baseModels; i < CModelInfoStore::amount; i++)
                     {
                         CModelInfoStore__ms_baseModels[i].nSize *= 2;
                     }
 
-                    auto ms_mloPortalStore = *pattern.get_first<CDataStore*>(1);
-                    pattern = find_pattern("B9 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? FF 35 ? ? ? ? C7 05", "B9 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 33 F6");
-                    auto ms_mloRoomStore = *pattern.get_first<CDataStore*>(1);
+                    // MLOs
+                    {
+                        pattern = find_pattern("B9 ? ? ? ? E8 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? FF 35", "B9 ? ? ? ? E8 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? A1");
+                        auto ms_mloPortalStore = *pattern.get_first<CDataStore*>(1);
+                        auto ms_mloRoomStore = *pattern.get_first<CDataStore*>(11);
 
-                    ms_mloPortalStore->nSize *= 2;
-                    ms_mloRoomStore->nSize *= 2;
+                        ms_mloPortalStore->nSize *= 2;
+                        ms_mloRoomStore->nSize *= 2;
+                    }
                 }
 
                 // Handling
@@ -468,68 +478,103 @@ public:
                     auto ms_iBoatLinesLimit = ms_iBoatLines * increaseby;
 
                     static std::vector<uint8_t> handling((0x110 * ms_iStandardLinesLimit) + (0x40 * ms_iBikeLinesLimit) + (0x60 * ms_iFlyingLinesLimit) + (0xE0 * ms_iBoatLinesLimit), 0);
-                    auto aHandlingLines = *find_pattern("8D B0 ? ? ? ? 57 8B CE E8 ? ? ? ? 8B CE E8", "8D B0 ? ? ? ? 53 8B CE E8 ? ? ? ? 8B CE E8 ? ? ? ? 6A 01 55").get_first<uintptr_t>(2);
-                    auto aBikeHandlingLines = aHandlingLines + (0x110 * ms_iStandardLines);
+
+                    auto aHandlingLines = *find_pattern("8D B0 ? ? ? ? 57 8B CE E8 ? ? ? ? 8B CE E8", "8D B0 ? ? ? ? 53 8B CE").get_first<uintptr_t>(2);
+
+                    auto aBikeHandlingLines   = aHandlingLines + (0x110 * ms_iStandardLines);
                     auto aFlyingHandlingLines = aHandlingLines + (0x110 * ms_iStandardLines) + (0x40 * ms_iBikeLines);
-                    auto aBoatHandlingLines = aHandlingLines + (0x110 * ms_iStandardLines) + (0x40 * ms_iBikeLines) + (0x60 * ms_iFlyingLines);
+                    auto aBoatHandlingLines   = aHandlingLines + (0x110 * ms_iStandardLines) + (0x40 * ms_iBikeLines) + (0x60 * ms_iFlyingLines);
 
                     auto HandlingLines = LimitAdjuster(aHandlingLines, 0x110, ms_iStandardLines, 26).IncreaseBy(increaseby).InsertNewArrayPointer(handling.data()).ReplaceXrefs(0x0, 0xF8, 0xFC, 0x100, 0x5F60, 0xAA00, 0xAAFC);
+
                     //auto BikeHandlingLines = LimitAdjuster(aBikeHandlingLines, 0x40, ms_iBikeLines, 7).IncreaseBy(increaseby).InsertNewArrayPointer(handling.data() + (0x110 * ms_iStandardLinesLimit)).ReplaceXrefs(0);
                     auto FlyingHandlingLines = LimitAdjuster(aFlyingHandlingLines, 0x40, ms_iFlyingLines, 5).IncreaseBy(increaseby).InsertNewArrayPointer(handling.data() + (0x110 * ms_iStandardLinesLimit) + (0x40 * ms_iBikeLinesLimit)).ReplaceXrefs(0);
-                    auto BoatHandlingLines = LimitAdjuster(aBoatHandlingLines, 0x40, ms_iBoatLines, 5).IncreaseBy(increaseby).InsertNewArrayPointer(handling.data() + (0x110 * ms_iStandardLinesLimit) + (0x40 * ms_iBikeLinesLimit) + (0x60 * ms_iFlyingLinesLimit)).ReplaceXrefs(0);
+                    auto BoatHandlingLines   = LimitAdjuster(aBoatHandlingLines, 0x40, ms_iBoatLines, 5).IncreaseBy(increaseby).InsertNewArrayPointer(handling.data() + (0x110 * ms_iStandardLinesLimit) + (0x40 * ms_iBikeLinesLimit) + (0x60 * ms_iFlyingLinesLimit)).ReplaceXrefs(0);
 
                     auto pattern = find_pattern("BF 9F 00 00 00 8D 64 24 ? 8B CE E8 ? ? ? ? 81 C6 ? ? ? ? 4F 79 ? 5F 5E C3", "BE 9F ? ? ? EB 03 8D 49 00 8B CA E8 ? ? ? ? 81 C2 ? ? ? ? 83 EE 01 79 EE 5E C3");
                     injector::WriteMemory(pattern.get_first(1), ms_iStandardLinesLimit - 1, true);
+
                     pattern = find_pattern("BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 83 C6 40 4F 79 F3 5F 5E C3 56 57 BE ? ? ? ? BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 81 C6 ? ? ? ? 4F 79 F0 5F", "BA ? ? ? ? 8D 9B ? ? ? ? E8 ? ? ? ? 83 C1 40 83 EA 01 79 F3 C3");
                     injector::WriteMemory(pattern.get_first(1), ms_iBikeLinesLimit - 1, true);
+
                     pattern = find_pattern("BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 83 C6 60 4F 79 F3 5F 5E C3 56", "BA ? ? ? ? 8D 9B ? ? ? ? E8 ? ? ? ? 83 C1 60 83 EA 01 79 F3 C3");
                     injector::WriteMemory(pattern.get_first(1), ms_iFlyingLinesLimit - 1, true);
+
                     pattern = find_pattern("BF 27 00 00 00 8D 64 24 ? 8B CE E8 ? ? ? ? 81 C6 ? ? ? ? 4F 79 ? 5F 5E C3", "BA 27 ? ? ? 8D 9B ? ? ? ? E8 ? ? ? ? 81 C1 ? ? ? ? 83 EA 01 79 F0 C3");
                     injector::WriteMemory(pattern.get_first(1), ms_iBoatLinesLimit - 1, true);
 
-                    pattern = find_pattern("7D 1B 8B C2", "7D 19 56 8B F2");        // bikeHandlingCount
-                    injector::MakeNOP(pattern.get_first(), 2);
+                    // bikeHandlingCount
+                    pattern = find_pattern("7D ? 8B C2 C1 E0 ? 05", "7D ? 56 8B F2 C1 E6");
+                    injector::MakeNOP(pattern.get_first(0), 2);
 
-                    pattern = find_pattern("7D 1C 8D 04 52", "7D 1A 56 8D 34 49");  // flyingHandlingCount
-                    injector::MakeNOP(pattern.get_first(), 2);
+                    // flyingHandlingCount
+                    pattern = find_pattern("7D ? 8D 04 52 C1 E0 ? 05", "7D ? 56 8D 34 49 C1 E6");
+                    injector::MakeNOP(pattern.get_first(0), 2);
 
-                    pattern = find_pattern("7D 1E 8B C2", "7D 1C 56 8B F2");        // boatHandlingCount
-                    injector::MakeNOP(pattern.get_first(), 2);
+                    // boatHandlingCount
+                    pattern = find_pattern("7D ? 8B C2 69 C0 ? ? ? ? 05 ? ? ? ? 89 86", "7D ? 56 8B F2 69 F6");
+                    injector::MakeNOP(pattern.get_first(0), 2);
                 }
 
                 // Carcols
                 {
-                    auto pattern = find_pattern("8B 87 ? ? ? ? 25 ? ? ? ? 0B C8 89 8F", "8B 94 36 ? ? ? ? 03 F6 33 C0 8A A4 24 ? ? ? ? 81 E2 ? ? ? ? C1 E1 10 0B CA");
-                    auto ref1 = (intptr_t)find_pattern("81 3D ? ? ? ? ? ? ? ? 0F 8D ? ? ? ? 8D 84 24", "81 3D ? ? ? ? ? ? ? ? 0F 8D ? ? ? ? 8D 8C 24 ? ? ? ? 51 8D 94 24 ? ? ? ? 52 8D 84 24 ? ? ? ? 50").get_first(6);
-                    auto ref2 = (intptr_t)find_pattern("81 FA ? ? ? ? 0F 8D ? ? ? ? 42", "81 3D ? ? ? ? ? ? ? ? 0F 8D ? ? ? ? 83 05 ? ? ? ? ? E9 ? ? ? ? 83 FD 02").get_first(2);
-                    auto adwCarColors = LimitAdjuster(*pattern.get_first<uintptr_t>(2), 4, 196, 23).ReplaceXrefs(0).ReplaceNumericRefs(ref1, ref2);
+                    intptr_t ref1 = 0;
+                    intptr_t ref2 = 0;
+
+                    auto pattern = find_pattern("81 3D ? ? ? ? ? ? ? ? 0F 8D ? ? ? ? 8D 84 24", "81 3D ? ? ? ? ? ? ? ? 0F 8D ? ? ? ? 8D 8C 24");
+                    ref1 = (intptr_t)pattern.get_first(6);
+    
+                    pattern = hook::pattern("81 FA ? ? ? ? 0F 8D ? ? ? ? 42");
+                    if (!pattern.empty())
+                    {
+                        ref2 = (intptr_t)pattern.get_first(2);
+                    }
+                    else
+                    {
+                        pattern = hook::pattern("81 3D ? ? ? ? ? ? ? ? 0F 8D ? ? ? ? 83 05");
+                        ref2 = (intptr_t)pattern.get_first(6);
+                    }
+
+                    pattern = hook::pattern("8B 87 ? ? ? ? 25 ? ? ? ? 0B C8 89 8F");
+                    if (!pattern.empty())
+                    {
+                        auto adwCarColors = LimitAdjuster(*pattern.get_first<uintptr_t>(2), 4, 196, 23).ReplaceXrefs(0).ReplaceNumericRefs(ref1, ref2);
+                    }
+                    else
+                    {
+                        pattern = hook::pattern("8B 94 36 ? ? ? ? 03 F6 33 C0");
+                        auto adwCarColors = LimitAdjuster(*pattern.get_first<uintptr_t>(3), 4, 196, 23).ReplaceXrefs(0).ReplaceNumericRefs(ref1, ref2);
+                    }
+
                     pattern = find_pattern("8B 04 8D ? ? ? ? 89 06", "8B 0C 85 ? ? ? ? 89 0E");
                     auto adwPoliceScannerCarColorPrefixes = LimitAdjuster(*pattern.get_first<uintptr_t>(3), 4, 197, 3).ReplaceXrefs(0);
-                    pattern = find_pattern("8B 04 8D ? ? ? ? 89 46 04", "8B 14 85 ? ? ? ? 89 56 04");
+
+                    pattern = find_pattern("8B 04 8D ? ? ? ? 89 46", "8B 14 85 ? ? ? ? 89 56");
                     auto adwPoliceScannerCarColors = LimitAdjuster(*pattern.get_first<uintptr_t>(3), 4, 196, 3).ReplaceXrefs(0);
+                }
+
+                // VehOffs
+                {
+                    auto pattern = find_pattern("81 C7 ? ? ? ? 83 BB ? ? ? ? ? 7D", "81 C7 ? ? ? ? 83 BE");
+                    auto VehOff = LimitAdjuster(*pattern.get_first<uintptr_t>(2), 640, 205, 6).ReplaceXrefs(0, 0x1C0, 0x1E0);
                 }
 
                 // WeaponInfo
                 {
+                    auto ref1 = (intptr_t)find_pattern("BF ? ? ? ? 8D 64 24 ? 8B CE E8 ? ? ? ? 81 C6 ? ? ? ? 4F 79 ? 68 ? ? ? ? E8 ? ? ? ? 83 C4 ? 5F 5E C3 56", "BE ? ? ? ? EB ? 8D 49 ? E8").get_first(1);
+                    auto ref2 = (intptr_t)hook::pattern("83 F8 ? 7C ? 8B 44 24 ? C3").get_first(2);
+
                     auto pattern = find_pattern("81 C3 ? ? ? ? 89 03", "81 C7 ? ? ? ? 89 07");
-                    auto ref1 = (intptr_t)find_pattern("BF ? ? ? ? 8D 64 24 00 8B CE E8 ? ? ? ? 81 C6 ? ? ? ? 4F 79 F0 68 ? ? ? ? E8 ? ? ? ? 83 C4 04 5F 5E C3 56", "BE ? ? ? ? EB 03 8D 49 00 E8 ? ? ? ? 81 C1 ? ? ? ? 83 EE 01 79 F0 68 ? ? ? ? E8 ? ? ? ? 83 C4 04 5E C3").get_first(1);
-                    auto ref2 = (intptr_t)find_pattern("83 F8 3C 7C F1", "83 F8 3C 7C EF").get_first(2);
                     auto WeaponInfo = LimitAdjuster(*pattern.get_first<uintptr_t>(2), 0x110, 60, 16).ReplaceXrefs(0, 0x24, 0x1A98, 0x1A9C, 0x1AB4, 0x1B30, 0x3430, 0x3540, 0x363C, 0x3870, 0x3980, 0x3DC0).ReplaceNumericRefs(ref1, ref2);
 
-                    pattern = hook::pattern("7D 0C 69 C0");
-                    injector::MakeNOP(pattern.get_first(), 2);
+                    pattern = hook::pattern("7D ? 69 C0 ? ? ? ? 05");
+                    injector::MakeNOP(pattern.get_first(0), 2);
 
-                    pattern = find_pattern("C0 3B 0C 85 ? ? ? ? 74 0A 40", "C0 3B 0C 85 ? ? ? ? 74 0C");
+                    pattern = hook::pattern("8B 4C 24 ? 33 C0 3B 0C 85");
                     if (!pattern.empty())
                     {
-                        shGetWeaponInfoIdByHash = safetyhook::create_inline(pattern.get_first(-5), getWeaponInfoIdByHash);
+                        shGetWeaponInfoIdByHash = safetyhook::create_inline(pattern.get_first(0), getWeaponInfoIdByHash);
                     }
-                }
-
-                // VehOff
-                {
-                    auto pattern = find_pattern("81 C7 ? ? ? ? 83 BB", "81 C7 ? ? ? ? 83 BE");
-                    auto VehOff = LimitAdjuster(*pattern.get_first<uintptr_t>(2), 640, 205, 6).ReplaceXrefs(0, 0x1C0, 0x1E0);
                 }
             }
         };

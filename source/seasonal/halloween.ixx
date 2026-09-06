@@ -18,14 +18,14 @@ public:
     {
         unsub_onCTimeCycleExtInit = CTimeCycleExt::onCTimeCycleExtInit() += onCTimeCycleExtInit;
 
-        CTimeCycle::Initialise();
+        TimeCycle::Initialise();
     }
 
     auto Disable() -> void override
     {
         unsub_onCTimeCycleExtInit();
 
-        CTimeCycle::Initialise();
+        TimeCycle::Initialise();
     }
 
 private:

@@ -20,7 +20,6 @@ import settings;
 
 bool bDrawReflections = false;
 
-float* m_InteriorBlendStrength = nullptr;
 bool* g_bRenderInteriorReflection = nullptr;
 
 class ReflectionMSAA
@@ -181,8 +180,8 @@ private:
         pDevice->GetVertexShader(&prevVS);
         pDevice->GetPixelShader(&prevPS);
 
-        static auto rq = FusionFixSettings.GetRef("PREF_REFLECTION_RESOLUTION");
-        if (((rq && rq->get()) && bDrawReflections) || (g_bRenderInteriorReflection && *g_bRenderInteriorReflection))
+        static auto ReflectionResolution = FusionFixSettings.GetRef("PREF_REFLECTION_RESOLUTION");
+        if (((ReflectionResolution && ReflectionResolution->get()) && bDrawReflections) || (g_bRenderInteriorReflection && *g_bRenderInteriorReflection))
         {
             pDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
             pDevice->SetRenderState(D3DRS_ZENABLE, D3DZB_FALSE);
@@ -225,10 +224,10 @@ private:
                         RefMipBlurParams.z = 0.0f;
 
                         float blend = 1.0f;
-                        if ((1.0f - *m_InteriorBlendStrength) >= 0.0f)
+                        if ((1.0f - *TimeCycle::m_InteriorBlendStrength) >= 0.0f)
                         {
-                            if ((1.0f - *m_InteriorBlendStrength) <= 1.0f)
-                                blend = 1.0f - *m_InteriorBlendStrength;
+                            if ((1.0f - *TimeCycle::m_InteriorBlendStrength) <= 1.0f)
+                                blend = 1.0f - *TimeCycle::m_InteriorBlendStrength;
                             else
                                 blend = 1.0f;
                         }
@@ -326,7 +325,7 @@ private:
         ID3DXBuffer* bf1 = nullptr;
         ID3DXBuffer* bf2 = nullptr;
 
-        //Shader ASM
+        // Shader ASM
         if (!RefMipBlur_VS)
         {
             if (D3DXAssembleShaderFromResourceW(hm, MAKEINTRESOURCEW(IDR_RefMipBlur_VS), NULL, NULL, 0, &bf1, &bf2) == S_OK)
@@ -371,13 +370,15 @@ public:
         {
             CIniReader iniReader("");
 
+            // [EXPERIMENTAL]
             static int nReflectionMSAAQuality = std::clamp(iniReader.ReadInteger("EXPERIMENTAL", "ReflectionMSAAQuality", 0), 0, 8);
 
             if (nReflectionMSAAQuality > 0 && nReflectionMSAAQuality != 6 && nReflectionMSAAQuality % 2 == 0)
             {
                 if (GetD3DX9_43DLL())
-                {                
-                    auto pattern = hook::pattern("C7 44 24 ? ? ? ? ? BF ? ? ? ? C7 44 24 ? ? ? ? ? E8");
+                {
+                    // Mirrors
+                    auto pattern = hook::pattern("C7 44 24 ? ? ? ? ? BF ? ? ? ? C7 44 24 ? ? ? ? ? E8 ? ? ? ? 8B 4C 24");
                     if (!pattern.empty())
                     {
                         injector::WriteMemory(pattern.count(2).get(0).get<void*>(4), nReflectionMSAAQuality, true);
@@ -390,73 +391,71 @@ public:
 
                         pattern = hook::pattern("89 5C 24 ? BF ? ? ? ? C7 44 24");
                         injector::MakeNOP(pattern.get_first(0), 4, true);
-                        static auto CreateMirrorRTHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        static auto CMirrors_Init_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                         {
                             *(int*)(regs.esp + 0x54 - 0x2C) = nReflectionMSAAQuality;
                         });
                     }
 
+                    // Water
                     pattern = hook::pattern("C7 44 24 ? ? ? ? ? C7 44 24 ? ? ? ? ? 8B 01 6A ? 68 ? ? ? ? FF 50 ? 8B 0D ? ? ? ? 89 44 24");
                     if (!pattern.empty())
+                    {
                         injector::WriteMemory(pattern.get_first(4), nReflectionMSAAQuality, true);
+                    }
                     else
                     {
                         pattern = hook::pattern("89 5C 24 ? C7 44 24 ? ? ? ? ? 8B 11 8B 52 ? 6A ? 68 ? ? ? ? FF D2 8B 0D ? ? ? ? 8D 54 24");
                         injector::MakeNOP(pattern.get_first(0), 4, true);
-                        static auto WaterReflectionRTDescriptionHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        static auto CViewport3DScene_CreateRenderPhases_Hook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                         {
                             *(int*)(regs.esp + 0xB8 - 0x80) = nReflectionMSAAQuality;
                         });
                     }
 
+                    // Paraboloid
                     pattern = hook::pattern("C7 44 24 ? ? ? ? ? 78");
                     if (!pattern.empty())
+                    {
                         injector::WriteMemory(pattern.get_first(4), nReflectionMSAAQuality, true);
+                    }
                     else
                     {
                         pattern = hook::pattern("89 5C 24 ? 7C ? BE");
                         injector::MakeNOP(pattern.get_first(0), 4, true);
-                        static auto CreateReflectionMapColourRTHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        static auto CViewport3DScene_CreateRenderPhases_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                         {
                             *(int*)(regs.esp + 0xA8 - 0x80) = nReflectionMSAAQuality;
                         });
                     }
 
                     pattern = find_pattern("80 3D ? ? ? ? ? 57 8B F9 75 ? 80 3D", "80 3D ? ? ? ? ? 55 8B E9 75 ? 80 3D");
-                    static auto CRenderPhaseReflection__BuildDrawListHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CRenderPhaseReflection_BuildDrawList_Hook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         bDrawReflections = false;
                     });
 
                     pattern = find_pattern("C3 53 55 56 6A", "C3 56 57 6A ? 6A ? 89 2D");
-                    static auto CRenderPhaseReflection__BuildRenderListHook2 = safetyhook::create_mid(pattern.get_first(1), [](SafetyHookContext& regs)
+                    static auto CRenderPhaseReflection_BuildDrawList_Hook2 = safetyhook::create_mid(pattern.get_first(1), [](SafetyHookContext& regs)
                     {
                         bDrawReflections = true;
                     });
-                    
+
                     pattern = find_pattern("C6 05 ? ? ? ? ? 8B 97", "C6 05 ? ? ? ? ? 8B 8E ? ? ? ? 85 C9");
                     g_bRenderInteriorReflection = *pattern.get_first<bool*>(2);
 
-                    pattern = hook::pattern("F3 0F 11 05 ? ? ? ? F3 0F 10 4F");
-                    if (!pattern.empty())
-                        m_InteriorBlendStrength = *pattern.get_first<float*>(4);
-                    else
-                    {
-                        pattern = hook::pattern("D9 05 ? ? ? ? F3 0F 10 43 ? 51");
-                        m_InteriorBlendStrength = *pattern.get_first<float*>(2);
-                    }
-
-                    // Skip game's reflection mip and blur pass (exterior & interior)
-                    pattern = find_pattern("0F 8E ? ? ? ? 8D 49 ? 6A", "0F 8E ? ? ? ? EB ? 8D 49 ? 6A ? 6A");
+                    // Skip game's reflection mip and blur pass (Exterior & interior)
+                    pattern = find_pattern("0F 8E ? ? ? ? 8D 49 ? 6A ? 6A", "0F 8E ? ? ? ? EB ? 8D 49 ? 6A ? 6A");
                     injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true);
 
-                    pattern = find_pattern("0F 8E ? ? ? ? C7 44 24 ? ? ? ? ? 6A", "0F 8E ? ? ? ? C7 44 24 ? ? ? ? ? 6A");
+                    pattern = hook::pattern("0F 8E ? ? ? ? C7 44 24 ? ? ? ? ? 6A");
                     injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true);
 
                     // Our custom reflection mip and blur pass to work around MSAA/mip problem
                     CRenderPhaseDeferredLighting_SceneToGBuffer::OnBuildRenderList() += []()
                     {
                         Init();
+
                         auto mBeforeGBufferCB = new T_CB_Generic_NoArgs(OnBeforeGBuffer);
                         if (mBeforeGBufferCB)
                             mBeforeGBufferCB->Append();

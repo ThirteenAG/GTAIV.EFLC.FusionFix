@@ -42,8 +42,8 @@ public:
 
             FusionFixSettings.SetCallback("PREF_CENTEREDCAMERA", [](int32_t value)
             {
-                bMenuNeedsUpdate = 4;
-                bMenuNeedsUpdate2 = 4;
+                nCameraUnpauseTimer1 = 4;
+                nCameraUnpauseTimer2 = 4;
             });
 
             pattern = find_pattern("F3 0F 10 2D ? ? ? ? F3 0F 10 25 ? ? ? ? F3 0F 59 D8", "F3 0F 10 25 ? ? ? ? F3 0F 10 15 ? ? ? ? F3 0F 10 1D ? ? ? ? F3 0F 59 E6");
@@ -60,8 +60,8 @@ public:
 
             FusionFixSettings.SetCallback("PREF_CENTEREDCAMERAFOOT", [](int32_t value)
             {
-                bMenuNeedsUpdate = 4;
-                bMenuNeedsUpdate2 = 4;
+                nCameraUnpauseTimer1 = 4;
+                nCameraUnpauseTimer2 = 4;
             });
 
             auto HandleCenteredVehicleCamIVasi = []()

@@ -2,14 +2,12 @@ module;
 
 #include <common.hxx>
 #include <psapi.h>
-#include <format>
 
 export module extrainfo;
 
 import common;
 import comvars;
 import settings;
-import vram;
 
 std::wstring GetModuleVersion(HMODULE hModule)
 {
