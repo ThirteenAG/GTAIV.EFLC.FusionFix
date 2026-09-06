@@ -331,11 +331,19 @@ private:
 
             // Decrypt TOC (entries + filename table)
             size_t entriesOffset = sizeof(IMG_Header_V3);
-            size_t entriesSize = decryptedHeader->numItems * sizeof(IMG_Entry_V3);
+            size_t tableSize = decryptedHeader->tableSize;
+            if (tableSize > result.size() - entriesOffset ||
+                decryptedHeader->numItems > tableSize / sizeof(IMG_Entry_V3))
+            {
+                CryptDestroyKey(hKey);
+                CryptReleaseContext(hCryptProv, 0);
+                return {};
+            }
+            size_t entriesSize = size_t(decryptedHeader->numItems) * sizeof(IMG_Entry_V3);
             size_t filenameTableOffset = entriesOffset + entriesSize;
-            size_t filenameTableSize = decryptedHeader->tableSize - entriesSize;
+            size_t filenameTableSize = tableSize - entriesSize;
 
-            if (entriesOffset + entriesSize > result.size() || filenameTableOffset + filenameTableSize > result.size())
+            if (filenameTableOffset + filenameTableSize > result.size())
             {
                 CryptDestroyKey(hKey);
                 CryptReleaseContext(hCryptProv, 0);
@@ -392,22 +400,27 @@ private:
         }
     }
 
-    static void EncryptGTAIVArchive(std::vector<uint8_t>& data)
+    static bool EncryptGTAIVArchive(std::vector<uint8_t>& data)
     {
         if (data.empty() || data.size() < sizeof(IMG_Header_V3))
         {
-            return;
+            return false;
         }
 
-        // Read header to determine TOC size
+        // IMG3 encrypts the first 16 header bytes, entries starting at byte 20,
+        // and complete blocks of the filename table as separate regions.
         const IMG_Header_V3* header = reinterpret_cast<const IMG_Header_V3*>(data.data());
-        size_t tocSize = sizeof(IMG_Header_V3) + header->tableSize;
-        if (tocSize > data.size() || tocSize % 16 != 0)
+        size_t tableSize = header->tableSize;
+        if (header->magicId != GTAIV_MAGIC_ID || header->version != 3 || header->itemSize != 16 ||
+            tableSize > data.size() - sizeof(IMG_Header_V3) ||
+            header->numItems > tableSize / sizeof(IMG_Entry_V3))
         {
-            return;
+            return false;
         }
-
-        // Extract TOC for encryption
+        size_t entriesSize = size_t(header->numItems) * sizeof(IMG_Entry_V3);
+        size_t filenameTableOffset = sizeof(IMG_Header_V3) + entriesSize;
+        size_t filenameTableSize = tableSize - entriesSize;
+        size_t tocSize = sizeof(IMG_Header_V3) + tableSize;
         std::vector<uint8_t> tocData(data.begin(), data.begin() + tocSize);
 
         HCRYPTPROV hCryptProv = 0;
@@ -418,7 +431,7 @@ private:
             // Acquire crypto context
             if (!CryptAcquireContext(&hCryptProv, NULL, NULL, PROV_RSA_AES, CRYPT_VERIFYCONTEXT))
             {
-                return;
+                return false;
             }
 
             // Import key
@@ -438,7 +451,7 @@ private:
             if (!CryptImportKey(hCryptProv, (BYTE*)&keyBlob, sizeof(keyBlob), 0, 0, &hKey))
             {
                 CryptReleaseContext(hCryptProv, 0);
-                return;
+                return false;
             }
 
             // Set ECB mode
@@ -447,22 +460,30 @@ private:
             {
                 CryptDestroyKey(hKey);
                 CryptReleaseContext(hCryptProv, 0);
-                return;
+                return false;
             }
 
-            // Perform 16 rounds of encryption
-            for (int round = 0; round < 16; ++round)
+            auto encryptRegion = [&](size_t offset, size_t size)
             {
-                for (size_t offset = 0; offset < tocSize; offset += 16)
+                const size_t fullBlocksSize = size & ~size_t(15);
+                for (int round = 0; round < 16; ++round)
                 {
-                    DWORD blockLen = 16;
-                    if (!CryptEncrypt(hKey, 0, FALSE, 0, tocData.data() + offset, &blockLen, 16) || blockLen != 16)
+                    for (size_t pos = 0; pos < fullBlocksSize; pos += 16)
                     {
-                        CryptDestroyKey(hKey);
-                        CryptReleaseContext(hCryptProv, 0);
-                        return;
+                        DWORD blockLen = 16;
+                        if (!CryptEncrypt(hKey, 0, FALSE, 0, tocData.data() + offset + pos, &blockLen, 16) || blockLen != 16)
+                            return false;
                     }
                 }
+                return true;
+            };
+            if (!encryptRegion(0, 16) ||
+                !encryptRegion(sizeof(IMG_Header_V3), entriesSize) ||
+                !encryptRegion(filenameTableOffset, filenameTableSize))
+            {
+                CryptDestroyKey(hKey);
+                CryptReleaseContext(hCryptProv, 0);
+                return false;
             }
 
             CryptDestroyKey(hKey);
@@ -470,11 +491,13 @@ private:
 
             // Replace original TOC with encrypted TOC
             std::copy(tocData.begin(), tocData.end(), data.begin());
+            return true;
         }
         catch (...)
         {
             if (hKey) CryptDestroyKey(hKey);
             if (hCryptProv) CryptReleaseContext(hCryptProv, 0);
+            return false;
         }
     }
 
@@ -962,9 +985,9 @@ private:
         }
 
         // Apply encryption if requested
-        if (encrypted)
+        if (encrypted && !EncryptGTAIVArchive(*imgData))
         {
-            EncryptGTAIVArchive(*imgData);
+            return nullptr;
         }
 
         return imgData;

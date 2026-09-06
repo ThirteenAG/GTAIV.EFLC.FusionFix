@@ -25,8 +25,8 @@ BOOL WINAPI MoveWindow_Hook(HWND hWnd, int X, int Y, int nWidth, int nHeight, BO
     int32_t DesktopResH = info.rcMonitor.bottom - info.rcMonitor.top;
     if ((rect.right - rect.left >= DesktopResW) || (rect.bottom - rect.top >= DesktopResH))
         rect = gRect;
-    rect.left = (LONG)(((float)DesktopResW / 2.0f) - ((float)rect.right / 2.0f));
-    rect.top = (LONG)(((float)DesktopResH / 2.0f) - ((float)rect.bottom / 2.0f));
+    rect.left = info.rcMonitor.left + (LONG)(((float)DesktopResW / 2.0f) - ((float)rect.right / 2.0f));
+    rect.top = info.rcMonitor.top + (LONG)(((float)DesktopResH / 2.0f) - ((float)rect.bottom / 2.0f));
     return MoveWindow(hWnd, rect.left, rect.top, rect.right, rect.bottom, bRepaint);
 }
 

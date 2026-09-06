@@ -10,6 +10,7 @@ module;
 #include <algorithm>
 #include <unordered_map>
 #include <unordered_set>
+#include <optional>
 #include <wincrypt.h>
 #pragma comment(lib, "crypt32.lib")
 
@@ -66,7 +67,7 @@ struct FileEntry : TOCEntry
     uint8_t resourceType = 0;
     uint32_t rscFlags = 0;
     std::vector<uint8_t> data;
-    std::vector<uint8_t> customData;
+    std::optional<std::vector<uint8_t>> customData;
     FileEntry()
     {
         isDirectory = false;
@@ -271,7 +272,7 @@ public:
             newFile->version = version;
             newFile->name = parts.back();
             newFile->name_value = (version == RPF_VERSION_3) ? ComputeStringHash(parts.back()) : 0;
-            newFile->data = std::move(entry.data);
+            newFile->customData = std::move(entry.data);
             newFile->uncompressedSize = entry.uncompressedSize;
             newFile->sizeInArchive = entry.sizeInArchive;
             newFile->isCompressed = false;
@@ -910,8 +911,7 @@ private:
     {
         // Collect all entries in TOC order
         std::vector<std::shared_ptr<TOCEntry>> newAllEntries;
-        int index = 0;
-        CollectEntries(extracted.root, newAllEntries, index);
+        CollectEntries(extracted.root, newAllEntries);
 
         extracted.allEntries = newAllEntries;
 
@@ -930,7 +930,7 @@ private:
 
         int32_t newEntryCount = static_cast<int32_t>(extracted.allEntries.size());
         size_t newEntriesSize = static_cast<size_t>(newEntryCount) * RPF_ENTRY_SIZE;
-        size_t minTocSize = newEntriesSize + newStringTable.size();
+        size_t minTocSize = std::max(newEntriesSize + newStringTable.size(), size_t(RPF_TOC_SIZE));
         if (minTocSize < extracted.tocSize)
         {
             minTocSize = extracted.tocSize;
@@ -941,72 +941,47 @@ private:
         extracted.tocData.resize(newTocSize, 0);
         extracted.tocSize = static_cast<uint32_t>(newTocSize);
 
-        // Find max data offset
-        uint32_t dataEnd = RPF_TOC_START_OFFSET + extracted.tocSize;
-        dataEnd = ((dataEnd + BLOCK_SIZE - 1) / BLOCK_SIZE) * BLOCK_SIZE; // Align
+        uint64_t dataEnd = (uint64_t(RPF_TOC_START_OFFSET) + newTocSize + BLOCK_SIZE - 1)
+            / BLOCK_SIZE * BLOCK_SIZE;
+        if (dataEnd > MAX_FILESIZE)
+            return nullptr;
 
+        for (const auto& entry : extracted.allEntries)
+        {
+            if (entry->isDirectory)
+                continue;
+
+            auto file = std::static_pointer_cast<FileEntry>(entry);
+            if (file->customData.has_value())
+            {
+                file->data = std::move(*file->customData);
+                file->customData.reset();
+                if (file->data.size() > MAX_FILESIZE)
+                    return nullptr;
+                file->uncompressedSize = static_cast<uint32_t>(file->data.size());
+                file->sizeInArchive = file->uncompressedSize;
+                file->isCompressed = false;
+                file->isResourceFile = false;
+            }
+
+            if (file->data.size() != file->sizeInArchive)
+                return nullptr;
+            uint64_t sizeUsed = (uint64_t(file->sizeInArchive) + BLOCK_SIZE - 1)
+                / BLOCK_SIZE * BLOCK_SIZE;
+            if (dataEnd + sizeUsed > MAX_FILESIZE)
+                return nullptr;
+            file->offset = static_cast<uint32_t>(dataEnd);
+            file->sizeUsed = static_cast<uint32_t>(sizeUsed);
+            dataEnd += sizeUsed;
+        }
+
+        extracted.rpfData.assign(static_cast<size_t>(dataEnd), 0);
         for (const auto& entry : extracted.allEntries)
         {
             if (!entry->isDirectory)
             {
-                auto file = std::dynamic_pointer_cast<FileEntry>(entry);
-                uint32_t end = file->offset + file->sizeUsed;
-                if (end > dataEnd) dataEnd = end;
-            }
-        }
-
-        // Process customData
-        for (auto& entry : extracted.allEntries)
-        {
-            if (!entry->isDirectory)
-            {
-                auto file = std::dynamic_pointer_cast<FileEntry>(entry);
-                if (!file->customData.empty())
-                {
-                    std::vector<uint8_t> newData = std::move(file->customData);
-                    uint32_t newSize = static_cast<uint32_t>(newData.size());
-                    file->uncompressedSize = newSize;
-                    file->sizeInArchive = newSize;
-                    file->isCompressed = false;
-                    file->isResourceFile = false; // Assume not resource for simplicity, adjust if needed
-
-                    uint32_t newBlockCount = (newSize + BLOCK_SIZE - 1) / BLOCK_SIZE;
-                    uint32_t newUsed = newBlockCount * BLOCK_SIZE;
-
-                    if (file->offset != 0 && newUsed <= file->sizeUsed)
-                    {
-                        // Overwrite existing
-                        if (extracted.rpfData.size() < file->offset + file->sizeUsed)
-                        {
-                            extracted.rpfData.resize(file->offset + file->sizeUsed, 0);
-                        }
-                        std::fill(extracted.rpfData.begin() + file->offset, extracted.rpfData.begin() + file->offset + file->sizeUsed, 0);
-                        std::copy(newData.begin(), newData.end(), extracted.rpfData.begin() + file->offset);
-                        std::fill(extracted.rpfData.begin() + file->offset + newSize, extracted.rpfData.begin() + file->offset + newUsed, 0);
-                    }
-                    else
-                    {
-                        // Clear old if exists
-                        if (file->offset != 0)
-                        {
-                            if (extracted.rpfData.size() < file->offset + file->sizeUsed)
-                            {
-                                extracted.rpfData.resize(file->offset + file->sizeUsed, 0);
-                            }
-                            std::fill(extracted.rpfData.begin() + file->offset, extracted.rpfData.begin() + file->offset + file->sizeUsed, 0);
-                        }
-                        // Append to end
-                        file->offset = dataEnd;
-                        if (extracted.rpfData.size() < dataEnd + newUsed)
-                        {
-                            extracted.rpfData.resize(dataEnd + newUsed, 0);
-                        }
-                        std::copy(newData.begin(), newData.end(), extracted.rpfData.begin() + dataEnd);
-                        std::fill(extracted.rpfData.begin() + dataEnd + newSize, extracted.rpfData.begin() + dataEnd + newUsed, 0);
-                        dataEnd += newUsed;
-                    }
-                    file->sizeUsed = newUsed;
-                }
+                auto file = std::static_pointer_cast<FileEntry>(entry);
+                std::copy(file->data.begin(), file->data.end(), extracted.rpfData.begin() + file->offset);
             }
         }
 
@@ -1064,6 +1039,7 @@ private:
 
         // Update header
         RPF_Header_V23* header = reinterpret_cast<RPF_Header_V23*>(extracted.rpfData.data());
+        header->magicId = GetMagicFromVersion(extracted.version);
         header->tocSize = extracted.tocSize;
         header->entryCount = newEntryCount;
         header->unknown = extracted.unknown;
@@ -1076,27 +1052,25 @@ private:
         }
         std::copy(finalToc.begin(), finalToc.end(), extracted.rpfData.begin() + RPF_TOC_START_OFFSET);
 
-        // Trim excess zeros at end if any
-        while (!extracted.rpfData.empty() && extracted.rpfData.back() == 0)
-        {
-            extracted.rpfData.pop_back();
-        }
-
         return std::make_shared<std::vector<uint8_t>>(std::move(extracted.rpfData));
     }
 
-    static void CollectEntries(const std::shared_ptr<TOCEntry>& entry, std::vector<std::shared_ptr<TOCEntry>>& all, int& index)
+    static void CollectEntries(const std::shared_ptr<TOCEntry>& root, std::vector<std::shared_ptr<TOCEntry>>& all)
     {
-        entry->index = index++;
-        all.push_back(entry);
-        if (entry->isDirectory)
+        root->index = 0;
+        all.push_back(root);
+        for (size_t i = 0; i < all.size(); ++i)
         {
-            auto dir = std::dynamic_pointer_cast<DirectoryEntry>(entry);
-            dir->contentEntryIndex = index;
+            if (!all[i]->isDirectory)
+                continue;
+
+            auto dir = std::static_pointer_cast<DirectoryEntry>(all[i]);
+            dir->contentEntryIndex = static_cast<uint32_t>(all.size());
             dir->contentEntryCount = static_cast<uint32_t>(dir->children.size());
             for (const auto& child : dir->children)
             {
-                CollectEntries(child, all, index);
+                child->index = static_cast<int>(all.size());
+                all.push_back(child);
             }
         }
     }
