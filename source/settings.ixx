@@ -654,6 +654,28 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
+            auto stationslimit = GetModulePath(GetModuleHandleW(NULL)).parent_path() / "pc" / "audio" / "Config" / "stationslimit.txt";
+
+            std::ifstream is(stationslimit, std::ios::in);
+            if (is)
+            {
+                int limit = -1;
+                is >> limit;
+
+                if (limit >= 0 && limit <= 23)
+                {
+                    auto pattern = hook::pattern("0F B6 35 ? ? ? ? 85 F6");
+                    if (!pattern.empty())
+                    {
+                        static int stationsLimit = limit;
+                        injector::WriteMemory(pattern.get_first(3), &stationsLimit, true);
+                    }
+                }
+            }
+        };
+
+        FusionFix::onInitEventAsync() += []()
+        {
             // runtime settings
             auto pattern = hook::pattern("89 1C ? ? ? ? ? E8 ? ? ? ? A1");
             static auto reg = *pattern.get_first<uint8_t>(2);
@@ -1273,28 +1295,6 @@ public:
                 if (pFPSFont)
                     pFPSFont->Release();
                 pFPSFont = nullptr;
-            };
-
-            FusionFix::onInitEventAsync() += []()
-            {
-                auto stationslimit = GetModulePath(GetModuleHandleW(NULL)).parent_path() / "pc" / "audio" / "Config" / "stationslimit.txt";
-
-                std::ifstream is(stationslimit, std::ios::in);
-                if (is)
-                {
-                    int limit = -1;
-                    is >> limit;
-
-                    if (limit >= 0 && limit <= 23)
-                    {
-                        auto pattern = hook::pattern("0F B6 35 ? ? ? ? 85 F6");
-                        if (!pattern.empty())
-                        {
-                            static int stationsLimit = limit;
-                            injector::WriteMemory(pattern.get_first(3), &stationsLimit, true);
-                        }
-                    }
-                }
             };
 
             FusionFix::onMenuDrawingEvent() += []()
