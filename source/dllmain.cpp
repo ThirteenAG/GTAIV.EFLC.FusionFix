@@ -5,6 +5,8 @@ import comvars;
 import compat;
 import fusiondxhook;
 
+std::vector<std::future<void>> initializationFutures;
+
 injector::hook_back<void(*)()> hbCGameProcess;
 void CGameProcessHook()
 {
@@ -14,6 +16,9 @@ void CGameProcessHook()
         {
             static std::once_flag of;
             std::call_once(of, []() {
+                for (auto& future : initializationFutures)
+                    future.wait();
+                initializationFutures.clear();
                 FusionFix::onGameInitEvent().executeAll();
             });
 
@@ -122,14 +127,7 @@ void Init()
         FusionFix::onReadGameConfig().executeAll();
     });
 
-    static auto futures = FusionFix::onInitEventAsync().executeAllAsync();
-
-    FusionFix::onGameInitEvent() += []()
-    {
-        for (auto& f : futures.get())
-            f.wait();
-        futures.get().clear();
-    };
+    initializationFutures = FusionFix::onInitEventAsync().executeAllAsync();
 
     FusionFix::onInitEvent().executeAll();
 }

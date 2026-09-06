@@ -2,6 +2,8 @@ module;
 
 #include <common.hxx>
 #include <Zydis.h>
+#include <atomic>
+#include <memory>
 #include "includes/gameref.hpp"
 
 export module common;
@@ -22,37 +24,61 @@ public:
         using std::function<void(Args...)>::function;
 
     private:
-        std::list<std::function<void(Args...)>> handlers;
+        struct Handler
+        {
+            std::function<void(Args...)> callback;
+            std::atomic<bool> active{ true };
+
+            explicit Handler(std::function<void(Args...)>&& fn) : callback(std::move(fn)) {}
+        };
+
+        mutable std::mutex handlersMutex;
+        std::list<std::shared_ptr<Handler>> handlers;
+
+        auto snapshot() const
+        {
+            std::lock_guard lock(handlersMutex);
+            return std::vector<std::shared_ptr<Handler>>(handlers.begin(), handlers.end());
+        }
 
     public:
-        auto operator+=(std::function<void(Args...)>&& handler) -> std::function<void()>
+        auto operator+=(std::function<void(Args...)>&& callback) -> std::function<void()>
         {
-            auto it = handlers.insert(handlers.end(), std::move(handler));
-            return [this, it]() { handlers.erase(it); };
+            auto handler = std::make_shared<Handler>(std::move(callback));
+            {
+                std::lock_guard lock(handlersMutex);
+                handlers.push_back(handler);
+            }
+            return [this, handler]()
+            {
+                std::lock_guard lock(handlersMutex);
+                handler->active = false;
+                handlers.remove(handler);
+            };
         }
 
         void executeAll(Args... args) const
         {
-            if (!handlers.empty())
+            for (const auto& handler : snapshot())
             {
-                for (auto& handler : handlers)
-                {
-                    handler(args...);
-                }
+                if (handler->active)
+                    handler->callback(args...);
             }
         }
 
-        std::reference_wrapper<std::vector<std::future<void>>> executeAllAsync(Args... args) const
+        std::vector<std::future<void>> executeAllAsync(Args... args) const
         {
-            static std::vector<std::future<void>> pendingFutures;
-            if (!handlers.empty())
+            std::vector<std::future<void>> futures;
+            for (const auto& handler : snapshot())
             {
-                for (auto& handler : handlers)
-                {
-                    pendingFutures.emplace_back(std::async(std::launch::async, std::cref(handler), args...));
-                }
+                futures.emplace_back(std::async(std::launch::async,
+                    [handler, values = std::tuple<Args...>(args...)]() mutable
+                    {
+                        if (handler->active)
+                            std::apply(handler->callback, values);
+                    }));
             }
-            return std::ref(pendingFutures);
+            return futures;
         }
     };
 
