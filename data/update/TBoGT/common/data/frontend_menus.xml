@@ -100,9 +100,9 @@
       <options text="MO_RETICULE_ON" action="ACTION_NONE" value="0" />
     </menu>
     <menu enum="MENU_DISPLAY_NETSTATS_GAMEMODE">
-      <options text="FNTGT_COMP_0" action="SCR_NETWORK_STATS_COMP" value="0" />
-      <options text="FNTGT_COMP_1" action="SCR_NETWORK_STATS_COMP" value="1" />
-      <options text="FNTGT_COMP_2" action="SCR_NETWORK_STATS_COMP" value="2" />
+      <options text="MO_OFF" action="ACTION_NONE" value="0" />
+      <options text="Xbox 360" action="ACTION_NONE" value="1" />
+      <options text="PlayStation 3" action="ACTION_NONE" value="2" />
       <options text="FNTGT_RACE_0" action="SCR_NETWORK_STATS_RACE" value="3" />
       <options text="FNTGT_RACE_1" action="SCR_NETWORK_STATS_RACE" value="4" />
       <options text="FNTGT_TEAM_0" action="SCR_NETWORK_STATS_TEAM" value="5" />
@@ -412,12 +412,12 @@
     <menupc enum="MENU_DISPLAY_BUTTONS">
       <options text="Xbox 360" action="ACTION_NONE" value="1" />
       <options text="Xbox One" action="ACTION_NONE" value="2" />
-      <options text="Playstation 3" action="ACTION_NONE" value="3" />
-      <options text="Playstation 4" action="ACTION_NONE" value="4" />
-      <options text="Playstation 5" action="ACTION_NONE" value="5" />
+      <options text="PlayStation 3" action="ACTION_NONE" value="3" />
+      <options text="PlayStation 4" action="ACTION_NONE" value="4" />
+      <options text="PlayStation 5" action="ACTION_NONE" value="5" />
       <options text="Nintendo Switch" action="ACTION_NONE" value="6" />
       <options text="Steam Deck" action="ACTION_NONE" value="7" />
-      <options text="SteamController" action="ACTION_NONE" value="8" />
+      <options text="FE_STEAMPAD" action="ACTION_NONE" value="8" />
     </menupc>
     <menupc enum="MENU_DISPLAY_ANTIALIASING">
       <options text="MO_OFF" action="ACTION_NONE" value="1" />
@@ -649,7 +649,7 @@
       scaler="0" displayValue="MENU_DISPLAY_NONE" />
       
             <optionspc action="MENUOPT_ADJUST" label="MO_DOF" value="PREF_DEFINITION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-            <optionspc action="MENUOPT_ADJUST" label="Console Gamma" value="PREF_CONSOLE_GAMMA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="Console Gamma" value="PREF_CONSOLE_GAMMA" scaler="3" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
             <optionspc action="MENUOPT_ADJUST" label="Auto Exposure" value="PREF_AUTOEXPOSURE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Motion Blur" value="PREF_MOTIONBLUR" scaler="5" displayValue="MENU_DISPLAY_REFLECTION_QUALITY" />
             <optionspc action="MENUOPT_ADJUST" label="Depth of Field" value="PREF_TCYC_DOF" scaler="11" displayValue="MENU_DISPLAY_DOF" />
@@ -1407,7 +1407,7 @@
         
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="MO_DOF" value="PREF_DEFINITION" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
-            <optionspc action="MENUOPT_ADJUST" label="Console Gamma" value="PREF_CONSOLE_GAMMA" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+            <optionspc action="MENUOPT_ADJUST" label="Console Gamma" value="PREF_CONSOLE_GAMMA" scaler="3" displayValue="MENU_DISPLAY_NETSTATS_GAMEMODE" />
             <optionspc action="MENUOPT_ADJUST" label="Auto Exposure" value="PREF_AUTOEXPOSURE" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Motion Blur" value="PREF_MOTIONBLUR" scaler="5" displayValue="MENU_DISPLAY_REFLECTION_QUALITY" />
             <optionspc action="MENUOPT_ADJUST" label="Depth of Field" value="PREF_TCYC_DOF" scaler="11" displayValue="MENU_DISPLAY_DOF" />

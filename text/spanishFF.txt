@@ -145,6 +145,9 @@ Centrar la cámara del personaje
 [Camera Shake]
 Sacudida de la cámara
 
+[FE_STEAMPAD]
+Steam Controller
+
 [CutscAudioSync]
 Sincronizar audio durante las escenas cinemáticas
 

@@ -331,6 +331,7 @@ ASALocalRun/
 .mfractor/
 
 data/**/*.img
+shaders/external/**/*.asm
 data/update/common/shaders/**/*.fxc
 source/**/*.cso
 source/**/*.pso

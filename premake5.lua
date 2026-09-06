@@ -92,6 +92,16 @@ workspace "GTAIV.EFLC.FusionFix"
    files { "source/gxt/src/**.h", "source/gxt/src/**.cpp" }
    files { "data/plugins/*.ini" }
 
+   os.mkdir("shaders/external/gamma/asm")
+   os.mkdir("source/resources/shaders/win32_30")
+
+   -- Compile hlsl shaders to .cso (Output to "../source/resources/shaders/win32_30"). Assembly variants are still output for convenience to "../shaders/external/%shadername%/asm".
+   prebuildcommands {
+      -- Gamma
+      "\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E VSMain /Fo \"../source/resources/shaders/win32_30/VS_BlitXenonGamma_Dither.cso\" /Fc \"../shaders/external/gamma/asm/VS_BlitXenonGamma_Dither.asm\" \"../shaders/external/gamma/hlsl/XenonGamma_Dither.hlsl\" && \"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E PSMain /Fo \"../source/resources/shaders/win32_30/PS_BlitXenonGamma_Dither.cso\" /Fc \"../shaders/external/gamma/asm/PS_BlitXenonGamma_Dither.asm\" \"../shaders/external/gamma/hlsl/XenonGamma_Dither.hlsl\"",
+      "\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E VSMain /Fo \"../source/resources/shaders/win32_30/VS_BlitCellGamma_Dither.cso\"  /Fc \"../shaders/external/gamma/asm/VS_BlitCellGamma_Dither.asm\"  \"../shaders/external/gamma/hlsl/CellGamma_Dither.hlsl\"  && \"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E PSMain /Fo \"../source/resources/shaders/win32_30/PS_BlitCellGamma_Dither.cso\"  /Fc \"../shaders/external/gamma/asm/PS_BlitCellGamma_Dither.asm\"  \"../shaders/external/gamma/hlsl/CellGamma_Dither.hlsl\"",
+    }
+
    prebuildcommands {
       "for /R \"../source/resources/snow/\" %%f in (*.ps) do (\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E main /Fo \"../source/resources/snow/%%~nfps.pso\" %%f)",
       "for /R \"../source/resources/snow/\" %%f in (*.vs) do (\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E main /Fo \"../source/resources/snow/%%~nfvs.vso\" %%f)",

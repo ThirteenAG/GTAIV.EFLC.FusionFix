@@ -145,6 +145,9 @@ Centrer la caméra à pied
 [Camera Shake]
 Tremblements de caméra
 
+[FE_STEAMPAD]
+Steam Controller
+
 [CutscAudioSync]
 Synchronisation audio des cinématiques
 

@@ -145,6 +145,9 @@ Telecamera a piedi centrata
 [Camera Shake]
 Vibrazione della camera
 
+[FE_STEAMPAD]
+Steam Controller
+
 [CutscAudioSync]
 Sincronizzazione audio cinematiche
 
