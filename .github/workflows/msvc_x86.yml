@@ -84,7 +84,7 @@ jobs:
       uses: robinraju/release-downloader@v1.13
       with:
         repository: "doitsujin/dxvk"
-        tag: 'v2.6.2'
+        tag: 'v3.1'
         fileName: "dxvk-*.tar.gz"
 
     - name: Download Legacy Package
