@@ -9,7 +9,17 @@ import comvars;
 import settings;
 import natives;
 
-uint8_t* (__fastcall* sub_8F0080)(uint8_t* _this, void* edx) = nullptr;
+uint8_t* (__fastcall* CControl__GetSprintValue)(uint8_t* _this, void* edx) = nullptr;
+
+bool IsSprintDown(const uint8_t* ioValue)
+{
+    return static_cast<uint8_t>(ioValue[6] ^ ioValue[4]) > 0x7F;
+}
+
+bool WasSprintDown(const uint8_t* ioValue)
+{
+    return static_cast<uint8_t>(ioValue[7] ^ ioValue[4]) > 0x7F;
+}
 
 bool bRunState = true;
 
@@ -21,79 +31,79 @@ public:
         FusionFix::onInitEventAsync() += []()
         {
             auto pattern = find_pattern("E8 ? ? ? ? 8A 48 ? 32 48 ? 80 F9 ? 76 ? 8B 86", "E8 ? ? ? ? 8A 48 ? 32 48 ? F3 0F 10 05");
-            sub_8F0080 = (decltype(sub_8F0080))injector::GetBranchDestination(pattern.get_first()).as_int();
+            CControl__GetSprintValue = (decltype(CControl__GetSprintValue))injector::GetBranchDestination(pattern.get_first()).as_int();
 
             pattern = hook::pattern("D9 44 24 18 5F 5B 5D");
-            static auto flag = false;
-            if (!pattern.empty())
-                flag = true;
-            else
+            static uint32_t nRetValOffset = 0x18;
+            if (pattern.empty())
+            {
                 pattern = hook::pattern("D9 44 24 1C 5E 5B 5D");
+                nRetValOffset = 0x1C;
+            }
             static uintptr_t loc_A2A60F = (uintptr_t)pattern.get_first(0);
+
             pattern = hook::pattern("80 F9 7F 76 57");
             struct SprintHook
             {
                 void operator()(injector::reg_pack& regs)
                 {
-                    if ((*(uint8_t*)(regs.eax + 4) ^ *(uint8_t*)(regs.eax + 6)) <= 127)
+                    if (IsSprintDown((uint8_t*)regs.eax))
                     {
-                        if (*(float*)(regs.esp + (flag ? 0x14 : 0x1C)) > 1.0f)
-                            *(float*)(regs.esp + (flag ? 0x18 : 0x1C)) = 1.0f;
+                        return; // Sprint held - fall through to the games own ramp
+                    }
 
-                        force_return_address(loc_A2A60F);
+                    auto& retVal = *(float*)(regs.esp + nRetValOffset);
+                    if (retVal > 1.0f)
+                    {
+                        retVal = 1.0f;
                     }
 
                     static auto sprintPref = FusionFixSettings.GetRef("PREF_SPRINT");
-                    if (sprintPref->get()) // hold
+                    static auto alwaysrunPref = FusionFixSettings.GetRef("PREF_ALWAYSRUN");
+                    if (sprintPref->get() && alwaysrunPref->get() && bRunState) // Hold-to-sprint only
                     {
-                        static auto alwaysrunPref = FusionFixSettings.GetRef("PREF_ALWAYSRUN");
-                        auto bShouldRun = alwaysrunPref->get();
-
-                        if (bShouldRun && bRunState)
-                            *(float*)(regs.esp + (flag ? 0x18 : 0x1C)) = 1.0f;
+                        retVal = 1.0f;
                     }
+
+                    force_return_address(loc_A2A60F);
                 }
             }; injector::MakeInline<SprintHook>(pattern.get_first(0));
 
             pattern = find_pattern("77 5F 8B 8E", "77 46 8B 8F");
             static raw_mem GamepadCB(pattern.get_first(0), { 0x90, 0x90 }); // NOP
-            FusionFixSettings.SetCallback("PREF_ALWAYSRUN", [](int32_t value)
+            static auto ApplyAlwaysRun = [](int32_t value)
             {
+                *CTaskSimpleMovePlayer::ms_bDefaultNoSprintingInInteriors = !value;
                 if (value)
                 {
-                    *CTaskSimpleMovePlayer::ms_bDefaultNoSprintingInInteriors = false;
                     GamepadCB.Write();
                 }
                 else
                 {
-                    *CTaskSimpleMovePlayer::ms_bDefaultNoSprintingInInteriors = true;
                     GamepadCB.Restore();
                 }
-            });
-
-            if (FusionFixSettings("PREF_ALWAYSRUN"))
-            {
-                *CTaskSimpleMovePlayer::ms_bDefaultNoSprintingInInteriors = false;
-                GamepadCB.Write();
-            }
+            };
+            FusionFixSettings.SetCallback("PREF_ALWAYSRUN", ApplyAlwaysRun);
+            ApplyAlwaysRun(FusionFixSettings("PREF_ALWAYSRUN"));
 
             pattern = find_pattern("0F 2F C3 F3 0F 11 44 24 ? F3 0F 11 44 24", "0F 2F 05 ? ? ? ? F3 0F 11 4C 24 ? F3 0F 11 44 24 ? 0F 86");
             static auto SprintHook2 = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
             {
                 static auto sprintPref = FusionFixSettings.GetRef("PREF_SPRINT");
-                if (!sprintPref->get()) // toggle
+                if (!sprintPref->get()) // Toggle-to-sprint - leave the game alone
+                {
                     return;
+                }
 
                 static auto alwaysrunPref = FusionFixSettings.GetRef("PREF_ALWAYSRUN");
                 if (!alwaysrunPref->get())
+                {
                     return;
+                }
 
-                auto ret = sub_8F0080((uint8_t*)regs.ebp, 0);
-
-                uint8_t sprintCur = ret[6];
-                uint8_t sprintPrev = ret[7];
-                bool pressed = sprintCur > 127;
-                bool wasPressed = sprintPrev > 127;
+                auto ioValue = CControl__GetSprintValue((uint8_t*)regs.ebp, 0);
+                bool pressed = IsSprintDown(ioValue);
+                bool wasPressed = WasSprintDown(ioValue);
 
                 static int32_t sprintPressStart = 0;
                 static bool isHold = false;
@@ -109,7 +119,7 @@ public:
                 {
                     if (*CTimer::m_snTimeInMilliseconds - sprintPressStart >= kHoldThreshold)
                     {
-                        // Hold - allow sprint, don't cap
+                        // Hold - allow sprint, dont cap
                         isHold = true;
                     }
                     else
