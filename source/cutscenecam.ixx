@@ -11,117 +11,117 @@ import natives;
 import settings;
 
 uint8_t* g_CutsceneAudioEntity = nullptr;
-int* dword_12957B8 = nullptr;
+int* pGetTimeStepStaticsInitGuard = nullptr;
 
 bool LostFocusResyncTimerActive = false;
 std::chrono::steady_clock::time_point LostFocusResyncTimerStart{};
 
 namespace CCutsceneManager
 {
-    static inline float dword_1295798;
-    static inline float dword_129579C;
-    static inline float dword_12957A4;
-    static inline float dword_12957A8;
-    static inline float dword_12957B0;
-    static inline float dword_12957B4;
-    static inline float dword_12957A0;
-    static inline float dword_12957AC;
+    static inline float e2_int_time0;
+    static inline float e2_int_offset0;
+    static inline float e2_int_rate0;
+    static inline float e2_int_time1;
+    static inline float e2_int_offset1;
+    static inline float e2_int_rate1;
+    static inline float e2_int_time2;
+    static inline float e2_int_offset2;
 
-    static inline float dword_12957BC;
-    static inline float dword_12957C0;
-    static inline float dword_12957C8;
-    static inline float dword_12957CC;
-    static inline float dword_12957D4;
-    static inline float dword_12957D8;
-    static inline float dword_12957C4;
-    static inline float dword_12957D0;
+    static inline float GT06_AA_time0;
+    static inline float GT06_AA_offset0;
+    static inline float GT06_AA_rate0;
+    static inline float GT06_AA_time1;
+    static inline float GT06_AA_offset1;
+    static inline float GT06_AA_rate1;
+    static inline float GT06_AA_time2;
+    static inline float GT06_AA_offset2;
 
     SafetyHookInline shGetTimeStep = {};
     void __cdecl GetTimeStep(float* a1)
     {
-        float v1 = *a1;
-        float v2 = 0.0f;
-        int v3 = audCutsceneAudioEntity::GetPlayTimeMs(g_CutsceneAudioEntity);
+        float InTimeMs = *a1;
+        float AudioTimeOffset = 0.0f;
+        int PlayTimeMs = audCutsceneAudioEntity::GetPlayTimeMs(g_CutsceneAudioEntity);
 
         if (*_dwCurrentEpisode == 2)
         {
-            int v4 = *dword_12957B8;
+            int StaticsInitGuard = *pGetTimeStepStaticsInitGuard;
 
-            if ((*dword_12957B8 & 1) == 0)
+            if ((*pGetTimeStepStaticsInitGuard & 1) == 0)
             {
-                v4 = *dword_12957B8 | 1;
-                *dword_12957B8 |= 1u;
-                dword_1295798 = 120.0f;
-                dword_129579C = 0.0f;
-                dword_12957A4 = 180.0f;
-                dword_12957A8 = -300.0f;
-                dword_12957B0 = 350.0f;
-                dword_12957B4 = -500.0f;
-                dword_12957A0 = 0.016666668f;
-                dword_12957AC = 0.0058823531f;
+                StaticsInitGuard = *pGetTimeStepStaticsInitGuard | 1;
+                *pGetTimeStepStaticsInitGuard |= 1u;
+                e2_int_time0 = 120.0f;
+                e2_int_offset0 = 0.0f;
+                e2_int_time1 = 180.0f;
+                e2_int_offset1 = -300.0f;
+                e2_int_time2 = 350.0f;
+                e2_int_offset2 = -500.0f;
+                e2_int_rate0 = 0.016666668f;
+                e2_int_rate1 = 0.0058823531f;
             }
 
-            if ((v4 & 2) == 0)
+            if ((StaticsInitGuard & 2) == 0)
             {
-                *dword_12957B8 = v4 | 2;
-                dword_12957BC = 45.0f;
-                dword_12957C0 = 0.0f;
-                dword_12957C8 = 180.0f;
-                dword_12957CC = -400.0f;
-                dword_12957D4 = 350.0f;
-                dword_12957D8 = -400.0f;
-                dword_12957C4 = 0.0074074073f;
-                dword_12957D0 = 0.0058823531f;
+                *pGetTimeStepStaticsInitGuard = StaticsInitGuard | 2;
+                GT06_AA_time0 = 45.0f;
+                GT06_AA_offset0 = 0.0f;
+                GT06_AA_time1 = 180.0f;
+                GT06_AA_offset1 = -400.0f;
+                GT06_AA_time2 = 350.0f;
+                GT06_AA_offset2 = -400.0f;
+                GT06_AA_rate0 = 0.0074074073f;
+                GT06_AA_rate1 = 0.0058823531f;
             }
 
             if (!_stricmp(pszCurrentCutsceneName, "e2_int"))
             {
-                float v5 = v3 * 0.001f;
+                float PlayTimeSec = PlayTimeMs * 0.001f;
 
-                if ((v5 - dword_1295798) < 0.0f)
-                    v2 = dword_129579C;
+                if ((PlayTimeSec - e2_int_time0) < 0.0f)
+                    AudioTimeOffset = e2_int_offset0;
                 else
-                    v2 = (((v5 - dword_1295798) * dword_12957A0) * (dword_12957A8 - dword_129579C)) + dword_129579C;
+                    AudioTimeOffset = (((PlayTimeSec - e2_int_time0) * e2_int_rate0) * (e2_int_offset1 - e2_int_offset0)) + e2_int_offset0;
 
-                if ((v5 - dword_12957A4) >= 0.0f)
-                    v2 = (((v5 - dword_12957A4) * dword_12957AC) * (dword_12957B4 - dword_12957A8)) + dword_12957A8;
+                if ((PlayTimeSec - e2_int_time1) >= 0.0f)
+                    AudioTimeOffset = (((PlayTimeSec - e2_int_time1) * e2_int_rate1) * (e2_int_offset2 - e2_int_offset1)) + e2_int_offset1;
 
-                if ((v5 - dword_12957B0) >= 0.0f)
-                    v2 = dword_12957B4;
+                if ((PlayTimeSec - e2_int_time2) >= 0.0f)
+                    AudioTimeOffset = e2_int_offset2;
             }
             else if (!_stricmp(pszCurrentCutsceneName, "GT06_AA"))
             {
-                float v6 = v3 * 0.001f;
+                float PlayTimeSec = PlayTimeMs * 0.001f;
 
-                if ((v6 - dword_12957BC) < 0.0f)
-                    v2 = dword_12957C0;
+                if ((PlayTimeSec - GT06_AA_time0) < 0.0f)
+                    AudioTimeOffset = GT06_AA_offset0;
                 else
-                    v2 = (((v6 - dword_12957BC) * dword_12957C4) * (dword_12957CC - dword_12957C0)) + dword_12957C0;
+                    AudioTimeOffset = (((PlayTimeSec - GT06_AA_time0) * GT06_AA_rate0) * (GT06_AA_offset1 - GT06_AA_offset0)) + GT06_AA_offset0;
 
-                if ((v6 - dword_12957C8) >= 0.0f)
-                    v2 = (((v6 - dword_12957C8) * dword_12957D0) * (dword_12957D8 - dword_12957CC)) + dword_12957CC;
+                if ((PlayTimeSec - GT06_AA_time1) >= 0.0f)
+                    AudioTimeOffset = (((PlayTimeSec - GT06_AA_time1) * GT06_AA_rate1) * (GT06_AA_offset2 - GT06_AA_offset1)) + GT06_AA_offset1;
 
-                if ((v6 - dword_12957D4) >= 0.0f)
-                    v2 = dword_12957D8;
+                if ((PlayTimeSec - GT06_AA_time2) >= 0.0f)
+                    AudioTimeOffset = GT06_AA_offset2;
             }
             else
             {
-                v2 = 0.0f;
+                AudioTimeOffset = 0.0f;
             }
         }
 
-        // Result
-        int v7 = 0;
+        // Audio playback position with the drift ramp applied
+        int AudioTimeMs = 0;
 
-        if (v3 == -1)
+        if (PlayTimeMs == -1)
         {
-            v7 = -1;
+            AudioTimeMs = -1;
         }
         else
         {
-            v7 = v3 + (int)v2;
-            if (v7 < 0)
-                v7 = 0;
+            AudioTimeMs = PlayTimeMs + (int)AudioTimeOffset;
+            if (AudioTimeMs < 0)
+                AudioTimeMs = 0;
         }
 
         static auto CutsceneAudioSync = FusionFixSettings.GetRef("PREF_CUTSCENEAUDIOSYNC");
@@ -160,24 +160,24 @@ namespace CCutsceneManager
             }
         }
 
-        float v8 = 0.0f;
+        float OutTimeMs = 0.0f;
 
         if (CutsceneAudioSync->get() == 2 || LostFocusResyncTimerActive)
         {
             // Vanilla code, only desyncs during section changes and fading
             if (*CCutsceneManager::ms_State != 8)
             {
-                v8 = (*CTimer::m_gameTime * 1000.0f) + v1;
+                OutTimeMs = (*CTimer::m_gameTime * 1000.0f) + InTimeMs;
             }
-            else if (v7 == -1)
+            else if (AudioTimeMs == -1)
             {
-                v8 = (*CTimer::m_systemTime * 1000.0f) + v1;
+                OutTimeMs = (*CTimer::m_systemTime * 1000.0f) + InTimeMs;
             }
             else
             {
-                v8 = (float)v7 - *CCutsceneManager::ms_fTimePassedSinceLastAudioStart;
-                if (v8 < 0.0f)
-                    v8 = 0.0f;
+                OutTimeMs = (float)AudioTimeMs - *CCutsceneManager::ms_fTimePassedSinceLastAudioStart;
+                if (OutTimeMs < 0.0f)
+                    OutTimeMs = 0.0f;
             }
         }
         else if (CutsceneAudioSync->get() == 1)
@@ -186,39 +186,39 @@ namespace CCutsceneManager
             // NOTE: This may cause visible stutter, perhaps even half refresh frame drops (Sometimes) when sections change.
             if (*CCutsceneManager::ms_State == 8)
             {
-                v8 = (*CTimer::m_gameTime * 1000.0f) + v1;
+                OutTimeMs = (*CTimer::m_gameTime * 1000.0f) + InTimeMs;
             }
-            else if (v7 == -1)
+            else if (AudioTimeMs == -1)
             {
-                v8 = (*CTimer::m_systemTime * 1000.0f) + v1;
+                OutTimeMs = (*CTimer::m_systemTime * 1000.0f) + InTimeMs;
             }
             else
             {
-                v8 = (float)v7 - *CCutsceneManager::ms_fTimePassedSinceLastAudioStart;
-                if (v8 < 0.0f)
-                    v8 = 0.0f;
+                OutTimeMs = (float)AudioTimeMs - *CCutsceneManager::ms_fTimePassedSinceLastAudioStart;
+                if (OutTimeMs < 0.0f)
+                    OutTimeMs = 0.0f;
             }
         }
         else if (CutsceneAudioSync->get() == 0)
         {
             // Always runs, may inevitably result in desync, which can then be mitigated manually unfortunately
-            if ((v7 + v3 != 0) || ((v7 | v3) != 0))
+            if ((AudioTimeMs + PlayTimeMs != 0) || ((AudioTimeMs | PlayTimeMs) != 0))
             {
-                v8 = *CTimer::m_gameTime * 1000.0f + v1;
+                OutTimeMs = *CTimer::m_gameTime * 1000.0f + InTimeMs;
             }
-            else if (v7 == -1)
+            else if (AudioTimeMs == -1)
             {
-                v8 = *CTimer::m_systemTime * 1000.0f + v1;
+                OutTimeMs = *CTimer::m_systemTime * 1000.0f + InTimeMs;
             }
             else
             {
-                v8 = (float)v7 - *CCutsceneManager::ms_fTimePassedSinceLastAudioStart;
-                if (v8 < 0.0f)
-                    v8 = 0.0f;
+                OutTimeMs = (float)AudioTimeMs - *CCutsceneManager::ms_fTimePassedSinceLastAudioStart;
+                if (OutTimeMs < 0.0f)
+                    OutTimeMs = 0.0f;
             }
         }
 
-        *a1 = v8;
+        *a1 = OutTimeMs;
     }
 }
 
@@ -241,49 +241,53 @@ public:
 
                 static void* patchOffset = pattern.get_first(0);
 
-                static void* originalHookster = injector::GetBranchDestination(patchOffset).get<void*>();
+                static void* pUpdateCameraFromPhase = injector::GetBranchDestination(patchOffset).get<void*>();
 
                 pattern = find_pattern("C6 44 24 ? ? A1 ? ? ? ? 83 FF 03", "C6 44 24 ? ? 83 F9 03");
-                static void* originalHooksterBytePatch = pattern.get_first(4);
+                static void* pJumpCutFlagByte = pattern.get_first(4);
                 static double incrementalTimeStep = 0.0;
 
-                struct CutsceneCamJitterWorkaround
+                struct CCamAnimated
                 {
-                    float data[320];
+                    uint8_t pad0[0x20];
+                    rage::Vector3 m_matrixB;
+                    uint8_t pad1[0x14];
+                    rage::Vector3 m_matrixPos;
+                    uint8_t pad2[0x4B4];
 
-                    bool OriginalHookster(float a2)
+                    bool UpdateCameraFromPhase(float fPhase)
                     {
-                        return ((bool(__thiscall*)(CutsceneCamJitterWorkaround*, float))originalHookster)(this, a2);
+                        return ((bool(__thiscall*)(CCamAnimated*, float))pUpdateCameraFromPhase)(this, fPhase);
                     }
 
-                    bool Hookster(float a2)
+                    bool UpdateCameraFromPhaseHook(float fPhase)
                     {
 #if 1
                         incrementalTimeStep += *CTimer::fTimeStep;
 
-                        CutsceneCamJitterWorkaround temp = *this;
+                        CCamAnimated temp = *this;
 
-                        injector::WriteMemory<uint8_t>(originalHooksterBytePatch, 1, true);
-                        bool result = OriginalHookster(a2) != 0.0;
+                        injector::WriteMemory<uint8_t>(pJumpCutFlagByte, 1, true);
+                        bool result = UpdateCameraFromPhase(fPhase) != 0.0;
 
-                        CutsceneCamJitterWorkaround temp2 = *this;
+                        CCamAnimated temp2 = *this;
 
                         if (incrementalTimeStep < 0.3333)
                             return result;
 
                         *this = temp;
 
-                        injector::WriteMemory<uint8_t>(originalHooksterBytePatch, 0, true);
-                        bool result2 = OriginalHookster(a2) != 0.0;
+                        injector::WriteMemory<uint8_t>(pJumpCutFlagByte, 0, true);
+                        bool result2 = UpdateCameraFromPhase(fPhase) != 0.0;
 
                         temp = *this;
 
-                        if (fabs(temp.data[8] - temp2.data[8]) > 0.03333f
-                            || fabs(temp.data[9] - temp2.data[9]) > 0.03333f
-                            || fabs(temp.data[10] - temp2.data[10]) > 0.03333f
-                            || fabs(temp.data[16] - temp2.data[16]) > 0.3333f
-                            || fabs(temp.data[17] - temp2.data[17]) > 0.3333f
-                            || fabs(temp.data[18] - temp2.data[18]) > 0.3333f)
+                        if (fabs(temp.m_matrixB.x - temp2.m_matrixB.x) > 0.03333f
+                            || fabs(temp.m_matrixB.y - temp2.m_matrixB.y) > 0.03333f
+                            || fabs(temp.m_matrixB.z - temp2.m_matrixB.z) > 0.03333f
+                            || fabs(temp.m_matrixPos.x - temp2.m_matrixPos.x) > 0.3333f
+                            || fabs(temp.m_matrixPos.y - temp2.m_matrixPos.y) > 0.3333f
+                            || fabs(temp.m_matrixPos.z - temp2.m_matrixPos.z) > 0.3333f)
                         {
                             incrementalTimeStep = 0.0;
                             *this = temp2;
@@ -291,12 +295,12 @@ public:
                         }
                         return result2;
 #else
-                        return OriginalHookster(a2) != 0.0;
+                        return UpdateCameraFromPhase(fPhase) != 0.0;
 #endif
                     }
                 };
 
-                auto dest = &CutsceneCamJitterWorkaround::Hookster;
+                auto dest = &CCamAnimated::UpdateCameraFromPhaseHook;
                 injector::MakeCALL(patchOffset, *(void**)&dest, true);
 
                 pattern = find_pattern("E8 ? ? ? ? 8B CD 88 44 24 0F", "E8 ? ? ? ? 8B CF 88 44 24 0F");
@@ -320,12 +324,12 @@ public:
                 pattern = hook::pattern("8B 0D ? ? ? ? F6 C1 ? 75 ? 83 C9 ? 89 0D ? ? ? ? C7 05");
                 if (!pattern.empty())
                 {
-                    dword_12957B8 = *pattern.get_first<int*>(2);
+                    pGetTimeStepStaticsInitGuard = *pattern.get_first<int*>(2);
                 }
                 else
                 {
                     pattern = hook::pattern("A1 ? ? ? ? A8 ? F3 0F 10 05");
-                    dword_12957B8 = *pattern.get_first<int*>(1);
+                    pGetTimeStepStaticsInitGuard = *pattern.get_first<int*>(1);
                 }
 
                 pattern = find_pattern("51 56 8B 74 24 ? 57 F3 0F 10 06", "51 56 57 8B 7C 24 ? F3 0F 10 07");
