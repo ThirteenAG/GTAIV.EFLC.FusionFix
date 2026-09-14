@@ -1164,7 +1164,12 @@ public:
         if (GetD3DX9_43DLL())
         {
             CIniReader iniReader("");
+
+            // [FOG]
             static bool bExtendedTimecycEditing = iniReader.ReadInteger("FOG", "ExtendedTimecycEditing", 0) != 0;
+
+            // [EXPERIMENTAL]
+            static bool bStreamingMemoryCounters = iniReader.ReadInteger("EXPERIMENTAL", "StreamingMemoryCounters", 0) != 0;
 
             static ID3DXFont* pFPSFont = nullptr;
 
@@ -1307,6 +1312,37 @@ public:
                                 if (it.first >= 0 && it.first < CTimeCycleModifier::ARRAY_SIZE)
                                     DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sModifiers, modNames[it.first].data(), it.second);
                             }
+                        }
+                        else if (bStreamingMemoryCounters)
+                        {
+                            auto i = 0;
+
+                            static char sBudgetedPhysicalMemory[] = "BudgetedPhysical: %.2f MB";
+                            static char sBudgetedVirtualMemory[] = "BudgetedVirtual: %.2f MB";
+
+                            static char sUsedPhysicalMemory[] = "UsedPhysical: %.2f MB";
+                            static char sUsedVirtualMemory[] = "UsedVirtual: %.2f MB";
+
+                            static char sAllocatedPhysicalMemory[] = "AllocatedPhysical: %.2f MB";
+                            static char sAllocatedVirtualMemory[] = "AllocatedVirtual: %.2f MB";
+
+                            double BudgetedPhysicalMB = static_cast<double>(CStreamingEngine::ms_info->PhysicalBudget) / (1024.0 * 1024.0);
+                            double BudgetedVirtualMB = static_cast<double>(CStreamingEngine::ms_info->VirtualBudget) / (1024.0 * 1024.0);
+
+                            double UsedPhysicalMB = static_cast<double>(CStreamingEngine::ms_info->PhysicalUsed) / (1024.0 * 1024.0);
+                            double UsedVirtualMB = static_cast<double>(CStreamingEngine::ms_info->VirtualUsed) / (1024.0 * 1024.0);
+
+                            double AllocatedPhysicalMB = static_cast<double>(CStreamingEngine::ms_info->PhysicalAllocated) / (1024.0 * 1024.0);
+                            double AllocatedVirtualMB = static_cast<double>(CStreamingEngine::ms_info->VirtualAllocated) / (1024.0 * 1024.0);
+
+                            DrawTextOutline(pFPSFont, 10, FLOAT(fontSize* ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sBudgetedPhysicalMemory, BudgetedPhysicalMB);
+                            DrawTextOutline(pFPSFont, 10, FLOAT(fontSize* ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sBudgetedVirtualMemory, BudgetedVirtualMB);
+
+                            DrawTextOutline(pFPSFont, 10, FLOAT(fontSize* ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sUsedPhysicalMemory, UsedPhysicalMB);
+                            DrawTextOutline(pFPSFont, 10, FLOAT(fontSize* ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sUsedVirtualMemory, UsedVirtualMB);
+
+                            DrawTextOutline(pFPSFont, 10, FLOAT(fontSize* ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sAllocatedPhysicalMemory, AllocatedPhysicalMB);
+                            DrawTextOutline(pFPSFont, 10, FLOAT(fontSize* ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sAllocatedVirtualMemory, AllocatedVirtualMB);
                         }
                     }
                 }
