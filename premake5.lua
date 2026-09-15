@@ -95,11 +95,11 @@ workspace "GTAIV.EFLC.FusionFix"
    os.mkdir("shaders/external/gamma/asm")
    os.mkdir("source/resources/shaders/win32_30")
 
-   -- Compile hlsl shaders to .cso (Output to "../source/resources/shaders/win32_30"). Assembly variants are still output for convenience to "../shaders/external/%shadername%/asm".
+   -- Compile hlsl shaders to .fxo (Output to "../source/resources/shaders/win32_30"). Assembly variants are still output for convenience to "../shaders/external/%shadername%/asm".
    prebuildcommands {
-      -- Gamma
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E VSMain /Fo \"../source/resources/shaders/win32_30/VS_BlitXenonGamma_Dither.cso\" /Fc \"../shaders/external/gamma/asm/VS_BlitXenonGamma_Dither.asm\" \"../shaders/external/gamma/hlsl/XenonGamma_Dither.hlsl\" && \"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E PSMain /Fo \"../source/resources/shaders/win32_30/PS_BlitXenonGamma_Dither.cso\" /Fc \"../shaders/external/gamma/asm/PS_BlitXenonGamma_Dither.asm\" \"../shaders/external/gamma/hlsl/XenonGamma_Dither.hlsl\"",
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E VSMain /Fo \"../source/resources/shaders/win32_30/VS_BlitCellGamma_Dither.cso\"  /Fc \"../shaders/external/gamma/asm/VS_BlitCellGamma_Dither.asm\"  \"../shaders/external/gamma/hlsl/CellGamma_Dither.hlsl\"  && \"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E PSMain /Fo \"../source/resources/shaders/win32_30/PS_BlitCellGamma_Dither.cso\"  /Fc \"../shaders/external/gamma/asm/PS_BlitCellGamma_Dither.asm\"  \"../shaders/external/gamma/hlsl/CellGamma_Dither.hlsl\"",
+      -- ConsoleGamma
+      "\"../source/dxsdk/lib/x86/fxc.exe\" /T fx_2_0 /nologo /Fo \"../source/resources/shaders/win32_30/ConsoleGamma.fxo\" /Fc \"../shaders/external/gamma/asm/ConsoleGamma.asm\" \"../shaders/external/gamma/fx/ConsoleGamma.fx\"",
+      "\"../source/dxsdk/lib/x86/fxc.exe\" /T fx_2_0 /nologo /Fo \"../source/resources/shaders/win32_30/ConsoleGamma_Dither.fxo\" /Fc \"../shaders/external/gamma/asm/ConsoleGamma_Dither.asm\" \"../shaders/external/gamma/fx/ConsoleGamma_Dither.fx\"",
     }
 
    prebuildcommands {

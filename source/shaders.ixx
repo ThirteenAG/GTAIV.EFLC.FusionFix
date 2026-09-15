@@ -293,13 +293,21 @@ public:
                 injector::WriteMemory(pattern.get_first(4), &dwMirrorOffset, true);
             }
 
-            // Contrast slider value is actually one tick lower internally on the Xbox 360 version (n ticks visually, actually n-1 in game code). Implement this behavior to get proper console gamma w/ FusionShaders
+            // Contrast slider ticks 0 and 1 are the same visually on the Xbox 360 version. This is not proper behavior, so it's a bug, but it was never fixed for that version,
+            // so we need to enforce this behavior to have faithful Xbox 360 gamma. On PC and PS3, all ticks on the slider correctly change the contrast/gamma.
             {
                 auto pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 C6 F3 0F 11 4C 24", "F3 0F 10 05 ? ? ? ? F3 0F 59 C6 F3 0F 11 44 24 ? F3 0F 10 05");
-                static auto PostFXContrastHook = safetyhook::create_mid(pattern.get_first(8), [](SafetyHookContext& regs)
+                static auto rage__CPostFX__sm_contrastFrontEnd = *pattern.get_first<float*>(4);
+                injector::MakeNOP(pattern.get_first(0), 12, true);
+                static auto rage__CPostFX__ProcessPostProcess_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                 {
-                    static auto consolegamma = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA");
-                    regs.xmm0.f32[0] += regs.xmm0.f32[0] >= 1.3f ? 0.0f : (consolegamma->get() ? 0.06f : 0.0f);
+                    regs.xmm0.f32[0] = *rage__CPostFX__sm_contrastFrontEnd;
+
+                    static auto ConsoleGamma = FusionFixSettings.GetRef("PREF_CONSOLE_GAMMA");
+                    if (ConsoleGamma->get() == 1 && regs.xmm0.f32[0] < 1.3f)
+                        regs.xmm0.f32[0] += 0.06f;
+
+                    regs.xmm0.f32[0] *= regs.xmm6.f32[0];
                 });
             }
 
