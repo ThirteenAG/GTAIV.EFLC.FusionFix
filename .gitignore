@@ -334,6 +334,7 @@ data/**/*.img
 shaders/external/**/*.asm
 data/update/common/shaders/**/*.fxc
 source/**/*.cso
+source/**/*.fxo
 source/**/*.pso
 source/**/*.vso
 !source/dxsdk/**
