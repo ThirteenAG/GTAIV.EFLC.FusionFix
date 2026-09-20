@@ -2603,23 +2603,22 @@ export namespace CCutsceneManager
     float* ms_fTimePassedSinceLastAudioStart = nullptr;
 }
 
-// This needs a better name :)
-struct StreamingMemoryState
+struct CStreamingInfoManager
 {
     uint8_t Padding[0x20];
 
-    uint32_t VirtualBudget;
-    uint32_t VirtualUsed;
-    uint32_t VirtualAllocated;
+    uint32_t mVirtualBudget;
+    uint32_t mVirtualUsed;
+    uint32_t mVirtualAllocated;
 
-    uint32_t PhysicalBudget;
-    uint32_t PhysicalUsed;
-    uint32_t PhysicalAllocated;
+    uint32_t mPhysicalBudget;
+    uint32_t mPhysicalUsed;
+    uint32_t mPhysicalAllocated;
 };
 
 export namespace CStreamingEngine
 {
-    StreamingMemoryState* ms_info = nullptr;
+    CStreamingInfoManager* ms_info = nullptr;
 }
 
 export enum eControllerButtons
@@ -3062,6 +3061,6 @@ public:
         CTimer::m_systemTime = *pattern.get_first<float*>(4);
 
         pattern = find_pattern("B9 ? ? ? ? A3 ? ? ? ? C6 05 ? ? ? ? ? C6 05", "B9 ? ? ? ? A3 ? ? ? ? 88 1D");
-        CStreamingEngine::ms_info = *pattern.get_first<StreamingMemoryState*>(1);
+        CStreamingEngine::ms_info = *pattern.get_first<CStreamingInfoManager*>(1);
     }
 } Common;
