@@ -119,33 +119,6 @@ workspace "GTAIV.EFLC.FusionFix"
       "\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E DX9_SMAANeighborhoodBlendingVS /Fo \"../source/resources/SMAA_NeighborhoodBlendingVS.vso\" \"../source/resources/SMAA.hlsl\"",
    }
 
-   pbcommands = {
-      "setlocal EnableDelayedExpansion",
-      --"set \"path=" .. (gamepath) .. "\"",
-      "set file=$(TargetPath)",
-      "FOR %%i IN (\"%file%\") DO (",
-      "set filename=%%~ni",
-      "set fileextension=%%~xi",
-      "set target=!path!!filename!!fileextension!",
-      "if exist \"!target!\" copy /y \"!file!\" \"!target!\"",
-      ")" }
-
-   function setpaths (gamepath, exepath, scriptspath)
-      scriptspath = scriptspath or "scripts/"
-      if (gamepath) then
-         cmdcopy = { "set \"path=" .. gamepath .. scriptspath .. "\"" }
-         table.insert(cmdcopy, pbcommands)
-         postbuildcommands (cmdcopy)
-         debugdir (gamepath)
-         if (exepath) then
-            debugcommand (gamepath .. exepath)
-            dir, file = exepath:match'(.*/)(.*)'
-            debugdir (gamepath .. (dir or ""))
-         end
-      end
-      targetdir ("bin")
-   end
-
    filter "configurations:Debug"
       defines { "DEBUG" }
       symbols "On"
@@ -157,7 +130,21 @@ workspace "GTAIV.EFLC.FusionFix"
       links { "libmodupdater_release_win32.lib" }
 
 project "GTAIV.EFLC.FusionFix"
-   setpaths("H:/SteamLibrary/steamapps/common/Grand Theft Auto IV/GTAIV/", "GTAIV.exe", "plugins/")
+   targetdir "bin"
+
+   local data = path.translate(path.getabsolute("data"))
+   local imgsrc = data .. "\\update\\GTAIV.EFLC.FusionFix\\"
+   postbuildcommands {
+      "if not defined GTAIV_DIR exit /b 0",
+      "robocopy \"" .. data .. "\" \"%GTAIV_DIR%\\.\" /E /NFL /NDL /NJH /NJS /NP" ..
+         " /XF .gitkeep cdimagemake.ims GTAIV.EFLC.FusionFix.asi d3d9.dll" ..
+         " /XD \"" .. imgsrc .. "GTAIV.EFLC.FusionFix\" \"" .. imgsrc .. "GTAIV.FusionFix\" \"" .. imgsrc .. "TLAD.FusionFix\"" ..
+         " \"" .. imgsrc .. "TBOGT.FusionFix\" \"" .. imgsrc .. "FusionTrees\" \"" .. imgsrc .. "FusionLights\"",
+      "if errorlevel 8 exit /b 1",
+      "copy /y \"$(TargetPath)\" \"%GTAIV_DIR%\\plugins\"",
+   }
+   debugdir "$(GTAIV_DIR)"
+   debugcommand "$(GTAIV_DIR)\\GTAIV.exe"
 
 project "GTAIV.EFLC.FusionFixInstaller"
    kind "WindowedApp"

@@ -439,6 +439,18 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 If you have an idea for a fix, add a module with its implementation to [source](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/tree/master/source) directory and open a pull request. See [contributing.ixx](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/blob/master/source/contributing.ixx) for reference.
 
+## Building
+
+Run `premake5.bat` to generate the Visual Studio solution in `build`, then build it.
+
+To deploy to your game automatically after each build, set the `GTAIV_DIR` environment variable to the folder containing `GTAIV.exe` and regenerate the solution, for example:
+
+```
+setx GTAIV_DIR "C:\Program Files (x86)\Steam\steamapps\common\Grand Theft Auto IV\GTAIV"
+```
+
+The build then copies the contents of `data` (including `plugins\GTAIV.EFLC.FusionFix.ini`) and the built `GTAIV.EFLC.FusionFix.asi` into that folder, and debugging launches `GTAIV.exe` from there. Restart Visual Studio after setting the variable. If it isn't set, nothing is copied.
+
 # Reporting more issues
 
 We're making a list of **GTA IV** issues that weren't addressed in official patches.
