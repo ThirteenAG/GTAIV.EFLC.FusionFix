@@ -57,6 +57,20 @@ public:
             pattern = find_pattern("E8 ? ? ? ? 83 C4 ? 89 44 24 ? F6 87", "E8 ? ? ? ? 83 C4 ? 89 44 24 ? EB ? 8B 74 24");
             CTaskComplexClimbLadder::hbScanForLadderToClimb.fun = injector::MakeCALL(pattern.get_first(0), CTaskComplexClimbLadder::ScanForLadderToClimb).get();
 
+
+            pattern = find_pattern("80 F9 7F 0F 86 ? ? ? ? 8B 4E 08 85 C9 74 ? 8B 01 8B 40 0C FF D0 3D 1F 01 00 00");
+            static auto CTaskComplexInWater__HandlePlayerInput_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+            {
+                static auto AutoClimbLadders = FusionFixSettings.GetRef("PREF_AUTOCLIMBLADDERS");
+                if (AutoClimbLadders->get())
+                {
+                    regs.ecx |= 0xFF;
+                }
+            });
+
+            pattern = find_pattern("E8 ? ? ? ? 83 C4 0C 85 C0 74 ? 8B 87 ? ? ? ? 81 8F");
+            injector::MakeCALL(pattern.get_first(0), CTaskComplexClimbLadder::ScanForLadderToClimb);
+
             pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 51 CC", "F3 0F 10 25 ? ? ? ? 0F 28 C1 0F 28 D3");
             injector::WriteMemory<float*>(pattern.get_first(4), &fLadderScanRadius, true);
 
