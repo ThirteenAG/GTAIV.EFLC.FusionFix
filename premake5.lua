@@ -132,19 +132,23 @@ workspace "GTAIV.EFLC.FusionFix"
 project "GTAIV.EFLC.FusionFix"
    targetdir "bin"
 
-   local data = path.translate(path.getabsolute("data"))
-   local imgsrc = data .. "\\update\\GTAIV.EFLC.FusionFix\\"
-   postbuildcommands {
-      "if not defined GTAIV_DIR exit /b 0",
-      "robocopy \"" .. data .. "\" \"%GTAIV_DIR%\\.\" /E /NFL /NDL /NJH /NJS /NP" ..
-         " /XF .gitkeep cdimagemake.ims GTAIV.EFLC.FusionFix.asi d3d9.dll" ..
-         " /XD \"" .. imgsrc .. "GTAIV.EFLC.FusionFix\" \"" .. imgsrc .. "GTAIV.FusionFix\" \"" .. imgsrc .. "TLAD.FusionFix\"" ..
-         " \"" .. imgsrc .. "TBOGT.FusionFix\" \"" .. imgsrc .. "FusionTrees\" \"" .. imgsrc .. "FusionLights\"",
-      "if errorlevel 8 exit /b 1",
-      "copy /y \"$(TargetPath)\" \"%GTAIV_DIR%\\plugins\"",
-   }
-   debugdir "$(GTAIV_DIR)"
-   debugcommand "$(GTAIV_DIR)\\GTAIV.exe"
+   local env = io.readfile(path.join(_SCRIPT_DIR, ".env")) or ""
+   local gamedir = env:match("GTAIV_DIR%s*=%s*\"?([^\r\n\"]+)")
+   if gamedir then
+      gamedir = path.translate((gamedir:gsub("[%s\\/]+$", "")))
+      local data = path.translate(path.getabsolute("data"))
+      local imgsrc = data .. "\\update\\GTAIV.EFLC.FusionFix\\"
+      postbuildcommands {
+         "robocopy \"" .. data .. "\" \"" .. gamedir .. "\" /E /NFL /NDL /NJH /NJS /NP" ..
+            " /XF .gitkeep cdimagemake.ims GTAIV.EFLC.FusionFix.asi d3d9.dll" ..
+            " /XD \"" .. imgsrc .. "GTAIV.EFLC.FusionFix\" \"" .. imgsrc .. "GTAIV.FusionFix\" \"" .. imgsrc .. "TLAD.FusionFix\"" ..
+            " \"" .. imgsrc .. "TBOGT.FusionFix\" \"" .. imgsrc .. "FusionTrees\" \"" .. imgsrc .. "FusionLights\"",
+         "if errorlevel 8 exit /b 1",
+         "copy /y \"$(TargetPath)\" \"" .. gamedir .. "\\plugins\"",
+      }
+      debugdir (gamedir)
+      debugcommand (gamedir .. "\\GTAIV.exe")
+   end
 
 project "GTAIV.EFLC.FusionFixInstaller"
    kind "WindowedApp"

@@ -443,13 +443,13 @@ If you have an idea for a fix, add a module with its implementation to [source](
 
 Run `premake5.bat` to generate the Visual Studio solution in `build`, then build it.
 
-To deploy to your game automatically after each build, set the `GTAIV_DIR` environment variable to the folder containing `GTAIV.exe` and regenerate the solution, for example:
+To deploy to your game automatically after each build, create a `.env` file in the repository root pointing `GTAIV_DIR` at the folder containing `GTAIV.exe`, then run `premake5.bat` again, for example:
 
 ```
-setx GTAIV_DIR "C:\Program Files (x86)\Steam\steamapps\common\Grand Theft Auto IV\GTAIV"
+GTAIV_DIR=C:\Program Files (x86)\Steam\steamapps\common\Grand Theft Auto IV\GTAIV
 ```
 
-The build then copies the contents of `data` (including `plugins\GTAIV.EFLC.FusionFix.ini`) and the built `GTAIV.EFLC.FusionFix.asi` into that folder, and debugging launches `GTAIV.exe` from there. Restart Visual Studio after setting the variable. If it isn't set, nothing is copied.
+The build then copies the contents of `data` (including `plugins\GTAIV.EFLC.FusionFix.ini`) and the built `GTAIV.EFLC.FusionFix.asi` into that folder, and debugging launches `GTAIV.exe` from there. The `.env` file is ignored by git. Without it, nothing is copied.
 
 # Reporting more issues
 
