@@ -4,6 +4,34 @@ newoption {
     description = "Current version",
 }
 
+-- The folder a project is deployed to, and the game it is started from when debugging,
+-- is the path of one machine and does not belong in the repository. It is read from a
+-- `.env` file next to this script, which is not tracked by git and holds one
+-- `<KEY>=<folder>` line per game (quotes and a trailing slash are optional), see the
+-- readme. A project whose key is missing is not deployed at all.
+local envkeys = nil
+function envdir(key)
+   if not envkeys then
+      envkeys = {}
+      local text = io.readfile(path.join(_SCRIPT_DIR, ".env")) or ""
+      for line in text:gmatch("[^\r\n]+") do
+         local k, v = line:match("^%s*([%w_]+)%s*=%s*(.-)%s*$")
+         if k and v ~= "" then
+            v = v:gsub('^"', ""):gsub('"$', ""):gsub("^'", ""):gsub("'$", "")
+            envkeys[k] = v
+         end
+      end
+   end
+
+   local value = envkeys[key]
+   if not value then return nil end
+
+   value = value:gsub("[%s\\/]+$", "")
+   if value == "" then return nil end
+
+   return path.translate(value)
+end
+
 workspace "GTAIV.EFLC.FusionFix"
    configurations { "Release", "Debug" }
    architecture "x86"
@@ -132,19 +160,15 @@ workspace "GTAIV.EFLC.FusionFix"
 project "GTAIV.EFLC.FusionFix"
    targetdir "bin"
 
-   local env = io.readfile(path.join(_SCRIPT_DIR, ".env")) or ""
-   local gamedir = env:match("GTAIV_DIR%s*=%s*\"?([^\r\n\"]+)")
+   local gamedir = envdir("GTAIV_DIR")
    if gamedir then
-      gamedir = path.translate((gamedir:gsub("[%s\\/]+$", "")))
-      local data = path.translate(path.getabsolute("data"))
-      local imgsrc = data .. "\\update\\GTAIV.EFLC.FusionFix\\"
+      local plugins = gamedir .. "\\plugins"
+      -- Only the built .asi is deployed: the contents of `data` are put in place by the
+      -- installer, and a build copying them over a game folder would overwrite the files
+      -- of an installed mod with the ones of the working tree. A plugin that is already
+      -- installed is replaced, a folder that does not have one is left alone.
       postbuildcommands {
-         "robocopy \"" .. data .. "\" \"" .. gamedir .. "\" /E /NFL /NDL /NJH /NJS /NP" ..
-            " /XF .gitkeep cdimagemake.ims GTAIV.EFLC.FusionFix.asi d3d9.dll" ..
-            " /XD \"" .. imgsrc .. "GTAIV.EFLC.FusionFix\" \"" .. imgsrc .. "GTAIV.FusionFix\" \"" .. imgsrc .. "TLAD.FusionFix\"" ..
-            " \"" .. imgsrc .. "TBOGT.FusionFix\" \"" .. imgsrc .. "FusionTrees\" \"" .. imgsrc .. "FusionLights\"",
-         "if errorlevel 8 exit /b 1",
-         "copy /y \"$(TargetPath)\" \"" .. gamedir .. "\\plugins\"",
+         "if exist \"" .. plugins .. "\\$(TargetFileName)\" copy /y \"$(TargetPath)\" \"" .. plugins .. "\\\"",
       }
       debugdir (gamedir)
       debugcommand (gamedir .. "\\GTAIV.exe")

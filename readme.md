@@ -449,7 +449,7 @@ To deploy to your game automatically after each build, create a `.env` file in t
 GTAIV_DIR=C:\Program Files (x86)\Steam\steamapps\common\Grand Theft Auto IV\GTAIV
 ```
 
-The build then copies the contents of `data` (including `plugins\GTAIV.EFLC.FusionFix.ini`) and the built `GTAIV.EFLC.FusionFix.asi` into that folder, and debugging launches `GTAIV.exe` from there. The `.env` file is ignored by git. Without it, nothing is copied.
+The build then copies the built `GTAIV.EFLC.FusionFix.asi` into the `plugins` folder of that game folder, replacing the plugin that is already installed there, and debugging launches `GTAIV.exe` from there. The `.env` file is ignored by git. Without it, nothing is copied.
 
 # Reporting more issues
 
