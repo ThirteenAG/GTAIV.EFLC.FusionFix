@@ -1,6 +1,18 @@
 module;
 
 #include <common.hxx>
+#include "StableHeadlightSelector.hpp"
+#include "ShadowAdapterCE.hpp"
+#include "ShadowAllocationCE.hpp"
+#include "ShadowAllocationPass.hpp"
+#include "ShadowFloatingPointState.hpp"
+#include "ShadowLightGeometry.hpp"
+#include "HeadlightCasterPolicy.hpp"
+#include "ShadowCasterCE.hpp"
+#include "ShadowGuardDiagnostics.hpp"
+#include <fstream>
+#include <atomic>
+#include <intrin.h>
 
 export module nightshadows;
 
@@ -13,27 +25,146 @@ bool bHighResolutionNightShadows = false;
 
 namespace CShadows
 {
-    injector::hook_back<void(__cdecl*)(int, int, uint32_t, int, int, int, int, int, int, int, int, int, int, int, int)> hbStoreStaticShadow;
+    // CE's submission adapter takes 16 stack words. Its final word is an opaque
+    // stable key (including pointer+1 values), not a dereferenceable light object.
+    // Official FusionFix preserved it through a tail jump. Our nontrivial
+    // wrappers must explicitly forward it; no upstream flicker cause is claimed.
+    using SubmitHeadlight = void(__cdecl*)(int, int, uint32_t, int, int, int, int, int,
+                                          int, int, int, int, int, int, int, int);
+    injector::hook_back<SubmitHeadlight> hbStoreStaticShadow;
+    static uint32_t* pFrameCounter = nullptr;
+    static std::atomic<uint32_t> drivingBeamAccepted{0}, drivingBeamRejected{0};
 
-    void __cdecl StoreStaticShadowPlayerDriving(int a1, int a2, uint32_t Flags, int a4, int a5, int a6, int a7, int a8, int a9, int a10, int a11, int a12, int a13, int a14, int a15)
+    struct StableHeadlightShadow
     {
-        // Disable the headlight shadows of the player's vehicle, if headlight shadows are off
-        if (!bHeadlightShadows)
+        std::mutex stateMutex;
+        fusionfix::shadows::StableHeadlightSelector selector;
+        fusionfix::shadows::Vec3 playerPosition{};
+        uintptr_t occupiedVehicle = 0;
+        uint32_t frame = 0;
+        bool hasFrame = false;
+        bool playerValid = false;
+
+        bool PrepareFrame()
         {
-            Flags &= ~4; // Subtract dynamic shadows
+            if (!bHeadlightShadows || !pFrameCounter || !CTimer::m_snTimeInMilliseconds ||
+                !CPlayer::getLocalPlayerPed || !CPlayer::findPlayerCar)
+            {
+                selector.Reset();
+                hasFrame = false;
+                return false;
+            }
+
+            // Use the game's verified frame counter. A timer tick does not
+            // identify a frame when time is paused, slowed or reset.
+            const uint32_t nextFrame = *pFrameCounter;
+            if (hasFrame && nextFrame == frame)
+                return playerValid;
+            frame = nextFrame;
+            hasFrame = true;
+            playerValid = false;
+
+            const uintptr_t ped = CPlayer::getLocalPlayerPed();
+            if (!ped)
+            {
+                selector.Reset();
+                return false;
+            }
+            const auto matrix = *reinterpret_cast<const float* const*>(ped + 0x20);
+            if (!matrix)
+            {
+                selector.Reset();
+                return false;
+            }
+            playerPosition = {matrix[12], matrix[13], matrix[14]};
+            if (!std::isfinite(playerPosition.x) || !std::isfinite(playerPosition.y) ||
+                !std::isfinite(playerPosition.z))
+            {
+                selector.Reset();
+                return false;
+            }
+            const uintptr_t car = CPlayer::findPlayerCar();
+            occupiedVehicle = car;
+            selector.BeginFrame({nextFrame, static_cast<uint32_t>(*CTimer::m_snTimeInMilliseconds),
+                                 ped, car != 0, car});
+            playerValid = true;
+            return true;
         }
 
-        return hbStoreStaticShadow.fun(a1, a2, Flags, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15);
+        bool ShouldCast(int directionAddress, int positionAddress, int stableKey)
+        {
+            // Keep policy bookkeeping coherent if render submissions are made
+            // on more than one thread. The engine call occurs after unlock.
+            const std::lock_guard<std::mutex> lock(stateMutex);
+            if (!PrepareFrame() || !positionAddress || !stableKey)
+                return false;
+            // Audited ABCC50/ABCCD0: argument 4 is direction, argument 6 position.
+            // Copy values now; these vectors may live on the caller's stack.
+            const auto position = reinterpret_cast<const float*>(positionAddress);
+            const fusionfix::shadows::Vec3 lightPosition{position[0], position[1], position[2]};
+            fusionfix::shadows::Vec3 forward{};
+            if (directionAddress)
+            {
+                const auto direction = reinterpret_cast<const float*>(directionAddress);
+                forward = {direction[0], direction[1], direction[2]};
+            }
+            const auto geometry = fusionfix::shadows::EvaluateGeometry(
+                playerPosition, lightPosition, directionAddress ? &forward : nullptr);
+            const auto identity = static_cast<uintptr_t>(static_cast<uint32_t>(stableKey));
+            const bool playerHeadlight = fusionfix::shadows::ce::IsVehicleBeam(identity, occupiedVehicle);
+            const bool accepted = selector.Consider({identity, geometry, playerHeadlight});
+            if (playerHeadlight)
+            {
+                if (accepted) ++drivingBeamAccepted;
+                else ++drivingBeamRejected;
+            }
+            return accepted;
+        }
+    };
+    static StableHeadlightShadow gStableHeadlightShadow;
+
+    void __cdecl StoreStaticShadowPlayerDriving(int a1, int a2, uint32_t flags,
+        int direction, int tangent, int position, int a7, int a8, int a9, int a10,
+        int a11, int a12, int a13, int a14, int a15, int stableKey)
+    {
+        if (!gStableHeadlightShadow.ShouldCast(direction, position, stableKey))
+            flags &= ~4u;
+        hbStoreStaticShadow.fun(a1, a2, flags, direction, tangent, position,
+                                a7, a8, a9, a10, a11, a12, a13, a14, a15, stableKey);
     }
 
-    void __cdecl StoreStaticShadowNPC(int a1, int a2, uint32_t Flags, int a4, int a5, int a6, int a7, int a8, int a9, int a10, int a11, int a12, int a13, int a14, int a15)
+    void __cdecl StoreStaticShadowNPC(int a1, int a2, uint32_t flags,
+        int direction, int tangent, int position, int a7, int a8, int a9, int a10,
+        int a11, int a12, int a13, int a14, int a15, int stableKey)
     {
-        // Disable the headlight shadows of NPC vehicles regardless of any condition, to avoid reaching patch 1.0.6.0 night shadow limits
-        Flags &= ~4; // Subtract dynamic shadows
+        if (!gStableHeadlightShadow.ShouldCast(direction, position, stableKey))
+            flags &= ~4u;
+        hbStoreStaticShadow.fun(a1, a2, flags, direction, tangent, position,
+                                a7, a8, a9, a10, a11, a12, a13, a14, a15, stableKey);
+    }
 
-        return hbStoreStaticShadow.fun(a1, a2, Flags, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15);
+    static bool ValidateAdapter()
+    {
+        const auto image = reinterpret_cast<const uint8_t*>(GetModuleHandleW(nullptr));
+        const auto dos = reinterpret_cast<const IMAGE_DOS_HEADER*>(image);
+        if (!image || dos->e_magic != IMAGE_DOS_SIGNATURE || dos->e_lfanew < 0 ||
+            dos->e_lfanew > 0x100000)
+            return false;
+        const auto nt = reinterpret_cast<const IMAGE_NT_HEADERS32*>(image + dos->e_lfanew);
+        if (!fusionfix::shadows::ce::ValidateMappedImage(
+                image, nt->OptionalHeader.SizeOfImage, reinterpret_cast<uintptr_t>(image)))
+            return false;
+        pFrameCounter = reinterpret_cast<uint32_t*>(
+            reinterpret_cast<uintptr_t>(image) + fusionfix::shadows::ce::FrameCounterRva);
+        hbStoreStaticShadow.fun = reinterpret_cast<SubmitHeadlight>(
+            reinterpret_cast<uintptr_t>(image) + fusionfix::shadows::ce::SubmitRva);
+        return true;
     }
 }
+
+#include "ShadowAllocationRuntime.inl"
+#include "ShadowCasterRuntime.inl"
+#include "NightShadowAdmissionRuntime.inl"
 
 static inline SafetyHookInline shsub_925DB0{};
 static inline SafetyHookInline shsub_D77A00{};
@@ -63,6 +194,8 @@ static void __fastcall sub_D77A00(void* _this, void* edx)
         }
     }
 
+    const fusionfix::shadows::caster::Scope scope(OwnHeadlightCaster::context,
+                                                OwnHeadlightCaster::Capture(_this));
     return shsub_D77A00.unsafe_fastcall(_this, edx);
 }
 
@@ -80,17 +213,71 @@ int GetNightShadowQuality()
     }
 }
 
+// Menu-only status query. Keep the original warning when the guarded fix is
+// unavailable, disabled, or running in observation mode.
+export bool IsPlayerNightShadowFixActive() noexcept
+{
+    return PlayerShadowAllocation::ready.load(std::memory_order_acquire) &&
+        PlayerShadowAllocation::publicationEnabled &&
+        !PlayerShadowAllocation::unsupportedThread.load(std::memory_order_relaxed) &&
+        OwnHeadlightCaster::enabled.load(std::memory_order_acquire) &&
+        bExtraNightShadows && bHeadlightShadows && bVehicleNightShadows;
+}
+
 class NightShadows
 {
 public:
     NightShadows()
     {
+        // Registered before game callbacks start, independent of async init.
+        FusionFix::onGameProcessEvent() += []() { ShadowDiagnostics::Write(); };
         FusionFix::onInitEventAsync() += []()
         {
+            // This experimental adapter has only been audited for CE 1.2.0.59.
+            // Fail before any night-shadow patch if a version or hook differs.
+            if (!CShadows::ValidateAdapter())
+            {
+                // Preserve the existing FusionFix workaround on other game
+                // layouts even when this experimental CE adapter is disabled.
+                NightShadowAdmission::Install();
+                OutputDebugStringW(L"FusionFix experimental shadows: CE adapter validation failed; night-shadow hooks skipped.\n");
+                return;
+            }
+
             CIniReader iniReader("");
+
+            // Validate BEFORE allocator and caster installation alter guarded bytes.
+            const auto image = reinterpret_cast<const uint8_t*>(GetModuleHandleW(nullptr));
+            const bool casterGuard = fusionfix::shadows::ce::casterguard::Validate(
+                image, fusionfix::shadows::ce::ImageSize, reinterpret_cast<uintptr_t>(image));
+            const int casterMode = iniReader.ReadInteger("SHADOWS", "ExperimentalOwnHeadlightCasterFix", 0);
+            // Preserve the exact startup mismatch before our own hooks modify
+            // any guarded range. This remains diagnostic only: no guard bypass.
+            ShadowDiagnostics::startupGuardDetails = fusionfix::shadows::ce::diagnostics::Describe(
+                image, fusionfix::shadows::ce::ImageSize, reinterpret_cast<uintptr_t>(image));
+            OwnHeadlightCaster::base = reinterpret_cast<uintptr_t>(image);
+            // Publication happens after all hooks are installed below.
+            ShadowDiagnostics::guardPassed = casterGuard;
+            ShadowDiagnostics::casterMode = casterMode;
+            ShadowDiagnostics::path = iniReader.GetIniPath().parent_path() / "GTAIV-shadow-candidate18.log";
 
             // [NIGHTSHADOWS]
             bHighResolutionNightShadows = iniReader.ReadInteger("SHADOWS", "HighResolutionNightShadows", 0) != 0;
+
+            // Offline-reviewed prototype; never turn this on silently for an
+            // existing installation. A later controlled launch must opt in.
+            const int allocationMode = iniReader.ReadInteger("SHADOWS", "ExperimentalPlayerShadowAllocation", 0);
+            ShadowDiagnostics::allocationMode = allocationMode;
+            // 0=off, 1=observe private output only, 2=experimental publication.
+            if (allocationMode == 1 || allocationMode == 2)
+            {
+                if (!PlayerShadowAllocation::Install(allocationMode == 2))
+                    OutputDebugStringW(L"FusionFix experimental shadows: allocation adapter unavailable; original engine selection retained.\n");
+            }
+
+            // This official workaround edits a guarded instruction. It used to
+            // race these checks from fixes.ixx's separate async initializer.
+            ShadowDiagnostics::admissionInstalled = NightShadowAdmission::Install();
 
             // Make the night shadow options adjust the night shadow resolution
             {
@@ -136,21 +323,15 @@ public:
 
             // Headlight shadows
             {
-                auto pattern = hook::pattern("68 04 05 00 00 6A 02 6A 00");
-                if (!pattern.count(2).empty())
+                const uintptr_t image = reinterpret_cast<uintptr_t>(GetModuleHandleW(nullptr));
+                for (size_t i = 0; i < fusionfix::shadows::ce::CallRvas.size(); ++i)
                 {
-                    CShadows::hbStoreStaticShadow.fun = injector::MakeCALL(pattern.count(2).get(0).get<void*>(9), CShadows::StoreStaticShadowPlayerDriving).get();
-                    CShadows::hbStoreStaticShadow.fun = injector::MakeCALL(pattern.count(2).get(1).get<void*>(9), CShadows::StoreStaticShadowPlayerDriving).get();
+                    const auto wrapper = i < 2 ? CShadows::StoreStaticShadowPlayerDriving :
+                                                  CShadows::StoreStaticShadowNPC;
+                    injector::MakeCALL(image + fusionfix::shadows::ce::CallRvas[i], wrapper);
                 }
 
-                pattern = hook::pattern("68 04 01 00 00 6A 02 6A 00");
-                if (!pattern.count(2).empty())
-                {
-                    CShadows::hbStoreStaticShadow.fun = injector::MakeCALL(pattern.count(2).get(0).get<void*>(9), CShadows::StoreStaticShadowNPC).get();
-                    CShadows::hbStoreStaticShadow.fun = injector::MakeCALL(pattern.count(2).get(1).get<void*>(9), CShadows::StoreStaticShadowNPC).get();
-                }
-
-                pattern = hook::pattern("83 F8 03 75 14 F6 86");
+                auto pattern = hook::pattern("83 F8 03 75 14 F6 86");
                 if (!pattern.empty())
                 {
                     static auto loc_AE3867 = resolve_next_displacement(pattern.get_first(14)).value();
@@ -159,48 +340,11 @@ public:
                     {
                         void operator()(injector::reg_pack& regs)
                         {
-                            if (bHeadlightShadows && bVehicleNightShadows)
-                            {
-                                static auto checkPassengersAndCar = [](uintptr_t car, uintptr_t checkAgainst)
-                                {
-                                    if (!car || !checkAgainst)
-                                        return false;
-
-                                    if (!*(uint8_t*)(car + 0xF15)) // Lights off
-                                        return false;
-
-                                    auto m_nVehicleType = *(uint32_t*)(car + 0x1304);
-                                    if (m_nVehicleType == VEHICLETYPE_AUTOMOBILE)
-                                    {
-                                        if (*(uint8_t*)(car + 0x1190) != 0 && *(uint8_t*)(car + 0x1191) != 0) // Headlights damaged
-                                            return false;
-                                    }
-                                    else if (m_nVehicleType == VEHICLETYPE_BIKE)
-                                    {
-                                        if (*(uint8_t*)(car + 0x1190) != 0 || *(uint8_t*)(car + 0x1191) != 0) // Headlight damaged
-                                            return false;
-                                    }
-
-                                    auto passengers = (uintptr_t*)(car + 0xF50); // m_pDriver followed by m_pPassengers[8]
-
-                                    for (size_t i = 0; i < 9; i++)
-                                    {
-                                        if (checkAgainst == passengers[i])
-                                            return true;
-                                    }
-
-                                    if (checkAgainst == car)
-                                        return true;
-
-                                    return false;
-                                };
-
-                                // Disable the shadow of the player's vehicle, along with the shadows of the player/peds in that vehicle, if headlight shadows and vehicle night shadows are on (to avoid both interfering witch each other)
-                                if (checkPassengersAndCar(CPlayer::findPlayerCar(), regs.esi) && !(*(char*)(regs.esp + 0x0B)))
-                                {
-                                    return_to(loc_AE3867);
-                                }
-                            }
+                            // Exclude the occupied car/occupants only in their own
+                            // immediate headlight pass; retain their lamp shadows.
+                            if (OwnHeadlightCaster::Exclude(regs.esi, regs.eax,
+                                    !*reinterpret_cast<const uint8_t*>(regs.esp + 0x0B)))
+                                return_to(loc_AE3867);
 
                             // Enable shadows of the player/peds while in vehicles, if vehicle night shadows are on and if headlight shadows are off
                             if (!bHeadlightShadows && bVehicleNightShadows)
@@ -227,48 +371,8 @@ public:
                     {
                         void operator()(injector::reg_pack& regs)
                         {
-                            if (bHeadlightShadows && bVehicleNightShadows)
-                            {
-                                static auto checkPassengersAndCar = [](uintptr_t car, uintptr_t checkAgainst)
-                                {
-                                    if (!car || !checkAgainst)
-                                        return false;
-
-                                    if (!*(uint8_t*)(car + 0xF65)) // Lights off
-                                        return false;
-
-                                    auto m_nVehicleType = *(uint32_t*)(car + 0x1350);
-                                    if (m_nVehicleType == VEHICLETYPE_AUTOMOBILE)
-                                    {
-                                        if (*(uint8_t*)(car + 0x11E0) != 0 && *(uint8_t*)(car + 0x11E1) != 0) // Headlights damaged
-                                            return false;
-                                    }
-                                    else if (m_nVehicleType == VEHICLETYPE_BIKE)
-                                    {
-                                        if (*(uint8_t*)(car + 0x11E0) != 0 || *(uint8_t*)(car + 0x11E1) != 0) // Headlight damaged
-                                            return false;
-                                    }
-
-                                    auto passengers = (uintptr_t*)(car + 0xFA0); // m_pDriver followed by m_pPassengers[8]
-
-                                    for (size_t i = 0; i < 9; i++)
-                                    {
-                                        if (checkAgainst == passengers[i])
-                                            return true;
-                                    }
-
-                                    if (checkAgainst == car)
-                                        return true;
-
-                                    return false;
-                                };
-
-                                // Disable the shadow of the player's vehicle, along with the shadows of the player/peds in that vehicle, if headlight shadows and vehicle night shadows are on (to avoid both interfering witch each other)
-                                if (checkPassengersAndCar(CPlayer::findPlayerCar(), regs.esi) && !(*(char*)(regs.esp + 0x0F)))
-                                {
-                                    return_to(loc_AE3867);
-                                }
-                            }
+                            // Preserve the occupied car in lamp shadow passes.
+                            // Self-headlight occlusion still needs an in-game check.
 
                             // Enable shadows of the player/peds while in vehicles, if vehicle night shadows are on and if headlight shadows are off
                             if (!bHeadlightShadows && bVehicleNightShadows)
@@ -337,14 +441,14 @@ public:
                 }
             }
 
-            // Multiply the car/bike bottom static shadow texture intensity while headlight shadows and vehicle night shadows are active (To compensate for the player's car lacking a shadow)
+            // Keep the original contact-shadow compensation only when actual vehicle night shadows are disabled.
             {
                 auto pattern = hook::pattern("C7 44 24 ? ? ? ? ? F3 0F 11 14 24 50");
                 if (!pattern.empty())
                 {
                     static auto CarStaticShadowIntensityHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        if (bHeadlightShadows)
+                        if (bHeadlightShadows && !bVehicleNightShadows)
                         {
                             regs.xmm2.f32[0] *= 3.0f;
                         }
@@ -355,13 +459,18 @@ public:
                     pattern = hook::pattern("D9 1C 24 8D 4C 24 34 51 8B 4D 0C 52 51 50 6A 00 6A 03 6A 00 E8 ? ? ? ? 83 C4 40 8B E5 5D C3 CC");
                     static auto CarStaticShadowIntensityHook = safetyhook::create_mid(pattern.count(2).get(0).get<void*>(7), [](SafetyHookContext& regs)
                     {
-                        if (bHeadlightShadows)
+                        if (bHeadlightShadows && !bVehicleNightShadows)
                         {
                             *(float*)regs.esp *= 3.0f;
                         }
                     });
                 }
             }
+            OwnHeadlightCaster::enabled.store(casterGuard && casterMode == 1 &&
+                static_cast<bool>(shsub_D77A00), std::memory_order_release);
+            ShadowDiagnostics::ready.store(
+                iniReader.ReadInteger("SHADOWS", "ExperimentalShadowDiagnostics", 0) != 0,
+                std::memory_order_release);
         };
     }
 } NightShadows;
