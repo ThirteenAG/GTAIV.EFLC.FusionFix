@@ -662,14 +662,38 @@ public:
             // Pause menu map crosshair aspect ratio scaling
             // Note: Xbox code seems different enough. If PC only needs scaling by aspect ratio, this could already be right. If not, maybe Xbox code could be ported in case size is also different.
             {
-                auto pattern = hook::pattern("F3 0F 10 15 ? ? ? ? F3 0F 10 5C 24 ? 0F B6 C0");
+                auto pattern = hook::pattern("8B 44 24 ? 56 8B 35 ? ? ? ? 85 F6");
                 if (!pattern.empty())
                 {
-                    static auto CCustomMenu__RenderMapCrosshair_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                    {
-                        float AspectRatio = ((float)*rage::grcDevice::ms_nActiveWidth / (float)*rage::grcDevice::ms_nActiveHeight);
+                    static auto CFrontEnd__GetWidgetValue = (rage::Vector2*(__cdecl*)(rage::Vector2*, int))pattern.get_first(0);
 
-                        *(float*)(regs.esp + 0x64 - 0x30) /= (AspectRatio * 0.75f);
+                    static rage::Vector2 mapCursorThickness{};
+                    pattern = hook::pattern("F3 0F 11 4C 24 ? FF D7 39 05 ? ? ? ? 8B 0D ? ? ? ? 0F 44 0D ? ? ? ? F3 0F 10 0D ? ? ? ? 66 0F 6E C1 0F 5B C0 8D 44 24");
+                    injector::MakeNOP(pattern.get_first(0), 6, true);
+                    static auto CCustomMenu__RenderMapCrosshairHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        CFrontEnd__GetWidgetValue(&mapCursorThickness, 166); // 0xA6 (166); FE_MAP_CURSOR_THICKNESS
+                        *(float*)(regs.esp + 0x64 - 0x50) = mapCursorThickness.x / (((float)*rage::grcDevice::ms_nActiveWidth / (float)*rage::grcDevice::ms_nActiveHeight) * 0.75f);
+                    });
+
+                    pattern = hook::pattern("F3 0F 11 4C 24 ? E8 ? ? ? ? F3 0F 10 44 24 ? 8B 08");
+                    injector::MakeNOP(pattern.get_first(0), 6, true);
+                    static auto CCustomMenu__RenderMapCrosshair_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        *(float*)(regs.esp + 0x6C - 0x38) = mapCursorThickness.y;
+                    });
+
+                    pattern = hook::pattern("F3 0F 11 4C 24 ? F3 0F 11 44 24 ? 8D 44 24");
+                    injector::MakeNOP(pattern.get_first(0), 6, true);
+                    static auto CCustomMenu__RenderMapCrosshairHook3 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        *(float*)(regs.esp + 0x64 - 0x34) /= (float)*rage::grcDevice::ms_nActiveWidth / (float)*rage::grcDevice::ms_nActiveHeight * 0.75f; // 0x7D (125); MAP_CURSOR_SIZE
+                    });
+
+                    pattern = hook::pattern("F3 0F 10 15 ? ? ? ? F3 0F 10 5C 24 ? 0F B6 C0");
+                    static auto CCustomMenu__RenderMapCrosshairHook4 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        *(float*)(regs.esp + 0x64 - 0x30) /= ((float)*rage::grcDevice::ms_nActiveWidth / (float)*rage::grcDevice::ms_nActiveHeight) * 0.75f; // 0x4C (76); MAP_CURSOR_FADE
                     });
                 }
                 else
