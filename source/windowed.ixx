@@ -96,6 +96,22 @@ LONG WINAPI SetWindowLongA_Hook(HWND hWnd, int nIndex, LONG dwNewLong)
     return SetWindowLongA(hWnd, nIndex, dwNewLong);
 }
 
+// D3D9on12 can present a black screen to large windows (seen with borderless windowed at 1080p), while exclusive
+// fullscreen works, so the game starts in fullscreen when d3d9.cfg selects it. The saved Windowed choice stays for
+// the other graphics APIs.
+bool IsFullscreenForced()
+{
+    return FusionFixSettings.Get("PREF_GRAPHICSAPI") == 2;
+}
+
+void SetWindowedPref(bool windowed)
+{
+    if (IsFullscreenForced())
+        FusionFixSettings.GetRef("PREF_WINDOWED")->get() = 0;
+    else
+        FusionFixSettings.Set("PREF_WINDOWED", windowed);
+}
+
 injector::hook_back<void(__cdecl*)(char)> hbsub_7870A0;
 void __cdecl sub_69F0C0(char a1)
 {
@@ -121,14 +137,14 @@ public:
                 static auto g_cmdarg_windowed_hook = safetyhook::create_mid(pattern.get_first(),
                 [](SafetyHookContext& ctx)
                 {
-                    ctx.edi = FusionFixSettings.Get("PREF_WINDOWED");
+                    ctx.edi = IsFullscreenForced() ? 0 : FusionFixSettings.Get("PREF_WINDOWED");
                 });
 
                 pattern = hook::pattern("89 3D ? ? ? ? A3 ? ? ? ? 8D 44 24 17");
                 static auto g_cmdarg_windowed_hook2 = safetyhook::create_mid(pattern.get_first(),
                 [](SafetyHookContext& ctx)
                 {
-                    FusionFixSettings.Set("PREF_WINDOWED", !ctx.eax);
+                    SetWindowedPref(!ctx.eax);
                 });
             }
             else
@@ -138,18 +154,18 @@ public:
                 static auto g_cmdarg_windowed_hook = safetyhook::create_mid(pattern.get_first(),
                 [](SafetyHookContext& ctx)
                 {
-                    ctx.esi = FusionFixSettings.Get("PREF_WINDOWED");
+                    ctx.esi = IsFullscreenForced() ? 0 : FusionFixSettings.Get("PREF_WINDOWED");
                 });
 
                 pattern = hook::pattern("89 35 ? ? ? ? A3 ? ? ? ? 8D 44 24 17");
                 static auto g_cmdarg_windowed_hook2 = safetyhook::create_mid(pattern.get_first(),
                 [](SafetyHookContext& ctx)
                 {
-                    FusionFixSettings.Set("PREF_WINDOWED", !ctx.eax);
+                    SetWindowedPref(!ctx.eax);
                 });
             }
 
-            IATHook::Replace(GetModuleHandleA(NULL), "USER32.DLL", 
+            IATHook::Replace(GetModuleHandleA(NULL), "USER32.DLL",
                 std::forward_as_tuple("CreateWindowExA", CreateWindowExA_Hook),
                 std::forward_as_tuple("CreateWindowExW", CreateWindowExW_Hook),
                 std::forward_as_tuple("MoveWindow", MoveWindow_Hook),
@@ -159,13 +175,15 @@ public:
                 std::forward_as_tuple("SetWindowLongA", SetWindowLongA_Hook)
             );
 
-            FusionFixSettings.SetCallback("PREF_BORDERLESS", [](int32_t value) {
+            FusionFixSettings.SetCallback("PREF_BORDERLESS", [](int32_t value)
+            {
                 SwitchWindowStyle();
             });
 
             static auto bSkipWindowedCallback1 = false;
             static auto bSkipWindowedCallback2 = false;
-            FusionFixSettings.SetCallback("PREF_WINDOWED", [](int32_t value) {
+            FusionFixSettings.SetCallback("PREF_WINDOWED", [](int32_t value)
+            {
                 if (!bSkipWindowedCallback1)
                 {
                     if (*rage::grcWindow::ms_bWindowed != !!value)
@@ -191,7 +209,8 @@ public:
             pattern = find_pattern("E8 ? ? ? ? A1 ? ? ? ? A3 ? ? ? ? A1 ? ? ? ? 83 C4 04", "E8 ? ? ? ? 8B 0D ? ? ? ? 8B 15 ? ? ? ? 83 C4 04 83 3D");
             hbsub_7870A0.fun = injector::MakeCALL(pattern.get_first(), sub_69F0C0).get();
 
-            FusionFixSettings.SetCallback("PREF_BLOCKONLOSTFOCUS", [](int32_t value) {
+            FusionFixSettings.SetCallback("PREF_BLOCKONLOSTFOCUS", [](int32_t value)
+            {
                 *rage::grcDevice::ms_bNoBlockOnLostFocus = value;
             });
 

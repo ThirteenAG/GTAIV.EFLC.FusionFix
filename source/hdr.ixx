@@ -1,0 +1,446 @@
+module;
+
+#include <common.hxx>
+#include <dxvk_interop.hpp>
+
+export module hdr;
+
+import common;
+import comvars;
+import settings;
+
+#define IDR_HDR_OUTPUT_PS 3101
+
+#ifndef SAFE_RELEASE
+#define SAFE_RELEASE(p) { if (p) { (p)->Release(); (p)=NULL; } }
+#endif
+
+// HDR output through DXVK.
+//
+// With HDR enabled the device is created with a 16-bit float back buffer (DXVK has to unlock that format).
+// The frame is composited exactly like in SDR, only nothing clips at 1.0 any more: the game's post
+// processing writes gamma encoded color with highlights above 1.0 and the interface is drawn on top of it.
+// The last pass of the frame converts the back buffer to scRGB, with paper white and a roll-off towards
+// the peak brightness of the display, and the swap chain is switched to the extended sRGB color space.
+
+namespace HDRText
+{
+    // 0 is the peak brightness reported by the display
+    constexpr int32_t PeakNits[] = { 0, 400, 600, 800, 1000, 1200, 1500, 2000, 4000 };
+    constexpr std::string_view PeakLabels[] = { "Auto", "400 nits", "600 nits", "800 nits", "1000 nits", "1200 nits", "1500 nits", "2000 nits", "4000 nits" };
+
+    constexpr int32_t PaperWhiteNits[] = { 80, 100, 120, 160, 203, 240, 280, 320, 400 };
+    constexpr std::string_view PaperWhiteLabels[] = { "80 nits", "100 nits", "120 nits", "160 nits", "203 nits", "240 nits", "280 nits", "320 nits", "400 nits" };
+    constexpr int32_t PaperWhiteDefault = 4; // 203 nits, BT.2408 reference white
+
+    static_assert(std::size(PeakNits) == std::size(PeakLabels) && std::size(PaperWhiteNits) == std::size(PaperWhiteLabels));
+}
+
+class HDR
+{
+public:
+    static inline bool bFormatsUnlocked = false;
+    static inline bool bBackBufferFloat = false;
+    static inline bool bOutputActive = false;         // swap chain is in the extended sRGB color space
+    static inline int32_t nAppliedState = -1;
+    static inline float fDisplayPeak = 0.0f;
+    static inline float fRollOffStart = 0.8f;
+    static inline D3DPRESENT_PARAMETERS* pPresentParams = nullptr;
+    static inline D3DFORMAT OriginalBackBufferFormat = D3DFMT_UNKNOWN;
+
+    static inline rage::grcRenderTargetPC* CompositeRT = nullptr;
+    static inline IDirect3DPixelShader9* OutputPS = nullptr;
+
+    static bool IsEnabled()
+    {
+        static auto hdr = FusionFixSettings.GetRef("PREF_HDR");
+        return hdr && hdr->get();
+    }
+
+    static float GetPaperWhite()
+    {
+        static auto pw = FusionFixSettings.GetRef("PREF_HDR_PAPERWHITE");
+        auto index = pw ? std::clamp(pw->get(), 0, static_cast<int32_t>(std::size(HDRText::PaperWhiteNits)) - 1) : HDRText::PaperWhiteDefault;
+        return static_cast<float>(HDRText::PaperWhiteNits[index]);
+    }
+
+    static float GetPeak()
+    {
+        static auto peak = FusionFixSettings.GetRef("PREF_HDR_PEAK");
+        auto index = peak ? std::clamp(peak->get(), 0, static_cast<int32_t>(std::size(HDRText::PeakNits)) - 1) : 0;
+        if (HDRText::PeakNits[index] > 0)
+            return static_cast<float>(HDRText::PeakNits[index]);
+        return fDisplayPeak > 0.0f ? fDisplayPeak : 1000.0f;
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Device creation
+
+    static void ApplyBackBufferFormat(D3DPRESENT_PARAMETERS* pp)
+    {
+        if (!pp)
+            return;
+
+        if (pp->BackBufferFormat != D3DFMT_A16B16G16R16F)
+            OriginalBackBufferFormat = pp->BackBufferFormat;
+
+        if (bFormatsUnlocked && IsEnabled())
+            pp->BackBufferFormat = D3DFMT_A16B16G16R16F;
+        else if (pp->BackBufferFormat == D3DFMT_A16B16G16R16F && OriginalBackBufferFormat != D3DFMT_UNKNOWN)
+            pp->BackBufferFormat = OriginalBackBufferFormat;
+    }
+
+    static inline HRESULT(__stdcall* RealCreateDevice)(IDirect3D9*, UINT, D3DDEVTYPE, HWND, DWORD, D3DPRESENT_PARAMETERS*, IDirect3DDevice9**) = nullptr;
+    static HRESULT __stdcall CreateDevice(IDirect3D9* d3d, UINT adapter, D3DDEVTYPE type, HWND window, DWORD flags, D3DPRESENT_PARAMETERS* pp, IDirect3DDevice9** device)
+    {
+        pPresentParams = pp;
+        ApplyBackBufferFormat(pp);
+
+        auto hr = RealCreateDevice(d3d, adapter, type, window, flags, pp, device);
+        if (FAILED(hr) && pp && pp->BackBufferFormat == D3DFMT_A16B16G16R16F && OriginalBackBufferFormat != D3DFMT_UNKNOWN)
+        {
+            // HDR back buffer refused, keep the game running in SDR
+            pp->BackBufferFormat = OriginalBackBufferFormat;
+            hr = RealCreateDevice(d3d, adapter, type, window, flags, pp, device);
+        }
+
+        bBackBufferFloat = SUCCEEDED(hr) && pp && pp->BackBufferFormat == D3DFMT_A16B16G16R16F;
+        nAppliedState = -1;
+        return hr;
+    }
+
+    static void OnDirect3DCreated(IDirect3D9* d3d)
+    {
+        if (!d3d)
+            return;
+
+        ID3D9VkExtInterface* ext = nullptr;
+        if (FAILED(d3d->QueryInterface(__uuidof(ID3D9VkExtInterface), reinterpret_cast<void**>(&ext))) || !ext)
+            return;
+
+        ext->UnlockAdditionalFormats();
+        ext->Release();
+        bFormatsUnlocked = true;
+
+        auto vtable = *reinterpret_cast<void***>(d3d);
+        constexpr auto CreateDeviceIndex = 16;
+        if (vtable[CreateDeviceIndex] != reinterpret_cast<void*>(&CreateDevice))
+        {
+            RealCreateDevice = reinterpret_cast<decltype(RealCreateDevice)>(vtable[CreateDeviceIndex]);
+            injector::WriteMemory(&vtable[CreateDeviceIndex], &CreateDevice, true);
+        }
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Swap chain color space
+
+    static void ApplyColorSpace(IDirect3DDevice9* device)
+    {
+        int32_t wanted = IsEnabled() ? 1 : 0;
+        if (wanted == nAppliedState)
+            return;
+
+        nAppliedState = wanted;
+        bOutputActive = false;
+
+        IDirect3DSwapChain9* swapChain = nullptr;
+        if (FAILED(device->GetSwapChain(0, &swapChain)) || !swapChain)
+            return;
+
+        ID3D9VkExtSwapchain* ext = nullptr;
+        if (SUCCEEDED(swapChain->QueryInterface(__uuidof(ID3D9VkExtSwapchain), reinterpret_cast<void**>(&ext))) && ext)
+        {
+            D3D9VkExtOutputMetadata output{};
+            if (SUCCEEDED(ext->GetCurrentOutputDesc(&output)))
+                fDisplayPeak = output.MaxLuminance;
+
+            if (wanted && ext->CheckColorSpaceSupport(VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT) &&
+                SUCCEEDED(ext->SetColorSpace(VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT)))
+            {
+                VkHdrMetadataEXT metadata{};
+                metadata.sType = VK_STRUCTURE_TYPE_HDR_METADATA_EXT;
+                metadata.displayPrimaryRed = { 0.640f, 0.330f };
+                metadata.displayPrimaryGreen = { 0.300f, 0.600f };
+                metadata.displayPrimaryBlue = { 0.150f, 0.060f };
+                metadata.whitePoint = { 0.3127f, 0.3290f };
+                metadata.maxLuminance = GetPeak();
+                metadata.minLuminance = 0.0f;
+                metadata.maxContentLightLevel = GetPeak();
+                metadata.maxFrameAverageLightLevel = GetPaperWhite();
+                ext->SetHDRMetaData(&metadata);
+                bOutputActive = true;
+            }
+            else
+            {
+                ext->SetColorSpace(VK_COLOR_SPACE_SRGB_NONLINEAR_KHR);
+            }
+            ext->Release();
+        }
+        swapChain->Release();
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Output pass
+
+    static bool CreateResources(IDirect3DDevice9* device, const D3DSURFACE_DESC& desc)
+    {
+        if (!OutputPS)
+        {
+            HMODULE hm = nullptr;
+            GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)&CreateResources, &hm);
+            if (auto hRes = FindResourceW(hm, MAKEINTRESOURCEW(IDR_HDR_OUTPUT_PS), RT_RCDATA))
+                if (auto hGlob = LoadResource(hm, hRes))
+                    if (auto buffer = LockResource(hGlob))
+                        device->CreatePixelShader((DWORD*)buffer, &OutputPS);
+        }
+
+        if (CompositeRT && (CompositeRT->mWidth != desc.Width || CompositeRT->mHeight != desc.Height))
+            ReleaseResources();
+
+        if (!CompositeRT)
+        {
+            rage::grcRenderTargetDesc rtDesc{};
+            rtDesc.mMultisampleCount = 0;
+            rtDesc.field_0 = 1;
+            rtDesc.field_12 = 1;
+            rtDesc.mDepthRT = nullptr;
+            rtDesc.field_8 = 1;
+            rtDesc.field_10 = 1;
+            rtDesc.field_11 = 1;
+            rtDesc.field_24 = false;
+            rtDesc.mFormat = rage::GRCFMT_A16B16G16R16F;
+
+            CompositeRT = rage::grcTextureFactory::GetInstance()->CreateRenderTarget("HDRComposite", 3, desc.Width, desc.Height, 64, &rtDesc);
+            if (CompositeRT)
+            {
+                rage::grcDevice::grcResolveFlags resolveFlags{};
+                rage::grcTextureFactoryPC::GetInstance()->LockRenderTarget(0, CompositeRT, nullptr);
+                rage::grcTextureFactoryPC::GetInstance()->UnlockRenderTarget(0, &resolveFlags);
+            }
+        }
+
+        return OutputPS && CompositeRT && CompositeRT->mD3DTexture;
+    }
+
+    static void ReleaseResources()
+    {
+        if (CompositeRT)
+        {
+            CompositeRT->Destroy();
+            CompositeRT = nullptr;
+        }
+    }
+
+    static void RenderOutput()
+    {
+        auto device = rage::grcDevice::GetD3DDevice();
+        if (!device)
+            return;
+
+        IDirect3DSurface9* backBuffer = nullptr;
+        if (FAILED(device->GetRenderTarget(0, &backBuffer)) || !backBuffer)
+            return;
+
+        D3DSURFACE_DESC desc{};
+        backBuffer->GetDesc(&desc);
+        bBackBufferFloat = desc.Format == D3DFMT_A16B16G16R16F;
+
+        if (!bBackBufferFloat)
+        {
+            bOutputActive = false;
+            backBuffer->Release();
+            return;
+        }
+
+        ApplyColorSpace(device);
+
+        if (!bOutputActive || !CreateResources(device, desc))
+        {
+            backBuffer->Release();
+            return;
+        }
+
+        IDirect3DSurface9* compositeSurface = nullptr;
+        CompositeRT->mD3DTexture->GetSurfaceLevel(0, &compositeSurface);
+        if (!compositeSurface || FAILED(device->StretchRect(backBuffer, nullptr, compositeSurface, nullptr, D3DTEXF_POINT)))
+        {
+            SAFE_RELEASE(compositeSurface);
+            backBuffer->Release();
+            return;
+        }
+
+        // Save the state touched by the pass
+        IDirect3DPixelShader9* oldPS = nullptr;
+        IDirect3DVertexShader9* oldVS = nullptr;
+        IDirect3DVertexDeclaration9* oldDecl = nullptr;
+        IDirect3DBaseTexture9* oldTexture = nullptr;
+        DWORD oldFVF = 0;
+        D3DVIEWPORT9 oldViewport{};
+        float oldConstant[4]{};
+        device->GetPixelShader(&oldPS);
+        device->GetVertexShader(&oldVS);
+        device->GetVertexDeclaration(&oldDecl);
+        device->GetFVF(&oldFVF);
+        device->GetTexture(0, &oldTexture);
+        device->GetViewport(&oldViewport);
+        device->GetPixelShaderConstantF(0, oldConstant, 1);
+
+        constexpr D3DRENDERSTATETYPE renderStates[] =
+        {
+            D3DRS_ZENABLE, D3DRS_ZWRITEENABLE, D3DRS_ALPHABLENDENABLE, D3DRS_ALPHATESTENABLE, D3DRS_STENCILENABLE,
+            D3DRS_CULLMODE, D3DRS_COLORWRITEENABLE, D3DRS_SCISSORTESTENABLE, D3DRS_SRGBWRITEENABLE,
+        };
+        constexpr DWORD renderValues[] =
+        {
+            FALSE, FALSE, FALSE, FALSE, FALSE,
+            D3DCULL_NONE, 0x0F, FALSE, FALSE,
+        };
+        DWORD oldRenderStates[std::size(renderStates)]{};
+        for (size_t i = 0; i < std::size(renderStates); ++i)
+        {
+            device->GetRenderState(renderStates[i], &oldRenderStates[i]);
+            device->SetRenderState(renderStates[i], renderValues[i]);
+        }
+
+        constexpr D3DSAMPLERSTATETYPE samplerStates[] =
+        {
+            D3DSAMP_ADDRESSU, D3DSAMP_ADDRESSV, D3DSAMP_MINFILTER, D3DSAMP_MAGFILTER, D3DSAMP_MIPFILTER, D3DSAMP_SRGBTEXTURE,
+        };
+        constexpr DWORD samplerValues[] =
+        {
+            D3DTADDRESS_CLAMP, D3DTADDRESS_CLAMP, D3DTEXF_POINT, D3DTEXF_POINT, D3DTEXF_NONE, FALSE,
+        };
+        DWORD oldSamplerStates[std::size(samplerStates)]{};
+        for (size_t i = 0; i < std::size(samplerStates); ++i)
+        {
+            device->GetSamplerState(0, samplerStates[i], &oldSamplerStates[i]);
+            device->SetSamplerState(0, samplerStates[i], samplerValues[i]);
+        }
+
+        auto paperWhite = GetPaperWhite();
+        auto peak = std::max(GetPeak(), paperWhite);
+        float constants[4] =
+        {
+            paperWhite / 80.0f,
+            peak / paperWhite,
+            fRollOffStart,
+            1.0f,
+        };
+
+        D3DVIEWPORT9 viewport = { 0, 0, desc.Width, desc.Height, 0.0f, 1.0f };
+        device->SetViewport(&viewport);
+        device->SetTexture(0, CompositeRT->mD3DTexture);
+        device->SetPixelShader(OutputPS);
+        device->SetPixelShaderConstantF(0, constants, 1);
+        device->SetVertexShader(nullptr);
+        device->SetFVF(D3DFVF_XYZRHW | D3DFVF_TEX1);
+
+        struct ScreenVertex { float x, y, z, rhw, u, v; };
+        auto width = static_cast<float>(desc.Width);
+        auto height = static_cast<float>(desc.Height);
+        ScreenVertex vertices[4] =
+        {
+            { -0.5f,         -0.5f,          0.0f, 1.0f, 0.0f, 0.0f },
+            { -0.5f,          height - 0.5f, 0.0f, 1.0f, 0.0f, 1.0f },
+            { width - 0.5f,  -0.5f,          0.0f, 1.0f, 1.0f, 0.0f },
+            { width - 0.5f,   height - 0.5f, 0.0f, 1.0f, 1.0f, 1.0f },
+        };
+        device->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, vertices, sizeof(ScreenVertex));
+
+        // Restore
+        for (size_t i = 0; i < std::size(renderStates); ++i)
+            device->SetRenderState(renderStates[i], oldRenderStates[i]);
+        for (size_t i = 0; i < std::size(samplerStates); ++i)
+            device->SetSamplerState(0, samplerStates[i], oldSamplerStates[i]);
+        device->SetPixelShaderConstantF(0, oldConstant, 1);
+        device->SetTexture(0, oldTexture);
+        device->SetViewport(&oldViewport);
+        device->SetPixelShader(oldPS);
+        device->SetVertexShader(oldVS);
+        if (oldDecl)
+            device->SetVertexDeclaration(oldDecl);
+        else
+            device->SetFVF(oldFVF);
+
+        SAFE_RELEASE(oldPS);
+        SAFE_RELEASE(oldVS);
+        SAFE_RELEASE(oldDecl);
+        SAFE_RELEASE(oldTexture);
+        compositeSurface->Release();
+        backBuffer->Release();
+    }
+
+public:
+    HDR()
+    {
+        FusionFix::onInitEvent() += []()
+        {
+            CIniReader iniReader("");
+            fRollOffStart = std::clamp(iniReader.ReadFloat("HDR", "RollOffStart", 0.8f), 0.0f, 1.0f);
+
+            // Display menu. Values take effect immediately while the back buffer is already HDR capable,
+            // otherwise with the next device reset or restart.
+            FusionFixSettings.RegisterPreference("PREF_HDR", 1, 0, "HDR", "HDR", [](int32_t) { nAppliedState = -1; });
+            FusionFixSettings.RegisterPreference("PREF_HDR_PEAK", static_cast<int32_t>(std::size(HDRText::PeakNits)) - 1, 0, "HDR", "PeakBrightness", [](int32_t) { nAppliedState = -1; });
+            FusionFixSettings.RegisterPreference("PREF_HDR_PAPERWHITE", static_cast<int32_t>(std::size(HDRText::PaperWhiteNits)) - 1, HDRText::PaperWhiteDefault, "HDR", "PaperWhite", [](int32_t) { nAppliedState = -1; });
+
+            FusionFixSettings.RegisterEnum("MENU_DISPLAY_HDR_PEAK", HDRText::PeakLabels);
+            FusionFixSettings.RegisterEnum("MENU_DISPLAY_HDR_PAPERWHITE", HDRText::PaperWhiteLabels);
+
+            for (auto screen : { CSettings::MenuScreen::Display, CSettings::MenuScreen::TitleDisplay })
+            {
+                FusionFixSettings.AddToggle(screen, "HDR", "PREF_HDR");
+                FusionFixSettings.AddEnum(screen, "HDR Peak", "PREF_HDR_PEAK", "MENU_DISPLAY_HDR_PEAK");
+                FusionFixSettings.AddEnum(screen, "HDR Paper White", "PREF_HDR_PAPERWHITE", "MENU_DISPLAY_HDR_PAPERWHITE");
+            }
+
+            // Unlock the float back buffer in DXVK as soon as the game has its IDirect3D9
+            auto pattern = hook::pattern("C6 05 ? ? ? ? 00 FF 15 ? ? ? ? 8B C8 89 0D");
+            if (!pattern.empty())
+            {
+                static auto Direct3DCreated = safetyhook::create_mid(pattern.get_first(13), [](SafetyHookContext& regs)
+                {
+                    OnDirect3DCreated(reinterpret_cast<IDirect3D9*>(regs.eax));
+                });
+            }
+            else
+            {
+                pattern = hook::pattern("C6 05 ? ? ? ? 00 E8 ? ? ? ? 3B C6 A3");
+                if (!pattern.empty())
+                {
+                    static auto Direct3DCreated = safetyhook::create_mid(pattern.get_first(12), [](SafetyHookContext& regs)
+                    {
+                        OnDirect3DCreated(reinterpret_cast<IDirect3D9*>(regs.eax));
+                    });
+                }
+            }
+
+            FusionFix::onBeforeReset() += []()
+            {
+                ReleaseResources();
+                ApplyBackBufferFormat(pPresentParams);
+                nAppliedState = -1;
+            };
+
+            FusionFix::onAfterEndScene() += []()
+            {
+                RenderOutput();
+            };
+        };
+    }
+} HDR;
+
+export namespace HDROutput
+{
+    // The frame goes to the display in HDR: SDR tone mapping has to stay off
+    bool IsActive()
+    {
+        return HDR::bOutputActive && HDR::bBackBufferFloat;
+    }
+
+    // The back buffer is 16-bit float, intermediate targets that are copied into it should be as well
+    bool IsBackBufferFloat()
+    {
+        return HDR::bBackBufferFloat;
+    }
+}

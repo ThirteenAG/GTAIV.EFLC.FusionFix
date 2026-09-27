@@ -8,6 +8,7 @@ export module shaders;
 import common;
 import comvars;
 import d3dx9_43;
+import hdr;
 import natives;
 import seasonal;
 import settings;
@@ -427,8 +428,9 @@ public:
                         arr9[0] = bHighResolutionShadows ? fSHADOWFILTERCHSSMaxSoftness * 2.0f : fSHADOWFILTERCHSSMaxSoftness;
                         arr9[1] = bHighResolutionShadows ? CTimeCycleExt::GetCHSSLightSize() * 2.0f : CTimeCycleExt::GetCHSSLightSize();
 
+                        // SDR tone mapping would clip the highlights HDR output keeps
                         static auto tm = FusionFixSettings.GetRef("PREF_TONEMAPPING");
-                        arr9[2] = static_cast<float>(tm->get());
+                        arr9[2] = HDROutput::IsActive() ? 0.0f : static_cast<float>(tm->get());
 
                         arr9[3] = bNoBloomColorShift && tm->get() ? 1.0f : 0.0f;
 

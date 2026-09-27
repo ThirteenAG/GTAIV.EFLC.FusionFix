@@ -66,7 +66,9 @@ jobs:
       run: ./premake5 vs2026 --with-version=${{ steps.versioning.outputs.version }}
 
     - name: Build
-      run: msbuild -m build/GTAIV.EFLC.FusionFix.slnx /property:Configuration=Release /property:Platform=Win32
+      run: |
+        msbuild -m build/GTAIV.EFLC.FusionFix.slnx /property:Configuration=Release /property:Platform=Win32
+        msbuild -m build/GTAIV.EFLC.FusionFix.Helper.slnx /property:Configuration=Release /property:Platform=x64
 
     - name: Download Ultimate ASI Loader x86
       uses: robinraju/release-downloader@v1.13
@@ -74,13 +76,6 @@ jobs:
         repository: "ThirteenAG/Ultimate-ASI-Loader"
         tag: "Win32-latest"
         fileName: "dinput8-Win32.zip"
-
-    - name: Download DXVK
-      uses: robinraju/release-downloader@v1.13
-      with:
-        repository: "doitsujin/dxvk"
-        tag: 'v3.1.1'
-        fileName: "dxvk-*.tar.gz"
 
     - name: Download Legacy Package
       uses: robinraju/release-downloader@v1.13
@@ -95,9 +90,11 @@ jobs:
           7z x dinput8-Win32.zip -odata/ -y
           del dinput8-Win32.zip
           del data\dinput8-Win32.SHA512
-          for %%f in (dxvk-*.tar.gz) do 7z x -so "%%f" | 7z x -si -ttar -odxvk
-          for /d %%d in (dxvk\dxvk-*) do if exist "%%d\x32\d3d9.dll" copy "%%d\x32\d3d9.dll" "data\vulkan.dll"
-          rmdir /s /q dxvk
+
+    - name: Before Package
+      shell: cmd
+      run: |
+        ./before_packaging.bat
 
     - name: Pack binaries
       run: |

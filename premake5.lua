@@ -104,6 +104,8 @@ workspace "GTAIV.EFLC.FusionFix"
    files { "source/resources/Shaders.rc" }
    files { "source/resources/LODLights.rc" }
    files { "source/resources/snow/*.rc" }
+   files { "source/resources/temporal/*.rc" }
+   files { "source/resources/hdr/*.rc" }
    links { "LogitechLEDLib.lib" }
 
    includedirs { "external/injector/safetyhook/include" }
@@ -111,6 +113,7 @@ workspace "GTAIV.EFLC.FusionFix"
    includedirs { "external/hooking" }
    includedirs { "external/injector/include" }
    includedirs { "external/inireader" }
+   includedirs { "external/Vulkan-Headers/include" }
    includedirs { "external/modupdater/dist" }
    includedirs { "source/gxt/src" }
    libdirs { "external/modupdater/dist" }
@@ -145,6 +148,21 @@ workspace "GTAIV.EFLC.FusionFix"
       "\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E DX9_SMAAEdgeDetectionVS /Fo \"../source/resources/SMAA_EdgeDetectionVS.vso\" \"../source/resources/SMAA.hlsl\"",
       "\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E DX9_SMAABlendingWeightCalculationVS /Fo \"../source/resources/SMAA_BlendingWeightsCalculationVS.vso\" \"../source/resources/SMAA.hlsl\"",
       "\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E DX9_SMAANeighborhoodBlendingVS /Fo \"../source/resources/SMAA_NeighborhoodBlendingVS.vso\" \"../source/resources/SMAA.hlsl\"",
+
+      -- Temporal anti-aliasing
+      "\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E VS_VelocityRigid /Fo \"../source/resources/temporal/VelocityRigid.vso\" \"../source/resources/temporal/Temporal.hlsl\"",
+      "\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E VS_VelocitySkinned /Fo \"../source/resources/temporal/VelocitySkinned.vso\" \"../source/resources/temporal/Temporal.hlsl\"",
+      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E PS_Velocity /Fo \"../source/resources/temporal/Velocity.pso\" \"../source/resources/temporal/Temporal.hlsl\"",
+      "\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E VS_BoneWrite /Fo \"../source/resources/temporal/BoneWrite.vso\" \"../source/resources/temporal/Temporal.hlsl\"",
+      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E PS_BoneWrite /Fo \"../source/resources/temporal/BoneWrite.pso\" \"../source/resources/temporal/Temporal.hlsl\"",
+      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E PS_CameraMotion /Fo \"../source/resources/temporal/CameraMotion.pso\" \"../source/resources/temporal/Temporal.hlsl\"",
+      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E PS_TemporalResolve /Fo \"../source/resources/temporal/TemporalResolve.pso\" \"../source/resources/temporal/Temporal.hlsl\"",
+      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E PS_UpscalerDepth /Fo \"../source/resources/temporal/UpscalerDepth.pso\" \"../source/resources/temporal/Temporal.hlsl\"",
+      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E PS_OpaqueLuma /Fo \"../source/resources/temporal/OpaqueLuma.pso\" \"../source/resources/temporal/Temporal.hlsl\"",
+      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E PS_Reactive /Fo \"../source/resources/temporal/Reactive.pso\" \"../source/resources/temporal/Temporal.hlsl\"",
+
+      -- HDR output
+      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E PS_HDROutput /Fo \"../source/resources/hdr/HDROutput.pso\" \"../source/resources/hdr/HDR.hlsl\"",
    }
 
    filter "configurations:Debug"
@@ -214,3 +232,71 @@ project "d3d9"
    filter "configurations:Release"
       defines { "NDEBUG" }
       optimize "On"
+
+-- 64-bit helper running NVIDIA DLSS and AMD FSR (GTAIV.EFLC.FusionFix.exe, next to the plugin).
+-- Visual Studio solutions cannot mix platforms, so it has a solution of its own:
+-- build/GTAIV.EFLC.FusionFix.Helper.slnx
+workspace "GTAIV.EFLC.FusionFix.Helper"
+   configurations { "Release", "Debug" }
+   architecture "x86_64"
+   location "build"
+   cppdialect "C++latest"
+   language "C++"
+   characterset ("Unicode")
+   staticruntime "On"
+   -- The NGX static loader is built against the release runtime
+   runtime "Release"
+   multiprocessorcompile ("On")
+   startproject "GTAIV.EFLC.FusionFix.Helper"
+
+   defines { "rsc_CompanyName=\"GTAIV.EFLC.FusionFix\"" }
+   defines { "rsc_LegalCopyright=\"GPL-3.0 license\""}
+   defines { "rsc_InternalName=\"%{prj.name}\"", "rsc_ProductName=\"%{prj.name}\"", "rsc_OriginalFilename=\"%{cfg.buildtarget.name}\"" }
+   defines { "rsc_FileDescription=\"GTAIV.EFLC.FusionFix upscaler helper\"" }
+   defines { "rsc_UpdateUrl=\"https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix\"" }
+   defines { "rsc_FileVersion_MAJOR=" .. major }
+   defines { "rsc_FileVersion_MINOR=" .. minor }
+   defines { "rsc_FileVersion_BUILD=" .. build }
+   defines { "rsc_FileVersion_REVISION=" .. revision }
+   defines { "rsc_FileVersion=\"" .. major .. "." .. minor .. "." .. build .. "\"" }
+   defines { "rsc_ProductVersion=\"" .. productVersion .. "\"" }
+   defines { "rsc_GitSHA1=\"" .. githash .. "\"" }
+   defines { "rsc_GitSHA1W=L\"" .. githash .. "\"" }
+   defines { "_CRT_SECURE_NO_WARNINGS", "_WINDOWS" }
+
+project "GTAIV.EFLC.FusionFix.Helper"
+   kind "WindowedApp"
+   targetdir "bin"
+   targetname "GTAIV.EFLC.FusionFix"
+   targetextension ".exe"
+   -- Must not overwrite the plugin's GTAIV.EFLC.FusionFix.pdb in the same folder
+   symbolspath "$(OutDir)GTAIV.EFLC.FusionFix.Helper.pdb"
+
+   files { "source/helper/*.cpp" }
+   files { "source/includes/upscaler_protocol.hpp" }
+   files { "source/resources/Versioninfo.rc" }
+
+   includedirs { "source/includes" }
+   includedirs { "external/dlss/include" }
+   includedirs { "external/fidelityfx/api/include" }
+   includedirs { "external/fidelityfx/upscalers/include" }
+   libdirs { "external/dlss/lib/Windows_x86_64/x64" }
+   links { "d3d12", "dxgi", "shell32", "nvsdk_ngx_s" }
+
+   local gamedir = envdir("GTAIV_DIR")
+   if gamedir then
+      local plugins = gamedir .. "\\plugins"
+      -- Deployed next to an installed plugin, like the plugin itself
+      postbuildcommands {
+         "if exist \"" .. plugins .. "\\GTAIV.EFLC.FusionFix.asi\" copy /y \"$(TargetPath)\" \"" .. plugins .. "\\\"",
+      }
+   end
+
+   filter "configurations:Debug"
+      defines { "DEBUG" }
+      symbols "On"
+
+   filter "configurations:Release"
+      defines { "NDEBUG" }
+      optimize "On"
+      symbols "On"

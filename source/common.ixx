@@ -138,6 +138,12 @@ public:
         static Event<> EndScene;
         return EndScene;
     }
+    // After every onEndScene handler, the last thing drawn into the back buffer
+    static Event<>& onAfterEndScene()
+    {
+        static Event<> AfterEndScene;
+        return AfterEndScene;
+    }
     static Event<>& onReadGameConfig()
     {
         static Event<> ReadGameConfig;

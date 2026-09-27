@@ -494,6 +494,9 @@
       <options text="MO_OFF" action="ACTION_NONE" value="0" />
       <options text="FXAA" action="ACTION_NONE" value="1" />
       <options text="SMAA" action="ACTION_NONE" value="2" />
+      <options text="TAA" action="ACTION_NONE" value="3" />
+      <options text="DLAA" action="ACTION_NONE" value="4" />
+      <options text="FSR" action="ACTION_NONE" value="5" />
     </menupc>
 
         <menupc enum="MENU_DISPLAY_CONSOLE_GAMMA">
@@ -518,6 +521,7 @@
         <menupc enum="MENU_DISPLAY_GRAPHICS_API">
             <options text="DirectX 9" action="ACTION_NONE" value="0" />
             <options text="Vulkan" action="ACTION_NONE" value="1" />
+            <options text="DirectX 12" action="ACTION_NONE" value="2" />
         </menupc>
 
         <menupc enum="MENU_DISPLAY_DISTANT_LIGHTS">
@@ -1245,7 +1249,7 @@
       <optionspc action="MENUOPT_ADJUST" label="MO_VSYNC" value="PREF_VSYNC" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       
             <optionspc action="MENUOPT_ADJUST" label="FPS Limiter" value="PREF_FPS_LIMIT_PRESET" scaler="13" displayValue="MENU_DISPLAY_FRAMELIMIT" />
-            <optionspc action="MENUOPT_ADJUST" label="Antialiasing" value="PREF_ANTIALIASING" scaler="3" displayValue="MENU_DISPLAY_ANTIALIASING" />
+            <optionspc action="MENUOPT_ADJUST" label="Antialiasing" value="PREF_ANTIALIASING" scaler="6" displayValue="MENU_DISPLAY_ANTIALIASING" />
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="Volumetric Fog" value="PREF_VOLUMETRICFOG" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Sun Shafts" value="PREF_SUNSHAFTS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF"/>
@@ -1253,7 +1257,7 @@
             <optionspc action="MENUOPT_ADJUST" label="Tone Mapping" value="PREF_TONEMAPPING" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
 			<optionspc action="MENUOPT_ADJUST" label="AO" value="PREF_SAO" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Shadow Filter" value="PREF_SHADOWFILTER" scaler="3" displayValue="MENU_DISPLAY_SHADOWFILTER" />
-            <optionspc action="MENUOPT_ADJUST" label="Graphics API" value="PREF_GRAPHICSAPI" scaler="2" displayValue="MENU_DISPLAY_GRAPHICS_API" />
+            <optionspc action="MENUOPT_ADJUST" label="Graphics API" value="PREF_GRAPHICSAPI" scaler="3" displayValue="MENU_DISPLAY_GRAPHICS_API" />
       
       <optionspc action="MENUOPT_GRAPHICS_ANALYZER" label="MO_ANALYZER" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />
       <optionspc action="MENUOPT_BENCHMARK" label="MO_BENCHMARK" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />
@@ -1276,7 +1280,7 @@
       <optionspc action="MENUOPT_ADJUST" label="MO_VSYNC" value="PREF_VSYNC" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       
             <optionspc action="MENUOPT_ADJUST" label="FPS Limiter" value="PREF_FPS_LIMIT_PRESET" scaler="13" displayValue="MENU_DISPLAY_FRAMELIMIT" />
-            <optionspc action="MENUOPT_ADJUST" label="Antialiasing" value="PREF_ANTIALIASING" scaler="3" displayValue="MENU_DISPLAY_ANTIALIASING" />
+            <optionspc action="MENUOPT_ADJUST" label="Antialiasing" value="PREF_ANTIALIASING" scaler="6" displayValue="MENU_DISPLAY_ANTIALIASING" />
             <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="Volumetric Fog" value="PREF_VOLUMETRICFOG" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Sun Shafts" value="PREF_SUNSHAFTS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF"/>
@@ -1284,7 +1288,7 @@
             <optionspc action="MENUOPT_ADJUST" label="Tone Mapping" value="PREF_TONEMAPPING" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
 			<optionspc action="MENUOPT_ADJUST" label="AO" value="PREF_SAO" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Shadow Filter" value="PREF_SHADOWFILTER" scaler="3" displayValue="MENU_DISPLAY_SHADOWFILTER" />
-            <optionspc action="MENUOPT_ADJUST" label="Graphics API" value="PREF_GRAPHICSAPI" scaler="2" displayValue="MENU_DISPLAY_GRAPHICS_API" />
+            <optionspc action="MENUOPT_ADJUST" label="Graphics API" value="PREF_GRAPHICSAPI" scaler="3" displayValue="MENU_DISPLAY_GRAPHICS_API" />
       
       <optionspc action="MENUOPT_GRAPHICS_ANALYZER" label="MO_ANALYZER" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />
       <optionspc action="MENUOPT_BENCHMARK" label="MO_BENCHMARK" value="PREF_NULL" scaler="1" displayValue="MENU_DISPLAY_NONE" />

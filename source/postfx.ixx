@@ -8,9 +8,11 @@ export module postfx;
 import common;
 import comvars;
 import d3dx9_43;
+import hdr;
 import natives;
 import settings;
 import shaders;
+import temporal;
 
 #define IDR_FXAA                                 101
 #define IDR_SMAA                                 102
@@ -52,6 +54,22 @@ import shaders;
 #endif
 
 std::optional<std::reference_wrapper<int32_t>> UsePostFxAA;
+
+// SMAA hangs the game on D3D9on12, it counts as off there
+bool IsSMAASupported()
+{
+    static bool d3d9on12 = false;
+    d3d9on12 = d3d9on12 || GetModuleHandleW(L"d3d9on12.dll");
+    return !d3d9on12;
+}
+
+bool IsPostFxAA()
+{
+    if (!UsePostFxAA)
+        return false;
+    auto aa = UsePostFxAA->get();
+    return aa == FusionFixSettings.AntialiasingText.eFXAA || (aa == FusionFixSettings.AntialiasingText.eSMAA && IsSMAASupported());
+}
 
 class PostFxResource
 {
@@ -507,6 +525,8 @@ public:
             }
         }
 
+        TemporalAA::LoadShaders(pDevice);
+
         return ShadersFinishedLoading();
     }
 
@@ -677,8 +697,9 @@ public:
 
         FullScreenTex_temp1 = CreateEmptyRT("FullScreenTex_temp1", 3, Width, Height, 64, &desc);
 
-        desc.mFormat = rage::GRCFMT_A8R8G8B8;
-        FullScreenTex_temp2 = CreateEmptyRT("FullScreenTex_temp2", 3, Width, Height, 32, &desc);
+        // Composited into the back buffer by FXAA and SMAA, it must not clip the highlights of an HDR back buffer
+        desc.mFormat = HDROutput::IsBackBufferFloat() ? rage::GRCFMT_A16B16G16R16F : rage::GRCFMT_A8R8G8B8;
+        FullScreenTex_temp2 = CreateEmptyRT("FullScreenTex_temp2", 3, Width, Height, HDROutput::IsBackBufferFloat() ? 64 : 32, &desc);
 
         //desc.mFormat = rage::GRCFMT_G16R16F;
         // 
@@ -760,6 +781,7 @@ private:
     static void __fastcall OnDeviceLost()
     {
         PostFxResources.ReleaseTextures();
+        TemporalAA::ReleaseResources();
         // PostFxResources.mSpecularAoRT    =nullptr;
         // PostFxResources.mNormalRT        =nullptr;
         PostFxResources.mDiffuseRT = nullptr;
@@ -829,6 +851,7 @@ private:
         auto height = *rage::grcDevice::ms_nActiveHeight;
 
         PostFxResources.createTextures(width, height, hm);
+        TemporalAA::CreateResources(width, height);
 
         D3DVERTEXELEMENT9 vertexDeclElements[] =
         {
@@ -1205,6 +1228,17 @@ private:
                     //    pDevice->SetPixelShader(pShader);
                     //}
 
+                    // Temporal anti-aliasing resolves the HDR scene before everything else. Normally ResolveScene did
+                    // it before the game computed bloom and exposure.
+                    if (TemporalAA::GetMode() != TemporalAA::Mode::Off && !TemporalAA::IsSceneResolved())
+                    {
+                        if (TemporalAA::Resolve(pDevice, PostFxResources.textureRead, PostFxResources.renderTargetTex, PostFxResources.renderTargetSurf))
+                        {
+                            PostFxResources.swapbuffers();
+                            pDevice->SetPixelShader(pShader);
+                        }
+                    }
+
                     if (PostFxResources.useStippleFilter && PostFxResources.stipple_filter_ps)
                     {
                         pDevice->SetPixelShader(PostFxResources.stipple_filter_ps);
@@ -1313,7 +1347,7 @@ private:
                             pDevice->SetSamplerState(i, D3DSAMP_MAGFILTER, PostFxResources.Samplers[i]);
                         }
 
-                        if (UsePostFxAA->get() > FusionFixSettings.AntialiasingText.eMO_OFF)
+                        if (IsPostFxAA())
                             pDevice->SetRenderTarget(0, PostFxResources.FullScreenSurface_temp2);
                         else
                             pDevice->SetRenderTarget(0, PostFxResources.backBuffer);
@@ -1332,7 +1366,7 @@ private:
                     }
 
                     // Anti aliasing
-                    if (UsePostFxAA && UsePostFxAA->get() > FusionFixSettings.AntialiasingText.eMO_OFF)
+                    if (IsPostFxAA())
                     {
                         // FXAA
                         if ((UsePostFxAA->get() == FusionFixSettings.AntialiasingText.eFXAA) && PostFxResources.FxaaPS)
@@ -1350,7 +1384,7 @@ private:
                         }
 
                         // SMAA
-                        if (UsePostFxAA->get() >= FusionFixSettings.AntialiasingText.eSMAA &&
+                        if (UsePostFxAA->get() == FusionFixSettings.AntialiasingText.eSMAA &&
                            PostFxResources.SMAA_EdgeDetection && PostFxResources.SMAA_BlendingWeightsCalculation && PostFxResources.SMAA_NeighborhoodBlending &&
                            PostFxResources.SMAA_EdgeDetectionVS && PostFxResources.SMAA_BlendingWeightsCalculationVS && PostFxResources.SMAA_NeighborhoodBlendingVS &&
                            PostFxResources.SMAA_areaTex && PostFxResources.SMAA_searchTex && PostFxResources.edgesTex && PostFxResources.blendTex
@@ -1689,6 +1723,39 @@ private:
         bInsteadDrawPrimitivePostFX = false;
     }
 
+    // The first pass of the game's post processing downsamples the scene for bloom and exposure
+    static inline thread_local bool bInsteadDrawPrimitiveDownsample = false;
+    static inline injector::hook_back<void(__fastcall*)(void*, void*, int, int, int)> hbDrawCallDownsample;
+    static void __fastcall DrawCallDownsample(void* _this, void* edx, int a2, int a3, int a4)
+    {
+        bInsteadDrawPrimitiveDownsample = true;
+        hbDrawCallDownsample.fun(_this, edx, a2, a3, a4);
+        bInsteadDrawPrimitiveDownsample = false;
+    }
+
+    // Temporal anti-aliasing resolves the scene before the game computes bloom from it, which would otherwise
+    // follow the jitter. The result goes back into the scene copy that the game and PostFx3 read.
+    static void ResolveScene()
+    {
+        if (TemporalAA::GetMode() == TemporalAA::Mode::Off || TemporalAA::IsSceneResolved())
+            return;
+        if (!PostFxResources.mFullScreenRT || !PostFxResources.mFullScreenRT->mD3DTexture ||
+            !PostFxResources.FullScreenTex_temp1 || !PostFxResources.FullScreenTex_temp1->mD3DTexture)
+            return;
+
+        auto pDevice = rage::grcDevice::GetD3DDevice();
+        auto scene = PostFxResources.mFullScreenRT->mD3DTexture;
+        auto resolved = PostFxResources.FullScreenTex_temp1->mD3DTexture;
+        IDirect3DSurface9* sceneSurface = nullptr;
+        IDirect3DSurface9* resolvedSurface = nullptr;
+        scene->GetSurfaceLevel(0, &sceneSurface);
+        resolved->GetSurfaceLevel(0, &resolvedSurface);
+        if (sceneSurface && resolvedSurface && TemporalAA::Resolve(pDevice, scene, resolved, resolvedSurface))
+            pDevice->StretchRect(resolvedSurface, nullptr, sceneSurface, nullptr, D3DTEXF_POINT);
+        SAFE_RELEASE(resolvedSurface);
+        SAFE_RELEASE(sceneSurface);
+    }
+
     static inline injector::hook_back<void(__stdcall*)()> hbDrawPrimitivePostFX;
     static void __stdcall DrawPrimitivePostFX()
     {
@@ -1696,13 +1763,24 @@ private:
         {
             bInsteadDrawPrimitiveFog = false;
             // Do not initialize shaders, RTs etc. here or we get a device reset error for some reason
-            NewFog();
+            if (PostFxResources.bEnablePreAlphaDepth)
+                NewFog();
+            else
+                hbDrawPrimitivePostFX.fun();
+            // Transparent geometry and visual effects come next: the reactive mask of temporal AA starts here
+            TemporalAA::OnFogDrawn();
         }
         else if (bInsteadDrawPrimitivePostFX)
         {
             bInsteadDrawPrimitivePostFX = false;
             Init();
             NewPostFX();
+        }
+        else if (bInsteadDrawPrimitiveDownsample)
+        {
+            bInsteadDrawPrimitiveDownsample = false;
+            ResolveScene();
+            hbDrawPrimitivePostFX.fun();
         }
         else
         {
@@ -1770,18 +1848,27 @@ public:
                 pattern = find_pattern("E8 ? ? ? ? 6A ? FF B7 ? ? ? ? 8B CF FF 77 ? E8 ? ? ? ? 5F", "E8 ? ? ? ? 8B 8E ? ? ? ? 8B 56 ? 6A ? 51");
                 hbDrawCallPostFX.fun = injector::MakeCALL(pattern.get_first(0), DrawCallPostFX).get();
 
-                if (PostFxResources.bEnablePreAlphaDepth)
+                // Downsampling of the scene for bloom and exposure, the first pass of the game's post processing
+                pattern = hook::pattern("6A 00 FF B7 ? ? ? ? FF 77 18 E8 ? ? ? ? FF 77 18 8B 4F 60");
+                if (!pattern.empty())
+                    hbDrawCallDownsample.fun = injector::MakeCALL(pattern.get_first(11), DrawCallDownsample).get();
+                else
                 {
-                    pattern = hook::pattern("6A ? E8 ? ? ? ? 5E 8B E5 5D C3");
+                    pattern = hook::pattern("8B 46 18 6A 00 52 50 8B CE E8 ? ? ? ? 8B 4E 18 8B 46 60");
                     if (!pattern.empty())
-                    {
-                        hbDrawCallFog.fun = injector::MakeCALL(pattern.get_first(2), DrawCallFog).get();
-                    }
-                    else
-                    {
-                        pattern = hook::pattern("6A ? 8B CE E8 ? ? ? ? 5E 8B E5");
-                        hbDrawCallFog.fun = injector::MakeCALL(pattern.get_first(4), DrawCallFog).get();
-                    }
+                        hbDrawCallDownsample.fun = injector::MakeCALL(pattern.get_first(9), DrawCallDownsample).get();
+                }
+
+                // Fog pass: pre-alpha depth and the copy of the scene for raindrops, and the reactive mask of temporal AA
+                pattern = hook::pattern("6A ? E8 ? ? ? ? 5E 8B E5 5D C3");
+                if (!pattern.empty())
+                {
+                    hbDrawCallFog.fun = injector::MakeCALL(pattern.get_first(2), DrawCallFog).get();
+                }
+                else
+                {
+                    pattern = hook::pattern("6A ? 8B CE E8 ? ? ? ? 5E 8B E5");
+                    hbDrawCallFog.fun = injector::MakeCALL(pattern.get_first(4), DrawCallFog).get();
                 }
 
                 pattern = find_pattern("55 8B EC 83 E4 ? 8B 0D ? ? ? ? 8B 15 ? ? ? ? 8B 41", "55 8B EC 83 E4 ? 8B 0D ? ? ? ? 8B 41 ? 8B 15");

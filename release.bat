@@ -1,9 +1,10 @@
 call tools\EmbedPDB\EmbedPDB.exe bin\GTAIV.EFLC.FusionFix.asi
 call tools\EmbedPDB\EmbedPDB.exe bin\d3d9.dll
 
-powershell -NoProfile -ExecutionPolicy Bypass -File "sign.ps1" -SearchPaths ".\bin\GTAIV.EFLC.FusionFix.asi .\bin\d3d9.dll"
+powershell -NoProfile -ExecutionPolicy Bypass -File "sign.ps1" -SearchPaths ".\bin\GTAIV.EFLC.FusionFix.asi .\bin\d3d9.dll .\bin\GTAIV.EFLC.FusionFix.exe"
 
 copy bin\GTAIV.EFLC.FusionFix.asi data\plugins\GTAIV.EFLC.FusionFix.asi
+copy bin\GTAIV.EFLC.FusionFix.exe data\plugins\GTAIV.EFLC.FusionFix.exe
 copy bin\d3d9.dll data\d3d9.dll
 
 call buildimg.bat

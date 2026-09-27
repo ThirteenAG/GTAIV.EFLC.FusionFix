@@ -1,0 +1,3 @@
+#define IDR_HDR_OUTPUT_PS               3101
+
+IDR_HDR_OUTPUT_PS               RCDATA "HDROutput.pso"

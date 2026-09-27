@@ -6,6 +6,8 @@
 #include <fstream>
 #include <filesystem>
 #include <shlobj.h>
+#include <d3d9.h>
+#include <d3d9on12.h>
 
 struct d3d9_dll
 {
@@ -27,6 +29,8 @@ struct d3d9_dll
     FARPROC Direct3DShaderValidatorCreate9;
     FARPROC PSGPError;
     FARPROC PSGPSampleTexture;
+    FARPROC SystemDirect3DCreate9;
+    FARPROC SystemDirect3DCreate9Ex;
 } d3d9;
 
 __declspec(naked) void _D3DPERF_BeginEvent()
@@ -101,6 +105,28 @@ __declspec(naked) void _PSGPSampleTexture()
 void _FusionFixGraphicsApiSwitch()
 {
     return;
+}
+
+// API=2 in d3d9.cfg: the system d3d9.dll runs the game on D3D9on12, Microsoft's D3D9 implementation on top
+// of D3D12. Falls back to the regular D3D9 runtime when D3D9on12 can't be created.
+IDirect3D9* WINAPI Direct3DCreate9With9On12(UINT SDKVersion)
+{
+    D3D9ON12_ARGS args{};
+    args.Enable9On12 = TRUE;
+    auto d3d = reinterpret_cast<PFN_Direct3DCreate9On12>(d3d9.Direct3DCreate9On12)(SDKVersion, &args, 1);
+    if (!d3d)
+        d3d = reinterpret_cast<IDirect3D9*(WINAPI*)(UINT)>(d3d9.SystemDirect3DCreate9)(SDKVersion);
+    return d3d;
+}
+
+HRESULT WINAPI Direct3DCreate9ExWith9On12(UINT SDKVersion, IDirect3D9Ex** ppD3D)
+{
+    D3D9ON12_ARGS args{};
+    args.Enable9On12 = TRUE;
+    auto hr = reinterpret_cast<PFN_Direct3DCreate9On12Ex>(d3d9.Direct3DCreate9On12Ex)(SDKVersion, &args, 1, ppD3D);
+    if (FAILED(hr))
+        hr = reinterpret_cast<HRESULT(WINAPI*)(UINT, IDirect3D9Ex**)>(d3d9.SystemDirect3DCreate9Ex)(SDKVersion, ppD3D);
+    return hr;
 }
 
 std::filesystem::path GetModulePath(HMODULE hModule)
@@ -218,7 +244,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
             apiValue = GetPrivateProfileIntW(L"MAIN", L"API", 0, cfgPath.c_str());
         }
 
-        if (apiValue)
+        if (apiValue == 1)
         {
             lstrcpyW(path, L"vulkan.dll");
             d3d9.dll = LoadLibraryW(path);
@@ -257,6 +283,18 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
         d3d9.Direct3DShaderValidatorCreate9 = GetProcAddress(d3d9.dll, "Direct3DShaderValidatorCreate9");
         d3d9.PSGPError = GetProcAddress(d3d9.dll, "PSGPError");
         d3d9.PSGPSampleTexture = GetProcAddress(d3d9.dll, "PSGPSampleTexture");
+
+        // D3D9on12 only exists in the system d3d9.dll, from Windows 10 on
+        if (apiValue == 2 && d3d9.Direct3DCreate9 && d3d9.Direct3DCreate9On12)
+        {
+            d3d9.SystemDirect3DCreate9 = d3d9.Direct3DCreate9;
+            d3d9.Direct3DCreate9 = reinterpret_cast<FARPROC>(&Direct3DCreate9With9On12);
+            if (d3d9.Direct3DCreate9Ex && d3d9.Direct3DCreate9On12Ex)
+            {
+                d3d9.SystemDirect3DCreate9Ex = d3d9.Direct3DCreate9Ex;
+                d3d9.Direct3DCreate9Ex = reinterpret_cast<FARPROC>(&Direct3DCreate9ExWith9On12);
+            }
+        }
         break;
     }
     case DLL_PROCESS_DETACH:

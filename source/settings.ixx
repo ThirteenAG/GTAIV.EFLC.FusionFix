@@ -219,16 +219,37 @@ private:
         // Code-defined options keep their value outside the preference (AddToggle/AddEnum/AddSlider with callbacks)
         std::function<int32_t()> getter;
         std::function<void(int32_t)> setter;
+        std::function<bool(int32_t value)> available;
 
         auto GetValue() { return getter ? getter() : value; }
         void SetValue(int32_t v)
         {
-            value = std::clamp(v, idStart, idEnd);
+            v = std::clamp(v, idStart, idEnd);
+            // The menu wraps around, so a step from the last value to the first one counts as forward
+            auto previous = GetValue();
+            value = FindAvailable(v, v == previous + 1 || (previous == idEnd && v == idStart));
             if (setter)
                 setter(value);
             else
                 WriteToIni();
             if (callback) callback(value);
+        }
+
+        // Values that are not available on this system are skipped, in the direction the value was changed
+        int32_t FindAvailable(int32_t v, bool forward)
+        {
+            if (!available)
+                return v;
+            for (auto i = idStart; i <= idEnd; ++i)
+            {
+                if (available(v))
+                    return v;
+                if (forward)
+                    v = v == idEnd ? idStart : v + 1;
+                else
+                    v = v == idStart ? idEnd : v - 1;
+            }
+            return idStart;
         }
         auto ReadFromIni(auto& iniReader) { return iniReader.ReadInteger(iniSec, iniName, iniDefValInt); }
         auto ReadFromIni() { CIniReader iniReader(cfgPath); return ReadFromIni(iniReader); }
@@ -1531,7 +1552,7 @@ public:
             { 0, "PREF_CUTSCENEAUDIOSYNC",      "MAIN",       "CutsceneAudioSync",                  "MENU_DISPLAY_AUDIO_SYNC",                           0, nullptr, 0, 2 },
             { 0, "PREF_TURNINDICATORS",         "MISC",       "TurnIndicators",                     "",                           0, nullptr, 0, 1 },
             { 0, "PREF_EXTRANIGHTSHADOWS",      "SHADOWS",    "ExtraNightShadows",                  "MENU_DISPLAY_EXTRA_NIGHT_SHADOWS",                           0, nullptr, 0, 3 },
-            { 0, "PREF_GRAPHICSAPI",            "MAIN",       "GraphicsAPI",                        "MENU_DISPLAY_GRAPHICS_API",                           0, nullptr, 0, 1 },
+            { 0, "PREF_GRAPHICSAPI",            "MAIN",       "GraphicsAPI",                        "MENU_DISPLAY_GRAPHICS_API",                           0, nullptr, 0, 2 },
             { 0, "PREF_BULLETTRACES",           "MISC",       "AlwaysShowBulletTraces",             "",                           0, nullptr, 0, 1 },
             { 0, "PREF_AUTOEXPOSURE",           "MISC",       "ConsoleAutoExposure",                "",                           1, nullptr, 0, 1 },
             { 0, "PREF_KBCAMCENTERDELAYVEH",    "MISC",       "DelayBeforeCenteringCameraKBInCar",  "",                           0, nullptr, 0, 9 },
@@ -1560,10 +1581,33 @@ public:
                 displayIDs.emplace(stored.strEnum, nextDisplayID++);
         }
 
+        // DirectX 12 (D3D9on12) is only enabled with API=2 in d3d9.cfg. The menu shows it while the game runs on
+        // it, but only switches between DirectX 9 and Vulkan.
+        FusionFixSettings.SetAvailability("PREF_GRAPHICSAPI", [](int32_t value) -> bool
+        {
+            return value != 2;
+        });
+
         CIniReader d3d9cfg(d3d9cfgPath);
-        auto api = d3d9cfg.ReadInteger("MAIN", "API", 0);
-        FusionFixSettings.Set("PREF_GRAPHICSAPI", api);
+        ShowGraphicsAPI(std::clamp(d3d9cfg.ReadInteger("MAIN", "API", 0), 0, 2));
         InitializeMenuAPI();
+    }
+
+    // The graphics API the game runs on: d3d9.dll of Fusion Fix loads DXVK (vulkan.dll) for API=1 in d3d9.cfg
+    // and enables D3D9on12 for API=2. Only the system d3d9.dll loads d3d9on12.dll, so it's checked first.
+    static int32_t GetRunningGraphicsAPI()
+    {
+        if (GetModuleHandleW(L"d3d9on12.dll"))
+            return 2;
+        if (GetModuleHandleW(L"winevulkan.dll") || GetModuleHandleW(L"vulkan-1.dll"))
+            return 1;
+        return 0;
+    }
+
+    // Sets the value the menu shows without the availability check, which keeps DirectX 12 out of the menu's choices
+    static void ShowGraphicsAPI(int32_t api)
+    {
+        FusionFixSettings.GetRef("PREF_GRAPHICSAPI")->get() = api;
     }
 public:
     // A custom screen is shown in place of the Display screen
@@ -1978,6 +2022,29 @@ public:
         const auto prefID = GetPrefIDByName(name);
         if (prefID && mFusionPrefs.contains(*prefID)) mFusionPrefs.at(*prefID).callback = nullptr;
     }
+    // Values the predicate rejects are skipped when the setting is changed in the menu
+    void SetAvailability(std::string_view name, std::function<bool(int32_t)>&& available)
+    {
+        const auto prefID = GetPrefIDByName(name);
+        if (prefID && mFusionPrefs.contains(*prefID)) mFusionPrefs.at(*prefID).available = std::move(available);
+    }
+    // Moves the current value to an available one after availability changed. The ini keeps the
+    // user's choice, so a feature that is missing for one session comes back once it is available.
+    void RefreshAvailability(std::string_view name)
+    {
+        const auto prefID = GetPrefIDByName(name);
+        if (!prefID || !mFusionPrefs.contains(*prefID))
+            return;
+        auto& setting = mFusionPrefs.at(*prefID);
+        auto saved = setting.iniName.empty() ? setting.value : std::clamp(setting.ReadFromIni(), setting.idStart, setting.idEnd);
+        auto value = setting.FindAvailable(saved, false);
+        if (value != setting.value)
+        {
+            setting.value = value;
+            if (setting.callback)
+                setting.callback(value);
+        }
+    }
     void ForEachPref(std::function<void(int32_t id, int32_t idStart, int32_t idEnd)>&& cb)
     {
         for (auto& it : mFusionPrefs)
@@ -2054,8 +2121,8 @@ public:
 
     struct
     {
-        enum eAntialiasingText { eMO_OFF, eFXAA, eSMAA };
-        const std::vector<const char*> data = { "MO_OFF", "FXAA", "SMAA" };
+        enum eAntialiasingText { eMO_OFF, eFXAA, eSMAA, eTAA, eDLAA, eFSR };
+        const std::vector<const char*> data = { "MO_OFF", "FXAA", "SMAA", "TAA", "DLAA", "FSR" };
     } AntialiasingText;
 
     struct
@@ -2216,16 +2283,14 @@ public:
 
                         if (vulkan == NULL || !FusionFixGraphicsApiSwitch)
                         {
-                            if (GetModuleHandleW(L"winevulkan.dll") || GetModuleHandleW(L"vulkan-1.dll"))
-                                FusionFixSettings.Set(id, 1);
-                            else
-                                FusionFixSettings.Set(id, 0);
+                            CSettings::ShowGraphicsAPI(CSettings::GetRunningGraphicsAPI());
                         }
                         else
                         {
                             FreeLibrary(vulkan);
+                            // Unavailable values were skipped, the setting holds the value that was picked
                             CIniReader d3d9cfg(CSettings::d3d9cfgPath);
-                            d3d9cfg.WriteInteger("MAIN", "API", value, true);
+                            d3d9cfg.WriteInteger("MAIN", "API", FusionFixSettings.Get(id), true);
                         }
                     }
                 }
@@ -2823,11 +2888,7 @@ public:
                 if (!bOnce)
                 {
                     bOnce = true;
-                    auto api = FusionFixSettings.GetRef("PREF_GRAPHICSAPI")->get();
-                    if (api && !GetModuleHandleW(L"winevulkan.dll") && !GetModuleHandleW(L"vulkan-1.dll"))
-                        FusionFixSettings.Set("PREF_GRAPHICSAPI", 0);
-                    else if (!api && (GetModuleHandleW(L"winevulkan.dll") || GetModuleHandleW(L"vulkan-1.dll")))
-                        FusionFixSettings.Set("PREF_GRAPHICSAPI", 1);
+                    CSettings::ShowGraphicsAPI(CSettings::GetRunningGraphicsAPI());
                 }
             });
 
