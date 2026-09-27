@@ -57,30 +57,18 @@ public:
             pattern = find_pattern("E8 ? ? ? ? 83 C4 ? 89 44 24 ? F6 87", "E8 ? ? ? ? 83 C4 ? 89 44 24 ? EB ? 8B 74 24");
             CTaskComplexClimbLadder::hbScanForLadderToClimb.fun = injector::MakeCALL(pattern.get_first(0), CTaskComplexClimbLadder::ScanForLadderToClimb).get();
 
-            pattern = hook::pattern("80 F9 ? 0F 86 ? ? ? ? 8B 4E");
-            if (!pattern.empty())
+            pattern = find_pattern("80 F9 ? 0F 86 ? ? ? ? 8B 4E", "3C ? 0F 86 ? ? ? ? 8B 4B");
+            static auto reg = *pattern.get_first<uint8_t>(0);
+            static auto CTaskComplexInWater__HandlePlayerInput_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
             {
                 static auto CTaskComplexInWater__HandlePlayerInput_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                 {
-                    static auto AutoClimbLadders = FusionFixSettings.GetRef("PREF_AUTOCLIMBLADDERS");
-                    if (AutoClimbLadders->get())
-                    {
+                    if (reg != 0x3C)
                         regs.ecx |= 0xFF;
-                    }
-                });
-            }
-            else
-            {
-                pattern = hook::pattern("3C ? 0F 86 ? ? ? ? 8B 4B");
-                static auto CTaskComplexInWater__HandlePlayerInput_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                {
-                    static auto AutoClimbLadders = FusionFixSettings.GetRef("PREF_AUTOCLIMBLADDERS");
-                    if (AutoClimbLadders->get())
-                    {
+                    else
                         regs.eax |= 0xFF;
-                    }
-                });
-            }
+                }
+            });
 
             pattern = find_pattern("E8 ? ? ? ? 83 C4 ? 85 C0 74 ? 8B 87 ? ? ? ? 81 8F", "E8 ? ? ? ? 83 C4 ? 85 C0 74 ? 81 8E");
             CTaskComplexClimbLadder::hbScanForLadderToClimb.fun = injector::MakeCALL(pattern.get_first(0), CTaskComplexClimbLadder::ScanForLadderToClimb).get();
