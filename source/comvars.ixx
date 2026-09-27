@@ -2077,6 +2077,259 @@ export namespace CPlayer
     uintptr_t (*findPlayerCar)() = nullptr;
 }
 
+export namespace CPlayerPed
+{
+    uintptr_t (__thiscall* GetControlFromPlayer)(uintptr_t playerPed) = nullptr;
+}
+
+export enum class eRagdollTriggerTypes : uint32_t
+{
+    RAGDOLL_TRIGGER_SCRIPT = 0x12,
+};
+
+export namespace CTaskSimpleNM
+{
+    bool (__cdecl* CanUseRagdoll)(uintptr_t ped, eRagdollTriggerTypes trigger, uintptr_t entity, float force) = nullptr;
+}
+
+export namespace CTaskSimpleNMHighFall
+{
+    struct Parameters
+    {
+        float pdStrengthPlayer;
+        float pdStrengthAI;
+        float hfBodyStiffness;
+        float hfBodyDamping;
+        float hfCutOffVelocity;
+        float hfCatchFallTime;
+        float hfArmsUp;
+        float hfLegRadius;
+        float hfLegAngularSpeed;
+        float hfArmPeriod;
+        float hfArmAmplitude;
+        float hfAimAngle;
+        float hfLegSideDistance;
+        float hfFowardIKOffset;
+        float hfFowardVelCompOnAngle;
+        bool hfForwardRoll;
+        bool hfOrientateBodyToFallDirection;
+        bool hfUseZeroPose;
+        uint8_t padding;
+    };
+    static_assert(sizeof(Parameters) == 0x40);
+
+    enum class eHighFallType : int32_t
+    {
+        STANDARD = 0,
+    };
+
+    void* (__thiscall* Constructor)(void* storage, uint32_t minTime, uint32_t maxTime, const void* grabHelper, eHighFallType type) = nullptr;
+    Parameters* ms_Parameters = nullptr;
+    Parameters pendingParameters{};
+    uintptr_t pendingPed = 0;
+    SafetyHookInline shStartBehaviour{};
+}
+
+export namespace ART::MessageParams
+{
+    constexpr size_t Size = 0xCC4;
+    void (__thiscall* Constructor)(void* params) = nullptr;
+    void (__thiscall* addBool)(void* params, const char* name, bool value) = nullptr;
+    void (__thiscall* addFloat)(void* params, const char* name, float value) = nullptr;
+    void (__thiscall* Destructor)(void* params) = nullptr;
+}
+
+export namespace rage::fragInstNM
+{
+    void (__thiscall* PostARTMessage)(void* fragInstNM, const char* messageName, const void* params) = nullptr;
+}
+
+export namespace NaturalMotion
+{
+    constexpr ptrdiff_t PedIntelligenceOffset = 0x224;
+    constexpr ptrdiff_t FragInstNMOffset = 0x7B4;
+
+    struct alignas(16) RagdollComponentMatrix
+    {
+        float values[16];
+    };
+    static_assert(sizeof(RagdollComponentMatrix) == 0x40);
+
+    enum class RagdollComponent : int32_t
+    {
+        Buttocks = 0,
+        Spine3 = 10,
+        Neck = 11,
+    };
+
+    namespace armsWindmillAdaptive
+    {
+        struct Parameters
+        {
+            float armStiffness;
+            float bodyStiffness;
+            float period;
+            float amplitude;
+            float phase;
+            bool disableOnImpact;
+        };
+    }
+
+    namespace pedalLegs
+    {
+        struct Parameters
+        {
+            bool backPedal;
+            float legStiffness;
+            bool pedalLeftLeg;
+            bool pedalRightLeg;
+            float radius;
+            float angularSpeed;
+            float pedalOffset;
+            float speedAsymmetry;
+            bool adaptivePedal4Dragging;
+            float radiusVariance;
+            float legAngleVariance;
+        };
+    }
+
+    void* (__thiscall* AllocateFromPoolInternal)(void* pool) = nullptr;
+    int (__thiscall* InitializeNMTaskInternal)(void* task, uintptr_t ped) = nullptr;
+    bool (__cdecl* PostNMTaskInternal)(uintptr_t ped, uint32_t time, bool setPedFlag, void* task) = nullptr;
+    bool (__thiscall* GetRagdollComponentMatrixInternal)(uintptr_t ped, RagdollComponentMatrix* matrix, int32_t component) = nullptr;
+    armsWindmillAdaptive::Parameters pendingArmsWindmillAdaptiveParameters{};
+    pedalLegs::Parameters pendingPedalLegsParameters{};
+
+    void PostHighFallBehaviours(
+        uintptr_t ped,
+        const armsWindmillAdaptive::Parameters& armsWindmillAdaptiveParameters,
+        const pedalLegs::Parameters& pedalLegsParameters)
+    {
+        if (!ped
+            || !ART::MessageParams::Constructor
+            || !ART::MessageParams::addBool
+            || !ART::MessageParams::addFloat
+            || !rage::fragInstNM::PostARTMessage
+            || !ART::MessageParams::Destructor)
+        {
+            return;
+        }
+
+        void* fragInstNM = *reinterpret_cast<void**>(ped + FragInstNMOffset);
+        if (!fragInstNM)
+            return;
+
+        alignas(16) uint8_t params[ART::MessageParams::Size]{};
+        ART::MessageParams::Constructor(params);
+        ART::MessageParams::addBool(params, "start", true);
+        ART::MessageParams::addFloat(params, "armStiffness", armsWindmillAdaptiveParameters.armStiffness);
+        ART::MessageParams::addFloat(params, "bodyStiffness", armsWindmillAdaptiveParameters.bodyStiffness);
+        ART::MessageParams::addFloat(params, "period", armsWindmillAdaptiveParameters.period);
+        ART::MessageParams::addFloat(params, "amplitude", armsWindmillAdaptiveParameters.amplitude);
+        ART::MessageParams::addFloat(params, "phase", armsWindmillAdaptiveParameters.phase);
+        ART::MessageParams::addBool(params, "disableOnImpact", armsWindmillAdaptiveParameters.disableOnImpact);
+        rage::fragInstNM::PostARTMessage(fragInstNM, "armsWindmillAdaptive", params);
+        ART::MessageParams::Destructor(params);
+
+        ART::MessageParams::Constructor(params);
+        ART::MessageParams::addBool(params, "start", true);
+        ART::MessageParams::addBool(params, "backPedal", pedalLegsParameters.backPedal);
+        ART::MessageParams::addFloat(params, "legStiffness", pedalLegsParameters.legStiffness);
+        ART::MessageParams::addBool(params, "pedalLeftLeg", pedalLegsParameters.pedalLeftLeg);
+        ART::MessageParams::addBool(params, "pedalRightLeg", pedalLegsParameters.pedalRightLeg);
+        ART::MessageParams::addFloat(params, "radius", pedalLegsParameters.radius);
+        ART::MessageParams::addFloat(params, "angularSpeed", pedalLegsParameters.angularSpeed);
+        ART::MessageParams::addFloat(params, "pedalOffset", pedalLegsParameters.pedalOffset);
+        ART::MessageParams::addFloat(params, "speedAsymmetry", pedalLegsParameters.speedAsymmetry);
+        ART::MessageParams::addBool(params, "adaptivePedal4Dragging", pedalLegsParameters.adaptivePedal4Dragging);
+        ART::MessageParams::addFloat(params, "radiusVariance", pedalLegsParameters.radiusVariance);
+        ART::MessageParams::addFloat(params, "legAngleVariance", pedalLegsParameters.legAngleVariance);
+        rage::fragInstNM::PostARTMessage(fragInstNM, "pedalLegs", params);
+        ART::MessageParams::Destructor(params);
+    }
+
+    void __fastcall StartBehaviourHook(void* task, void* edx, uintptr_t ped)
+    {
+        if (ped != CTaskSimpleNMHighFall::pendingPed || !CTaskSimpleNMHighFall::ms_Parameters)
+        {
+            CTaskSimpleNMHighFall::shStartBehaviour.unsafe_fastcall(task, edx, ped);
+            return;
+        }
+
+        const CTaskSimpleNMHighFall::Parameters savedParameters = CTaskSimpleNMHighFall::ms_Parameters[0];
+        CTaskSimpleNMHighFall::ms_Parameters[0] = CTaskSimpleNMHighFall::pendingParameters;
+        CTaskSimpleNMHighFall::shStartBehaviour.unsafe_fastcall(task, edx, ped);
+        CTaskSimpleNMHighFall::ms_Parameters[0] = savedParameters;
+
+        PostHighFallBehaviours(
+            ped,
+            pendingArmsWindmillAdaptiveParameters,
+            pendingPedalLegsParameters);
+        CTaskSimpleNMHighFall::pendingPed = 0;
+    }
+
+    bool NMHighFallBindingsAvailable()
+    {
+        return CPlayerPed::GetControlFromPlayer
+            && CTaskSimpleNM::CanUseRagdoll
+            && AllocateFromPoolInternal
+            && CTaskSimpleNMHighFall::Constructor
+            && InitializeNMTaskInternal
+            && PostNMTaskInternal
+            && GetRagdollComponentMatrixInternal
+            && ART::MessageParams::Constructor
+            && ART::MessageParams::addBool
+            && ART::MessageParams::addFloat
+            && rage::fragInstNM::PostARTMessage
+            && ART::MessageParams::Destructor
+            && CTaskSimpleNMHighFall::ms_Parameters
+            && CTimer::m_snTimeInMilliseconds;
+    }
+
+    bool SwitchToNMHighFall(
+        uintptr_t ped,
+        uint32_t minTime,
+        uint32_t maxTime,
+        CTaskSimpleNMHighFall::eHighFallType type,
+        uint32_t eventTime,
+        const CTaskSimpleNMHighFall::Parameters& parameters,
+        const armsWindmillAdaptive::Parameters& armsWindmillAdaptiveParameters,
+        const pedalLegs::Parameters& pedalLegsParameters)
+    {
+        if (!ped || !NMHighFallBindingsAvailable())
+            return false;
+
+        const uintptr_t intelligence = *reinterpret_cast<uintptr_t*>(ped + PedIntelligenceOffset);
+        auto* taskPool = CTask::GetTaskPool();
+        if (!intelligence || !taskPool)
+            return false;
+
+        void* taskStorage = AllocateFromPoolInternal(taskPool);
+        if (!taskStorage)
+            return false;
+
+        void* task = CTaskSimpleNMHighFall::Constructor(
+            taskStorage,
+            minTime,
+            maxTime,
+            nullptr,
+            type);
+        if (!task)
+            return false;
+
+        CTaskSimpleNMHighFall::pendingParameters = parameters;
+        pendingArmsWindmillAdaptiveParameters = armsWindmillAdaptiveParameters;
+        pendingPedalLegsParameters = pedalLegsParameters;
+
+        InitializeNMTaskInternal(task, ped);
+        CTaskSimpleNMHighFall::pendingPed = ped;
+        const bool posted = PostNMTaskInternal(ped, eventTime, false, task);
+        if (!posted && CTaskSimpleNMHighFall::pendingPed == ped)
+            CTaskSimpleNMHighFall::pendingPed = 0;
+        return posted;
+    }
+}
+
 export namespace CWeaponData
 {
     uintptr_t (__fastcall* getWeaponData)(uintptr_t weaponData, int edx) = nullptr;
@@ -2902,6 +3155,55 @@ public:
             CPlayer::getLocalPlayerPed = (uintptr_t(*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
             CPlayer::findPlayerCar = (uintptr_t(*)())injector::GetBranchDestination(pattern.get_first(10)).as_int();
         }
+
+        pattern = hook::pattern("E8 ? ? ? ? 8A 88 6E 28 00 00 32 88 6C 28 00 00 80 F9 7F");
+        if (!pattern.empty())
+            CPlayerPed::GetControlFromPlayer = reinterpret_cast<decltype(CPlayerPed::GetControlFromPlayer)>(
+                injector::GetBranchDestination(pattern.get_first(0)).as_int());
+
+        pattern = hook::pattern("55 8B EC 83 E4 F0 83 EC 48 56 57 E8 ? ? ? ? 84 C0 74 31 8B 7D 08 8B 75 0C");
+        if (!pattern.empty())
+            CTaskSimpleNM::CanUseRagdoll = reinterpret_cast<decltype(CTaskSimpleNM::CanUseRagdoll)>(pattern.get_first(0));
+
+        pattern = hook::pattern("8B 0D ? ? ? ? E8 ? ? ? ? 85 C0 74 ? 6A 00 6A 00 68 10 27 00 00 68 E8 03 00 00 8B C8 E8 ? ? ? ? C2 04 00");
+        if (!pattern.empty())
+            NaturalMotion::AllocateFromPoolInternal = reinterpret_cast<decltype(NaturalMotion::AllocateFromPoolInternal)>(
+                injector::GetBranchDestination(pattern.get_first(6)).as_int());
+
+        pattern = hook::pattern("56 FF 74 24 0C 8B F1 FF 74 24 0C E8 ? ? ? ? FF 74 24 10 8D 4E 60 C7 06 ? ? ? ? 66 C7 46 40 00 00 E8 ? ? ? ? 8B 44 24 14 89 86 E0 00 00 00");
+        if (!pattern.empty())
+            CTaskSimpleNMHighFall::Constructor = reinterpret_cast<decltype(CTaskSimpleNMHighFall::Constructor)>(pattern.get_first(0));
+
+        pattern = hook::pattern("81 EC C8 0C 00 00 A1 ? ? ? ? 33 C4 89 84 24 C4 0C 00 00 56 8B F1 57 8B 86 E0 00 00 00");
+        if (!pattern.empty())
+        {
+            CTaskSimpleNMHighFall::ms_Parameters = *pattern.get_first<CTaskSimpleNMHighFall::Parameters*>(0x92);
+            ART::MessageParams::Constructor = reinterpret_cast<decltype(ART::MessageParams::Constructor)>(
+                injector::GetBranchDestination(pattern.get_first(0x61)).as_int());
+            ART::MessageParams::addBool = reinterpret_cast<decltype(ART::MessageParams::addBool)>(
+                injector::GetBranchDestination(pattern.get_first(0x72)).as_int());
+            ART::MessageParams::addFloat = reinterpret_cast<decltype(ART::MessageParams::addFloat)>(
+                injector::GetBranchDestination(pattern.get_first(0xAB)).as_int());
+            rage::fragInstNM::PostARTMessage = reinterpret_cast<decltype(rage::fragInstNM::PostARTMessage)>(
+                injector::GetBranchDestination(pattern.get_first(0x30F)).as_int());
+            ART::MessageParams::Destructor = reinterpret_cast<decltype(ART::MessageParams::Destructor)>(
+                injector::GetBranchDestination(pattern.get_first(0x318)).as_int());
+            CTaskSimpleNMHighFall::shStartBehaviour = safetyhook::create_inline(
+                pattern.get_first(0),
+                NaturalMotion::StartBehaviourHook);
+        }
+
+        pattern = hook::pattern("51 80 3D ? ? ? ? 00 56 8B F1 0F 84 ? ? ? ? 57 8B 7C 24 10 80 BF 19 02 00 00 00");
+        if (!pattern.empty())
+            NaturalMotion::InitializeNMTaskInternal = reinterpret_cast<decltype(NaturalMotion::InitializeNMTaskInternal)>(pattern.get_first(0));
+
+        pattern = hook::pattern("81 EC E4 0C 00 00 A1 ? ? ? ? 33 C4 89 84 24 E0 0C 00 00 53 8B 9C 24 F0 0C 00 00 56 8B B4 24 F0 0C 00 00 32 C0 57 8B BC 24 00 0D 00 00");
+        if (!pattern.empty())
+            NaturalMotion::PostNMTaskInternal = reinterpret_cast<decltype(NaturalMotion::PostNMTaskInternal)>(pattern.get_first(0));
+
+        pattern = hook::pattern("57 8B F9 8B 87 B4 07 00 00 85 C0 74 ? 83 78 64 00 74 ? F3 0F 10 48 44");
+        if (!pattern.empty())
+            NaturalMotion::GetRagdollComponentMatrixInternal = reinterpret_cast<decltype(NaturalMotion::GetRagdollComponentMatrixInternal)>(pattern.get_first(0));
 
         pattern = find_pattern("8B C1 56 8B 70 ? 85 F6", "8B 41 ? 85 C0 74 ? 8B 80 ? ? ? ? 85 C0 74 ? 8B 51");
         CWeaponData::getWeaponData = (decltype(CWeaponData::getWeaponData))pattern.get_first(0);
