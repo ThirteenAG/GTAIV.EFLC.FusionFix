@@ -268,6 +268,9 @@ private:
         pEffect->SetTechnique(hGammaTechnique);
         pEffect->CommitChanges();
 
+        D3DXVECTOR4 screenSize((float)backBufferInfo.width, (float)backBufferInfo.height, 1.0f / backBufferInfo.width, 1.0f / backBufferInfo.height);
+        pEffect->SetVector(pEffect->GetParameterByName(nullptr, "globalScreenSize"), &screenSize);
+
         UINT passes = 0;
         if (SUCCEEDED(pEffect->Begin(&passes, 0)))
         {
