@@ -61,7 +61,8 @@ public:
             static auto reg = *pattern.get_first<uint8_t>(0);
             static auto CTaskComplexInWater__HandlePlayerInput_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
             {
-                static auto CTaskComplexInWater__HandlePlayerInput_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                static auto AutoClimbLadders = FusionFixSettings.GetRef("PREF_AUTOCLIMBLADDERS");
+                if (AutoClimbLadders->get())
                 {
                     if (reg != 0x3C)
                         regs.ecx |= 0xFF;
