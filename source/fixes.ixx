@@ -660,7 +660,6 @@ public:
             }
 
             // Pause menu map crosshair aspect ratio scaling
-            // Note: Xbox code seems different enough. If PC only needs scaling by aspect ratio, this could already be right. If not, maybe Xbox code could be ported in case size is also different.
             {
                 auto pattern = hook::pattern("8B 44 24 ? 56 8B 35 ? ? ? ? 85 F6");
                 if (!pattern.empty())
@@ -678,32 +677,42 @@ public:
 
                     pattern = hook::pattern("F3 0F 11 4C 24 ? E8 ? ? ? ? F3 0F 10 44 24 ? 8B 08");
                     injector::MakeNOP(pattern.get_first(0), 6, true);
-                    static auto CCustomMenu__RenderMapCrosshair_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CCustomMenu__RenderMapCrosshairHook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         *(float*)(regs.esp + 0x6C - 0x38) = mapCursorThickness.y;
                     });
 
-                    pattern = hook::pattern("F3 0F 11 4C 24 ? F3 0F 11 44 24 ? 8D 44 24");
-                    injector::MakeNOP(pattern.get_first(0), 6, true);
-                    static auto CCustomMenu__RenderMapCrosshairHook3 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                    {
-                        *(float*)(regs.esp + 0x64 - 0x34) /= (float)*rage::grcDevice::ms_nActiveWidth / (float)*rage::grcDevice::ms_nActiveHeight * 0.75f; // 0x7D (125); MAP_CURSOR_SIZE
-                    });
-
                     pattern = hook::pattern("F3 0F 10 15 ? ? ? ? F3 0F 10 5C 24 ? 0F B6 C0");
-                    static auto CCustomMenu__RenderMapCrosshairHook4 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    static auto CCustomMenu__RenderMapCrosshairHook3 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         *(float*)(regs.esp + 0x64 - 0x30) /= ((float)*rage::grcDevice::ms_nActiveWidth / (float)*rage::grcDevice::ms_nActiveHeight) * 0.75f; // 0x4C (76); MAP_CURSOR_FADE
                     });
                 }
                 else
                 {
-                    pattern = hook::pattern("F3 0F 10 1D ? ? ? ? F3 0F 10 54 24 ? 0F B6 C8");
-                    static auto CCustomMenu__RenderMapCrosshair_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                    {
-                        float AspectRatio = ((float)*rage::grcDevice::ms_nActiveWidth / (float)*rage::grcDevice::ms_nActiveHeight);
+                    pattern = hook::pattern("8B 0D ? ? ? ? 85 C9 8B 44 24 ? 74");
+                    static auto CFrontEnd__GetWidgetValue = (rage::Vector2*(__cdecl*)(rage::Vector2*, int))pattern.get_first(0);
 
-                        *(float*)(regs.esp + 0x5C - 0x3C) /= (AspectRatio * 0.75f);
+                    static rage::Vector2 crosshairThickness{};
+                    pattern = hook::pattern("F3 0F 11 44 24 ? FF D6 39 05 ? ? ? ? A1 ? ? ? ? 74 ? A1 ? ? ? ? F3 0F 10 05 ? ? ? ? 8D 4C 24");
+                    injector::MakeNOP(pattern.get_first(0), 6, true);
+                    static auto CCustomMenu__RenderMapCrosshairHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        CFrontEnd__GetWidgetValue(&crosshairThickness, 166);  // 0xA6 (166); FE_MAP_CURSOR_THICKNESS
+                        *(float*)(regs.esp + 0x5C - 0x2C) = crosshairThickness.x / (((float)*rage::grcDevice::ms_nActiveWidth / (float)*rage::grcDevice::ms_nActiveHeight) * 0.75f);
+                    });
+
+                    pattern = hook::pattern("F3 0F 11 44 24 ? E8 ? ? ? ? 8B 10 8B 40");
+                    injector::MakeNOP(pattern.get_first(0), 6, true);
+                    static auto CCustomMenu__RenderMapCrosshairHook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        *(float*)(regs.esp + 0x64 - 0x28) = crosshairThickness.y;
+                    });
+                    
+                    pattern = hook::pattern("F3 0F 10 1D ? ? ? ? F3 0F 10 54 24 ? 0F B6 C8");
+                    static auto CCustomMenu__RenderMapCrosshairHook3 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        *(float*)(regs.esp + 0x5C - 0x3C) /= ((float)*rage::grcDevice::ms_nActiveWidth / (float)*rage::grcDevice::ms_nActiveHeight) * 0.75f;  // 0x4C (76); MAP_CURSOR_FADE
                     });
                 }
             }
