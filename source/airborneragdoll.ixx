@@ -103,8 +103,8 @@ namespace AirborneRagdoll
     bool jumpWasActive = false;
     bool waitingForJumpRelease = false;
     bool highFallAcceptedThisJump = false;
-    bool jumpRagdollControlEnabled = true;
-    bool climbRagdollControlEnabled = false;
+    bool bPlayerJumpRagdollControl = false;
+    bool bPlayerClimbRagdollControl = false;
     uint32_t jumpStartTime = 0;
 
     Velocity ReadVelocity(Ped ped)
@@ -359,11 +359,8 @@ namespace AirborneRagdoll
         jumpWasActive = true;
 
         const bool climbing = CPed::ComparePedTasks(ped, TaskID::TaskSimpleClimb);
-        if ((climbing && !climbRagdollControlEnabled)
-            || (!climbing && !jumpRagdollControlEnabled))
-        {
+        if ((climbing && !bPlayerClimbRagdollControl) || (!climbing && !bPlayerJumpRagdollControl))
             return;
-        }
 
         if (highFallAcceptedThisJump)
             return;
@@ -425,16 +422,15 @@ class PlayerJumpRagdollControl
 public:
     PlayerJumpRagdollControl()
     {
-        FusionFix::onInitEvent() += []()
+        FusionFix::onInitEventAsync() += []()
         {
             CIniReader iniReader("");
-            AirborneRagdoll::jumpRagdollControlEnabled =
-                iniReader.ReadInteger("MISC", "PlayerJumpRagdollControl", 1) != 0;
-            AirborneRagdoll::climbRagdollControlEnabled =
-                iniReader.ReadInteger("MISC", "PlayerClimbRagdollControl", 0) != 0;
 
-            if (AirborneRagdoll::jumpRagdollControlEnabled
-                || AirborneRagdoll::climbRagdollControlEnabled)
+            // [MISC]
+            AirborneRagdoll::bPlayerJumpRagdollControl = iniReader.ReadInteger("MISC", "PlayerJumpRagdollControl", 0) != 0;
+            AirborneRagdoll::bPlayerClimbRagdollControl = iniReader.ReadInteger("MISC", "PlayerClimbRagdollControl", 0) != 0;
+
+            if (AirborneRagdoll::bPlayerJumpRagdollControl || AirborneRagdoll::bPlayerClimbRagdollControl)
             {
                 FusionFix::onGameProcessEvent() += AirborneRagdoll::Process;
             }
