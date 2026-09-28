@@ -752,7 +752,8 @@ namespace
             device.adapter->GetDesc1(&adapterDesc);
             Log("Adapter: %ls", adapterDesc.Description);
 
-            std::vector<std::wstring> searchPaths = { shared.PluginsDirectory, shared.GameDirectory };
+            // The runtimes are shipped in the game folder, next to vulkan.dll
+            std::vector<std::wstring> searchPaths = { shared.GameDirectory, shared.PluginsDirectory };
             std::string dlssMessage;
             std::string fsrMessage;
             if (adapterDesc.VendorId == 0x10DE)

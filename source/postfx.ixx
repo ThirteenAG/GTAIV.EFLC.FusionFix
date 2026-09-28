@@ -1082,6 +1082,13 @@ private:
 
     static void NewPostFX()
     {
+        // The game's own post processing without the scene, e.g. while the render targets are recreated
+        if (!PostFxResources.mFullScreenRT || !PostFxResources.mFullScreenRT->mD3DTexture)
+        {
+            hbDrawPrimitivePostFX.fun();
+            return;
+        }
+
         IDirect3DPixelShader9* oldps = 0;
         IDirect3DVertexShader9* oldvs = 0;
         IDirect3DDevice9* pDevice = rage::grcDevice::GetD3DDevice();

@@ -51,10 +51,55 @@ public:
     static inline rage::grcRenderTargetPC* CompositeRT = nullptr;
     static inline IDirect3DPixelShader9* OutputPS = nullptr;
 
+    // The game has a preference named PREF_HDR of its own
+    static constexpr auto PreferenceName = "PREF_HDR_OUTPUT";
+
+    // The display mode the game switches to before the next frame, with a full device reset (resolution change)
+    static inline int32_t* pRequestedWidth = nullptr;
+    static inline int32_t* pRequestedHeight = nullptr;
+    static inline int32_t* pRequestedRefreshRate = nullptr;
+    static inline int32_t* pRefreshRate = nullptr;
+
     static bool IsEnabled()
     {
-        static auto hdr = FusionFixSettings.GetRef("PREF_HDR");
+        static auto hdr = FusionFixSettings.GetRef(PreferenceName);
         return hdr && hdr->get();
+    }
+
+    // DXVK with a display in HDR mode, the extended sRGB color space is also available through HDR10
+    static bool IsSupported()
+    {
+        auto device = bFormatsUnlocked ? rage::grcDevice::GetD3DDevice() : nullptr;
+        IDirect3DSwapChain9* swapChain = nullptr;
+        if (!device || FAILED(device->GetSwapChain(0, &swapChain)) || !swapChain)
+            return false;
+
+        bool supported = false;
+        ID3D9VkExtSwapchain* ext = nullptr;
+        if (SUCCEEDED(swapChain->QueryInterface(__uuidof(ID3D9VkExtSwapchain), reinterpret_cast<void**>(&ext))) && ext)
+        {
+            supported = ext->CheckColorSpaceSupport(VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT);
+            ext->Release();
+        }
+        swapChain->Release();
+        return supported;
+    }
+
+    // The back buffer format only changes with a device reset: the game resets the device in the current mode
+    static void RequestReset()
+    {
+        if (!pRequestedWidth || !pPresentParams || *pRequestedWidth != 0 || !pPresentParams->BackBufferWidth || !pPresentParams->BackBufferHeight)
+            return;
+        *pRequestedHeight = static_cast<int32_t>(pPresentParams->BackBufferHeight);
+        *pRequestedRefreshRate = *pRefreshRate;
+        *pRequestedWidth = static_cast<int32_t>(pPresentParams->BackBufferWidth);
+    }
+
+    static void OnOutputChanged(int32_t)
+    {
+        nAppliedState = -1;
+        if (bFormatsUnlocked && bBackBufferFloat != IsEnabled())
+            RequestReset();
     }
 
     static float GetPaperWhite()
@@ -88,6 +133,9 @@ public:
             pp->BackBufferFormat = D3DFMT_A16B16G16R16F;
         else if (pp->BackBufferFormat == D3DFMT_A16B16G16R16F && OriginalBackBufferFormat != D3DFMT_UNKNOWN)
             pp->BackBufferFormat = OriginalBackBufferFormat;
+
+        // Render targets recreated after the reset follow the new format
+        bBackBufferFloat = pp->BackBufferFormat == D3DFMT_A16B16G16R16F;
     }
 
     static inline HRESULT(__stdcall* RealCreateDevice)(IDirect3D9*, UINT, D3DDEVTYPE, HWND, DWORD, D3DPRESENT_PARAMETERS*, IDirect3DDevice9**) = nullptr;
@@ -136,7 +184,7 @@ public:
 
     static void ApplyColorSpace(IDirect3DDevice9* device)
     {
-        int32_t wanted = IsEnabled() ? 1 : 0;
+        int32_t wanted = IsEnabled() && bBackBufferFloat ? 1 : 0;
         if (wanted == nAppliedState)
             return;
 
@@ -245,13 +293,7 @@ public:
         backBuffer->GetDesc(&desc);
         bBackBufferFloat = desc.Format == D3DFMT_A16B16G16R16F;
 
-        if (!bBackBufferFloat)
-        {
-            bOutputActive = false;
-            backBuffer->Release();
-            return;
-        }
-
+        // Also with the 8-bit back buffer: after HDR was turned off, the swap chain goes back to sRGB
         ApplyColorSpace(device);
 
         if (!bOutputActive || !CreateResources(device, desc))
@@ -378,9 +420,9 @@ public:
             CIniReader iniReader("");
             fRollOffStart = std::clamp(iniReader.ReadFloat("HDR", "RollOffStart", 0.8f), 0.0f, 1.0f);
 
-            // Display menu. Values take effect immediately while the back buffer is already HDR capable,
-            // otherwise with the next device reset or restart.
-            FusionFixSettings.RegisterPreference("PREF_HDR", 1, 0, "HDR", "HDR", [](int32_t) { nAppliedState = -1; });
+            // Display menu. Turning HDR on or off resets the device with the other back buffer format, the
+            // brightness values take effect immediately.
+            FusionFixSettings.RegisterPreference(PreferenceName, 1, 0, "HDR", "HDR", OnOutputChanged);
             FusionFixSettings.RegisterPreference("PREF_HDR_PEAK", static_cast<int32_t>(std::size(HDRText::PeakNits)) - 1, 0, "HDR", "PeakBrightness", [](int32_t) { nAppliedState = -1; });
             FusionFixSettings.RegisterPreference("PREF_HDR_PAPERWHITE", static_cast<int32_t>(std::size(HDRText::PaperWhiteNits)) - 1, HDRText::PaperWhiteDefault, "HDR", "PaperWhite", [](int32_t) { nAppliedState = -1; });
 
@@ -389,13 +431,36 @@ public:
 
             for (auto screen : { CSettings::MenuScreen::Display, CSettings::MenuScreen::TitleDisplay })
             {
-                FusionFixSettings.AddToggle(screen, "HDR", "PREF_HDR");
+                FusionFixSettings.AddToggle(screen, "HDR", PreferenceName);
                 FusionFixSettings.AddEnum(screen, "HDR Peak", "PREF_HDR_PEAK", "MENU_DISPLAY_HDR_PEAK");
                 FusionFixSettings.AddEnum(screen, "HDR Paper White", "PREF_HDR_PAPERWHITE", "MENU_DISPLAY_HDR_PAPERWHITE");
             }
 
+            // HDR can be turned on with the Vulkan graphics API while Windows HDR is on. The saved choice comes back
+            // once it's available, checked when the menu opens.
+            FusionFixSettings.SetAvailability(PreferenceName, [](int32_t value) -> bool
+            {
+                return value == 0 || IsSupported();
+            });
+            FusionFix::onMenuEnterEvent() += []()
+            {
+                FusionFixSettings.RefreshAvailability(PreferenceName);
+            };
+
+            // Requested display mode: width, height and refresh rate, and the refresh rate of the current mode
+            auto pattern = find_pattern("8B 15 ? ? ? ? 85 D2 74 ? A1 ? ? ? ? 8B 0D ? ? ? ? A3 ? ? ? ? A3 ? ? ? ? A1 ? ? ? ? 85 C9 0F 45 C1",
+                "A1 ? ? ? ? 3B C3 74 ? 8B 0D ? ? ? ? 3B CB 8B 15 ? ? ? ? A3 ? ? ? ? 89 15 ? ? ? ? 89 0D ? ? ? ? A3 ? ? ? ? 89 15 ? ? ? ? 74 ? 89 0D");
+            if (!pattern.empty())
+            {
+                bool legacy = *pattern.get_first<uint8_t>(0) == 0xA1;
+                pRequestedWidth = *pattern.get_first<int32_t*>(legacy ? 1 : 2);
+                pRequestedHeight = *pattern.get_first<int32_t*>(legacy ? 19 : 11);
+                pRequestedRefreshRate = *pattern.get_first<int32_t*>(legacy ? 11 : 17);
+                pRefreshRate = *pattern.get_first<int32_t*>(legacy ? 55 : 32);
+            }
+
             // Unlock the float back buffer in DXVK as soon as the game has its IDirect3D9
-            auto pattern = hook::pattern("C6 05 ? ? ? ? 00 FF 15 ? ? ? ? 8B C8 89 0D");
+            pattern = hook::pattern("C6 05 ? ? ? ? 00 FF 15 ? ? ? ? 8B C8 89 0D");
             if (!pattern.empty())
             {
                 static auto Direct3DCreated = safetyhook::create_mid(pattern.get_first(13), [](SafetyHookContext& regs)

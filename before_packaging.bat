@@ -3,8 +3,8 @@ setlocal
 
 rem Binaries of other projects that go into the release package:
 rem - DXVK: its d3d9.dll becomes vulkan.dll, which d3d9.dll of Fusion Fix loads for the Vulkan graphics API
-rem - NVIDIA DLSS and AMD FidelityFX runtimes for DLAA and FSR, loaded by plugins\GTAIV.EFLC.FusionFix.exe.
-rem   Their versions match the SDK headers the helper is built with, see external\README.md.
+rem - NVIDIA DLSS and AMD FidelityFX runtimes for DLAA and FSR, in the game folder next to vulkan.dll, loaded by
+rem   plugins\GTAIV.EFLC.FusionFix.exe. Their versions match the SDK headers the helper is built with, see external\README.md.
 set "DXVK_VERSION=v3.1.1"
 set "DLSS_VERSION=v310.9.1"
 set "FIDELITYFX_VERSION=v2.3.0"
@@ -37,17 +37,17 @@ if not exist data\vulkan.dll (
 )
 
 rem NVIDIA DLSS
-del data\plugins\nvngx_dlss.dll 2>nul
-curl -fsSL -o data\plugins\nvngx_dlss.dll https://raw.githubusercontent.com/NVIDIA/DLSS/%DLSS_VERSION%/lib/Windows_x86_64/rel/nvngx_dlss.dll || (
-  del data\plugins\nvngx_dlss.dll 2>nul
+del data\nvngx_dlss.dll 2>nul
+curl -fsSL -o data\nvngx_dlss.dll https://raw.githubusercontent.com/NVIDIA/DLSS/%DLSS_VERSION%/lib/Windows_x86_64/rel/nvngx_dlss.dll || (
+  del data\nvngx_dlss.dll 2>nul
   echo Failed to download DLSS & exit /b 1
 )
 
 rem AMD FidelityFX: the loader and the upscaler it loads from its own folder
 for %%F in (amd_fidelityfx_loader_dx12.dll amd_fidelityfx_upscaler_dx12.dll) do (
-  del "data\plugins\%%F" 2>nul
-  curl -fsSL -o "data\plugins\%%F" https://raw.githubusercontent.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/%FIDELITYFX_VERSION%/Kits/FidelityFX/signedbin/%%F || (
-    del "data\plugins\%%F" 2>nul
+  del "data\%%F" 2>nul
+  curl -fsSL -o "data\%%F" https://raw.githubusercontent.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/%FIDELITYFX_VERSION%/Kits/FidelityFX/signedbin/%%F || (
+    del "data\%%F" 2>nul
     echo Failed to download %%F & exit /b 1
   )
 )

@@ -13,10 +13,10 @@ and 1.4 GB (DLSS SDK) per checkout, almost entirely prebuilt libraries for other
   loader for the NGX runtime installed with the driver. License: `dlss/LICENSE.txt`.
 - `fidelityfx`: the FidelityFX API headers for D3D12 and the upscaler. License: `fidelityfx/license.md`.
 
-The runtimes are not kept here. `before_packaging.bat` downloads them into `data/plugins` for the release
-package, from the same versions: `nvngx_dlss.dll` (DLSS `lib/Windows_x86_64/rel`) and
-`amd_fidelityfx_loader_dx12.dll` with `amd_fidelityfx_upscaler_dx12.dll` (FidelityFX
-`Kits/FidelityFX/signedbin`). The helper loads them from the plugins or the game folder. When the headers
-here are updated, update the versions in `before_packaging.bat` as well.
+The runtimes are not kept here. `before_packaging.bat` downloads them into `data`, the game folder next to
+`vulkan.dll` in the release package, from the same versions: `nvngx_dlss.dll` (DLSS `lib/Windows_x86_64/rel`)
+and `amd_fidelityfx_loader_dx12.dll` with `amd_fidelityfx_upscaler_dx12.dll` (FidelityFX
+`Kits/FidelityFX/signedbin`). The helper loads them from the game folder, else from the plugins folder. When
+the headers here are updated, update the versions in `before_packaging.bat` as well.
 
 The Vulkan headers are the `Vulkan-Headers` submodule.

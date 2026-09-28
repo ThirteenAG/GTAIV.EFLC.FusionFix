@@ -356,9 +356,9 @@ GTAIV.EFLC.FusionFixWebInstaller.exe
 .env
 data/plugins/GTAIV.EFLC.FusionFix.exe
 data/plugins/GTAIV.EFLC.FusionFix.Upscaler.log
-data/plugins/nvngx_dlss.dll
-data/plugins/amd_fidelityfx_loader_dx12.dll
-data/plugins/amd_fidelityfx_upscaler_dx12.dll
+data/nvngx_dlss.dll
+data/amd_fidelityfx_loader_dx12.dll
+data/amd_fidelityfx_upscaler_dx12.dll
 dxvk.tar.gz
 dxvk-tmp/
 # Vendored NGX static library (external/README.md), its folder is named like a build output

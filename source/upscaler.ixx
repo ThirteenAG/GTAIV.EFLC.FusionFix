@@ -995,7 +995,7 @@ namespace
 
     bool FidelityFXPresent()
     {
-        for (auto dir : { GetThisModulePath(), GetExeModulePath() })
+        for (auto dir : { GetExeModulePath(), GetThisModulePath() })
             for (auto name : { L"amd_fidelityfx_loader_dx12.dll", L"amd_fidelityfx_dx12.dll" })
                 if (std::filesystem::exists(dir / name))
                     return true;
