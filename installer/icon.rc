@@ -1,1 +1,5 @@
 101 ICON "..\\installer\\icon.ico"
+102 PNG "..\\installer\\logo.png"
+103 PNG "..\\installer\\logo_outline.png"
+104 JPG "..\\installer\\background_dark.jpg"
+105 JPG "..\\installer\\background_light.jpg"
