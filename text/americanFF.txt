@@ -8,7 +8,7 @@ Skip Menu
 Windowed
 
 [Borderless]
-Windowed Borderless 
+Windowed Borderless
 
 [Focus Loss]
 Pause Game On Focus Loss
