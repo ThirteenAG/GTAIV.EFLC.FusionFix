@@ -2972,15 +2972,23 @@ export namespace CCutsceneManager
 
 struct CStreamingInfoManager
 {
-    uint8_t Padding[0x20];
+    int* m_StreamingFiles;
+    int m_NumStreamingFiles;
+    int* field_8[6];
 
-    uint32_t mVirtualBudget;
-    uint32_t mVirtualUsed;
-    uint32_t mVirtualAllocated;
+    int m_ResourceVirtualMax;
+    int m_VirtualUsed;
+    int m_ResourceVirtualUsed;
 
-    uint32_t mPhysicalBudget;
-    uint32_t mPhysicalUsed;
-    uint32_t mPhysicalAllocated;
+    int m_ResourcePhysicalAvailable;
+    int m_PhysicalUsed;
+    int m_ResourcePhysicalUsed;
+
+    int m_NumRequests;
+    int m_NumRealRequests;
+    int m_NumPriorityRequests;
+    int field_44;
+    int m_Device;
 };
 
 export namespace CStreamingEngine

@@ -1669,7 +1669,7 @@ public:
             static bool bExtendedTimecycEditing = iniReader.ReadInteger("FOG", "ExtendedTimecycEditing", 0) != 0;
 
             // [EXPERIMENTAL]
-            static bool bStreamingMemoryCounters = iniReader.ReadInteger("EXPERIMENTAL", "StreamingMemoryCounters", 0) != 0;
+            static bool bDisplayMemoryStats = iniReader.ReadInteger("EXPERIMENTAL", "DisplayMemoryStats", 0) != 0;
 
             static ID3DXFont* pFPSFont = nullptr;
 
@@ -1813,21 +1813,21 @@ public:
                                     DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sModifiers, modNames[it.first].data(), it.second);
                             }
                         }
-                        else if (bStreamingMemoryCounters)
+                        else if (bDisplayMemoryStats)
                         {
                             auto i = 0;
 
-                            static char sPhysicalMemory[] = "Physical: %d / %d MB";
-                            static char sVirtualMemory[] = "Virtual: %d / %d MB";
-                            static char sProcessMemory[] = "Process: %d / %d MB";
+                            static char sStreamingMemory[] = "Streaming memory: %d / %d MB";
+                            static char sVirtualHeapSize[] = "Virtual heap size: %d / %d MB";
+                            static char sProcessMemory[] = "Process memory: %d / %d MB";
 
                             constexpr uint32_t MB = 1024 * 1024;
 
-                            uint32_t nUsedPhysical = (CStreamingEngine::ms_info->mPhysicalUsed + MB / 2) / MB;
-                            uint32_t nBudgetedPhysical = (CStreamingEngine::ms_info->mPhysicalBudget + MB / 2) / MB;
+                            uint32_t nUsedPhysical = (CStreamingEngine::ms_info->m_PhysicalUsed + MB / 2) / MB;
+                            uint32_t nMaxPhysical = (CStreamingEngine::ms_info->m_ResourcePhysicalAvailable + MB / 2) / MB;
 
-                            uint32_t nUsedVirtual = (CStreamingEngine::ms_info->mVirtualUsed + MB / 2) / MB;
-                            uint32_t nBudgetedVirtual = (CStreamingEngine::ms_info->mVirtualBudget + MB / 2) / MB;
+                            uint32_t nUsedVirtual = (CStreamingEngine::ms_info->m_VirtualUsed + MB / 2) / MB;
+                            uint32_t nMaxVirtual = (CStreamingEngine::ms_info->m_ResourceVirtualMax + MB / 2) / MB;
 
                             uint32_t nProcessMemory = 0;
                             uint32_t nTotalProcessMemory = 0;
@@ -1852,13 +1852,13 @@ public:
                                 nTotalProcessMemory = static_cast<uint32_t>(TotalSystemMemory / (1024 * 1024));
                             }
 
-                            // Physical memory budget must be corrected by adding used memory to it, as normally it decreases as used memory increases;
+                            // Physical memory must be corrected by adding used memory to it, as normally it decreases as used memory increases;
                             // It will still update continuously, because grcResourceCache updates it.
-                            // Virtual memory budget is fixed size, so it does not update dynamically and can be displayed as is.
-                            uint32_t CorrectedPhysicalBudget = nUsedPhysical + nBudgetedPhysical;
+                            // Virtual memory is fixed size, so it does not update dynamically and can be displayed as is.
+                            uint32_t CorrectedPhysical = nUsedPhysical + nMaxPhysical;
 
-                            DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sPhysicalMemory, nUsedPhysical, CorrectedPhysicalBudget);
-                            DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVirtualMemory, nUsedVirtual, nBudgetedVirtual);
+                            DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sStreamingMemory, nUsedPhysical, CorrectedPhysical);
+                            DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVirtualHeapSize, nUsedVirtual, nMaxVirtual);
                             DrawTextOutline(pFPSFont, 10, FLOAT(fontSize* ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sProcessMemory, nProcessMemory, nTotalProcessMemory);
                         }
                     }
