@@ -10,6 +10,9 @@ Fenstermodus
 [Borderless]
 Fenstermodus ohne Rahmen
 
+[FF_BORDERLESS]
+Ohne Rahmen
+
 [Focus Loss]
 Bei Fokusverlust Spielpause einlegen
 
@@ -24,6 +27,18 @@ Letterbox-Balken in Zwischensequenzen
 
 [Pillarbox]
 Pillarbox-Balken in Zwischensequenzen
+
+[CutscBars]
+Balken in Zwischensequenzen
+
+[CutscBars1]
+Pillarbox
+
+[CutscBars2]
+Letterbox
+
+[CutscBars3]
+Letterbox + Pillarbox
 
 [Alt. Dialogues]
 Alternative Dialoge
@@ -192,6 +207,9 @@ Streaming-Budget
 
 [Graphics API]
 Grafik-API
+
+[FF_ADVANCED]
+Erweitert
 
 [FF_RESTART]
 GTA IV muss neu gestartet werden, um die Einstellungen anzuwenden.

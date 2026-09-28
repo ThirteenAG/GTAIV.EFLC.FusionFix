@@ -10,6 +10,9 @@ Fenêtre
 [Borderless]
 Fenêtre sans bordures
 
+[FF_BORDERLESS]
+Sans bordures
+
 [Focus Loss]
 Mettre le jeu en pause en cas de changement de fenêtre
 
@@ -24,6 +27,18 @@ Bandes noires horizontales dans les cinématiques
 
 [Pillarbox]
 Bandes noires verticales dans les cinématiques
+
+[CutscBars]
+Bandes noires dans les cinématiques
+
+[CutscBars1]
+Bandes verticales
+
+[CutscBars2]
+Bandes horizontales
+
+[CutscBars3]
+Horizontales + verticales
 
 [Alt. Dialogues]
 Dialogues alternatifs
@@ -192,6 +207,9 @@ Budget de mémoire de streaming
 
 [Graphics API]
 API graphique
+
+[FF_ADVANCED]
+Avancé
 
 [FF_RESTART]
 GTA IV doit être redémarré pour appliquer les paramètres.

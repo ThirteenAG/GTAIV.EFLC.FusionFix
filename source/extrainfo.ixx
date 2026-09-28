@@ -101,18 +101,6 @@ public:
 
                                 if (!ualVer.empty())
                                     extra += L" / " + ualVer;
-
-                                auto ens = CText::getText("FF_WARN2");
-                                if (ens[0])
-                                {
-                                    if (FusionFixSettings.GetRef("PREF_EXTRANIGHTSHADOWS")->get() != 0)
-                                    {
-                                        extra += L"~n~";
-                                        extra += L"                        ";
-                                        extra += L"~r~";
-                                        extra += ens;
-                                    }
-                                }
                             }
                             else if (*pMenuTab == 49)
                             {
@@ -163,6 +151,16 @@ public:
                                         auto FF_WARN6 = CText::getText("FF_WARN6");
                                         extra += FF_WARN6[0] ? FF_WARN6 : L"~r~WARNING: CHSS only takes effect with Shadow Quality set to Very High.";
                                     }
+                                }
+
+                                // Extra Night Shadows is in Graphics: Advanced
+                                auto ens = CText::getText("FF_WARN2");
+                                if (ens[0] && FusionFixSettings.GetRef("PREF_EXTRANIGHTSHADOWS")->get() != 0)
+                                {
+                                    extra += L"~n~";
+                                    extra += L"                        ";
+                                    extra += L"~r~";
+                                    extra += ens;
                                 }
                             }
                             else if (*pMenuTab == 7)

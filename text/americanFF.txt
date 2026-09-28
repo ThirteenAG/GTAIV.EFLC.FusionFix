@@ -10,6 +10,9 @@ Windowed
 [Borderless]
 Windowed Borderless
 
+[FF_BORDERLESS]
+Borderless
+
 [Focus Loss]
 Pause Game On Focus Loss
 
@@ -24,6 +27,18 @@ Cutscene Letterbox
 
 [Pillarbox]
 Cutscene Pillarbox
+
+[CutscBars]
+Cutscene Black Bars
+
+[CutscBars1]
+Pillarbox
+
+[CutscBars2]
+Letterbox
+
+[CutscBars3]
+Letterbox + Pillarbox
 
 [Alt. Dialogues]
 Alternate Dialogues
@@ -192,6 +207,9 @@ Streaming budget
 
 [Graphics API]
 Graphics API
+
+[FF_ADVANCED]
+Advanced
 
 [FF_RESTART]
 GTA IV must be restarted in order to apply settings.

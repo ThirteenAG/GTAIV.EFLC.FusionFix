@@ -23,17 +23,16 @@ import settings;
 // The last pass of the frame converts the back buffer to scRGB, with paper white and a roll-off towards
 // the peak brightness of the display, and the swap chain is switched to the extended sRGB color space.
 
-namespace HDRText
+// Brightness sliders of the HDR category of Display, in nits
+namespace HDRBrightness
 {
-    // 0 is the peak brightness reported by the display
-    constexpr int32_t PeakNits[] = { 0, 400, 600, 800, 1000, 1200, 1500, 2000, 4000 };
-    constexpr std::string_view PeakLabels[] = { "Auto", "400 nits", "600 nits", "800 nits", "1000 nits", "1200 nits", "1500 nits", "2000 nits", "4000 nits" };
-
-    constexpr int32_t PaperWhiteNits[] = { 80, 100, 120, 160, 203, 240, 280, 320, 400 };
-    constexpr std::string_view PaperWhiteLabels[] = { "80 nits", "100 nits", "120 nits", "160 nits", "203 nits", "240 nits", "280 nits", "320 nits", "400 nits" };
-    constexpr int32_t PaperWhiteDefault = 4; // 203 nits, BT.2408 reference white
-
-    static_assert(std::size(PeakNits) == std::size(PeakLabels) && std::size(PaperWhiteNits) == std::size(PaperWhiteLabels));
+    constexpr float Step = 50.0f;
+    constexpr float PeakMinimum = 50.0f;
+    constexpr float PeakMaximum = 4000.0f;
+    constexpr float PeakDefault = 1000.0f;
+    constexpr float PaperWhiteMinimum = 50.0f;    // "Game/UI Brightness": brightness of the SDR white of the game and the interface
+    constexpr float PaperWhiteMaximum = 500.0f;
+    constexpr float PaperWhiteDefault = 200.0f;   // close to 203, the BT.2408 reference white
 }
 
 class HDR
@@ -43,7 +42,8 @@ public:
     static inline bool bBackBufferFloat = false;
     static inline bool bOutputActive = false;         // swap chain is in the extended sRGB color space
     static inline int32_t nAppliedState = -1;
-    static inline float fDisplayPeak = 0.0f;
+    static inline float fPeak = HDRBrightness::PeakDefault;
+    static inline float fPaperWhite = HDRBrightness::PaperWhiteDefault;
     static inline float fRollOffStart = 0.8f;
     static inline D3DPRESENT_PARAMETERS* pPresentParams = nullptr;
     static inline D3DFORMAT OriginalBackBufferFormat = D3DFMT_UNKNOWN;
@@ -104,18 +104,35 @@ public:
 
     static float GetPaperWhite()
     {
-        static auto pw = FusionFixSettings.GetRef("PREF_HDR_PAPERWHITE");
-        auto index = pw ? std::clamp(pw->get(), 0, static_cast<int32_t>(std::size(HDRText::PaperWhiteNits)) - 1) : HDRText::PaperWhiteDefault;
-        return static_cast<float>(HDRText::PaperWhiteNits[index]);
+        return fPaperWhite;
     }
 
     static float GetPeak()
     {
-        static auto peak = FusionFixSettings.GetRef("PREF_HDR_PEAK");
-        auto index = peak ? std::clamp(peak->get(), 0, static_cast<int32_t>(std::size(HDRText::PeakNits)) - 1) : 0;
-        if (HDRText::PeakNits[index] > 0)
-            return static_cast<float>(HDRText::PeakNits[index]);
-        return fDisplayPeak > 0.0f ? fDisplayPeak : 1000.0f;
+        return fPeak;
+    }
+
+    // Saved in nits in the [HDR] section of the cfg, with the other menu settings
+    static void LoadBrightness()
+    {
+        CIniReader cfg(CSettings::GetConfigPath());
+        auto snap = [](int32_t value, float minimum, float maximum)
+        {
+            return std::clamp(std::round(value / HDRBrightness::Step) * HDRBrightness::Step, minimum, maximum);
+        };
+        fPeak = snap(cfg.ReadInteger("HDR", "PeakBrightnessNits", static_cast<int32_t>(HDRBrightness::PeakDefault)),
+            HDRBrightness::PeakMinimum, HDRBrightness::PeakMaximum);
+        fPaperWhite = snap(cfg.ReadInteger("HDR", "GameBrightnessNits", static_cast<int32_t>(HDRBrightness::PaperWhiteDefault)),
+            HDRBrightness::PaperWhiteMinimum, HDRBrightness::PaperWhiteMaximum);
+    }
+
+    static void SetBrightness(float& target, float value, const char* key)
+    {
+        target = value;
+        CIniReader cfg(CSettings::GetConfigPath());
+        cfg.WriteInteger("HDR", key, static_cast<int32_t>(value), true);
+        // The HDR metadata of the swap chain follows
+        nAppliedState = -1;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -198,10 +215,6 @@ public:
         ID3D9VkExtSwapchain* ext = nullptr;
         if (SUCCEEDED(swapChain->QueryInterface(__uuidof(ID3D9VkExtSwapchain), reinterpret_cast<void**>(&ext))) && ext)
         {
-            D3D9VkExtOutputMetadata output{};
-            if (SUCCEEDED(ext->GetCurrentOutputDesc(&output)))
-                fDisplayPeak = output.MaxLuminance;
-
             if (wanted && ext->CheckColorSpaceSupport(VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT) &&
                 SUCCEEDED(ext->SetColorSpace(VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT)))
             {
@@ -420,20 +433,21 @@ public:
             CIniReader iniReader("");
             fRollOffStart = std::clamp(iniReader.ReadFloat("HDR", "RollOffStart", 0.8f), 0.0f, 1.0f);
 
-            // Display menu. Turning HDR on or off resets the device with the other back buffer format, the
-            // brightness values take effect immediately.
+            // An HDR category of Display. Turning HDR on or off resets the device with the other back buffer format,
+            // the brightness values take effect immediately.
             FusionFixSettings.RegisterPreference(PreferenceName, 1, 0, "HDR", "HDR", OnOutputChanged);
-            FusionFixSettings.RegisterPreference("PREF_HDR_PEAK", static_cast<int32_t>(std::size(HDRText::PeakNits)) - 1, 0, "HDR", "PeakBrightness", [](int32_t) { nAppliedState = -1; });
-            FusionFixSettings.RegisterPreference("PREF_HDR_PAPERWHITE", static_cast<int32_t>(std::size(HDRText::PaperWhiteNits)) - 1, HDRText::PaperWhiteDefault, "HDR", "PaperWhite", [](int32_t) { nAppliedState = -1; });
-
-            FusionFixSettings.RegisterEnum("MENU_DISPLAY_HDR_PEAK", HDRText::PeakLabels);
-            FusionFixSettings.RegisterEnum("MENU_DISPLAY_HDR_PAPERWHITE", HDRText::PaperWhiteLabels);
+            LoadBrightness();
 
             for (auto screen : { CSettings::MenuScreen::Display, CSettings::MenuScreen::TitleDisplay })
             {
-                FusionFixSettings.AddToggle(screen, "HDR", PreferenceName);
-                FusionFixSettings.AddEnum(screen, "HDR Peak", "PREF_HDR_PEAK", "MENU_DISPLAY_HDR_PEAK");
-                FusionFixSettings.AddEnum(screen, "HDR Paper White", "PREF_HDR_PAPERWHITE", "MENU_DISPLAY_HDR_PAPERWHITE");
+                auto category = FusionFixSettings.AddCategory(screen, "HDR", "MO_DEF");
+                if (category == CSettings::MenuScreen::Invalid)
+                    continue;
+                FusionFixSettings.AddToggle(category, "HDR", PreferenceName);
+                FusionFixSettings.AddSlider(category, "Peak Brightness", HDRBrightness::PeakMinimum, HDRBrightness::PeakMaximum, HDRBrightness::Step,
+                    [] { return fPeak; }, [](float value) { SetBrightness(fPeak, value, "PeakBrightnessNits"); });
+                FusionFixSettings.AddSlider(category, "Game/UI Brightness", HDRBrightness::PaperWhiteMinimum, HDRBrightness::PaperWhiteMaximum,
+                    HDRBrightness::Step, [] { return fPaperWhite; }, [](float value) { SetBrightness(fPaperWhite, value, "GameBrightnessNits"); });
             }
 
             // HDR can be turned on with the Vulkan graphics API while Windows HDR is on. The saved choice comes back

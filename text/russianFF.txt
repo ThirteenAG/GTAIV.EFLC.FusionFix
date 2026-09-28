@@ -10,6 +10,9 @@
 [Borderless]
 Оконный режим без рамки
 
+[FF_BORDERLESS]
+Без рамки
+
 [Focus Loss]
 Автоматически ставить игру на паузу в фоне
 
@@ -24,6 +27,18 @@ Logitech LightSync RGB
 
 [Pillarbox]
 Пилларбокс в катсценах
+
+[CutscBars]
+Черные полосы в катсценах
+
+[CutscBars1]
+Пилларбокс
+
+[CutscBars2]
+Леттербокс
+
+[CutscBars3]
+Леттербокс + пилларбокс
 
 [Alt. Dialogues]
 Альтернативные диалоги
@@ -192,6 +207,9 @@ Steam Controller
 
 [Graphics API]
 Графический API
+
+[FF_ADVANCED]
+Дополнительно
 
 [FF_RESTART]
 GTA IV необходимо перезапустить для применения настроек.

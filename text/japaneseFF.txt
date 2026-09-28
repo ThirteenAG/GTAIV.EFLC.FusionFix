@@ -10,6 +10,9 @@
 [Borderless]
 ウィンドウ表示(フチなし)
 
+[FF_BORDERLESS]
+フチなし
+
 [Focus Loss]
 フォーカスの喪失時にゲームをポーズ
 
@@ -24,6 +27,18 @@
 
 [Pillarbox]
 カットシーンのピラーボックス
+
+[CutscBars]
+カットシーンの黒帯
+
+[CutscBars1]
+ピラーボックス
+
+[CutscBars2]
+レターボックス
+
+[CutscBars3]
+レターボックス + ピラーボックス
 
 [Alt. Dialogues]
 代替台詞
@@ -192,6 +207,9 @@ Steam Controller
 
 [Graphics API]
 グラフィックスAPI
+
+[FF_ADVANCED]
+詳細設定
 
 [FF_RESTART]
 設定を適用するにはGTA IVを再起動する必要があります。

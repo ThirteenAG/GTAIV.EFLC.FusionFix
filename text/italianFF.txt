@@ -10,6 +10,9 @@ In finestra
 [Borderless]
 In finestra senza bordi
 
+[FF_BORDERLESS]
+Senza bordi
+
 [Focus Loss]
 Gioco in pausa quando la finestra non è attiva
 
@@ -24,6 +27,18 @@ Barre orizzontali nelle cinematiche
 
 [Pillarbox]
 Barre verticali nelle cinematiche
+
+[CutscBars]
+Barre nelle cinematiche
+
+[CutscBars1]
+Barre verticali
+
+[CutscBars2]
+Barre orizzontali
+
+[CutscBars3]
+Orizzontali + verticali
 
 [Alt. Dialogues]
 Dialoghi alternativi
@@ -192,6 +207,9 @@ Budget di streaming
 
 [Graphics API]
 API grafica
+
+[FF_ADVANCED]
+Avanzate
 
 [FF_RESTART]
 GTA IV deve essere riavviato per applicare le impostazioni.

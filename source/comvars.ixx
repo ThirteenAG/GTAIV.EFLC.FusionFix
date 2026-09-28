@@ -3232,7 +3232,9 @@ public:
         pattern = find_pattern("A3 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? E8 ? ? ? ? A1", "A3 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? E8 ? ? ? ? 8B 0D");
         RageDirect3DDevice9::m_pRealDevice = *pattern.get_first<IDirect3DDevice9**>(1);
 
-        pattern = find_pattern("A1 ? ? ? ? 83 F8 08 74 17", "A1 ? ? ? ? 83 F8 08 74 0C");
+        // CFrontEnd::CheckForBackInput, same in all versions. The menu API hooks the other reads of the menu screen
+        // that could be used here, possibly before this runs.
+        pattern = hook::pattern("A1 ? ? ? ? 83 F8 31 74 05 83 F8 3E 75 1A");
         pMenuTab = *pattern.get_first<int32_t*>(1);
 
         pattern = find_pattern("E8 ? ? ? ? 84 C0 75 44 38 05 ? ? ? ? 74 26", "E8 ? ? ? ? 84 C0 75 42 38 05");
