@@ -4,6 +4,8 @@ module;
 #include <shlobj.h>
 #include <d3dx9.h>
 #include <psapi.h>
+#include <span>
+#include <stdexcept>
 
 export module settings;
 
@@ -13,6 +15,73 @@ import d3dx9_43;
 import gxtloader;
 import natives;
 import timecycext;
+
+namespace SettingsTables
+{
+    // These are the XML parser's native layouts, not C++ containers. The game
+    // allocates and frees their elements through its own allocator.
+    template<class T> struct Array
+    {
+        T* data = nullptr;
+        uint16_t count = 0;
+        uint16_t capacity = 0;
+    };
+
+    struct DisplayValue
+    {
+        char text[16]{};
+        int32_t action = 0;
+        int32_t value = 0;
+    };
+
+    struct Display
+    {
+        int32_t id = 0;
+        Array<DisplayValue> values;
+    };
+
+    struct Option
+    {
+        uint8_t action = 0;
+        char label[16]{};
+        uint8_t padding = 0;
+        int16_t preference = 0;
+        uint8_t scaler = 0;
+        uint8_t display = 100;
+    };
+
+    struct Screen
+    {
+        char header[16]{};
+        Array<Option> options;
+    };
+
+    static_assert(sizeof(DisplayValue) == 24);
+    static_assert(sizeof(Display) == 12);
+    static_assert(sizeof(Option) == 22);
+    static_assert(offsetof(Option, preference) == 18);
+    static_assert(sizeof(Screen) == 24);
+
+    // Preference IDs are signed 16-bit fields in Option. Display IDs 100 and
+    // above are reserved for NONE, SLIDER, numbers, etc. in the renderer.
+    constexpr size_t PreferenceCapacity = 32768;
+    constexpr size_t DisplayCapacity = 100;
+    inline std::array<int32_t, PreferenceCapacity> scalers{};
+    inline std::array<Display, DisplayCapacity> displays{};
+
+    // The 1.1.2.0 array helpers take their array in ESI, with no stack arguments.
+    static __declspec(naked) void* __fastcall AppendLegacy(void* array, void* function)
+    {
+        __asm
+        {
+            push esi
+            mov esi, ecx
+            call edx
+            pop esi
+            ret
+        }
+    }
+}
 
 namespace CText
 {
@@ -137,11 +206,11 @@ private:
         int32_t idEnd;
 
         auto GetValue() { return value; }
-        auto SetValue(auto v) { value = v; WriteToIni(); if (callback) callback(value); }
+        void SetValue(int32_t v) { value = std::clamp(v, idStart, idEnd); WriteToIni(); if (callback) callback(value); }
         auto ReadFromIni(auto& iniReader) { return iniReader.ReadInteger(iniSec, iniName, iniDefValInt); }
         auto ReadFromIni() { CIniReader iniReader(cfgPath); return ReadFromIni(iniReader); }
-        void WriteToIni(auto& iniWriter) { iniWriter.WriteInteger(iniSec, iniName, value, true); }
-        void WriteToIni() { CIniReader iniWriter(cfgPath); iniWriter.WriteInteger(iniSec, iniName, value, true); }
+        void WriteToIni(auto& iniWriter) { if (!iniName.empty()) iniWriter.WriteInteger(iniSec, iniName, value, true); }
+        void WriteToIni() { CIniReader iniWriter(cfgPath); if (!iniName.empty()) iniWriter.WriteInteger(iniSec, iniName, value, true); }
     };
 
     struct MenuPrefs
@@ -153,10 +222,444 @@ private:
     static inline std::filesystem::path cfgPath;
     static inline std::vector<MenuPrefs> aMenuPrefs;
     static inline auto firstCustomID = 0;
-    static inline std::unordered_map<int32_t, std::pair<std::string, std::string>> slidersList;
+    static inline bool legacyExecutable = false;
+    static inline std::unordered_map<std::string, int32_t> displayIDs;
+    static inline int32_t nextDisplayID = 60;
 private:
     static inline int32_t* mPrefs = nullptr;
     static inline std::unordered_map<uint32_t, CSetting> mFusionPrefs;
+
+    static inline SafetyHookInline nameLookup;
+    static inline SafetyHookInline displayLookup;
+
+    struct DynamicOption
+    {
+        int32_t screen;
+        SettingsTables::Option option;
+        std::function<void()> selected;
+    };
+    static inline std::vector<DynamicOption> dynamicOptions;
+    static inline std::map<int32_t, std::vector<SettingsTables::DisplayValue>> dynamicDisplays;
+    static inline SettingsTables::Screen* screens = nullptr;
+    static inline int32_t* currentScreen = nullptr;
+    static inline SettingsTables::Option* (__thiscall* appendOption)(SettingsTables::Array<SettingsTables::Option>*, int32_t);
+    static inline SettingsTables::DisplayValue* (__thiscall* appendDisplay)(SettingsTables::Array<SettingsTables::DisplayValue>*, int32_t);
+    static inline void* appendOptionLegacy = nullptr;
+    static inline void* appendDisplayLegacy = nullptr;
+    static inline SafetyHookInline fillMenu;
+    static inline SafetyHookInline scrollMenu;
+    static inline SafetyHookInline selectOption;
+    static inline SafetyHookInline processMenu;
+    static inline thread_local int32_t selectedButton = -1;
+    static inline thread_local int32_t inputMenu = -1;
+    static inline int32_t* menuHandles = nullptr;
+    static inline uint8_t** menuInstances = nullptr;
+    static inline float* rowHeight = nullptr;
+    static inline SafetyHookMid sliderDrawRow;
+    static inline SafetyHookMid sliderMouseRow;
+
+    static SettingsTables::Option* AppendOption(SettingsTables::Array<SettingsTables::Option>* array)
+    {
+        if (legacyExecutable)
+            return static_cast<SettingsTables::Option*>(SettingsTables::AppendLegacy(array, appendOptionLegacy));
+        return appendOption(array, 0);
+    }
+
+    static SettingsTables::DisplayValue* AppendDisplay(SettingsTables::Array<SettingsTables::DisplayValue>* array)
+    {
+        if (legacyExecutable)
+            return static_cast<SettingsTables::DisplayValue*>(SettingsTables::AppendLegacy(array, appendDisplayLegacy));
+        return appendDisplay(array, 0);
+    }
+
+    static void AdjustSliderRow(SafetyHookContext& regs, bool drawing)
+    {
+        auto row = drawing ? *reinterpret_cast<int32_t*>(regs.esp + (legacyExecutable ? 0x24 : 0x30)) :
+            static_cast<int32_t>(legacyExecutable ? regs.esi : regs.ebp);
+        auto menu = drawing ? 0 : inputMenu;
+        if (menu < 0 || *currentScreen < 0 || *currentScreen >= 73 || row < 0 || row >= 50)
+            return;
+        auto& options = screens[*currentScreen].options;
+        if (row >= options.count || !options.data || options.data[row].display != 101 || options.data[row].preference < firstCustomID)
+            return;
+        auto handle = menuHandles[menu];
+        if (handle < 0 || !menuInstances[handle])
+            return;
+        auto visible = menuInstances[handle] + 0x33E4;
+        auto hidden = std::count(visible, visible + row, uint8_t(0));
+        auto aspect = *reinterpret_cast<float*>(regs.esp + (drawing ? (legacyExecutable ? 0x34 : 0x3C) : 0x18));
+        auto correction = hidden * (aspect >= 1.0f ? *rowHeight : 0.017f);
+        if (legacyExecutable)
+            *reinterpret_cast<float*>(regs.esp + (drawing ? 0x1C : 0x10)) -= correction;
+        else if (drawing)
+        {
+            float y;
+            std::memcpy(&y, &regs.eax, sizeof(y));
+            y -= correction;
+            std::memcpy(&regs.eax, &y, sizeof(y));
+        }
+        else
+            *reinterpret_cast<float*>(regs.esp + 0x14) -= correction;
+    }
+
+    static void InjectMenu(int32_t screen)
+    {
+        // Rebuild code-defined displays after every frontend XML reload. All
+        // allocation remains with the game's allocator and cleanup routines.
+        for (auto& [id, values] : dynamicDisplays)
+        {
+            auto& display = SettingsTables::displays[id];
+            display.id = id;
+            if (display.values.count == 0)
+                for (auto& value : values)
+                    *AppendDisplay(&display.values) = value;
+        }
+        if (screen < 0 || screen >= 73)
+            return;
+        auto& options = screens[screen].options;
+        if (!options.data || options.count == 0 || options.count > options.capacity || options.data[options.count - 1].action != 46)
+            return;
+        for (auto& added : dynamicOptions)
+        {
+            if (added.screen != screen)
+                continue;
+            auto found = std::find_if(options.data, options.data + options.count, [&](const auto& option)
+            {
+                return option.action == added.option.action && option.preference == added.option.preference &&
+                    std::strcmp(option.label, added.option.label) == 0;
+            });
+            if (found != options.data + options.count)
+                continue;
+            // The frontend instance has visibility/layout storage for 50 rows,
+            // including END_OF_MENU_OPTIONS. Growing the XML array alone is not
+            // sufficient to lift that limit.
+            if (options.count >= 50)
+                return;
+            auto sentinel = options.data[options.count - 1];
+            *AppendOption(&options) = sentinel;
+            options.data[options.count - 2] = added.option;
+        }
+    }
+
+    static int32_t __cdecl FillMenu(int32_t menu)
+    {
+        InjectMenu(*currentScreen);
+        if (legacyExecutable)
+        {
+            fillMenu.ccall<void>(menu);
+            return 0;
+        }
+        return fillMenu.ccall<int32_t>(menu);
+    }
+
+    static int32_t FindButton(int32_t row)
+    {
+        if (*currentScreen < 0 || *currentScreen >= 73 || row < 0)
+            return -1;
+        auto& options = screens[*currentScreen].options;
+        if (row >= options.count || !options.data || options.data[row].action != 127)
+            return -1;
+        auto index = options.data[row].preference;
+        if (index < 0 || static_cast<size_t>(index) >= dynamicOptions.size() || !dynamicOptions[index].selected ||
+            dynamicOptions[index].screen != *currentScreen)
+            return -1;
+        return index;
+    }
+
+    static uint8_t __cdecl ScrollMenu(int32_t row, int32_t accepted, int32_t direction, uint8_t* adjusted)
+    {
+        if (auto button = FindButton(row); button >= 0)
+        {
+            if (accepted >= 0)
+                selectedButton = button;
+            return 0;
+        }
+        return scrollMenu.ccall<uint8_t>(row, accepted, direction, adjusted);
+    }
+
+    static uint8_t __cdecl SelectOption(int32_t menu, int32_t row, uint8_t adjusted)
+    {
+        if (auto button = FindButton(row); button >= 0)
+        {
+            if (button == selectedButton)
+            {
+                selectedButton = -1;
+                auto callback = dynamicOptions[button].selected;
+                callback();
+                FillMenu(menu);
+            }
+            return 0;
+        }
+        if (legacyExecutable)
+        {
+            selectOption.ccall<void>(menu, row, adjusted);
+            return 0;
+        }
+        return selectOption.ccall<uint8_t>(menu, row, adjusted);
+    }
+
+    static uint8_t __cdecl ProcessMenu(int32_t menu)
+    {
+        auto previous = std::exchange(selectedButton, -1);
+        auto previousMenu = std::exchange(inputMenu, menu);
+        auto result = processMenu.ccall<uint8_t>(menu);
+        selectedButton = previous;
+        inputMenu = previousMenu;
+        return result;
+    }
+
+    static void InitializeMenuAPI()
+    {
+        // Code-defined toggles/enums/sliders use the same preference registry
+        // and display tables as XML options. Row positioning needs correction
+        // when preceding rows are hidden (see the supplied pausemenu example).
+        if (legacyExecutable)
+        {
+            auto scroll = hook::pattern("56 8B 74 24 08 85 F6 57 0F 8C ? ? ? ? 8B 15 ? ? ? ? 8D 04 52").get_first<uint8_t>();
+            currentScreen = *reinterpret_cast<int32_t**>(scroll + 0x10);
+            screens = reinterpret_cast<SettingsTables::Screen*>(*reinterpret_cast<uintptr_t*>(scroll + 0x1F) - 0x14);
+            appendOptionLegacy = hook::pattern("0F B7 46 06 66 39 46 04 0F 85 86 00 00 00 83 C0 10").get_first();
+            appendDisplayLegacy = hook::pattern("0F B7 46 06 66 39 46 04 0F 85 8B 00 00 00 83 C0 10").get_first();
+            auto process = hook::pattern("8B 04 BD ? ? ? ? 50 C7 05 ? ? ? ? FF FF FF 7F E8 ? ? ? ? A1").get_first<uint8_t>(-0x1E);
+            menuHandles = *reinterpret_cast<int32_t**>(process + 0x21);
+            menuInstances = *hook::pattern("8B 80 1C 36 00 00 C3 33 C0").get_first<uint8_t**>(-0x11);
+            rowHeight = *hook::pattern("F3 0F 10 15 ? ? ? ? 0F 2F 4C 24 18").get_first<float*>(4);
+            sliderDrawRow = safetyhook::create_mid(hook::pattern("6A 00 E8 ? ? ? ? 83 C4 04 84 C0 53 6A 3D").get_first(), [](SafetyHookContext& regs) { AdjustSliderRow(regs, true); });
+            sliderMouseRow = safetyhook::create_mid(hook::pattern("8D 54 24 30 6A 0F 52 E8").get_first(), [](SafetyHookContext& regs) { AdjustSliderRow(regs, false); });
+            fillMenu = safetyhook::create_inline(hook::pattern("83 EC 40 A1 ? ? ? ? 53 8D 04 40 55 0F B7 2C C5").get_first(), FillMenu);
+            scrollMenu = safetyhook::create_inline(scroll, ScrollMenu);
+            selectOption = safetyhook::create_inline(hook::pattern("83 EC 10 57 8B 7C 24 1C 85 FF 0F 8C ? ? ? ? 8B 0D").get_first(), SelectOption);
+            processMenu = safetyhook::create_inline(process, ProcessMenu);
+            return;
+        }
+        auto scroll = hook::pattern("0F B7 14 CD ? ? ? ? 8B C2").get_first<uint8_t>(-0x15);
+        currentScreen = *reinterpret_cast<int32_t**>(scroll + 0x0E);
+        screens = reinterpret_cast<SettingsTables::Screen*>(*reinterpret_cast<uintptr_t*>(scroll + 0x19) - 0x14);
+        appendOption = reinterpret_cast<decltype(appendOption)>(hook::pattern("6B D2 16 66 89 46 06").get_first(-0x14));
+        appendDisplay = reinterpret_cast<decltype(appendDisplay)>(hook::pattern("56 8B F1 0F B7 46 06 66 39 46 04 75 77 53 83 C0 10").get_first());
+        menuHandles = *hook::pattern("C7 05 ? ? ? ? FF FF FF 7F FF 34 BD").get_first<int32_t*>(0x0D);
+        menuInstances = *hook::pattern("8B 81 1C 36 00 00 C3 33 C0").get_first<uint8_t**>(-0x11);
+        rowHeight = *hook::pattern("F3 0F 10 1D ? ? ? ? 0F 2F C2").get_first<float*>(4);
+        sliderDrawRow = safetyhook::create_mid(hook::pattern("84 C0 57 6A 3D 8D").get_first(-0x0C), [](SafetyHookContext& regs) { AdjustSliderRow(regs, true); });
+        sliderMouseRow = safetyhook::create_mid(hook::pattern("8D 44 24 24 6A 0F 50").get_first(), [](SafetyHookContext& regs) { AdjustSliderRow(regs, false); });
+        fillMenu = safetyhook::create_inline(hook::pattern("8D 04 40 BA 84 00 00 00").get_first(-0x10), FillMenu);
+        scrollMenu = safetyhook::create_inline(scroll, ScrollMenu);
+        selectOption = safetyhook::create_inline(hook::pattern("0F B7 3C D5 ? ? ? ? 3B F7").get_first(-0x25), SelectOption);
+        processMenu = safetyhook::create_inline(hook::pattern("C7 05 ? ? ? ? FF FF FF 7F FF 34 BD").get_first(-0x1E), ProcessMenu);
+    }
+
+    static std::optional<int32_t> FindRegisteredName(const char* name, bool preferences)
+    {
+        if (!name || !*name)
+            return std::nullopt;
+        if (preferences)
+            for (auto& pref : aMenuPrefs)
+                if (_stricmp(pref.name, name) == 0)
+                    return pref.prefID;
+        for (auto& [key, id] : displayIDs)
+            if (_stricmp(key.c_str(), name) == 0)
+                return id;
+        return std::nullopt;
+    }
+
+    static int32_t __fastcall LookupName(const char* name, void*)
+    {
+        if (!name || !*name)
+            return 0;
+        if (auto id = FindRegisteredName(name, true))
+            return *id;
+        return nameLookup.fastcall<int32_t>(name, nullptr);
+    }
+
+    static int32_t __fastcall LookupDisplay(const char* name, void*)
+    {
+        if (!name || !*name)
+            return 0;
+        if (auto id = FindRegisteredName(name, false))
+            return *id;
+        return displayLookup.fastcall<int32_t>(name, nullptr);
+    }
+
+    void InitializeTables()
+    {
+        auto prefPattern = hook::pattern("FF 34 FD ? ? ? ? 56 E8 ? ? ? ? 83 C4 08 85 C0 0F 84 ? ? ? ? 47 81 FF");
+        legacyExecutable = prefPattern.empty();
+        if (legacyExecutable)
+            prefPattern = hook::pattern("8B 04 F5 ? ? ? ? 50 57 E8 ? ? ? ? 83 C4 08 85 C0 74 ? 83 C6 01 81 FE");
+        auto prefNames = prefPattern.get_first<uint8_t>();
+        auto originalNames = reinterpret_cast<MenuPrefs*>(*reinterpret_cast<uintptr_t*>(prefNames + 3) - offsetof(MenuPrefs, name));
+        auto originalCount = *reinterpret_cast<uint32_t*>(prefNames + (legacyExecutable ? 26 : 27));
+        aMenuPrefs.assign(originalNames, originalNames + originalCount);
+        firstCustomID = 0;
+        for (auto& pref : aMenuPrefs)
+            firstCustomID = std::max(firstCustomID, static_cast<int32_t>(pref.prefID) + 1);
+        if (firstCustomID != originalCount)
+            throw std::runtime_error("Unexpected native preference ID range");
+
+        auto originalPrefs = *find_pattern("89 1C 95 ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 83 C4 04 8D 04 40", "89 1C 8D ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 8D 0C 40").get_first<int32_t*>(3);
+        auto originalScalers = *find_pattern("8B 44 24 04 8B 0C 85 ? ? ? ? B8 01 00 00 00 85 C9 0F 4F C1 C3", "8B 44 24 04 8B 04 85 ? ? ? ? 85 C0 7F 05").get_first<int32_t*>(7);
+        auto originalDisplays = *find_pattern<2>("8D 0C 40 8D 1C 8D ? ? ? ? 8B 4D 04 E8", "8D 2C 40 8D 2C AD ? ? ? ? E8 ? ? ? ? 55 56").count(2).get(0).get<SettingsTables::Display*>(6);
+        auto enumNames = find_pattern("FF 34 FD ? ? ? ? 56 E8 ? ? ? ? 83 C4 08 85 C0 0F 84 ? ? ? ? 47 83 FF 3C", "8B 14 F5 ? ? ? ? 52 57 E8 ? ? ? ? 83 C4 08 85 C0 74 ? 83 C6 01 83 FE 3C").get_first<uint8_t>();
+        auto originalEnumNames = reinterpret_cast<MenuPrefs*>(*reinterpret_cast<uintptr_t*>(enumNames + 3) - offsetof(MenuPrefs, name));
+        for (int32_t i = 0; i < 60; ++i)
+            displayIDs.emplace(originalEnumNames[i].name, originalEnumNames[i].prefID);
+
+        std::copy_n(originalScalers, originalCount, SettingsTables::scalers.begin());
+        std::copy_n(originalDisplays, 60, SettingsTables::displays.begin());
+        // Leave native preferences in place: gameplay, save/load and defaults
+        // access individual globals directly. Custom values live in CSetting;
+        // only the shared frontend readers/writers need to call Get/Set.
+        mPrefs = originalPrefs;
+
+        // Relocate only the XML helper tables. Match instructions, not every
+        // occurrence of an address, and collect operands before patching them.
+        std::vector<std::pair<uint32_t*, uintptr_t>> references;
+        auto replaceReferences = [&](const std::string& signature, size_t count, ptrdiff_t operandOffset, uintptr_t replacement)
+        {
+            auto pattern = hook::pattern(signature).count(count);
+            pattern.for_each_result([&](hook::pattern_match match)
+            {
+                references.emplace_back(match.get<uint32_t>(operandOffset), replacement);
+            });
+        };
+
+        // Scaler parser writes and lookup differ between the executables.
+        auto scalers = reinterpret_cast<uintptr_t>(SettingsTables::scalers.data());
+        auto oldScalers = pattern_str(to_bytes(reinterpret_cast<uintptr_t>(originalScalers)));
+        if (legacyExecutable)
+        {
+            // The old aMenuPrefs2 patch was this int32_t scaler table, not a
+            // second name registry. XML parsing and input must share its storage.
+            replaceReferences("89 14 8D " + oldScalers + "66 8B 0D", 1, 3, scalers);
+            replaceReferences("89 3C AD " + oldScalers + "0F B7 3A 83 C6 01", 1, 3, scalers);
+            replaceReferences("89 04 8D " + oldScalers + "8B 74 24 10", 1, 3, scalers);
+            replaceReferences("8B 04 85 " + oldScalers + "85 C0 7F 05", 1, 3, scalers);
+        }
+        else
+        {
+            replaceReferences("89 0C 85 " + oldScalers + "66 8B 0D", 1, 3, scalers);
+            replaceReferences("89 14 8D " + oldScalers + "0F B7 0E 43", 1, 3, scalers);
+            replaceReferences("89 0C 85 " + oldScalers + "F3 0F 7E 44 24 2C", 2, 3, scalers);
+            replaceReferences("8B 0C 85 " + oldScalers + "B8 01 00 00 00", 1, 3, scalers);
+        }
+
+        // Display parser, readers and lifetime instructions.
+        // These operands address fields of the first record; subsequent records
+        // are indexed using the native 12-byte stride.
+        auto displays = reinterpret_cast<uintptr_t>(SettingsTables::displays.data());
+        auto oldDisplays = reinterpret_cast<uintptr_t>(originalDisplays);
+        auto ids = pattern_str(to_bytes(oldDisplays));
+        auto data = pattern_str(to_bytes(oldDisplays + 4));
+        auto counts = pattern_str(to_bytes(oldDisplays + 8));
+        auto capacity = pattern_str(to_bytes(oldDisplays + 10));
+        if (legacyExecutable)
+        {
+            replaceReferences("8D 2C AD " + ids, 2, 3, displays);
+            replaceReferences("B9 " + ids, 5, 1, displays);
+            replaceReferences("B8 " + ids, 1, 1, displays);
+            replaceReferences("BE " + data, 2, 1, displays + 4);
+            replaceReferences("8B 0C 8D " + data, 2, 3, displays + 4);
+            replaceReferences("8B 89 " + data, 2, 2, displays + 4);
+            replaceReferences("8B 90 " + data, 2, 2, displays + 4);
+            replaceReferences("8B 80 " + data, 1, 2, displays + 4);
+            replaceReferences("8B 14 95 " + data, 1, 3, displays + 4);
+            replaceReferences("B9 " + counts, 1, 1, displays + 8);
+            replaceReferences("0F B7 94 09 " + counts, 3, 4, displays + 8);
+            replaceReferences("0F B7 14 95 " + counts, 1, 4, displays + 8);
+            replaceReferences("0F B7 94 00 " + counts, 2, 4, displays + 8);
+            replaceReferences("0F B7 8C 00 " + counts, 1, 4, displays + 8);
+            replaceReferences("B8 " + capacity, 1, 1, displays + 10);
+        }
+        else
+        {
+            replaceReferences("8D 1C 8D " + ids, 2, 3, displays);
+            replaceReferences("B8 " + ids, 6, 1, displays);
+            replaceReferences("BE " + data, 2, 1, displays + 4);
+            replaceReferences("8B 04 BD " + data, 1, 3, displays + 4);
+            replaceReferences("8B 04 95 " + data, 3, 3, displays + 4);
+            replaceReferences("8B 04 85 " + data, 3, 3, displays + 4);
+            replaceReferences("8B 04 9D " + data, 1, 3, displays + 4);
+            replaceReferences("B8 " + counts, 1, 1, displays + 8);
+            replaceReferences("0F B7 04 BD " + counts, 1, 4, displays + 8);
+            replaceReferences("0F B7 04 95 " + counts, 4, 4, displays + 8);
+            replaceReferences("0F B7 04 9D " + counts, 1, 4, displays + 8);
+            replaceReferences("0F B7 1C 85 " + counts, 1, 4, displays + 8);
+            replaceReferences("B8 " + capacity, 1, 1, displays + 10);
+        }
+
+        auto originalEnd = reinterpret_cast<uintptr_t>(originalDisplays + 60);
+        auto newEnd = reinterpret_cast<uintptr_t>(SettingsTables::displays.data() + SettingsTables::DisplayCapacity);
+        // The old end address also names screen headers: never replace it
+        // indiscriminately.
+        if (legacyExecutable)
+        {
+            replaceReferences("81 F9 " + pattern_str(to_bytes(originalEnd)) + "7C", 5, 2, newEnd);
+            replaceReferences("3D " + pattern_str(to_bytes(originalEnd)) + "7C", 1, 1, newEnd);
+            replaceReferences("81 FE " + pattern_str(to_bytes(originalEnd + 4)) + "7C", 2, 2, newEnd + 4);
+            replaceReferences("81 F9 " + pattern_str(to_bytes(originalEnd + 8)) + "7C", 1, 2, newEnd + 8);
+            replaceReferences("BF 3B 00 00 00 BE " + pattern_str(to_bytes(originalEnd + 4)) + "8D 64 24 00", 1, 6, newEnd + 4);
+        }
+        else
+        {
+            replaceReferences("3D " + pattern_str(to_bytes(originalEnd)) + "7C", 6, 1, newEnd);
+            replaceReferences("81 FE " + pattern_str(to_bytes(originalEnd + 4)) + "7C", 2, 2, newEnd + 4);
+            replaceReferences("3D " + pattern_str(to_bytes(originalEnd + 8)) + "7C", 1, 1, newEnd + 8);
+            replaceReferences("BF 3B 00 00 00 BE " + pattern_str(to_bytes(originalEnd + 4)) + "66 83 7E FA 00 8D 76 F4", 1, 6, newEnd + 4);
+        }
+
+        // Display constructor/destructor counts and action lookup
+        // bounds. Do not change the screen-table uses of the old end address.
+        auto constructCount = find_pattern("B9 3B 00 00 00 B8 ? ? ? ? 8D 9B 00 00 00 00 33 D2 49", "B9 3B 00 00 00 B8 ? ? ? ? 33 D2 8D 64 24 00").get_first<uint32_t>(1);
+        auto destructCount = find_pattern("BF 3B 00 00 00 BE ? ? ? ? 66 83 7E FA 00 8D 76 F4", "BF 3B 00 00 00 BE ? ? ? ? 8D 64 24 00 83 EE 0C").get_first<uint32_t>(1);
+        std::array<uint8_t*, 2> actionBounds;
+        if (legacyExecutable)
+        {
+            actionBounds[0] = hook::pattern("3C 3C 73 26 0F B6 C0 8D 04 40").get_first<uint8_t>(1);
+            actionBounds[1] = hook::pattern("80 F9 3C 73 26 0F B6 C1").get_first<uint8_t>(2);
+        }
+        else
+        {
+            auto pattern = hook::pattern("3C 3C 73 24 0F B6 C0").count(2);
+            for (size_t i = 0; i < actionBounds.size(); ++i)
+                actionBounds[i] = pattern.get(i).get<uint8_t>(1);
+        }
+        auto lookup = find_pattern("56 8B F1 85 F6 75 04 33 C0 5E C3 57 33 FF", "85 FF 75 03 33 C0 C3 56 33 F6").get_first<uint8_t>();
+        auto lookupDisplay = find_pattern("56 57 8B F9 85 FF 75 04 38 0F 74 4E", "85 FF 56 75 05 80 3F 00 74 53").get_first();
+
+        for (auto [operand, value] : references)
+            injector::WriteMemory(operand, value, true);
+        injector::WriteMemory<uint32_t>(constructCount, SettingsTables::DisplayCapacity - 1, true);
+        injector::WriteMemory<uint32_t>(destructCount, SettingsTables::DisplayCapacity - 1, true);
+        for (auto bound : actionBounds)
+            injector::WriteMemory<uint8_t>(bound, SettingsTables::DisplayCapacity, true);
+        if (legacyExecutable)
+        {
+            // 1.1.2.0 passes the string in EDI, not ECX. Unknown names continue
+            // through the original routine with all registers/stack intact.
+            static auto lookupReturn = reinterpret_cast<uintptr_t>(lookup + 6);
+            static auto nameHook = safetyhook::create_mid(lookup, [](SafetyHookContext& regs)
+            {
+                if (auto id = FindRegisteredName(reinterpret_cast<const char*>(regs.edi), true))
+                {
+                    regs.eax = *id;
+                    regs.eip = lookupReturn;
+                }
+            });
+            static auto displayHook = safetyhook::create_mid(lookupDisplay, [](SafetyHookContext& regs)
+            {
+                if (auto id = FindRegisteredName(reinterpret_cast<const char*>(regs.edi), false))
+                {
+                    regs.eax = *id;
+                    regs.eip = lookupReturn;
+                }
+            });
+        }
+        else
+        {
+            nameLookup = safetyhook::create_inline(lookup, LookupName);
+            displayLookup = safetyhook::create_inline(lookupDisplay, LookupDisplay);
+        }
+    }
 
     std::optional<std::string> GetPrefNameByID(auto prefID)
     {
@@ -168,7 +671,7 @@ private:
             return std::string(it->name);
         return std::nullopt;
     }
-    std::optional<int32_t> GetPrefIDByName(auto prefName)
+    static std::optional<int32_t> GetPrefIDByName(auto prefName)
     {
         auto it = std::find_if(std::begin(aMenuPrefs), std::end(aMenuPrefs), [&prefName](auto& it)
         {
@@ -286,57 +789,27 @@ public:
             }
         }
 
-        MenuPrefs* originalPrefs = nullptr;
-        MenuPrefs** ppOriginalPrefs = nullptr;
-
-        auto pattern = hook::pattern("8B 04 FD ? ? ? ? 5F 5E C3");
-        if (pattern.size() == 4)
-        {
-            ppOriginalPrefs = pattern.count(4).get(3).get<MenuPrefs*>(3);
-            originalPrefs = *ppOriginalPrefs;
-        }
-        else
-        {
-            pattern = hook::pattern("8B 04 F5 ? ? ? ? 5E C3 8B 04 F5 ? ? ? ? 5E C3 8B 04 F5 ? ? ? ? 5E C3 8B 04 F5");
-            ppOriginalPrefs = pattern.get_first<MenuPrefs*>(3);
-            originalPrefs = *ppOriginalPrefs;
-        }
-
-        auto pOriginalPrefsNum = find_pattern("81 FF ? ? ? ? 7C DF", "81 FE ? ? ? ? 7C E0 33 F6").get_first<uint32_t>(2);
-
-        for (auto i = 0; originalPrefs[i].prefID < *pOriginalPrefsNum; i++)
-        {
-            aMenuPrefs.emplace_back(originalPrefs[i].prefID, originalPrefs[i].name);
-        }
-
-        aMenuPrefs.reserve(aMenuPrefs.size() * 2);
-        firstCustomID = aMenuPrefs.back().prefID + 1;
-
-        injector::WriteMemory(ppOriginalPrefs, &aMenuPrefs[0].prefID, true);
-        injector::WriteMemory(find_pattern("FF 34 FD ? ? ? ? 56 E8 ? ? ? ? 83 C4 08 85 C0 0F 84 ? ? ? ? 47 81 FF", "8B 04 F5 ? ? ? ? 50 57 E8 ? ? ? ? 83 C4 08 85 C0 74 7C").get_first(3), &aMenuPrefs[0].name, true);
-
-        pattern = find_pattern("89 1C 95 ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 83 C4 04 8D 04 40", "89 1C 8D ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 8D 0C 40 8B 14 CD");
-        mPrefs = *pattern.get_first<int32_t*>(3);
+        InitializeTables();
 
         CIniReader iniReader(cfgPath);
 
-        // VOLATILE! DO NOT CHANGE THE ORDER OF THESE! ONLY WORKS BY SOME MIRACLE.
+        // IDs and XML display records are independent of registration order.
         static CSetting arr[] = {
             { 0, "PREF_SKIP_INTRO",             "MAIN",       "SkipIntro",                          "",                           1, nullptr, 0, 1 },
             { 0, "PREF_SKIP_MENU",              "MAIN",       "SkipMenu",                           "",                           1, nullptr, 0, 1 },
             { 0, "PREF_BORDERLESS",             "MAIN",       "BorderlessWindowed",                 "",                           1, nullptr, 0, 1 },
             { 0, "PREF_FPS_LIMIT_PRESET",       "FRAMELIMIT", "FpsLimitPreset",                     "MENU_DISPLAY_FRAMELIMIT",    0, nullptr, (int32_t)FpsCaps.eOFF, std::distance(std::begin(FpsCaps.data), std::end(FpsCaps.data)) - 1 },
             { 0, "PREF_BLOOM",                  "MAIN",       "Bloom",                              "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_CONSOLE_GAMMA",          "MISC",       "ConsoleGamma",                       "",                           1, nullptr, 0, 2 }, // MENU_DISPLAY_NETSTATS_GAMEMODE
-            { 0, "PREF_TIMECYC",                "MISC",       "ScreenFilter",                       "MENU_DISPLAY_TIMECYC",       5, nullptr, (int32_t)TimecycText.eMO_DEF, std::distance(std::begin(TimecycText.data), std::end(TimecycText.data)) - 1 },
+            { 0, "PREF_CONSOLE_GAMMA",          "MISC",       "ConsoleGamma",                       "MENU_DISPLAY_CONSOLE_GAMMA",                           1, nullptr, 0, 2 },
+            { 0, "PREF_TIMECYC",                "MISC",       "ScreenFilter",                       "MENU_DISPLAY_TIMECYC",       0, nullptr, (int32_t)TimecycText.eMO_DEF, std::distance(std::begin(TimecycText.data), std::end(TimecycText.data)) - 1 },
             { 0, "PREF_WINDOWED",               "MAIN",       "Windowed",                           "",                           0, nullptr, 0, 1 },
             { 0, "PREF_DEFINITION",             "MAIN",       "Definition",                         "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_SHADOWFILTER",           "SHADOWS",    "ShadowFilter",                       "MENU_DISPLAY_SHADOWFILTER",  3, nullptr, (int32_t)ShadowFilterText.eSharp, std::distance(std::begin(ShadowFilterText.data), std::end(ShadowFilterText.data)) - 1 },
-            { 0, "PREF_TREE_LIGHTING",          "MISC",       "TreeLighting",                       "MENU_DISPLAY_TREE_LIGHTING", 7, nullptr, (int32_t)TreeFxText.ePC, std::distance(std::begin(TreeFxText.data), std::end(TreeFxText.data)) - 1 },
-            { 0, "PREF_TCYC_DOF",               "MISC",       "DepthOfField",                       "MENU_DISPLAY_DOF",           6, nullptr, (int32_t)DofText.eOff, std::distance(std::begin(DofText.data), std::end(DofText.data)) - 1 },
-            { 0, "PREF_MOTIONBLUR",             "MAIN",       "MotionBlur",                         "",                           2, nullptr, 0, 4 }, //MENU_DISPLAY_REFLECTION_QUALITY
+            { 0, "PREF_SHADOWFILTER",           "SHADOWS",    "ShadowFilter",                       "MENU_DISPLAY_SHADOWFILTER",  0, nullptr, (int32_t)ShadowFilterText.eSharp, std::distance(std::begin(ShadowFilterText.data), std::end(ShadowFilterText.data)) - 1 },
+            { 0, "PREF_TREE_LIGHTING",          "MISC",       "TreeLighting",                       "MENU_DISPLAY_TREE_LIGHTING", 1, nullptr, (int32_t)TreeFxText.ePC, std::distance(std::begin(TreeFxText.data), std::end(TreeFxText.data)) - 1 },
+            { 0, "PREF_TCYC_DOF",               "MISC",       "DepthOfField",                       "MENU_DISPLAY_DOF",           1, nullptr, (int32_t)DofText.eOff, std::distance(std::begin(DofText.data), std::end(DofText.data)) - 1 },
+            { 0, "PREF_MOTIONBLUR",             "MAIN",       "MotionBlur",                         "",                           2, nullptr, 0, 4 },
             { 0, "PREF_LEDILLUMINATION",        "MISC",       "LightSyncRGB",                       "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_TREEALPHA",              "MISC",       "TreeAlpha",                          "MENU_DISPLAY_TREE_LIGHTING", 6, nullptr, (int32_t)TreeFxText.ePC, std::distance(std::begin(TreeFxText.data), std::end(TreeFxText.data)) - 1 },
+            { 0, "PREF_TREEALPHA",              "MISC",       "TreeAlpha",                          "MENU_DISPLAY_TREE_LIGHTING", 0, nullptr, (int32_t)TreeFxText.ePC, std::distance(std::begin(TreeFxText.data), std::end(TreeFxText.data)) - 1 },
             { 0, "PREF_SUNSHAFTS",              "MISC",       "SunShafts",                          "",                           0, nullptr, 0, 1 },
             { 0, "PREF_FPSCOUNTER",             "FRAMELIMIT", "DisplayFpsCounter",                  "",                           0, nullptr, 0, 1 },
             { 0, "PREF_ALWAYSRUN",              "MISC",       "AlwaysRun",                          "",                           0, nullptr, 0, 1 },
@@ -346,10 +819,10 @@ public:
             { 0, "PREF_PADCAMCENTERDELAY",      "MISC",       "DelayBeforeCenteringCameraPad",      "",                           0, nullptr, 0, 9 },
             { 0, "PREF_CUSTOMFOV",              "MISC",       "FieldOfView",                        "",                           0, nullptr, 0, 9 },
             { 0, "PREF_RAWINPUT",               "MISC",       "RawInput",                           "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_BUTTONS",                "MISC",       "Buttons",                            "MENU_DISPLAY_BUTTONS",       6, nullptr, (int32_t)ButtonsText.eXbox360, std::distance(std::begin(ButtonsText.data), std::end(ButtonsText.data)) - 1 },
+            { 0, "PREF_BUTTONS",                "MISC",       "Buttons",                            "MENU_DISPLAY_BUTTONS",       1, nullptr, (int32_t)ButtonsText.eXbox360, std::distance(std::begin(ButtonsText.data), std::end(ButtonsText.data)) - 1 },
             { 0, "PREF_LETTERBOX",              "MISC",       "Letterbox",                          "",                           1, nullptr, 0, 1 },
             { 0, "PREF_PILLARBOX",              "MISC",       "Pillarbox",                          "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_ANTIALIASING",           "MISC",       "Antialiasing",                       "MENU_DISPLAY_ANTIALIASING",  7, nullptr, (int32_t)AntialiasingText.eMO_OFF, std::distance(std::begin(AntialiasingText.data), std::end(AntialiasingText.data)) - 1 },
+            { 0, "PREF_ANTIALIASING",           "MISC",       "Antialiasing",                       "MENU_DISPLAY_ANTIALIASING",  2, nullptr, (int32_t)AntialiasingText.eMO_OFF, std::distance(std::begin(AntialiasingText.data), std::end(AntialiasingText.data)) - 1 },
             { 0, "PREF_UPDATE",                 "UPDATE",     "CheckForUpdates",                    "",                           0, nullptr, 0, 1 },
             { 0, "PREF_BLOCKONLOSTFOCUS",       "MAIN",       "BlockOnLostFocus",                   "",                           0, nullptr, 0, 1 },
             { 0, "PREF_TRANSPARENTMAPMENU",     "MISC",       "TransparentMapMenu",                 "",                           0, nullptr, 0, 1 },
@@ -359,149 +832,179 @@ public:
             { 0, "PREF_TONEMAPPING",            "MISC",       "ToneMapping",                        "",                           0, nullptr, 0, 1 },
             { 0, "PREF_ZOOMEDMOVEMENT",         "MISC",       "ZoomedMovement",                     "",                           1, nullptr, 0, 1 },
             { 0, "PREF_UNCLAMPLIGHTING",        "MISC",       "UnclampLighting",                    "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_DISTANTLIGHTS",          "MISC",       "DistantLights",                      "",                           0, nullptr, 0, 1 }, //MENU_DISPLAY_NETSTATS_TRUESKILLNAME
+            { 0, "PREF_DISTANTLIGHTS",          "MISC",       "DistantLights",                      "MENU_DISPLAY_DISTANT_LIGHTS",                           0, nullptr, 0, 1 },
             { 0, "PREF_CENTEREDCAMERA",         "MISC",       "CenteredVehCam",                     "",                           0, nullptr, 0, 1 },
             { 0, "PREF_CENTEREDCAMERAFOOT",     "MISC",       "CenteredFootCam",                    "",                           0, nullptr, 0, 1 },
             { 0, "PREF_CAMERASHAKE",            "MAIN",       "CameraShake",                        "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_CUTSCENEAUDIOSYNC",      "MAIN",       "CutsceneAudioSync",                  "",                           0, nullptr, 0, 2 }, // MENU_DISPLAY_NETSTATS_GAMETYPE
+            { 0, "PREF_CUTSCENEAUDIOSYNC",      "MAIN",       "CutsceneAudioSync",                  "MENU_DISPLAY_AUDIO_SYNC",                           0, nullptr, 0, 2 },
             { 0, "PREF_TURNINDICATORS",         "MISC",       "TurnIndicators",                     "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_EXTRANIGHTSHADOWS",      "SHADOWS",    "ExtraNightShadows",                  "",                           0, nullptr, 0, 3 }, //MENU_DISPLAY_NETSTATS_SCORES
-            { 0, "PREF_GRAPHICSAPI",            "MAIN",       "GraphicsAPI",                        "",                           0, nullptr, 0, 1 }, //MENU_DISPLAY_NETSTATS_COMP_TEAM
+            { 0, "PREF_EXTRANIGHTSHADOWS",      "SHADOWS",    "ExtraNightShadows",                  "MENU_DISPLAY_EXTRA_NIGHT_SHADOWS",                           0, nullptr, 0, 3 },
+            { 0, "PREF_GRAPHICSAPI",            "MAIN",       "GraphicsAPI",                        "MENU_DISPLAY_GRAPHICS_API",                           0, nullptr, 0, 1 },
             { 0, "PREF_BULLETTRACES",           "MISC",       "AlwaysShowBulletTraces",             "",                           0, nullptr, 0, 1 },
             { 0, "PREF_AUTOEXPOSURE",           "MISC",       "ConsoleAutoExposure",                "",                           1, nullptr, 0, 1 },
             { 0, "PREF_KBCAMCENTERDELAYVEH",    "MISC",       "DelayBeforeCenteringCameraKBInCar",  "",                           0, nullptr, 0, 9 },
             { 0, "PREF_PADCAMCENTERDELAYVEH",   "MISC",       "DelayBeforeCenteringCameraPadInCar", "",                           0, nullptr, 0, 9 },
             { 0, "PREF_KBCAMTURNSPEEDVEH",      "MISC",       "CameraTurnSpeedKBInCar",             "",                           3, nullptr, 0, 7 },
             { 0, "PREF_PADCAMTURNSPEEDVEH",     "MISC",       "CameraTurnSpeedPadInCar",            "",                           0, nullptr, 0, 7 },
-            { 0, "PREF_PADLOOKSENSITIVITY",     "MISC",       "PadLookSensitivity",                 "",                           10, nullptr, 0, 21 },
-            { 0, "PREF_PADAIMSENSITIVITY",      "MISC",       "PadAimSensitivity",                  "",                           10, nullptr, 0, 21 },
-            { 0, "PREF_MOUSEAIMSENSITIVITY",    "MISC",       "MouseAimSensitivity",                "",                           10, nullptr, 0, 21 },
+            { 0, "PREF_PADLOOKSENSITIVITY",     "MISC",       "PadLookSensitivity",                 "",                           10, nullptr, 0, 20 },
+            { 0, "PREF_PADAIMSENSITIVITY",      "MISC",       "PadAimSensitivity",                  "",                           10, nullptr, 0, 20 },
+            { 0, "PREF_MOUSEAIMSENSITIVITY",    "MISC",       "MouseAimSensitivity",                "",                           10, nullptr, 0, 20 },
             { 0, "PREF_NOWARDROBEFADING",       "MISC",       "DisableWardrobeTransition",          "",                           0, nullptr, 0, 1 },
             { 0, "PREF_STOPTAXI",               "MISC",       "InstantStopTaxi",                    "",                           0, nullptr, 0, 1 },
             { 0, "PREF_SAO",                    "MISC",       "AmbientOcclusion",                   "",                           0, nullptr, 0, 1 },
             { 0, "PREF_AUTOCLIMBLADDERS",       "MISC",       "AutoClimbLadders",                   "",                           0, nullptr, 0, 1 },
-            // Enums are at capacity, to use more enums, replace multiplayer ones. On/Off toggles should still be possible to add.
         };
 
-        auto i = firstCustomID;
-        for (auto& it : arr)
+        for (auto& setting : arr)
         {
-            mFusionPrefs[i] = it;
-            mFusionPrefs[i].value = std::clamp(it.ReadFromIni(iniReader), it.idStart, it.idEnd);
-            aMenuPrefs.emplace_back(i, mFusionPrefs[i].prefName.data());
-            i++;
-        }
-
-        injector::WriteMemory(pOriginalPrefsNum, aMenuPrefs.size(), true);
-
-        // MENU_DISPLAY enums hook
-        CSettings::MenuPrefs* originalEnums = nullptr;
-        static std::vector<MenuPrefs> aMenuEnums;
-        pattern = hook::pattern("8B 04 FD ? ? ? ? 5F 5E C3");
-        if (pattern.size() == 4)
-        {
-            ppOriginalPrefs = pattern.count(4).get(1).get<MenuPrefs*>(3);
-            originalEnums = *ppOriginalPrefs;
-        }
-        else
-        {
-            pattern = hook::pattern("8B 04 F5 ? ? ? ? 5E C3 8B 04 F5");
-            ppOriginalPrefs = pattern.count(4).get(2).get<MenuPrefs*>(3);
-            originalEnums = *ppOriginalPrefs;
-
-        }
-
-        auto pOriginalEnumsNum = find_pattern("83 FF 3C 7C E2", "83 FE 3C 7C E3 33 F6").get_first<uint8_t>(2);
-        auto pOriginalEnumsNum2 = find_pattern("83 FE 3C 7C E6", "83 FE 3C 7C E3 33 C0").get_first<uint8_t>(2);
-
-        for (auto i = 0; originalEnums[i].prefID < *pOriginalEnumsNum; i++)
-        {
-            aMenuEnums.emplace_back(originalEnums[i].prefID, originalEnums[i].name);
-        }
-        aMenuEnums.reserve(aMenuEnums.size() * 2);
-        auto firstEnumCustomID = aMenuEnums.back().prefID + 1;
-
-        for (auto& it : arr)
-        {
-            if (!it.strEnum.empty())
-            {
-                aMenuEnums.emplace_back(firstEnumCustomID, it.strEnum.data());
-                firstEnumCustomID += 1;
-            }
-        }
-
-        injector::WriteMemory(ppOriginalPrefs, &aMenuEnums[0].prefID, true);
-        injector::WriteMemory(find_pattern("FF 34 FD ? ? ? ? 56 E8 ? ? ? ? 83 C4 08 85 C0 0F 84 ? ? ? ? 47 83 FF 3C", "8B 14 F5 ? ? ? ? 52").get_first(3), &aMenuEnums[0].name, true);
-        pattern = find_pattern("33 C0 5E C3 8B 04 F5 ? ? ? ? 5F 5E C3 8B 04 F5", "33 C0 5E C3 8B 04 F5 ? ? ? ? 5E C3 8B 04 F5");
-        injector::WriteMemory(pattern.get_first(7), &aMenuEnums[0].prefID, true);
-        pattern = find_pattern("FF 34 F5 ? ? ? ? 57 E8 ? ? ? ? 83 C4 08 85 C0 74 0B 46 83 FE 3C", "8B 0C F5 ? ? ? ? 51 57 E8 ? ? ? ? 83 C4 08 85 C0 74 15");
-        injector::WriteMemory(pattern.get_first(3), &aMenuEnums[0].name, true);
-
-        injector::WriteMemory<uint8_t>(pOriginalEnumsNum, uint8_t(aMenuEnums.size()), true);
-        injector::WriteMemory<uint8_t>(pOriginalEnumsNum2, uint8_t(aMenuEnums.size()), true);
-
-        // Sliders
-        static std::vector<std::pair<std::string_view, std::string_view>> matchingSettingsList =
-        {
-            { "PREF_EPISODIC_RACENAME_RACE_2",  "PREF_PADAIMSENSITIVITY"    },
-            { "PREF_EPISODIC_RACENAME_RACE_3",  "PREF_MOUSEAIMSENSITIVITY"  },
-            { "PREF_EPISODIC_RACENAME_RACE_4",  "PREF_PADLOOKSENSITIVITY"   },
-            { "PREF_EPISODIC_RACENAME_RACE_5",  "PREF_PADCAMTURNSPEEDVEH"   },
-            { "PREF_EPISODIC_RACECLASS_RACE_0", "PREF_KBCAMTURNSPEEDVEH"    },
-            { "PREF_EPISODIC_RACECLASS_RACE_1", "PREF_KBCAMCENTERDELAYVEH"  },
-            { "PREF_EPISODIC_RACECLASS_RACE_2", "PREF_PADCAMCENTERDELAYVEH" },
-            { "PREF_EPISODIC_RACECLASS_RACE_3", "PREF_CUSTOMFOV"            },
-            { "PREF_EPISODIC_RACECLASS_RACE_4", "PREF_KBCAMCENTERDELAY"     },
-            { "PREF_EPISODIC_RACECLASS_RACE_5", "PREF_PADCAMCENTERDELAY"    },
-        };
-
-        for (auto& it : matchingSettingsList)
-        {
-            slidersList.emplace(*GetPrefIDByName(it.first), std::make_pair(it.first, it.second));
-        }
-
-        pattern = find_pattern("C6 05 ? ? ? ? ? 5E 74 1D", "C6 05 ? ? ? ? ? 74 1B 38 1D", "C6 05 ? ? ? ? ? 5E 74 1B");
-        static auto slidersHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
-        {
-            for (auto& it : matchingSettingsList)
-            {
-                FusionFixSettings.Set(it.first, FusionFixSettings.Get(it.second));
-            }
-        });
-
-        pattern = find_pattern("3D ? ? ? ? 7C DF 83 EC 10", "3D ? ? ? ? 7C E1 B8");
-        injector::WriteMemory(pattern.get_first(1), 136 - slidersList.size(), true);
-        pattern = find_pattern("3D ? ? ? ? 7E E6 80 3D", "3D ? ? ? ? 7E E8 83 CF FF");
-        injector::WriteMemory(pattern.get_first(1), 136 - slidersList.size(), true);
-
-        {
-            static std::vector<MenuPrefs> aMenuPrefs2(aMenuPrefs.size());
-
-            hook::pattern patterns[] = {
-                hook::pattern("89 14 8D ? ? ? ? 66 8B 0D"), hook::pattern("89 3C AD ? ? ? ? 0F B7 3A 83 C6 01"),
-                hook::pattern("89 04 8D ? ? ? ? 8B 74 24 10"), hook::pattern("8B 04 85 ? ? ? ? 85 C0 7F 05")
-            };
-
-            for (auto& pattern : patterns)
-                if (!pattern.empty())
-                    injector::WriteMemory(pattern.get_first(3), &aMenuPrefs2[0].prefID, true);
+            auto id = static_cast<int32_t>(aMenuPrefs.size());
+            auto& stored = mFusionPrefs.emplace(id, std::move(setting)).first->second;
+            stored.value = std::clamp(stored.ReadFromIni(iniReader), stored.idStart, stored.idEnd);
+            SettingsTables::scalers[id] = stored.idEnd + 1;
+            aMenuPrefs.emplace_back(id, stored.prefName.data());
+            if (!stored.strEnum.empty() && !displayIDs.contains(stored.strEnum))
+                displayIDs.emplace(stored.strEnum, nextDisplayID++);
         }
 
         CIniReader d3d9cfg(d3d9cfgPath);
         auto api = d3d9cfg.ReadInteger("MAIN", "API", 0);
         FusionFixSettings.Set("PREF_GRAPHICSAPI", api);
+        InitializeMenuAPI();
     }
+public:
+    enum class MenuScreen : int32_t
+    {
+        Game = 0, Controls = 5, Audio = 7, Display = 8, Graphics = 49,
+        TitleControls = 59, TitleAudio = 60, TitleDisplay = 61, TitleGraphics = 62,
+        KeyboardOptions = 71, ControllerOptions = 72
+    };
+
+    // Call registration APIs on the game thread, or during startup before the
+    // frontend is loaded. Values are zero-based positions, also for sliders.
+    // Empty iniName creates an in-memory preference. Callback runs on Set().
+    int32_t RegisterPreference(std::string name, int32_t maximum, int32_t defaultValue = 0,
+        std::string iniSection = {}, std::string iniName = {}, std::function<void(int32_t)> callback = {})
+    {
+        if (!name.starts_with("PREF_") || name.size() == 5 || maximum < 1 || maximum > 254 ||
+            GetPrefIDByName(name) || aMenuPrefs.size() >= SettingsTables::PreferenceCapacity ||
+            (!iniName.empty() && iniSection.empty()))
+            return -1;
+        auto id = static_cast<int32_t>(aMenuPrefs.size());
+        CSetting setting{ 0, std::move(name), std::move(iniSection), std::move(iniName), {},
+            defaultValue, std::move(callback), 0, maximum };
+        setting.value = std::clamp(setting.iniName.empty() ? defaultValue : setting.ReadFromIni(), 0, maximum);
+        auto& stored = mFusionPrefs.emplace(id, std::move(setting)).first->second;
+        aMenuPrefs.emplace_back(id, stored.prefName.data());
+        SettingsTables::scalers[id] = maximum + 1;
+        return id;
+    }
+
+    // Text entries are GXT keys or literal labels, using the native 15-byte
+    // field. Register before XML loading when the name will be used in XML.
+    int32_t RegisterEnum(std::string name, std::span<const std::string_view> labels)
+    {
+        if (!name.starts_with("MENU_DISPLAY_") || name.size() == 13 || displayIDs.contains(name) ||
+            nextDisplayID >= SettingsTables::DisplayCapacity || labels.size() < 2 || labels.size() > 255)
+            return -1;
+        std::vector<SettingsTables::DisplayValue> values;
+        for (auto label : labels)
+        {
+            if (label.empty() || label.size() >= sizeof(SettingsTables::DisplayValue::text) || label.find('\0') != label.npos)
+                return -1;
+            SettingsTables::DisplayValue value;
+            std::memcpy(value.text, label.data(), label.size());
+            value.value = static_cast<int32_t>(values.size());
+            values.push_back(value);
+        }
+        auto id = nextDisplayID++;
+        displayIDs.emplace(std::move(name), id);
+        dynamicDisplays.emplace(id, std::move(values));
+        return id;
+    }
+
+    bool AddToggle(MenuScreen screen, std::string_view label, std::string_view preference)
+    {
+        auto id = GetPrefIDByName(preference);
+        if (!id || !mFusionPrefs.contains(*id) || mFusionPrefs.at(*id).idEnd != 1)
+            return false;
+        return AddOption(screen, label, *id, 0);
+    }
+
+    bool AddEnum(MenuScreen screen, std::string_view label, std::string_view preference, std::string_view display)
+    {
+        auto id = GetPrefIDByName(preference);
+        auto found = displayIDs.find(std::string(display));
+        if (!id || !mFusionPrefs.contains(*id) || found == displayIDs.end())
+            return false;
+        auto count = dynamicDisplays.contains(found->second) ? dynamicDisplays.at(found->second).size() : SettingsTables::displays[found->second].values.count;
+        if (count && count != mFusionPrefs.at(*id).idEnd + 1)
+            return false;
+        return AddOption(screen, label, *id, found->second);
+    }
+
+    bool AddSlider(MenuScreen screen, std::string_view label, std::string_view preference)
+    {
+        auto id = GetPrefIDByName(preference);
+        return id && mFusionPrefs.contains(*id) && AddOption(screen, label, *id, 101);
+    }
+
+    bool AddButton(MenuScreen screen, std::string_view label, std::function<void()> callback)
+    {
+        if (!callback || dynamicOptions.size() >= SettingsTables::PreferenceCapacity)
+            return false;
+        return AddOption(screen, label, static_cast<int32_t>(dynamicOptions.size()), 100, std::move(callback));
+    }
+
+private:
+    static bool AddOption(MenuScreen screen, std::string_view label, int32_t preference, int32_t display, std::function<void()> callback = {})
+    {
+        switch (screen)
+        {
+        case MenuScreen::Game: case MenuScreen::Controls: case MenuScreen::Audio: case MenuScreen::Display:
+        case MenuScreen::Graphics: case MenuScreen::TitleControls: case MenuScreen::TitleAudio:
+        case MenuScreen::TitleDisplay: case MenuScreen::TitleGraphics: case MenuScreen::KeyboardOptions:
+        case MenuScreen::ControllerOptions: break;
+        default: return false;
+        }
+        if (label.empty() || label.size() >= sizeof(SettingsTables::Option::label) || label.find('\0') != label.npos)
+            return false;
+        for (auto& added : dynamicOptions)
+            if (added.screen == static_cast<int32_t>(screen) && label == added.option.label)
+                return false;
+        auto& options = screens[static_cast<int32_t>(screen)].options;
+        size_t pending = 1;
+        for (auto& added : dynamicOptions)
+            if (added.screen == static_cast<int32_t>(screen))
+            {
+                bool present = false;
+                for (size_t i = 0; i < options.count; ++i)
+                    present |= std::strcmp(options.data[i].label, added.option.label) == 0;
+                pending += !present;
+            }
+        if (options.count + pending > 50)
+            return false;
+        SettingsTables::Option option;
+        option.action = callback ? 127 : 1; // MENUOPT_ADJUST
+        std::memcpy(option.label, label.data(), label.size());
+        option.preference = static_cast<int16_t>(preference);
+        option.scaler = callback ? 0 : static_cast<uint8_t>(SettingsTables::scalers[preference]);
+        option.display = static_cast<uint8_t>(display);
+        dynamicOptions.push_back({ static_cast<int32_t>(screen), option, std::move(callback) });
+        return true;
+    }
+
 public:
     int32_t Get(int32_t prefID)
     {
         if (prefID >= firstCustomID)
-            return mFusionPrefs[prefID].GetValue();
+        {
+            auto it = mFusionPrefs.find(prefID);
+            return it != mFusionPrefs.end() ? it->second.GetValue() : 0;
+        }
         else
         {
-            if (!mPrefs)
+            if (!mPrefs || prefID < 0)
                 return 0;
-            DWORD tmp;
-            injector::UnprotectMemory(&mPrefs[prefID], sizeof(int32_t), tmp);
             return mPrefs[prefID];
         }
     }
@@ -509,21 +1012,14 @@ public:
     {
         if (prefID >= firstCustomID)
         {
-            mFusionPrefs[prefID].SetValue(value);
+            if (auto it = mFusionPrefs.find(prefID); it != mFusionPrefs.end())
+                it->second.SetValue(value);
         }
         else
         {
-            if (!mPrefs)
+            if (!mPrefs || prefID < 0)
                 return;
-            DWORD tmp;
-            injector::UnprotectMemory(&mPrefs[prefID], sizeof(int32_t), tmp);
             mPrefs[prefID] = value;
-
-            if (slidersList.contains(prefID))
-            {
-                auto id = GetPrefIDByName(slidersList[prefID].second);
-                if (id) mFusionPrefs[*id].SetValue(value);
-            }
         }
     }
     int32_t Get(std::string_view name)
@@ -549,8 +1045,8 @@ public:
         auto prefID = GetPrefIDByName(name);
         if (prefID)
         {
-            if (prefID >= firstCustomID)
-                return std::ref(mFusionPrefs[*prefID].value);
+            if (*prefID >= firstCustomID)
+                return std::ref(mFusionPrefs.at(*prefID).value);
             else
             {
                 if (!mPrefs)
@@ -558,8 +1054,6 @@ public:
                     MessageBoxW(0, L"Can't GetRef of original PREF", 0, 0);
                     return std::nullopt;
                 }
-                DWORD tmp;
-                injector::UnprotectMemory(&mPrefs[*prefID], sizeof(int32_t), tmp);
                 return std::ref(mPrefs[*prefID]);
             }
         }
@@ -568,12 +1062,12 @@ public:
     void SetCallback(std::string_view name, std::function<void(int32_t)>&& cb)
     {
         const auto prefID = GetPrefIDByName(name);
-        if (prefID) mFusionPrefs[*prefID].callback = cb;
+        if (prefID && mFusionPrefs.contains(*prefID)) mFusionPrefs.at(*prefID).callback = std::move(cb);
     }
     void RemoveCallback(std::string_view name)
     {
         const auto prefID = GetPrefIDByName(name);
-        if (prefID) mFusionPrefs[*prefID].callback = nullptr;
+        if (prefID && mFusionPrefs.contains(*prefID)) mFusionPrefs.at(*prefID).callback = nullptr;
     }
     void ForEachPref(std::function<void(int32_t id, int32_t idStart, int32_t idEnd)>&& cb)
     {
@@ -600,65 +1094,65 @@ public:
 public:
     struct
     {
-        enum eFpsCaps { eTOGGLE, eHOLD, eOFF, eCustom, e30 = 30, e40 = 40, e50 = 50, e60 = 60, e75 = 75, e100 = 100, e120 = 120, e144 = 144, e165 = 165, e200 = 200, e240 = 240 };
-        std::vector<int32_t> data = { eTOGGLE, eHOLD, eOFF, eCustom, e30, e40, e50, e60, e75, e100, e120, e144, e165, e200, e240 };
+        enum eFpsCaps { eOFF, eCustom, e30, e40, e50, e60, e75, e100, e120, e144, e165, e200, e240 };
+        const std::vector<int32_t> data = { 0, 0, 30, 40, 50, 60, 75, 100, 120, 144, 165, 200, 240 };
     } FpsCaps;
 
     struct
     {
-        enum eTimecycText { eLow, eMedium, eHigh, eVeryHigh, eHighest, eMO_DEF, eOFF, eIV, eTLAD, eTBOGT };
-        std::vector<const char*> data = { "Low", "Medium", "High", "Very High", "Highest", "MO_DEF", "OFF", "IV", "TLAD", "TBOGT" };
+        enum eTimecycText { eMO_DEF, eOFF, eIV, eTLAD, eTBOGT };
+        const std::vector<const char*> data = { "MO_DEF", "OFF", "IV", "TLAD", "TBOGT" };
     } TimecycText;
 
     struct
     {
         enum eShadowFilterText
         {
-            eRadio, eSequential, eShuffle, eSharp, eSoft, eCHSS
+            eSharp, eSoft, eCHSS
         };
-        std::vector<const char*> data = { "Radio", "Sequential", "Shuffle", "Sharp", "Soft", "CHSS" };
+        const std::vector<const char*> data = { "Sharp", "Soft", "CHSS" };
     } ShadowFilterText;
 
     struct
     {
         enum eDofText
         {
-            eAuto, e43, e54, e159, e169, eOff, eCutscenesOnly, eLow, eMedium, eHigh, eVeryHigh
+            eOff, eCutscenesOnly, eLow, eMedium, eHigh, eVeryHigh
         };
-        std::vector<const char*> data = { "Auto", "4:3", "5:4", "15:9", "16:9", "Off", "Cutscenes Only", "Low", "Medium", "High", "Very High" };
+        const std::vector<const char*> data = { "Off", "Cutscenes Only", "Low", "Medium", "High", "Very High" };
     } DofText;
 
     struct
     {
         enum eTreeFxText
         {
-            eAuto, e43, e54, e159, e169, e1610, ePC, ePCPlus, eConsole
+            ePC, ePCPlus, eConsole
         };
-        std::vector<const char*> data = { "Auto", "4:3", "5:4", "15:9", "16:9", "16:10", "PC", "PC+", "Console" };
+        const std::vector<const char*> data = { "PC", "PC+", "Console" };
     } TreeFxText;
 
     struct
     {
-        enum eTreeAlphaText { eLow, eMedium, eHigh, eVeryHigh, ePC, eConsole };
-        std::vector<const char*> data = { "Low", "Medium", "High", "Very High", "PC", "Console" };
+        enum eTreeAlphaText { ePC, eConsole };
+        const std::vector<const char*> data = { "PC", "Console" };
     } TreeAlphaText;
 
     struct
     {
-        enum eButtonsText { eOff, eLow, eMedium, eHigh, eVeryHigh, eXbox360, eXboxOne, ePlaystation3, ePlaystation4, ePlaystation5, eNintendoSwitch, eSteamDeck, eSteamController };
-        std::vector<const char*> data = { "Off", "Low", "Medium", "High", "Very High", "Xbox 360", "Xbox One", "Playstation 3", "Playstation 4", "Playstation 5", "Nintendo Switch", "Steam Deck", "Steam Controller" };
+        enum eButtonsText { eXbox360, eXboxOne, ePlaystation3, ePlaystation4, ePlaystation5, eNintendoSwitch, eSteamDeck, eSteamController };
+        const std::vector<const char*> data = { "Xbox 360", "Xbox One", "Playstation 3", "Playstation 4", "Playstation 5", "Nintendo Switch", "Steam Deck", "Steam Controller" };
     } ButtonsText;
 
     struct
     {
-        enum eAntialiasingText { eLow, eMedium, eHigh, eVeryHigh, eHighest, eMO_OFF, eFXAA, eSMAA };
-        std::vector<const char*> data = { "Low", "Medium", "High", "Very High", "Highest", "MO_OFF", "FXAA", "SMAA" };
+        enum eAntialiasingText { eMO_OFF, eFXAA, eSMAA };
+        const std::vector<const char*> data = { "MO_OFF", "FXAA", "SMAA" };
     } AntialiasingText;
 
     struct
     {
         enum eExtraNightShadowsText { eOff, eLampposts, eLampostsHeadl, eLampHeadlVNS };
-        std::vector<const char*> data = { "MO_OFF", "Lampposts", "LampostsHeadl", "LampHeadlVNS" };
+        const std::vector<const char*> data = { "MO_OFF", "Lampposts", "LampostsHeadl", "LampHeadlVNS" };
     } ExtraNightShadowsText;
 
 } FusionFixSettings;
@@ -714,8 +1208,75 @@ public:
 
         FusionFix::onInitEventAsync() += []()
         {
-            // runtime settings
-            auto pattern = hook::pattern("89 1C ? ? ? ? ? E8 ? ? ? ? A1");
+            // Runtime preferences stay in the game's original array. Route the
+            // shared frontend accesses through Get/Set for custom IDs, including
+            // the extra reads used by wraparound and mouse/slider rendering.
+            auto pattern = find_pattern("8B 1C 95 ? ? ? ? 89 54 24 14", "8B 1C 8D ? ? ? ? 89 4C 24 18");
+            static auto readReg = *pattern.get_first<uint8_t>(2);
+            struct IniReader
+            {
+                void operator()(injector::reg_pack& regs)
+                {
+                    regs.ebx = FusionFixSettings.Get(readReg == 0x95 ? regs.edx : regs.ecx);
+                }
+            }; injector::MakeInline<IniReader>(pattern.get_first(), pattern.get_first(7));
+
+            pattern = find_pattern("8B 14 85 ? ? ? ? 66 83 F9 31", "8B 0C 8D ? ? ? ? 75 12");
+            static auto displayReadReg = *pattern.get_first<uint8_t>(2);
+            struct DisplayReader
+            {
+                void operator()(injector::reg_pack& regs)
+                {
+                    if (displayReadReg == 0x85)
+                        regs.edx = FusionFixSettings.Get(regs.eax);
+                    else
+                        regs.ecx = FusionFixSettings.Get(regs.ecx);
+                }
+            }; injector::MakeInline<DisplayReader>(pattern.get_first(), pattern.get_first(7));
+
+            // Replace CMP/JL together. Both continuations start by setting flags
+            // themselves (TEST EBX or CMP ESI/EDI), so no flags need to be synthesized.
+            static auto wrapRead = find_pattern("83 3C 85 ? ? ? ? 00 7C ? 85 DB 74", "83 3C 95 ? ? ? ? 00 7C ? 85 DB 74").get_first<uint8_t>();
+            static auto wrapReadReg = wrapRead[2];
+            static auto wrapNegative = wrapRead + 10 + *reinterpret_cast<int8_t*>(wrapRead + 9);
+            static auto wrapReader = safetyhook::create_mid(wrapRead, [](SafetyHookContext& regs)
+            {
+                auto id = wrapReadReg == 0x85 ? regs.eax : regs.edx;
+                regs.eip = reinterpret_cast<uintptr_t>(FusionFixSettings.Get(id) < 0 ? wrapNegative : wrapRead + 10);
+            });
+
+            // CMP/JE guards the existing mouse writer below. Skip the store for
+            // an unchanged position, just as the native path does. Its next flag
+            // consumer is preceded by TEST CL, CL (TEST AL, AL in 1.1.2.0).
+            static auto mouseRead = find_pattern("F3 0F 2C C0 39 04 9D ? ? ? ? 74 ? 89 04 9D", "F3 0F 2C D0 39 14 BD ? ? ? ? 74 ? 0F BF 79 12").get_first<uint8_t>(4);
+            static auto mouseReadReg = mouseRead[2];
+            static auto mouseUnchanged = mouseRead + 9 + *reinterpret_cast<int8_t*>(mouseRead + 8);
+            static auto mouseReader = safetyhook::create_mid(mouseRead, [](SafetyHookContext& regs)
+            {
+                auto id = mouseReadReg == 0x9D ? regs.ebx : regs.edi;
+                auto value = mouseReadReg == 0x9D ? regs.eax : regs.edx;
+                regs.eip = reinterpret_cast<uintptr_t>(FusionFixSettings.Get(id) == static_cast<int32_t>(value) ? mouseUnchanged : mouseRead + 9);
+            });
+
+            static auto sliderRead = find_pattern("66 0F 6E 04 85 ? ? ? ? 0F 5B C0 F3 0F 59 C8", "F3 0F 2A 0C 85 ? ? ? ? F3 0F 59 C1").get_first<uint8_t>();
+            static auto sliderReadOpcode = sliderRead[0];
+            static auto sliderReader = safetyhook::create_mid(sliderRead, [](SafetyHookContext& regs)
+            {
+                if (sliderReadOpcode == 0x66)
+                {
+                    // MOVD clears the upper 96 bits, before CVTDQ2PS.
+                    regs.xmm0 = {};
+                    regs.xmm0.u32[0] = FusionFixSettings.Get(regs.eax);
+                }
+                else
+                {
+                    // 1.1.2.0 uses CVTSI2SS directly, preserving the upper lanes.
+                    regs.xmm1.f32[0] = static_cast<float>(FusionFixSettings.Get(regs.eax));
+                }
+                regs.eip = reinterpret_cast<uintptr_t>(sliderRead + 9);
+            });
+
+            pattern = hook::pattern("89 1C ? ? ? ? ? E8 ? ? ? ? A1");
             static auto reg = *pattern.get_first<uint8_t>(2);
             struct IniWriter
             {
@@ -729,22 +1290,6 @@ public:
                         id = regs.ecx;
                         value = regs.ebx;
                     }
-
-                    auto old = FusionFixSettings(id);
-
-                    FusionFixSettings.ForEachPref([&](int32_t prefID, int32_t idStart, int32_t idEnd)
-                    {
-                        if (prefID == id)
-                        {
-                            if (int32_t(value) <= idStart)
-                            {
-                                if (old > idStart)
-                                    value = idStart;
-                                else
-                                    value = idEnd;
-                            }
-                        }
-                    });
 
                     FusionFixSettings.Set(id, value);
 
@@ -792,55 +1337,9 @@ public:
                         value = regs.edx;
                     }
 
-                    auto old = FusionFixSettings(id);
-
-                    FusionFixSettings.ForEachPref([&](int32_t prefID, int32_t idStart, int32_t idEnd)
-                    {
-                        if (prefID == id)
-                        {
-                            if (int32_t(value) <= idStart)
-                            {
-                                if (old > idStart)
-                                    value = idStart;
-                                else
-                                    value = idEnd;
-                            }
-                        }
-                    });
-
                     FusionFixSettings.Set(id, value);
                 }
             }; injector::MakeInline<IniWriterMouse>(pattern.get_first(0), pattern.get_first(7));
-
-            pattern = find_pattern("8B 1C 95 ? ? ? ? 89 54 24 14", "8B 1C 8D ? ? ? ? 89 4C 24 18");
-            static auto reg2 = *pattern.get_first<uint8_t>(2);
-            struct MenuTogglesHook1
-            {
-                void operator()(injector::reg_pack& regs)
-                {
-                    if (reg2 == 0x8D)
-                    {
-                        regs.ebx = FusionFixSettings.Get(regs.ecx);
-                        return;
-                    }
-                    regs.ebx = FusionFixSettings.Get(regs.edx);
-                }
-            }; injector::MakeInline<MenuTogglesHook1>(pattern.get_first(0), pattern.get_first(7));
-
-            pattern = find_pattern("8B 14 85 ? ? ? ? 66 83 F9 31", "8B 0C 8D ? ? ? ? 75 12");
-            static auto reg3 = *pattern.get_first<uint8_t>(2);
-            struct MenuTogglesHook2
-            {
-                void operator()(injector::reg_pack& regs)
-                {
-                    if (reg3 == 0x8D)
-                    {
-                        regs.ecx = FusionFixSettings.Get(regs.ecx);
-                        return;
-                    }
-                    regs.edx = FusionFixSettings.Get(regs.eax);
-                }
-            }; injector::MakeInline<MenuTogglesHook2>(pattern.get_first(0), pattern.get_first(7));
 
             // show game in display menu
             pattern = find_pattern("75 1F FF 35 ? ? ? ? E8 ? ? ? ? 8B 4C 24 18", "75 10 57 E8 ? ? ? ? 83 C4 04 83 F8 03");

@@ -462,7 +462,7 @@ public:
                     injector::MakeNOP(pattern.get_first(7), 2, true);
                 else {
                     pattern = hook::pattern("39 1D ? ? ? ? 75 2A 80 7F 28 00");
-                    injector::MakeNOP(pattern.get_first(7), 2, true);
+                    injector::MakeNOP(pattern.get_first(6), 2, true);
                 }
             }
             
