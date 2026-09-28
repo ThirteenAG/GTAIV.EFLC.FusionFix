@@ -2996,6 +2996,11 @@ export namespace CStreamingEngine
     CStreamingInfoManager* ms_info = nullptr;
 }
 
+export namespace CFrontEnd
+{
+    rage::Vector2* (__cdecl* GetWidgetValue)(rage::Vector2*, int) = nullptr;
+}
+
 export enum eControllerButtons
 {
     BUTTON_BUMPER_LEFT = 4,
@@ -3486,5 +3491,8 @@ public:
 
         pattern = find_pattern("B9 ? ? ? ? A3 ? ? ? ? C6 05 ? ? ? ? ? C6 05", "B9 ? ? ? ? A3 ? ? ? ? 88 1D");
         CStreamingEngine::ms_info = *pattern.get_first<CStreamingInfoManager*>(1);
+
+        pattern = find_pattern("8B 44 24 ? 56 8B 35 ? ? ? ? 85 F6", "8B 0D ? ? ? ? 85 C9 8B 44 24 ? 74");
+        CFrontEnd::GetWidgetValue = (decltype(CFrontEnd::GetWidgetValue))pattern.get_first(0);
     }
 } Common;
