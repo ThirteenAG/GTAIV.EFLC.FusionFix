@@ -145,6 +145,12 @@ Zentrierte Zu-Fuß-Kamera
 [Camera Shake]
 Kamerawackeln
 
+[Stunt Jump Cam]
+Stuntsprung-Kamera
+
+[Action Cam]
+Kamera bei Zaunklettern & Fahrzeugraub
+
 [FE_STEAMPAD]
 Steam Controller
 

@@ -145,6 +145,12 @@ Telecamera a piedi centrata
 [Camera Shake]
 Vibrazione della camera
 
+[Stunt Jump Cam]
+Telecamera acrobazie
+
+[Action Cam]
+Telecamera scavalcamenti e furti d'auto
+
 [FE_STEAMPAD]
 Steam Controller
 

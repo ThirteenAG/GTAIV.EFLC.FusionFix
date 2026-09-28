@@ -145,6 +145,12 @@ Fusion Fix: Проверять Обновления
 [Camera Shake]
 Тряска камеры
 
+[Stunt Jump Cam]
+Камера трюковых прыжков
+
+[Action Cam]
+Камера при перелезании и угоне
+
 [FE_STEAMPAD]
 Steam Controller
 
