@@ -155,7 +155,7 @@ Sincronizzazione audio cinematiche
 Sincronizzazione audio cinematiche - No
 
 [CutscAudioSync1]
-Sincronizzazione audio cinematiche - Alternativo
+Sincronizzazione audio cinematiche - Alternativa
 
 [CutscAudioSync2]
 Sincronizzazione audio cinematiche - Sì
@@ -257,7 +257,7 @@ Usa ~PAD_LSTICK_ALL~ per muoverti in aria. ~n~Premi ~INPUT_MOUSE_LMB~ per aprire
 Usa ~PAD_LSTICK_ALL~ per muoverti in aria. ~n~Premi ~INPUT_MOUSE_LMB~ per aprire il paracadute. ~n~Tieni premuto ~INPUT_VEH_CIN_CAM~ per provare diverse visuali.
 
 [ESS_PARA1_PC]
-Quando sei in aria usa ~PAD_LSTICK_ALL~ per muoverti.~n~In caduta libera premi ~INPUT_MOUSE_LMB~ per aprire il paracadute.~n~Tieni premuto ~INPUT_VEH_CIN_CAM~ per provare diverse visuali.
+Quando sei in aria usa ~PAD_LSTICK_ALL~ per muoverti. In caduta libera premi ~INPUT_MOUSE_LMB~ per aprire il paracadute. ~n~Tieni premuto ~INPUT_VEH_CIN_CAM~ per provare diverse visuali.
 
 [DUMMY_l11]
 Dummy label.
