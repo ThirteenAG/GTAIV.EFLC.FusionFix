@@ -145,6 +145,12 @@ Centrer la caméra à pied
 [Camera Shake]
 Tremblements de caméra
 
+[Stunt Jump Cam]
+Caméra des cascades
+
+[Action Cam]
+Caméra escalade et vol de véhicule
+
 [FE_STEAMPAD]
 Steam Controller
 

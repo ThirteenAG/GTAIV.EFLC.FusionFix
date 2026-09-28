@@ -145,6 +145,12 @@ FPSリミッター
 [Camera Shake]
 カメラの振動
 
+[Stunt Jump Cam]
+スタントジャンプのカメラ
+
+[Action Cam]
+フェンス越え・車両強奪時のカメラ
+
 [FE_STEAMPAD]
 Steam Controller
 

@@ -145,6 +145,12 @@ Centrar la cámara a pie
 [Camera Shake]
 Sacudida de la cámara
 
+[Stunt Jump Cam]
+Cámara de saltos acrobáticos
+
+[Action Cam]
+Cámara al trepar vallas y robar coches
+
 [FE_STEAMPAD]
 Steam Controller
 
