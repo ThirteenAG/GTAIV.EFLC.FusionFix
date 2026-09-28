@@ -104,7 +104,7 @@ Farolas
 Farolas y faros
 
 [LampHeadlVNS]
-Farolas, faros y sombras nocturnas del vehículo 
+Farolas, faros y sombras nocturnas de vehículos
 
 [Tree Alpha]
 Transparencia de árboles
@@ -140,7 +140,7 @@ Luces a lo lejos
 Centrar la cámara del vehículo
 
 [CenteredFootCam]
-Centrar la cámara del personaje 
+Centrar la cámara a pie
 
 [Camera Shake]
 Sacudida de la cámara
@@ -170,16 +170,16 @@ Sincronizar audio durante las escenas cinemáticas - Sí
 Indicadores de giro
 
 [WinterEvent0]
-Evento de invierno: Desactivada
+Evento de invierno: Desactivado
 
 [WinterEvent1]
-Evento de invierno: Activada
+Evento de invierno: Activado
 
 [HalloweenEvent0]
-Evento de Halloween: Desactivada
+Evento de Halloween: Desactivado
 
 [HalloweenEvent1]
-Evento de Halloween: Activada
+Evento de Halloween: Activado
 
 [TranspMapMenu]
 Transparencia del mapa del menú de pausa
@@ -224,10 +224,10 @@ Buffalo policía
 Alternativo
 
 [FF_WARN1]
-; ~r~NOTA: Se ha superado el límite de 255 IMG, lo que provocará problemas de «streaming». 
+; ~r~NOTA: Se ha superado el límite de 255 IMG, lo que provocará problemas de «streaming».
 
 [FF_WARN2]
-~r~NOTA: «Sombras nocturnas adicionales» es una opción exclusiva para PC por Rockstar. No se recomienda su uso debido a que presenta numerosos errores.
+~r~NOTA: «Sombras nocturnas adicionales» es una opción original de PC de Rockstar. No se recomienda su uso debido a que presenta numerosos errores.
 
 [FF_WARN3]
 ~r~NOTA: Si el valor del deslizador «Distancia de visión» es superior a 25 y el del deslizador «Detalle de distancia» es superior a 31, es posible que aparezcan objetos de forma repentina.
@@ -248,13 +248,13 @@ Alternativo
 Durante el modo cámara acrobática, usa ~INPUT_MOUSE_WHEEL_UP~ y ~INPUT_MOUSE_WHEEL_DOWN~ para controlar la velocidad de la cámara lenta.
 
 [PARA_CLASSIC_PC]
-Usa ~PAD_LSTICK_ALL~ para cambiar el peso del cuerpo. ~n~Usa ~INPUT_MOUSE_LMB~ y ~INPUT_MOUSE_RMB~ para usar los frenos neumáticos izquierdo y derecho. ~n~Pulsa ~INPUT_ENTER~ para soltar el paracaídas ~n~Mantén ~INPUT_VEH_CIN_CAM~ para ver las distintas cámaras.
+Usa ~PAD_LSTICK_ALL~ para cambiar el peso del cuerpo. ~n~Usa ~INPUT_MOUSE_LMB~ y ~INPUT_MOUSE_RMB~ para usar los frenos aerodinámicos izquierdo y derecho. ~n~Pulsa ~INPUT_ENTER~ para soltar el paracaídas. ~n~Mantén pulsado ~INPUT_VEH_CIN_CAM~ para ver las distintas cámaras.
 
 [PARA_FALL_PC]
 Usa ~PAD_LSTICK_ALL~ para moverte en el aire. ~n~Pulsa ~INPUT_MOUSE_LMB~ para abrir el paracaídas. ~n~Mantén pulsado ~INPUT_VEH_CIN_CAM~ para ver las distintas cámaras.
 
 [PARA_FLOAT_PC]
-Usa ~PAD_LSTICK_ALL~ para cambiar el peso del cuerpo. ~n~Usa ~INPUT_MOUSE_LMB~ y ~INPUT_MOUSE_RMB~ para usar los frenos neumáticos izquierdo y derecho. ~n~Pulsa ~INPUT_ENTER~ para soltar el paracaídas. ~n~Mantén pulsado ~INPUT_VEH_CIN_CAM~ para ver las distintas cámaras.
+Usa ~PAD_LSTICK_ALL~ para cambiar el peso del cuerpo. ~n~Usa ~INPUT_MOUSE_LMB~ y ~INPUT_MOUSE_RMB~ para usar los frenos aerodinámicos izquierdo y derecho. ~n~Pulsa ~INPUT_ENTER~ para soltar el paracaídas. ~n~Mantén pulsado ~INPUT_VEH_CIN_CAM~ para ver las distintas cámaras.
 
 [BJHELP_PC]
 Usa ~PAD_LSTICK_ALL~ para moverte en el aire. ~n~Pulsa ~INPUT_MOUSE_LMB~ para abrir el paracaídas. ~n~Mantén pulsado ~INPUT_VEH_CIN_CAM~ para ver las distintas cámaras.

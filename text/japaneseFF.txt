@@ -214,6 +214,9 @@ Steam Controller
 [CP_6AXIS]
 クイックセーブ
 
+[POLICE3]
+ポリス・バッファロー
+
 [FF_WARN0]
 ~p~IMGファイル:
 
@@ -227,13 +230,13 @@ Steam Controller
 ~r~警告: 夜間時の追加シャドウはロックスター製のオプションです。深刻な不具合があるため、推奨されません。
 
 [FF_WARN3]
-~r~警告: 視界範囲を25以上、詳細表示距離を31以上に設定すると、オブジェクトが突然表示される等の不具合が発生する可能性があります。
+~r~警告: 視界範囲を25より大きく、詳細表示距離を31より大きく設定すると、オブジェクトが突然表示される等の不具合が発生する可能性があります。
 
 [FF_WARN4]
-~r~警告: 視界範囲を25以上に設定すると、オブジェクトが突然表示される等の不具合が発生する可能性があります。
+~r~警告: 視界範囲を25より大きく設定すると、オブジェクトが突然表示される等の不具合が発生する可能性があります。
 
 [FF_WARN5]
-~r~警告: 詳細表示距離を31以上に設定すると、オブジェクトが突然表示される等の不具合が発生する可能性があります。
+~r~警告: 詳細表示距離を31より大きく設定すると、オブジェクトが突然表示される等の不具合が発生する可能性があります。
 
 [FF_WARN6]
 ~r~警告: CHSSは影表現の設定を「非常に高い」に設定した場合のみ有効になります。
@@ -242,7 +245,25 @@ Steam Controller
 ~r~警告: 音ズレが発生する場合はカットシーンの音声同期をONに、アニメーションを滑らかにするにはOFFにしてください。カットシーン中に~PAD_UP~で切り替えられます。
 
 [USJ_FRST_KMB]
-スタントカメラモード中は~INPUT_MOUSE_WHEEL_UP~と~INPUT_MOUSE_WHEEL_DOWN~で スローモーションの速度を調節できる
+スタントカメラモード中は~INPUT_MOUSE_WHEEL_UP~と~INPUT_MOUSE_WHEEL_DOWN~でスローモーションの速度を調節できる
+
+[PARA_CLASSIC_PC]
+~PAD_LSTICK_ALL~で体重を移動できる。~n~~INPUT_MOUSE_LMB~と~INPUT_MOUSE_RMB~で左右のエアブレーキをかけられる。~n~~INPUT_ENTER~でパラシュートを切り離す。~n~~INPUT_VEH_CIN_CAM~を長押しでカメラを切り替えられる。
+
+[PARA_FALL_PC]
+~PAD_LSTICK_ALL~で空中を移動できる。~n~~INPUT_MOUSE_LMB~でパラシュートを開く。~n~~INPUT_VEH_CIN_CAM~を長押しでカメラを切り替えられる。
+
+[PARA_FLOAT_PC]
+~PAD_LSTICK_ALL~で体重を移動できる。~n~~INPUT_MOUSE_LMB~と~INPUT_MOUSE_RMB~で左右のエアブレーキをかけられる。~n~~INPUT_ENTER~でパラシュートを切り離す。~n~~INPUT_VEH_CIN_CAM~を長押しでカメラを切り替えられる。
+
+[BJHELP_PC]
+~PAD_LSTICK_ALL~で空中を移動できる。~n~~INPUT_MOUSE_LMB~でパラシュートを開く。~n~~INPUT_VEH_CIN_CAM~を長押しでカメラを切り替えられる。
+
+[PARAF2_PC]
+~PAD_LSTICK_ALL~で空中を移動できる。~n~~INPUT_MOUSE_LMB~でパラシュートを開く。~n~~INPUT_VEH_CIN_CAM~を長押しでカメラを切り替えられる。
+
+[ESS_PARA1_PC]
+空中では~PAD_LSTICK_ALL~で移動できる。自由落下中に~INPUT_MOUSE_LMB~でパラシュートを開く。~n~~INPUT_VEH_CIN_CAM~を長押しでカメラを切り替えられる。
 
 [DUMMY_l11]
 Dummy label.
