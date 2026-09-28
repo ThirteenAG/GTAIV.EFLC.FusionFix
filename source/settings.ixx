@@ -3,6 +3,7 @@ module;
 #include <common.hxx>
 #include <shlobj.h>
 #include <d3dx9.h>
+#include <psapi.h>
 #include <span>
 #include <stdexcept>
 
@@ -2575,7 +2576,12 @@ public:
         if (GetD3DX9_43DLL())
         {
             CIniReader iniReader("");
+
+            // [FOG]
             static bool bExtendedTimecycEditing = iniReader.ReadInteger("FOG", "ExtendedTimecycEditing", 0) != 0;
+
+            // [EXPERIMENTAL]
+            static bool bDisplayMemoryStats = iniReader.ReadInteger("EXPERIMENTAL", "DisplayMemoryStats", 0) != 0;
 
             static ID3DXFont* pFPSFont = nullptr;
 
@@ -2718,6 +2724,54 @@ public:
                                 if (it.first >= 0 && it.first < CTimeCycleModifier::ARRAY_SIZE)
                                     DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sModifiers, modNames[it.first].data(), it.second);
                             }
+                        }
+                        else if (bDisplayMemoryStats)
+                        {
+                            auto i = 0;
+
+                            static char sStreamingMemory[] = "Streaming memory: %d / %d MB";
+                            static char sVirtualHeapSize[] = "Virtual heap size: %d / %d MB";
+                            static char sProcessMemory[] = "Process memory: %d / %d MB";
+
+                            constexpr uint32_t MB = 1024 * 1024;
+
+                            uint32_t nUsedPhysical = (CStreamingEngine::ms_info->m_PhysicalUsed + MB / 2) / MB;
+                            uint32_t nMaxPhysical = (CStreamingEngine::ms_info->m_ResourcePhysicalAvailable + MB / 2) / MB;
+
+                            uint32_t nUsedVirtual = (CStreamingEngine::ms_info->m_VirtualUsed + MB / 2) / MB;
+                            uint32_t nMaxVirtual = (CStreamingEngine::ms_info->m_ResourceVirtualMax + MB / 2) / MB;
+
+                            uint32_t nProcessMemory = 0;
+                            uint32_t nTotalProcessMemory = 0;
+
+                            PROCESS_MEMORY_COUNTERS ProcessMemoryCounter{};
+                            if (GetProcessMemoryInfo(GetCurrentProcess(), &ProcessMemoryCounter, sizeof(ProcessMemoryCounter)))
+                            {
+                                nProcessMemory = ProcessMemoryCounter.WorkingSetSize / (1024 * 1024);
+                            }
+
+                            MEMORYSTATUSEX MemoryStatus{};
+                            MemoryStatus.dwLength = sizeof(MemoryStatus);
+
+                            if (GlobalMemoryStatusEx(&MemoryStatus))
+                            {
+                                constexpr uint64_t MaxProcessMemory = 4ull * 1024 * 1024 * 1024; // 4 GB
+
+                                uint64_t TotalSystemMemory = MemoryStatus.ullTotalPhys;
+                                if (TotalSystemMemory > MaxProcessMemory)
+                                    TotalSystemMemory = MaxProcessMemory;
+
+                                nTotalProcessMemory = static_cast<uint32_t>(TotalSystemMemory / (1024 * 1024));
+                            }
+
+                            // Physical memory must be corrected by adding used memory to it, as normally it decreases as used memory increases;
+                            // It will still update continuously, because grcResourceCache updates it.
+                            // Virtual memory is fixed size, so it does not update dynamically and can be displayed as is.
+                            uint32_t CorrectedPhysical = nUsedPhysical + nMaxPhysical;
+
+                            DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sStreamingMemory, nUsedPhysical, CorrectedPhysical);
+                            DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVirtualHeapSize, nUsedVirtual, nMaxVirtual);
+                            DrawTextOutline(pFPSFont, 10, FLOAT(fontSize* ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sProcessMemory, nProcessMemory, nTotalProcessMemory);
                         }
                     }
                 }

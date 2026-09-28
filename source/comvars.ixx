@@ -2970,6 +2970,32 @@ export namespace CCutsceneManager
     float* ms_fTimePassedSinceLastAudioStart = nullptr;
 }
 
+struct CStreamingInfoManager
+{
+    int* m_StreamingFiles;
+    int m_NumStreamingFiles;
+    int* field_8[6];
+
+    int m_ResourceVirtualMax;
+    int m_VirtualUsed;
+    int m_ResourceVirtualUsed;
+
+    int m_ResourcePhysicalAvailable;
+    int m_PhysicalUsed;
+    int m_ResourcePhysicalUsed;
+
+    int m_NumRequests;
+    int m_NumRealRequests;
+    int m_NumPriorityRequests;
+    int field_44;
+    int m_Device;
+};
+
+export namespace CStreamingEngine
+{
+    CStreamingInfoManager* ms_info = nullptr;
+}
+
 export enum eControllerButtons
 {
     BUTTON_BUMPER_LEFT = 4,
@@ -3457,5 +3483,8 @@ public:
 
         pattern = find_pattern("F3 0F 10 05 ? ? ? ? EB ? 66 0F 6E C0", "F3 0F 10 05 ? ? ? ? EB ? F3 0F 2A C0");
         CTimer::m_systemTime = *pattern.get_first<float*>(4);
+
+        pattern = find_pattern("B9 ? ? ? ? A3 ? ? ? ? C6 05 ? ? ? ? ? C6 05", "B9 ? ? ? ? A3 ? ? ? ? 88 1D");
+        CStreamingEngine::ms_info = *pattern.get_first<CStreamingInfoManager*>(1);
     }
 } Common;
