@@ -90,12 +90,24 @@ namespace CText
 
     const wchar_t* (__fastcall* Get)(CText* text, void* edx, const char* key);
 
+    // Texts of code-defined menu entries: enum values and submenu rows, longer than
+    // the 15-byte label fields. Kept apart from gxtEntries, which reloads clear.
+    std::unordered_map<uint32_t, std::wstring> menuTexts;
+
+    const wchar_t* FindMenuText(uint32_t hash)
+    {
+        if (auto it = menuTexts.find(hash); it != menuTexts.end())
+            return it->second.c_str();
+        if (auto it = gxtEntries.find(hash); it != gxtEntries.end())
+            return it->second.c_str();
+        return nullptr;
+    }
+
     SafetyHookInline shGetText{};
     const wchar_t* __fastcall getText(CText* text, void* edx, const char* key)
     {
-        auto hash = GetHash(key);
-        if (gxtEntries.contains(hash))
-            return gxtEntries[hash].c_str();
+        if (auto found = FindMenuText(GetHash(key)))
+            return found;
 
         return shGetText.fastcall<const wchar_t*>(text, edx, key);
     }
@@ -103,8 +115,8 @@ namespace CText
     SafetyHookInline shGetTextByKey{};
     const wchar_t* __fastcall getTextByKey(CText* text, void* edx, uint32_t hash, int a3)
     {
-        if (gxtEntries.contains(hash))
-            return gxtEntries[hash].c_str();
+        if (auto found = FindMenuText(hash))
+            return found;
 
         return shGetTextByKey.fastcall<const wchar_t*>(text, edx, hash, a3);
     }
@@ -112,7 +124,7 @@ namespace CText
     SafetyHookInline shDoesTextLabelExist{};
     char __fastcall doesTextLabelExist(CText* text, void* edx, const char* key)
     {
-        if (gxtEntries.contains(GetHash(key)))
+        if (FindMenuText(GetHash(key)))
             return 1;
 
         return shDoesTextLabelExist.fastcall<char>(text, edx, key);
@@ -204,9 +216,20 @@ private:
         std::function<void(int32_t value)> callback;
         int32_t idStart;
         int32_t idEnd;
+        // Code-defined options keep their value outside the preference (AddToggle/AddEnum/AddSlider with callbacks)
+        std::function<int32_t()> getter;
+        std::function<void(int32_t)> setter;
 
-        auto GetValue() { return value; }
-        void SetValue(int32_t v) { value = std::clamp(v, idStart, idEnd); WriteToIni(); if (callback) callback(value); }
+        auto GetValue() { return getter ? getter() : value; }
+        void SetValue(int32_t v)
+        {
+            value = std::clamp(v, idStart, idEnd);
+            if (setter)
+                setter(value);
+            else
+                WriteToIni();
+            if (callback) callback(value);
+        }
         auto ReadFromIni(auto& iniReader) { return iniReader.ReadInteger(iniSec, iniName, iniDefValInt); }
         auto ReadFromIni() { CIniReader iniReader(cfgPath); return ReadFromIni(iniReader); }
         void WriteToIni(auto& iniWriter) { if (!iniName.empty()) iniWriter.WriteInteger(iniSec, iniName, value, true); }
@@ -237,8 +260,89 @@ private:
         int32_t screen;
         SettingsTables::Option option;
         std::function<void()> selected;
+        int32_t submenu = -1;   // screen of the page the row opens
     };
     static inline std::vector<DynamicOption> dynamicOptions;
+
+    // Custom screens (AddScreen: tabs, AddSubmenu: pages opened from a row) are shown in place of
+    // the Display screen, whose option array points at the page's rows while one is active.
+    struct Page
+    {
+        char label[240]{};
+        std::wstring text;
+        std::array<SettingsTables::Option, 17> rows{};
+        int32_t parent = -1;
+        int32_t parentRow = 0;
+        bool displayGame = false;
+    };
+
+    struct Tab
+    {
+        int32_t id = -1;
+        float left = 0.0f;
+        float top = 0.0f;
+        float right = 0.0f;
+        float bottom = 0.0f;
+        bool visible = false;
+    };
+
+    static constexpr int32_t FirstCustomScreen = 256;
+    static constexpr int32_t NoTab = 73;
+    static constexpr int32_t DisplayScreen = 8;
+    static inline std::array<Page, 16> pages;
+    static inline size_t pageCount = 0;
+    static inline size_t customTabCount = 0;
+    // Stock tabs in visual order; Stats is skipped online and Game uses NetworkGame
+    static inline std::vector<Tab> tabs = { { 3 }, { 2 }, { 4 }, { 5 }, { 7 }, { 8 }, { 49 }, { 0 } };
+    static inline bool tabsInitialized = false;
+    static inline SettingsTables::Array<SettingsTables::Option> displayOptions{};
+    static inline int32_t activePage = -1;
+    static inline int32_t pendingPage = -1;
+    static inline int32_t requestedTab = -1;
+    static inline int32_t openSubmenu = -1;
+    static inline bool mouseTabRequest = false;
+    static inline bool tabTransitionComplete = false;
+    static inline bool tabTextEnabled = false;
+    static inline bool checkingBack = false;
+    static inline bool submenuBack = false;
+    static inline uint8_t* tabInputState = nullptr;
+    static inline uint8_t* tabDrawState = nullptr;
+    static inline uint8_t* tabState = nullptr;
+    static inline void* tabTextObject = nullptr;
+    static inline int32_t* tabHover = nullptr;
+    static inline int32_t* mousePosition = nullptr;
+    static inline float* mouseScale = nullptr;
+    static inline uintptr_t pageBackground = 0;
+    static inline uintptr_t drawPageBackground = 0;
+    static inline uintptr_t afterPageBackground = 0;
+    static inline uint8_t* renderGame = nullptr;
+    static inline uint8_t* frontendActive = nullptr;
+    static inline float tabSpacing = 0.0f;
+    static inline std::array<std::array<wchar_t, 60>, 73> tabText{};
+    static inline std::array<std::array<wchar_t, 60>, 73> tabLabels{};
+    static inline float* (__cdecl* getTabWidget)(float*, int32_t) = nullptr;
+    static inline void(__cdecl* setTabScale)(float, float) = nullptr;
+    static inline float(__cdecl* getTabHeight)() = nullptr;
+    static inline void(__cdecl* setTabColor)(uint32_t) = nullptr;
+    static inline uint32_t* (__cdecl* getHudColour)(uint32_t*, int32_t) = nullptr;
+    static inline uint8_t(__cdecl* isNetworkGame)() = nullptr;
+    static inline uint8_t(__cdecl* hasTabModal)() = nullptr;
+    static inline int32_t(__cdecl* hideRow)(int32_t, int32_t, uint8_t) = nullptr;
+    static inline const char* (__cdecl* copyRowLabel)(const char*, wchar_t*) = nullptr;
+    static inline SafetyHookInline processTabs;
+    static inline SafetyHookInline drawTabs;
+    static inline SafetyHookInline checkForBackInput;
+    static inline SafetyHookInline queryInput;
+    static inline SafetyHookInline switchToNewScreen;
+    static inline SafetyHookInline getTabText;
+    static inline SafetyHookInline printTab;
+    static inline SafetyHookInline measureTab;
+    static inline SafetyHookMid tabTransitionHook;
+    static inline SafetyHookMid gameVisibilityHook;
+    static inline SafetyHookMid resetScreenRowsHook;
+    static inline SafetyHookMid resetScreenRowsHook2;
+    static inline SafetyHookMid pageBackgroundHook;
+    static inline int32_t callbackCount = 0;
     static inline std::map<int32_t, std::vector<SettingsTables::DisplayValue>> dynamicDisplays;
     static inline SettingsTables::Screen* screens = nullptr;
     static inline int32_t* currentScreen = nullptr;
@@ -317,11 +421,20 @@ private:
         if (screen < 0 || screen >= 73)
             return;
         auto& options = screens[screen].options;
+        auto logical = GetLogicalScreen(screen);
+        auto page = FindPage(logical);
+        if (page)
+        {
+            // Pages only hold code-defined rows, rebuilt on every fill
+            options.count = 1;
+            options.data[0] = {};
+            options.data[0].action = 46;
+        }
         if (!options.data || options.count == 0 || options.count > options.capacity || options.data[options.count - 1].action != 46)
             return;
         for (auto& added : dynamicOptions)
         {
-            if (added.screen != screen)
+            if (added.screen != logical)
                 continue;
             auto found = std::find_if(options.data, options.data + options.count, [&](const auto& option)
             {
@@ -333,23 +446,45 @@ private:
             // The frontend instance has visibility/layout storage for 50 rows,
             // including END_OF_MENU_OPTIONS. Growing the XML array alone is not
             // sufficient to lift that limit.
-            if (options.count >= 50)
+            if (options.count >= (page ? static_cast<uint16_t>(page->rows.size()) : 50))
                 return;
             auto sentinel = options.data[options.count - 1];
-            *AppendOption(&options) = sentinel;
+            if (page)
+                options.data[options.count++] = sentinel;
+            else
+                *AppendOption(&options) = sentinel;
             options.data[options.count - 2] = added.option;
         }
     }
 
     static int32_t __cdecl FillMenu(int32_t menu)
     {
-        InjectMenu(*currentScreen);
-        if (legacyExecutable)
+        if (tabsInitialized)
         {
-            fillMenu.ccall<void>(menu);
-            return 0;
+            if (*currentScreen == DisplayScreen && pendingPage != -1)
+                ActivatePage(pendingPage);
+            else if (*currentScreen != DisplayScreen)
+                RestoreDisplay();
         }
-        return fillMenu.ccall<int32_t>(menu);
+
+        InjectMenu(*currentScreen);
+        int32_t result = 0;
+        if (legacyExecutable)
+            fillMenu.ccall<void>(menu);
+        else
+            result = fillMenu.ccall<int32_t>(menu);
+
+        if (activePage != -1)
+        {
+            auto handle = menuHandles[menu];
+            if (handle >= 0 && menuInstances[handle])
+            {
+                auto count = screens[DisplayScreen].options.count;
+                for (uint16_t row = 0; row + 1 < count; ++row)
+                    hideRow(handle, row, 0);
+            }
+        }
+        return result;
     }
 
     static int32_t FindButton(int32_t row)
@@ -360,8 +495,9 @@ private:
         if (row >= options.count || !options.data || options.data[row].action != 127)
             return -1;
         auto index = options.data[row].preference;
-        if (index < 0 || static_cast<size_t>(index) >= dynamicOptions.size() || !dynamicOptions[index].selected ||
-            dynamicOptions[index].screen != *currentScreen)
+        if (index < 0 || static_cast<size_t>(index) >= dynamicOptions.size() ||
+            (!dynamicOptions[index].selected && dynamicOptions[index].submenu == -1) ||
+            dynamicOptions[index].screen != GetLogicalScreen(*currentScreen))
             return -1;
         return index;
     }
@@ -384,9 +520,18 @@ private:
             if (button == selectedButton)
             {
                 selectedButton = -1;
-                auto callback = dynamicOptions[button].selected;
-                callback();
-                FillMenu(menu);
+                if (auto page = FindPage(dynamicOptions[button].submenu))
+                {
+                    // Opened once the menu input is processed
+                    page->parentRow = row;
+                    openSubmenu = dynamicOptions[button].submenu;
+                }
+                else
+                {
+                    auto callback = dynamicOptions[button].selected;
+                    callback();
+                    FillMenu(menu);
+                }
             }
             return 0;
         }
@@ -402,10 +547,555 @@ private:
     {
         auto previous = std::exchange(selectedButton, -1);
         auto previousMenu = std::exchange(inputMenu, menu);
+        auto previousSubmenu = std::exchange(openSubmenu, -1);
         auto result = processMenu.ccall<uint8_t>(menu);
+        auto submenu = openSubmenu;
         selectedButton = previous;
         inputMenu = previousMenu;
+        openSubmenu = previousSubmenu;
+        if (menu == 0 && submenu != -1)
+            OpenPage(submenu);
         return result;
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Custom screens and tabs (CE only)
+
+    static Page* FindPage(int32_t screen)
+    {
+        auto index = static_cast<uint32_t>(screen) - FirstCustomScreen;
+        return index < pageCount ? &pages[index] : nullptr;
+    }
+
+    static int32_t GetLogicalScreen(int32_t screen)
+    {
+        return screen == DisplayScreen && activePage != -1 ? activePage : screen;
+    }
+
+    static int32_t GetRootScreen(int32_t screen)
+    {
+        while (auto page = FindPage(screen))
+        {
+            if (page->parent == -1)
+                break;
+            screen = page->parent;
+        }
+        return screen;
+    }
+
+    static void ActivatePage(int32_t screen)
+    {
+        auto page = FindPage(screen);
+        if (!page || activePage == screen)
+            return;
+        auto& options = screens[DisplayScreen].options;
+        if (activePage == -1)
+            displayOptions = options;
+        activePage = screen;
+        options.data = page->rows.data();
+        options.count = 1;
+        options.capacity = static_cast<uint16_t>(page->rows.size());
+        page->rows[0] = {};
+        page->rows[0].action = 46;
+    }
+
+    static void RestoreDisplay()
+    {
+        if (activePage == -1)
+            return;
+        screens[DisplayScreen].options = displayOptions;
+        displayOptions = {};
+        activePage = -1;
+    }
+
+    // Before the frontend XML is reloaded or its rows are reset: the game must free its own array
+    static void ResetPages()
+    {
+        RestoreDisplay();
+        pendingPage = -1;
+        for (auto& tab : tabs)
+            tab.visible = false;
+    }
+
+    static void OpenPage(int32_t screen, int32_t row = 0)
+    {
+        bool custom = FindPage(screen) != nullptr;
+        if (custom)
+            ActivatePage(screen);
+        else
+            RestoreDisplay();
+        auto physical = custom ? DisplayScreen : screen;
+        pendingPage = -1;
+        if (tabState)
+            *reinterpret_cast<int32_t*>(tabState + 0x18) = physical;
+        switchToNewScreen.ccall<int32_t>(0, physical, row);
+    }
+
+    static void PrepareTabs()
+    {
+        tabTextEnabled = false;
+        float spacing[2]{};
+        tabSpacing = getTabWidget(spacing, 3)[0];
+        for (auto& tab : tabs)
+        {
+            if (FindPage(tab.id))
+                continue;
+            auto text = getTabText.fastcall<const wchar_t*>(tabTextObject, nullptr, screens[tab.id].header);
+            wcsncpy_s(tabLabels[tab.id].data(), tabLabels[tab.id].size(), text ? text : L"", _TRUNCATE);
+            tabText[tab.id] = tabLabels[tab.id];
+        }
+        tabTextEnabled = true;
+    }
+
+    static const wchar_t* GetTabLabel(const Tab& tab)
+    {
+        if (auto page = FindPage(tab.id))
+            return page->text.c_str();
+        return tabLabels[tab.id].data();
+    }
+
+    static int32_t HitTestTab()
+    {
+        auto x = mousePosition[0] * mouseScale[0];
+        auto y = mousePosition[3] * mouseScale[2];
+        for (auto& tab : tabs)
+            if (tab.visible && x > tab.left && x < tab.right && y > tab.top && y < tab.bottom)
+                return tab.id;
+        return -1;
+    }
+
+    static bool HasTabs(const uint8_t* state)
+    {
+        if (pageCount == 0 || state[0] != 0)
+            return false;
+        switch (*reinterpret_cast<const int32_t*>(state + 0x18))
+        {
+        case 0: case 1: case 2: case 3: case 4: case 5: case 7: case 8: case 49: return true;
+        default: return false;
+        }
+    }
+
+    static int32_t AdjacentTab(int32_t screen, int32_t direction)
+    {
+        if (screen == 1)
+            screen = 0;
+        auto found = std::find_if(tabs.begin(), tabs.end(), [screen](const Tab& tab) { return tab.id == screen; });
+        if (found == tabs.end())
+            return -1;
+        auto count = static_cast<int32_t>(tabs.size());
+        auto index = static_cast<int32_t>(found - tabs.begin());
+        bool network = isNetworkGame() != 0;
+        int32_t next;
+        do
+        {
+            index = (index + count + direction) % count;
+            next = tabs[index].id;
+        } while (network && next == 4);
+        return next == 0 && network ? 1 : next;
+    }
+
+    // The tab functions are __thiscall in CE and __stdcall with the state as first argument in 1.1.2.0
+    static uint8_t CallProcessTabs(uint8_t* state, uint8_t inside)
+    {
+        return legacyExecutable ? processTabs.stdcall<uint8_t>(state, inside) : processTabs.thiscall<uint8_t>(state, inside);
+    }
+
+    static int32_t CallDrawTabs(uint8_t* state)
+    {
+        return legacyExecutable ? drawTabs.stdcall<int32_t>(state) : drawTabs.thiscall<int32_t>(state);
+    }
+
+    static int32_t CallCheckForBackInput(uint8_t* state)
+    {
+        return legacyExecutable ? checkForBackInput.stdcall<int32_t>(state) : checkForBackInput.thiscall<int32_t>(state);
+    }
+
+    static uint8_t __stdcall ProcessTabsLegacy(uint8_t* state, uint8_t inside) { return ProcessTabs(state, nullptr, inside); }
+    static int32_t __stdcall DrawTabsLegacy(uint8_t* state) { return DrawTabs(state, nullptr); }
+    static int32_t __stdcall CheckForBackInputLegacy(uint8_t* state) { return CheckForBackInput(state, nullptr); }
+
+    static uint8_t __fastcall ProcessTabs(uint8_t* state, void*, uint8_t inside)
+    {
+        tabState = state;
+        if (!HasTabs(state))
+            return CallProcessTabs(state, inside);
+
+        PrepareTabs();
+        tabInputState = state;
+        requestedTab = -1;
+        mouseTabRequest = false;
+        tabTransitionComplete = false;
+
+        auto hovered = HitTestTab();
+        auto current = static_cast<uint32_t>(mousePosition[2]);
+        auto previous = static_cast<uint32_t>(mousePosition[1]);
+        if ((current & (current ^ previous) & 1) != 0 && hasTabModal() == 0 &&
+            (FindPage(hovered) || (hovered == DisplayScreen && activePage != -1)))
+        {
+            requestedTab = hovered;
+            mouseTabRequest = true;
+            inside = 0;
+        }
+
+        auto result = CallProcessTabs(state, inside);
+        tabInputState = nullptr;
+        tabTextEnabled = false;
+        mouseTabRequest = false;
+        requestedTab = -1;
+        return result;
+    }
+
+    static uint8_t __cdecl QueryInput(int32_t input, uint8_t sound, uint8_t flags, uint8_t force, uint8_t tabsInput, uint8_t unknown, uint8_t repeat)
+    {
+        if (tabInputState && mouseTabRequest && (input == 2 || input == 8))
+        {
+            if (input == 2)
+                *reinterpret_cast<int32_t*>(tabInputState + 0x18) = NoTab;
+            return input == 2 || tabTransitionComplete ? 1 : 0;
+        }
+
+        auto result = queryInput.ccall<uint8_t>(input, sound, flags, force, tabsInput, unknown, repeat);
+
+        if (result != 0 && input == 11)
+        {
+            pendingPage = -1;
+            if (auto page = FindPage(activePage); checkingBack && page && page->parent != -1)
+            {
+                submenuBack = true;
+                return 0;
+            }
+        }
+
+        if (result != 0 && tabInputState && (input == 2 || input == 3))
+        {
+            auto current = GetRootScreen(GetLogicalScreen(*reinterpret_cast<int32_t*>(tabInputState + 0x18)));
+            auto next = AdjacentTab(current, input == 2 ? -1 : 1);
+            if (activePage != -1 || FindPage(next))
+            {
+                requestedTab = next;
+                *reinterpret_cast<int32_t*>(tabInputState + 0x18) = NoTab;
+            }
+        }
+        return result;
+    }
+
+    static int32_t __fastcall CheckForBackInput(uint8_t* state, void*)
+    {
+        auto previousChecking = checkingBack;
+        auto previousBack = submenuBack;
+        tabState = state;
+        checkingBack = true;
+        submenuBack = false;
+        auto result = CallCheckForBackInput(state);
+        auto back = submenuBack;
+        checkingBack = previousChecking;
+        submenuBack = previousBack;
+        if (auto page = FindPage(activePage); back && page)
+            OpenPage(page->parent, page->parentRow);
+        return result;
+    }
+
+    static int32_t __cdecl SwitchToNewScreen(int32_t menu, int32_t screen, int32_t row)
+    {
+        tabTransitionComplete = tabInputState != nullptr;
+        if (screen == DisplayScreen && pendingPage != -1)
+        {
+            ActivatePage(pendingPage);
+            row = 0;
+        }
+        else if (screen != DisplayScreen || (tabInputState && requestedTab == DisplayScreen))
+            RestoreDisplay();
+        pendingPage = -1;
+        return switchToNewScreen.ccall<int32_t>(menu, screen, row);
+    }
+
+    static int32_t __fastcall DrawTabs(uint8_t* state, void*)
+    {
+        auto hovered = HitTestTab();
+        for (auto& tab : tabs)
+            tab.visible = false;
+        if (!HasTabs(state))
+            return CallDrawTabs(state);
+
+        PrepareTabs();
+        tabDrawState = state;
+        auto& selected = *reinterpret_cast<int32_t*>(state + 0x18);
+        auto saved = selected;
+        auto hover = *tabHover;
+        if (FindPage(hovered))
+            *tabHover = NoTab;
+        if (activePage != -1 && selected == DisplayScreen)
+        {
+            auto root = GetRootScreen(activePage);
+            selected = FindPage(root) ? NoTab : root;
+        }
+
+        auto result = CallDrawTabs(state);
+        selected = saved;
+        *tabHover = hover;
+        tabDrawState = nullptr;
+        tabTextEnabled = false;
+        return result;
+    }
+
+    static const wchar_t* __fastcall GetTabText(void* text, void* edx, const char* key)
+    {
+        if (tabTextEnabled)
+            for (auto& tab : tabs)
+                if (tab.id < 73 && key == screens[tab.id].header)
+                    return tabText[tab.id].data();
+        if (key)
+            if (auto found = CText::FindMenuText(GetHash(key)))
+                return found;
+        return getTabText.fastcall<const wchar_t*>(text, edx, key);
+    }
+
+    static void __cdecl SetTabScale(float x, float y)
+    {
+        setTabScale(x, y);
+        if (!tabTextEnabled)
+            return;
+        float stock = 0.0f;
+        float added = 0.0f;
+        for (auto& tab : tabs)
+        {
+            auto width = measureTab.ccall<float>(GetTabLabel(tab), uint8_t(1));
+            (FindPage(tab.id) ? added : stock) += width;
+        }
+        if (stock > 0.0f && added > 0.0f)
+        {
+            auto count = static_cast<float>(customTabCount);
+            tabSpacing = std::min(tabSpacing, stock / (2.0f * count));
+            auto available = stock - tabSpacing * count;
+            setTabScale(x * available / (stock + added), y);
+        }
+    }
+
+    static std::vector<Tab>::iterator FindTabByText(const wchar_t* text)
+    {
+        return std::find_if(tabs.begin(), tabs.end(), [text](const Tab& tab) { return tab.id < 73 && text == tabText[tab.id].data(); });
+    }
+
+    // A stock tab followed by custom tabs measures and prints them together
+    static float __cdecl MeasureTab(const wchar_t* text, uint8_t full)
+    {
+        if (!tabTextEnabled)
+            return measureTab.ccall<float>(text, full);
+        auto found = FindTabByText(text);
+        if (found == tabs.end())
+            return measureTab.ccall<float>(text, full);
+        auto width = measureTab.ccall<float>(GetTabLabel(*found), uint8_t(1));
+        for (auto tab = found + 1; tab != tabs.end() && FindPage(tab->id); ++tab)
+            width += tabSpacing + measureTab.ccall<float>(GetTabLabel(*tab), uint8_t(1));
+        return width;
+    }
+
+    static void __cdecl PrintTab(float x, float y, const wchar_t* text, int32_t first, int32_t last)
+    {
+        auto found = tabDrawState ? FindTabByText(text) : tabs.end();
+        if (found == tabs.end())
+        {
+            printTab.ccall<void>(x, y, text, first, last);
+            return;
+        }
+
+        auto height = getTabHeight();
+        auto mouseX = mousePosition[0] * mouseScale[0];
+        auto mouseY = mousePosition[3] * mouseScale[2];
+        for (auto tab = found; tab != tabs.end(); ++tab)
+        {
+            if (tab != found && !FindPage(tab->id))
+                break;
+            auto width = measureTab.ccall<float>(GetTabLabel(*tab), uint8_t(1));
+            tab->left = x;
+            tab->top = y;
+            tab->right = x + width;
+            tab->bottom = y + height;
+            tab->visible = true;
+            if (tab != found)
+            {
+                uint32_t color;
+                bool hovered = mouseX > tab->left && mouseX < tab->right && mouseY > tab->top && mouseY < tab->bottom;
+                auto palette = tab->id == GetRootScreen(activePage) ? (tabDrawState[1] != 0 ? 63 : 62) : (hovered ? 1 : 59);
+                getHudColour(&color, palette);
+                setTabColor(color);
+            }
+            printTab.ccall<void>(x, y, GetTabLabel(*tab), first, last);
+            x += width + tabSpacing;
+        }
+    }
+
+    // Submenu rows show the page's text, which is longer than a label
+    static const char* __cdecl CopyRowLabel(const char* label, wchar_t* text)
+    {
+        auto& options = screens[*currentScreen].options;
+        for (int32_t row = 0; row < options.count; ++row)
+        {
+            if (label != options.data[row].label)
+                continue;
+            if (auto button = FindButton(row); button >= 0)
+            {
+                if (auto page = FindPage(dynamicOptions[button].submenu))
+                {
+                    std::wmemcpy(text, page->text.c_str(), page->text.size() + 1);
+                    return nullptr;
+                }
+            }
+            break;
+        }
+        return copyRowLabel(label, text);
+    }
+
+    static void InitializeTabs()
+    {
+        auto branch = [](void* address) { return injector::GetBranchDestination(address).as_int(); };
+        auto resetRows = [](SafetyHookContext&) { ResetPages(); };
+
+        // Where the executables differ: tab text and drawing, mouse, background of the Display screen, whether
+        // the game renders behind the menu, and the tab, back input and row label functions
+        uint8_t* gameVisibilityHookAddress = nullptr;
+        void* processTabsAddress = nullptr;
+        void* drawTabsAddress = nullptr;
+        void* checkForBackAddress = nullptr;
+        void* switchScreenAddress = nullptr;
+        void* getTabTextAddress = nullptr;
+        void* printTabAddress = nullptr;
+        void* queryInputAddress = nullptr;
+        std::array<void*, 2> scaleCalls{};
+        void* rowLabel = nullptr;
+        if (legacyExecutable)
+        {
+            auto print = hook::pattern("B9 ? ? ? ? E8 ? ? ? ? D9 44 24 2C 50 83 EC 08 D9 5C 24 04 D9 84 24 ? ? ? ? D9 1C 24 E8 ? ? ? ? 83 C4 14 83 3D").get_first<uint8_t>();
+            tabTextObject = *reinterpret_cast<void**>(print + 1);
+            getTabTextAddress = reinterpret_cast<void*>(branch(print + 5));
+            printTabAddress = reinterpret_cast<void*>(branch(print + 0x20));
+            tabHover = *reinterpret_cast<int32_t**>(print + 0x2A);
+            setTabColor = reinterpret_cast<decltype(setTabColor)>(branch(print - 0x11));
+
+            // 1.1.2.0, 1.0.8.0: same layout, other stack offset
+            auto mouse = find_pattern("E8 ? ? ? ? F3 0F 2A 05 ? ? ? ? D9 5C 24 1C F3 0F 59 05",
+                "E8 ? ? ? ? F3 0F 2A 05 ? ? ? ? D9 5C 24 28 F3 0F 59 05").get_first<uint8_t>();
+            getTabHeight = reinterpret_cast<decltype(getTabHeight)>(branch(mouse));
+            mousePosition = *reinterpret_cast<int32_t**>(mouse + 9) - 3;
+            mouseScale = *reinterpret_cast<float**>(mouse + 0x15) - 2;
+
+            pageBackground = reinterpret_cast<uintptr_t>(hook::pattern("A1 ? ? ? ? 83 F8 08 74 0C 83 F8 31").get_first());
+            auto backgroundBranch = hook::pattern("83 F8 08 0F 85 ? ? ? ? E8 ? ? ? ? 84 C0 74 1A").get_first<uint8_t>();
+            drawPageBackground = reinterpret_cast<uintptr_t>(backgroundBranch + 9 + *reinterpret_cast<int32_t*>(backgroundBranch + 5));
+            afterPageBackground = reinterpret_cast<uintptr_t>(hook::pattern("EB 04 8A 5C 24 10 80 3D ? ? ? ? 00 0F 85").get_first(2));
+
+            auto gameVisibility = hook::pattern("39 35 ? ? ? ? 75 07 C6 05 ? ? ? ? 01").get_first<uint8_t>();
+            renderGame = *reinterpret_cast<uint8_t**>(gameVisibility + 0x0A);
+            gameVisibilityHookAddress = gameVisibility + 0x0F;
+            frontendActive = *hook::pattern("A0 ? ? ? ? C6 05 ? ? ? ? 01 8D 73 03").get_first<uint8_t*>(1);
+
+            auto drawScale = hook::pattern("D9 1C 24 E8 ? ? ? ? 6A 01 E8 ? ? ? ? 83 C4 0C 8D 44 24 18 6A 03 50 E8").get_first<uint8_t>();
+            scaleCalls = { hook::pattern("D9 1C 24 E8 ? ? ? ? 6A 01 E8 ? ? ? ? 83 C4 0C BE 03 00 00 00").get_first(3), drawScale + 3 };
+            getTabWidget = reinterpret_cast<decltype(getTabWidget)>(branch(drawScale + 0x19));
+            getHudColour = reinterpret_cast<decltype(getHudColour)>(hook::pattern("56 8B 74 24 0C 8B 04 B5 ? ? ? ? 8B C8 C1 E9 18").get_first());
+            isNetworkGame = reinterpret_cast<decltype(isNetworkGame)>(hook::pattern("53 8A 1D ? ? ? ? 84 DB 74 37 A1").get_first());
+            auto query = hook::pattern("83 EC 0C 80 3D ? ? ? ? 00 55 8B 6C 24 14 75 0C 83 FD 0B").get_first<uint8_t>();
+            queryInputAddress = query;
+            hasTabModal = reinterpret_cast<decltype(hasTabModal)>(branch(query + 0x1E));
+            hideRow = reinterpret_cast<decltype(hideRow)>(hook::pattern("56 8B 74 24 08 83 FE A6 74 29 8B 0C B5").get_first());
+
+            // 1.1.2.0, 1.0.8.0: other stack frame size
+            processTabsAddress = find_pattern("81 EC DC 00 00 00 A1 ? ? ? ? 33 C4 89 84 24 D4 00 00 00 80 BC 24 E4 00 00 00 00",
+                "81 EC D4 00 00 00 A1 ? ? ? ? 33 C4 89 84 24 CC 00 00 00 80 BC 24 DC 00 00 00 00").get_first();
+            drawTabsAddress = hook::pattern("81 EC 90 00 00 00 80 3D ? ? ? ? 00 53 55 8B AC 24 9C 00 00 00").get_first();
+            checkForBackAddress = hook::pattern("80 3D ? ? ? ? 00 0F 85 FA 00 00 00 80 3D").get_first();
+            switchScreenAddress = reinterpret_cast<void*>(branch(hook::pattern("0F B6 55 18 6A 00 52 6A 00 E8").get_first(9)));
+            rowLabel = hook::pattern("83 C0 01 50 E8 ? ? ? ? 83 C4 08 C7 46 FC FF FF FF FF").get_first(4);
+
+            // The screens' rows are freed in two places
+            auto reset = hook::pattern("81 FE ? ? ? ? 7C CE BE ? ? ? ? 88 5E F0").count(2);
+            resetScreenRowsHook = safetyhook::create_mid(reset.get(0).get<void>(8), resetRows);
+            resetScreenRowsHook2 = safetyhook::create_mid(reset.get(1).get<void>(8), resetRows);
+        }
+        else
+        {
+            auto print = hook::pattern("83 C4 14 83 3D ? ? ? ? 00 75").get_first<uint8_t>();
+            tabTextObject = *reinterpret_cast<void**>(print - 0x32);
+            getTabTextAddress = reinterpret_cast<void*>(branch(print - 0x25));
+            printTabAddress = reinterpret_cast<void*>(branch(print - 5));
+            tabHover = *reinterpret_cast<int32_t**>(print + 5);
+            setTabColor = reinterpret_cast<decltype(setTabColor)>(hook::pattern("0F 2F C1 76 35 C1 E8 18").get_first(-0x2A));
+
+            auto mouse = hook::pattern("D9 5C 24 58 66 0F 6E 1D").get_first<uint8_t>();
+            getTabHeight = reinterpret_cast<decltype(getTabHeight)>(branch(mouse - 5));
+            mousePosition = *reinterpret_cast<int32_t**>(mouse + 8) - 3;
+            mouseScale = *reinterpret_cast<float**>(mouse + 0x1E) - 2;
+
+            pageBackground = reinterpret_cast<uintptr_t>(hook::pattern("83 F8 08 74 17 0F B6 0D").get_first(-5));
+            auto backgroundBranch = hook::pattern("83 F8 08 75 C1 E8").get_first<uint8_t>();
+            drawPageBackground = reinterpret_cast<uintptr_t>(backgroundBranch + 5 + *reinterpret_cast<int8_t*>(backgroundBranch + 4));
+            afterPageBackground = reinterpret_cast<uintptr_t>(hook::pattern("75 41 E8 ? ? ? ? 84 C0 75 38").get_first(-7));
+
+            auto gameVisibility = hook::pattern("83 FE 03 75 07 C6 05").get_first<uint8_t>();
+            renderGame = *reinterpret_cast<uint8_t**>(gameVisibility + 7);
+            gameVisibilityHookAddress = gameVisibility + 0x0C;
+            frontendActive = *hook::pattern("8A 1D ? ? ? ? C6 05 ? ? ? ? 01 7F").get_first<uint8_t*>(2);
+
+            scaleCalls = { hook::pattern("8D 44 24 68 6A 03 50").get_first(-0x0F), hook::pattern("8D 44 24 28 6A 03 50").get_first(-0x0F) };
+            getTabWidget = reinterpret_cast<decltype(getTabWidget)>(branch(hook::pattern("8D 44 24 68 6A 03 50").get_first(7)));
+            getHudColour = reinterpret_cast<decltype(getHudColour)>(hook::pattern("C1 EE 18 C1 E8 10 0F B6 C0").get_first(-0x10));
+            isNetworkGame = reinterpret_cast<decltype(isNetworkGame)>(branch(hook::pattern("33 D2 6A 01 FF 35").get_first(-5)));
+            auto query = hook::pattern("83 FE 0B 75 07 32 C0").get_first<uint8_t>();
+            queryInputAddress = query - 0x11;
+            hasTabModal = reinterpret_cast<decltype(hasTabModal)>(branch(query + 0x0D));
+            hideRow = reinterpret_cast<decltype(hideRow)>(hook::pattern("88 84 0E E4 33 00 00").get_first(-0x21));
+
+            processTabsAddress = hook::pattern("83 EC 78 80 7C 24 7C 00").get_first();
+            drawTabsAddress = hook::pattern("89 4C 24 18 0F 85 ? ? ? ? 6A 07").get_first(-0x1F);
+            checkForBackAddress = hook::pattern("00 55 8B E9 0F 85 ? ? ? ? 80 3D").get_first(-6);
+            switchScreenAddress = hook::pattern("8B 44 24 08 83 EC 10 A3").get_first();
+            rowLabel = hook::pattern("8D 47 01 03 C1 50 E8").get_first(6);
+
+            resetScreenRowsHook = safetyhook::create_mid(hook::pattern("7C D5 5F 5E C3").get_first(-0x2E), resetRows);
+        }
+        setTabScale = reinterpret_cast<decltype(setTabScale)>(branch(scaleCalls[0]));
+
+        if (legacyExecutable)
+        {
+            processTabs = safetyhook::create_inline(processTabsAddress, ProcessTabsLegacy);
+            drawTabs = safetyhook::create_inline(drawTabsAddress, DrawTabsLegacy);
+            checkForBackInput = safetyhook::create_inline(checkForBackAddress, CheckForBackInputLegacy);
+        }
+        else
+        {
+            processTabs = safetyhook::create_inline(processTabsAddress, ProcessTabs);
+            drawTabs = safetyhook::create_inline(drawTabsAddress, DrawTabs);
+            checkForBackInput = safetyhook::create_inline(checkForBackAddress, CheckForBackInput);
+        }
+        queryInput = safetyhook::create_inline(queryInputAddress, QueryInput);
+        switchToNewScreen = safetyhook::create_inline(switchScreenAddress, SwitchToNewScreen);
+        getTabText = safetyhook::create_inline(getTabTextAddress, GetTabText);
+        printTab = safetyhook::create_inline(printTabAddress, PrintTab);
+        measureTab = safetyhook::create_inline(hook::pattern("D9 EE C3 89 44 24 04").get_first(-8), MeasureTab);
+        for (auto call : scaleCalls)
+            injector::MakeCALL(call, SetTabScale, true);
+
+        copyRowLabel = reinterpret_cast<decltype(copyRowLabel)>(branch(rowLabel));
+        injector::MakeCALL(rowLabel, CopyRowLabel, true);
+
+        // Tab changes are handled by OnTabTransition from MenuBackgroundHook4 at the same place
+        // The game keeps rendering behind pages created with displayGame
+        gameVisibilityHook = safetyhook::create_mid(gameVisibilityHookAddress, [](SafetyHookContext&)
+        {
+            if (auto page = FindPage(activePage); page && page->displayGame && *frontendActive != 0 && *currentScreen == DisplayScreen)
+                *renderGame = 1;
+        });
+        // mov eax, [current screen]; pages get the menu background unless they show the game
+        pageBackgroundHook = safetyhook::create_mid(pageBackground, [](SafetyHookContext& regs)
+        {
+            regs.eax = static_cast<uintptr_t>(*currentScreen);
+            if (auto page = FindPage(activePage); page && *currentScreen == DisplayScreen)
+                regs.eip = page->displayGame ? afterPageBackground : drawPageBackground;
+            else
+                regs.eip = pageBackground + 5;
+        });
+
+        tabsInitialized = true;
     }
 
     static void InitializeMenuAPI()
@@ -430,6 +1120,7 @@ private:
             scrollMenu = safetyhook::create_inline(scroll, ScrollMenu);
             selectOption = safetyhook::create_inline(hook::pattern("83 EC 10 57 8B 7C 24 1C 85 FF 0F 8C ? ? ? ? 8B 0D").get_first(), SelectOption);
             processMenu = safetyhook::create_inline(process, ProcessMenu);
+            InitializeTabs();
             return;
         }
         auto scroll = hook::pattern("0F B7 14 CD ? ? ? ? 8B C2").get_first<uint8_t>(-0x15);
@@ -446,6 +1137,7 @@ private:
         scrollMenu = safetyhook::create_inline(scroll, ScrollMenu);
         selectOption = safetyhook::create_inline(hook::pattern("0F B7 3C D5 ? ? ? ? 3B F7").get_first(-0x25), SelectOption);
         processMenu = safetyhook::create_inline(hook::pattern("C7 05 ? ? ? ? FF FF FF 7F FF 34 BD").get_first(-0x1E), ProcessMenu);
+        InitializeTabs();
     }
 
     static std::optional<int32_t> FindRegisteredName(const char* name, bool preferences)
@@ -853,6 +1545,8 @@ public:
             { 0, "PREF_STOPTAXI",               "MISC",       "InstantStopTaxi",                    "",                           0, nullptr, 0, 1 },
             { 0, "PREF_SAO",                    "MISC",       "AmbientOcclusion",                   "",                           0, nullptr, 0, 1 },
             { 0, "PREF_AUTOCLIMBLADDERS",       "MISC",       "AutoClimbLadders",                   "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_STUNTJUMPCAM",           "MISC",       "StuntJumpCamera",                    "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_ACTIONCAM",              "MISC",       "ActionCamera",                       "",                           1, nullptr, 0, 1 },
         };
 
         for (auto& setting : arr)
@@ -872,12 +1566,190 @@ public:
         InitializeMenuAPI();
     }
 public:
+    // A custom screen is shown in place of the Display screen
+    static bool IsCustomScreenActive() { return activePage != -1; }
+    // Before the game frees the screens' rows (frontend XML reload)
+    static void ResetCustomScreens() { ResetPages(); }
+    // Tab change, the tab state is in EBX (EBP in 1.1.2.0): a custom tab is shown on the Display screen
+    static void OnTabTransition(uintptr_t ebx, uintptr_t ebp)
+    {
+        if (!tabsInitialized)
+            return;
+        auto state = legacyExecutable ? ebp : ebx;
+        pendingPage = FindPage(requestedTab) ? requestedTab : -1;
+        if (requestedTab != -1)
+            *reinterpret_cast<int32_t*>(state + 0x18) = pendingPage != -1 ? DisplayScreen : requestedTab;
+    }
+
+    // Screens from AddScreen/AddSubmenu get ids from 256 on
     enum class MenuScreen : int32_t
     {
-        Game = 0, Controls = 5, Audio = 7, Display = 8, Graphics = 49,
+        Invalid = -1,
+        Game = 0, NetworkGame = 1, Brief = 2, Map = 3, Stats = 4, Controls = 5, Audio = 7, Display = 8, Graphics = 49,
         TitleControls = 59, TitleAudio = 60, TitleDisplay = 61, TitleGraphics = 62,
         KeyboardOptions = 71, ControllerOptions = 72
     };
+
+    struct EnumValue
+    {
+        int32_t value;
+        std::wstring_view text;     // 1..59 characters
+    };
+
+    // A new tab of the pause menu after a settings tab or another custom tab, up to 4 (CE only). displayGame
+    // keeps the game visible behind it, like the Display tab. The label is UTF-8, up to 15 bytes.
+    MenuScreen AddScreen(std::string_view label, MenuScreen after, bool displayGame = false)
+    {
+        if (!tabsInitialized || label.empty() || label.size() >= sizeof(SettingsTables::Screen::header) || label.find('\0') != label.npos)
+            return MenuScreen::Invalid;
+        for (size_t i = 0; i < pageCount; ++i)
+            if (pages[i].parent == -1 && label == pages[i].label)
+                return static_cast<MenuScreen>(FirstCustomScreen + i);
+        if (pageCount == pages.size() || customTabCount == 4)
+            return MenuScreen::Invalid;
+        auto afterId = static_cast<int32_t>(after);
+        if (after != MenuScreen::Controls && after != MenuScreen::Audio && after != MenuScreen::Display && after != MenuScreen::Graphics && !FindPage(afterId))
+            return MenuScreen::Invalid;
+        auto position = std::find_if(tabs.begin(), tabs.end(), [afterId](const Tab& tab) { return tab.id == afterId; });
+        auto text = ToWide(label, 16);
+        if (position == tabs.end() || text.empty())
+            return MenuScreen::Invalid;
+
+        auto screen = FirstCustomScreen + static_cast<int32_t>(pageCount);
+        auto& page = pages[pageCount++];
+        std::memcpy(page.label, label.data(), label.size());
+        page.text = std::move(text);
+        page.rows[0].action = 46;
+        page.displayGame = displayGame;
+        ++customTabCount;
+        tabs.insert(position + 1, Tab{ screen });
+        return static_cast<MenuScreen>(screen);
+    }
+
+    // A page opened from a row of a settings tab or a custom screen, Back returns to it (CE only).
+    // The label is UTF-8, up to 59 characters.
+    MenuScreen AddSubmenu(MenuScreen parent, std::string_view label, bool displayGame = false)
+    {
+        auto parentId = static_cast<int32_t>(parent);
+        if (!tabsInitialized || label.empty() || label.size() >= sizeof(Page::label) || label.find('\0') != label.npos ||
+            (!FindPage(parentId) && parent != MenuScreen::Controls && parent != MenuScreen::Audio && parent != MenuScreen::Display && parent != MenuScreen::Graphics))
+            return MenuScreen::Invalid;
+        for (size_t i = 0; i < pageCount; ++i)
+            if (pages[i].parent == parentId && label == pages[i].label)
+                return static_cast<MenuScreen>(FirstCustomScreen + i);
+        auto text = ToWide(label, 60);
+        if (text.empty() || pageCount == pages.size())
+            return MenuScreen::Invalid;
+
+        auto screen = FirstCustomScreen + static_cast<int32_t>(pageCount);
+        char key[16]{};
+        std::snprintf(key, sizeof(key), "NY_SUB_%02u", static_cast<uint32_t>(pageCount));
+        if (!AddOption(parent, key, static_cast<int32_t>(dynamicOptions.size()), 100, {}, screen))
+            return MenuScreen::Invalid;
+
+        auto& page = pages[pageCount++];
+        std::memcpy(page.label, label.data(), label.size());
+        page.parent = parentId;
+        page.displayGame = displayGame;
+        page.rows[0].action = 46;
+        CText::menuTexts[GetHash(key)] = text;
+        page.text = std::move(text);
+        return static_cast<MenuScreen>(screen);
+    }
+
+    // Options whose value lives in the caller. The menu reads it through get and changes it through set.
+    bool AddToggle(MenuScreen screen, std::string_view label, std::function<bool()> get, std::function<void(bool)> set)
+    {
+        if (!get || !set || !CanAddOption(screen, label))
+            return false;
+        auto id = RegisterCallbackPreference(1, [get] { return get() ? 1 : 0; }, [set](int32_t value) { set(value != 0); });
+        return id >= 0 && AddOption(screen, label, id, 0);
+    }
+
+    // Values outside the list show as "Custom"
+    bool AddEnum(MenuScreen screen, std::string_view label, std::span<const EnumValue> values, std::function<int32_t()> get, std::function<void(int32_t)> set)
+    {
+        if (values.size() < 2 || values.size() > 254 || !get || !set || !CanAddOption(screen, label))
+            return false;
+        for (size_t i = 0; i < values.size(); ++i)
+        {
+            if (values[i].text.empty() || values[i].text.size() >= 60 || values[i].text.find(L'\0') != values[i].text.npos)
+                return false;
+            for (size_t j = 0; j < i; ++j)
+                if (values[j].value == values[i].value)
+                    return false;
+        }
+
+        // The display shows GXT keys, which resolve to the value texts
+        auto index = callbackCount;
+        std::vector<std::string> keys;
+        for (size_t i = 0; i <= values.size(); ++i)
+            keys.push_back(std::format("FFM{:03}_{:03}", index, i));
+        std::vector<std::string_view> labels(keys.begin(), keys.end());
+        auto display = RegisterEnum(std::format("MENU_DISPLAY_FFM{:03}", index), labels);
+        if (display < 0)
+            return false;
+        for (size_t i = 0; i < values.size(); ++i)
+            CText::menuTexts[GetHash(keys[i].c_str())] = values[i].text;
+        CText::menuTexts[GetHash(keys.back().c_str())] = L"Custom";
+
+        std::vector<int32_t> choices;
+        for (auto& value : values)
+            choices.push_back(value.value);
+        auto count = static_cast<int32_t>(choices.size());
+        auto id = RegisterCallbackPreference(count - 1, [get, choices, count]
+        {
+            auto found = std::find(choices.begin(), choices.end(), get());
+            return found != choices.end() ? static_cast<int32_t>(found - choices.begin()) : count;
+        }, [set, choices](int32_t position) { set(choices[position]); });
+        return id >= 0 && AddOption(screen, label, id, display);
+    }
+
+    bool AddEnum(MenuScreen screen, std::string_view label, std::initializer_list<EnumValue> values, std::function<int32_t()> get, std::function<void(int32_t)> set)
+    {
+        return AddEnum(screen, label, std::span<const EnumValue>(values.begin(), values.size()), std::move(get), std::move(set));
+    }
+
+    // From minimum to maximum in steps, 2..255 positions
+    bool AddSlider(MenuScreen screen, std::string_view label, float minimum, float maximum, float step, std::function<float()> get, std::function<void(float)> set)
+    {
+        if (!std::isfinite(minimum) || !std::isfinite(maximum) || !std::isfinite(step) || minimum >= maximum || step <= 0.0f || !get || !set ||
+            !CanAddOption(screen, label))
+            return false;
+        auto steps = std::ceil((static_cast<double>(maximum) - minimum) / step);
+        if (steps > 1.0 && static_cast<float>(minimum + (steps - 1.0) * step) >= maximum)
+            steps -= 1.0;
+        if (steps < 1.0 || steps > 254.0)
+            return false;
+        auto count = static_cast<int32_t>(steps);
+        auto valueAt = [minimum, maximum, step, count](int32_t position)
+        {
+            return position >= count ? maximum : static_cast<float>(minimum + static_cast<double>(position) * step);
+        };
+        for (int32_t i = 1; i <= count; ++i)
+            if (valueAt(i) <= valueAt(i - 1))
+                return false;   // the step is below the precision of the values
+
+        auto id = RegisterCallbackPreference(count, [get, minimum, maximum, step, count]
+        {
+            auto value = get();
+            if (!std::isfinite(value) || value <= minimum)
+                return 0;
+            if (value >= maximum)
+                return count;
+            auto position = (static_cast<double>(value) - minimum) / step;
+            auto lower = std::min(static_cast<int32_t>(position), count - 1);
+            auto lowerValue = static_cast<double>(minimum) + lower * static_cast<double>(step);
+            auto upperValue = std::min(static_cast<double>(maximum), lowerValue + step);
+            return lower + (value - lowerValue >= upperValue - value ? 1 : 0);
+        }, [get, set, valueAt](int32_t position)
+        {
+            auto value = valueAt(position);
+            if (get() != value)
+                set(value);
+        });
+        return id >= 0 && AddOption(screen, label, id, 101);
+    }
 
     // Call registration APIs on the game thread, or during startup before the
     // frontend is loaded. Values are zero-based positions, also for sliders.
@@ -956,40 +1828,77 @@ public:
     }
 
 private:
-    static bool AddOption(MenuScreen screen, std::string_view label, int32_t preference, int32_t display, std::function<void()> callback = {})
+    static std::wstring ToWide(std::string_view text, int32_t capacity)
     {
-        switch (screen)
+        std::wstring wide(capacity, L'\0');
+        auto length = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, text.data(), static_cast<int32_t>(text.size()), wide.data(), capacity - 1);
+        wide.resize(length > 0 ? length : 0);
+        return wide;
+    }
+
+    // An in-memory preference whose value is read and written through the callbacks
+    int32_t RegisterCallbackPreference(int32_t maximum, std::function<int32_t()> getter, std::function<void(int32_t)> setter)
+    {
+        auto id = RegisterPreference(std::format("PREF_FFMENU_{}", callbackCount++), maximum);
+        if (id >= 0)
         {
-        case MenuScreen::Game: case MenuScreen::Controls: case MenuScreen::Audio: case MenuScreen::Display:
-        case MenuScreen::Graphics: case MenuScreen::TitleControls: case MenuScreen::TitleAudio:
-        case MenuScreen::TitleDisplay: case MenuScreen::TitleGraphics: case MenuScreen::KeyboardOptions:
-        case MenuScreen::ControllerOptions: break;
-        default: return false;
+            mFusionPrefs.at(id).getter = std::move(getter);
+            mFusionPrefs.at(id).setter = std::move(setter);
+        }
+        return id;
+    }
+
+    static bool CanAddOption(MenuScreen screen, std::string_view label)
+    {
+        auto id = static_cast<int32_t>(screen);
+        auto page = FindPage(id);
+        if (!page)
+        {
+            switch (screen)
+            {
+            case MenuScreen::Game: case MenuScreen::Controls: case MenuScreen::Audio: case MenuScreen::Display:
+            case MenuScreen::Graphics: case MenuScreen::TitleControls: case MenuScreen::TitleAudio:
+            case MenuScreen::TitleDisplay: case MenuScreen::TitleGraphics: case MenuScreen::KeyboardOptions:
+            case MenuScreen::ControllerOptions: break;
+            default: return false;
+            }
         }
         if (label.empty() || label.size() >= sizeof(SettingsTables::Option::label) || label.find('\0') != label.npos)
             return false;
         for (auto& added : dynamicOptions)
-            if (added.screen == static_cast<int32_t>(screen) && label == added.option.label)
+            if (added.screen == id && label == added.option.label)
                 return false;
-        auto& options = screens[static_cast<int32_t>(screen)].options;
+        if (page)
+        {
+            // Rows of a page, END_OF_MENU_OPTIONS included
+            auto rows = std::count_if(dynamicOptions.begin(), dynamicOptions.end(), [id](auto& added) { return added.screen == id; });
+            return static_cast<size_t>(rows) + 1 < page->rows.size();
+        }
+        auto& options = screens[id].options;
         size_t pending = 1;
         for (auto& added : dynamicOptions)
-            if (added.screen == static_cast<int32_t>(screen))
+            if (added.screen == id)
             {
                 bool present = false;
                 for (size_t i = 0; i < options.count; ++i)
                     present |= std::strcmp(options.data[i].label, added.option.label) == 0;
                 pending += !present;
             }
-        if (options.count + pending > 50)
+        return options.count + pending <= 50;
+    }
+
+    static bool AddOption(MenuScreen screen, std::string_view label, int32_t preference, int32_t display, std::function<void()> callback = {}, int32_t submenu = -1)
+    {
+        if (!CanAddOption(screen, label))
             return false;
+        bool action = callback || submenu != -1;
         SettingsTables::Option option;
-        option.action = callback ? 127 : 1; // MENUOPT_ADJUST
+        option.action = action ? 127 : 1; // MENUOPT_ADJUST
         std::memcpy(option.label, label.data(), label.size());
         option.preference = static_cast<int16_t>(preference);
-        option.scaler = callback ? 0 : static_cast<uint8_t>(SettingsTables::scalers[preference]);
+        option.scaler = action ? 0 : static_cast<uint8_t>(SettingsTables::scalers[preference]);
         option.display = static_cast<uint8_t>(display);
-        dynamicOptions.push_back({ static_cast<int32_t>(screen), option, std::move(callback) });
+        dynamicOptions.push_back({ static_cast<int32_t>(screen), option, std::move(callback), submenu });
         return true;
     }
 
@@ -1466,6 +2375,8 @@ public:
             {
                 void operator()(injector::reg_pack& regs)
                 {
+                    CSettings::OnTabTransition(regs.ebx, regs.ebp);
+
                     if (regs.eax == 49 || shouldModifyMapMenuBackground(regs.eax))
                     {
                         return_to(loc_5AC19A);
@@ -1509,7 +2420,8 @@ public:
             {
                 void operator()(injector::reg_pack& regs)
                 {
-                    if (*pMenuTab == 8 && !shouldModifyMenuBackground())
+                    // Custom pages shown on the Display screen use the regular background
+                    if (*pMenuTab == 8 && !CSettings::IsCustomScreenActive() && !shouldModifyMenuBackground())
                     {
                         return_to(loc_5AF8EE);
                     }
@@ -1903,6 +2815,9 @@ public:
             auto pattern = find_pattern("51 56 57 64 8B 3D", "51 53 56 BE ? ? ? ? 33 DB");
             static auto readFrontendMenuHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
             {
+                // The game frees the screens' rows before reading the XML again
+                CSettings::ResetCustomScreens();
+
                 static bool bOnce = false;
 
                 if (!bOnce)

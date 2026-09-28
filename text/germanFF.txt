@@ -145,6 +145,12 @@ Zentrierte Zu-Fuß-Kamera
 [Camera Shake]
 Kamerawackeln
 
+[Stunt Jump Cam]
+Stuntsprung-Kamera
+
+[Action Cam]
+Kamera bei Zaunklettern & Fahrzeugraub
+
 [FE_STEAMPAD]
 Steam Controller
 
@@ -194,7 +200,7 @@ GTA IV muss neu gestartet werden, um die Einstellungen anzuwenden.
 Erweiterte Sniper-Steuerung
 
 [Ladders Climb]
-Automatisches Leiternklettern
+Leitern automatisch hochklettern
 
 [Bullet Traces]
 Schussspuren immer sichtbar

@@ -17,13 +17,13 @@ Mettre le jeu en pause en cas de changement de fenêtre
 Logitech LightSync RGB
 
 [FPS Counter]
-Compteur de fps
+Compteur de FPS
 
 [Letterbox]
-Cinématiques en 4/3
+Bandes noires horizontales dans les cinématiques
 
 [Pillarbox]
-Cinématiques en 16/9 avec barres noir
+Bandes noires verticales dans les cinématiques
 
 [Alt. Dialogues]
 Dialogues alternatifs
@@ -32,13 +32,13 @@ Dialogues alternatifs
 Vérifier les mises à jour de FusionFix
 
 [Raw Input]
-Raw input 
+Raw input
 
 [Always Run]
 Toujours courir
 
 [Cover Centering]
-Centrage de la vue
+Centrage de la caméra à couvert
 
 [PadLookSens]
 Sensibilité caméra
@@ -68,7 +68,7 @@ Icônes de la manette de jeu
 Flou de mouvement
 
 [Bloom]
-Effets de bloom 
+Effets de bloom
 
 [Console Gamma]
 Gamma des consoles
@@ -92,7 +92,7 @@ Rayons de soleil
 Anticrénelage
 
 [FPS Limiter]
-Limiteur de fps
+Limiteur de FPS
 
 [ExtraNightShad]
 Ombres nocturnes supplémentaires
@@ -145,6 +145,12 @@ Centrer la caméra à pied
 [Camera Shake]
 Tremblements de caméra
 
+[Stunt Jump Cam]
+Caméra des cascades
+
+[Action Cam]
+Caméra escalade et vol de véhicule
+
 [FE_STEAMPAD]
 Steam Controller
 
@@ -152,13 +158,13 @@ Steam Controller
 Synchronisation audio des cinématiques
 
 [CutscAudioSync0]
-Synchronisation audio des cinématiques - Sans
+Synchronisation audio des cinématiques - Désactivée
 
 [CutscAudioSync1]
-Synchronisation audio des cinématiques - Alternatif
+Synchronisation audio des cinématiques - Alternative
 
 [CutscAudioSync2]
-Synchronisation audio des cinématiques - Avec
+Synchronisation audio des cinématiques - Activée
 
 [Turn Indicators]
 Clignotants
@@ -170,10 +176,10 @@ Clignotants
 Évènement d'hiver activé
 
 [HalloweenEvent0]
-Évènement d'halloween désactivé
+Évènement d'Halloween désactivé
 
 [HalloweenEvent1]
-Évènement d'halloween activé
+Évènement d'Halloween activé
 
 [TranspMapMenu]
 Carte du menu transparente
@@ -191,10 +197,10 @@ API graphique
 GTA IV doit être redémarré pour appliquer les paramètres.
 
 [Extended Sniper]
-Commande étendue du fusil de sniper
+Commandes étendues du fusil de sniper
 
 [Ladders Climb]
-Grimper automatiquement à l'échelle
+Grimper automatiquement aux échelles
 
 [Bullet Traces]
 Toujours afficher les traces de balles
@@ -212,37 +218,37 @@ Sauvegarde rapide
 Police Buffalo
 
 [FF_WARN0]
-~p~Fichiers IMG:
+~p~Fichiers IMG :
 
 [MO_ALT]
 Alternatif
 
 [FF_WARN1]
-; ~r~AVERTISSEMENT : la limite de 255 IMG est dépassée, des problèmes de streaming peuvent survenir.
+; ~r~AVERTISSEMENT : la limite de 255 IMG est dépassée, des problèmes de streaming vont survenir.
 
 [FF_WARN2]
-~r~AVERTISSEMENT : Ombres nocturnes supplémentaires est une option pc originale de Rockstar. Très défectueuse et donc déconseillée.
+~r~AVERTISSEMENT : Ombres nocturnes supplémentaires est une option PC originale de Rockstar. Très défectueuse et donc déconseillée.
 
 [FF_WARN3]
-~r~AVERTISSEMENT : Une valeur de distance d'affichage supérieure à 25 et une valeur de distance d'affichage des détails supérieure à 31 peuvent entraîner le pop-in de textures.
+~r~AVERTISSEMENT : Une valeur de distance d'affichage supérieure à 25 et une valeur de distance d'affichage des détails supérieure à 31 peuvent entraîner l'apparition soudaine d'objets.
 
 [FF_WARN4]
-~r~AVERTISSEMENT : Une valeur de distance d'affichage supérieure à 25 peut entraîner le pop-in de textures.
+~r~AVERTISSEMENT : Une valeur de distance d'affichage supérieure à 25 peut entraîner l'apparition soudaine d'objets.
 
 [FF_WARN5]
-~r~AVERTISSEMENT : Une valeur de distance d'affichage des détails supérieure à 31 peut entraîner le pop-in de textures.
+~r~AVERTISSEMENT : Une valeur de distance d'affichage des détails supérieure à 31 peut entraîner l'apparition soudaine d'objets.
 
 [FF_WARN6]
 ~r~AVERTISSEMENT : CHSS ne fonctionne qu'avec la qualité des ombres réglée sur très élevée.
 
 [FF_WARN7]
-~r~AVERTISSEMENT : Utilisez la synchronisation audio des cinématiques sur ON en cas de désynchronisation audio, sur OFF pour la fluidité de l'animation. Peut être changer en cinématique via ~PAD_UP~.
+~r~AVERTISSEMENT : Activez la synchronisation audio des cinématiques en cas de désynchronisation du son, désactivez-la pour une animation plus fluide. Ce réglage peut être modifié pendant une cinématique via ~PAD_UP~.
 
 [USJ_FRST_KMB]
 Lorsque la caméra passe en mode saut unique, utilise ~INPUT_MOUSE_WHEEL_UP~ et ~INPUT_MOUSE_WHEEL_DOWN~ pour modifier la vitesse du ralenti.
 
 [PARA_CLASSIC_PC]
-Utilise ~PAD_LSTICK_ALL~ pour déplacer le poids de ton corps. ~n~Utilise ~INPUT_MOUSE_LMB~ et ~INPUT_MOUSE_RMB~ pour utiliser les aérofreins de gauche et de droite.~n~Appuie sur ~INPUT_ENTER~ pour détacher le parachute. ~n~Maintiens ~INPUT_VEH_CIN_CAM~ pour changer de vue.
+Utilise ~PAD_LSTICK_ALL~ pour déplacer le poids de ton corps. ~n~Utilise ~INPUT_MOUSE_LMB~ et ~INPUT_MOUSE_RMB~ pour utiliser les aérofreins de gauche et de droite. ~n~Appuie sur ~INPUT_ENTER~ pour détacher le parachute. ~n~Maintiens ~INPUT_VEH_CIN_CAM~ pour changer d'angle de caméra.
 
 [PARA_FALL_PC]
 Utilise ~PAD_LSTICK_ALL~ pour te déplacer dans les airs. ~n~Appuie sur ~INPUT_MOUSE_LMB~ pour ouvrir ton parachute. ~n~Maintiens ~INPUT_VEH_CIN_CAM~ pour changer d'angle de caméra.

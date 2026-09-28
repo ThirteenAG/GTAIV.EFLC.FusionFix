@@ -137,6 +137,8 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **Extended Sniper Controls**, allows aiming with sniper rifles without using the scope, press Jump button to toggle between third-person aim and the scope
 - **Auto Climb Ladders**, makes player climb ladder automatically when getting close to ladder
 - **Camera Shake**, shake effect has been fixed to work consistently at any frame rate and can be disabled with this option
+- **Stunt Jump Camera**, can be disabled to skip the cinematic camera and slow motion during unique stunt jumps
+- **Fence Climb & Car Jack Camera**, can be disabled to skip the cinematic camera when climbing fences and stealing cars
 - **Centered Vehicle Camera**, makes vehicle camera centered, for more options install the [original mod](https://github.com/gennariarmando/iv-centered-vehicle-cam) separately
 - **Centered On Foot Camera**, makes on foot camera centered, also for more options install the [original mod](https://github.com/gennariarmando/iv-centered-onfoot-cam)
 - **Turn Indicators**, allows the player to use vehicle turn indicators and hazard lights

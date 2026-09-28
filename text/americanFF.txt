@@ -8,7 +8,7 @@ Skip Menu
 Windowed
 
 [Borderless]
-Windowed Borderless 
+Windowed Borderless
 
 [Focus Loss]
 Pause Game On Focus Loss
@@ -144,6 +144,12 @@ Centered On Foot Camera
 
 [Camera Shake]
 Camera Shake
+
+[Stunt Jump Cam]
+Stunt Jump Camera
+
+[Action Cam]
+Fence Climb & Car Jack Camera
 
 [FE_STEAMPAD]
 Steam Controller

@@ -66,12 +66,7 @@ jobs:
       run: ./premake5 vs2026 --with-version=${{ steps.versioning.outputs.version }}
 
     - name: Build
-      run: |
-        Push-Location external\modupdater
-        & .\premake5.bat
-        & .\builddist.bat
-        Pop-Location
-        msbuild -m build/GTAIV.EFLC.FusionFix.slnx /property:Configuration=Release /property:Platform=Win32
+      run: msbuild -m build/GTAIV.EFLC.FusionFix.slnx /property:Configuration=Release /property:Platform=Win32
 
     - name: Download Ultimate ASI Loader x86
       uses: robinraju/release-downloader@v1.13
