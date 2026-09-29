@@ -2583,11 +2583,13 @@ export bool bInSniperScope = false;
 export bool bSpeedupSimRateCheat = false;
 export eCamMode nCurrentCamera = NUM_CAM_MODES;
 
+export std::array<std::filesystem::path, 64> episodePaths = { "", "TLAD", "TBoGT" };
+
 export auto currentEpisodePath() -> std::filesystem::path
 {
-    static constexpr auto episodicPaths = std::array{ "", "TLAD", "TBoGT" };
     static const auto moduleParentPath = GetModulePath(GetModuleHandleW(NULL)).parent_path();
-    return moduleParentPath / episodicPaths[*_dwCurrentEpisode];
+    const auto episode = static_cast<uint32_t>(*_dwCurrentEpisode);
+    return episode < episodePaths.size() ? moduleParentPath / episodePaths[episode] : moduleParentPath;
 }
 
 export namespace phMaterialGta

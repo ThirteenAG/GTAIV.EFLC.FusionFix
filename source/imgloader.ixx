@@ -1380,12 +1380,9 @@ public:
                             return;
                     }
 
-                    std::vector<std::filesystem::path> episodicPaths = {
-                        std::filesystem::path("IV"),
-                        std::filesystem::path("TLAD"),
-                        std::filesystem::path("TBoGT"),
-                        std::filesystem::path("VICECITY"),
-                    };
+                    std::vector<std::filesystem::path> episodicPaths(episodePaths.begin(), episodePaths.end());
+                    episodicPaths[0] = "IV";
+                    episodicPaths.emplace_back("VICECITY");
 
                     auto gamePath = GetExeModulePath();
                     std::error_code ec;
@@ -1543,13 +1540,13 @@ public:
                                 imgPath = imgPath.substr(pos + 1);
                                 imgPath = "update:/" + imgPath;
 
-                                if (std::any_of(std::begin(episodicPaths), std::end(episodicPaths), [&](auto& it) { return contains_subfolder(relativePath, it); }))
+                                if (std::any_of(std::begin(episodicPaths), std::end(episodicPaths), [&](auto& it) { return !it.empty() && contains_subfolder(relativePath, it); }))
                                 {
                                     auto curEp = *_dwCurrentEpisode;
                                     if (CText::hasViceCityStrings())
                                         curEp = episodicPaths.size() - 1;
 
-                                    if (curEp < int32_t(episodicPaths.size()) && contains_subfolder(relativePath, episodicPaths[curEp]))
+                                    if (curEp >= 0 && curEp < int32_t(episodicPaths.size()) && !episodicPaths[curEp].empty() && contains_subfolder(relativePath, episodicPaths[curEp]))
                                         CImgManager__addImgFile(imgPath.data(), 1, -1);
                                 }
                                 else

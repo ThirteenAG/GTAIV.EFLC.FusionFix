@@ -238,7 +238,11 @@ public:
         FusionFix::onInitEventAsync() += []()
         {
             FusionFixSettings.SetCallback("PREF_ALTDIALOGUE", [](int32_t value) {
+                if (static_cast<uint32_t>(*_dwCurrentEpisode) >= gAltDialogueVars.size())
+                    return;
                 auto pGlobals = *rage::scrProgram::ms_pGlobals;
+                if (!pGlobals)
+                    return;
                 for (auto& it : gAltDialogueVars[*_dwCurrentEpisode])
                     pGlobals[std::get<1>(it)] = value;
             });
@@ -246,6 +250,8 @@ public:
 
         FusionFix::onGameProcessEvent() += []()
         {
+            if (static_cast<uint32_t>(*_dwCurrentEpisode) >= gAltDialogueVars.size())
+                return;
             static auto altdialogue = FusionFixSettings.GetRef("PREF_ALTDIALOGUE");
             if (altdialogue->get())
             {

@@ -8,6 +8,7 @@ export module userdata;
 
 import common;
 import settings;
+import addoncontent;
 import <filesystem>;
 
 std::filesystem::path customUserProfilePath;
@@ -47,6 +48,8 @@ HRESULT WINAPI SHGetFolderPathW_Hook(HWND hwnd, int csidl, HANDLE hToken, DWORD 
 SafetyHookInline sh_sub_8C9830{};
 const char* sub_8C9830()
 {
+    if (const auto prefix = GetAddonSavePrefix())
+        return prefix;
     if (CText::hasViceCityStrings())
         return "SGTAVC";
     return "SGTA4";
