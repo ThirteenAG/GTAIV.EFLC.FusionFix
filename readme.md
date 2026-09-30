@@ -75,6 +75,13 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 > 
 > No support will be provided for illegal copies of the game. Purchase an official copy from either [Steam](https://store.steampowered.com/app/12210/) or [Rockstar Games Launcher](https://store.rockstargames.com/game/buy-grand-theft-auto-iv).
 
+## Additional content
+
+Place compatible content packs in `DLC/<PackName>/setup2.xml` for automatic
+discovery. Shared packs and additional episodes are supported; individual INI
+entries are not required. See [the additional-content guide](docs/AddonContent.md)
+for folder setup, XML examples, content IDs, radio support, fonts and troubleshooting.
+
 ## New menu options
 
 > FusionFix adds new options to the in-game menu that can be easily toggled and customized in real time. The config file allows for further customization by advanced users.

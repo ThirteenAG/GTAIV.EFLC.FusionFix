@@ -1,6 +1,13 @@
 module;
 
 #include <common.hxx>
+#include <xmllite.h>
+#include <shlwapi.h>
+#include <wrl/client.h>
+#include <charconv>
+
+#pragma comment(lib, "xmllite.lib")
+#pragma comment(lib, "shlwapi.lib")
 
 export module addoncontent;
 
@@ -46,10 +53,19 @@ namespace AddonContent
         static_assert(sizeof(Mount) == 0x168);
         static_assert(offsetof(Manager, setupsLoaded) == 0x166);
 
+        struct Content
+        {
+            uint32_t externalId = 0;
+            uint8_t slot = 0, episode = 0;
+            std::string name;
+        };
+
         struct Episode
         {
-            int32_t id;
-            std::string name, folder, savePrefix;
+            int32_t id = 0; // Zero denotes a shared content folder, not a new episode.
+            std::string name, folder, device, savePrefix;
+            std::vector<Content> contents;
+            size_t parsedContents = 0;
             std::array<std::string, 16> saveFiles;
             int32_t mount = -1;
             bool mounted = false;
@@ -70,6 +86,7 @@ namespace AddonContent
 
         static Episode* Find(int32_t id)
         {
+            if (id < 3) return nullptr;
             for (auto& episode : episodes)
                 if (episode.id == id) return &episode;
             return nullptr;
@@ -80,37 +97,193 @@ namespace AddonContent
             OutputDebugStringA(("FusionFix addons: " + message + "\n").c_str());
         }
 
+        static bool Number(std::string_view text, uint32_t& value)
+        {
+            const auto result = std::from_chars(text.data(), text.data() + text.size(), value);
+            return result.ec == std::errc{} && result.ptr == text.data() + text.size();
+        }
+
+        static std::string Narrow(const wchar_t* value, UINT length)
+        {
+            const auto size = WideCharToMultiByte(CP_UTF8, 0, value, length, nullptr, 0, nullptr, nullptr);
+            std::string result(size, '\0');
+            WideCharToMultiByte(CP_UTF8, 0, value, length, result.data(), size, nullptr, nullptr);
+            return result;
+        }
+
+        static bool ReadSetup(const std::filesystem::path& path, Episode& folder)
+        {
+            Microsoft::WRL::ComPtr<IStream> stream;
+            Microsoft::WRL::ComPtr<IXmlReader> reader;
+            if (FAILED(SHCreateStreamOnFileEx(path.c_str(), STGM_READ | STGM_SHARE_DENY_WRITE, 0, FALSE, nullptr, &stream)) ||
+                FAILED(CreateXmlReader(__uuidof(IXmlReader), reinterpret_cast<void**>(reader.GetAddressOf()), nullptr)) ||
+                FAILED(reader->SetProperty(XmlReaderProperty_DtdProcessing, DtdProcessing_Prohibit)) ||
+                FAILED(reader->SetInput(stream.Get()))) return false;
+            std::vector<std::string> elements;
+            std::string value;
+            Content content;
+            bool inContent = false, hasId = false, valid = true;
+            auto finish = [&]()
+            {
+                const auto first = value.find_first_not_of(" \t\r\n");
+                value = first == value.npos ? "" : value.substr(first, value.find_last_not_of(" \t\r\n") - first + 1);
+                const auto& tag = elements.back();
+                if (elements.size() == 2 && tag == "device") folder.device = value;
+                if (elements.size() == 2 && tag == "testmarketplace") valid = false;
+                if (inContent && elements.size() == 3)
+                {
+                    if (tag == "id") hasId = Number(value, content.externalId) && content.externalId >= 5;
+                    else if (tag == "name") content.name = value;
+                    else if (tag == "episode")
+                    {
+                        uint32_t id = 0;
+                        valid &= Number(value, id) && id >= 3 && id < 64;
+                        content.episode = static_cast<uint8_t>(id);
+                        if (folder.id && folder.id != id) valid = false;
+                        folder.id = id;
+                    }
+                    // The engine copies these into fixed-size buffers. Reject
+                    // oversized fields before handing the file to its parser.
+                    else if (tag == "datfile") valid &= value.size() < 32;
+                    else if (tag == "audiofolder" || tag == "audiometadata") valid &= value.size() < 64;
+                    else if (tag == "loadingscreens" || tag == "loadingscreensdat" ||
+                        tag == "loadingscreensingame" || tag == "loadingscreensingamedat" || tag == "texturepath")
+                        valid &= value.size() + folder.device.size() + 2 < 64;
+                }
+                if (elements.size() == 2 && tag == "content")
+                {
+                    valid &= hasId && !content.name.empty() && content.name.size() < 64;
+                    folder.contents.push_back(content);
+                    if (content.episode || folder.name.empty()) folder.name = content.name;
+                    inContent = false;
+                }
+                elements.pop_back();
+                value.clear();
+            };
+            XmlNodeType type;
+            HRESULT status;
+            while ((status = reader->Read(&type)) == S_OK)
+            {
+                if (type == XmlNodeType_Element)
+                {
+                    const wchar_t* name; UINT length;
+                    if (FAILED(reader->GetLocalName(&name, &length))) return false;
+                    elements.push_back(Narrow(name, length));
+                    value.clear();
+                    if (elements.size() == 1 && elements.back() != "ini") return false;
+                    if (elements.size() == 2 && elements.back() == "content")
+                    {
+                        content = {}; hasId = false; inContent = true;
+                    }
+                    if (reader->IsEmptyElement()) finish();
+                }
+                else if (type == XmlNodeType_EndElement) finish();
+                else if (type == XmlNodeType_Text || type == XmlNodeType_CDATA || type == XmlNodeType_Whitespace)
+                {
+                    const wchar_t* text; UINT length;
+                    if (FAILED(reader->GetValue(&text, &length))) return false;
+                    value += Narrow(text, length);
+                }
+            }
+            return status == S_FALSE && valid && !folder.contents.empty() && !folder.device.empty() &&
+                folder.device.size() <= 13 && folder.device.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_") == folder.device.npos;
+        }
+
         static void ReadDefinitions()
         {
-            CIniReader ini("FusionFixEpisodes.ini");
+            CIniReader settings("");
+            const auto root = std::filesystem::path(settings.ReadString("FILELOADER", "DLCPath", "DLC"));
+            std::vector<std::filesystem::path> folders;
+            std::error_code error;
+            if (!root.empty())
+            {
+                const auto base = root.is_absolute() ? root : GetExeModulePath() / root;
+                for (std::filesystem::directory_iterator it(base, error), end; !error && it != end; it.increment(error))
+                {
+                    std::error_code entryError;
+                    if (it->is_directory(entryError) && std::filesystem::is_regular_file(it->path() / "setup2.xml", entryError))
+                        folders.push_back(it->path());
+                }
+            }
+            // Existing explicit folder registrations remain usable, but XML is
+            // authoritative: an INI section cannot turn a car pack into an episode.
+            CIniReader oldDefinitions("FusionFixEpisodes.ini");
             for (int32_t id = 3; id < 64; ++id)
             {
-                const auto section = "Episode" + std::to_string(id);
-                auto folder = ini.ReadString(section, "Folder", "");
-                if (folder.empty()) continue;
-                const auto path = std::filesystem::path(folder).lexically_normal();
-                bool valid = !path.has_root_path() && folder.find(':') == folder.npos;
-                for (const auto& component : std::filesystem::path(folder))
-                    valid &= component != "..";
-                const auto fullPath = GetExeModulePath() / path;
-                std::error_code error;
-                valid &= fullPath.string().size() < sizeof(Mount::path) &&
-                    std::filesystem::is_regular_file(fullPath / "setup2.xml", error);
-                for (const auto& existing : episodes)
-                    valid &= _stricmp(existing.folder.c_str(), path.string().c_str()) != 0;
-                if (!valid)
+                auto path = oldDefinitions.ReadString("Episode" + std::to_string(id), "Folder", "");
+                if (!path.empty()) folders.push_back(GetExeModulePath() / path);
+            }
+            std::sort(folders.begin(), folders.end());
+            CIniReader slots("FusionFixContentIDs.ini");
+            std::array<uint32_t, 64> assigned{};
+            for (size_t slot = 5; slot < assigned.size(); ++slot)
+            {
+                const auto value = slots.ReadString("ContentIDs", std::to_string(slot), "0");
+                if (!Number(value, assigned[slot]))
                 {
-                    Log(section + ": invalid folder or missing setup2.xml");
+                    Log("invalid FusionFixContentIDs.ini; content discovery disabled");
+                    return;
+                }
+                for (size_t earlier = 5; assigned[slot] && earlier < slot; ++earlier)
+                    if (assigned[earlier] == assigned[slot])
+                    {
+                        Log("duplicate persistent content slot; content discovery disabled");
+                        return;
+                    }
+            }
+            for (const auto& path : folders)
+            {
+                const auto fullPath = std::filesystem::weakly_canonical(path, error);
+                if (error || fullPath.string().size() >= sizeof(Mount::path)) continue;
+                const auto folderPath = fullPath.lexically_relative(GetExeModulePath());
+                if (std::any_of(episodes.begin(), episodes.end(), [&](auto& entry) { return _stricmp(entry.folder.c_str(), folderPath.string().c_str()) == 0; })) continue;
+                Episode folder;
+                folder.folder = (folderPath.empty() ? fullPath : folderPath).string();
+                if (!ReadSetup(fullPath / "setup2.xml", folder))
+                {
+                    Log(fullPath.string() + ": invalid setup2.xml (device, content ID, episode or field length)");
                     continue;
                 }
-                Episode episode;
-                episode.id = id;
-                episode.name = ini.ReadString(section, "Name", section);
-                episode.folder = path.string();
-                episode.savePrefix = "SGE" + std::string(id < 10 ? "0" : "") + std::to_string(id);
-                for (size_t slot = 0; slot < episode.saveFiles.size(); ++slot)
-                    episode.saveFiles[slot] = episode.savePrefix + (slot < 10 ? "0" : "") + std::to_string(slot);
-                episodes.push_back(std::move(episode));
+                bool conflict = false;
+                for (const auto& existing : episodes)
+                {
+                    conflict |= _stricmp(existing.device.c_str(), folder.device.c_str()) == 0 || (folder.id && folder.id == existing.id);
+                    for (const auto& a : existing.contents)
+                        for (const auto& b : folder.contents) conflict |= a.externalId == b.externalId;
+                }
+                for (size_t i = 0; i < folder.contents.size(); ++i)
+                    for (size_t j = 0; j < i; ++j) conflict |= folder.contents[i].externalId == folder.contents[j].externalId;
+                if (conflict) { Log(folder.name + ": duplicate device, content ID or episode ID"); continue; }
+                auto proposed = assigned;
+                for (auto& content : folder.contents)
+                {
+                    size_t slot = 5;
+                    while (slot < proposed.size() && proposed[slot] != content.externalId) ++slot;
+                    if (slot == proposed.size())
+                    {
+                        slot = content.externalId < proposed.size() && !proposed[content.externalId] ? content.externalId : 5;
+                        while (slot < proposed.size() && proposed[slot]) ++slot;
+                        if (slot == proposed.size()) { conflict = true; break; }
+                        proposed[slot] = content.externalId;
+                    }
+                    content.slot = static_cast<uint8_t>(slot);
+                }
+                if (conflict) { Log(folder.name + ": no free content save-mask slots (5..63)"); continue; }
+                for (size_t slot = 5; slot < proposed.size(); ++slot)
+                    if (proposed[slot] != assigned[slot]) slots.WriteString("ContentIDs", std::to_string(slot), std::to_string(proposed[slot]));
+                CIniReader check(slots.GetIniPath());
+                for (const auto& content : folder.contents)
+                    conflict |= check.ReadString("ContentIDs", std::to_string(content.slot), "") != std::to_string(content.externalId);
+                if (conflict) { Log(folder.name + ": could not persist content IDs; folder skipped"); continue; }
+                assigned = proposed;
+                if (folder.id)
+                {
+                    folder.savePrefix = "SGE" + std::string(folder.id < 10 ? "0" : "") + std::to_string(folder.id);
+                    for (size_t slot = 0; slot < folder.saveFiles.size(); ++slot)
+                        folder.saveFiles[slot] = folder.savePrefix + (slot < 10 ? "0" : "") + std::to_string(slot);
+                    episodePaths[folder.id] = folder.folder;
+                }
+                episodes.push_back(std::move(folder));
             }
         }
 
@@ -123,7 +296,7 @@ namespace AddonContent
                 if (pack.episode) pack.enabled = pack.episode == id;
                 for (const auto& episode : episodes)
                     if (episode.mount >= 0 && pack.mount == episode.mount)
-                        pack.enabled = episode.mounted && !episode.invalid && episode.id == id;
+                        pack.enabled = episode.mounted && !episode.invalid && (pack.episode == 0 || pack.episode == id);
             }
         }
 
@@ -134,8 +307,16 @@ namespace AddonContent
                 if (episode.mount >= 0 && episode.mount == incoming->mount) owner = &episode;
             if (owner)
             {
-                bool conflict = incoming->id < 5 || incoming->id >= 64 ||
-                    (incoming->episode != 0 && incoming->episode != owner->id);
+                if (owner->parsedContents >= owner->contents.size())
+                {
+                    owner->invalid = true;
+                    return -1;
+                }
+                const auto& definition = owner->contents[owner->parsedContents++];
+                bool conflict = incoming->episode != definition.episode ||
+                    strncmp(reinterpret_cast<const char*>(incoming) + 4, definition.name.c_str(), 64) != 0;
+                incoming->id = definition.slot;
+                incoming->enabled = incoming->episode == 0 || incoming->episode == *activeEpisode;
                 for (uint16_t i = 0; manager->packs && i < manager->packCount; ++i)
                     conflict |= manager->packs[i].valid && manager->packs[i].id == incoming->id &&
                         manager->packs[i].mount != incoming->mount;
@@ -171,6 +352,9 @@ namespace AddonContent
                 }
             }
             registeredManager = manager;
+            for (auto& episode : episodes)
+                if (episode.mount >= 0 && episode.mount < manager->mountCount && !manager->mounts[episode.mount].parsed)
+                    episode.parsedContents = 0;
             loadSetups.fastcall<void>(manager, edx);
             if (!initialize) return;
 
@@ -181,13 +365,14 @@ namespace AddonContent
                 {
                     const auto& pack = manager->packs[i];
                     if (pack.mount != episode.mount) continue;
-                    found |= pack.valid && pack.episode == episode.id;
+                    found |= pack.valid;
                     conflict |= pack.episode != 0 && pack.episode != episode.id;
                 }
-                if (found && !conflict && !episode.invalid && episode.mount >= 0 && episode.mount < manager->mountCount)
+                if (found && !conflict && !episode.invalid && episode.parsedContents == episode.contents.size() &&
+                    episode.mount >= 0 && episode.mount < manager->mountCount)
                     episode.mounted = mountContent(manager, episode.mount);
                 if (!episode.mounted)
-                    Log(episode.name + ": unable to mount episode; check setup2.xml episode and content IDs");
+                    Log(episode.name + ": unable to mount content; check setup2.xml and content IDs");
             }
             SelectPacks(manager, *activeEpisode);
         }
@@ -295,12 +480,7 @@ namespace AddonContent
             loadSetups = safetyhook::create_inline(injector::GetBranchDestination(enable.get_first(11)).as_int(), LoadSetups);
             enableEpisode = safetyhook::create_inline(enable.get_first(), EnableEpisode);
             installed = (!ce || storageFileName) && filterSaves && episodeAvailable && nextEpisode && addPack && loadSetups && enableEpisode;
-            if (installed)
-            {
-                for (const auto& episode : episodes)
-                    episodePaths[episode.id] = episode.folder;
-            }
-            else
+            if (!installed)
             {
                 enableEpisode.reset();
                 loadSetups.reset();
@@ -412,7 +592,7 @@ namespace AddonContent
             if (menu == self || !Field<void*>(self, 0x204)) return result;
             choices.clear();
             for (auto& episode : Episodes::episodes)
-                if (episode.mounted && !episode.invalid) choices.push_back(&episode);
+                if (episode.id >= 3 && episode.mounted && !episode.invalid) choices.push_back(&episode);
             if (choices.empty()) return result;
             menu = self;
             page = 0;
@@ -600,6 +780,22 @@ namespace AddonContent
         static void* (__thiscall* findTexture)(void*, uint32_t) = nullptr;
         static SafetyHookInline plainIcon, coloredIcon;
 
+        static void FixSaveSize()
+        {
+            // CE's stats marker makes its loader consume 23 station records,
+            // but the writer uses the installed station count. Keep the wire
+            // count at 23; the existing serializer supplies empty records for
+            // missing stations. The live station count must remain unchanged.
+            auto header = hook::pattern("6A 17 E8 ? ? ? ? A1 ? ? ? ? C1 E0 02 50 68 ? ? ? ? E8 ? ? ? ? 83 C4 0C");
+            auto writer = hook::pattern("A0 ? ? ? ? 53 8A 1D ? ? ? ? 68 ? ? ? ? A2 ? ? ? ? E8 ? ? ? ? 83 C4 04 88 1D ? ? ? ? 5B C3");
+            if (header.size() != 1 || writer.size() != 1) return;
+            const auto setter = injector::GetBranchDestination(header.get_first(2)).as_int();
+            auto setterPattern = hook::range_pattern(setter, setter + 16, "8A 44 24 04 A2 ? ? ? ? C3");
+            if (setterPattern.size() != 1 || *setterPattern.get_first<uintptr_t>(5) != *writer.get_first<uintptr_t>(18)) return;
+            std::array<uint8_t, 5> instruction = { 0xB0, 23, 0x90, 0x90, 0x90 };
+            injector::WriteMemoryRaw(writer.get_first(), instruction.data(), instruction.size(), true);
+        }
+
         static bool HasTexture(const char* name)
         {
             return name && *name && currentDictionary && *currentDictionary &&
@@ -620,6 +816,7 @@ namespace AddonContent
 
         static void Initialize()
         {
+            FixSaveSize();
             // Shared instruction sequences verified in CE 1.2.0.59, EFLC 1.1.2.0
             // and IV 1.0.8.0. Station definitions still come from game audio data.
             auto plain = hook::pattern("80 79 10 00 8D 41 10 74 ? 50 83 C1 08 E8");
