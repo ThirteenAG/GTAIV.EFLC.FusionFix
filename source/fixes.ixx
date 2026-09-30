@@ -664,7 +664,7 @@ public:
                 auto pattern = hook::pattern("8B 44 24 ? 56 8B 35 ? ? ? ? 85 F6");
                 if (!pattern.empty())
                 {
-                    static auto CFrontEnd__GetWidgetValue = (rage::Vector2*(__cdecl*)(rage::Vector2*, int))pattern.get_first(0);
+                    static auto CFrontEnd__GetWidgetValue = (rage::Vector2 * (__cdecl*)(rage::Vector2*, int))pattern.get_first(0);
 
                     static rage::Vector2 mapCursorThickness{};
                     pattern = hook::pattern("F3 0F 11 4C 24 ? FF D7 39 05 ? ? ? ? 8B 0D ? ? ? ? 0F 44 0D ? ? ? ? F3 0F 10 0D ? ? ? ? 66 0F 6E C1 0F 5B C0 8D 44 24");
@@ -691,7 +691,7 @@ public:
                 else
                 {
                     pattern = hook::pattern("8B 0D ? ? ? ? 85 C9 8B 44 24 ? 74");
-                    static auto CFrontEnd__GetWidgetValue = (rage::Vector2*(__cdecl*)(rage::Vector2*, int))pattern.get_first(0);
+                    static auto CFrontEnd__GetWidgetValue = (rage::Vector2 * (__cdecl*)(rage::Vector2*, int))pattern.get_first(0);
 
                     static rage::Vector2 crosshairThickness{};
                     pattern = hook::pattern("F3 0F 11 44 24 ? FF D6 39 05 ? ? ? ? A1 ? ? ? ? 74 ? A1 ? ? ? ? F3 0F 10 05 ? ? ? ? 8D 4C 24");
@@ -708,7 +708,7 @@ public:
                     {
                         *(float*)(regs.esp + 0x64 - 0x28) = crosshairThickness.y;
                     });
-                    
+
                     pattern = hook::pattern("F3 0F 10 1D ? ? ? ? F3 0F 10 54 24 ? 0F B6 C8");
                     static auto CCustomMenu__RenderMapCrosshairHook3 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
@@ -1129,7 +1129,7 @@ public:
 
             // Fix the date going backwards when dying or getting busted between 12pm and 11pm, and respraying between 9pm and 11:59pm (https://github.com/GTAmodding/GTAIV-Issues-List/issues/164)
             {
-                auto pattern = hook::pattern("6A ? 53 55 56");
+                auto pattern = hook::pattern("6A ? 53 55 56 E8 ? ? ? ? 69 FF 88 13");
                 if (!pattern.empty())
                 {
                     uint8_t* ptr = (uint8_t*)pattern.get_first(0);
