@@ -128,7 +128,7 @@ Tone Mapping
 Volumetrischer Nebel
 
 [AO]
-Ambient Occlusion
+Umgebungsverdeckung
 
 [Zoomed Movement]
 Bewegung beim Zoomen erlauben
@@ -146,10 +146,10 @@ Zentrierte Zu-Fuß-Kamera
 Kamerawackeln
 
 [Stunt Jump Cam]
-Stuntsprung-Kamera
+Monsterstunt-Kamera
 
 [Action Cam]
-Kamera bei Zaunklettern & Fahrzeugraub
+Kamera bei Zaunklettern & Fahrzeugklauen
 
 [FE_STEAMPAD]
 Steam Controller
@@ -158,13 +158,13 @@ Steam Controller
 Synchronen Ton in Zwischensequenzen erzwingen
 
 [CutscAudioSync0]
-Synchronen Ton in Zwischensequenzen erzwingen - Aus
+Synchroner Zwischensequenz-Ton - Aus
 
 [CutscAudioSync1]
-Synchronen Ton in Zwischensequenzen erzwingen - Alternativ
+Synchroner Zwischensequenz-Ton - Alternativ
 
 [CutscAudioSync2]
-Synchronen Ton in Zwischensequenzen erzwingen - An
+Synchroner Zwischensequenz-Ton - An
 
 [Turn Indicators]
 Blinker
@@ -200,7 +200,7 @@ GTA IV muss neu gestartet werden, um die Einstellungen anzuwenden.
 Erweiterte Sniper-Steuerung
 
 [Ladders Climb]
-Leitern automatisch hochklettern
+Automatisch auf Leitern steigen
 
 [Bullet Traces]
 Schussspuren immer sichtbar
