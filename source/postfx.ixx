@@ -1772,10 +1772,10 @@ public:
 
                 if (PostFxResources.bEnablePreAlphaDepth)
                 {
-                    pattern = hook::pattern("6A ? E8 ? ? ? ? 5E 8B E5 5D C3");
+                    pattern = hook::pattern("FF B6 ? ? ? ? 6A ? E8 ? ? ? ? 5E 8B E5 5D C3");
                     if (!pattern.empty())
                     {
-                        hbDrawCallFog.fun = injector::MakeCALL(pattern.get_first(2), DrawCallFog).get();
+                        hbDrawCallFog.fun = injector::MakeCALL(pattern.get_first(8), DrawCallFog).get();
                     }
                     else
                     {

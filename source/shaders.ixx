@@ -330,8 +330,8 @@ public:
 
             // z-fighting fix helpers
             {
-                auto pattern = find_pattern("75 ? 8B CE E8 ? ? ? ? 5E 8B E5 5D C3", "? 75 ? 56 E8 ? ? ? ? 8B E5");
-                static auto grcViewPortUpdateTransformHook = safetyhook::create_mid(pattern.get_first(4), [](SafetyHookContext& regs)
+                auto pattern = find_pattern("39 35 ? ? ? ? 75 ? 8B CE E8 ? ? ? ? 5E 8B E5 5D C3", "? 39 35 ? ? ? ? 75 ? 56 E8 ? ? ? ? 8B E5");
+                static auto grcViewPortUpdateTransformHook = safetyhook::create_mid(pattern.get_first(10), [](SafetyHookContext& regs)
                 {
                     auto pDevice = rage::grcDevice::GetD3DDevice();
 

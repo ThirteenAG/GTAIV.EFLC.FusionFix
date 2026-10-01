@@ -3142,8 +3142,8 @@ public:
         pattern = find_pattern("8B 35 ? ? ? ? 75 14", "8B 3D ? ? ? ? 75 14 6A 00");
         rage::pCurrentViewport = *pattern.get_first<rage::grcViewport**>(2);
 
-        pattern = find_pattern("A3 ? ? ? ? E8 ? ? ? ? 83 EC 0C", "A3 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? 5E");
-        rage::grcTextureFactory::g_pTextureFactory = *pattern.get_first<rage::grcTextureFactoryPC**>(1);
+        pattern = find_pattern("EB 02 33 C0 A3 ? ? ? ? E8 ? ? ? ? 83 EC 0C", "EB 02 33 C0 A3 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? 5E");
+        rage::grcTextureFactory::g_pTextureFactory = *pattern.get_first<rage::grcTextureFactoryPC**>(5);
 
         pattern = find_pattern("A3 ? ? ? ? FF 35 ? ? ? ? 8B 01 FF 35 ? ? ? ? 6A 03 68 ? ? ? ? FF 50 38 8B 0D", "A3 ? ? ? ? 8B 01 8B 40 38 6A 03 68 ? ? ? ? FF D0 8B 0D ? ? ? ? A3 ? ? ? ? 8B 11 8B 52 38");
         CViewport3DScene::pGBufferRTs = *pattern.get_first<rage::grcRenderTargetPC**>(1);
@@ -3196,7 +3196,7 @@ public:
             pattern = hook::pattern("F3 0F 11 05 ? ? ? ? E8 ? ? ? ? 84 C0 74 15 E8 ? ? ? ? 84 C0");
         CWeather::Rain = *pattern.get_first<float*>(4);
 
-        pattern = find_pattern("A1 ? ? ? ? 83 C4 08 8B CF", "A1 ? ? ? ? 80 3F 04");
+        pattern = find_pattern("A1 ? ? ? ? 83 C4 08 8B CF 68 ? ? ? ? 89", "A1 ? ? ? ? 80 3F 04");
         CWeather::OldWeatherType = *pattern.get_first<CWeather::eWeatherType*>(1);
 
         pattern = find_pattern("A1 ? ? ? ? 89 46 4C A1", "A1 ? ? ? ? 77 05 A1 ? ? ? ? 80 3F 04");

@@ -272,18 +272,18 @@ public:
             // Fix weapon zoom states in TBoGT
             if (nAimingZoomFix)
             {
-                auto pattern = find_pattern("75 ? 8A C1 32 05", "75 ? 8A D0 32 15");
-                static auto byte_103C111 = *pattern.get_first<uint8_t*>(6);
+                auto pattern = find_pattern("83 3D ? ? ? ? 02 75 ? 8A C1 32 05", "83 3D ? ? ? ? 02 75 ? 8A D0 32 15");
+                static auto byte_103C111 = *pattern.get_first<uint8_t*>(13);
 
                 // If 2 or higher, remove the episode ID check and allow the fixed feature to work in other episodes
                 if (nAimingZoomFix > 1)
                 {
-                    injector::MakeNOP(pattern.get_first(0), 2, true);
+                    injector::MakeNOP(pattern.get_first(7), 2, true);
                 }
                 // If -1 or lower, disable the feature in TBoGT
                 else if (nAimingZoomFix < 0)
                 {
-                    injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz --> jmp
+                    injector::WriteMemory<uint8_t>(pattern.get_first(7), 0xEB, true); // jnz --> jmp
                 }
 
                 // Default the weapon zoom state to 0, used to be always forced to 1 (In TBoGT only)
@@ -726,10 +726,11 @@ public:
 
             // Remove free camera boundary limits in the video editor
             {
-                auto pattern = hook::pattern("73 ? 56 6A ? 6A");
+                // Long patterns: in a relocated exe, address bytes can match short ones elsewhere
+                auto pattern = hook::pattern("39 77 14 73 ? 56 6A 00 6A 01 E8");
                 if (!pattern.empty())
                 {
-                    injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnb --> jmp
+                    injector::WriteMemory<uint8_t>(pattern.get_first(3), 0xEB, true); // jnb --> jmp
 
                     pattern = hook::pattern("0F 86 ? ? ? ? 0F 2E FA");
                     if (!pattern.empty())
@@ -742,8 +743,8 @@ public:
                         pattern = hook::pattern("72 ? 0F 2F 44 24 ? 72 ? 0F 28 C3");
                         injector::WriteMemory(pattern.get_first(0), 0x12EB, true); // jb --> jmp
 
-                        pattern = hook::pattern("72 ? 83 3D ? ? ? ? ? 74 ? A1");
-                        injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jb --> jmp
+                        pattern = hook::pattern("0F 2F 05 ? ? ? ? 72 ? 83 3D ? ? ? ? 01 74 ? A1");
+                        injector::WriteMemory<uint8_t>(pattern.get_first(7), 0xEB, true); // jb --> jmp
                     }
                     else
                     {
@@ -950,10 +951,10 @@ public:
                 }
                 else
                 {
-                    pattern = hook::pattern("72 ? 8B 56 ? 52");
-                    static auto loc_9D2329 = resolve_displacement(pattern.get_first(0)).value();
-                    injector::MakeNOP(pattern.get_first(0), 5, true);
-                    static auto CWeapon__DoWeaponFireFx_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    pattern = hook::pattern("DF F1 DD D8 72 ? 8B 56 ? 52");
+                    static auto loc_9D2329 = resolve_displacement(pattern.get_first(4)).value();
+                    injector::MakeNOP(pattern.get_first(4), 5, true);
+                    static auto CWeapon__DoWeaponFireFx_Hook = safetyhook::create_mid(pattern.get_first(4), [](SafetyHookContext& regs)
                     {
                         static auto AlwaysShowBulletTraces = FusionFixSettings.GetRef("PREF_BULLETTRACES");
                         if (AlwaysShowBulletTraces->get())

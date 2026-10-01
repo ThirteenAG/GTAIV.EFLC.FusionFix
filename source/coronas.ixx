@@ -93,10 +93,10 @@ void IncreaseCoronaLimit()
     if (counter1 != 24 || counter2 != 18)
         MessageBoxW(0, L"Fusion Fix", L"Fusion Fix is not fully compatible with this version of the game", 0);
 
-    auto p = hook::pattern("BF FF 02 00 00");
-    AdjustPointer(p.get_first(-4), &aCoronas[0], dword_temp, dword_temp + 0x3C);
-    p = hook::pattern("BF FF 05 00 00");
-    AdjustPointer(p.get_first(-4), &aCoronas2[0], dword_temp, dword_temp + 0x1B);
+    auto p = hook::pattern("BE ? ? ? ? BF FF 02 00 00 8D 64 24 00");
+    AdjustPointer(p.get_first(1), &aCoronas[0], dword_temp, dword_temp + 0x3C);
+    p = hook::pattern("BE ? ? ? ? BF FF 05 00 00 8D 64 24 00");
+    AdjustPointer(p.get_first(1), &aCoronas2[0], dword_temp, dword_temp + 0x1B);
 
     auto pattern = hook::pattern("C1 E1 ? 03 4C 24 18 C1");
     WriteMemory<uint8_t>(pattern.get(0).get<uintptr_t>(2), NewLimitExponent, true);

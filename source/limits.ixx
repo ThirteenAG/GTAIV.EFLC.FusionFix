@@ -504,8 +504,8 @@ public:
                     injector::WriteMemory(pattern.get_first(1), ms_iBoatLinesLimit - 1, true);
 
                     // bikeHandlingCount
-                    pattern = find_pattern("7D ? 8B C2 C1 E0 ? 05", "7D ? 56 8B F2 C1 E6");
-                    injector::MakeNOP(pattern.get_first(0), 2);
+                    pattern = find_pattern("83 FA 28 7D ? 8B C2 C1 E0 ? 05", "83 FA 28 7D ? 56 8B F2 C1 E6");
+                    injector::MakeNOP(pattern.get_first(3), 2);
 
                     // flyingHandlingCount
                     pattern = find_pattern("7D ? 8D 04 52 C1 E0 ? 05", "7D ? 56 8D 34 49 C1 E6");
@@ -567,8 +567,8 @@ public:
                     auto pattern = find_pattern("81 C3 ? ? ? ? 89 03", "81 C7 ? ? ? ? 89 07");
                     auto WeaponInfo = LimitAdjuster(*pattern.get_first<uintptr_t>(2), 0x110, 60, 16).ReplaceXrefs(0, 0x24, 0x1A98, 0x1A9C, 0x1AB4, 0x1B30, 0x3430, 0x3540, 0x363C, 0x3870, 0x3980, 0x3DC0).ReplaceNumericRefs(ref1, ref2);
 
-                    pattern = hook::pattern("7D ? 69 C0 ? ? ? ? 05");
-                    injector::MakeNOP(pattern.get_first(0), 2);
+                    pattern = hook::pattern("8B 44 24 04 83 F8 3C 7D ? 69 C0 10 01 00 00 05");
+                    injector::MakeNOP(pattern.get_first(7), 2);
 
                     pattern = hook::pattern("8B 4C 24 ? 33 C0 3B 0C 85");
                     if (!pattern.empty())

@@ -483,7 +483,7 @@ public:
                 });
             }
 
-            pattern = find_pattern("8D B0 ? ? ? ? 6A ? 51", "8D B8 ? ? ? ? B9 ? ? ? ? D9 1C 24");
+            pattern = find_pattern("8D B0 ? ? ? ? 6A ? 51 B9 ? ? ? ? C7 04 24", "8D B8 ? ? ? ? B9 ? ? ? ? D9 1C 24");
             CTimeCycleModifier::msTimeCycleModifiers = *pattern.get_first<decltype(CTimeCycleModifier::msTimeCycleModifiers)>(2);
 
             pattern = find_pattern("51 F3 0F 10 64 24 ? 0F 57 F6", "F3 0F 10 4C 24 ? 0F 57 F6 0F 2F CE");
