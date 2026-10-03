@@ -2118,20 +2118,6 @@ export namespace CCamera
     bool(*isWidescreenBordersActive)();
 }
 
-export namespace CTimer
-{
-    float* fTimeStep = nullptr;
-    float* fCamTimeStep = nullptr;
-    float* fTimeScale1 = nullptr;
-    float* fTimeScale2 = nullptr;
-    float* m_gameTime = nullptr;
-    float* m_systemTime = nullptr;
-    uint8_t* ms_bUserPause = nullptr;
-    uint8_t* ms_bScriptPause = nullptr;
-    int32_t* m_snTimeInMilliseconds = nullptr;
-    uint32_t* m_frameCount = nullptr;
-}
-
 export namespace TimeCycle
 {
     void (__cdecl* Initialise)() = nullptr;
@@ -2396,8 +2382,7 @@ export namespace NaturalMotion
             && ART::MessageParams::addFloat
             && rage::fragInstNM::PostARTMessage
             && ART::MessageParams::Destructor
-            && CTaskSimpleNMHighFall::ms_Parameters
-            && CTimer::m_snTimeInMilliseconds;
+            && CTaskSimpleNMHighFall::ms_Parameters;
     }
 
     bool SwitchToNMHighFall(
@@ -2996,6 +2981,75 @@ export namespace CStreamingEngine
     CStreamingInfoManager* ms_info = nullptr;
 }
 
+export class CTimer
+{
+public:
+    static inline float* fTimeStep;
+    static inline float* fCamTimeStep;
+    static inline float* fTimeScale1;
+    static inline float* fTimeScale2;
+    static inline float* m_gameTime;
+    static inline float* m_systemTime;
+    static inline bool* ms_bUserPause;
+    static inline bool* ms_bScriptPause;
+    static inline uint32_t* m_snTimeInMilliseconds;
+    static inline int32_t* m_frameCount;
+
+    // Everything below here is new
+    static inline uint32_t m_logicalFrameCount;
+    static inline uint32_t m_logicalFramesPassed;
+
+    static uint32_t GetLogicalFrameCount() { return m_logicalFrameCount; }
+    static uint32_t GetLogicalFramesPassed() { return m_logicalFramesPassed; }
+
+    static inline SafetyHookInline shInit = {};
+    static inline void __cdecl Init()
+    {
+        m_logicalFrameCount = 0;
+        m_logicalFramesPassed = 0;
+
+        shInit.unsafe_ccall();
+    }
+
+    static inline injector::hook_back<bool(*)()> hbIsUserPaused;
+    static inline bool IsCameraBaseProcessingUserPaused()
+    {
+        if (nCameraUnpauseTimer1 > 0)
+        {
+            nCameraUnpauseTimer1--;
+
+            return false;
+        }
+
+        return hbIsUserPaused.fun();
+    }
+
+    static inline injector::hook_back<int(*)()> hbIsGamePaused;
+    static inline int IsCameraBaseProcessingGamePaused()
+    {
+        if (nCameraUnpauseTimer2 > 0)
+        {
+            nCameraUnpauseTimer2--;
+
+            return 0;
+        }
+
+        return hbIsGamePaused.fun();
+    }
+
+    static inline int AreVisualEffectUpdatesGamePaused()
+    {
+        if (nTimecycleUnpauseTimer > 0)
+        {
+            nTimecycleUnpauseTimer--;
+
+            return 0;
+        }
+
+        return hbIsGamePaused.fun();
+    }
+};
+
 export enum eControllerButtons
 {
     BUTTON_BUMPER_LEFT = 4,
@@ -3054,24 +3108,42 @@ public:
 
         _dwCurrentEpisode = *find_pattern("83 3D ? ? ? ? ? 75 0F 6A 02", "89 35 ? ? ? ? 89 35 ? ? ? ? 6A 00 6A 01").get_first<int32_t*>(2);
 
+        pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? 8B 43 20 53", "F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? 83 C4 04 83 7C 24");
+        CTimer::fTimeStep = *pattern.get_first<float*>(4);
+
+        pattern = find_pattern("F3 0F 11 0D ? ? ? ? 74 ? 80 3D", "F3 0F 11 05 ? ? ? ? 74 ? 80 3D ? ? ? ? ? 74 ? D9 05");
+        CTimer::fCamTimeStep = *pattern.get_first<float*>(4);
+
+        pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 10 0D ? ? ? ? 0F 2F C8 F3 0F 11 44 24", "F3 0F 10 05 ? ? ? ? 0F 2F C8 77 ? F3 0F 10 05");
+        CTimer::fTimeScale1 = *pattern.get_first<float*>(4);
+
+        pattern = find_pattern("F3 0F 11 05 ? ? ? ? EB ? F3 0F 10 05 ? ? ? ? 0F 2F C8 F3 0F 11 44 24", "F3 0F 11 05 ? ? ? ? F3 0F 10 05 ? ? ? ? 56 F3 0F 11 44 24 ? E8 ? ? ? ? 8B 0D");
+        CTimer::fTimeScale2 = *pattern.get_first<float*>(4);
+
+        pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 44 24 ? 5F", "F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 44 24 ? F3 0F 11 07");
+        CTimer::m_gameTime = *pattern.get_first<float*>(4);
+
+        pattern = find_pattern("F3 0F 10 05 ? ? ? ? EB ? 66 0F 6E C0", "F3 0F 10 05 ? ? ? ? EB ? F3 0F 2A C0");
+        CTimer::m_systemTime = *pattern.get_first<float*>(4);
+
         pattern = hook::pattern("0F B6 0D ? ? ? ? 0F B6 C0 0B C1");
         if (!pattern.empty())
         {
-            CTimer::ms_bUserPause = *pattern.get_first<uint8_t*>(3);
-            CTimer::ms_bScriptPause = *pattern.get_first<uint8_t*>(15);
+            CTimer::ms_bUserPause = *pattern.get_first<bool*>(3);
+            CTimer::ms_bScriptPause = *pattern.get_first<bool*>(15);
         }
         else
         {
             pattern = hook::pattern("0F B6 0D ? ? ? ? 0F B6 15 ? ? ? ? 33 C0 0B C1");
-            CTimer::ms_bUserPause = *pattern.get_first<uint8_t*>(3);
-            CTimer::ms_bScriptPause = *pattern.get_first<uint8_t*>(10);
+            CTimer::ms_bUserPause = *pattern.get_first<bool*>(3);
+            CTimer::ms_bScriptPause = *pattern.get_first<bool*>(10);
         }
 
         pattern = find_pattern("A1 ? ? ? ? A3 ? ? ? ? EB 3A", "A1 ? ? ? ? 39 05 ? ? ? ? 76 1F");
-        CTimer::m_snTimeInMilliseconds = *pattern.get_first<int32_t*>(1);
+        CTimer::m_snTimeInMilliseconds = *pattern.get_first<uint32_t*>(1);
 
         pattern = find_pattern("FF 05 ? ? ? ? F3 0F 2C C0 F3 0F 10 05", "83 05 ? ? ? ? ? D9 3C 24");
-        CTimer::m_frameCount = *pattern.get_first<uint32_t*>(2);
+        CTimer::m_frameCount = *pattern.get_first<int32_t*>(2);
 
         pattern = find_pattern("83 3D ? ? ? ? ? 74 17 8B 4D 14", "83 3D ? ? ? ? ? 74 15 8B 44 24 1C", "83 3D ? ? ? ? ? 74 EF");
         rage::grcDevice::ms_pD3DDevice = *pattern.get_first<IDirect3DDevice9**>(2);
@@ -3104,18 +3176,6 @@ public:
 
         pattern = find_pattern("8B 44 24 04 56 8B F1 85 C0 74 38", "8B 44 24 04 85 C0 56 8B F1 74 38");
         rage::grcDevice::SetCallbackAddr = pattern.get_first<void*>(0);
-
-        pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? 8B 43 20 53", "F3 0F 10 05 ? ? ? ? F3 0F 59 44 24 ? 83 C4 04 83 7C 24");
-        CTimer::fTimeStep = *pattern.get_first<float*>(4);
-
-        pattern = find_pattern("F3 0F 11 0D ? ? ? ? 74 ? 80 3D", "F3 0F 11 05 ? ? ? ? 74 ? 80 3D ? ? ? ? ? 74 ? D9 05");
-        CTimer::fCamTimeStep = *pattern.get_first<float*>(4);
-
-        pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 10 0D ? ? ? ? 0F 2F C8 F3 0F 11 44 24", "F3 0F 10 05 ? ? ? ? 0F 2F C8 77 ? F3 0F 10 05");
-        CTimer::fTimeScale1 = *pattern.get_first<float*>(4);
-
-        pattern = find_pattern("F3 0F 11 05 ? ? ? ? EB ? F3 0F 10 05 ? ? ? ? 0F 2F C8 F3 0F 11 44 24", "F3 0F 11 05 ? ? ? ? F3 0F 10 05 ? ? ? ? 56 F3 0F 11 44 24 ? E8 ? ? ? ? 8B 0D");
-        CTimer::fTimeScale2 = *pattern.get_first<float*>(4);
 
         pattern = find_pattern("BE ? ? ? ? 8D 44 24 0C 50 8D 46 10 50", "BE ? ? ? ? 8D 44 24 0C 50 8D 4E 10 51");
         CGameConfigReader::ms_imgFiles = *pattern.get_first<decltype(CGameConfigReader::ms_imgFiles)>(1);
@@ -3477,12 +3537,6 @@ public:
 
         pattern = find_pattern("F3 0F 5C 05 ? ? ? ? 0F 2F D0 76 ? 5F", "F3 0F 5C 05 ? ? ? ? 0F 2F E8 76 ? F3 0F 11 2F");
         CCutsceneManager::ms_fTimePassedSinceLastAudioStart = *pattern.get_first<float*>(4);
-
-        pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 44 24 ? 5F", "F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 44 24 ? F3 0F 11 07");
-        CTimer::m_gameTime = *pattern.get_first<float*>(4);
-
-        pattern = find_pattern("F3 0F 10 05 ? ? ? ? EB ? 66 0F 6E C0", "F3 0F 10 05 ? ? ? ? EB ? F3 0F 2A C0");
-        CTimer::m_systemTime = *pattern.get_first<float*>(4);
 
         pattern = find_pattern("B9 ? ? ? ? A3 ? ? ? ? C6 05 ? ? ? ? ? C6 05", "B9 ? ? ? ? A3 ? ? ? ? 88 1D");
         CStreamingEngine::ms_info = *pattern.get_first<CStreamingInfoManager*>(1);

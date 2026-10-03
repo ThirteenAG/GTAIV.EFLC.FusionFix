@@ -10,8 +10,6 @@ import natives;
 import settings;
 import shaders;
 
-int nRadarZoomDelay = 0;
-
 namespace CTaskComplexGangDriveby
 {
     SafetyHookInline shPlayerWantsToDoDriveby = {};
@@ -84,13 +82,15 @@ int sub_5ADB20()
     return shsub_5ADB20.unsafe_ccall<int>();
 }
 
+uint32_t nRadarZoomDelay = 0;
+
 namespace CRadarNY
 {
     injector::hook_back<bool(*)()> hbsub_5DCA80;
     bool sub_5DCA80()
     {
-        static int ZoomOutEndTime = 0;
-        int CurrentTime = *CTimer::m_snTimeInMilliseconds;
+        static uint32_t ZoomOutEndTime = 0;
+        uint32_t CurrentTime = *CTimer::m_snTimeInMilliseconds;
 
         // Call the original function to check the zoom key state
         if (hbsub_5DCA80.fun())
@@ -128,7 +128,7 @@ namespace CHeli
 {
     static inline uint32_t* dword_1670CD0 = nullptr; // Light's last drawn frame
     static inline void* pActiveSearchlight = nullptr; // Pointer to the helicopter that draws the light
-    static inline int SearchlightLockTime = 0; // Timestamp of when the lock expires
+    static inline uint32_t SearchlightLockTime = 0; // Timestamp of when the lock expires
 
     SafetyHookInline shPreRender2 = {};
     void __fastcall PreRender2(void* _this, void* edx)
@@ -136,7 +136,7 @@ namespace CHeli
         // Check if a searchlight is active
         if (*(int8_t*)((uintptr_t)_this + 8044) != 0 && *(float*)((uintptr_t)_this + 8036) > 0.0f && *(int8_t*)((uintptr_t)_this + 8240) == 0)
         {
-            auto CurrentTime = *CTimer::m_snTimeInMilliseconds;
+            uint32_t CurrentTime = *CTimer::m_snTimeInMilliseconds;
 
             // A helicopter can acquire the lock if:
             // - No one has it (pActiveSearchlight is nullptr)
@@ -459,8 +459,8 @@ public:
             // Camera centering delay/turn speed
             {
                 // Timers
-                static int nTimeToPassBeforeCenteringCameraFollowPed = 0;
-                static int nTimeToPassBeforeCenteringCameraFollowVehicle = 0;
+                static uint32_t nTimeToPassBeforeCenteringCameraFollowPed = 0;
+                static uint32_t nTimeToPassBeforeCenteringCameraFollowVehicle = 0;
 
                 // Settings
                 static auto nTimeToWaitBeforeCenteringCameraFollowPed_KB = FusionFixSettings.GetRef("PREF_KBCAMCENTERDELAY");
@@ -472,10 +472,10 @@ public:
                 static auto nCameraTurnSpeedFollowVehicle_KB = FusionFixSettings.GetRef("PREF_KBCAMTURNSPEEDVEH");
                 static auto nCameraTurnSpeedFollowVehicle_Pad = FusionFixSettings.GetRef("PREF_PADCAMTURNSPEEDVEH");
 
-                static auto ShouldCenter = [&](int& DelayTime, int DelaySetting, bool IsUsingPad) -> bool
+                static auto ShouldCenter = [&](uint32_t& DelayTime, int DelaySetting, bool IsUsingPad) -> bool
                 {
-                    static int LastTime = 0;
-                    int CurrentTime = *CTimer::m_snTimeInMilliseconds;
+                    static uint32_t LastTime = 0;
+                    uint32_t CurrentTime = *CTimer::m_snTimeInMilliseconds;
 
                     if (CurrentTime < LastTime)
                         DelayTime = 0;
