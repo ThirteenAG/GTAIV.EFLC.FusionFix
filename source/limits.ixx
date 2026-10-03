@@ -38,6 +38,16 @@ public:
         return *this;
     }
 
+    uint8_t* GetNewArrayPointer() const
+    {
+        return m_array;
+    }
+
+    size_t GetNewElementsCount() const
+    {
+        return m_elementsCount * m_increaseby;
+    }
+
     LimitAdjuster& ReplaceXrefs(std::convertible_to<ptrdiff_t> auto&& ...offsets)
     {
         if (!m_patchedXrefs)
@@ -485,7 +495,7 @@ public:
                     auto aFlyingHandlingLines = aHandlingLines + (0x110 * ms_iStandardLines) + (0x40 * ms_iBikeLines);
                     auto aBoatHandlingLines   = aHandlingLines + (0x110 * ms_iStandardLines) + (0x40 * ms_iBikeLines) + (0x60 * ms_iFlyingLines);
 
-                    auto HandlingLines = LimitAdjuster(aHandlingLines, 0x110, ms_iStandardLines, 26).IncreaseBy(increaseby).InsertNewArrayPointer(handling.data()).ReplaceXrefs(0x0, 0xF8, 0xFC, 0x100, 0x5F60, 0xAA00, 0xAAFC);
+                    auto HandlingLines = LimitAdjuster(aHandlingLines, 0x110, ms_iStandardLines, 25).IncreaseBy(increaseby).InsertNewArrayPointer(handling.data()).ReplaceXrefs(0x0, 0xF8, 0xFC, 0x100, 0xAA00, 0xAAFC);
 
                     //auto BikeHandlingLines = LimitAdjuster(aBikeHandlingLines, 0x40, ms_iBikeLines, 7).IncreaseBy(increaseby).InsertNewArrayPointer(handling.data() + (0x110 * ms_iStandardLinesLimit)).ReplaceXrefs(0);
                     auto FlyingHandlingLines = LimitAdjuster(aFlyingHandlingLines, 0x40, ms_iFlyingLines, 5).IncreaseBy(increaseby).InsertNewArrayPointer(handling.data() + (0x110 * ms_iStandardLinesLimit) + (0x40 * ms_iBikeLinesLimit)).ReplaceXrefs(0);
@@ -565,7 +575,18 @@ public:
                     auto ref2 = (intptr_t)hook::pattern("83 F8 ? 7C ? 8B 44 24 ? C3").get_first(2);
 
                     auto pattern = find_pattern("81 C3 ? ? ? ? 89 03", "81 C7 ? ? ? ? 89 07");
-                    auto WeaponInfo = LimitAdjuster(*pattern.get_first<uintptr_t>(2), 0x110, 60, 16).ReplaceXrefs(0, 0x24, 0x1A98, 0x1A9C, 0x1AB4, 0x1B30, 0x3430, 0x3540, 0x363C, 0x3870, 0x3980, 0x3DC0).ReplaceNumericRefs(ref1, ref2);
+                    auto aWeaponInfo = *pattern.get_first<uintptr_t>(2);
+                    auto WeaponInfo = LimitAdjuster(aWeaponInfo, 0x110, 60, 16).ReplaceXrefs(0, 0x24, 0x1A98, 0x1A9C, 0x1AB4, 0x1B30, 0x3430, 0x3540, 0x363C, 0x3870, 0x3980, 0x3DC0).ReplaceNumericRefs(ref1, ref2);
+
+                    // The two loops over every entry's +0x24 field stop at the old array's end (cmp reg, imm; jl). That address is
+                    // also a separate global, so it can't go through ReplaceXrefs. Unpatched, the loops run off the new array
+                    // whenever it is allocated below the exe (Proton), or stop after one entry otherwise.
+                    auto oldEnd = aWeaponInfo + 0x110 * 60 + 0x24;
+                    auto newEnd = uintptr_t(WeaponInfo.GetNewArrayPointer() + 0x110 * WeaponInfo.GetNewElementsCount() + 0x24);
+                    hook::pattern("81 ? " + pattern_str(to_bytes(oldEnd)) + "7C").for_each_result([&](hook::pattern_match match)
+                    {
+                        injector::WriteMemory(match.get<void>(2), newEnd, true);
+                    });
 
                     pattern = hook::pattern("8B 44 24 04 83 F8 3C 7D ? 69 C0 10 01 00 00 05");
                     injector::MakeNOP(pattern.get_first(7), 2);
