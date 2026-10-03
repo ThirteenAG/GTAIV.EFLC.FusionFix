@@ -9,9 +9,9 @@ import comvars;
 import settings;
 
 // Mission counters that only pick which variant of a conversation plays. Missions bump them after a failed attempt,
-// so a retry hears other lines; setting one to 1 before the first attempt plays the retry variant. Checked against
-// the mission scripts: counters that also drive difficulty, timers, spawns, player mood, texts or mission state are
-// not listed, and neither are counters shared between missions.
+// so a retry hears other lines; setting one to 1 when the mission starts plays the retry variant. Checked against
+// the mission scripts for every value they can hold: counters that also drive difficulty, timers, spawns, player
+// mood, texts or mission state are not listed, and neither are counters shared between missions.
 std::vector<std::vector<std::tuple<std::string_view, uint32_t>>> gAltDialogueVars =
 {
     {
@@ -153,22 +153,27 @@ std::vector<std::vector<std::tuple<std::string_view, uint32_t>>> gAltDialogueVar
     }
 };
 
-SafetyHookInline shStartNewScript = {};
-int __cdecl StartNewScript(const char* name, void* args, int32_t argsSize, int32_t stackSize)
+void SetAltDialogueVars(const char* name)
 {
     static auto altdialogue = FusionFixSettings.GetRef("PREF_ALTDIALOGUE");
     auto episode = *_dwCurrentEpisode;
-    if (name && altdialogue->get() && *rage::scrProgram::ms_pGlobals && episode >= 0 && episode < int32_t(gAltDialogueVars.size()))
+    if (name && altdialogue && altdialogue->get() && *rage::scrProgram::ms_pGlobals && episode >= 0 && episode < int32_t(gAltDialogueVars.size()))
     {
         auto pGlobals = *rage::scrProgram::ms_pGlobals;
         for (auto& [script, index] : gAltDialogueVars[episode])
         {
-            // Only before a first attempt: once the mission has bumped the counter, retries go on as usual
-            if (iequals(script, name) && index < *rage::scrProgram::ms_pGlobalsSize && pGlobals[index] == 0)
+            // On every launch, so saves that already moved a counter on (retries, older versions) get it too
+            if (iequals(script, name) && index < *rage::scrProgram::ms_pGlobalsSize)
                 pGlobals[index] = 1;
         }
     }
-    return shStartNewScript.unsafe_ccall<int>(name, args, argsSize, stackSize);
+}
+
+injector::hook_back<int(__cdecl*)(const char*, void*, int32_t, int32_t)> hbStartNewScript;
+int __cdecl StartNewScript(const char* name, void* args, int32_t argsSize, int32_t stackSize)
+{
+    SetAltDialogueVars(name);
+    return hbStartNewScript.fun(name, args, argsSize, stackSize);
 }
 
 class AltDialogue
@@ -178,8 +183,9 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            // START_NEW_SCRIPT and START_NEW_SCRIPT_WITH_ARGS call the script launcher through the same pointer, so the
-            // counters are set before a mission runs its first instruction and are never touched while it runs
+            // START_NEW_SCRIPT and START_NEW_SCRIPT_WITH_ARGS start scripts through a launcher pointer, so the counters are set
+            // before a mission runs its first instruction and are never touched while it runs. CGame::Init stores the
+            // game's launcher in that pointer, so take over that store.
             auto pattern = hook::pattern("68 ? ? ? ? 68 B9 60 22 4E"); // push handler, push START_NEW_SCRIPT hash
             if (pattern.empty())
                 return;
@@ -189,9 +195,18 @@ public:
             if (call.empty())
                 return;
 
-            auto launcher = **call.get_first<uintptr_t*>(2);
-            if (launcher)
-                shStartNewScript = safetyhook::create_inline(launcher, StartNewScript);
+            auto launcher = *call.get_first<decltype(hbStartNewScript.fun)*>(2);
+            pattern = hook::pattern("C7 05 " + pattern_str(to_bytes(launcher))); // mov launcher, offset GtaLauncher
+            if (pattern.empty())
+                return;
+
+            auto store = pattern.get_first<decltype(hbStartNewScript.fun)>(6);
+            hbStartNewScript.fun = *store;
+            injector::WriteMemory(store, &StartNewScript, true);
+
+            // In case CGame::Init has already run
+            if (*launcher == hbStartNewScript.fun)
+                *launcher = &StartNewScript;
         };
     }
 } AltDialogue;
