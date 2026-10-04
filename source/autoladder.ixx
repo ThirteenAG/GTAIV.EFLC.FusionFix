@@ -11,6 +11,12 @@ import common;
 import comvars;
 import settings;
 
+namespace CTaskSimpleClimbLadder
+{
+    static constexpr int nIdleAction = 0;
+    static constexpr ptrdiff_t nActionOffset = 24;
+}
+
 namespace ShortLadderTraversal
 {
     void TrackEntry(uintptr_t task, uintptr_t ped, bool fromTop);
@@ -56,7 +62,7 @@ namespace LadderCamera
         uintptr_t camera = 0;
         float heading = 0.0f;
     };
-    // Camera input pauses correction without clearing the mount heading or task lifetime.
+    // Idle and camera input pause correction without clearing the mount heading.
     static LadderAlignment alignment;
 
     static void BeginAlignment(uintptr_t ped, uintptr_t task, float heading)
@@ -86,13 +92,16 @@ namespace LadderCamera
             else
             {
                 alignment.camera = camera;
+                const auto simpleLadderTask = FindActiveTaskByType(intelligence + 68, std::to_underlying(TaskID::TaskSimpleClimbLadder));
+                const bool idle = simpleLadderTask
+                    && *reinterpret_cast<const int*>(simpleLadderTask + CTaskSimpleClimbLadder::nActionOffset) == CTaskSimpleClimbLadder::nIdleAction;
                 const auto flags = *reinterpret_cast<const uint8_t*>(camera + 910);
                 const auto forceFlags = *reinterpret_cast<const uint8_t*>(camera + 909);
                 const auto control = CPlayerPed::GetControlFromPlayer ? CPlayerPed::GetControlFromPlayer(ped) : 0;
-                if (control && !(flags & 0x80) && !(forceFlags & 4) && force == 0.0f
+                if (!idle && control && !(flags & 0x80) && !(forceFlags & 4) && force == 0.0f
                     && std::isfinite(*beta) && std::isfinite(timestep) && timestep >= 0.0f)
                 {
-                    // Yield to camera input and native overrides; resume rear alignment when released.
+                    // Yield to camera input and native overrides while mounting or moving on the ladder.
                     const int lookX = GetAxisValue(GetPedAimWeaponLeftRight(control));
                     const int lookY = GetAxisValue(GetPedLookUpDown(control));
                     const float error = std::remainder(alignment.heading - *beta, 2.0f * pi);
@@ -337,10 +346,8 @@ namespace CTaskComplexClimbLadder
 
 namespace ShortLadderTraversal
 {
-    static constexpr int nIdleAction = 0;
     static constexpr int nClimbUpAction = 1;
     static constexpr int nClimbDownAction = 2;
-    static constexpr ptrdiff_t nActionOffset = 24;
     static constexpr ptrdiff_t nMovementRequestOffset = 32;
     static constexpr ptrdiff_t nTopZOffset = 56;
     static constexpr ptrdiff_t nBottomZOffset = 72;
@@ -397,7 +404,7 @@ namespace ShortLadderTraversal
         if (task == completion.task && ped == completion.ped
             && (completion.pending || completion.active || completion.ownsMovementRequest))
         {
-            const int action = *reinterpret_cast<const int*>(task + nActionOffset);
+            const int action = *reinterpret_cast<const int*>(task + CTaskSimpleClimbLadder::nActionOffset);
             const auto matrix = *reinterpret_cast<const rage::Matrix44**>(ped + 0x20);
             const auto control = CPlayerPed::GetControlFromPlayer ? CPlayerPed::GetControlFromPlayer(ped) : 0;
             float y = 0.0f;
@@ -405,7 +412,7 @@ namespace ShortLadderTraversal
                 || (completion.descending ? y < -63.0f : y > 63.0f))
                 completion.pending = completion.active = false;
             // Evaluate once at the first idle after mounting, when the native step distance is available.
-            if (completion.pending && action == nIdleAction)
+            if (completion.pending && action == CTaskSimpleClimbLadder::nIdleAction)
             {
                 completion.pending = false;
                 const float step = *reinterpret_cast<const float*>(task + nStepDistanceOffset);
@@ -422,9 +429,9 @@ namespace ShortLadderTraversal
             if (completion.active)
             {
                 if (static_cast<uint32_t>(*CTimer::m_snTimeInMilliseconds) - completion.startTime > nCompletionTimeoutMs
-                    || (action != nIdleAction && action != (completion.descending ? nClimbDownAction : nClimbUpAction)))
+                    || (action != CTaskSimpleClimbLadder::nIdleAction && action != (completion.descending ? nClimbDownAction : nClimbUpAction)))
                     completion.active = false;
-                else if (action == nIdleAction)
+                else if (action == CTaskSimpleClimbLadder::nIdleAction)
                 {
                     *reinterpret_cast<int*>(task + nMovementRequestOffset) = completion.descending ? nClimbDownAction : nClimbUpAction;
                     completion.ownsMovementRequest = true;
