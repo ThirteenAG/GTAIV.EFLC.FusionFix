@@ -2986,14 +2986,14 @@ export class CTimer
 public:
     static inline float* fTimeStep;
     static inline float* fCamTimeStep;
-    static inline float* fTimeScale1;
-    static inline float* fTimeScale2;
+    static inline float* m_fTimeScale;
+    static inline float* m_fTimeScaleScript;
     static inline float* m_gameTime;
     static inline float* m_systemTime;
     static inline bool* ms_bUserPause;
     static inline bool* ms_bScriptPause;
     static inline uint32_t* m_snTimeInMilliseconds;
-    static inline int32_t* m_frameCount;
+    static inline uint32_t* m_frameCount;
 
     // Everything below here is new
     static inline uint32_t m_logicalFrameCount;
@@ -3114,11 +3114,11 @@ public:
         pattern = find_pattern("F3 0F 11 0D ? ? ? ? 74 ? 80 3D", "F3 0F 11 05 ? ? ? ? 74 ? 80 3D ? ? ? ? ? 74 ? D9 05");
         CTimer::fCamTimeStep = *pattern.get_first<float*>(4);
 
-        pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 10 0D ? ? ? ? 0F 2F C8 F3 0F 11 44 24", "F3 0F 10 05 ? ? ? ? 0F 2F C8 77 ? F3 0F 10 05");
-        CTimer::fTimeScale1 = *pattern.get_first<float*>(4);
+        pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 11 44 24 ? 56 E8 ? ? ? ? 8B 0D", "F3 0F 11 05 ? ? ? ? F3 0F 10 05 ? ? ? ? 56 F3 0F 11 44 24 ? E8 ? ? ? ? 8B 0D");
+        CTimer::m_fTimeScale = *pattern.get_first<float*>(4);
 
-        pattern = find_pattern("F3 0F 11 05 ? ? ? ? EB ? F3 0F 10 05 ? ? ? ? 0F 2F C8 F3 0F 11 44 24", "F3 0F 11 05 ? ? ? ? F3 0F 10 05 ? ? ? ? 56 F3 0F 11 44 24 ? E8 ? ? ? ? 8B 0D");
-        CTimer::fTimeScale2 = *pattern.get_first<float*>(4);
+        pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 10 0D ? ? ? ? 0F 2F C8 F3 0F 11 44 24", "F3 0F 10 05 ? ? ? ? 0F 2F C8 77 ? F3 0F 10 05 ? ? ? ? 0F 2F C8");
+        CTimer::m_fTimeScaleScript = *pattern.get_first<float*>(4);
 
         pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 44 24 ? 5F", "F3 0F 10 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 44 24 ? F3 0F 11 07");
         CTimer::m_gameTime = *pattern.get_first<float*>(4);
@@ -3143,7 +3143,7 @@ public:
         CTimer::m_snTimeInMilliseconds = *pattern.get_first<uint32_t*>(1);
 
         pattern = find_pattern("FF 05 ? ? ? ? F3 0F 2C C0 F3 0F 10 05", "83 05 ? ? ? ? ? D9 3C 24");
-        CTimer::m_frameCount = *pattern.get_first<int32_t*>(2);
+        CTimer::m_frameCount = *pattern.get_first<uint32_t*>(2);
 
         pattern = find_pattern("83 3D ? ? ? ? ? 74 17 8B 4D 14", "83 3D ? ? ? ? ? 74 15 8B 44 24 1C", "83 3D ? ? ? ? ? 74 EF");
         rage::grcDevice::ms_pD3DDevice = *pattern.get_first<IDirect3DDevice9**>(2);
