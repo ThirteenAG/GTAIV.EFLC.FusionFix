@@ -653,16 +653,12 @@ public:
 
             // Hide the mouse cursor texture when using a gamepad
             // Note: It only disables it visually, so a mouse can still be used simultaneously with a controller to select things. The start menu also uses a different cursor, so this won't also hide that one.
-            // TODO: Improve this in the future? Like locking the mouse positions in place at least when a gamepad is used?
+            // TODO: Improve and refactor this properly in the future? Like locking the mouse positions in place at least when a gamepad is used?
             {
-                auto pattern = find_pattern("E8 ? ? ? ? 32 C0 A2", "E8 ? ? ? ? C6 05 ? ? ? ? ? 80 3D ? ? ? ? ? 0F 85");
-                hbsub_5ADB20.fun = injector::MakeCALL(pattern.get_first(0), sub_5ADB20).get();
-
-                pattern = hook::pattern("E8 ? ? ? ? C6 05 ? ? ? ? ? 5B 8B E5");
-                hbsub_5ADB20.fun = injector::MakeCALL(pattern.get_first(0), sub_5ADB20).get();
-
-                pattern = find_pattern("50 E8 ? ? ? ? 83 C4 ? E8 ? ? ? ? E8 ? ? ? ? 8B 4C 24", "50 E8 ? ? ? ? 83 C4 ? E8 ? ? ? ? E8 ? ? ? ? 5F");
-                hbsub_5ADB20.fun = injector::MakeCALL(pattern.get_first(14), sub_5ADB20).get();
+                auto pattern = hook::pattern("75 ? 83 3D ? ? ? ? ? 75 ? 6A ? E8 ? ? ? ? 83 C4 ? 84 C0");
+                injector::WriteMemory<uint16_t>(pattern.get_first(0), 0x840F, true); // jnz short --> jz long
+                injector::WriteMemory(pattern.get_first(2), (uintptr_t)hook::get_pattern("C6 05 ? ? ? ? ? 5F 5E 5D 5B 83 C4 ? C3", 7) - (uintptr_t)pattern.get_first(6), true);
+                injector::MakeNOP(pattern.get_first(6), 23, true);
             }
 
             // Pause menu map crosshair aspect ratio scaling
