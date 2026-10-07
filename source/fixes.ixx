@@ -73,15 +73,6 @@ namespace CDeferredLightingHelper
     }
 }
 
-injector::hook_back<int(*)()> hbsub_5ADB20;
-int sub_5ADB20()
-{
-    if (Natives::IsUsingController())
-        return 0;
-
-    return hbsub_5ADB20.fun();
-}
-
 uint32_t nRadarZoomDelay = 0;
 
 namespace CRadarNY
