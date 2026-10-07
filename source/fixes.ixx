@@ -73,13 +73,13 @@ namespace CDeferredLightingHelper
     }
 }
 
-SafetyHookInline shsub_5ADB20 = {};
+injector::hook_back<int(*)()> hbsub_5ADB20;
 int sub_5ADB20()
 {
     if (Natives::IsUsingController())
         return 0;
 
-    return shsub_5ADB20.unsafe_ccall<int>();
+    return hbsub_5ADB20.fun();
 }
 
 uint32_t nRadarZoomDelay = 0;
@@ -655,8 +655,14 @@ public:
             // Note: It only disables it visually, so a mouse can still be used simultaneously with a controller to select things. The start menu also uses a different cursor, so this won't also hide that one.
             // TODO: Improve this in the future? Like locking the mouse positions in place at least when a gamepad is used?
             {
-                auto pattern = hook::pattern("83 EC ? 53 55 56 57 6A ? E8 ? ? ? ? 83 C4");
-                shsub_5ADB20 = safetyhook::create_inline(pattern.get_first(0), sub_5ADB20);
+                auto pattern = find_pattern("E8 ? ? ? ? 32 C0 A2", "E8 ? ? ? ? C6 05 ? ? ? ? ? 80 3D ? ? ? ? ? 0F 85");
+                hbsub_5ADB20.fun = injector::MakeCALL(pattern.get_first(0), sub_5ADB20).get();
+
+                pattern = hook::pattern("E8 ? ? ? ? C6 05 ? ? ? ? ? 5B 8B E5");
+                hbsub_5ADB20.fun = injector::MakeCALL(pattern.get_first(0), sub_5ADB20).get();
+
+                pattern = find_pattern("50 E8 ? ? ? ? 83 C4 ? E8 ? ? ? ? E8 ? ? ? ? 8B 4C 24", "50 E8 ? ? ? ? 83 C4 ? E8 ? ? ? ? E8 ? ? ? ? 5F");
+                hbsub_5ADB20.fun = injector::MakeCALL(pattern.get_first(14), sub_5ADB20).get();
             }
 
             // Pause menu map crosshair aspect ratio scaling
@@ -726,7 +732,6 @@ public:
 
             // Remove free camera boundary limits in the video editor
             {
-                // Long patterns: in a relocated exe, address bytes can match short ones elsewhere
                 auto pattern = hook::pattern("39 77 14 73 ? 56 6A 00 6A 01 E8");
                 if (!pattern.empty())
                 {
