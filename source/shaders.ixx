@@ -385,7 +385,7 @@ public:
                         static float arr2[4];
 
                         arr2[0] = (Natives::IsInteriorScene() || bNoWindSway) ? 0.0f : *CTreeImposters::ms_windAng;
-                        arr2[1] = SeasonalManager::GetCurrent() == SeasonalType::Snow ? 0.005f : std::clamp(*CTimer::fTimeScale2 * 0.015f, 0.0015f, 0.015f);
+                        arr2[1] = SeasonalManager::GetCurrent() == SeasonalType::Snow ? 0.005f : std::clamp(*CTimer::m_fTimeScale * 0.015f, 0.0015f, 0.015f);
                         arr2[2] = 0.0f;
                         arr2[3] = 0.0f;
 

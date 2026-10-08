@@ -17,24 +17,6 @@ public:
     float m_fTimeStepAccumulator = 0.0f;
 };
 
-export class CTimerExt
-{
-public:
-    static uint32_t m_logicalFrameCounter;
-    static uint32_t m_logicalFramesPassed;
-
-public:
-    static uint32_t GetLogicalFrameCounter()
-    {
-        return m_logicalFrameCounter;
-    }
-
-    static uint32_t GetLogicalFramesPassed() 
-    { 
-        return m_logicalFramesPassed;
-    }
-};
-
 export class CCamFollowVehicleExt
 {
 public:
