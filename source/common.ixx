@@ -138,6 +138,12 @@ public:
         static Event<> EndScene;
         return EndScene;
     }
+    // New hook for detecting mode transitions (e.g., Singleplayer -> Multiplayer)
+    static Event<>& onModeSwitchEvent()
+    {
+        static Event<> ModeSwitchEvent;
+        return ModeSwitchEvent;
+    }
     static Event<>& onReadGameConfig()
     {
         static Event<> ReadGameConfig;
