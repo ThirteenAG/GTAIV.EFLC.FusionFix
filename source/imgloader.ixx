@@ -602,6 +602,7 @@ private:
 
         const IMG_Header_V3* header = reinterpret_cast<const IMG_Header_V3*>(imgData.data());
         if (header->magicId != GTAIV_MAGIC_ID || header->version != 3 || header->itemSize != 16)
+{ return std::nullopt; } // Guard against basic structural mismatch
         {
             return std::nullopt;
         }
