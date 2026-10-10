@@ -58,11 +58,51 @@ public:
     // =========================================================================
     // === CRITICAL HOOK: MODE SWITCHING (FIX FOR MULTIPLAYER CRASH) ============
     // This hook must be called by the game's main loop/menu handler when any mode switch occurs.
+    // New hook for detecting mode transitions (e.g., Singleplayer -> Multiplayer).
     static Event<>& onModeSwitchEvent()
     {
         static Event<> ModeSwitchEvent;
         return ModeSwitchEvent;
     }
+
+    /* --- START OF CORE MULTIPLAYER MODULE IMPLEMENTATIONS FOR HOOKING --- */
+    // NOTE: These functions must be implemented and linked against the engine's core APIs. 
+    void ExecuteMultiplayerModeSetup(bool isEntering) 
+    {
+        log("SYSTEM HOOK TRIGGERED: Multiplayer Mode Switch.");
+
+        if (!isEntering) 
+        {
+            CleanupNetworkingState(); // Step 1: Cleanup previous state.
+        }
+
+        if (isEntering) {
+            InitializeNetworkScripts(); // Step 2: Load and validate core network assets.
+            ValidateAndSetupPlayerState(); // Step 3: Set up player pointers, models, and initial state.
+        }
+    }
+
+
+    // --- Helper Implementations (These MUST be implemented using native API calls) ---
+
+    void CleanupNetworkingState() 
+    {
+        log("System State: Performing multiplayer resource cleanup...");
+        // TODO: Call the engine's explicit logout/cleanup function here when leaving a mode.
+    }
+
+    void InitializeNetworkScripts() 
+    {
+        log("System State: Checking and loading core multiplayer scripts...");
+        // TODO: Implement logic to request and wait for critical network scripts (e.g., MPcellphone, speechControl_net).
+    }
+
+    void ValidateAndSetupPlayerState() 
+    {
+        log("System State: Validating and setting up player state...");
+        // TODO: Set the correct model, clear wanted levels, etc., for multiplayer consistency.
+    }
+/* --- END OF CORE MULTIPLAYER MODULE IMPLEMENTATIONS FOR HOOKING --- */
     // =========================================================================
 
 
