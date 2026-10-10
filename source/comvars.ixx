@@ -2294,7 +2294,6 @@ export namespace NaturalMotion
     }
 
     void* (__thiscall* AllocateFromPoolInternal)(void* pool) = nullptr;
-    int (__thiscall* InitializeNMTaskInternal)(void* task, uintptr_t ped) = nullptr;
     bool (__cdecl* PostNMTaskInternal)(uintptr_t ped, uint32_t time, bool setPedFlag, void* task) = nullptr;
     bool (__thiscall* GetRagdollComponentMatrixInternal)(uintptr_t ped, RagdollComponentMatrix* matrix, int32_t component) = nullptr;
     armsWindmillAdaptive::Parameters pendingArmsWindmillAdaptiveParameters{};
@@ -2374,7 +2373,6 @@ export namespace NaturalMotion
             && CTaskSimpleNM::CanUseRagdoll
             && AllocateFromPoolInternal
             && CTaskSimpleNMHighFall::Constructor
-            && InitializeNMTaskInternal
             && PostNMTaskInternal
             && GetRagdollComponentMatrixInternal
             && ART::MessageParams::Constructor
@@ -2420,7 +2418,6 @@ export namespace NaturalMotion
         pendingArmsWindmillAdaptiveParameters = armsWindmillAdaptiveParameters;
         pendingPedalLegsParameters = pedalLegsParameters;
 
-        InitializeNMTaskInternal(task, ped);
         CTaskSimpleNMHighFall::pendingPed = ped;
         const bool posted = PostNMTaskInternal(ped, eventTime, false, task);
         if (!posted && CTaskSimpleNMHighFall::pendingPed == ped)
@@ -3392,10 +3389,6 @@ public:
                 pattern.get_first(0),
                 NaturalMotion::StartBehaviourHook);
         }
-
-        pattern = hook::pattern("51 80 3D ? ? ? ? 00 56 8B F1 0F 84 ? ? ? ? 57 8B 7C 24 10 80 BF 19 02 00 00 00");
-        if (!pattern.empty())
-            NaturalMotion::InitializeNMTaskInternal = reinterpret_cast<decltype(NaturalMotion::InitializeNMTaskInternal)>(pattern.get_first(0));
 
         pattern = hook::pattern("81 EC E4 0C 00 00 A1 ? ? ? ? 33 C4 89 84 24 E0 0C 00 00 53 8B 9C 24 F0 0C 00 00 56 8B B4 24 F0 0C 00 00 32 C0 57 8B BC 24 00 0D 00 00");
         if (!pattern.empty())
