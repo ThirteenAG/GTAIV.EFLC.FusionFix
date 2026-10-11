@@ -10,21 +10,6 @@ import comvars;
 import natives;
 import settings;
 
-uint32_t CTimerExt::m_logicalFrameCounter;
-uint32_t CTimerExt::m_logicalFramesPassed;
-
-namespace CTimer
-{
-    SafetyHookInline shInit = {};
-    void __cdecl Init()
-    {
-        shInit.unsafe_ccall();
-
-        CTimerExt::m_logicalFrameCounter = 0;
-        CTimerExt::m_logicalFramesPassed = 0;
-    }
-}
-
 namespace CPhysics
 {
     // Original function, for reference
@@ -674,18 +659,18 @@ public:
                 CTimer::shInit = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first(0)).get<void*>(), CTimer::Init);
 
                 // Implement the logical frame counter right next to the regular one in CTimer::Update
-                pattern = hook::pattern("FF 05 ? ? ? ? F3 0F 2C C0 F3 0F 10 05");
+                pattern = hook::pattern("A1 ? ? ? ? F3 0F 11 05 ? ? ? ? FF 35");
                 if (!pattern.empty())
                 {
-                    injector::MakeNOP(pattern.get_first(0), 6, true);
+                    injector::MakeNOP(pattern.get_first(0), 5, true);
                     static auto CTimer__Update_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        ++*CTimer::m_frameCount;
+                        regs.eax = *CTimer::m_frameCount;
 
                         // Logical frame counter
                         static double logicalFrameTime = 0.0;
 
-                        CTimerExt::m_logicalFramesPassed = 0;
+                        CTimer::m_logicalFramesPassed = 0;
 
                         logicalFrameTime += *(float*)(regs.esp + 0x14 - 0x10) * 1000.0;
 
@@ -693,24 +678,24 @@ public:
                         {
                             logicalFrameTime -= (1000.0 / 30.0);
 
-                            ++CTimerExt::m_logicalFramesPassed;
+                            ++CTimer::m_logicalFramesPassed;
                         }
 
-                        CTimerExt::m_logicalFrameCounter += CTimerExt::m_logicalFramesPassed;
+                        CTimer::m_logicalFrameCount += CTimer::m_logicalFramesPassed;
                     });
                 }
                 else
                 {
-                    pattern = hook::pattern("83 05 ? ? ? ? ? D9 3C 24");
-                    injector::MakeNOP(pattern.get_first(0), 7, true);
+                    pattern = hook::pattern("8B 15 ? ? ? ? F3 0F 5E C1");
+                    injector::MakeNOP(pattern.get_first(0), 6, true);
                     static auto CTimer__Update_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        ++*CTimer::m_frameCount;
+                        regs.edx = *CTimer::m_frameCount;
 
                         // Logical frame counter
                         static double logicalFrameTime = 0.0;
 
-                        CTimerExt::m_logicalFramesPassed = 0;
+                        CTimer::m_logicalFramesPassed = 0;
 
                         logicalFrameTime += *(float*)(regs.esp + 0x10 - 0xC) * 1000.0;
 
@@ -718,10 +703,10 @@ public:
                         {
                             logicalFrameTime -= (1000.0 / 30.0);
 
-                            ++CTimerExt::m_logicalFramesPassed;
+                            ++CTimer::m_logicalFramesPassed;
                         }
 
-                        CTimerExt::m_logicalFrameCounter += CTimerExt::m_logicalFramesPassed;
+                        CTimer::m_logicalFrameCount += CTimer::m_logicalFramesPassed;
                     });
                 }
             }
@@ -736,7 +721,7 @@ public:
                     injector::MakeNOP(pattern.get_first(0), 5, true);
                     static auto CVehicle__UpdateChaseRadarBlip_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.eax = CTimerExt::GetLogicalFrameCounter();
+                        regs.eax = CTimer::GetLogicalFrameCount();
                     });
 
                     // Saving/Loading spinner animation speed
@@ -744,7 +729,7 @@ public:
                     injector::MakeNOP(pattern.get_first(0), 6, true);
                     static auto CHelpMessage__DrawTextMessages_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        regs.ecx = CTimerExt::GetLogicalFrameCounter();
+                        regs.ecx = CTimer::GetLogicalFrameCount();
                     });
                 }
 
@@ -757,7 +742,7 @@ public:
                         injector::MakeNOP(pattern.get_first(0), 6, true);
                         static auto CHeli__PreRender2_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                         {
-                            regs.ecx += CTimerExt::GetLogicalFrameCounter();
+                            regs.ecx += CTimer::GetLogicalFrameCount();
                         });
                     }
                     else
@@ -766,7 +751,7 @@ public:
                         injector::MakeNOP(pattern.get_first(0), 6, true);
                         static auto CHeli__PreRender2_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                         {
-                            regs.edx = CTimerExt::GetLogicalFrameCounter();
+                            regs.edx = CTimer::GetLogicalFrameCount();
                         });
                     }
                 }

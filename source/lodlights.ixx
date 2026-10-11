@@ -199,8 +199,8 @@ void LoadDatFile()
 
 bool IsBlinkingNeeded(int BlinkType)
 {
-    signed int nOnDuration = 0;
-    signed int nOffDuration = 0;
+    uint32_t nOnDuration = 0;
+    uint32_t nOffDuration = 0;
 
     switch (BlinkType)
     {

@@ -162,46 +162,6 @@ namespace CText
     }
 }
 
-namespace CTimer
-{
-    char IsUserPaused()
-    {
-        if (nCameraUnpauseTimer1 > 0)
-        {
-            nCameraUnpauseTimer1--;
-
-            return 0;
-        }
-
-        return *CTimer::ms_bUserPause;
-    }
-
-    injector::hook_back<int(*)()> hbIsGamePaused;
-    int IsGamePaused_1()
-    {
-        if (nCameraUnpauseTimer2 > 0)
-        {
-            nCameraUnpauseTimer2--;
-
-            return 0;
-        }
-
-        return hbIsGamePaused.fun();
-    }
-
-    int IsGamePaused_2()
-    {
-        if (nTimecycleUnpauseTimer > 0)
-        {
-            nTimecycleUnpauseTimer--;
-
-            return 0;
-        }
-
-        return hbIsGamePaused.fun();
-    }
-}
-
 export class CSettings
 {
 private:
@@ -2872,7 +2832,7 @@ public:
             // Make camera changes visible in menus
             {
                 pattern = find_pattern("E8 ? ? ? ? 84 C0 74 12 80 3D ? ? ? ? ? 0F B6 DB", "E8 ? ? ? ? 84 C0 74 0A 38 1D");
-                injector::MakeCALL(pattern.get_first(0), CTimer::IsUserPaused);
+                CTimer::hbIsUserPaused.fun = injector::MakeCALL(pattern.get_first(0), CTimer::IsCameraBaseProcessingUserPaused).get();
 
                 pattern = hook::pattern("0A 05 ? ? ? ? 0A 05 ? ? ? ? 74 12");
                 if (!pattern.empty())
@@ -2880,11 +2840,11 @@ public:
                     injector::MakeNOP(pattern.get_first(0), 6, true);
                     static auto CCam__BaseProcess_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        *(uint8_t*)&regs.eax |= *CTimer::ms_bUserPause;
+                        *(bool*)&regs.eax |= *CTimer::ms_bUserPause;
 
                         if (nCameraUnpauseTimer2 > 0)
                         {
-                            *(uint8_t*)&regs.eax = 0;
+                            *(bool*)&regs.eax = false;
 
                             nCameraUnpauseTimer2--;
                         }
@@ -2893,7 +2853,7 @@ public:
                 else
                 {
                     pattern = hook::pattern("E8 ? ? ? ? 84 C0 74 ? 80 3D ? ? ? ? ? 75 ? 80 3D ? ? ? ? ? 74 ? 84 DB");
-                    CTimer::hbIsGamePaused.fun = injector::MakeCALL(pattern.get_first(0), CTimer::IsGamePaused_1).get();
+                    CTimer::hbIsGamePaused.fun = injector::MakeCALL(pattern.get_first(0), CTimer::IsCameraBaseProcessingGamePaused).get();
                 }
             }
 
@@ -2905,11 +2865,11 @@ public:
                     injector::MakeNOP(pattern.get_first(0), 6, true);
                     static auto CVisualEffects__Update_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        *(uint8_t*)&regs.eax |= *CTimer::ms_bUserPause;
+                        *(bool*)&regs.eax |= *CTimer::ms_bUserPause;
 
                         if (nTimecycleUnpauseTimer > 0)
                         {
-                            *(uint8_t*)&regs.eax = 0;
+                            *(bool*)&regs.eax = false;
 
                             nTimecycleUnpauseTimer--;
                         }
@@ -2918,7 +2878,7 @@ public:
                 else
                 {
                     pattern = hook::pattern("E8 ? ? ? ? 84 C0 5F 0F 85");
-                    CTimer::hbIsGamePaused.fun = injector::MakeCALL(pattern.get_first(0), CTimer::IsGamePaused_2).get();
+                    CTimer::hbIsGamePaused.fun = injector::MakeCALL(pattern.get_first(0), CTimer::AreVisualEffectUpdatesGamePaused).get();
                 }
 
                 pattern = hook::pattern("0A 05 ? ? ? ? 0A 05 ? ? ? ? 74 ? 8B 0D");
@@ -2927,11 +2887,11 @@ public:
                     injector::MakeNOP(pattern.get_first(0), 6, true);
                     static auto TimeCycle__UpdateFinalize_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        *(uint8_t*)&regs.eax |= *CTimer::ms_bUserPause;
+                        *(bool*)&regs.eax |= *CTimer::ms_bUserPause;
 
                         if (nTimecycleUnpauseTimer > 0)
                         {
-                            *(uint8_t*)&regs.eax = 0;
+                            *(bool*)&regs.eax = false;
 
                             nTimecycleUnpauseTimer--;
                         }
@@ -2940,7 +2900,7 @@ public:
                 else
                 {
                     pattern = hook::pattern("E8 ? ? ? ? 84 C0 74 ? A1 ? ? ? ? 69 C0");
-                    CTimer::hbIsGamePaused.fun = injector::MakeCALL(pattern.get_first(0), CTimer::IsGamePaused_2).get();
+                    CTimer::hbIsGamePaused.fun = injector::MakeCALL(pattern.get_first(0), CTimer::AreVisualEffectUpdatesGamePaused).get();
                 }
             }
 

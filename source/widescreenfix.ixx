@@ -22,7 +22,7 @@ public:
     static inline float f075 = 0.75f;
     static inline float f01152 = 1152.0f;
     static inline float bordersMult = -5.0f;
-    static inline int32_t bordersTimer = 0;
+    static inline uint32_t bordersTimer = 0;
     static inline bool dontRenderBordersThisFrame = false;
 
     static void Update() 
