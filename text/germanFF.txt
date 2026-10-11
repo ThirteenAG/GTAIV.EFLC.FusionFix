@@ -199,6 +199,9 @@ GTA IV muss neu gestartet werden, um die Einstellungen anzuwenden.
 [Extended Sniper]
 Erweiterte Sniper-Steuerung
 
+[FF_JUMPRAGDOLL]
+Ragdoll beim Springen
+
 [Ladders Climb]
 Automatisch auf Leitern steigen
 

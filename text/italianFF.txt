@@ -199,6 +199,9 @@ GTA IV deve essere riavviato per applicare le impostazioni.
 [Extended Sniper]
 Controlli estesi del fucile di precisione
 
+[FF_JUMPRAGDOLL]
+Ragdoll durante i salti
+
 [Ladders Climb]
 Arrampicata automatica sulla scala
 

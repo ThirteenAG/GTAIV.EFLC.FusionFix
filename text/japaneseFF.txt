@@ -199,6 +199,9 @@ Steam Controller
 [Extended Sniper]
 スナイパーライフルの追加操作
 
+[FF_JUMPRAGDOLL]
+ジャンプ中のラグドール
+
 [Ladders Climb]
 自動はしご登り
 

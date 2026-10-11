@@ -10,9 +10,14 @@ export module airborneragdoll;
 import common;
 import comvars;
 import natives;
+import settings;
 
 namespace AirborneRagdoll
 {
+    // Set false to hide the menu rows without disabling the saved preference or feature.
+    constexpr bool ShowRagdollMenuOption = true;
+    constexpr auto JumpRagdollPreference = "PREF_PLAYERJUMPRAGDOLL";
+
     template <typename T>
     class ScopedValue
     {
@@ -960,19 +965,41 @@ class PlayerJumpRagdollControl
 public:
     PlayerJumpRagdollControl()
     {
-        FusionFix::onInitEventAsync() += []()
+        FusionFix::onBeforeInitEvent() += []()
         {
             CIniReader iniReader("");
 
             // [MISC]
-            AirborneRagdoll::bPlayerJumpRagdollControl = iniReader.ReadInteger("MISC", "PlayerJumpRagdollControl", 0) != 0;
+            const bool legacyJumpEnabled = iniReader.ReadInteger("MISC", "PlayerJumpRagdollControl", 0) != 0;
             AirborneRagdoll::bPlayerClimbRagdollControl = iniReader.ReadInteger("MISC", "PlayerClimbRagdollControl", 0) != 0;
 
-            if (AirborneRagdoll::bPlayerJumpRagdollControl || AirborneRagdoll::bPlayerClimbRagdollControl)
+            const auto preference = FusionFixSettings.RegisterPreference(
+                AirborneRagdoll::JumpRagdollPreference, 1, legacyJumpEnabled,
+                "MISC", "PlayerJumpRagdollControl", [](int32_t value)
+                {
+                    AirborneRagdoll::bPlayerJumpRagdollControl = value != 0;
+                });
+            if (preference < 0)
+                return;
+
+            FusionFix::onInitEvent() += [preference]()
             {
-                if (AirborneRagdoll::Initialize())
-                    FusionFix::onGameProcessEvent() += AirborneRagdoll::Process;
-            }
+                if (!AirborneRagdoll::Initialize())
+                    return;
+
+                // Persist the resolved preference and apply it through its callback.
+                FusionFixSettings.Set(preference, FusionFixSettings.Get(preference));
+
+                if constexpr (AirborneRagdoll::ShowRagdollMenuOption)
+                {
+                    FusionFixSettings.AddToggle(CSettings::MenuScreen::Controls,
+                        "FF_JUMPRAGDOLL", AirborneRagdoll::JumpRagdollPreference);
+                    FusionFixSettings.AddToggle(CSettings::MenuScreen::TitleControls,
+                        "FF_JUMPRAGDOLL", AirborneRagdoll::JumpRagdollPreference);
+                }
+
+                FusionFix::onGameProcessEvent() += AirborneRagdoll::Process;
+            };
         };
     }
 } PlayerJumpRagdollControl;

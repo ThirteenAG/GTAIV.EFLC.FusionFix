@@ -199,6 +199,9 @@ Es necesario reiniciar GTA IV para aplicar el ajuste.
 [Extended Sniper]
 Controles extendidos del rifle de francotirador
 
+[FF_JUMPRAGDOLL]
+Ragdoll al saltar
+
 [Ladders Climb]
 Escalada automática de escaleras
 
