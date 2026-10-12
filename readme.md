@@ -65,7 +65,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 > Additionally:
 > * Install and run Protontricks.
 > * Select "Grand Theft Auto IV" -> "Select the default Wineprefix" -> "Install a Windows DLL or component".
-> * Search for "d3dx9_43", select it and click OK.
+> * Select both `d3dx9_43` and `d3dcompiler_43` and click OK.
 
 > [!IMPORTANT]
 > Only The Complete Edition is fully supported. Legacy versions of the game (e.g., v1.0.7.0 or v1.0.8.0) additionally require the installation of the [Legacy Addon](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFixLegacyAddon.zip), which is done by unpacking its contents to the game's root directory.
