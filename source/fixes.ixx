@@ -1165,6 +1165,48 @@ public:
                     injector::MakeNOP(pattern.get_first(7), 2, true);
                 }
             }
+
+            // Fix IMG10 fatal error from SET_PLAYERSETTINGS_MODEL_VARIATIONS_CHOICE: the player image path is a 0x200 byte buffer
+            // read from Settings.cfg; when it holds garbage (seen: an int array, first byte 0x02) the image load fails and the game aborts
+            {
+                auto pattern = hook::pattern("80 3D ? ? ? ? 00 74 ? 0F BF 47 2E 8B 04 85 ? ? ? ? 8B 80 20 01 00 00 83 E0 02");
+                if (!pattern.empty())
+                {
+                    static char* pImagePath = *pattern.get_first<char*>(2);
+                    static auto PlayerImagePathHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        constexpr size_t bufferSize = 0x200;
+
+                        size_t len = 0;
+                        bool valid = true;
+                        while (len < bufferSize && pImagePath[len] != '\0')
+                        {
+                            if (static_cast<uint8_t>(pImagePath[len]) < 0x20)
+                                valid = false;
+                            ++len;
+                        }
+
+                        if (len == 0)
+                            return;
+
+                        if (len == bufferSize)
+                            valid = false;
+
+                        // Paths with a RAGE device prefix (e.g. "common:/") can't be checked on disk
+                        if (valid)
+                        {
+                            auto colon = strchr(pImagePath, ':');
+                            bool hasDevice = colon && colon - pImagePath > 1;
+                            if (!hasDevice)
+                                valid = GetFileAttributesA(pImagePath) != INVALID_FILE_ATTRIBUTES;
+                        }
+
+                        // An empty path makes the game skip the image load, and the cleared value is written back to Settings.cfg
+                        if (!valid)
+                            pImagePath[0] = '\0';
+                    });
+                }
+            }
         };
     }
 } Fixes;
