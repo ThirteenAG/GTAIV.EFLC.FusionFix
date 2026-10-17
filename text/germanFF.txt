@@ -148,6 +148,15 @@ Kamerawackeln
 [Stunt Jump Cam]
 Monsterstunt-Kamera
 
+[FF_AUTOCENTER]
+Automatic Camera Centering
+
+[FF_LADDERTILT]
+Ladder Camera Tilt
+
+[FF_ALTLADDERCAM]
+Alternate Ladder Camera
+
 [Action Cam]
 Kamera bei Zaunklettern & Fahrzeugklauen
 

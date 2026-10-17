@@ -10,6 +10,157 @@ import natives;
 import settings;
 import shaders;
 
+namespace CameraAutoCenter
+{
+    // Release choices, independent of the camera hooks:
+    // Menu enabled: Controller Options + saved CFG; INI seeds an absent CFG value.
+    // Menu disabled: INI-only each launch, ignoring saved CFG values.
+    // INI disabled: menu/CFG default to On without reading the plugin INI.
+    // Both disabled: native centering stays On. Remove the distributed INI line if not exposed.
+    constexpr bool UseMenuSetting = true;
+    constexpr bool UseIniSetting = true;
+    constexpr int32_t DefaultAutoCenterCamera = 1;
+    constexpr auto MenuPreferenceName = "PREF_AUTOCENTERCAMERA";
+    static bool autoCenterCamera = DefaultAutoCenterCamera != 0;
+
+    static void InitializeSettings()
+    {
+        int32_t initialValue = DefaultAutoCenterCamera;
+        if constexpr (UseIniSetting)
+        {
+            CIniReader iniReader("");
+            initialValue = std::clamp(iniReader.ReadInteger("MISC", "AutoCenterCamera", DefaultAutoCenterCamera), 0, 1);
+        }
+        autoCenterCamera = initialValue != 0;
+
+        if constexpr (UseMenuSetting)
+        {
+            const auto preference = FusionFixSettings.RegisterPreference(MenuPreferenceName, 1, initialValue,
+                "MISC", "AutoCenterCamera", [](int32_t value) { autoCenterCamera = value != 0; });
+            if (preference >= 0)
+            {
+                // The settings API reads/writes the CFG; the plugin INI is only the fallback above.
+                FusionFixSettings.Set(preference, FusionFixSettings.Get(preference));
+                FusionFixSettings.AddToggle(CSettings::MenuScreen::ControllerOptions,
+                    "FF_AUTOCENTER", MenuPreferenceName, "CenterDelayFoot", true);
+            }
+        }
+    }
+
+    static bool available = false;
+    static SafetyHookMid shPedPitch;
+    static uintptr_t (__thiscall* GetSimplestActiveMovementTask)(uintptr_t);
+    static uintptr_t (__thiscall* FindActiveTaskByType)(uintptr_t, int);
+    static ptrdiff_t intelligenceOffset = 0;
+    static ptrdiff_t taskManagerOffset = 0;
+
+    static uintptr_t GetPlayerTaskManager()
+    {
+        // This preference applies only to the active controller, never keyboard/mouse follow.
+        if (!available || autoCenterCamera || !Natives::IsUsingController() || !CPlayer::getLocalPlayerPed)
+            return 0;
+        const auto ped = CPlayer::getLocalPlayerPed();
+        if (!ped || !Natives::IsPlayerControlOn(Natives::GetPlayerId()) || Natives::IsHintRunning())
+            return 0;
+        const auto intelligence = *reinterpret_cast<const uintptr_t*>(ped + intelligenceOffset);
+        return intelligence ? intelligence + taskManagerOffset : 0;
+    }
+
+    static bool HasTask(uintptr_t manager, TaskID type)
+    {
+        return FindActiveTaskByType(manager, std::to_underlying(type)) != 0;
+    }
+
+    static bool IsGameplayFollow(uintptr_t camera)
+    {
+        const auto parent = *reinterpret_cast<const uintptr_t*>(camera + 0x118);
+        if (!parent || *reinterpret_cast<const uint32_t*>(camera + 0x130) == 0)
+            return false;
+        // CCam::GetType identifies the normal CCamGame parent; scripted follow cameras are excluded.
+        const auto getType = reinterpret_cast<int (__thiscall*)(uintptr_t)>((*reinterpret_cast<const uintptr_t**>(parent))[10]);
+        return getType(parent) == 7;
+    }
+
+    // On foot, retain native yaw centering so sprinting does not require manual camera steering.
+    static bool HoldPedPitch(uintptr_t camera, uintptr_t ped, uintptr_t control)
+    {
+        const auto manager = GetPlayerTaskManager();
+        if (!manager || !control || ped != CPlayer::getLocalPlayerPed() || !IsGameplayFollow(camera)
+            || (*reinterpret_cast<const uint8_t*>(camera + 0x38C) & 0x88)
+            || (*reinterpret_cast<const uint8_t*>(camera + 0x38D) & 0x1C))
+            return false;
+        if (HasTask(manager, TaskID::TaskComplexPlayerInCover)
+            || HasTask(manager, TaskID::TaskSimpleAimGun)
+            || HasTask(manager, TaskID::TaskSimplePlayerAimProjectile))
+            return false;
+        // Ladder movement has its own task rather than TaskSimpleMovePlayer.
+        if (HasTask(manager, TaskID::TaskComplexClimbLadder))
+            return true;
+
+        // Other task-controlled movement retains native pitch follow.
+        const auto movement = GetSimplestActiveMovementTask(manager);
+        if (!movement)
+            return false;
+        const auto getType = reinterpret_cast<int (__thiscall*)(uintptr_t)>((*reinterpret_cast<const uintptr_t**>(movement))[3]);
+        return getType(movement) == std::to_underlying(TaskID::TaskSimpleMovePlayer)
+            && HasTask(manager, TaskID::TaskComplexPlayerOnFoot);
+    }
+
+    static bool HoldVehicle(uintptr_t camera, uintptr_t control)
+    {
+        const auto manager = GetPlayerTaskManager();
+        if (!manager || !control || !IsGameplayFollow(camera)
+            || (*reinterpret_cast<const uint8_t*>(camera + 0x18C) & 0x60))
+            return false;
+        const auto ped = CPlayer::getLocalPlayerPed();
+        if (!(*reinterpret_cast<const uint8_t*>(ped + 0x26C) & 4)
+            || *reinterpret_cast<const uintptr_t*>(ped + 0xB30) != *reinterpret_cast<const uintptr_t*>(camera + 0x170))
+            return false;
+        // Entry/exit, drive-by aiming and scripted driving retain their native camera behavior.
+        return HasTask(manager, TaskID::TaskComplexPlayerDrive)
+            && !HasTask(manager, TaskID::TaskSimpleNewGangDriveBy)
+            && !HasTask(manager, TaskID::TaskComplexNewGetInVehicle)
+            && !HasTask(manager, TaskID::TaskComplexNewExitVehicle);
+    }
+
+    static void PedPitch(SafetyHookContext& regs)
+    {
+        if (!HoldPedPitch(regs.esi, regs.edi, regs.ebx))
+            return;
+        // Pad look normally moves the pitch-history target, then follows it. Apply that input
+        // directly instead; zeroing the follow delta alone would also disable vertical pad look.
+        const float pitch = *reinterpret_cast<const float*>(regs.esi + 0x304);
+        const float velocity = *reinterpret_cast<const float*>(regs.esi + 0x310);
+        const float timeStep = *reinterpret_cast<const float*>(regs.esp + 0x2C);
+        *reinterpret_cast<float*>(regs.esp + 0x1C) = pitch;
+        *reinterpret_cast<float*>(regs.esp + 0x24) = velocity * timeStep;
+    }
+
+    static void Init()
+    {
+        if constexpr (!UseMenuSetting && !UseIniSetting)
+            return;
+
+        auto movement = hook::pattern("56 8B F1 33 C9 8D 46 2C 8B 10 85 D2 74 ? F6 42 0C 01");
+        auto caller = hook::pattern("8B 88 ? ? ? ? 8D 49 ? E8 ? ? ? ? 8B 4E 04 89 44 24 0C");
+        auto activeTask = hook::pattern("68 19 04 00 00 83 C1 44 E8 ? ? ? ? 80");
+        auto pitch = hook::pattern("85 DB 74 ? 80 BB 8D 32 00 00 00 74 ? F3 0F 10 86 10 03 00 00");
+        auto vehicleYaw = hook::pattern("F3 0F 5E C1 F3 0F 11 44 24 24 0F 84");
+        auto vehiclePitch = hook::pattern("F3 0F 5E C8 F3 0F 10 04 85");
+        // These stack/register layouts are verified together. Unknown executables keep native follow.
+        if (movement.size() != 1 || caller.size() != 1 || activeTask.size() != 1 || pitch.size() != 1
+            || vehicleYaw.size() != 1 || vehiclePitch.size() != 1
+            || injector::GetBranchDestination(caller.get_first(9)).as_int() != reinterpret_cast<uintptr_t>(movement.get_first(0)))
+            return;
+        GetSimplestActiveMovementTask = reinterpret_cast<decltype(GetSimplestActiveMovementTask)>(movement.get_first(0));
+        FindActiveTaskByType = reinterpret_cast<decltype(FindActiveTaskByType)>(injector::GetBranchDestination(activeTask.get_first(8)).as_int());
+        intelligenceOffset = *caller.get_first<int32_t>(2);
+        taskManagerOffset = *caller.get_first<uint8_t>(8);
+        shPedPitch = safetyhook::create_mid(pitch.get_first(0), PedPitch);
+        available = static_cast<bool>(shPedPitch);
+    }
+}
+
 namespace CTaskComplexGangDriveby
 {
     SafetyHookInline shPlayerWantsToDoDriveby = {};
@@ -240,6 +391,8 @@ public:
 
     Fixes()
     {
+        // Register preferences on the startup thread, not in the asynchronous hook installer.
+        FusionFix::onInitEvent() += CameraAutoCenter::InitializeSettings;
         FusionFix::onInitEventAsync() += []()
         {
             CIniReader iniReader("");
@@ -449,6 +602,7 @@ public:
 
             // Camera centering delay/turn speed
             {
+                CameraAutoCenter::Init();
                 // Timers
                 static uint32_t nTimeToPassBeforeCenteringCameraFollowPed = 0;
                 static uint32_t nTimeToPassBeforeCenteringCameraFollowVehicle = 0;
@@ -526,6 +680,8 @@ public:
 
                         int TurnSpeed = IsUsingPad ? nCameraTurnSpeedFollowVehicle_Pad->get() : nCameraTurnSpeedFollowVehicle_KB->get();
                         float f = regs.xmm0.f32[0] / (regs.xmm1.f32[0] * (1.0f - TurnSpeed * 0.1f));
+                        if (CameraAutoCenter::HoldVehicle(regs.edi, regs.esi))
+                            f = 0.0f;
 
                         float& AutoCenterValue = *(float*)(regs.esp + reg);
 
@@ -550,6 +706,12 @@ public:
 
                             int TurnSpeed = IsUsingPad ? nCameraTurnSpeedFollowVehicle_Pad->get() : nCameraTurnSpeedFollowVehicle_KB->get();
                             float f = regs.xmm1.f32[0] / (regs.xmm0.f32[0] * (1.0f - TurnSpeed * 0.1f));
+                            if (CameraAutoCenter::HoldVehicle(regs.edi, regs.esi))
+                            {
+                                f = 0.0f;
+                                // The same target also feeds the ground-contact pitch correction.
+                                *reinterpret_cast<float*>(regs.esp + 0x20) = *reinterpret_cast<const float*>(regs.edi + 0x190);
+                            }
                             regs.xmm0.f32[0] = dword_E9AA1C[regs.eax];
 
                             float& AutoCenterValue = *(float*)(regs.esp + 0x110 - 0x90);

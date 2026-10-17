@@ -148,6 +148,15 @@ Tremblements de caméra
 [Stunt Jump Cam]
 Caméra des cascades
 
+[FF_AUTOCENTER]
+Automatic Camera Centering
+
+[FF_LADDERTILT]
+Ladder Camera Tilt
+
+[FF_ALTLADDERCAM]
+Alternate Ladder Camera
+
 [Action Cam]
 Caméra escalade et vol de véhicule
 

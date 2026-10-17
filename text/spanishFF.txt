@@ -148,6 +148,15 @@ Sacudida de la cámara
 [Stunt Jump Cam]
 Cámara de saltos acrobáticos
 
+[FF_AUTOCENTER]
+Automatic Camera Centering
+
+[FF_LADDERTILT]
+Ladder Camera Tilt
+
+[FF_ALTLADDERCAM]
+Alternate Ladder Camera
+
 [Action Cam]
 Cámara al trepar vallas y robar coches
 
