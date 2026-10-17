@@ -149,13 +149,13 @@ Logitech LightSync RGB
 Камера трюковых прыжков
 
 [FF_AUTOCENTER]
-Automatic Camera Centering
+Автоцентрирование камеры
 
 [FF_LADDERTILT]
-Ladder Camera Tilt
+Наклон камеры на лестницах
 
 [FF_ALTLADDERCAM]
-Alternate Ladder Camera
+Альтернативная камера на лестницах
 
 [Action Cam]
 Камера при перелезании и угоне
@@ -207,6 +207,9 @@ GTA IV необходимо перезапустить для применени
 
 [Extended Sniper]
 Расширенное управление снайперской винтовкой
+
+[FF_JUMPRAGDOLL]
+Рэгдолл в прыжке
 
 [Ladders Climb]
 Автоматическое лазание по лестнице

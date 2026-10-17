@@ -149,13 +149,13 @@ FPSリミッター
 スタントジャンプのカメラ
 
 [FF_AUTOCENTER]
-Automatic Camera Centering
+カメラの自動センタリング
 
 [FF_LADDERTILT]
-Ladder Camera Tilt
+はしごでのカメラの傾き
 
 [FF_ALTLADDERCAM]
-Alternate Ladder Camera
+はしごでの別カメラ
 
 [Action Cam]
 フェンス越え・車両強奪時のカメラ
@@ -207,6 +207,9 @@ Steam Controller
 
 [Extended Sniper]
 スナイパーライフルの追加操作
+
+[FF_JUMPRAGDOLL]
+ジャンプ中のラグドール
 
 [Ladders Climb]
 自動はしご登り

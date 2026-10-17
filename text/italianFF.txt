@@ -149,13 +149,13 @@ Vibrazione della camera
 Telecamera acrobazie
 
 [FF_AUTOCENTER]
-Automatic Camera Centering
+Centratura automatica telecamera
 
 [FF_LADDERTILT]
-Ladder Camera Tilt
+Inclinazione telecamera sulle scale
 
 [FF_ALTLADDERCAM]
-Alternate Ladder Camera
+Telecamera alternativa sulle scale
 
 [Action Cam]
 Telecamera scavalcamenti e furti d'auto
@@ -207,6 +207,9 @@ GTA IV deve essere riavviato per applicare le impostazioni.
 
 [Extended Sniper]
 Controlli estesi del fucile di precisione
+
+[FF_JUMPRAGDOLL]
+Ragdoll durante i salti
 
 [Ladders Climb]
 Arrampicata automatica sulla scala

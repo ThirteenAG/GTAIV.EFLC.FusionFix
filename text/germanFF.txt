@@ -149,13 +149,13 @@ Kamerawackeln
 Monsterstunt-Kamera
 
 [FF_AUTOCENTER]
-Automatic Camera Centering
+Automatische Kamerazentrierung
 
 [FF_LADDERTILT]
-Ladder Camera Tilt
+Kameraneigung auf Leitern
 
 [FF_ALTLADDERCAM]
-Alternate Ladder Camera
+Alternative Leiterkamera
 
 [Action Cam]
 Kamera bei Zaunklettern & Fahrzeugklauen
@@ -207,6 +207,9 @@ GTA IV muss neu gestartet werden, um die Einstellungen anzuwenden.
 
 [Extended Sniper]
 Erweiterte Sniper-Steuerung
+
+[FF_JUMPRAGDOLL]
+Ragdoll beim Springen
 
 [Ladders Climb]
 Automatisch auf Leitern steigen
