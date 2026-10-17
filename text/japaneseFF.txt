@@ -148,6 +148,15 @@ FPSリミッター
 [Stunt Jump Cam]
 スタントジャンプのカメラ
 
+[FF_AUTOCENTER]
+カメラの自動センタリング
+
+[FF_LADDERTILT]
+はしごでのカメラの傾き
+
+[FF_ALTLADDERCAM]
+はしごでの別カメラ
+
 [Action Cam]
 フェンス越え・車両強奪時のカメラ
 

@@ -14,10 +14,11 @@ import settings;
 
 namespace AirborneRagdoll
 {
-    // Set false to hide the menu rows without disabling the saved preference or feature.
-    constexpr bool ShowRagdollMenuOption = true;
+    // Menu configuration
+    constexpr bool ShowRagdollMenuOption = true;  // Hide the rows without disabling the feature or saved setting
     constexpr auto JumpRagdollPreference = "PREF_PLAYERJUMPRAGDOLL";
 
+    // Restore temporary native state when leaving a hook
     template <typename T>
     class ScopedValue
     {
@@ -31,6 +32,7 @@ namespace AirborneRagdoll
         ScopedValue& operator=(const ScopedValue&) = delete;
     };
 
+    // Command event ownership and water recovery
     namespace CommandEvents
     {
         struct OwnedEvent
@@ -39,7 +41,7 @@ namespace AirborneRagdoll
             uintptr_t ped = 0;
         };
 
-        // Track event clones too: the event history need not retain the original instance.
+        // Keep ownership through native event cloning
         std::array<OwnedEvent, 32> owned{};
         thread_local uintptr_t postingPed = 0;
         thread_local void* postingTask = nullptr;
@@ -79,6 +81,7 @@ namespace AirborneRagdoll
 
         void* __fastcall ConstructorHook(void* event, void* edx, uint32_t time, void* task, bool scriptEvent)
         {
+            // Use ordinary NM priority for player commands
             const bool ownedCommand = postingPed && task == postingTask;
             auto* result = shConstructor.unsafe_fastcall<void*>(event, edx, time, task, ownedCommand ? false : scriptEvent);
             if (ownedCommand)
@@ -109,7 +112,7 @@ namespace AirborneRagdoll
                 && (*reinterpret_cast<const uint8_t*>(entry->ped + 0x29C) & 4) != 0
                 && CPed::ComparePedTasks(entry->ped, TaskID::TaskSimpleNMHighFall))
             {
-                // Water normally has lower priority than NM; only our events yield here.
+                // Let swimming replace this command's HighFall event
                 waterHandoffPed = entry->ped;
                 return true;
             }
@@ -132,6 +135,7 @@ namespace AirborneRagdoll
         }
     }
 
+    // Native task bindings and parameter layouts
     namespace CPlayerPed
     {
         uintptr_t (__thiscall* GetControlFromPlayer)(uintptr_t playerPed) = nullptr;
@@ -183,6 +187,7 @@ namespace AirborneRagdoll
         SafetyHookInline shStartBehaviour{};
     }
 
+    // NaturalMotion message bindings
     namespace ART::MessageParams
     {
         constexpr size_t Size = 0xCC4;
@@ -197,6 +202,7 @@ namespace AirborneRagdoll
         void (__thiscall* PostARTMessage)(void* fragInstNM, const char* messageName, const void* params) = nullptr;
     }
 
+    // HighFall task creation and limb control
     namespace NaturalMotion
     {
         constexpr ptrdiff_t PedIntelligenceOffset = 0x224;
@@ -249,6 +255,7 @@ namespace AirborneRagdoll
         void* (__thiscall* AllocateFromPoolInternal)(void* pool) = nullptr;
         bool (__cdecl* PostNMTaskInternal)(uintptr_t ped, uint32_t time, bool setPedFlag, void* task) = nullptr;
         bool (__thiscall* GetRagdollComponentMatrixInternal)(uintptr_t ped, RagdollComponentMatrix* matrix, int32_t component) = nullptr;
+        // Match deferred task startup by ped, including cloned tasks
         struct PendingHighFall
         {
             uintptr_t ped = 0;
@@ -261,6 +268,7 @@ namespace AirborneRagdoll
             bool Expired(uint32_t now) const { return now - submittedAt > eventTime; }
         } pending;
 
+        // Apply arm and leg overrides after the native HighFall messages
         void PostHighFallBehaviours(
             uintptr_t ped,
             const armsWindmillAdaptive::Parameters& armsWindmillAdaptiveParameters,
@@ -320,11 +328,11 @@ namespace AirborneRagdoll
                 return;
             }
 
-            // Native events can clone the task, so retain the profile by ped until startup.
+            // Consume the command profile once
             const auto profile = pending;
             pending = {};
             {
-                // The native reader uses a shared table; restore it before posting limb messages.
+                // Replace the shared STANDARD profile only for this native call
                 ScopedValue parameters(CTaskSimpleNMHighFall::ms_Parameters[0], profile.highFall);
                 CTaskSimpleNMHighFall::shStartBehaviour.unsafe_fastcall(task, edx, ped);
             }
@@ -367,7 +375,7 @@ namespace AirborneRagdoll
             CommandEvents::waterHandoffPed = 0;
             ScopedValue postingPed(CommandEvents::postingPed, ped);
             ScopedValue postingTask(CommandEvents::postingTask, task);
-            // PostNMTask takes ownership, including destroying a rejected task.
+            // Native posting owns the task, even on rejection
             const bool posted = PostNMTaskInternal(ped, eventTime, false, task);
             if (!posted && pending.ped == ped)
                 pending = {};
@@ -375,59 +383,65 @@ namespace AirborneRagdoll
         }
     }
 
+    // Configuration
     namespace RagdollJumpTuning
     {
-        constexpr uint32_t ActivationMinimumMs = 200;
-        constexpr uint32_t NMHighFallMinimumTimeMs = 100;
-        constexpr uint32_t NMHighFallMaximumTimeMs = 10000;
-        constexpr uint32_t NMHighFallEventTimeMs = 10000;
+        constexpr uint32_t ActivationMinimumMs = 200;        // Earliest Reload activation after the jump starts
+        constexpr uint32_t NMHighFallMinimumTimeMs = 100;    // Native task minimum duration
+        constexpr uint32_t NMHighFallMaximumTimeMs = 10000;  // Native task time limit
+        constexpr uint32_t NMHighFallEventTimeMs = 10000;    // Event lifetime and pending-profile expiry
 
+        // Initial HighFall profile; other values come from the game's STANDARD set
         namespace NMHFall
         {
-            constexpr float hfBodyStiffness = 12.0f;
-            constexpr float hfLegRadius = 0.4f;
-            constexpr float hfLegAngularSpeed = 7.85f;
-            constexpr float hfArmPeriod = 0.8004058f;
-            constexpr float hfArmAmplitude = 1.5f;
+            constexpr float hfBodyStiffness = 12.0f;    // Whole-body stiffness
+            constexpr float hfLegRadius = 0.4f;         // Leg pedalling radius in meters
+            constexpr float hfLegAngularSpeed = 7.85f;  // Leg pedalling rate
+            constexpr float hfArmPeriod = 0.8004058f;   // Lower values windmill the arms faster
+            constexpr float hfArmAmplitude = 1.5f;      // Size of the arm swing
         }
 
+        // Arm overrides reapplied during the initial control window
         namespace armsWindmillAdaptive
         {
-            constexpr float armStiffness = 12.0f;
-            constexpr float bodyStiffness = 12.0f;
-            constexpr float period = 0.8004058f;
-            constexpr float amplitude = 1.5f;
-            constexpr float phase = 3.1f;
-            constexpr bool disableOnImpact = false;
+            constexpr float armStiffness = 12.0f;    // Requested arm stiffness
+            constexpr float bodyStiffness = 12.0f;   // Body stiffness request, sent after armStiffness
+            constexpr float period = 0.8004058f;     // Lower values produce faster windmilling
+            constexpr float amplitude = 1.5f;        // Larger values widen the arm swing
+            constexpr float phase = 3.1f;            // Offset between the left and right arm cycles
+            constexpr bool disableOnImpact = false;  // Stop each arm's windmilling when it hits the ground
         }
 
+        // Leg overrides reapplied during the initial control window
         namespace pedalLegs
         {
-            constexpr bool backPedal = false;
-            constexpr float legStiffness = 12.0f;
-            constexpr bool pedalLeftLeg = true;
-            constexpr bool pedalRightLeg = true;
-            constexpr float radius = 0.4f;
-            constexpr float angularSpeed = 7.85f;
-            constexpr float pedalOffset = 0.0f;
-            constexpr float speedAsymmetry = 0.4f;
-            constexpr bool adaptivePedal4Dragging = false;
-            constexpr float radiusVariance = 0.4f;
-            constexpr float legAngleVariance = 0.5f;
+            constexpr bool backPedal = false;               // Reverse the pedalling direction
+            constexpr float legStiffness = 12.0f;           // Strength of the leg motion
+            constexpr bool pedalLeftLeg = true;             // Enable left-leg pedalling
+            constexpr bool pedalRightLeg = true;            // Enable right-leg pedalling
+            constexpr float radius = 0.4f;                  // Base pedalling radius in meters
+            constexpr float angularSpeed = 7.85f;           // Base pedalling rate
+            constexpr float pedalOffset = 0.0f;             // Adjust leg straightness
+            constexpr float speedAsymmetry = 0.4f;          // Random per-leg speed offset; zero synchronizes rates
+            constexpr bool adaptivePedal4Dragging = false;  // Use travel-driven pedalling instead of angularSpeed
+            constexpr float radiusVariance = 0.4f;          // Pedalling radius variation (0-1)
+            constexpr float legAngleVariance = 0.5f;        // Hip-angle variation (0-1)
         }
 
-        constexpr uint32_t BallisticCorrectionDurationMs = 300;
-        constexpr uint32_t PitchForceDurationMs = 300;
-        constexpr uint32_t BehaviourControlDurationMs = 300;
-        constexpr uint32_t EffectWaitLimitMs = 1000;
-        constexpr float ObservedJumpGravity = 10.24f;
-        constexpr uint32_t PitchForceType = 1;
-        constexpr float PitchMagnitude = 800.0f;
-        constexpr float PitchVelocityMaximum = 4.0f;
-        constexpr float PitchScaleAtMinimumVelocity = 0.5f;
-        constexpr float PitchScaleAtMaximumVelocity = 1.0f;
+        // Trajectory and forward pitch, timed from command acceptance
+        constexpr uint32_t BallisticCorrectionDurationMs = 300;  // Window for suppressing added upward velocity
+        constexpr uint32_t PitchForceDurationMs = 300;           // Window for applying forward pitch
+        constexpr uint32_t BehaviourControlDurationMs = 300;     // Window for reapplying limb messages
+        constexpr uint32_t EffectWaitLimitMs = 1000;             // Discard effects if ragdoll activation takes too long
+        constexpr float ObservedJumpGravity = 10.24f;            // Downward acceleration used by the velocity ceiling
+        constexpr uint32_t PitchForceType = 1;                   // Native impulse mode; magnitude is time-scaled below
+        constexpr float PitchMagnitude = 800.0f;                 // Spine3 impulse per second before speed/upright scaling
+        constexpr float PitchVelocityMaximum = 4.0f;             // Horizontal speed reaching maximum pitch scale
+        constexpr float PitchScaleAtMinimumVelocity = 0.5f;      // Pitch multiplier near zero horizontal speed
+        constexpr float PitchScaleAtMaximumVelocity = 1.0f;      // Pitch multiplier at or above the speed limit
     }
 
+    // Player input fields and per-jump state
     constexpr ptrdiff_t ReloadPreviousOffset = 0x286C;
     constexpr ptrdiff_t ReloadCurrentOffset = 0x286E;
     constexpr ptrdiff_t JumpCurrentOffset = 0x2846;
@@ -472,6 +486,7 @@ namespace AirborneRagdoll
     uintptr_t currentPed = 0;
     Ped currentPedHandle = 0;
 
+    // Movement and input helpers
     Velocity ReadVelocity(Ped ped)
     {
         Velocity velocity;
@@ -484,6 +499,7 @@ namespace AirborneRagdoll
         return std::sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
     }
 
+    // Reduce pitch as the torso approaches horizontal
     float ReadUprightScale(uintptr_t ped)
     {
         NaturalMotion::RagdollComponentMatrix buttocks{};
@@ -518,6 +534,7 @@ namespace AirborneRagdoll
         };
     }
 
+    // Build the limb messages from the authoring values
     NaturalMotion::armsWindmillAdaptive::Parameters GetArmsWindmillAdaptiveParameters()
     {
         NaturalMotion::armsWindmillAdaptive::Parameters parameters{};
@@ -547,6 +564,7 @@ namespace AirborneRagdoll
         return parameters;
     }
 
+    // Clear state between jumps and player changes
     void ResetJumpState()
     {
         jumpWasActive = false;
@@ -569,11 +587,13 @@ namespace AirborneRagdoll
         currentPedHandle = 0;
     }
 
+    // Initial limb control, launch suppression and forward pitch
     void ProcessPostActivationEffects(uintptr_t ped, Ped pedHandle, uint32_t now)
     {
         if (!effects.active)
             return;
 
+        // Stop intervening once the water task takes priority
         if (CommandEvents::waterHandoffPed == ped)
         {
             ResetPostActivationEffects();
@@ -606,6 +626,7 @@ namespace AirborneRagdoll
                     GetPedalLegsParameters());
             }
 
+            // Cap upward velocity without changing horizontal momentum
             if (elapsed <= RagdollJumpTuning::BallisticCorrectionDurationMs)
             {
                 const float expectedVelocityZ = effects.activationVelocity.z
@@ -614,6 +635,7 @@ namespace AirborneRagdoll
                     Natives::SetCharVelocity(pedHandle, velocity.x, velocity.y, expectedVelocityZ);
             }
 
+            // Integrate impulse over elapsed time, not frame count
             const uint32_t targetPitchDurationMs = std::min(
                 elapsed,
                 RagdollJumpTuning::PitchForceDurationMs);
@@ -663,6 +685,7 @@ namespace AirborneRagdoll
         effects.activationVelocity = activationVelocity;
 
         const float activationHorizontalSpeed = HorizontalSpeed(activationVelocity);
+        // Climbing and stationary activation receive no forward push
         effects.pitchForceEligible = !climbing && activationHorizontalSpeed > 0.001f;
         if (effects.pitchForceEligible)
         {
@@ -680,6 +703,7 @@ namespace AirborneRagdoll
         ProcessPostActivationEffects(ped, pedHandle, now);
     }
 
+    // Keep the weapon in the right hand without attaching the supporting hand
     namespace WeaponAttachment
     {
         thread_local uintptr_t commandPed = 0;
@@ -707,7 +731,7 @@ namespace AirborneRagdoll
             skipSupportingHand = branchTarget;
             supportingHandHook = safetyhook::create_mid(distanceAddress, [](SafetyHookContext& regs)
             {
-                // EDI holds the ped; right-hand attachments are already complete at this site.
+                // Skip only this command's supporting-hand setup; EDI is the ped
                 if (commandPed && regs.edi == commandPed)
                     regs.eip = skipSupportingHand;
             });
@@ -715,6 +739,7 @@ namespace AirborneRagdoll
         }
     }
 
+    // Resolve and validate native hooks
     enum class AddressKind { Entry, Call, Pointer };
 
     uintptr_t ResolveAddress(const char* signature, uintptr_t expectedRva,
@@ -730,7 +755,7 @@ namespace AirborneRagdoll
         else if (kind == AddressKind::Pointer)
             address = *reinterpret_cast<const uintptr_t*>(address);
 
-        // A signature match alone does not validate the hard-coded field offsets and registers.
+        // Restrict fixed offsets and registers to the verified executable layout
         const auto base = reinterpret_cast<uintptr_t>(GetModuleHandleW(nullptr));
         return address - base == expectedRva ? address : 0;
     }
@@ -834,6 +859,7 @@ namespace AirborneRagdoll
         return true;
     }
 
+    // Per-frame Reload input and ragdoll activation
     void Process()
     {
         if (Natives::IsNetworkGameRunning())
@@ -898,6 +924,7 @@ namespace AirborneRagdoll
         }
         jumpWasActive = true;
 
+        // Jump and climb controls can be enabled independently
         const bool climbing = CPed::ComparePedTasks(ped, TaskID::TaskSimpleClimb);
         if ((climbing && !bPlayerClimbRagdollControl) || (!climbing && !bPlayerJumpRagdollControl))
             return;
@@ -905,6 +932,7 @@ namespace AirborneRagdoll
         if (highFallAcceptedThisJump)
             return;
 
+        // Require Jump release before accepting a fresh Reload press
         if (waitingForJumpRelease)
         {
             if (jumpButtonDown)
@@ -935,6 +963,7 @@ namespace AirborneRagdoll
                 0.0f))
             return;
 
+        // Preserve native defaults for fields not overridden by this feature
         auto parameters = CTaskSimpleNMHighFall::ms_Parameters[0];
         parameters.hfBodyStiffness = RagdollJumpTuning::NMHFall::hfBodyStiffness;
         parameters.hfLegRadius = RagdollJumpTuning::NMHFall::hfLegRadius;
@@ -960,16 +989,18 @@ namespace AirborneRagdoll
     }
 }
 
+// Settings, menu rows and startup registration
 class PlayerJumpRagdollControl
 {
 public:
     PlayerJumpRagdollControl()
     {
+        // Register after settings construction, before async readers start
         FusionFix::onBeforeInitEvent() += []()
         {
             CIniReader iniReader("");
 
-            // [MISC]
+            // INI fallback for Jump; Climb remains INI-only
             const bool legacyJumpEnabled = iniReader.ReadInteger("MISC", "PlayerJumpRagdollControl", 0) != 0;
             AirborneRagdoll::bPlayerClimbRagdollControl = iniReader.ReadInteger("MISC", "PlayerClimbRagdollControl", 0) != 0;
 
@@ -987,7 +1018,7 @@ public:
                 if (!AirborneRagdoll::Initialize())
                     return;
 
-                // Persist the resolved preference and apply it through its callback.
+                // Save and apply the resolved CFG value or INI fallback
                 FusionFixSettings.Set(preference, FusionFixSettings.Get(preference));
 
                 if constexpr (AirborneRagdoll::ShowRagdollMenuOption)

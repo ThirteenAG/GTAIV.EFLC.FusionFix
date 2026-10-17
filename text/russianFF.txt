@@ -148,6 +148,15 @@ Logitech LightSync RGB
 [Stunt Jump Cam]
 Камера трюковых прыжков
 
+[FF_AUTOCENTER]
+Автоцентрирование камеры
+
+[FF_LADDERTILT]
+Наклон камеры на лестницах
+
+[FF_ALTLADDERCAM]
+Альтернативная камера на лестницах
+
 [Action Cam]
 Камера при перелезании и угоне
 

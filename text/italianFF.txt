@@ -148,6 +148,15 @@ Vibrazione della camera
 [Stunt Jump Cam]
 Telecamera acrobazie
 
+[FF_AUTOCENTER]
+Centratura automatica telecamera
+
+[FF_LADDERTILT]
+Inclinazione telecamera sulle scale
+
+[FF_ALTLADDERCAM]
+Telecamera alternativa sulle scale
+
 [Action Cam]
 Telecamera scavalcamenti e furti d'auto
 
