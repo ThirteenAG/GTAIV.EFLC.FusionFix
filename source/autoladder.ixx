@@ -420,11 +420,11 @@ namespace LadderCamera
             auto location = hook::pattern("8B 0D ? ? ? ? 50 E8 ? ? ? ? 81 A7 18 01 00 00");
             if (matrix.size() != 1 || skeleton.size() != 1 || extents.size() != 1 || radius.size() != 1 || location.size() != 1)
                 return;
-            SetInstanceMatrix = reinterpret_cast<decltype(SetInstanceMatrix)>(injector::GetBranchDestination(matrix.get_first(12)).as_int());
-            UpdateSkeleton = reinterpret_cast<decltype(UpdateSkeleton)>(injector::GetBranchDestination(skeleton.get_first(5)).as_int());
-            CalculateCompositeExtents = reinterpret_cast<decltype(CalculateCompositeExtents)>(extents.get_first(0));
-            UpdateObjectLocationAndRadius = reinterpret_cast<decltype(UpdateObjectLocationAndRadius)>(radius.get_first(0));
-            UpdateObjectLocation = reinterpret_cast<decltype(UpdateObjectLocation)>(injector::GetBranchDestination(location.get_first(7)).as_int());
+            SetInstanceMatrix = (decltype(SetInstanceMatrix))injector::GetBranchDestination(matrix.get_first(12)).as_int();
+            UpdateSkeleton = (decltype(UpdateSkeleton))injector::GetBranchDestination(skeleton.get_first(5)).as_int();
+            CalculateCompositeExtents = (decltype(CalculateCompositeExtents))extents.get_first(0);
+            UpdateObjectLocationAndRadius = (decltype(UpdateObjectLocationAndRadius))radius.get_first(0);
+            UpdateObjectLocation = (decltype(UpdateObjectLocation))injector::GetBranchDestination(location.get_first(7)).as_int();
             physicsLevel = *location.get_first<uintptr_t*>(2);
             ready = true;
         }
@@ -522,8 +522,8 @@ namespace LadderCamera
             if (manager[0] != 0x8B || manager[1] != 0x0D)
                 return;
             worldProbe = *query.get_first<uintptr_t*>(-9);
-            TestLine = reinterpret_cast<decltype(TestLine)>(injector::GetBranchDestination(query.get_first(14)).as_int());
-            FilterIntersections = reinterpret_cast<decltype(FilterIntersections)>(injector::GetBranchDestination(filter.get_first(6)).as_int());
+            TestLine = (decltype(TestLine))injector::GetBranchDestination(query.get_first(14)).as_int();
+            FilterIntersections = (decltype(FilterIntersections))injector::GetBranchDestination(filter.get_first(6)).as_int();
         }
 
         static int IsBlocked(uintptr_t manager, uintptr_t ignore, int mask,
@@ -1806,8 +1806,7 @@ namespace CTaskComplexClimbLadder
                 || std::memcmp(reinterpret_cast<void*>(table[0]), destructorPrologue, sizeof(destructorPrologue)) != 0
                 || injector::GetBranchDestination(positions.get_first(11)).as_int() != reinterpret_cast<uintptr_t>(CalculatePositionsForThisLadder))
                 return;
-            GetRunningMovementTask = reinterpret_cast<decltype(GetRunningMovementTask)>(
-                injector::GetBranchDestination(movement.get_first(4)).as_int());
+            GetRunningMovementTask = (decltype(GetRunningMovementTask))injector::GetBranchDestination(movement.get_first(4)).as_int();
             shCreateFirstSubTask = safetyhook::create_inline(first.get_first(0), CreateFirstSubTask);
             shControlSubTask = safetyhook::create_inline(reinterpret_cast<void*>(table[20]), ControlSubTask);
             shDestructor = safetyhook::create_mid(reinterpret_cast<void*>(table[0]), [](SafetyHookContext& regs)
@@ -2268,13 +2267,12 @@ static bool ResolveLadderTaskAndCameraBindings(LadderHookTargets& hooks)
         || std::memcmp(calculation, forceTest, sizeof(forceTest)) != 0)
         return false;
 
-    LadderCamera::FindActiveTaskByType = reinterpret_cast<decltype(LadderCamera::FindActiveTaskByType)>(activeTask.get_first(0));
-    LadderCamera::GetPedAimWeaponLeftRight = reinterpret_cast<decltype(LadderCamera::GetPedAimWeaponLeftRight)>(xEntry);
-    LadderCamera::GetPedLookUpDown = reinterpret_cast<decltype(LadderCamera::GetPedLookUpDown)>(yEntry);
-    LadderCamera::GetAxisValue = reinterpret_cast<decltype(LadderCamera::GetAxisValue)>(axis);
+    LadderCamera::FindActiveTaskByType = (decltype(LadderCamera::FindActiveTaskByType))activeTask.get_first(0);
+    LadderCamera::GetPedAimWeaponLeftRight = (decltype(LadderCamera::GetPedAimWeaponLeftRight))xEntry;
+    LadderCamera::GetPedLookUpDown = (decltype(LadderCamera::GetPedLookUpDown))yEntry;
+    LadderCamera::GetAxisValue = (decltype(LadderCamera::GetAxisValue))axis;
     LadderCamera::viewDistanceOffsets = *viewDistances.get_first<const float*>(9);
-    LadderCamera::GetRootBone = reinterpret_cast<decltype(LadderCamera::GetRootBone)>(
-        injector::GetBranchDestination(cameraRoot.get_first(0)).as_int());
+    LadderCamera::GetRootBone = (decltype(LadderCamera::GetRootBone))injector::GetBranchDestination(cameraRoot.get_first(0)).as_int();
 
     hooks.targetBetaCalc = entry;
     hooks.createSubTask = mount.get_first(0);
@@ -2291,8 +2289,7 @@ static bool ResolveLadderTaskAndCameraBindings(LadderHookTargets& hooks)
     // Keep native target smoothing if either optional binding is unavailable.
     if (postSmoothTarget.size() == 1 && topExitDisplacement.size() == 1)
     {
-        LadderCamera::GetMoverTrackDisplacement = reinterpret_cast<decltype(LadderCamera::GetMoverTrackDisplacement)>(
-            injector::GetBranchDestination(topExitDisplacement.get_first(7)).as_int());
+        LadderCamera::GetMoverTrackDisplacement = (decltype(LadderCamera::GetMoverTrackDisplacement))injector::GetBranchDestination(topExitDisplacement.get_first(7)).as_int();
         hooks.postSmoothTarget = injector::GetBranchDestination(postSmoothTarget.get_first(3)).as_int();
     }
     return true;
@@ -2374,14 +2371,14 @@ public:
             if (ladderProcess.size() != 1 || sections.size() != 1 || positions.size() != 1 || leftRight.size() != 1 || upDown.size() != 1 || cameraHeading.size() != 1)
                 return;
 
-            CTaskComplexClimbLadder::GetPedWalkLeftRight = reinterpret_cast<decltype(CTaskComplexClimbLadder::GetPedWalkLeftRight)>(leftRight.get_first(0));
-            CTaskComplexClimbLadder::GetPedWalkUpDown = reinterpret_cast<decltype(CTaskComplexClimbLadder::GetPedWalkUpDown)>(upDown.get_first(0));
-            CTaskComplexClimbLadder::GetAxisValue = reinterpret_cast<decltype(CTaskComplexClimbLadder::GetAxisValue)>(injector::GetBranchDestination(leftRight.get_first(11)).as_int());
+            CTaskComplexClimbLadder::GetPedWalkLeftRight = (decltype(CTaskComplexClimbLadder::GetPedWalkLeftRight))leftRight.get_first(0);
+            CTaskComplexClimbLadder::GetPedWalkUpDown = (decltype(CTaskComplexClimbLadder::GetPedWalkUpDown))upDown.get_first(0);
+            CTaskComplexClimbLadder::GetAxisValue = (decltype(CTaskComplexClimbLadder::GetAxisValue))injector::GetBranchDestination(leftRight.get_first(11)).as_int();
             CTaskComplexClimbLadder::controlCameraHeading = *cameraHeading.get_first<const float*>(4);
             CTaskComplexClimbLadder::ResolveMoveBlendLayout();
 
-            CTaskComplexClimbLadder::FindTopAndBottomOfAllLadderSections = reinterpret_cast<decltype(CTaskComplexClimbLadder::FindTopAndBottomOfAllLadderSections)>(injector::GetBranchDestination(sections.get_first(7)).as_int());
-            CTaskComplexClimbLadder::CalculatePositionsForThisLadder = reinterpret_cast<decltype(CTaskComplexClimbLadder::CalculatePositionsForThisLadder)>(positions.get_first(0));
+            CTaskComplexClimbLadder::FindTopAndBottomOfAllLadderSections = (decltype(CTaskComplexClimbLadder::FindTopAndBottomOfAllLadderSections))injector::GetBranchDestination(sections.get_first(7)).as_int();
+            CTaskComplexClimbLadder::CalculatePositionsForThisLadder = (decltype(CTaskComplexClimbLadder::CalculatePositionsForThisLadder))positions.get_first(0);
 
             LadderHookTargets hooks;
             if (!ResolveLadderTaskAndCameraBindings(hooks)
