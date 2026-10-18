@@ -145,15 +145,8 @@ namespace CameraAutoCenter
         auto caller = hook::pattern("8B 88 ? ? ? ? 8D 49 ? E8 ? ? ? ? 8B 4E 04 89 44 24 0C");
         auto activeTask = hook::pattern("68 19 04 00 00 83 C1 44 E8 ? ? ? ? 80");
         auto pitch = hook::pattern("85 DB 74 ? 80 BB 8D 32 00 00 00 74 ? F3 0F 10 86 10 03 00 00");
-        auto vehicleYaw = hook::pattern("F3 0F 5E C1 F3 0F 11 44 24 24 0F 84");
-        auto vehiclePitch = hook::pattern("F3 0F 5E C8 F3 0F 10 04 85");
-        // These stack/register layouts are verified together. Unknown executables keep native follow.
-        if (movement.size() != 1 || caller.size() != 1 || activeTask.size() != 1 || pitch.size() != 1
-            || vehicleYaw.size() != 1 || vehiclePitch.size() != 1
-            || injector::GetBranchDestination(caller.get_first(9)).as_int() != reinterpret_cast<uintptr_t>(movement.get_first(0)))
-            return;
-        GetSimplestActiveMovementTask = reinterpret_cast<decltype(GetSimplestActiveMovementTask)>(movement.get_first(0));
-        FindActiveTaskByType = reinterpret_cast<decltype(FindActiveTaskByType)>(injector::GetBranchDestination(activeTask.get_first(8)).as_int());
+        GetSimplestActiveMovementTask = (decltype(GetSimplestActiveMovementTask))movement.get_first(0);
+        FindActiveTaskByType = (decltype(FindActiveTaskByType))injector::GetBranchDestination(activeTask.get_first(8)).as_int();
         intelligenceOffset = *caller.get_first<int32_t>(2);
         taskManagerOffset = *caller.get_first<uint8_t>(8);
         shPedPitch = safetyhook::create_mid(pitch.get_first(0), PedPitch);

@@ -3,7 +3,6 @@ module;
 #include <common.hxx>
 #include <cmath>
 #include <utility>
-#include <cstring>
 #include <algorithm>
 #include <array>
 
@@ -418,8 +417,6 @@ namespace LadderCamera
             auto extents = hook::pattern("55 8B EC 83 E4 F8 83 EC 08 80 7D 08 00 56 8B D1");
             auto radius = hook::pattern("55 8B EC 83 E4 F8 83 EC 18 83 3D ? ? ? ? 00 56 8B D1");
             auto location = hook::pattern("8B 0D ? ? ? ? 50 E8 ? ? ? ? 81 A7 18 01 00 00");
-            if (matrix.size() != 1 || skeleton.size() != 1 || extents.size() != 1 || radius.size() != 1 || location.size() != 1)
-                return;
             SetInstanceMatrix = (decltype(SetInstanceMatrix))injector::GetBranchDestination(matrix.get_first(12)).as_int();
             UpdateSkeleton = (decltype(UpdateSkeleton))injector::GetBranchDestination(skeleton.get_first(5)).as_int();
             CalculateCompositeExtents = (decltype(CalculateCompositeExtents))extents.get_first(0);
@@ -476,19 +473,11 @@ namespace LadderCamera
         {
             auto offset = hook::pattern("55 8B EC 83 E4 F0 81 EC 78 01 00 00 56 57 8B F1");
             auto render = hook::pattern("55 8B EC 83 E4 F0 81 EC E4 00 00 00 53 56 57 8B F9 E8 ? ? ? ? 80 3D");
-            auto root = hook::pattern("6A 00 8B CF E8 ? ? ? ? 8B F0 8B 44 24 3C F6 40 19 02");
-            if (offset.size() != 1 || render.size() != 1 || root.size() != 1)
-                return;
+            auto root = hook::pattern("8B F0 8B 44 24 3C F6 40 19 02 0F 84");
             preRenderAddress = reinterpret_cast<uintptr_t>(render.get_first(0));
             TopMountBounds::Resolve();
-            shLocalRoot = safetyhook::create_mid(root.get_first(9), LocalRoot);
+            shLocalRoot = safetyhook::create_mid(root.get_first(0), LocalRoot);
             shOffsetPedPosition = safetyhook::create_inline(offset.get_first(0), OffsetPedPosition);
-            if (!shLocalRoot || !shOffsetPedPosition)
-            {
-                shOffsetPedPosition.reset();
-                shLocalRoot.reset();
-                return;
-            }
         }
     }
 
@@ -516,11 +505,6 @@ namespace LadderCamera
         {
             auto query = hook::pattern("6A 07 6A FF 52 50 FF 75 14 8D 44 24 1C 50 E8");
             auto filter = hook::pattern("50 8D 44 24 60 50 E8 ? ? ? ? 33 F6 83 C4 24");
-            if (query.size() != 1 || filter.size() != 1)
-                return;
-            const auto manager = query.get_first<uint8_t>(-11);
-            if (manager[0] != 0x8B || manager[1] != 0x0D)
-                return;
             worldProbe = *query.get_first<uintptr_t*>(-9);
             TestLine = (decltype(TestLine))injector::GetBranchDestination(query.get_first(14)).as_int();
             FilterIntersections = (decltype(FilterIntersections))injector::GetBranchDestination(filter.get_first(6)).as_int();
@@ -1011,7 +995,7 @@ namespace LadderCamera
     }
 
     // Height tracking and mount/dismount transitions
-    static void PostSmoothTarget(uintptr_t camera, uintptr_t ped, uintptr_t intelligence,
+    static void __fastcall PostSmoothTarget(uintptr_t camera, void* edx, uintptr_t ped, uintptr_t intelligence,
         rage::Vector4* target, rage::Vector4* root)
     {
         const auto now = GetTickCount64();
@@ -1533,29 +1517,6 @@ namespace LadderCamera
             *beta = nativeHeading;
     }
 
-    static void ResetHooks()
-    {
-        shOrbitDistance.reset();
-        shDistanceHistory.reset();
-        movementSample = {};
-        footRoom = {};
-        footRoomUpdate = {};
-        shLadderPitch.reset();
-        shVerticalFollow.reset();
-        shMountPitch.reset();
-        mountPitchState = {};
-        shPitchLevel.reset();
-        shPostSmoothTarget.reset();
-        GetMoverTrackDisplacement = nullptr;
-        topExitTarget = {};
-        ladderHeightReference = {};
-        verticalFollow = {};
-        shAfterCollision.reset();
-        shBeforeCollision.reset();
-        shOrbitHeading.reset();
-        shBeginUpdate.reset();
-        shTargetBetaCalc.reset();
-    }
 }
 
 namespace CTaskComplexClimbLadder
@@ -1793,19 +1754,9 @@ namespace CTaskComplexClimbLadder
         {
             auto constructor = hook::pattern("8B 44 24 10 C7 06 ? ? ? ? C7 46 14 00 00 00 00 C7 46 20");
             auto first = hook::pattern("51 A0 ? ? ? ? 56 8B F1 0F B6 D0 B9 01 00 00 00");
-            auto positions = hook::pattern("FF B6 94 00 00 00 FF 74 24 28 57 E8 ? ? ? ? 83 C4 28");
+            auto positions = hook::pattern("E8 ? ? ? ? 83 C4 28 84 C0 74 13 57 68 AE 03 00 00");
             auto movement = hook::pattern("8B 4E 08 57 E8 ? ? ? ? 89 44 24 30 85 C0 0F 84 ? ? ? ? 8B C8 E8");
-            auto routeCursor = hook::pattern("0F BE B2 98 00 00 00 57 8B 7A 70 33 C0");
-            if (constructor.size() != 1 || first.size() != 1 || positions.size() != 1 || movement.size() != 1 || routeCursor.size() != 1)
-                return;
             const auto table = *constructor.get_first<uintptr_t*>(6);
-            const uint8_t controlPrologue[]{ 0x55, 0x8B, 0xEC, 0x83, 0xE4, 0xF0 };
-            const uint8_t destructorPrologue[]{ 0x56, 0x8B, 0xF1, 0xE8 };
-            if (table[19] != reinterpret_cast<uintptr_t>(first.get_first(0))
-                || std::memcmp(reinterpret_cast<void*>(table[20]), controlPrologue, sizeof(controlPrologue)) != 0
-                || std::memcmp(reinterpret_cast<void*>(table[0]), destructorPrologue, sizeof(destructorPrologue)) != 0
-                || injector::GetBranchDestination(positions.get_first(11)).as_int() != reinterpret_cast<uintptr_t>(CalculatePositionsForThisLadder))
-                return;
             GetRunningMovementTask = (decltype(GetRunningMovementTask))injector::GetBranchDestination(movement.get_first(4)).as_int();
             shCreateFirstSubTask = safetyhook::create_inline(first.get_first(0), CreateFirstSubTask);
             shControlSubTask = safetyhook::create_inline(reinterpret_cast<void*>(table[20]), ControlSubTask);
@@ -1814,14 +1765,7 @@ namespace CTaskComplexClimbLadder
                 if (active.task == regs.ecx)
                     Finish();
             });
-            if (!shCreateFirstSubTask || !shControlSubTask || !shDestructor)
-            {
-                shCreateFirstSubTask.reset();
-                shControlSubTask.reset();
-                shDestructor.reset();
-                return;
-            }
-            injector::MakeCALL(positions.get_first(11), CalculateEntryPositions);
+            injector::MakeCALL(positions.get_first(0), CalculateEntryPositions);
             installed = true;
         }
     }
@@ -1906,17 +1850,8 @@ namespace CTaskComplexClimbLadder
     {
         auto caller = hook::pattern("E8 ? ? ? ? F3 0F 10 44 24 18 5F F3 0F 11 46 18");
         auto store = hook::pattern("F3 0F 11 41 ? FF 50 4C C2 0C 00");
-        if (caller.size() == 1 && store.size() == 1)
-        {
-            const auto setter = injector::GetBranchDestination(caller.get_first(0)).as_int();
-            const auto write = reinterpret_cast<uintptr_t>(store.get_first(0));
-            if (write >= setter && write - setter < 64
-                && *caller.get_first<uint16_t>(-24) == 0x8F8B)
-            {
-                nMoveBlendOffset = *caller.get_first<int32_t>(-22);
-                nDesiredMoveBlendRatioOffset = *store.get_first<uint8_t>(4);
-            }
-        }
+        nMoveBlendOffset = *caller.get_first<int32_t>(-22);
+        nDesiredMoveBlendRatioOffset = *store.get_first<uint8_t>(4);
     }
 
     static float GetDesiredMoveBlendRatio(uintptr_t ped)
@@ -2200,72 +2135,32 @@ namespace ShortLadderTraversal
     }
 }
 
-// Resolved task and camera hook sites
-struct LadderHookTargets
+// Task and camera hooks
+static void InstallLadderTaskAndCameraHooks(void* ladderProcess)
 {
-    void* targetBetaCalc = nullptr;
-    void* createSubTask = nullptr;
-    void* beginUpdate = nullptr;
-    void* orbitDistance = nullptr;
-    void* distanceHistory = nullptr;
-    void* orbitHeading = nullptr;
-    void* beforeCollision = nullptr;
-    void* afterCollision = nullptr;
-    uintptr_t postSmoothTarget = 0;
-    uintptr_t ladderPitch = 0;
-    void* verticalFollow = nullptr;
-    void* mountPitch = nullptr;
-    void* pitchLevel = nullptr;
-};
-
-// Resolve bindings and validate instruction layouts before installing hooks
-static bool ResolveLadderTaskAndCameraBindings(LadderHookTargets& hooks)
-{
-    auto cameraGate = hook::pattern("0F 2F C1 77 ? F6 81 ? ? ? ? 04");
+    auto cameraGate = hook::pattern("55 8B EC 83 E4 F0 83 EC 28 F6 81 8E 03 00 00 80 56 57 8B 7D 08 89 4C 24 0C 0F 57 D2");
     auto mount = hook::pattern("55 8B EC 83 E4 F0 83 EC 18 56 57 8B 7D 08 8B F1 81 FF 87 03 00 00");
     auto activeTask = hook::pattern("68 19 04 00 00 83 C1 44 E8 ? ? ? ? 80");
     auto lookX = hook::pattern("57 8D BE 98 27 00 00 57 E8 ? ? ? ?");
     auto lookY = hook::pattern("57 8D BE B8 27 00 00 57 E8 ? ? ? ?");
-    auto beginUpdate = hook::pattern("F6 86 8C 03 00 00 80 74 ? 57");
-    auto orbitDistance = hook::pattern("F3 0F 58 44 24 20 F3 0F 11 44 24 20 F3 0F 11 44 24 44");
-    auto distanceHistory = hook::pattern("F3 0F 11 4C 24 48 E8 ? ? ? ? 8D 44 24 30");
+    auto beginUpdate = hook::pattern("74 ? 57 8D 84 24 84 00 00 00 50 FF 74 24 6C 8B CE E8");
+    auto orbitDistance = hook::pattern("F3 0F 11 44 24 20 F3 0F 11 44 24 44 57 8B CE E8");
+    auto distanceHistory = hook::pattern("E8 ? ? ? ? 8D 44 24 30 50 E8 ? ? ? ? F3 0F 10 8C 24 AC 00 00 00");
     auto viewDistances = hook::pattern("8B 91 60 03 00 00 8B 04 95 ? ? ? ? 89 81 1C 03 00 00");
-    auto orbitHeading = hook::pattern("D9 9E 08 03 00 00 83 C4 04 85 DB 74 ? 80 BB 89 32 00 00 00");
-    auto collision = hook::pattern("57 56 50 53 E8 ? ? ? ? 8D 44 24 ? 50 8D 4E 10");
-    auto postSmoothTarget = hook::pattern("8B CE 57 E8 ? ? ? ? 8D 84 24 80 00 00 00");
+    auto orbitHeading = hook::pattern("83 C4 04 85 DB 74 ? 80 BB 89 32 00 00 00");
+    auto beforeCollision = hook::pattern("E8 ? ? ? ? 8D 44 24 30 50 8D 4E 10 E8 ? ? ? ? 8B 8E 2C 01 00 00");
+    auto afterCollision = hook::pattern("8D 44 24 30 50 8D 4E 10 E8 ? ? ? ? 8B 8E 2C 01 00 00 56");
+    auto postSmoothTarget = hook::pattern("E8 ? ? ? ? 8D 84 24 80 00 00 00 50 FF 74 24 58");
     auto topExitDisplacement = hook::pattern("C6 86 CC 00 00 00 01 E8 ? ? ? ? 8B 45 08");
     auto cameraRoot = hook::pattern("E8 ? ? ? ? F3 0F 10 B6 80 02 00 00 F3 0F 10 BE");
-    auto ladderPitch = hook::pattern("8B CE 57 E8 ? ? ? ? 8B 84 24 ? ? ? ? 85 C0 74");
+    auto ladderPitch = hook::pattern("E8 ? ? ? ? 8B 84 24 ? ? ? ? 85 C0 74 11 8D 4C 24 18");
     auto verticalFollow = hook::pattern("F3 0F 5C 86 38 02 00 00 F3 0F 10 94 24");
     auto mountPitch = hook::pattern("F3 0F 10 44 24 24 F3 0F 5C 44 24 50");
     auto pitchLevel = hook::pattern("F3 0F 10 44 24 6C 83 EC 08 8B CE");
-    if (cameraGate.size() != 1 || mount.size() != 1
-        || activeTask.size() != 1 || lookX.size() != 1 || lookY.size() != 1 || beginUpdate.size() != 1
-        || orbitHeading.size() != 1 || collision.size() != 1
-        || cameraRoot.size() != 1 || ladderPitch.size() != 1 || verticalFollow.size() != 1
-        || mountPitch.size() != 1 || pitchLevel.size() != 1
-        || orbitDistance.size() != 1 || distanceHistory.size() != 1 || viewDistances.size() != 1)
-        return false;
 
-    const auto entry = cameraGate.get_first<uint8_t>(-0x3F);
-    const uint8_t prologue[]{ 0x55, 0x8B, 0xEC, 0x83, 0xE4, 0xF0, 0x83, 0xEC, 0x28 };
-    const auto branch = cameraGate.get_first<uint8_t>(3);
-    const auto calculation = branch + 2 + static_cast<int8_t>(branch[1]);
-    const uint8_t forceTest[]{ 0xF6, 0x81, 0x8D, 0x03, 0x00, 0x00, 0x04 };
     const auto xEntry = lookX.get_first<uint8_t>(-0x14);
     const auto yEntry = lookY.get_first<uint8_t>(-0x14);
-    const uint8_t getterPrologue[]{ 0x00, 0x56, 0x8B, 0xF1, 0x74, 0x08, 0x8D, 0x86 };
     const auto axis = injector::GetBranchDestination(lookX.get_first(8)).as_int();
-    const bool gettersValid = xEntry[0] == 0x83 && xEntry[1] == 0x3D
-        && yEntry[0] == 0x83 && yEntry[1] == 0x3D
-        && std::memcmp(xEntry + 6, getterPrologue, sizeof(getterPrologue)) == 0
-        && std::memcmp(yEntry + 6, getterPrologue, sizeof(getterPrologue)) == 0
-        && axis == injector::GetBranchDestination(lookY.get_first(8)).as_int();
-    if (std::memcmp(entry, prologue, sizeof(prologue)) != 0 || !gettersValid
-        || branch[0] != 0x77 || branch[1] != 0x16
-        || std::memcmp(branch + 2, forceTest, sizeof(forceTest)) != 0
-        || std::memcmp(calculation, forceTest, sizeof(forceTest)) != 0)
-        return false;
 
     LadderCamera::FindActiveTaskByType = (decltype(LadderCamera::FindActiveTaskByType))injector::GetBranchDestination(activeTask.get_first(8)).as_int();
     LadderCamera::GetPedAimWeaponLeftRight = (decltype(LadderCamera::GetPedAimWeaponLeftRight))xEntry;
@@ -2274,71 +2169,25 @@ static bool ResolveLadderTaskAndCameraBindings(LadderHookTargets& hooks)
     LadderCamera::viewDistanceOffsets = *viewDistances.get_first<const float*>(9);
     LadderCamera::GetRootBone = (decltype(LadderCamera::GetRootBone))injector::GetBranchDestination(cameraRoot.get_first(0)).as_int();
 
-    hooks.targetBetaCalc = entry;
-    hooks.createSubTask = mount.get_first(0);
-    hooks.beginUpdate = beginUpdate.get_first(7);
-    hooks.orbitDistance = orbitDistance.get_first(6);
-    hooks.distanceHistory = distanceHistory.get_first(6);
-    hooks.orbitHeading = orbitHeading.get_first(6);
-    hooks.beforeCollision = collision.get_first(4);
-    hooks.afterCollision = collision.get_first(9);
-    hooks.ladderPitch = injector::GetBranchDestination(ladderPitch.get_first(3)).as_int();
-    hooks.verticalFollow = verticalFollow.get_first(0);
-    hooks.mountPitch = mountPitch.get_first(0);
-    hooks.pitchLevel = pitchLevel.get_first(0);
-    // Keep native target smoothing if either optional binding is unavailable.
-    if (postSmoothTarget.size() == 1 && topExitDisplacement.size() == 1)
-    {
-        LadderCamera::GetMoverTrackDisplacement = (decltype(LadderCamera::GetMoverTrackDisplacement))injector::GetBranchDestination(topExitDisplacement.get_first(7)).as_int();
-        hooks.postSmoothTarget = injector::GetBranchDestination(postSmoothTarget.get_first(3)).as_int();
-    }
-    return true;
-}
+    LadderCamera::GetMoverTrackDisplacement = (decltype(LadderCamera::GetMoverTrackDisplacement))injector::GetBranchDestination(topExitDisplacement.get_first(7)).as_int();
 
-// Install in dependency order; roll back required hooks on failure
-static bool InstallLadderTaskAndCameraHooks(const LadderHookTargets& hooks, void* ladderProcess)
-{
-    LadderCamera::shBeginUpdate = safetyhook::create_mid(hooks.beginUpdate, LadderCamera::BeginUpdate);
-    LadderCamera::shOrbitDistance = safetyhook::create_mid(hooks.orbitDistance, LadderCamera::OrbitDistanceRequest);
-    LadderCamera::shDistanceHistory = safetyhook::create_mid(hooks.distanceHistory, LadderCamera::DistanceHistory);
-    LadderCamera::shOrbitHeading = safetyhook::create_mid(hooks.orbitHeading, LadderCamera::OrbitHeading);
-    LadderCamera::shBeforeCollision = safetyhook::create_mid(hooks.beforeCollision, LadderCamera::BeforeCollision);
-    LadderCamera::shAfterCollision = safetyhook::create_mid(hooks.afterCollision, LadderCamera::AfterCollision);
-    if (hooks.postSmoothTarget)
-    {
-        LadderCamera::shPostSmoothTarget = safetyhook::create_inline(
-            hooks.postSmoothTarget,
-            static_cast<void(__fastcall*)(uintptr_t, uintptr_t, uintptr_t, uintptr_t, rage::Vector4*, rage::Vector4*)>(
-                [](uintptr_t camera, uintptr_t, uintptr_t ped, uintptr_t intelligence, rage::Vector4* target, rage::Vector4* root)
-                { LadderCamera::PostSmoothTarget(camera, ped, intelligence, target, root); }));
-    }
+    LadderCamera::shBeginUpdate = safetyhook::create_mid(beginUpdate.get_first(0), LadderCamera::BeginUpdate);
+    LadderCamera::shOrbitDistance = safetyhook::create_mid(orbitDistance.get_first(0), LadderCamera::OrbitDistanceRequest);
+    LadderCamera::shDistanceHistory = safetyhook::create_mid(distanceHistory.get_first(0), LadderCamera::DistanceHistory);
+    LadderCamera::shOrbitHeading = safetyhook::create_mid(orbitHeading.get_first(0), LadderCamera::OrbitHeading);
+    LadderCamera::shBeforeCollision = safetyhook::create_mid(beforeCollision.get_first(0), LadderCamera::BeforeCollision);
+    LadderCamera::shAfterCollision = safetyhook::create_mid(afterCollision.get_first(0), LadderCamera::AfterCollision);
+    LadderCamera::shPostSmoothTarget = safetyhook::create_inline(
+        injector::GetBranchDestination(postSmoothTarget.get_first(0)).as_int(), LadderCamera::PostSmoothTarget);
 
     LadderCamera::shLadderPitch = safetyhook::create_inline(
-        hooks.ladderPitch, LadderCamera::LadderPitch);
-    LadderCamera::shVerticalFollow = safetyhook::create_mid(hooks.verticalFollow, LadderCamera::VerticalFollow);
-    LadderCamera::shMountPitch = safetyhook::create_mid(hooks.mountPitch, LadderCamera::MountPitch);
-    LadderCamera::shPitchLevel = safetyhook::create_mid(hooks.pitchLevel, LadderCamera::PitchLevel);
-    LadderCamera::shTargetBetaCalc = safetyhook::create_inline(hooks.targetBetaCalc, LadderCamera::TargetBetaCalc);
-    if (LadderCamera::shTargetBetaCalc)
-        CTaskComplexClimbLadder::shCreateSubTask = safetyhook::create_inline(hooks.createSubTask, CTaskComplexClimbLadder::CreateSubTask);
-    if (!LadderCamera::shTargetBetaCalc || !CTaskComplexClimbLadder::shCreateSubTask || !LadderCamera::shBeginUpdate
-        || !LadderCamera::shOrbitHeading || !LadderCamera::shBeforeCollision || !LadderCamera::shAfterCollision
-        || !LadderCamera::shLadderPitch || !LadderCamera::shVerticalFollow
-        || !LadderCamera::shMountPitch || !LadderCamera::shPitchLevel
-        || !LadderCamera::shOrbitDistance || !LadderCamera::shDistanceHistory)
-    {
-        CTaskComplexClimbLadder::shCreateSubTask.reset();
-        LadderCamera::ResetHooks();
-        return false;
-    }
+        injector::GetBranchDestination(ladderPitch.get_first(0)).as_int(), LadderCamera::LadderPitch);
+    LadderCamera::shVerticalFollow = safetyhook::create_mid(verticalFollow.get_first(0), LadderCamera::VerticalFollow);
+    LadderCamera::shMountPitch = safetyhook::create_mid(mountPitch.get_first(0), LadderCamera::MountPitch);
+    LadderCamera::shPitchLevel = safetyhook::create_mid(pitchLevel.get_first(0), LadderCamera::PitchLevel);
+    LadderCamera::shTargetBetaCalc = safetyhook::create_inline(cameraGate.get_first(0), LadderCamera::TargetBetaCalc);
+    CTaskComplexClimbLadder::shCreateSubTask = safetyhook::create_inline(mount.get_first(0), CTaskComplexClimbLadder::CreateSubTask);
     ShortLadderTraversal::shProcessPed = safetyhook::create_inline(ladderProcess, ShortLadderTraversal::ProcessPed);
-    if (!ShortLadderTraversal::shProcessPed)
-    {
-        CTaskComplexClimbLadder::shCreateSubTask.reset();
-        LadderCamera::ResetHooks();
-        return false;
-    }
-    return true;
 }
 
 // Module initialization
@@ -2359,8 +2208,6 @@ public:
             auto waterScan = find_pattern("E8 ? ? ? ? 83 C4 ? 85 C0 74 ? 8B 87 ? ? ? ? 81 8F", "E8 ? ? ? ? 83 C4 ? 85 C0 74 ? 81 8E");
             auto scanRadius = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 51 CC", "F3 0F 10 25 ? ? ? ? 0F 28 C1 0F 28 D3");
             auto ladderCleanup = find_pattern("56 57 8B 7C 24 ? 57 8B F1 E8 ? ? ? ? 57 8B CE E8 ? ? ? ? 8B 8F", "56 8B 74 24 ? 57 56 8B F9 E8 ? ? ? ? 56 8B CF E8 ? ? ? ? 8B 8E");
-            if (onFootInput.size() != 1 || onFootScan.size() != 1 || waterInput.size() != 1 || waterScan.size() != 1 || scanRadius.size() != 1 || ladderCleanup.size() != 1)
-                return;
 
             auto sections = hook::pattern("FF B6 ? ? ? ? 51 E8 ? ? ? ? 83 C4 14 84 C0 0F 84");
             auto ladderProcess = hook::pattern("55 8B EC 83 E4 F0 83 EC 68 56 8B 75 08 57 8B 46 38");
@@ -2368,8 +2215,6 @@ public:
             auto leftRight = hook::pattern("56 57 8B F9 8D B7 58 27 00 00 56 E8");
             auto upDown = hook::pattern("56 57 8B F9 8D B7 78 27 00 00 56 E8");
             auto cameraHeading = hook::pattern("F3 0F 58 05 ? ? ? ? F3 0F 11 04 24 E8 ? ? ? ? D9 5C 24 0C");
-            if (ladderProcess.size() != 1 || sections.size() != 1 || positions.size() != 1 || leftRight.size() != 1 || upDown.size() != 1 || cameraHeading.size() != 1)
-                return;
 
             CTaskComplexClimbLadder::GetPedWalkLeftRight = (decltype(CTaskComplexClimbLadder::GetPedWalkLeftRight))leftRight.get_first(0);
             CTaskComplexClimbLadder::GetPedWalkUpDown = (decltype(CTaskComplexClimbLadder::GetPedWalkUpDown))upDown.get_first(0);
@@ -2380,10 +2225,7 @@ public:
             CTaskComplexClimbLadder::FindTopAndBottomOfAllLadderSections = (decltype(CTaskComplexClimbLadder::FindTopAndBottomOfAllLadderSections))injector::GetBranchDestination(sections.get_first(7)).as_int();
             CTaskComplexClimbLadder::CalculatePositionsForThisLadder = (decltype(CTaskComplexClimbLadder::CalculatePositionsForThisLadder))positions.get_first(0);
 
-            LadderHookTargets hooks;
-            if (!ResolveLadderTaskAndCameraBindings(hooks)
-                || !InstallLadderTaskAndCameraHooks(hooks, ladderProcess.get_first(0)))
-                return;
+            InstallLadderTaskAndCameraHooks(ladderProcess.get_first(0));
 
             static auto continueLadderEntry = resolve_next_displacement(onFootInput.get_first(2)).value();
             static auto previousInputOffset = *onFootInput.get_first<uint32_t>(4);
