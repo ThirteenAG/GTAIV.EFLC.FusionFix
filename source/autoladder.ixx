@@ -2201,8 +2201,26 @@ namespace ShortLadderTraversal
     }
 }
 
-// Hook installation
-static bool InstallLadderTaskAndCameraHooks(void* ladderProcess)
+// Resolved task and camera hook sites
+struct LadderHookTargets
+{
+    void* targetBetaCalc = nullptr;
+    void* createSubTask = nullptr;
+    void* beginUpdate = nullptr;
+    void* orbitDistance = nullptr;
+    void* distanceHistory = nullptr;
+    void* orbitHeading = nullptr;
+    void* beforeCollision = nullptr;
+    void* afterCollision = nullptr;
+    uintptr_t postSmoothTarget = 0;
+    uintptr_t ladderPitch = 0;
+    void* verticalFollow = nullptr;
+    void* mountPitch = nullptr;
+    void* pitchLevel = nullptr;
+};
+
+// Resolve bindings and validate instruction layouts before installing hooks
+static bool ResolveLadderTaskAndCameraBindings(LadderHookTargets& hooks)
 {
     auto cameraGate = hook::pattern("0F 2F C1 77 ? F6 81 ? ? ? ? 04");
     auto mount = hook::pattern("55 8B EC 83 E4 F0 83 EC 18 56 57 8B 7D 08 8B F1 81 FF 87 03 00 00");
@@ -2254,34 +2272,58 @@ static bool InstallLadderTaskAndCameraHooks(void* ladderProcess)
     LadderCamera::GetPedAimWeaponLeftRight = reinterpret_cast<decltype(LadderCamera::GetPedAimWeaponLeftRight)>(xEntry);
     LadderCamera::GetPedLookUpDown = reinterpret_cast<decltype(LadderCamera::GetPedLookUpDown)>(yEntry);
     LadderCamera::GetAxisValue = reinterpret_cast<decltype(LadderCamera::GetAxisValue)>(axis);
-    LadderCamera::shBeginUpdate = safetyhook::create_mid(beginUpdate.get_first(7), LadderCamera::BeginUpdate);
     LadderCamera::viewDistanceOffsets = *viewDistances.get_first<const float*>(9);
-    LadderCamera::shOrbitDistance = safetyhook::create_mid(orbitDistance.get_first(6), LadderCamera::OrbitDistanceRequest);
-    LadderCamera::shDistanceHistory = safetyhook::create_mid(distanceHistory.get_first(6), LadderCamera::DistanceHistory);
-    LadderCamera::shOrbitHeading = safetyhook::create_mid(orbitHeading.get_first(6), LadderCamera::OrbitHeading);
-    LadderCamera::shBeforeCollision = safetyhook::create_mid(collision.get_first(4), LadderCamera::BeforeCollision);
-    LadderCamera::shAfterCollision = safetyhook::create_mid(collision.get_first(9), LadderCamera::AfterCollision);
+    LadderCamera::GetRootBone = reinterpret_cast<decltype(LadderCamera::GetRootBone)>(
+        injector::GetBranchDestination(cameraRoot.get_first(0)).as_int());
+
+    hooks.targetBetaCalc = entry;
+    hooks.createSubTask = mount.get_first(0);
+    hooks.beginUpdate = beginUpdate.get_first(7);
+    hooks.orbitDistance = orbitDistance.get_first(6);
+    hooks.distanceHistory = distanceHistory.get_first(6);
+    hooks.orbitHeading = orbitHeading.get_first(6);
+    hooks.beforeCollision = collision.get_first(4);
+    hooks.afterCollision = collision.get_first(9);
+    hooks.ladderPitch = injector::GetBranchDestination(ladderPitch.get_first(3)).as_int();
+    hooks.verticalFollow = verticalFollow.get_first(0);
+    hooks.mountPitch = mountPitch.get_first(0);
+    hooks.pitchLevel = pitchLevel.get_first(0);
+    // Keep native target smoothing if either optional binding is unavailable.
     if (postSmoothTarget.size() == 1 && topExitDisplacement.size() == 1)
     {
         LadderCamera::GetMoverTrackDisplacement = reinterpret_cast<decltype(LadderCamera::GetMoverTrackDisplacement)>(
             injector::GetBranchDestination(topExitDisplacement.get_first(7)).as_int());
+        hooks.postSmoothTarget = injector::GetBranchDestination(postSmoothTarget.get_first(3)).as_int();
+    }
+    return true;
+}
+
+// Install in dependency order; roll back required hooks on failure
+static bool InstallLadderTaskAndCameraHooks(const LadderHookTargets& hooks, void* ladderProcess)
+{
+    LadderCamera::shBeginUpdate = safetyhook::create_mid(hooks.beginUpdate, LadderCamera::BeginUpdate);
+    LadderCamera::shOrbitDistance = safetyhook::create_mid(hooks.orbitDistance, LadderCamera::OrbitDistanceRequest);
+    LadderCamera::shDistanceHistory = safetyhook::create_mid(hooks.distanceHistory, LadderCamera::DistanceHistory);
+    LadderCamera::shOrbitHeading = safetyhook::create_mid(hooks.orbitHeading, LadderCamera::OrbitHeading);
+    LadderCamera::shBeforeCollision = safetyhook::create_mid(hooks.beforeCollision, LadderCamera::BeforeCollision);
+    LadderCamera::shAfterCollision = safetyhook::create_mid(hooks.afterCollision, LadderCamera::AfterCollision);
+    if (hooks.postSmoothTarget)
+    {
         LadderCamera::shPostSmoothTarget = safetyhook::create_inline(
-            injector::GetBranchDestination(postSmoothTarget.get_first(3)).as_int(),
+            hooks.postSmoothTarget,
             static_cast<void(__fastcall*)(uintptr_t, uintptr_t, uintptr_t, uintptr_t, rage::Vector4*, rage::Vector4*)>(
                 [](uintptr_t camera, uintptr_t, uintptr_t ped, uintptr_t intelligence, rage::Vector4* target, rage::Vector4* root)
                 { LadderCamera::PostSmoothTarget(camera, ped, intelligence, target, root); }));
     }
 
-    LadderCamera::GetRootBone = reinterpret_cast<decltype(LadderCamera::GetRootBone)>(
-        injector::GetBranchDestination(cameraRoot.get_first(0)).as_int());
     LadderCamera::shLadderPitch = safetyhook::create_inline(
-        injector::GetBranchDestination(ladderPitch.get_first(3)).as_int(), LadderCamera::LadderPitch);
-    LadderCamera::shVerticalFollow = safetyhook::create_mid(verticalFollow.get_first(0), LadderCamera::VerticalFollow);
-    LadderCamera::shMountPitch = safetyhook::create_mid(mountPitch.get_first(0), LadderCamera::MountPitch);
-    LadderCamera::shPitchLevel = safetyhook::create_mid(pitchLevel.get_first(0), LadderCamera::PitchLevel);
-    LadderCamera::shTargetBetaCalc = safetyhook::create_inline(entry, LadderCamera::TargetBetaCalc);
+        hooks.ladderPitch, LadderCamera::LadderPitch);
+    LadderCamera::shVerticalFollow = safetyhook::create_mid(hooks.verticalFollow, LadderCamera::VerticalFollow);
+    LadderCamera::shMountPitch = safetyhook::create_mid(hooks.mountPitch, LadderCamera::MountPitch);
+    LadderCamera::shPitchLevel = safetyhook::create_mid(hooks.pitchLevel, LadderCamera::PitchLevel);
+    LadderCamera::shTargetBetaCalc = safetyhook::create_inline(hooks.targetBetaCalc, LadderCamera::TargetBetaCalc);
     if (LadderCamera::shTargetBetaCalc)
-        CTaskComplexClimbLadder::shCreateSubTask = safetyhook::create_inline(mount.get_first(0), CTaskComplexClimbLadder::CreateSubTask);
+        CTaskComplexClimbLadder::shCreateSubTask = safetyhook::create_inline(hooks.createSubTask, CTaskComplexClimbLadder::CreateSubTask);
     if (!LadderCamera::shTargetBetaCalc || !CTaskComplexClimbLadder::shCreateSubTask || !LadderCamera::shBeginUpdate
         || !LadderCamera::shOrbitHeading || !LadderCamera::shBeforeCollision || !LadderCamera::shAfterCollision
         || !LadderCamera::shLadderPitch || !LadderCamera::shVerticalFollow
@@ -2341,7 +2383,9 @@ public:
             CTaskComplexClimbLadder::FindTopAndBottomOfAllLadderSections = reinterpret_cast<decltype(CTaskComplexClimbLadder::FindTopAndBottomOfAllLadderSections)>(injector::GetBranchDestination(sections.get_first(7)).as_int());
             CTaskComplexClimbLadder::CalculatePositionsForThisLadder = reinterpret_cast<decltype(CTaskComplexClimbLadder::CalculatePositionsForThisLadder)>(positions.get_first(0));
 
-            if (!InstallLadderTaskAndCameraHooks(ladderProcess.get_first(0)))
+            LadderHookTargets hooks;
+            if (!ResolveLadderTaskAndCameraBindings(hooks)
+                || !InstallLadderTaskAndCameraHooks(hooks, ladderProcess.get_first(0)))
                 return;
 
             static auto continueLadderEntry = resolve_next_displacement(onFootInput.get_first(2)).value();
