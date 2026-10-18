@@ -2223,7 +2223,7 @@ static bool ResolveLadderTaskAndCameraBindings(LadderHookTargets& hooks)
 {
     auto cameraGate = hook::pattern("0F 2F C1 77 ? F6 81 ? ? ? ? 04");
     auto mount = hook::pattern("55 8B EC 83 E4 F0 83 EC 18 56 57 8B 7D 08 8B F1 81 FF 87 03 00 00");
-    auto activeTask = hook::pattern("53 55 56 33 F6 57 8B E9 33 C0 8D 9B 00 00 00 00");
+    auto activeTask = hook::pattern("68 19 04 00 00 83 C1 44 E8 ? ? ? ? 80");
     auto lookX = hook::pattern("57 8D BE 98 27 00 00 57 E8 ? ? ? ?");
     auto lookY = hook::pattern("57 8D BE B8 27 00 00 57 E8 ? ? ? ?");
     auto beginUpdate = hook::pattern("F6 86 8C 03 00 00 80 74 ? 57");
@@ -2267,7 +2267,7 @@ static bool ResolveLadderTaskAndCameraBindings(LadderHookTargets& hooks)
         || std::memcmp(calculation, forceTest, sizeof(forceTest)) != 0)
         return false;
 
-    LadderCamera::FindActiveTaskByType = (decltype(LadderCamera::FindActiveTaskByType))activeTask.get_first(0);
+    LadderCamera::FindActiveTaskByType = (decltype(LadderCamera::FindActiveTaskByType))injector::GetBranchDestination(activeTask.get_first(8)).as_int();
     LadderCamera::GetPedAimWeaponLeftRight = (decltype(LadderCamera::GetPedAimWeaponLeftRight))xEntry;
     LadderCamera::GetPedLookUpDown = (decltype(LadderCamera::GetPedLookUpDown))yEntry;
     LadderCamera::GetAxisValue = (decltype(LadderCamera::GetAxisValue))axis;
