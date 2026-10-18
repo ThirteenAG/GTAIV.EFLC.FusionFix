@@ -386,7 +386,8 @@ namespace AirborneRagdoll
     // Configuration
     namespace RagdollJumpTuning
     {
-        constexpr uint32_t ActivationMinimumMs = 200;        // Earliest Reload activation after the jump starts
+        constexpr uint32_t RagdollJumpTestMinTimeMs = 200;        // Earliest input request during a jump
+        constexpr uint32_t RagdollJumpActivationMinTimeMs = 200;  // Earliest activation of an accepted request
         constexpr uint32_t NMHighFallMinimumTimeMs = 100;    // Native task minimum duration
         constexpr uint32_t NMHighFallMaximumTimeMs = 10000;  // Native task time limit
         constexpr uint32_t NMHighFallEventTimeMs = 10000;    // Event lifetime and pending-profile expiry
@@ -442,9 +443,8 @@ namespace AirborneRagdoll
     }
 
     // Player input fields and per-jump state
-    constexpr ptrdiff_t ReloadPreviousOffset = 0x286C;
-    constexpr ptrdiff_t ReloadCurrentOffset = 0x286E;
-    constexpr ptrdiff_t JumpCurrentOffset = 0x2846;
+    constexpr ptrdiff_t ReloadInputOffset = 0x2868;
+    constexpr ptrdiff_t JumpInputOffset = 0x26B8;
     constexpr uint8_t ButtonDownThreshold = 0x7F;
 
     struct Velocity
@@ -479,10 +479,11 @@ namespace AirborneRagdoll
 
     bool jumpWasActive = false;
     bool waitingForJumpRelease = false;
+    bool ragdollJumpRequested = false;
     bool highFallAcceptedThisJump = false;
+    uint32_t jumpStartTime = 0;
     bool bPlayerJumpRagdollControl = false;
     bool bPlayerClimbRagdollControl = false;
-    uint32_t jumpStartTime = 0;
     uintptr_t currentPed = 0;
     Ped currentPedHandle = 0;
 
@@ -526,11 +527,14 @@ namespace AirborneRagdoll
         return std::clamp(z / std::sqrt(lengthSquared), 0.0f, 1.0f);
     }
 
-    ButtonState ReadButtonState(uintptr_t control, ptrdiff_t previousOffset, ptrdiff_t currentOffset)
+    ButtonState ReadButtonState(uintptr_t control, ptrdiff_t inputOffset)
     {
+        const auto* input = reinterpret_cast<const uint8_t*>(control + inputOffset);
+        const uint8_t mask = input[4];
+        // Current and previous samples share the input record's XOR mask.
         return {
-            *reinterpret_cast<const uint8_t*>(control + previousOffset),
-            *reinterpret_cast<const uint8_t*>(control + currentOffset)
+            static_cast<uint8_t>(input[7] ^ mask),
+            static_cast<uint8_t>(input[6] ^ mask)
         };
     }
 
@@ -569,6 +573,8 @@ namespace AirborneRagdoll
     {
         jumpWasActive = false;
         waitingForJumpRelease = false;
+        ragdollJumpRequested = false;
+        jumpStartTime = 0;
         highFallAcceptedThisJump = false;
     }
 
@@ -712,17 +718,14 @@ namespace AirborneRagdoll
 
         bool Initialize()
         {
-            auto distance = hook::pattern("0F 2F C2 0F 86 ? ? ? ? 81 8F 70 02 00 00");
-            auto epilogue = hook::pattern("F3 0F 11 86 38 01 00 00 5F 5E 8B E5");
+            auto distance = hook::pattern("0F 2F C2 0F 86 ? ? ? ? 81 8F 70 02 00 00 00 00 04 00");
+            auto epilogue = hook::pattern("F3 0F 11 86 38 01 00 00 5F 5E 8B E5 5D C2 04 00");
             if (distance.size() != 1 || epilogue.size() != 1)
                 return false;
 
             const auto distanceAddress = reinterpret_cast<uintptr_t>(distance.get_first());
             const auto exitAddress = reinterpret_cast<uintptr_t>(epilogue.get_first(8));
-            const auto base = reinterpret_cast<uintptr_t>(GetModuleHandleW(nullptr));
-            if (distanceAddress - base != 0x7669D0 || exitAddress - base != 0x766A6E)
-                return false;
-
+            // Use the native rejection branch and its stack-cleanup path.
             const auto branchTarget = distanceAddress + 9
                 + *reinterpret_cast<const int32_t*>(distanceAddress + 5);
             if (branchTarget != exitAddress)
@@ -739,109 +742,172 @@ namespace AirborneRagdoll
         }
     }
 
-    // Resolve and validate native hooks
-    enum class AddressKind { Entry, Call, Pointer };
-
-    uintptr_t ResolveAddress(const char* signature, uintptr_t expectedRva,
-        AddressKind kind = AddressKind::Entry, ptrdiff_t offset = 0)
+    // Native entry points used by the hooks
+    struct HookTargets
     {
-        auto pattern = hook::pattern(signature);
-        if (pattern.size() != 1)
+        uintptr_t startBehaviour = 0;
+        uintptr_t eventConstructor = 0;
+        uintptr_t eventClone = 0;
+        uintptr_t eventDestructor = 0;
+        uintptr_t waterPriority = 0;
+    };
+
+    uintptr_t ResolveEventDestructor(uintptr_t eventConstructor)
+    {
+        // Several event classes share this layout; the clone call selects our constructor.
+        auto constructors = hook::pattern(
+            "56 8B F1 E8 ? ? ? ? 8B 44 24 08 89 46 0C 8B 44 24 0C 89 46 10 "
+            "8A 44 24 10 88 46 14 C7 06 ? ? ? ? 8B C6 5E C2 0C 00");
+        uintptr_t vtable = 0;
+        for (size_t i = 0; i < constructors.size(); ++i)
+        {
+            const auto match = constructors.get(i);
+            if (reinterpret_cast<uintptr_t>(match.get<void>()) == eventConstructor)
+                vtable = *match.get<uintptr_t>(31);
+        }
+        if (!vtable)
             return 0;
 
-        auto address = reinterpret_cast<uintptr_t>(pattern.get_first(offset));
-        if (kind == AddressKind::Call)
-            address = injector::GetBranchDestination(address).as_int();
-        else if (kind == AddressKind::Pointer)
-            address = *reinterpret_cast<const uintptr_t*>(address);
-
-        // Restrict fixed offsets and registers to the verified executable layout
-        const auto base = reinterpret_cast<uintptr_t>(GetModuleHandleW(nullptr));
-        return address - base == expectedRva ? address : 0;
-    }
-
-    bool Initialize()
-    {
-        if (!CPlayer::getLocalPlayerPed || !CTimer::m_snTimeInMilliseconds)
-            return false;
-
-        CPlayerPed::GetControlFromPlayer = reinterpret_cast<decltype(CPlayerPed::GetControlFromPlayer)>(ResolveAddress(
-            "E8 ? ? ? ? 8A 88 6E 28 00 00 32 88 6C 28 00 00", 0x62B350, AddressKind::Call));
-        CTaskSimpleNM::CanUseRagdoll = reinterpret_cast<decltype(CTaskSimpleNM::CanUseRagdoll)>(ResolveAddress(
-            "55 8B EC 83 E4 F0 83 EC 48 56 57 E8 ? ? ? ? 84 C0 74 31", 0x8DBE60));
-        NaturalMotion::AllocateFromPoolInternal = reinterpret_cast<decltype(NaturalMotion::AllocateFromPoolInternal)>(ResolveAddress(
-            "E8 ? ? ? ? 8B D0 85 D2 74 ? FF B6 E0 00 00 00 0F B7 46 20 8D 4E 60", 0x99940, AddressKind::Call));
-        CTaskSimpleNMHighFall::Constructor = reinterpret_cast<decltype(CTaskSimpleNMHighFall::Constructor)>(ResolveAddress(
-            "56 FF 74 24 0C 8B F1 FF 74 24 0C E8 ? ? ? ? FF 74 24 10 8D 4E 60", 0x8DA010));
-        const auto startBehaviour = ResolveAddress(
-            "81 EC C8 0C 00 00 A1 ? ? ? ? 33 C4 89 84 24 C4 0C 00 00 56 8B F1 57 8B 86 E0 00 00 00", 0x8E95A0);
-        constexpr auto eventCloneSignature = "0F B6 46 14 50 51 FF 76 0C 8B CF E8 ? ? ? ? 5F 5E C3";
-        const auto eventConstructor = ResolveAddress(eventCloneSignature, 0x7459A0, AddressKind::Call, 11);
-        const auto eventClone = ResolveAddress(
-            eventCloneSignature, 0x74A110, AddressKind::Entry, -0x27);
-        uintptr_t eventDestructor = 0;
-        if (eventConstructor)
+        // Match the destructor body by the same vtable, without following the deleting wrapper.
+        auto destructors = hook::pattern(
+            "56 8B F1 8B 4E 10 C7 06 ? ? ? ? 85 C9 74 06 8B 01 6A 01 FF 10 8B CE 5E E9 ? ? ? ?");
+        uintptr_t target = 0;
+        for (size_t i = 0; i < destructors.size(); ++i)
         {
-            const auto base = reinterpret_cast<uintptr_t>(GetModuleHandleW(nullptr));
-            const auto vtable = *reinterpret_cast<const uintptr_t*>(eventConstructor + 0x1F);
-            if (vtable - base == 0xAAE674)
+            const auto match = destructors.get(i);
+            if (*match.get<uintptr_t>(8) == vtable)
             {
-                const auto deletingDestructor = *reinterpret_cast<const uintptr_t*>(vtable);
-                if (deletingDestructor - base == 0x746A90
-                    && *reinterpret_cast<const uint8_t*>(deletingDestructor + 3) == 0xE8)
-                {
-                    const auto target = injector::GetBranchDestination(deletingDestructor + 3).as_int();
-                    if (target - base == 0x746210)
-                        eventDestructor = target;
-                }
+                if (target)
+                    return 0;
+                target = reinterpret_cast<uintptr_t>(match.get<void>());
             }
         }
-        const auto waterPriority = ResolveAddress(
-            "56 8B 74 24 08 57 8B 06 8B F9 8B CE FF 50 04 83 F8 09", 0x74B850);
-        CTaskSimpleNMHighFall::ms_Parameters = reinterpret_cast<decltype(CTaskSimpleNMHighFall::ms_Parameters)>(ResolveAddress(
-            "8B 86 E0 00 00 00 C1 E0 06 80 BF 19 02 00 00 00 51 8D 4C 24 0C 74 0A", 0x131D028, AddressKind::Pointer, 27));
-        ART::MessageParams::Constructor = reinterpret_cast<decltype(ART::MessageParams::Constructor)>(ResolveAddress(
-            "E8 ? ? ? ? 6A 01 FF 35 ? ? ? ? 8D 4C 24 10 E8 ? ? ? ? 8B 86 E0", 0x41F860, AddressKind::Call));
-        ART::MessageParams::addBool = reinterpret_cast<decltype(ART::MessageParams::addBool)>(ResolveAddress(
-            "E8 ? ? ? ? 8B 86 E0 00 00 00 C1 E0 06 80 BF", 0x41FB50, AddressKind::Call));
-        ART::MessageParams::addFloat = reinterpret_cast<decltype(ART::MessageParams::addFloat)>(ResolveAddress(
-            "56 8B F1 8B 8E C0 0C 00 00 83 F9 30 7D 69", 0x41FAD0));
-        rage::fragInstNM::PostARTMessage = reinterpret_cast<decltype(rage::fragInstNM::PostARTMessage)>(ResolveAddress(
-            "8B 15 ? ? ? ? 53 8B 02 56 8B 74 24 0C 57 8B F9", 0x41CD70));
-        ART::MessageParams::Destructor = reinterpret_cast<decltype(ART::MessageParams::Destructor)>(ResolveAddress(
-            "C7 81 C0 0C 00 00 00 00 00 00 C3", 0x41F890));
-        NaturalMotion::PostNMTaskInternal = reinterpret_cast<decltype(NaturalMotion::PostNMTaskInternal)>(ResolveAddress(
-            "81 EC E4 0C 00 00 A1 ? ? ? ? 33 C4 89 84 24 E0 0C 00 00", 0x7B18A0));
-        NaturalMotion::GetRagdollComponentMatrixInternal = reinterpret_cast<decltype(NaturalMotion::GetRagdollComponentMatrixInternal)>(ResolveAddress(
-            "57 8B F9 8B 87 B4 07 00 00 85 C0 74 ? 83 78 64 00", 0x5E8810));
+        return target;
+    }
 
-        if (!startBehaviour
-            || !eventConstructor || !eventClone || !eventDestructor || !waterPriority
-            || !CPlayerPed::GetControlFromPlayer
-            || !CTaskSimpleNM::CanUseRagdoll
-            || !NaturalMotion::AllocateFromPoolInternal
-            || !CTaskSimpleNMHighFall::Constructor
-            || !CTaskSimpleNMHighFall::ms_Parameters
-            || !ART::MessageParams::Constructor
-            || !ART::MessageParams::addBool
-            || !ART::MessageParams::addFloat
-            || !rage::fragInstNM::PostARTMessage
-            || !ART::MessageParams::Destructor
-            || !NaturalMotion::PostNMTaskInternal
-            || !NaturalMotion::GetRagdollComponentMatrixInternal)
-        {
+    // Resolve each binding only when its signature is unique
+    bool ResolveBindings(HookTargets& hooks)
+    {
+        auto pattern = hook::pattern("E8 ? ? ? ? 8A 88 6E 28 00 00 32 88 6C 28 00 00");
+        if (pattern.size() != 1)
             return false;
-        }
+        CPlayerPed::GetControlFromPlayer = reinterpret_cast<decltype(CPlayerPed::GetControlFromPlayer)>(
+            injector::GetBranchDestination(pattern.get_first(0)).as_int());
 
+        pattern = hook::pattern("55 8B EC 83 E4 F0 83 EC 48 56 57 E8 ? ? ? ? 84 C0 74 31");
+        if (pattern.size() != 1)
+            return false;
+        CTaskSimpleNM::CanUseRagdoll = reinterpret_cast<decltype(CTaskSimpleNM::CanUseRagdoll)>(
+            pattern.get_first(0));
+
+        pattern = hook::pattern("E8 ? ? ? ? 8B D0 85 D2 74 ? FF B6 E0 00 00 00 0F B7 46 20 8D 4E 60");
+        if (pattern.size() != 1)
+            return false;
+        NaturalMotion::AllocateFromPoolInternal = reinterpret_cast<decltype(NaturalMotion::AllocateFromPoolInternal)>(
+            injector::GetBranchDestination(pattern.get_first(0)).as_int());
+
+        pattern = hook::pattern("56 FF 74 24 0C 8B F1 FF 74 24 0C E8 ? ? ? ? FF 74 24 10 8D 4E 60");
+        if (pattern.size() != 1)
+            return false;
+        CTaskSimpleNMHighFall::Constructor = reinterpret_cast<decltype(CTaskSimpleNMHighFall::Constructor)>(
+            pattern.get_first(0));
+
+        pattern = hook::pattern(
+            "8B 86 E0 00 00 00 C1 E0 06 80 BF 19 02 00 00 00 51 8D 4C 24 0C 74 0A "
+            "F3 0F 10 80 ? ? ? ? EB 08 F3 0F 10 80 ? ? ? ?");
+        if (pattern.size() != 1)
+            return false;
+        // The two branches read adjacent player/AI strengths from each 0x40-byte profile.
+        if (*pattern.get_first<uintptr_t>(37) != *pattern.get_first<uintptr_t>(27) + sizeof(float))
+            return false;
+        CTaskSimpleNMHighFall::ms_Parameters = reinterpret_cast<decltype(CTaskSimpleNMHighFall::ms_Parameters)>(
+            *pattern.get_first<uintptr_t>(27));
+
+        pattern = hook::pattern("E8 ? ? ? ? 6A 01 FF 35 ? ? ? ? 8D 4C 24 10 E8 ? ? ? ? 8B 86 E0");
+        if (pattern.size() != 1)
+            return false;
+        ART::MessageParams::Constructor = reinterpret_cast<decltype(ART::MessageParams::Constructor)>(
+            injector::GetBranchDestination(pattern.get_first(0)).as_int());
+
+        pattern = hook::pattern("E8 ? ? ? ? 8B 86 E0 00 00 00 C1 E0 06 80 BF");
+        if (pattern.size() != 1)
+            return false;
+        ART::MessageParams::addBool = reinterpret_cast<decltype(ART::MessageParams::addBool)>(
+            injector::GetBranchDestination(pattern.get_first(0)).as_int());
+
+        pattern = hook::pattern("56 8B F1 8B 8E C0 0C 00 00 83 F9 30 7D 69");
+        if (pattern.size() != 1)
+            return false;
+        ART::MessageParams::addFloat = reinterpret_cast<decltype(ART::MessageParams::addFloat)>(
+            pattern.get_first(0));
+
+        pattern = hook::pattern("8B 15 ? ? ? ? 53 8B 02 56 8B 74 24 0C 57 8B F9");
+        if (pattern.size() != 1)
+            return false;
+        rage::fragInstNM::PostARTMessage = reinterpret_cast<decltype(rage::fragInstNM::PostARTMessage)>(
+            pattern.get_first(0));
+
+        pattern = hook::pattern("C7 81 C0 0C 00 00 00 00 00 00 C3");
+        if (pattern.size() != 1)
+            return false;
+        ART::MessageParams::Destructor = reinterpret_cast<decltype(ART::MessageParams::Destructor)>(
+            pattern.get_first(0));
+
+        pattern = hook::pattern("81 EC E4 0C 00 00 A1 ? ? ? ? 33 C4 89 84 24 E0 0C 00 00");
+        if (pattern.size() != 1)
+            return false;
+        NaturalMotion::PostNMTaskInternal = reinterpret_cast<decltype(NaturalMotion::PostNMTaskInternal)>(
+            pattern.get_first(0));
+
+        pattern = hook::pattern("57 8B F9 8B 87 B4 07 00 00 85 C0 74 ? 83 78 64 00");
+        if (pattern.size() != 1)
+            return false;
+        NaturalMotion::GetRagdollComponentMatrixInternal = reinterpret_cast<decltype(NaturalMotion::GetRagdollComponentMatrixInternal)>(
+            pattern.get_first(0));
+
+        auto startBehaviour = hook::pattern("81 EC C8 0C 00 00 A1 ? ? ? ? 33 C4 89 84 24 C4 0C 00 00 56 8B F1 57 8B 86 E0 00 00 00");
+        auto eventClone = hook::pattern(
+            "56 8B F1 8B 0D ? ? ? ? 57 E8 ? ? ? ? 8B F8 85 FF 74 25 "
+            "8B 4E 10 85 C9 74 09 8B 11 FF 52 04 8B C8 EB 02 33 C9 "
+            "0F B6 46 14 50 51 FF 76 0C 8B CF E8 ? ? ? ? 5F 5E C3");
+        auto waterPriority = hook::pattern("56 8B 74 24 08 57 8B 06 8B F9 8B CE FF 50 04 83 F8 09");
+        if (startBehaviour.size() != 1 || eventClone.size() != 1 || waterPriority.size() != 1)
+            return false;
+
+        hooks.startBehaviour = reinterpret_cast<uintptr_t>(startBehaviour.get_first(0));
+        hooks.eventConstructor = injector::GetBranchDestination(eventClone.get_first(50)).as_int();
+        hooks.eventClone = reinterpret_cast<uintptr_t>(eventClone.get_first(0));
+        hooks.waterPriority = reinterpret_cast<uintptr_t>(waterPriority.get_first(0));
+        hooks.eventDestructor = ResolveEventDestructor(hooks.eventConstructor);
+        return hooks.eventDestructor != 0;
+    }
+
+    // Every dependency must resolve before installing any hooks.
+    bool ValidateBindings(const HookTargets& hooks)
+    {
+        return hooks.startBehaviour && hooks.eventConstructor && hooks.eventClone
+            && hooks.eventDestructor && hooks.waterPriority
+            && CPlayerPed::GetControlFromPlayer && CTaskSimpleNM::CanUseRagdoll
+            && NaturalMotion::AllocateFromPoolInternal && CTaskSimpleNMHighFall::Constructor
+            && CTaskSimpleNMHighFall::ms_Parameters
+            && ART::MessageParams::Constructor && ART::MessageParams::addBool
+            && ART::MessageParams::addFloat && rage::fragInstNM::PostARTMessage
+            && ART::MessageParams::Destructor && NaturalMotion::PostNMTaskInternal
+            && NaturalMotion::GetRagdollComponentMatrixInternal;
+    }
+
+    // Install in dependency order and remove partial installations on failure
+    bool InstallHooks(const HookTargets& hooks)
+    {
         CTaskSimpleNMHighFall::shStartBehaviour = safetyhook::create_inline(
-            startBehaviour, NaturalMotion::StartBehaviourHook);
+            hooks.startBehaviour, NaturalMotion::StartBehaviourHook);
         if (!CTaskSimpleNMHighFall::shStartBehaviour)
             return false;
 
-        CommandEvents::shDestructor = safetyhook::create_inline(eventDestructor, CommandEvents::DestructorHook);
-        CommandEvents::shClone = safetyhook::create_inline(eventClone, CommandEvents::CloneHook);
-        CommandEvents::shWaterPriority = safetyhook::create_inline(waterPriority, CommandEvents::WaterPriorityHook);
-        CommandEvents::shConstructor = safetyhook::create_inline(eventConstructor, CommandEvents::ConstructorHook);
+        CommandEvents::shDestructor = safetyhook::create_inline(hooks.eventDestructor, CommandEvents::DestructorHook);
+        CommandEvents::shClone = safetyhook::create_inline(hooks.eventClone, CommandEvents::CloneHook);
+        CommandEvents::shWaterPriority = safetyhook::create_inline(hooks.waterPriority, CommandEvents::WaterPriorityHook);
+        CommandEvents::shConstructor = safetyhook::create_inline(hooks.eventConstructor, CommandEvents::ConstructorHook);
         if (!CommandEvents::shConstructor || !CommandEvents::shClone
             || !CommandEvents::shDestructor || !CommandEvents::shWaterPriority)
         {
@@ -857,6 +923,15 @@ namespace AirborneRagdoll
             return false;
         }
         return true;
+    }
+
+    bool Initialize()
+    {
+        if (!CPlayer::getLocalPlayerPed || !CTimer::m_snTimeInMilliseconds)
+            return false;
+
+        HookTargets hooks;
+        return ResolveBindings(hooks) && ValidateBindings(hooks) && InstallHooks(hooks);
     }
 
     // Per-frame Reload input and ragdoll activation
@@ -910,16 +985,14 @@ namespace AirborneRagdoll
         }
 
         const bool jumpButtonDown =
-            *reinterpret_cast<const uint8_t*>(control + JumpCurrentOffset) > ButtonDownThreshold;
-        const ButtonState reloadButton = ReadButtonState(
-            control,
-            ReloadPreviousOffset,
-            ReloadCurrentOffset);
+            ReadButtonState(control, JumpInputOffset).current > ButtonDownThreshold;
+        const ButtonState reloadButton = ReadButtonState(control, ReloadInputOffset);
 
         if (jumpStarted)
         {
             jumpStartTime = now;
             waitingForJumpRelease = jumpButtonDown;
+            ragdollJumpRequested = false;
             highFallAcceptedThisJump = false;
         }
         jumpWasActive = true;
@@ -927,7 +1000,10 @@ namespace AirborneRagdoll
         // Jump and climb controls can be enabled independently
         const bool climbing = CPed::ComparePedTasks(ped, TaskID::TaskSimpleClimb);
         if ((climbing && !bPlayerClimbRagdollControl) || (!climbing && !bPlayerJumpRagdollControl))
+        {
+            ragdollJumpRequested = false;
             return;
+        }
 
         if (highFallAcceptedThisJump)
             return;
@@ -941,8 +1017,13 @@ namespace AirborneRagdoll
             waitingForJumpRelease = false;
         }
 
-        if (now - jumpStartTime < RagdollJumpTuning::ActivationMinimumMs
-            || !reloadButton.IsJustPressed()
+        const uint32_t jumpElapsed = now - jumpStartTime;
+        // Remember the press while waiting for native ragdoll eligibility.
+        if (jumpElapsed >= RagdollJumpTuning::RagdollJumpTestMinTimeMs && reloadButton.IsJustPressed())
+            ragdollJumpRequested = true;
+
+        if (!ragdollJumpRequested
+            || jumpElapsed < RagdollJumpTuning::RagdollJumpActivationMinTimeMs
             || !Natives::IsCharInAir(pedHandle))
         {
             return;
@@ -952,6 +1033,7 @@ namespace AirborneRagdoll
 
         if (Natives::IsPedRagdoll(pedHandle))
         {
+            ragdollJumpRequested = false;
             highFallAcceptedThisJump = true;
             return;
         }
@@ -985,7 +1067,10 @@ namespace AirborneRagdoll
         }
 
         if (highFallAcceptedThisJump)
+        {
+            ragdollJumpRequested = false;
             StartPostActivationEffects(ped, pedHandle, now, climbing, activationVelocity);
+        }
     }
 }
 
