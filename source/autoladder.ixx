@@ -297,9 +297,14 @@ namespace CTaskComplexClimbLadder
         {
             auto constructor = hook::pattern("8B 44 24 10 C7 06 ? ? ? ? C7 46 14 00 00 00 00 C7 46 20");
             auto first = find_pattern("51 A0 ? ? ? ? 56 8B F1 0F B6 D0 B9 01 00 00 00", "55 8B EC 83 E4 F0 51 80 3D ? ? ? ? 00 53 56 57 8B F1 75 07 C6 05 ? ? ? ? 01 8B BE 90 00 00 00");
-            auto positions = hook::pattern("E8 ? ? ? ? 83 C4 28 84 C0 74 13 57 68 AE 03 00 00");
-            auto movement = hook::pattern("8B 4E 08 57 E8 ? ? ? ? 89 44 24 30 85 C0 0F 84 ? ? ? ? 8B C8 E8");
-            const auto table = *constructor.get_first<uintptr_t*>(6);
+            auto positions = find_pattern("E8 ? ? ? ? 83 C4 28 84 C0 74 13 57 68 AE 03 00 00",
+                "E8 ? ? ? ? 83 C4 28 84 C0 74 16 53 68 AE 03 00 00");
+            auto movement = find_pattern("8B 4E 08 57 E8 ? ? ? ? 89 44 24 30 85 C0 0F 84 ? ? ? ? 8B C8 E8",
+                "8B 4E 08 57 E8 ? ? ? ? 8B D8 85 DB 0F 84 ? ? ? ? 8B CB E8");
+            const bool legacyConstructor = constructor.empty();
+            if (legacyConstructor)
+                constructor = hook::pattern("56 8B F1 E8 ? ? ? ? 0F 57 C0 8B 4C 24 08 C7 06 ? ? ? ? 33 C0 89 46 14 F3 0F 11 46 20");
+            const auto table = *constructor.get_first<uintptr_t*>(legacyConstructor ? 17 : 6);
             GetRunningMovementTask = (decltype(GetRunningMovementTask))injector::GetBranchDestination(movement.get_first(4)).as_int();
             shCreateFirstSubTask = safetyhook::create_inline(first.get_first(0), CreateFirstSubTask);
             shControlSubTask = safetyhook::create_inline(reinterpret_cast<void*>(table[20]), ControlSubTask);
@@ -392,8 +397,12 @@ namespace CTaskComplexClimbLadder
     static void ResolveMoveBlendLayout()
     {
         auto caller = hook::pattern("E8 ? ? ? ? F3 0F 10 44 24 18 5F F3 0F 11 46 18");
-        auto store = hook::pattern("F3 0F 11 41 ? FF 50 4C C2 0C 00");
-        nMoveBlendOffset = *caller.get_first<int32_t>(-22);
+        auto store = find_pattern("F3 0F 11 41 ? FF 50 4C C2 0C 00",
+            "F3 0F 11 41 10 FF D2 C2 0C 00");
+        const bool legacyCaller = caller.empty();
+        if (legacyCaller)
+            caller = hook::pattern("8B 8E 90 0A 00 00 6A 00 83 EC 08 D9 5C 24 04 D9 44 24 20 D9 1C 24 E8");
+        nMoveBlendOffset = *caller.get_first<int32_t>(legacyCaller ? 2 : -22);
         nDesiredMoveBlendRatioOffset = *store.get_first<uint8_t>(4);
     }
 
@@ -695,14 +704,19 @@ public:
             auto sections = hook::pattern("FF B6 ? ? ? ? 51 E8 ? ? ? ? 83 C4 14 84 C0 0F 84");
             auto ladderProcess = find_pattern("55 8B EC 83 E4 F0 83 EC 68 56 8B 75 08 57 8B 46 38", "55 8B EC 83 E4 F0 83 EC 54 53 56 57 8B 7D 08 8B 47 38 85 C0 8B F1 74 0C 3B 87 C4 07 00 00");
             auto positions = find_pattern("55 8B EC 83 E4 F0 81 EC ? ? ? ? 56 57 8B 7D 0C FF 75 10", "55 8B EC 83 E4 F0 8B 55 10 83 EC 58 56 57 8B 7D 0C 0F BF 47 2E 8B 0C 85 ? ? ? ? 52 E8");
-            auto leftRight = hook::pattern("56 57 8B F9 8D B7 58 27 00 00 56 E8");
-            auto upDown = hook::pattern("56 57 8B F9 8D B7 78 27 00 00 56 E8");
+            auto leftRight = find_pattern("56 57 8B F9 8D B7 58 27 00 00 56 E8",
+                "56 8B F1 57 8D BE 58 27 00 00 57 E8");
+            auto upDown = find_pattern("56 57 8B F9 8D B7 78 27 00 00 56 E8",
+                "56 8B F1 57 8D BE 78 27 00 00 57 E8");
             auto cameraHeading = hook::pattern("F3 0F 58 05 ? ? ? ? F3 0F 11 04 24 E8 ? ? ? ? D9 5C 24 0C");
 
             CTaskComplexClimbLadder::GetPedWalkLeftRight = (decltype(CTaskComplexClimbLadder::GetPedWalkLeftRight))leftRight.get_first(0);
             CTaskComplexClimbLadder::GetPedWalkUpDown = (decltype(CTaskComplexClimbLadder::GetPedWalkUpDown))upDown.get_first(0);
             CTaskComplexClimbLadder::GetAxisValue = (decltype(CTaskComplexClimbLadder::GetAxisValue))injector::GetBranchDestination(leftRight.get_first(11)).as_int();
-            CTaskComplexClimbLadder::controlCameraHeading = *cameraHeading.get_first<const float*>(4);
+            const bool legacyHeading = cameraHeading.empty();
+            if (legacyHeading)
+                cameraHeading = hook::pattern("D8 05 ? ? ? ? D9 1C 24 E8 ? ? ? ? D9 5C 24 0C 83 C4 04 F3 0F 5A 44 24 08");
+            CTaskComplexClimbLadder::controlCameraHeading = *cameraHeading.get_first<const float*>(legacyHeading ? 2 : 4);
             CTaskComplexClimbLadder::ResolveMoveBlendLayout();
 
             if (!sections.empty())

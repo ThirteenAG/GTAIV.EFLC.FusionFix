@@ -43,6 +43,7 @@ namespace LadderCamera
     }
 
     // Native camera bindings
+    static bool legacyLayout = false;
     static SafetyHookInline shTargetBetaCalc;
     static SafetyHookMid shBeginUpdate;
     static SafetyHookMid shOrbitDistance;
@@ -310,10 +311,21 @@ namespace LadderCamera
         static void Resolve()
         {
             auto query = hook::pattern("6A 07 6A FF 52 50 FF 75 14 8D 44 24 1C 50 E8");
-            auto filter = hook::pattern("50 8D 44 24 60 50 E8 ? ? ? ? 33 F6 83 C4 24");
-            worldProbe = *query.get_first<uintptr_t*>(-9);
-            TestLine = (decltype(TestLine))injector::GetBranchDestination(query.get_first(14)).as_int();
-            FilterIntersections = (decltype(FilterIntersections))injector::GetBranchDestination(filter.get_first(6)).as_int();
+            if (!query.empty())
+            {
+                auto filter = hook::pattern("50 8D 44 24 60 50 E8 ? ? ? ? 33 F6 83 C4 24");
+                worldProbe = *query.get_first<uintptr_t*>(-9);
+                TestLine = (decltype(TestLine))injector::GetBranchDestination(query.get_first(14)).as_int();
+                FilterIntersections = (decltype(FilterIntersections))injector::GetBranchDestination(filter.get_first(6)).as_int();
+            }
+            else
+            {
+                query = hook::pattern("6A 07 6A FF 53 50 52 8D 44 24 2C 50 E8");
+                auto filter = hook::pattern("80 3D ? ? ? ? 00 74 ? 53 8B 5C 24 0C 56 33 F6 39 33");
+                worldProbe = *query.get_first<uintptr_t*>(-4);
+                TestLine = (decltype(TestLine))injector::GetBranchDestination(query.get_first(12)).as_int();
+                FilterIntersections = (decltype(FilterIntersections))filter.get_first(0);
+            }
         }
 
         static int IsBlocked(uintptr_t manager, uintptr_t ignore, int mask,
@@ -925,7 +937,7 @@ namespace LadderCamera
             return;
         }
 
-        const float targetZ = regs.xmm0.f32[0];
+        const float targetZ = legacyLayout ? *reinterpret_cast<const float*>(regs.esp + 0x68) : regs.xmm0.f32[0];
         auto& baseZ = *reinterpret_cast<float*>(regs.esi + 568);
         auto& distanceBaseZ = *reinterpret_cast<float*>(regs.esi + 584);
         const bool reset = (*reinterpret_cast<const uint8_t*>(regs.esi + 908) & 8) != 0
@@ -938,7 +950,7 @@ namespace LadderCamera
             return;
         }
         update.targetZ = targetZ;
-        update.neutralPitch = -*reinterpret_cast<const float*>(regs.esp + 0x50);
+        update.neutralPitch = -*reinterpret_cast<const float*>(regs.esp + (legacyLayout ? 0x2C : 0x50));
         update.previousPitch = *reinterpret_cast<const float*>(regs.esi + 772);
         update.pitchReferenceValid = std::isfinite(update.neutralPitch) && std::isfinite(update.previousPitch);
         if (!update.onLadder && !alignment.topPitchHandoff)
@@ -979,8 +991,8 @@ namespace LadderCamera
         if (!IsAlternateEnabled() || update.camera != regs.esi
             || !update.onLadder || !update.canAlign || !update.pitchReferenceValid)
             return;
-        auto& downLimit = *reinterpret_cast<float*>(regs.esp + 0x6C);
-        auto& upLimit = *reinterpret_cast<float*>(regs.esp + 0x94);
+        auto& downLimit = *reinterpret_cast<float*>(regs.esp + (legacyLayout ? 0x78 : 0x6C));
+        auto& upLimit = *reinterpret_cast<float*>(regs.esp + (legacyLayout ? 0x98 : 0x94));
         if (!std::isfinite(downLimit) || !std::isfinite(upLimit) || downLimit < 0.0f || upLimit < 0.0f)
             return;
         downLimit += (fOrbitPitchLimit - downLimit) * update.blend;
@@ -997,8 +1009,8 @@ namespace LadderCamera
             return;
         }
 
-        auto& target = *reinterpret_cast<float*>(regs.esp + 0x24);
-        const float baseAlpha = *reinterpret_cast<const float*>(regs.esp + 0x50);
+        auto& target = *reinterpret_cast<float*>(regs.esp + (legacyLayout ? 0x10 : 0x24));
+        const float baseAlpha = *reinterpret_cast<const float*>(regs.esp + (legacyLayout ? 0x2C : 0x50));
         const bool continuous = mountPitchState.camera == regs.esi && mountPitchState.ped == alignment.ped
             && mountPitchState.task == alignment.task && GetTickCount64() - mountPitchState.sampleTime < 500;
         const float desired = (continuous ? mountPitchState.target : update.previousPitch) + baseAlpha;
@@ -1019,7 +1031,7 @@ namespace LadderCamera
         {
             const bool directInput = !regs.ebx || *reinterpret_cast<const uint8_t*>(regs.ebx + 0x3289) != 0;
             const float target = directInput ? *reinterpret_cast<const float*>(regs.esi + 772)
-                : *reinterpret_cast<const float*>(regs.esp + 0x1C);
+                : *reinterpret_cast<const float*>(regs.esp + (legacyLayout ? 0x18 : 0x1C));
             if (std::isfinite(target))
                 mountPitchState = { regs.esi, alignment.ped, alignment.task, target, GetTickCount64() };
         }
@@ -1055,7 +1067,7 @@ namespace LadderCamera
 
         pitch = leveled;
         *reinterpret_cast<float*>(regs.esi + 784) = 0.0f;
-        *reinterpret_cast<float*>(regs.esp + 0x1C) = leveled;
+        *reinterpret_cast<float*>(regs.esp + (legacyLayout ? 0x18 : 0x1C)) = leveled;
         if (reached && !update.topDismount)
             alignment.pitchLevelActive = false;
         if (alignment.topPitchHandoff)
@@ -1107,8 +1119,8 @@ namespace LadderCamera
     {
         footRoomUpdate = {};
         const auto camera = regs.esi, ped = regs.edi;
-        movementSample = { camera, ped, *reinterpret_cast<const uint8_t*>(regs.esp + 0x60) != 0 };
-        const float timestep = *reinterpret_cast<const float*>(regs.esp + 0x2C);
+        movementSample = { camera, ped, *reinterpret_cast<const uint8_t*>(regs.esp + (legacyLayout ? 0x50 : 0x60)) != 0 };
+        const float timestep = *reinterpret_cast<const float*>(regs.esp + (legacyLayout ? 0x20 : 0x2C));
         const auto flags = *reinterpret_cast<const uint8_t*>(camera + 908);
         const auto forceFlags = *reinterpret_cast<const uint8_t*>(camera + 909);
         if (!IsAlternateEnabled() || !ped || !regs.ebx || !viewDistanceOffsets
@@ -1154,16 +1166,19 @@ namespace LadderCamera
                 && hi.fX > lo.fX && hi.fY > lo.fY && hi.fZ - lo.fZ > 0.5f && hi.fZ - lo.fZ < 3.0f;
         }
         footRoom.sampleTime = now;
-        const bool moving = *reinterpret_cast<const uint8_t*>(regs.esp + 0x60) != 0;
+        const bool moving = *reinterpret_cast<const uint8_t*>(regs.esp + (legacyLayout ? 0x50 : 0x60)) != 0;
         footRoom.level = AdvanceFootRoomLevel(footRoom.level, onLadder, moving, timestep * 0.02f);
         if (!footRoom.boundsValid || footRoom.level == 0.0f)
             return;
-        const float distance = regs.xmm0.f32[0];
+        const float distance = legacyLayout
+            ? static_cast<float>(static_cast<double>(*reinterpret_cast<const float*>(camera + 812))
+                * *reinterpret_cast<const float*>(camera + 800) + *reinterpret_cast<const float*>(regs.esp + 0x4C))
+            : regs.xmm0.f32[0];
         static auto FieldOfView = FusionFixSettings.GetRef("PREF_CUSTOMFOV");
         const float baseFov = *reinterpret_cast<const float*>(camera + 96);
         const float fov = baseFov + FieldOfView->get() * 5.0f;
-        const float pitch = -*reinterpret_cast<const float*>(regs.esp + 0x50);
-        const float referenceDistance = *reinterpret_cast<const float*>(regs.esp + 0x20)
+        const float pitch = -*reinterpret_cast<const float*>(regs.esp + (legacyLayout ? 0x2C : 0x50));
+        const float referenceDistance = *reinterpret_cast<const float*>(regs.esp + (legacyLayout ? 0x4C : 0x20))
             + *reinterpret_cast<const float*>(camera + 812) * viewDistanceOffsets[2];
         if (!std::isfinite(distance) || distance < 0.1f || !std::isfinite(fov) || fov < 10.0f || fov > 170.0f
             || !std::isfinite(pitch) || std::abs(pitch) > pi * 0.5f)
@@ -1176,7 +1191,7 @@ namespace LadderCamera
             footRoom.framingScale = ComputeFootRoomScale(framingDistance, referenceDistance, 1.0f);
         const float scale = 1.0f + (footRoom.framingScale - 1.0f) * SlowInOut(footRoom.level);
         footRoomUpdate = { camera, scale };
-        auto& historyDistance = *reinterpret_cast<float*>(regs.esp + 0x68);
+        auto& historyDistance = *reinterpret_cast<float*>(regs.esp + (legacyLayout ? 0xCC : 0x68));
         historyDistance = std::max(historyDistance, distance) * scale;
     }
 
@@ -1331,33 +1346,72 @@ namespace LadderCamera
 static void InstallLadderCameraHooks()
 {
     auto cameraGate = hook::pattern("55 8B EC 83 E4 F0 83 EC 28 F6 81 8E 03 00 00 80 56 57 8B 7D 08 89 4C 24 0C 0F 57 D2");
-    auto activeTask = hook::pattern("68 19 04 00 00 83 C1 44 E8 ? ? ? ? 80");
-    auto lookX = hook::pattern("57 8D BE 98 27 00 00 57 E8 ? ? ? ?");
-    auto lookY = hook::pattern("57 8D BE B8 27 00 00 57 E8 ? ? ? ?");
-    auto beginUpdate = hook::pattern("74 ? 57 8D 84 24 84 00 00 00 50 FF 74 24 6C 8B CE E8");
-    auto orbitDistance = hook::pattern("F3 0F 11 44 24 20 F3 0F 11 44 24 44 57 8B CE E8");
-    auto distanceHistory = hook::pattern("E8 ? ? ? ? 8D 44 24 30 50 E8 ? ? ? ? F3 0F 10 8C 24 AC 00 00 00");
-    auto viewDistances = hook::pattern("8B 91 60 03 00 00 8B 04 95 ? ? ? ? 89 81 1C 03 00 00");
-    auto orbitHeading = hook::pattern("83 C4 04 85 DB 74 ? 80 BB 89 32 00 00 00");
-    auto beforeCollision = hook::pattern("E8 ? ? ? ? 8D 44 24 30 50 8D 4E 10 E8 ? ? ? ? 8B 8E 2C 01 00 00");
-    auto afterCollision = hook::pattern("8D 44 24 30 50 8D 4E 10 E8 ? ? ? ? 8B 8E 2C 01 00 00 56");
-    auto postSmoothTarget = hook::pattern("E8 ? ? ? ? 8D 84 24 80 00 00 00 50 FF 74 24 58");
-    auto topExitDisplacement = hook::pattern("C6 86 CC 00 00 00 01 E8 ? ? ? ? 8B 45 08");
-    auto cameraRoot = hook::pattern("E8 ? ? ? ? F3 0F 10 B6 80 02 00 00 F3 0F 10 BE");
-    auto ladderPitch = hook::pattern("E8 ? ? ? ? 8B 84 24 ? ? ? ? 85 C0 74 11 8D 4C 24 18");
-    auto verticalFollow = hook::pattern("F3 0F 5C 86 38 02 00 00 F3 0F 10 94 24");
-    auto mountPitch = hook::pattern("F3 0F 10 44 24 24 F3 0F 5C 44 24 50");
-    auto pitchLevel = hook::pattern("F3 0F 10 44 24 6C 83 EC 08 8B CE");
+    LadderCamera::legacyLayout = cameraGate.empty();
+    const bool legacy = LadderCamera::legacyLayout;
+    if (legacy)
+        cameraGate = hook::pattern("55 8B EC 83 E4 F0 0F 57 E4 83 EC 34 53 8B 5D 08 56 57 8B F9 F6 87 8E 03 00 00 80");
+    auto activeTask = hook::pattern(legacy
+        ? "55 56 57 33 FF 8B E9 33 C0 8D A4 24 00 00 00 00 39 7C 85 00"
+        : "68 19 04 00 00 83 C1 44 E8 ? ? ? ? 80");
+    auto lookX = hook::pattern(legacy
+        ? "83 3D ? ? ? ? 00 57 8B F9 74 08 8D 87 28 2C 00 00 5F C3 56 8D B7 98 27 00 00"
+        : "57 8D BE 98 27 00 00 57 E8 ? ? ? ?");
+    auto lookY = hook::pattern(legacy
+        ? "83 3D ? ? ? ? 00 57 8B F9 74 08 8D 87 18 2C 00 00 5F C3 56 8D B7 B8 27 00 00"
+        : "57 8D BE B8 27 00 00 57 E8 ? ? ? ?");
+    auto beginUpdate = hook::pattern(legacy
+        ? "74 19 8B 4C 24 5C 57 8D 44 24 64 50 51 8B CE E8"
+        : "74 ? 57 8D 84 24 84 00 00 00 50 FF 74 24 6C 8B CE E8");
+    auto orbitDistance = hook::pattern(legacy
+        ? "D9 86 2C 03 00 00 57 D8 8E 20 03 00 00 D8 44 24 50"
+        : "F3 0F 11 44 24 20 F3 0F 11 44 24 44 57 8B CE E8");
+    auto distanceHistory = hook::pattern(legacy
+        ? "E8 ? ? ? ? 8D 54 24 30 52 E8 ? ? ? ? D9 5C 24 2C F3 0F 10 4C 24 4C"
+        : "E8 ? ? ? ? 8D 44 24 30 50 E8 ? ? ? ? F3 0F 10 8C 24 AC 00 00 00");
+    auto viewDistances = hook::pattern(legacy
+        ? "8B 8E 60 03 00 00 03 C9 D9 84 09 ? ? ? ? 03 C9 D9 9E 1C 03 00 00"
+        : "8B 91 60 03 00 00 8B 04 95 ? ? ? ? 89 81 1C 03 00 00");
+    auto orbitHeading = hook::pattern(legacy
+        ? "83 C4 04 85 DB 74 ? 80 BB 89 32 00 00 00 74 ? F3 0F 10 44 24 20 0F 2E C4"
+        : "83 C4 04 85 DB 74 ? 80 BB 89 32 00 00 00");
+    auto beforeCollision = hook::pattern(legacy
+        ? "E8 ? ? ? ? 8D 4C 24 30 51 8D 4E 10 E8 ? ? ? ? 8B 8E 2C 01 00 00"
+        : "E8 ? ? ? ? 8D 44 24 30 50 8D 4E 10 E8 ? ? ? ? 8B 8E 2C 01 00 00");
+    auto afterCollision = hook::pattern(legacy
+        ? "8D 4C 24 30 51 8D 4E 10 E8 ? ? ? ? 8B 8E 2C 01 00 00"
+        : "8D 44 24 30 50 8D 4E 10 E8 ? ? ? ? 8B 8E 2C 01 00 00 56");
+    auto postSmoothTarget = hook::pattern(legacy
+        ? "E8 ? ? ? ? 8B 4C 24 44 8D 44 24 60 50 51 8B CE E8"
+        : "E8 ? ? ? ? 8D 84 24 80 00 00 00 50 FF 74 24 58");
+    auto topExitDisplacement = hook::pattern(legacy
+        ? "C6 86 CC 00 00 00 01 E8 ? ? ? ? 83 C4 10 8D 4C 24 30 51"
+        : "C6 86 CC 00 00 00 01 E8 ? ? ? ? 8B 45 08");
+    auto cameraRoot = hook::pattern(legacy
+        ? "E8 ? ? ? ? 85 FF F3 0F 10 9E 80 02 00 00"
+        : "E8 ? ? ? ? F3 0F 10 B6 80 02 00 00 F3 0F 10 BE");
+    auto ladderPitch = hook::pattern(legacy
+        ? "E8 ? ? ? ? 83 7C 24 58 00 74 13 8D 4C 24 14"
+        : "E8 ? ? ? ? 8B 84 24 ? ? ? ? 85 C0 74 11 8D 4C 24 18");
+    auto verticalFollow = hook::pattern(legacy
+        ? "D9 44 24 2C F3 0F 10 44 24 60 F3 0F 5C 86 30 02 00 00"
+        : "F3 0F 5C 86 38 02 00 00 F3 0F 10 94 24");
+    auto mountPitch = hook::pattern(legacy
+        ? "F3 0F 10 4C 24 10 F3 0F 5C 4C 24 2C"
+        : "F3 0F 10 44 24 24 F3 0F 5C 44 24 50");
+    auto pitchLevel = hook::pattern(legacy
+        ? "E8 ? ? ? ? E8 ? ? ? ? D9 86 08 03 00 00 83 EC 08"
+        : "F3 0F 10 44 24 6C 83 EC 08 8B CE");
 
-    const auto xEntry = lookX.get_first<uint8_t>(-0x14);
-    const auto yEntry = lookY.get_first<uint8_t>(-0x14);
-    const auto axis = injector::GetBranchDestination(lookX.get_first(8)).as_int();
+    const auto xEntry = lookX.get_first<uint8_t>(legacy ? 0 : -0x14);
+    const auto yEntry = lookY.get_first<uint8_t>(legacy ? 0 : -0x14);
+    const auto axis = injector::GetBranchDestination(lookX.get_first(legacy ? 28 : 8)).as_int();
 
-    LadderCamera::FindActiveTaskByType = (decltype(LadderCamera::FindActiveTaskByType))injector::GetBranchDestination(activeTask.get_first(8)).as_int();
+    LadderCamera::FindActiveTaskByType = (decltype(LadderCamera::FindActiveTaskByType))(legacy
+        ? reinterpret_cast<uintptr_t>(activeTask.get_first(0)) : injector::GetBranchDestination(activeTask.get_first(8)).as_int());
     LadderCamera::GetPedAimWeaponLeftRight = (decltype(LadderCamera::GetPedAimWeaponLeftRight))xEntry;
     LadderCamera::GetPedLookUpDown = (decltype(LadderCamera::GetPedLookUpDown))yEntry;
     LadderCamera::GetAxisValue = (decltype(LadderCamera::GetAxisValue))axis;
-    LadderCamera::viewDistanceOffsets = *viewDistances.get_first<const float*>(9);
+    LadderCamera::viewDistanceOffsets = *viewDistances.get_first<const float*>(legacy ? 11 : 9);
     LadderCamera::GetRootBone = (decltype(LadderCamera::GetRootBone))injector::GetBranchDestination(cameraRoot.get_first(0)).as_int();
 
     LadderCamera::GetMoverTrackDisplacement = (decltype(LadderCamera::GetMoverTrackDisplacement))injector::GetBranchDestination(topExitDisplacement.get_first(7)).as_int();

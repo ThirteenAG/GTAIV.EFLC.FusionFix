@@ -182,6 +182,7 @@ bool __cdecl NATIVE_COMPARE_STRING_2(const char* a1, const char* a2)
 namespace LadderVisibilityRepair
 {
     static uintptr_t (__thiscall* FindActiveTaskByType)(uintptr_t, int);
+    static ptrdiff_t instanceOffset = 0x7B4;
 
     namespace TopMountBounds
     {
@@ -199,10 +200,10 @@ namespace LadderVisibilityRepair
                 return;
             if (!rebased || !root)
                 return;
-            const auto instance = *reinterpret_cast<const uintptr_t*>(ped + 1972);
+            const auto instance = *reinterpret_cast<const uintptr_t*>(ped + instanceOffset);
             if (!instance || instance != instanceBefore)
                 return;
-            if (*reinterpret_cast<const int*>(ped + 1976) != 2 || !(*reinterpret_cast<const uint8_t*>(ped + 244) & 2))
+            if (*reinterpret_cast<const int*>(ped + instanceOffset + 4) != 2 || !(*reinterpret_cast<const uint8_t*>(ped + 244) & 2))
                 return;
             const auto* pedVtable = *reinterpret_cast<const uintptr_t**>(ped);
             const auto getInstance = reinterpret_cast<uintptr_t(__thiscall*)(uintptr_t)>(pedVtable[0xA0 / 4]);
@@ -244,16 +245,35 @@ namespace LadderVisibilityRepair
         static void Resolve()
         {
             auto matrix = hook::pattern("FF 52 10 FF 77 20 8B 8F B4 07 00 00 E8 ? ? ? ?");
-            auto skeleton = hook::pattern("FF 50 04 8B CE E8 ? ? ? ? 81 8E 9C 02 00 00");
-            auto extents = hook::pattern("55 8B EC 83 E4 F8 83 EC 08 80 7D 08 00 56 8B D1");
-            auto radius = hook::pattern("55 8B EC 83 E4 F8 83 EC 18 83 3D ? ? ? ? 00 56 8B D1");
-            auto location = hook::pattern("8B 0D ? ? ? ? 50 E8 ? ? ? ? 81 A7 18 01 00 00");
-            SetInstanceMatrix = (decltype(SetInstanceMatrix))injector::GetBranchDestination(matrix.get_first(12)).as_int();
-            UpdateSkeleton = (decltype(UpdateSkeleton))injector::GetBranchDestination(skeleton.get_first(5)).as_int();
-            CalculateCompositeExtents = (decltype(CalculateCompositeExtents))extents.get_first(0);
-            UpdateObjectLocationAndRadius = (decltype(UpdateObjectLocationAndRadius))radius.get_first(0);
-            UpdateObjectLocation = (decltype(UpdateObjectLocation))injector::GetBranchDestination(location.get_first(7)).as_int();
-            physicsLevel = *location.get_first<uintptr_t*>(2);
+            if (!matrix.empty())
+            {
+                auto skeleton = hook::pattern("FF 50 04 8B CE E8 ? ? ? ? 81 8E 9C 02 00 00");
+                auto extents = hook::pattern("55 8B EC 83 E4 F8 83 EC 08 80 7D 08 00 56 8B D1");
+                auto radius = hook::pattern("55 8B EC 83 E4 F8 83 EC 18 83 3D ? ? ? ? 00 56 8B D1");
+                auto location = hook::pattern("8B 0D ? ? ? ? 50 E8 ? ? ? ? 81 A7 18 01 00 00");
+                SetInstanceMatrix = (decltype(SetInstanceMatrix))injector::GetBranchDestination(matrix.get_first(12)).as_int();
+                UpdateSkeleton = (decltype(UpdateSkeleton))injector::GetBranchDestination(skeleton.get_first(5)).as_int();
+                CalculateCompositeExtents = (decltype(CalculateCompositeExtents))extents.get_first(0);
+                UpdateObjectLocationAndRadius = (decltype(UpdateObjectLocationAndRadius))radius.get_first(0);
+                UpdateObjectLocation = (decltype(UpdateObjectLocation))injector::GetBranchDestination(location.get_first(7)).as_int();
+                physicsLevel = *location.get_first<uintptr_t*>(2);
+            }
+            else
+            {
+                instanceOffset = 0x7C4;
+                matrix = hook::pattern("8B 44 24 04 D9 00 D9 59 10 D9 40 04 D9 59 14 D9 40 08 D9 59 18 D9 40 10 D9 59 20");
+                auto skeleton = hook::pattern("E8 ? ? ? ? 8B 8E C4 07 00 00 8B 51 04 8B 42 0C F3 0F 10 40 08 8B 11 8B 82 BC 00 00 00 F3 0F 11 44 24 08 FF D0");
+                auto extents = hook::pattern("55 8B EC 83 E4 F0 83 EC 08 80 7D 08 00 56 57 8B F1 0F 85");
+                auto radius = hook::pattern("55 8B EC 83 E4 F0 83 EC 14 83 3D ? ? ? ? 00 53 56 8B F1 57 89 74 24 10");
+                auto location = hook::pattern("55 8B EC 83 E4 F0 81 EC 24 01 00 00 83 3D ? ? ? ? 00 53 56 57 8B F9");
+                auto probe = hook::pattern("6A 07 6A FF 53 50 52 8D 44 24 2C 50 E8");
+                SetInstanceMatrix = (decltype(SetInstanceMatrix))matrix.get_first(0);
+                UpdateSkeleton = (decltype(UpdateSkeleton))injector::GetBranchDestination(skeleton.get_first(0)).as_int();
+                CalculateCompositeExtents = (decltype(CalculateCompositeExtents))extents.get_first(0);
+                UpdateObjectLocationAndRadius = (decltype(UpdateObjectLocationAndRadius))radius.get_first(0);
+                UpdateObjectLocation = (decltype(UpdateObjectLocation))location.get_first(0);
+                physicsLevel = *probe.get_first<uintptr_t*>(-4);
+            }
             ready = true;
         }
     }
@@ -283,7 +303,7 @@ namespace LadderVisibilityRepair
             }
             const auto previous = offsetContext;
             offsetContext = topMount ? OffsetContext{ ped, 0 } : OffsetContext{};
-            const auto instanceBefore = topMount ? *reinterpret_cast<const uintptr_t*>(ped + 1972) : 0;
+            const auto instanceBefore = topMount ? *reinterpret_cast<const uintptr_t*>(ped + instanceOffset) : 0;
             const bool pendingRebase = topMount && (*reinterpret_cast<const uint8_t*>(task + 25) & 1);
             shOffsetPedPosition.unsafe_fastcall<void>(task, edx, ped);
             if (topMount)
@@ -303,14 +323,29 @@ namespace LadderVisibilityRepair
         static void Install()
         {
             auto activeTask = hook::pattern("68 19 04 00 00 83 C1 44 E8 ? ? ? ? 80");
-            FindActiveTaskByType = (decltype(FindActiveTaskByType))injector::GetBranchDestination(activeTask.get_first(8)).as_int();
+            if (!activeTask.empty())
+                FindActiveTaskByType = (decltype(FindActiveTaskByType))injector::GetBranchDestination(activeTask.get_first(8)).as_int();
+            else
+            {
+                activeTask = hook::pattern("55 56 57 33 FF 8B E9 33 C0 8D A4 24 00 00 00 00 39 7C 85 00");
+                FindActiveTaskByType = (decltype(FindActiveTaskByType))activeTask.get_first(0);
+            }
             auto offset = hook::pattern("55 8B EC 83 E4 F0 81 EC 78 01 00 00 56 57 8B F1");
-            auto render = hook::pattern("55 8B EC 83 E4 F0 81 EC E4 00 00 00 53 56 57 8B F9 E8 ? ? ? ? 80 3D");
-            auto root = hook::pattern("8B F0 8B 44 24 3C F6 40 19 02 0F 84");
+            auto render = find_pattern("55 8B EC 83 E4 F0 81 EC E4 00 00 00 53 56 57 8B F9 E8 ? ? ? ? 80 3D",
+                "55 8B EC 83 E4 F0 81 EC D8 00 00 00 56 57 8B F1 E8 ? ? ? ? 80 3D");
+            auto root = find_pattern("8B F0 8B 44 24 3C F6 40 19 02 0F 84",
+                "F6 43 19 02 8B F0 0F 84");
             preRenderAddress = reinterpret_cast<uintptr_t>(render.get_first(0));
             TopMountBounds::Resolve();
             shLocalRoot = safetyhook::create_mid(root.get_first(0), LocalRoot);
-            shOffsetPedPosition = safetyhook::create_inline(offset.get_first(0), OffsetPedPosition);
+            if (!offset.empty())
+                shOffsetPedPosition = safetyhook::create_inline(offset.get_first(0), OffsetPedPosition);
+            else
+            {
+                offset = hook::pattern("F6 46 19 01 74 ? 57 8B CE E8");
+                shOffsetPedPosition = safetyhook::create_inline(
+                    injector::GetBranchDestination(offset.get_first(9)).as_int(), OffsetPedPosition);
+            }
         }
     }
 }
