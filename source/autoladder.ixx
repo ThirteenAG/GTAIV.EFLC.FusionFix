@@ -54,51 +54,23 @@ static bool IsAutoClimbEnabled()
 namespace LadderCamera
 {
     // Camera options
-    constexpr bool UseMenuSetting = true; // Expose menu options and load saved CFG values
-    constexpr bool UseIniSetting = true; // Read optional INI defaults before CFG values
+    constexpr bool ShowCameraMenuOptions = true; // Hide rows without disabling saved settings; INI defaults are in settings.ixx
     constexpr int32_t DefaultLadderCameraTilt = 1; // Enable native downward tilt
     constexpr int32_t DefaultAlternateLadderCamera = 0; // Enable the alternate height-follow camera
     constexpr auto TiltPreferenceName = "PREF_LADDERCAMERATILT";
     constexpr auto AlternatePreferenceName = "PREF_ALTERNATELADDERCAMERA";
-    static int32_t tiltPreference = -1;
-    static int32_t alternatePreference = -1;
     static bool ladderCameraTilt = DefaultLadderCameraTilt != 0;
     static bool alternateLadderCamera = DefaultAlternateLadderCamera != 0;
 
-    static void ReadIniSettings()
+    static void InitializeSettings()
     {
-        ladderCameraTilt = DefaultLadderCameraTilt != 0;
-        alternateLadderCamera = DefaultAlternateLadderCamera != 0;
-        if constexpr (UseIniSetting)
-        {
-            CIniReader iniReader("");
-            ladderCameraTilt = std::clamp(iniReader.ReadInteger("MISC", "LadderCameraTilt", DefaultLadderCameraTilt), 0, 1) != 0;
-            alternateLadderCamera = std::clamp(iniReader.ReadInteger("MISC", "AlternateLadderCamera", DefaultAlternateLadderCamera), 0, 1) != 0;
-        }
-    }
+        FusionFixSettings.SetCallback(TiltPreferenceName, [](int32_t value) { ladderCameraTilt = value != 0; });
+        FusionFixSettings.SetCallback(AlternatePreferenceName, [](int32_t value) { alternateLadderCamera = value != 0; });
+        FusionFixSettings.Set(TiltPreferenceName, FusionFixSettings.Get(TiltPreferenceName));
+        FusionFixSettings.Set(AlternatePreferenceName, FusionFixSettings.Get(AlternatePreferenceName));
 
-    static bool RegisterMenuPreference()
-    {
-        if constexpr (UseMenuSetting)
+        if constexpr (ShowCameraMenuOptions)
         {
-            tiltPreference = FusionFixSettings.RegisterPreference(TiltPreferenceName, 1,
-                static_cast<int32_t>(ladderCameraTilt), "MISC", "LadderCameraTilt",
-                [](int32_t value) { ladderCameraTilt = value != 0; });
-            alternatePreference = FusionFixSettings.RegisterPreference(AlternatePreferenceName, 1,
-                static_cast<int32_t>(alternateLadderCamera), "MISC", "AlternateLadderCamera",
-                [](int32_t value) { alternateLadderCamera = value != 0; });
-            return tiltPreference >= 0 && alternatePreference >= 0;
-        }
-        else
-            return true;
-    }
-
-    static void ApplyMenuSetting()
-    {
-        if constexpr (UseMenuSetting)
-        {
-            FusionFixSettings.Set(tiltPreference, FusionFixSettings.Get(tiltPreference));
-            FusionFixSettings.Set(alternatePreference, FusionFixSettings.Get(alternatePreference));
             for (const auto screen : { CSettings::MenuScreen::Controls, CSettings::MenuScreen::TitleControls })
             {
                 FusionFixSettings.AddToggle(screen, "FF_LADDERTILT", TiltPreferenceName, "Action Cam");
@@ -351,135 +323,6 @@ namespace LadderCamera
     };
     static thread_local MountPitchState mountPitchState;
 
-    // Top-mount visibility repair
-    namespace TopMountBounds
-    {
-        static void (__thiscall* SetInstanceMatrix)(uintptr_t, const void*);
-        static void (__thiscall* UpdateSkeleton)(uintptr_t);
-        static void (__thiscall* CalculateCompositeExtents)(uintptr_t, bool);
-        static void (__thiscall* UpdateObjectLocation)(uintptr_t, int, const void*);
-        static void (__thiscall* UpdateObjectLocationAndRadius)(uintptr_t, int, float, const void*);
-        static uintptr_t* physicsLevel = nullptr;
-        static bool ready = false;
-
-        static void Refresh(uintptr_t ped, uintptr_t instanceBefore, uintptr_t root, bool rebased)
-        {
-            if (!ready)
-                return;
-            if (!rebased || !root)
-                return;
-            const auto instance = *reinterpret_cast<const uintptr_t*>(ped + 1972);
-            if (!instance || instance != instanceBefore)
-                return;
-            if (*reinterpret_cast<const int*>(ped + 1976) != 2 || !(*reinterpret_cast<const uint8_t*>(ped + 244) & 2))
-                return;
-            const auto* pedVtable = *reinterpret_cast<const uintptr_t**>(ped);
-            const auto getInstance = reinterpret_cast<uintptr_t(__thiscall*)(uintptr_t)>(pedVtable[0xA0 / 4]);
-            if (getInstance(ped) != instance)
-                return;
-            const auto* instanceVtable = *reinterpret_cast<const uintptr_t**>(instance);
-            const auto getSkeleton = reinterpret_cast<uintptr_t(__thiscall*)(uintptr_t)>(instanceVtable[0xE0 / 4]);
-            const auto matrix = *reinterpret_cast<const uintptr_t*>(ped + 32);
-            const auto archetype = *reinterpret_cast<const uintptr_t*>(instance + 4);
-            const auto bound = archetype ? *reinterpret_cast<const uintptr_t*>(archetype + 12) : 0;
-            if (!matrix || !bound || !getSkeleton(instance)
-                || !*reinterpret_cast<const uintptr_t*>(bound + 132) || !*reinterpret_cast<const uintptr_t*>(bound + 136)
-                || !*reinterpret_cast<const uint16_t*>(bound + 146))
-                return;
-            const auto level = *physicsLevel;
-            const auto index = *reinterpret_cast<const uint16_t*>(instance + 8);
-            if (!level || index == 0xFFFF || index >= *reinterpret_cast<const uint16_t*>(level + 38))
-                return;
-            const auto entries = *reinterpret_cast<const uintptr_t*>(level + 112);
-            if (!entries || (*reinterpret_cast<const uintptr_t*>(entries + index * 8 + 4) & ~uintptr_t{ 0xF }) != instance)
-                return;
-
-            const auto copyMatrixHistory = reinterpret_cast<void(__thiscall*)(uintptr_t, const void*)>(instanceVtable[0x10 / 4]);
-            copyMatrixHistory(instance, reinterpret_cast<const void*>(instance + 16));
-            SetInstanceMatrix(instance, reinterpret_cast<const void*>(matrix));
-            copyMatrixHistory(instance, reinterpret_cast<const void*>(instance + 16));
-            UpdateSkeleton(ped);
-            const auto poseBounds = reinterpret_cast<void(__thiscall*)(uintptr_t)>(instanceVtable[0xBC / 4]);
-            poseBounds(instance);
-            poseBounds(instance);
-            const float oldRadius = *reinterpret_cast<const float*>(bound + 8);
-            CalculateCompositeExtents(bound, true);
-            if (oldRadius == *reinterpret_cast<const float*>(bound + 8))
-                UpdateObjectLocation(level, index, nullptr);
-            else
-                UpdateObjectLocationAndRadius(level, index, oldRadius, nullptr);
-        }
-
-        static void Resolve()
-        {
-            auto matrix = hook::pattern("FF 52 10 FF 77 20 8B 8F B4 07 00 00 E8 ? ? ? ?");
-            auto skeleton = hook::pattern("FF 50 04 8B CE E8 ? ? ? ? 81 8E 9C 02 00 00");
-            auto extents = hook::pattern("55 8B EC 83 E4 F8 83 EC 08 80 7D 08 00 56 8B D1");
-            auto radius = hook::pattern("55 8B EC 83 E4 F8 83 EC 18 83 3D ? ? ? ? 00 56 8B D1");
-            auto location = hook::pattern("8B 0D ? ? ? ? 50 E8 ? ? ? ? 81 A7 18 01 00 00");
-            SetInstanceMatrix = (decltype(SetInstanceMatrix))injector::GetBranchDestination(matrix.get_first(12)).as_int();
-            UpdateSkeleton = (decltype(UpdateSkeleton))injector::GetBranchDestination(skeleton.get_first(5)).as_int();
-            CalculateCompositeExtents = (decltype(CalculateCompositeExtents))extents.get_first(0);
-            UpdateObjectLocationAndRadius = (decltype(UpdateObjectLocationAndRadius))radius.get_first(0);
-            UpdateObjectLocation = (decltype(UpdateObjectLocation))injector::GetBranchDestination(location.get_first(7)).as_int();
-            physicsLevel = *location.get_first<uintptr_t*>(2);
-            ready = true;
-        }
-    }
-
-    namespace TopMountHandoff
-    {
-        static SafetyHookInline shOffsetPedPosition;
-        static SafetyHookMid shLocalRoot;
-        static uintptr_t preRenderAddress = 0;
-        struct OffsetContext
-        {
-            uintptr_t ped = 0, root = 0;
-        };
-        static thread_local OffsetContext offsetContext;
-
-        static void __fastcall OffsetPedPosition(uintptr_t task, void* edx, uintptr_t ped)
-        {
-            bool topMount = false;
-            if (FindActiveTaskByType
-                && CPlayer::getLocalPlayerPed && ped && ped == CPlayer::getLocalPlayerPed())
-            {
-                const auto intelligence = *reinterpret_cast<const uintptr_t*>(ped + 548);
-                const auto complex = intelligence ? FindActiveTaskByType(intelligence + 68, std::to_underlying(TaskID::TaskComplexClimbLadder)) : 0;
-                const auto* vtable = *reinterpret_cast<const uintptr_t**>(ped);
-                if (complex && *reinterpret_cast<const int*>(complex + 20) == 4 && vtable[0xCC / 4] == preRenderAddress)
-                    topMount = true;
-            }
-            const auto previous = offsetContext;
-            offsetContext = topMount ? OffsetContext{ ped, 0 } : OffsetContext{};
-            const auto instanceBefore = topMount ? *reinterpret_cast<const uintptr_t*>(ped + 1972) : 0;
-            const bool pendingRebase = topMount && (*reinterpret_cast<const uint8_t*>(task + 25) & 1);
-            shOffsetPedPosition.unsafe_fastcall<void>(task, edx, ped);
-            if (topMount)
-            {
-                const bool rebased = pendingRebase && !(*reinterpret_cast<const uint8_t*>(task + 25) & 1);
-                TopMountBounds::Refresh(ped, instanceBefore, offsetContext.root, rebased);
-            }
-            offsetContext = previous;
-        }
-
-        static void LocalRoot(SafetyHookContext& regs)
-        {
-            if (offsetContext.ped && offsetContext.ped == regs.edi)
-                offsetContext.root = regs.eax;
-        }
-
-        static void Install()
-        {
-            auto offset = hook::pattern("55 8B EC 83 E4 F0 81 EC 78 01 00 00 56 57 8B F1");
-            auto render = hook::pattern("55 8B EC 83 E4 F0 81 EC E4 00 00 00 53 56 57 8B F9 E8 ? ? ? ? 80 3D");
-            auto root = hook::pattern("8B F0 8B 44 24 3C F6 40 19 02 0F 84");
-            preRenderAddress = reinterpret_cast<uintptr_t>(render.get_first(0));
-            TopMountBounds::Resolve();
-            shLocalRoot = safetyhook::create_mid(root.get_first(0), LocalRoot);
-            shOffsetPedPosition = safetyhook::create_inline(offset.get_first(0), OffsetPedPosition);
-        }
-    }
 
     static float WrapHeading(float heading)
     {
@@ -1753,7 +1596,7 @@ namespace CTaskComplexClimbLadder
         static void Install()
         {
             auto constructor = hook::pattern("8B 44 24 10 C7 06 ? ? ? ? C7 46 14 00 00 00 00 C7 46 20");
-            auto first = hook::pattern("51 A0 ? ? ? ? 56 8B F1 0F B6 D0 B9 01 00 00 00");
+            auto first = find_pattern("51 A0 ? ? ? ? 56 8B F1 0F B6 D0 B9 01 00 00 00", "55 8B EC 83 E4 F0 51 80 3D ? ? ? ? 00 53 56 57 8B F1 75 07 C6 05 ? ? ? ? 01 8B BE 90 00 00 00");
             auto positions = hook::pattern("E8 ? ? ? ? 83 C4 28 84 C0 74 13 57 68 AE 03 00 00");
             auto movement = hook::pattern("8B 4E 08 57 E8 ? ? ? ? 89 44 24 30 85 C0 0F 84 ? ? ? ? 8B C8 E8");
             const auto table = *constructor.get_first<uintptr_t*>(6);
@@ -1806,13 +1649,13 @@ namespace CTaskComplexClimbLadder
         return true;
     }
 
-    static bool ReadWorldMovementDirection(Direction& direction)
+    static bool ReadWorldMovementDirection(uintptr_t control, Direction& direction)
     {
-        if (!onFootControl || !controlCameraHeading || !std::isfinite(*controlCameraHeading))
+        if (!control || !controlCameraHeading || !std::isfinite(*controlCameraHeading))
             return false;
 
-        const float x = static_cast<float>(GetAxisValue(GetPedWalkLeftRight(onFootControl)));
-        const float y = -static_cast<float>(GetAxisValue(GetPedWalkUpDown(onFootControl)));
+        const float x = static_cast<float>(GetAxisValue(GetPedWalkLeftRight(control)));
+        const float y = -static_cast<float>(GetAxisValue(GetPedWalkUpDown(control)));
         if (x * x + y * y <= 50.0f)
             return false;
         const float heading = std::atan2(-x, y) + *controlCameraHeading;
@@ -1865,7 +1708,8 @@ namespace CTaskComplexClimbLadder
         return std::isfinite(ratio) ? std::clamp(ratio, 0.0f, 3.0f) : 0.0f;
     }
 
-    static bool CanAutoMountLadder(uintptr_t ped, uintptr_t ladder, int index, const Direction* movement, bool* rearEntry = nullptr)
+    template <bool InWater>
+    static bool CanAutoMountLadder(uintptr_t ped, uintptr_t ladder, int index, const Direction& movement, bool* rearEntry = nullptr)
     {
         auto* matrix = *reinterpret_cast<rage::Matrix44**>(ped + 0x20);
         if (!matrix)
@@ -1880,93 +1724,89 @@ namespace CTaskComplexClimbLadder
             return false;
 
         const float feetZ = matrix->pos.z - 1.0f;
-        const int mode = std::abs(feetZ - bottom.z) <= std::abs(feetZ - top.z) ? nBottomEntry : nTopEntry;
+        const int mode = (InWater || std::abs(feetZ - bottom.z) <= std::abs(feetZ - top.z)) ? nBottomEntry : nTopEntry;
         float heading = 0.0f;
         const bool wrongSide = !CalculatePositionsForThisLadder(ped, ladder, index, &top, &bottom, &position, &heading, mode, &normal, true);
         if (wrongSide)
         {
-            if (!rearEntry || !movement || !RearApproach::installed || mode != nBottomEntry
+            if (!rearEntry || !RearApproach::installed || mode != nBottomEntry
                 || !CalculatePositionsForThisLadder(ped, ladder, index, &top, &bottom, &position, &heading, mode, &normal, false))
                 return false;
         }
 
-        if (movement)
+        const float desiredHeading = *reinterpret_cast<const float*>(ped + 0xAA4);
+        if (!std::isfinite(desiredHeading))
+            return false;
+        const Direction desired{ -std::sin(desiredHeading), std::cos(desiredHeading) };
+        Direction facing{ matrix->up.x, matrix->up.y };
+        Direction ladderNormal{ normal.x, normal.y };
+        if (!Normalize(facing) || !Normalize(ladderNormal))
+            return false;
+
+        const auto& endpoint = mode == nBottomEntry ? bottom : top;
+        const Direction toLadder{ endpoint.x - matrix->pos.x, endpoint.y - matrix->pos.y };
+        Direction toward = toLadder;
+        if (!Normalize(toward))
+            return false;
+
+        alignas(16) rage::Vector4 velocityStorage{};
+        const auto* velocity = GetPhysicalMoveSpeed(ped, velocityStorage);
+        if (!velocity)
+            return false;
+        const Direction actualMovement{ velocity->x, velocity->y };
+        const float speedSquared = Dot(actualMovement, actualMovement);
+        if (!std::isfinite(speedSquared))
+            return false;
+
+        if (mode == nBottomEntry)
         {
-            const float desiredHeading = *reinterpret_cast<const float*>(ped + 0xAA4);
-            if (!std::isfinite(desiredHeading))
-                return false;
-            const Direction desired{ -std::sin(desiredHeading), std::cos(desiredHeading) };
-            Direction facing{ matrix->up.x, matrix->up.y };
-            Direction ladderNormal{ normal.x, normal.y };
-            if (!Normalize(facing) || !Normalize(ladderNormal))
-                return false;
-
-            const auto& endpoint = mode == nBottomEntry ? bottom : top;
-            const Direction toLadder{ endpoint.x - matrix->pos.x, endpoint.y - matrix->pos.y };
-            Direction toward = toLadder;
-            if (!Normalize(toward))
-                return false;
-
-            alignas(16) rage::Vector4 velocityStorage{};
-            const auto* velocity = GetPhysicalMoveSpeed(ped, velocityStorage);
-            if (!velocity)
-                return false;
-            const Direction actualMovement{ velocity->x, velocity->y };
-            const float speedSquared = Dot(actualMovement, actualMovement);
-            if (!std::isfinite(speedSquared))
-                return false;
-
-            if (mode == nBottomEntry)
+            if (!wrongSide)
             {
-                if (!wrongSide)
-                {
-                    const float x = position.x - matrix->pos.x, y = position.y - matrix->pos.y;
-                    const float distance = std::sqrt(x * x + y * y);
-                    const float ratio = GetDesiredMoveBlendRatio(ped);
-                    const float limit = 0.8f + ratio * 0.1f;
-                    if (!std::isfinite(distance) || distance >= limit)
-                        return false;
-                }
-                if (Dot(desired, facing) <= std::cos(2.0f)
-                    || Dot(*movement, toward) <= fMinMovementToLadderDot)
-                    return false;
-
-                const float sideDot = Dot(ladderNormal, toward);
-                if (wrongSide && (Dot(toLadder, toLadder) > 1.0f || sideDot < 0.25f
-                    || std::abs(feetZ - bottom.z) > 1.0f))
-                    return false;
-                const bool closeSideEntry = Dot(toLadder, toLadder) < fCloseBottomEntryDistance * fCloseBottomEntryDistance
-                    && sideDot > -0.25f && sideDot < 0.15f
-                    && speedSquared <= fSideEntryMaxSpeed * fSideEntryMaxSpeed;
-                if (closeSideEntry)
-                    return true;
-
-                const float halfWidth = speedSquared > 0.001f ? fLadderEntryHalfWidth : fLadderEntryHalfWidthStill;
-                bool headingWithinWidth = false;
-                bool movementWithinWidth = false;
-                if (!ProjectApproach(desired, toLadder, ladderNormal, halfWidth, headingWithinWidth)
-                    || !ProjectApproach(*movement, toLadder, ladderNormal, halfWidth, movementWithinWidth))
-                    return false;
-                const bool intended = headingWithinWidth || movementWithinWidth;
-                if (rearEntry)
-                    *rearEntry = wrongSide && intended;
-                return intended;
-            }
-
-            if (matrix->pos.z - top.z > 1.5f || top.z > matrix->pos.z
-                || Dot(ladderNormal, toward) < -0.15f
-                || Dot(*movement, toward) < fTopEntryHeadingDot)
-                return false;
-            if (speedSquared > 0.001f)
-            {
-                Direction travel = actualMovement;
-                if (!Normalize(travel) || Dot(travel, toward) < fTopEntryHeadingDot)
+                const float x = position.x - matrix->pos.x, y = position.y - matrix->pos.y;
+                const float distance = std::sqrt(x * x + y * y);
+                const float ratio = GetDesiredMoveBlendRatio(ped);
+                const float limit = (InWater ? 0.9f : 0.8f) + ratio * 0.1f;
+                if (!std::isfinite(distance) || distance >= limit)
                     return false;
             }
-            return Dot(ladderNormal, desired) > fTopEntryHeadingDot
-                || Dot(ladderNormal, facing) > fTopEntryHeadingDot;
+            if (Dot(desired, facing) <= std::cos(2.0f)
+                || Dot(movement, toward) <= fMinMovementToLadderDot)
+                return false;
+
+            const float sideDot = Dot(ladderNormal, toward);
+            if (wrongSide && (Dot(toLadder, toLadder) > 1.0f || sideDot < 0.25f
+                || std::abs(feetZ - bottom.z) > 1.0f))
+                return false;
+            const bool closeSideEntry = sideDot > -0.25f && sideDot < 0.15f
+                && (InWater || (Dot(toLadder, toLadder) < fCloseBottomEntryDistance * fCloseBottomEntryDistance
+                    && speedSquared <= fSideEntryMaxSpeed * fSideEntryMaxSpeed));
+            if (closeSideEntry)
+                return true;
+
+            const float halfWidth = speedSquared > (InWater ? 0.0f : 0.001f) ? fLadderEntryHalfWidth : fLadderEntryHalfWidthStill;
+            bool headingWithinWidth = false;
+            bool movementWithinWidth = false;
+            if (!ProjectApproach(desired, toLadder, ladderNormal, halfWidth, headingWithinWidth)
+                || !ProjectApproach(movement, toLadder, ladderNormal, halfWidth, movementWithinWidth))
+                return false;
+            const bool intended = headingWithinWidth || movementWithinWidth;
+            if (rearEntry)
+                *rearEntry = wrongSide && intended;
+            return intended;
         }
-        return true;
+
+        if (matrix->pos.z - top.z > 1.5f || top.z > matrix->pos.z
+            || Dot(ladderNormal, toward) < -0.15f
+            || Dot(movement, toward) < fTopEntryHeadingDot)
+            return false;
+        if (speedSquared > 0.001f)
+        {
+            Direction travel = actualMovement;
+            if (!Normalize(travel) || Dot(travel, toward) < fTopEntryHeadingDot)
+                return false;
+        }
+        return Dot(ladderNormal, desired) > fTopEntryHeadingDot
+            || Dot(ladderNormal, facing) > fTopEntryHeadingDot;
     }
 
     // Automatic ladder selection
@@ -1990,13 +1830,15 @@ namespace CTaskComplexClimbLadder
             return 0;
 
         Direction movement{};
+        const auto control = InWater ? CPlayerPed::GetControlFromPlayer(ped) : onFootControl;
+        if (!ReadWorldMovementDirection(control, movement))
+        {
+            if constexpr (!InWater)
+                RearApproach::blocked = {};
+            return 0;
+        }
         if constexpr (!InWater)
         {
-            if (!ReadWorldMovementDirection(movement))
-            {
-                RearApproach::blocked = {};
-                return 0;
-            }
             if (movement.x * RearApproach::blocked.directionX + movement.y * RearApproach::blocked.directionY < 0.5f)
                 RearApproach::blocked = {};
         }
@@ -2006,7 +1848,7 @@ namespace CTaskComplexClimbLadder
         fLadderScanRadius = 4.0f;
 
         bool rearEntry = false;
-        if (ladder && !CanAutoMountLadder(ped, ladder, static_cast<int>(*index), InWater ? nullptr : &movement, InWater ? nullptr : &rearEntry))
+        if (ladder && !CanAutoMountLadder<InWater>(ped, ladder, static_cast<int>(*index), movement, InWater ? nullptr : &rearEntry))
         {
             *index = static_cast<DWORD>(-1);
             return 0;
@@ -2139,7 +1981,7 @@ namespace ShortLadderTraversal
 static void InstallLadderTaskAndCameraHooks(void* ladderProcess)
 {
     auto cameraGate = hook::pattern("55 8B EC 83 E4 F0 83 EC 28 F6 81 8E 03 00 00 80 56 57 8B 7D 08 89 4C 24 0C 0F 57 D2");
-    auto mount = hook::pattern("55 8B EC 83 E4 F0 83 EC 18 56 57 8B 7D 08 8B F1 81 FF 87 03 00 00");
+    auto mount = find_pattern("55 8B EC 83 E4 F0 83 EC 18 56 57 8B 7D 08 8B F1 81 FF 87 03 00 00", "55 8B EC 83 E4 F0 83 EC 14 53 56 57 8B 7D 08 81 FF 87 03 00 00 8B F1");
     auto activeTask = hook::pattern("68 19 04 00 00 83 C1 44 E8 ? ? ? ? 80");
     auto lookX = hook::pattern("57 8D BE 98 27 00 00 57 E8 ? ? ? ?");
     auto lookY = hook::pattern("57 8D BE B8 27 00 00 57 E8 ? ? ? ?");
@@ -2198,8 +2040,6 @@ public:
     {
         FusionFix::onInitEvent() += []()
         {
-            LadderCamera::ReadIniSettings();
-
             LadderCamera::OrbitProbe::Resolve();
 
             auto onFootInput = find_pattern("76 ? 8A 81 ? ? ? ? 32 C2 3C ? 76 ? F7 87 ? ? ? ? ? ? ? ? 74", "76 ? 8A 96 ? ? ? ? 32 D0 80 FA ? 76 ? F7 83 ? ? ? ? ? ? ? ? 74 ? 8B 44 24");
@@ -2210,8 +2050,8 @@ public:
             auto ladderCleanup = find_pattern("56 57 8B 7C 24 ? 57 8B F1 E8 ? ? ? ? 57 8B CE E8 ? ? ? ? 8B 8F", "56 8B 74 24 ? 57 56 8B F9 E8 ? ? ? ? 56 8B CF E8 ? ? ? ? 8B 8E");
 
             auto sections = hook::pattern("FF B6 ? ? ? ? 51 E8 ? ? ? ? 83 C4 14 84 C0 0F 84");
-            auto ladderProcess = hook::pattern("55 8B EC 83 E4 F0 83 EC 68 56 8B 75 08 57 8B 46 38");
-            auto positions = hook::pattern("55 8B EC 83 E4 F0 81 EC ? ? ? ? 56 57 8B 7D 0C FF 75 10");
+            auto ladderProcess = find_pattern("55 8B EC 83 E4 F0 83 EC 68 56 8B 75 08 57 8B 46 38", "55 8B EC 83 E4 F0 83 EC 54 53 56 57 8B 7D 08 8B 47 38 85 C0 8B F1 74 0C 3B 87 C4 07 00 00");
+            auto positions = find_pattern("55 8B EC 83 E4 F0 81 EC ? ? ? ? 56 57 8B 7D 0C FF 75 10", "55 8B EC 83 E4 F0 8B 55 10 83 EC 58 56 57 8B 7D 0C 0F BF 47 2E 8B 0C 85 ? ? ? ? 52 E8");
             auto leftRight = hook::pattern("56 57 8B F9 8D B7 58 27 00 00 56 E8");
             auto upDown = hook::pattern("56 57 8B F9 8D B7 78 27 00 00 56 E8");
             auto cameraHeading = hook::pattern("F3 0F 58 05 ? ? ? ? F3 0F 11 04 24 E8 ? ? ? ? D9 5C 24 0C");
@@ -2222,7 +2062,13 @@ public:
             CTaskComplexClimbLadder::controlCameraHeading = *cameraHeading.get_first<const float*>(4);
             CTaskComplexClimbLadder::ResolveMoveBlendLayout();
 
-            CTaskComplexClimbLadder::FindTopAndBottomOfAllLadderSections = (decltype(CTaskComplexClimbLadder::FindTopAndBottomOfAllLadderSections))injector::GetBranchDestination(sections.get_first(7)).as_int();
+            if (!sections.empty())
+                CTaskComplexClimbLadder::FindTopAndBottomOfAllLadderSections = (decltype(CTaskComplexClimbLadder::FindTopAndBottomOfAllLadderSections))injector::GetBranchDestination(sections.get_first(7)).as_int();
+            else
+            {
+                sections = hook::pattern("55 8B EC 83 E4 F0 83 EC 64 53 56 8B 75 08 0F BF 46 2E 8B 1C 85 ? ? ? ? 57 68 00 01 00 00");
+                CTaskComplexClimbLadder::FindTopAndBottomOfAllLadderSections = (decltype(CTaskComplexClimbLadder::FindTopAndBottomOfAllLadderSections))sections.get_first(0);
+            }
             CTaskComplexClimbLadder::CalculatePositionsForThisLadder = (decltype(CTaskComplexClimbLadder::CalculatePositionsForThisLadder))positions.get_first(0);
 
             InstallLadderTaskAndCameraHooks(ladderProcess.get_first(0));
@@ -2276,10 +2122,8 @@ public:
                 ShortLadderTraversal::OnTaskExit(regs.ecx);
             });
             CTaskComplexClimbLadder::RearApproach::Install();
-            LadderCamera::TopMountHandoff::Install();
 
-            if (LadderCamera::RegisterMenuPreference())
-                LadderCamera::ApplyMenuSetting();
+            LadderCamera::InitializeSettings();
         };
     }
 } AutoLadder;

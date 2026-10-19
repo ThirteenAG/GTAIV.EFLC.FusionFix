@@ -3113,6 +3113,11 @@ public:
         if (!pattern.empty())
             CPlayerPed::GetControlFromPlayer = reinterpret_cast<decltype(CPlayerPed::GetControlFromPlayer)>(
                 injector::GetBranchDestination(pattern.get_first(0)).as_int());
+        else
+        {
+            pattern = hook::pattern("80 B9 18 02 00 00 00 75 0E 80 B9 19 02 00 00 00 74 05 E9 ? ? ? ? 33 C0 C3");
+            CPlayerPed::GetControlFromPlayer = (decltype(CPlayerPed::GetControlFromPlayer))pattern.get_first(0);
+        }
 
         pattern = find_pattern("8B C1 56 8B 70 ? 85 F6", "8B 41 ? 85 C0 74 ? 8B 80 ? ? ? ? 85 C0 74 ? 8B 51");
         CWeaponData::getWeaponData = (decltype(CWeaponData::getWeaponData))pattern.get_first(0);

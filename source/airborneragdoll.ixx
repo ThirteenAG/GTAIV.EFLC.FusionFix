@@ -207,7 +207,7 @@ namespace AirborneRagdoll
     namespace NaturalMotion
     {
         constexpr ptrdiff_t PedIntelligenceOffset = 0x224;
-        constexpr ptrdiff_t FragInstNMOffset = 0x7B4;
+        ptrdiff_t FragInstNMOffset = 0x7B4;
 
         struct alignas(16) RagdollComponentMatrix
         {
@@ -721,12 +721,21 @@ namespace AirborneRagdoll
         {
             auto distance = hook::pattern("0F 2F C2 0F 86 ? ? ? ? 81 8F 70 02 00 00 00 00 04 00");
             auto epilogue = hook::pattern("F3 0F 11 86 38 01 00 00 5F 5E 8B E5 5D C2 04 00");
+            ptrdiff_t branchEnd = 9;
+            ptrdiff_t displacement = 5;
+            if (distance.empty())
+            {
+                distance = hook::pattern("0F 86 ? ? ? ? 8B 8F C4 07 00 00 D9 EE 81 8F 70 02 00 00 00 00 04 00");
+                epilogue = hook::pattern("F3 0F 11 86 38 01 00 00 5F 5E 5B 8B E5 5D C2 04 00");
+                branchEnd = 6;
+                displacement = 2;
+            }
 
             hookAddress = (uintptr_t)distance.get_first(0);
             exitAddress = (uintptr_t)epilogue.get_first(8);
             // Use the native rejection branch and its stack-cleanup path.
-            const auto branchTarget = hookAddress + 9
-                + *reinterpret_cast<const int32_t*>(hookAddress + 5);
+            const auto branchTarget = hookAddress + branchEnd
+                + *reinterpret_cast<const int32_t*>(hookAddress + displacement);
             if (branchTarget != exitAddress)
                 throw std::runtime_error("Unexpected ragdoll supporting-hand cleanup branch");
         }
@@ -750,12 +759,18 @@ namespace AirborneRagdoll
         auto constructors = hook::pattern(
             "56 8B F1 E8 ? ? ? ? 8B 44 24 08 89 46 0C 8B 44 24 0C 89 46 10 "
             "8A 44 24 10 88 46 14 C7 06 ? ? ? ? 8B C6 5E C2 0C 00");
+        ptrdiff_t constructorVtable = 31;
+        if (constructors.empty())
+        {
+            constructors = hook::pattern("8B D1 E8 ? ? ? ? 8B 44 24 04 8B 4C 24 08 89 42 0C 8A 44 24 0C 88 42 14 C7 02 ? ? ? ? 89 4A 10 8B C2 C2 0C 00");
+            constructorVtable = 27;
+        }
         uintptr_t vtable = 0;
         for (size_t i = 0; i < constructors.size(); ++i)
         {
             const auto match = constructors.get(i);
             if ((uintptr_t)match.get<void>() == eventConstructor)
-                vtable = *match.get<uintptr_t>(31);
+                vtable = *match.get<uintptr_t>(constructorVtable);
         }
         if (!vtable)
             throw std::runtime_error("Missing ragdoll event constructor layout");
@@ -763,11 +778,17 @@ namespace AirborneRagdoll
         // Match the destructor body by the same vtable, without following the deleting wrapper.
         auto destructors = hook::pattern(
             "56 8B F1 8B 4E 10 C7 06 ? ? ? ? 85 C9 74 06 8B 01 6A 01 FF 10 8B CE 5E E9 ? ? ? ?");
+        ptrdiff_t destructorVtable = 8;
+        if (destructors.empty())
+        {
+            destructors = hook::pattern("56 8B F1 8B 4E 10 85 C9 C7 06 ? ? ? ? 74 ? 8B 01 8B 10 6A 01 FF D2 8B CE 5E E9 ? ? ? ?");
+            destructorVtable = 10;
+        }
         uintptr_t target = 0;
         for (size_t i = 0; i < destructors.size(); ++i)
         {
             const auto match = destructors.get(i);
-            if (*match.get<uintptr_t>(8) == vtable)
+            if (*match.get<uintptr_t>(destructorVtable) == vtable)
             {
                 if (target)
                     throw std::runtime_error("Ambiguous ragdoll event destructor");
@@ -783,54 +804,87 @@ namespace AirborneRagdoll
     void ResolveBindings(HookTargets& hooks)
     {
         auto pattern = hook::pattern("E8 ? ? ? ? 8A 88 6E 28 00 00 32 88 6C 28 00 00");
-        CPlayerPed::GetControlFromPlayer = (decltype(CPlayerPed::GetControlFromPlayer))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+        if (!pattern.empty())
+            CPlayerPed::GetControlFromPlayer = (decltype(CPlayerPed::GetControlFromPlayer))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+        else
+        {
+            pattern = hook::pattern("80 B9 18 02 00 00 00 75 0E 80 B9 19 02 00 00 00 74 05 E9 ? ? ? ? 33 C0 C3");
+            CPlayerPed::GetControlFromPlayer = (decltype(CPlayerPed::GetControlFromPlayer))pattern.get_first(0);
+        }
 
-        pattern = hook::pattern("55 8B EC 83 E4 F0 83 EC 48 56 57 E8 ? ? ? ? 84 C0 74 31");
+        pattern = find_pattern("55 8B EC 83 E4 F0 83 EC 48 56 57 E8 ? ? ? ? 84 C0 74 31", "55 8B EC 83 E4 F0 83 EC 34 53 56 57 E8 ? ? ? ? 84 C0 74 31");
         CTaskSimpleNM::CanUseRagdoll = (decltype(CTaskSimpleNM::CanUseRagdoll))pattern.get_first(0);
 
-        pattern = hook::pattern("E8 ? ? ? ? 8B D0 85 D2 74 ? FF B6 E0 00 00 00 0F B7 46 20 8D 4E 60");
+        pattern = find_pattern("E8 ? ? ? ? 8B D0 85 D2 74 ? FF B6 E0 00 00 00 0F B7 46 20 8D 4E 60", "E8 ? ? ? ? 85 C0 74 1E 8B 8E E0 00 00 00 51 0F B7 4E 22 8D 56 60");
         NaturalMotion::AllocateFromPoolInternal = (decltype(NaturalMotion::AllocateFromPoolInternal))injector::GetBranchDestination(pattern.get_first(0)).as_int();
 
-        pattern = hook::pattern("56 FF 74 24 0C 8B F1 FF 74 24 0C E8 ? ? ? ? FF 74 24 10 8D 4E 60");
+        pattern = find_pattern("56 FF 74 24 0C 8B F1 FF 74 24 0C E8 ? ? ? ? FF 74 24 10 8D 4E 60", "8B 44 24 08 56 8B F1 8B 4C 24 08 50 51 8B CE E8 ? ? ? ? 8B 54 24 10 32 C0 52 8D 4E 60");
         CTaskSimpleNMHighFall::Constructor = (decltype(CTaskSimpleNMHighFall::Constructor))pattern.get_first(0);
 
         pattern = hook::pattern(
             "8B 86 E0 00 00 00 C1 E0 06 80 BF 19 02 00 00 00 51 8D 4C 24 0C 74 0A "
             "F3 0F 10 80 ? ? ? ? EB 08 F3 0F 10 80 ? ? ? ?");
+        ptrdiff_t playerStrength = 27;
+        ptrdiff_t aiStrength = 37;
+        if (pattern.empty())
+        {
+            pattern = hook::pattern("8B 86 E0 00 00 00 8B 0D ? ? ? ? C1 E0 06 D9 80 ? ? ? ? D9 1C 24 51 EB 18 8B 96 E0 00 00 00 A1 ? ? ? ? C1 E2 06 D9 82 ? ? ? ?");
+            playerStrength = 17;
+            aiStrength = 43;
+        }
         // The two branches read adjacent player/AI strengths from each 0x40-byte profile.
-        if (*pattern.get_first<uintptr_t>(37) != *pattern.get_first<uintptr_t>(27) + sizeof(float))
+        if (*pattern.get_first<uintptr_t>(aiStrength) != *pattern.get_first<uintptr_t>(playerStrength) + sizeof(float))
             throw std::runtime_error("Unexpected ragdoll player/AI parameter layout");
-        CTaskSimpleNMHighFall::ms_Parameters = (decltype(CTaskSimpleNMHighFall::ms_Parameters))*pattern.get_first<uintptr_t>(27);
+        CTaskSimpleNMHighFall::ms_Parameters = (decltype(CTaskSimpleNMHighFall::ms_Parameters))*pattern.get_first<uintptr_t>(playerStrength);
 
         pattern = hook::pattern("E8 ? ? ? ? 6A 01 FF 35 ? ? ? ? 8D 4C 24 10 E8 ? ? ? ? 8B 86 E0");
-        ART::MessageParams::Constructor = (decltype(ART::MessageParams::Constructor))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+        if (!pattern.empty())
+            ART::MessageParams::Constructor = (decltype(ART::MessageParams::Constructor))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+        else
+        {
+            pattern = hook::pattern("56 68 C0 0C 00 00 8B F1 6A 00 56 C7 86 C0 0C 00 00 00 00 00 00");
+            ART::MessageParams::Constructor = (decltype(ART::MessageParams::Constructor))pattern.get_first(0);
+        }
 
         pattern = hook::pattern("E8 ? ? ? ? 8B 86 E0 00 00 00 C1 E0 06 80 BF");
-        ART::MessageParams::addBool = (decltype(ART::MessageParams::addBool))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+        if (!pattern.empty())
+            ART::MessageParams::addBool = (decltype(ART::MessageParams::addBool))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+        else
+        {
+            pattern = hook::pattern("56 8B F1 8B 96 C0 0C 00 00 83 FA 30 7D 7A");
+            ART::MessageParams::addBool = (decltype(ART::MessageParams::addBool))pattern.get_first(0);
+        }
 
-        pattern = hook::pattern("56 8B F1 8B 8E C0 0C 00 00 83 F9 30 7D 69");
+        pattern = find_pattern("56 8B F1 8B 8E C0 0C 00 00 83 F9 30 7D 69", "56 8B F1 8B 96 C0 0C 00 00 83 FA 30 7D 7E");
         ART::MessageParams::addFloat = (decltype(ART::MessageParams::addFloat))pattern.get_first(0);
 
-        pattern = hook::pattern("8B 15 ? ? ? ? 53 8B 02 56 8B 74 24 0C 57 8B F9");
+        pattern = find_pattern("8B 15 ? ? ? ? 53 8B 02 56 8B 74 24 0C 57 8B F9", "A1 ? ? ? ? 53 8B 5C 24 0C 55 8B 6C 24 0C 57 8B F9 8B 08 8B 41 0C");
         rage::fragInstNM::PostARTMessage = (decltype(rage::fragInstNM::PostARTMessage))pattern.get_first(0);
 
         pattern = hook::pattern("C7 81 C0 0C 00 00 00 00 00 00 C3");
         ART::MessageParams::Destructor = (decltype(ART::MessageParams::Destructor))pattern.get_first(0);
 
-        pattern = hook::pattern("81 EC E4 0C 00 00 A1 ? ? ? ? 33 C4 89 84 24 E0 0C 00 00");
+        pattern = find_pattern("81 EC E4 0C 00 00 A1 ? ? ? ? 33 C4 89 84 24 E0 0C 00 00 53 8B 9C 24 F0 0C 00 00", "81 EC E0 0C 00 00 A1 ? ? ? ? 33 C4 89 84 24 DC 0C 00 00 53 56 8B B4 24 EC 0C 00 00");
         NaturalMotion::PostNMTaskInternal = (decltype(NaturalMotion::PostNMTaskInternal))pattern.get_first(0);
 
-        pattern = hook::pattern("57 8B F9 8B 87 B4 07 00 00 85 C0 74 ? 83 78 64 00");
+        pattern = find_pattern("57 8B F9 8B 87 B4 07 00 00 85 C0 74 ? 83 78 64 00", "56 8B F1 8B 86 C4 07 00 00 85 C0 74 ? 83 78 64 00");
         NaturalMotion::GetRagdollComponentMatrixInternal = (decltype(NaturalMotion::GetRagdollComponentMatrixInternal))pattern.get_first(0);
+        NaturalMotion::FragInstNMOffset = *pattern.get_first<int32_t>(5);
 
-        auto startBehaviour = hook::pattern("81 EC C8 0C 00 00 A1 ? ? ? ? 33 C4 89 84 24 C4 0C 00 00 56 8B F1 57 8B 86 E0 00 00 00");
+        auto startBehaviour = find_pattern("81 EC C8 0C 00 00 A1 ? ? ? ? 33 C4 89 84 24 C4 0C 00 00 56 8B F1 57 8B 86 E0 00 00 00", "81 EC C8 0C 00 00 A1 ? ? ? ? 33 C4 89 84 24 C4 0C 00 00 56 8B F1 8B 86 E0 00 00 00");
         auto eventClone = hook::pattern(
             "56 8B F1 8B 0D ? ? ? ? 57 E8 ? ? ? ? 8B F8 85 FF 74 25 "
             "8B 4E 10 85 C9 74 09 8B 11 FF 52 04 8B C8 EB 02 33 C9 "
             "0F B6 46 14 50 51 FF 76 0C 8B CF E8 ? ? ? ? 5F 5E C3");
-        auto waterPriority = hook::pattern("56 8B 74 24 08 57 8B 06 8B F9 8B CE FF 50 04 83 F8 09");
+        ptrdiff_t constructorCall = 50;
+        if (eventClone.empty())
+        {
+            eventClone = hook::pattern("56 8B F1 8B 0D ? ? ? ? 57 E8 ? ? ? ? 8B F8 85 FF 74 28 83 7E 10 00 74 0C 8B 4E 10 8B 01 8B 50 04 FF D2 EB 02 33 C0 0F B6 4E 14 8B 56 0C 51 50 52 8B CF E8 ? ? ? ? 5F 5E C3");
+            constructorCall = 53;
+        }
+        auto waterPriority = find_pattern("56 8B 74 24 08 57 8B 06 8B F9 8B CE FF 50 04 83 F8 09", "56 8B 74 24 08 8B 06 8B 50 04 57 8B F9 8B CE FF D2 83 F8 09");
         hooks.startBehaviour = (uintptr_t)startBehaviour.get_first(0);
-        hooks.eventConstructor = injector::GetBranchDestination(eventClone.get_first(50)).as_int();
+        hooks.eventConstructor = injector::GetBranchDestination(eventClone.get_first(constructorCall)).as_int();
         hooks.eventClone = (uintptr_t)eventClone.get_first(0);
         hooks.waterPriority = (uintptr_t)waterPriority.get_first(0);
         hooks.eventDestructor = ResolveEventDestructor(hooks.eventConstructor);
@@ -1028,41 +1082,31 @@ class PlayerJumpRagdollControl
 public:
     PlayerJumpRagdollControl()
     {
-        // Register after settings construction, before async readers start
-        FusionFix::onBeforeInitEvent() += []()
+        FusionFix::onInitEvent() += []()
         {
             CIniReader iniReader("");
 
-            // INI fallback for Jump; Climb remains INI-only
-            const bool legacyJumpEnabled = iniReader.ReadInteger("MISC", "PlayerJumpRagdollControl", 0) != 0;
             AirborneRagdoll::bPlayerClimbRagdollControl = iniReader.ReadInteger("MISC", "PlayerClimbRagdollControl", 0) != 0;
 
-            const auto preference = FusionFixSettings.RegisterPreference(
-                AirborneRagdoll::JumpRagdollPreference, 1, legacyJumpEnabled,
-                "MISC", "PlayerJumpRagdollControl", [](int32_t value)
-                {
-                    AirborneRagdoll::bPlayerJumpRagdollControl = value != 0;
-                });
-            if (preference < 0)
-                throw std::runtime_error("Failed to register jump ragdoll preference");
-
-            FusionFix::onInitEvent() += [preference]()
+            FusionFixSettings.SetCallback(AirborneRagdoll::JumpRagdollPreference, [](int32_t value)
             {
-                AirborneRagdoll::Initialize();
+                AirborneRagdoll::bPlayerJumpRagdollControl = value != 0;
+            });
 
-                // Save and apply the resolved CFG value or INI fallback
-                FusionFixSettings.Set(preference, FusionFixSettings.Get(preference));
+            AirborneRagdoll::Initialize();
 
-                if constexpr (AirborneRagdoll::ShowRagdollMenuOption)
-                {
-                    FusionFixSettings.AddToggle(CSettings::MenuScreen::Controls,
-                        "FF_JUMPRAGDOLL", AirborneRagdoll::JumpRagdollPreference);
-                    FusionFixSettings.AddToggle(CSettings::MenuScreen::TitleControls,
-                        "FF_JUMPRAGDOLL", AirborneRagdoll::JumpRagdollPreference);
-                }
+            FusionFixSettings.Set(AirborneRagdoll::JumpRagdollPreference,
+                FusionFixSettings.Get(AirborneRagdoll::JumpRagdollPreference));
 
-                FusionFix::onGameProcessEvent() += AirborneRagdoll::Process;
-            };
+            if constexpr (AirborneRagdoll::ShowRagdollMenuOption)
+            {
+                FusionFixSettings.AddToggle(CSettings::MenuScreen::Controls,
+                    "FF_JUMPRAGDOLL", AirborneRagdoll::JumpRagdollPreference);
+                FusionFixSettings.AddToggle(CSettings::MenuScreen::TitleControls,
+                    "FF_JUMPRAGDOLL", AirborneRagdoll::JumpRagdollPreference);
+            }
+
+            FusionFix::onGameProcessEvent() += AirborneRagdoll::Process;
         };
     }
 } PlayerJumpRagdollControl;
