@@ -36,8 +36,8 @@ namespace LadderCamera
         {
             for (const auto screen : { CSettings::MenuScreen::Controls, CSettings::MenuScreen::TitleControls })
             {
-                FusionFixSettings.AddToggle(screen, "FF_LADDERTILT", TiltPreferenceName, "Action Cam");
-                FusionFixSettings.AddToggle(screen, "FF_ALTLADDERCAM", AlternatePreferenceName, "FF_LADDERTILT");
+                FusionFixSettings.AddToggle(screen, "Ladder Cam Tilt", TiltPreferenceName, "Action Cam");
+                FusionFixSettings.AddToggle(screen, "Alt Ladder Cam", AlternatePreferenceName, "Ladder Cam Tilt");
             }
         }
     }

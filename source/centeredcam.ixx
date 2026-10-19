@@ -35,7 +35,7 @@ namespace CameraAutoCenter
         if constexpr (ShowCameraMenuOption)
         {
             FusionFixSettings.AddToggle(CSettings::MenuScreen::ControllerOptions,
-                "FF_AUTOCENTER", MenuPreferenceName, "CenterDelayFoot", true);
+                "Auto Center Cam", MenuPreferenceName, "CenterDelayFoot", true);
         }
     }
 

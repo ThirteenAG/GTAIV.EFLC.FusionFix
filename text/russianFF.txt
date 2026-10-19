@@ -148,13 +148,13 @@ Logitech LightSync RGB
 [Stunt Jump Cam]
 Камера трюковых прыжков
 
-[FF_AUTOCENTER]
+[Auto Center Cam]
 Автоцентрирование камеры
 
-[FF_LADDERTILT]
+[Ladder Cam Tilt]
 Наклон камеры на лестницах
 
-[FF_ALTLADDERCAM]
+[Alt Ladder Cam]
 Альтернативная камера на лестницах
 
 [Action Cam]
@@ -208,7 +208,7 @@ GTA IV необходимо перезапустить для применени
 [Extended Sniper]
 Расширенное управление снайперской винтовкой
 
-[FF_JUMPRAGDOLL]
+[Jump Ragdoll]
 Рэгдолл в прыжке
 
 [Ladders Climb]

@@ -148,13 +148,13 @@ Kamerawackeln
 [Stunt Jump Cam]
 Monsterstunt-Kamera
 
-[FF_AUTOCENTER]
+[Auto Center Cam]
 Automatische Kamerazentrierung
 
-[FF_LADDERTILT]
+[Ladder Cam Tilt]
 Kameraneigung auf Leitern
 
-[FF_ALTLADDERCAM]
+[Alt Ladder Cam]
 Alternative Leiterkamera
 
 [Action Cam]
@@ -208,7 +208,7 @@ GTA IV muss neu gestartet werden, um die Einstellungen anzuwenden.
 [Extended Sniper]
 Erweiterte Sniper-Steuerung
 
-[FF_JUMPRAGDOLL]
+[Jump Ragdoll]
 Ragdoll beim Springen
 
 [Ladders Climb]

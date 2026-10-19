@@ -1101,9 +1101,9 @@ public:
             if constexpr (AirborneRagdoll::ShowRagdollMenuOption)
             {
                 FusionFixSettings.AddToggle(CSettings::MenuScreen::Controls,
-                    "FF_JUMPRAGDOLL", AirborneRagdoll::JumpRagdollPreference);
+                    "Jump Ragdoll", AirborneRagdoll::JumpRagdollPreference);
                 FusionFixSettings.AddToggle(CSettings::MenuScreen::TitleControls,
-                    "FF_JUMPRAGDOLL", AirborneRagdoll::JumpRagdollPreference);
+                    "Jump Ragdoll", AirborneRagdoll::JumpRagdollPreference);
             }
 
             FusionFix::onGameProcessEvent() += AirborneRagdoll::Process;

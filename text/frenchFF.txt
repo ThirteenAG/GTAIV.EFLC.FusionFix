@@ -148,13 +148,13 @@ Tremblements de caméra
 [Stunt Jump Cam]
 Caméra des cascades
 
-[FF_AUTOCENTER]
+[Auto Center Cam]
 Centrage automatique de la caméra
 
-[FF_LADDERTILT]
+[Ladder Cam Tilt]
 Inclinaison de la caméra sur les échelles
 
-[FF_ALTLADDERCAM]
+[Alt Ladder Cam]
 Caméra alternative sur les échelles
 
 [Action Cam]
@@ -208,7 +208,7 @@ GTA IV doit être redémarré pour appliquer les paramètres.
 [Extended Sniper]
 Commandes étendues du fusil de sniper
 
-[FF_JUMPRAGDOLL]
+[Jump Ragdoll]
 Ragdoll pendant les sauts
 
 [Ladders Climb]
