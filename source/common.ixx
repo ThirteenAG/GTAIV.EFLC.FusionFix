@@ -83,12 +83,6 @@ public:
     };
 
 public:
-    // Runs after static initialization and before either init event starts.
-    static Event<>& onBeforeInitEvent()
-    {
-        static Event<> BeforeInitEvent;
-        return BeforeInitEvent;
-    }
     static Event<>& onInitEvent()
     {
         static Event<> InitEvent;

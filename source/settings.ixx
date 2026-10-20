@@ -1445,6 +1445,9 @@ public:
 
         CIniReader iniReader(cfgPath);
 
+        // Plugin INI values seed these options only when no saved CFG value exists.
+        CIniReader pluginIniReader("");
+
         // IDs and XML display records are independent of registration order.
         static CSetting arr[] = {
             { 0, "PREF_SKIP_INTRO",             "MAIN",       "SkipIntro",                          "",                           1, nullptr, 0, 1 },
@@ -1507,6 +1510,7 @@ public:
             { 0, "PREF_AUTOCLIMBLADDERS",       "MISC",       "AutoClimbLadders",                   "",                           0, nullptr, 0, 1 },
             { 0, "PREF_STUNTJUMPCAM",           "MISC",       "StuntJumpCamera",                    "",                           1, nullptr, 0, 1 },
             { 0, "PREF_ACTIONCAM",              "MISC",       "ActionCamera",                       "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_PLAYERJUMPRAGDOLL",      "MISC",       "PlayerJumpRagdollControl",            "",                           pluginIniReader.ReadInteger("MISC", "PlayerJumpRagdollControl", 0) != 0, nullptr, 0, 1 },
         };
 
         for (auto& setting : arr)

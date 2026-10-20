@@ -148,13 +148,13 @@ Sacudida de la cámara
 [Stunt Jump Cam]
 Cámara de saltos acrobáticos
 
-[FF_AUTOCENTER]
+[Auto Center Cam]
 Centrado automático de la cámara
 
-[FF_LADDERTILT]
+[Ladder Cam Tilt]
 Inclinación de cámara en escaleras
 
-[FF_ALTLADDERCAM]
+[Alt Ladder Cam]
 Cámara alternativa en escaleras
 
 [Action Cam]
@@ -208,7 +208,7 @@ Es necesario reiniciar GTA IV para aplicar el ajuste.
 [Extended Sniper]
 Controles extendidos del rifle de francotirador
 
-[FF_JUMPRAGDOLL]
+[Jump Ragdoll]
 Ragdoll al saltar
 
 [Ladders Climb]

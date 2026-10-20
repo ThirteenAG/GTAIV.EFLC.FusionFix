@@ -127,8 +127,6 @@ void Init()
         FusionFix::onReadGameConfig().executeAll();
     });
 
-    FusionFix::onBeforeInitEvent().executeAll();
-
     initializationFutures = FusionFix::onInitEventAsync().executeAllAsync();
 
     FusionFix::onInitEvent().executeAll();

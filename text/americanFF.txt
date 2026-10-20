@@ -148,13 +148,13 @@ Camera Shake
 [Stunt Jump Cam]
 Stunt Jump Camera
 
-[FF_AUTOCENTER]
+[Auto Center Cam]
 Automatic Camera Centering
 
-[FF_LADDERTILT]
+[Ladder Cam Tilt]
 Ladder Camera Tilt
 
-[FF_ALTLADDERCAM]
+[Alt Ladder Cam]
 Alternate Ladder Camera
 
 [Action Cam]
@@ -208,7 +208,7 @@ GTA IV must be restarted in order to apply settings.
 [Extended Sniper]
 Extended Sniper Controls
 
-[FF_JUMPRAGDOLL]
+[Jump Ragdoll]
 Jump Ragdoll Control
 
 [Ladders Climb]
