@@ -136,7 +136,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **Allow Movement When Zoomed**, allows movement when aiming with a sniper rifle
 - **Extended Sniper Controls**, allows aiming with sniper rifles without using the scope, press Jump button to toggle between third-person aim and the scope
 - **Auto Climb Ladders**, makes player climb ladder automatically when getting close to ladder
-- **Jump Ragdoll Control**, allows pressing Reload during a jump to enter ragdoll
+- **Jump Ragdoll Control**, allows pressing Reload during a jump to enter ragdoll, with an option to also allow it while climbing or vaulting
 - **Camera Shake**, shake effect has been fixed to work consistently at any frame rate and can be disabled with this option
 - **Stunt Jump Camera**, can be disabled to skip the cinematic camera and slow motion during unique stunt jumps
 - **Fence Climb & Car Jack Camera**, can be disabled to skip the cinematic camera when climbing fences and stealing cars

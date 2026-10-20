@@ -211,6 +211,9 @@ Steam Controller
 [Jump Ragdoll]
 ジャンプ中のラグドール
 
+[On + Climb]
+オン + よじ登り中のラグドール
+
 [Ladders Climb]
 自動はしご登り
 

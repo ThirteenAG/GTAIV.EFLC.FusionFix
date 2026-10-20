@@ -211,6 +211,9 @@ Commandes étendues du fusil de sniper
 [Jump Ragdoll]
 Ragdoll pendant les sauts
 
+[On + Climb]
+Activé + ragdoll en escaladant
+
 [Ladders Climb]
 Grimper automatiquement aux échelles
 
