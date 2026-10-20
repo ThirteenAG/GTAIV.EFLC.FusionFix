@@ -211,6 +211,9 @@ Erweiterte Sniper-Steuerung
 [Jump Ragdoll]
 Ragdoll beim Springen
 
+[On + Climb]
+Ein + Ragdoll beim Klettern
+
 [Ladders Climb]
 Automatisch auf Leitern steigen
 

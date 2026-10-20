@@ -18,6 +18,7 @@ namespace AirborneRagdoll
     // Menu configuration
     constexpr bool ShowRagdollMenuOption = true;  // Hide the rows without disabling the feature or saved setting
     constexpr auto JumpRagdollPreference = "PREF_PLAYERJUMPRAGDOLL";
+    constexpr auto JumpRagdollDisplay = "MENU_DISPLAY_JUMPRAGDOLL";
 
     // Restore temporary native state when leaving a hook
     template <typename T>
@@ -1084,13 +1085,10 @@ public:
     {
         FusionFix::onInitEvent() += []()
         {
-            CIniReader iniReader("");
-
-            AirborneRagdoll::bPlayerClimbRagdollControl = iniReader.ReadInteger("MISC", "PlayerClimbRagdollControl", 0) != 0;
-
             FusionFixSettings.SetCallback(AirborneRagdoll::JumpRagdollPreference, [](int32_t value)
             {
                 AirborneRagdoll::bPlayerJumpRagdollControl = value != 0;
+                AirborneRagdoll::bPlayerClimbRagdollControl = value == 2;
             });
 
             AirborneRagdoll::Initialize();
@@ -1100,10 +1098,14 @@ public:
 
             if constexpr (AirborneRagdoll::ShowRagdollMenuOption)
             {
-                FusionFixSettings.AddToggle(CSettings::MenuScreen::Controls,
-                    "Jump Ragdoll", AirborneRagdoll::JumpRagdollPreference);
-                FusionFixSettings.AddToggle(CSettings::MenuScreen::TitleControls,
-                    "Jump Ragdoll", AirborneRagdoll::JumpRagdollPreference);
+                constexpr std::array<std::string_view, 3> labels = { "MO_OFF", "MO_ON", "On + Climb" };
+                if (FusionFixSettings.RegisterEnum(AirborneRagdoll::JumpRagdollDisplay, labels) < 0)
+                    throw std::runtime_error("Failed to register jump ragdoll display");
+
+                FusionFixSettings.AddEnum(CSettings::MenuScreen::Controls,
+                    "Jump Ragdoll", AirborneRagdoll::JumpRagdollPreference, AirborneRagdoll::JumpRagdollDisplay);
+                FusionFixSettings.AddEnum(CSettings::MenuScreen::TitleControls,
+                    "Jump Ragdoll", AirborneRagdoll::JumpRagdollPreference, AirborneRagdoll::JumpRagdollDisplay);
             }
 
             FusionFix::onGameProcessEvent() += AirborneRagdoll::Process;

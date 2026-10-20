@@ -211,6 +211,9 @@ Controlli estesi del fucile di precisione
 [Jump Ragdoll]
 Ragdoll durante i salti
 
+[On + Climb]
+Sì + ragdoll in arrampicata
+
 [Ladders Climb]
 Arrampicata automatica sulla scala
 

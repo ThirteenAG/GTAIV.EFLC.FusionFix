@@ -211,6 +211,9 @@ Controles extendidos del rifle de francotirador
 [Jump Ragdoll]
 Ragdoll al saltar
 
+[On + Climb]
+Sí + ragdoll al trepar
+
 [Ladders Climb]
 Escalada automática de escaleras
 

@@ -211,6 +211,9 @@ Extended Sniper Controls
 [Jump Ragdoll]
 Jump Ragdoll Control
 
+[On + Climb]
+On + Climb Ragdoll Control
+
 [Ladders Climb]
 Auto Climb Ladders
 
