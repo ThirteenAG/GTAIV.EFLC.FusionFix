@@ -148,6 +148,15 @@ Vibrazione della camera
 [Stunt Jump Cam]
 Telecamera acrobazie
 
+[Auto Center Cam]
+Centratura automatica telecamera
+
+[Ladder Cam Tilt]
+Inclinazione telecamera sulle scale
+
+[Alt Ladder Cam]
+Telecamera alternativa sulle scale
+
 [Action Cam]
 Telecamera scavalcamenti e furti d'auto
 
@@ -198,6 +207,12 @@ GTA IV deve essere riavviato per applicare le impostazioni.
 
 [Extended Sniper]
 Controlli estesi del fucile di precisione
+
+[Jump Ragdoll]
+Ragdoll durante i salti
+
+[On + Climb]
+Sì + ragdoll in arrampicata
 
 [Ladders Climb]
 Arrampicata automatica sulla scala

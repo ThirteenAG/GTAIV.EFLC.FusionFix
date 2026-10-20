@@ -96,8 +96,7 @@ public:
         return m_nArgCount;
     }
 
-    template<typename T>
-    inline T GetResult(int idx)
+    inline void CopyVectorResults()
     {
         while (m_nDataCount > 0)
         {
@@ -108,6 +107,12 @@ public:
             pVec3->fY = pVec4->fY;
             pVec3->fZ = pVec4->fZ;
         }
+    }
+
+    template<typename T>
+    inline T GetResult(int idx)
+    {
+        CopyVectorResults();
         auto returnValues = (intptr_t*)m_pReturn;
         return *reinterpret_cast<T*>(&returnValues[idx]);
     }
@@ -222,6 +227,8 @@ public:
             }
         }
 
+        // Native handlers defer vector output writes, including those of void natives.
+        cxt.CopyVectorResults();
         if constexpr (!std::is_void_v<R>)
         {
             return cxt.GetResult<R>();

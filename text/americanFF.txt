@@ -148,6 +148,15 @@ Camera Shake
 [Stunt Jump Cam]
 Stunt Jump Camera
 
+[Auto Center Cam]
+Automatic Camera Centering
+
+[Ladder Cam Tilt]
+Ladder Camera Tilt
+
+[Alt Ladder Cam]
+Alternate Ladder Camera
+
 [Action Cam]
 Fence Climb & Car Jack Camera
 
@@ -198,6 +207,12 @@ GTA IV must be restarted in order to apply settings.
 
 [Extended Sniper]
 Extended Sniper Controls
+
+[Jump Ragdoll]
+Jump Ragdoll Control
+
+[On + Climb]
+On + Climb Ragdoll Control
 
 [Ladders Climb]
 Auto Climb Ladders

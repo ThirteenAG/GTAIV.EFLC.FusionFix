@@ -221,6 +221,8 @@ private:
         SettingsTables::Option option;
         std::function<void()> selected;
         int32_t submenu = -1;   // screen of the page the row opens
+        std::string anchorLabel;
+        bool insertBefore = false;
     };
     static inline std::vector<DynamicOption> dynamicOptions;
 
@@ -408,12 +410,24 @@ private:
             // sufficient to lift that limit.
             if (options.count >= (page ? static_cast<uint16_t>(page->rows.size()) : 50))
                 return;
+            auto position = options.count - 1;
+            if (!added.anchorLabel.empty())
+            {
+                auto anchor = std::find_if(options.data, options.data + position, [&](const auto& option)
+                {
+                    return added.anchorLabel == option.label;
+                });
+                if (anchor != options.data + position)
+                    position = static_cast<int>(anchor - options.data) + (added.insertBefore ? 0 : 1);
+            }
             auto sentinel = options.data[options.count - 1];
             if (page)
                 options.data[options.count++] = sentinel;
             else
                 *AppendOption(&options) = sentinel;
-            options.data[options.count - 2] = added.option;
+            // AppendOption may reallocate, so keep an index rather than a pointer to the insertion point.
+            std::move_backward(options.data + position, options.data + options.count - 2, options.data + options.count - 1);
+            options.data[position] = added.option;
         }
     }
 
@@ -1445,6 +1459,9 @@ public:
 
         CIniReader iniReader(cfgPath);
 
+        // Plugin INI values seed these options only when no saved CFG value exists.
+        CIniReader pluginIniReader("");
+
         // IDs and XML display records are independent of registration order.
         static CSetting arr[] = {
             { 0, "PREF_SKIP_INTRO",             "MAIN",       "SkipIntro",                          "",                           1, nullptr, 0, 1 },
@@ -1507,6 +1524,10 @@ public:
             { 0, "PREF_AUTOCLIMBLADDERS",       "MISC",       "AutoClimbLadders",                   "",                           0, nullptr, 0, 1 },
             { 0, "PREF_STUNTJUMPCAM",           "MISC",       "StuntJumpCamera",                    "",                           1, nullptr, 0, 1 },
             { 0, "PREF_ACTIONCAM",              "MISC",       "ActionCamera",                       "",                           1, nullptr, 0, 1 },
+            { 0, "PREF_PLAYERJUMPRAGDOLL",      "MISC",       "PlayerJumpRagdollControl",            "",                           pluginIniReader.ReadInteger("MISC", "PlayerJumpRagdollControl", 0), nullptr, 0, 2 },
+            { 0, "PREF_LADDERCAMERATILT",       "MISC",       "LadderCameraTilt",                    "",                           pluginIniReader.ReadInteger("MISC", "LadderCameraTilt", 1), nullptr, 0, 1 },
+            { 0, "PREF_ALTERNATELADDERCAMERA",  "MISC",       "AlternateLadderCamera",               "",                           pluginIniReader.ReadInteger("MISC", "AlternateLadderCamera", 0), nullptr, 0, 1 },
+            { 0, "PREF_AUTOCENTERCAMERA",       "MISC",       "AutoCenterCamera",                    "",                           pluginIniReader.ReadInteger("MISC", "AutoCenterCamera", 1), nullptr, 0, 1 },
         };
 
         for (auto& setting : arr)
@@ -1754,12 +1775,13 @@ public:
         return id;
     }
 
-    bool AddToggle(MenuScreen screen, std::string_view label, std::string_view preference)
+    // Insert before/after a named row; an absent anchor falls back to appending.
+    bool AddToggle(MenuScreen screen, std::string_view label, std::string_view preference, std::string_view anchorLabel = {}, bool insertBefore = false)
     {
         auto id = GetPrefIDByName(preference);
         if (!id || !mFusionPrefs.contains(*id) || mFusionPrefs.at(*id).idEnd != 1)
             return false;
-        return AddOption(screen, label, *id, 0);
+        return AddOption(screen, label, *id, 0, {}, -1, anchorLabel, insertBefore);
     }
 
     bool AddEnum(MenuScreen screen, std::string_view label, std::string_view preference, std::string_view display)
@@ -1847,9 +1869,9 @@ private:
         return options.count + pending <= 50;
     }
 
-    static bool AddOption(MenuScreen screen, std::string_view label, int32_t preference, int32_t display, std::function<void()> callback = {}, int32_t submenu = -1)
+    static bool AddOption(MenuScreen screen, std::string_view label, int32_t preference, int32_t display, std::function<void()> callback = {}, int32_t submenu = -1, std::string_view anchorLabel = {}, bool insertBefore = false)
     {
-        if (!CanAddOption(screen, label))
+        if (!CanAddOption(screen, label) || anchorLabel.size() >= sizeof(SettingsTables::Option::label) || anchorLabel.find('\0') != anchorLabel.npos)
             return false;
         bool action = callback || submenu != -1;
         SettingsTables::Option option;
@@ -1858,7 +1880,7 @@ private:
         option.preference = static_cast<int16_t>(preference);
         option.scaler = action ? 0 : static_cast<uint8_t>(SettingsTables::scalers[preference]);
         option.display = static_cast<uint8_t>(display);
-        dynamicOptions.push_back({ static_cast<int32_t>(screen), option, std::move(callback), submenu });
+        dynamicOptions.push_back({ static_cast<int32_t>(screen), option, std::move(callback), submenu, std::string(anchorLabel), insertBefore });
         return true;
     }
 

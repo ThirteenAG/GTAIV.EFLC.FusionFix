@@ -148,6 +148,15 @@ FPSリミッター
 [Stunt Jump Cam]
 スタントジャンプのカメラ
 
+[Auto Center Cam]
+カメラの自動センタリング
+
+[Ladder Cam Tilt]
+はしごでのカメラの傾き
+
+[Alt Ladder Cam]
+はしごでの別カメラ
+
 [Action Cam]
 フェンス越え・車両強奪時のカメラ
 
@@ -198,6 +207,12 @@ Steam Controller
 
 [Extended Sniper]
 スナイパーライフルの追加操作
+
+[Jump Ragdoll]
+ジャンプ中のラグドール
+
+[On + Climb]
+オン + よじ登り中のラグドール
 
 [Ladders Climb]
 自動はしご登り

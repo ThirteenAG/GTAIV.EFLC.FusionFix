@@ -1,6 +1,7 @@
 module;
 
 #include <common.hxx>
+#include <utility>
 
 export module fixes;
 
@@ -177,6 +178,178 @@ bool __cdecl NATIVE_COMPARE_STRING_2(const char* a1, const char* a2)
     return a1 && a2 && IsBadReadPtr(a1, 1) == 0 && IsBadReadPtr(a2, 1) == 0 && strcmp(a1, a2) == 0;
 }
 
+// Top-mount visibility repair
+namespace LadderVisibilityRepair
+{
+    static uintptr_t (__thiscall* FindActiveTaskByType)(uintptr_t, int);
+    static ptrdiff_t instanceOffset = 0x7B4;
+
+    namespace TopMountBounds
+    {
+        static void (__thiscall* SetInstanceMatrix)(uintptr_t, const void*);
+        static void (__thiscall* UpdateSkeleton)(uintptr_t);
+        static void (__thiscall* CalculateCompositeExtents)(uintptr_t, bool);
+        static void (__thiscall* UpdateObjectLocation)(uintptr_t, int, const void*);
+        static void (__thiscall* UpdateObjectLocationAndRadius)(uintptr_t, int, float, const void*);
+        static uintptr_t* physicsLevel = nullptr;
+        static bool ready = false;
+
+        static void Refresh(uintptr_t ped, uintptr_t instanceBefore, uintptr_t root, bool rebased)
+        {
+            if (!ready)
+                return;
+            if (!rebased || !root)
+                return;
+            const auto instance = *reinterpret_cast<const uintptr_t*>(ped + instanceOffset);
+            if (!instance || instance != instanceBefore)
+                return;
+            if (*reinterpret_cast<const int*>(ped + instanceOffset + 4) != 2 || !(*reinterpret_cast<const uint8_t*>(ped + 244) & 2))
+                return;
+            const auto* pedVtable = *reinterpret_cast<const uintptr_t**>(ped);
+            const auto getInstance = reinterpret_cast<uintptr_t(__thiscall*)(uintptr_t)>(pedVtable[0xA0 / 4]);
+            if (getInstance(ped) != instance)
+                return;
+            const auto* instanceVtable = *reinterpret_cast<const uintptr_t**>(instance);
+            const auto getSkeleton = reinterpret_cast<uintptr_t(__thiscall*)(uintptr_t)>(instanceVtable[0xE0 / 4]);
+            const auto matrix = *reinterpret_cast<const uintptr_t*>(ped + 32);
+            const auto archetype = *reinterpret_cast<const uintptr_t*>(instance + 4);
+            const auto bound = archetype ? *reinterpret_cast<const uintptr_t*>(archetype + 12) : 0;
+            if (!matrix || !bound || !getSkeleton(instance)
+                || !*reinterpret_cast<const uintptr_t*>(bound + 132) || !*reinterpret_cast<const uintptr_t*>(bound + 136)
+                || !*reinterpret_cast<const uint16_t*>(bound + 146))
+                return;
+            const auto level = *physicsLevel;
+            const auto index = *reinterpret_cast<const uint16_t*>(instance + 8);
+            if (!level || index == 0xFFFF || index >= *reinterpret_cast<const uint16_t*>(level + 38))
+                return;
+            const auto entries = *reinterpret_cast<const uintptr_t*>(level + 112);
+            if (!entries || (*reinterpret_cast<const uintptr_t*>(entries + index * 8 + 4) & ~uintptr_t{ 0xF }) != instance)
+                return;
+
+            const auto copyMatrixHistory = reinterpret_cast<void(__thiscall*)(uintptr_t, const void*)>(instanceVtable[0x10 / 4]);
+            copyMatrixHistory(instance, reinterpret_cast<const void*>(instance + 16));
+            SetInstanceMatrix(instance, reinterpret_cast<const void*>(matrix));
+            copyMatrixHistory(instance, reinterpret_cast<const void*>(instance + 16));
+            UpdateSkeleton(ped);
+            const auto poseBounds = reinterpret_cast<void(__thiscall*)(uintptr_t)>(instanceVtable[0xBC / 4]);
+            poseBounds(instance);
+            poseBounds(instance);
+            const float oldRadius = *reinterpret_cast<const float*>(bound + 8);
+            CalculateCompositeExtents(bound, true);
+            if (oldRadius == *reinterpret_cast<const float*>(bound + 8))
+                UpdateObjectLocation(level, index, nullptr);
+            else
+                UpdateObjectLocationAndRadius(level, index, oldRadius, nullptr);
+        }
+
+        static void Resolve()
+        {
+            auto matrix = hook::pattern("FF 52 10 FF 77 20 8B 8F B4 07 00 00 E8 ? ? ? ?");
+            if (!matrix.empty())
+            {
+                auto skeleton = hook::pattern("FF 50 04 8B CE E8 ? ? ? ? 81 8E 9C 02 00 00");
+                auto extents = hook::pattern("55 8B EC 83 E4 F8 83 EC 08 80 7D 08 00 56 8B D1");
+                auto radius = hook::pattern("55 8B EC 83 E4 F8 83 EC 18 83 3D ? ? ? ? 00 56 8B D1");
+                auto location = hook::pattern("8B 0D ? ? ? ? 50 E8 ? ? ? ? 81 A7 18 01 00 00");
+                SetInstanceMatrix = (decltype(SetInstanceMatrix))injector::GetBranchDestination(matrix.get_first(12)).as_int();
+                UpdateSkeleton = (decltype(UpdateSkeleton))injector::GetBranchDestination(skeleton.get_first(5)).as_int();
+                CalculateCompositeExtents = (decltype(CalculateCompositeExtents))extents.get_first(0);
+                UpdateObjectLocationAndRadius = (decltype(UpdateObjectLocationAndRadius))radius.get_first(0);
+                UpdateObjectLocation = (decltype(UpdateObjectLocation))injector::GetBranchDestination(location.get_first(7)).as_int();
+                physicsLevel = *location.get_first<uintptr_t*>(2);
+            }
+            else
+            {
+                instanceOffset = 0x7C4;
+                matrix = hook::pattern("8B 44 24 04 D9 00 D9 59 10 D9 40 04 D9 59 14 D9 40 08 D9 59 18 D9 40 10 D9 59 20");
+                auto skeleton = hook::pattern("E8 ? ? ? ? 8B 8E C4 07 00 00 8B 51 04 8B 42 0C F3 0F 10 40 08 8B 11 8B 82 BC 00 00 00 F3 0F 11 44 24 08 FF D0");
+                auto extents = hook::pattern("55 8B EC 83 E4 F0 83 EC 08 80 7D 08 00 56 57 8B F1 0F 85");
+                auto radius = hook::pattern("55 8B EC 83 E4 F0 83 EC 14 83 3D ? ? ? ? 00 53 56 8B F1 57 89 74 24 10");
+                auto location = hook::pattern("55 8B EC 83 E4 F0 81 EC 24 01 00 00 83 3D ? ? ? ? 00 53 56 57 8B F9");
+                auto probe = hook::pattern("6A 07 6A FF 53 50 52 8D 44 24 2C 50 E8");
+                SetInstanceMatrix = (decltype(SetInstanceMatrix))matrix.get_first(0);
+                UpdateSkeleton = (decltype(UpdateSkeleton))injector::GetBranchDestination(skeleton.get_first(0)).as_int();
+                CalculateCompositeExtents = (decltype(CalculateCompositeExtents))extents.get_first(0);
+                UpdateObjectLocationAndRadius = (decltype(UpdateObjectLocationAndRadius))radius.get_first(0);
+                UpdateObjectLocation = (decltype(UpdateObjectLocation))location.get_first(0);
+                physicsLevel = *probe.get_first<uintptr_t*>(-4);
+            }
+            ready = true;
+        }
+    }
+
+    namespace TopMountHandoff
+    {
+        static SafetyHookInline shOffsetPedPosition;
+        static SafetyHookMid shLocalRoot;
+        static uintptr_t preRenderAddress = 0;
+        struct OffsetContext
+        {
+            uintptr_t ped = 0, root = 0;
+        };
+        static thread_local OffsetContext offsetContext;
+
+        static void __fastcall OffsetPedPosition(uintptr_t task, void* edx, uintptr_t ped)
+        {
+            bool topMount = false;
+            if (FindActiveTaskByType
+                && CPlayer::getLocalPlayerPed && ped && ped == CPlayer::getLocalPlayerPed())
+            {
+                const auto intelligence = *reinterpret_cast<const uintptr_t*>(ped + 548);
+                const auto complex = intelligence ? FindActiveTaskByType(intelligence + 68, std::to_underlying(TaskID::TaskComplexClimbLadder)) : 0;
+                const auto* vtable = *reinterpret_cast<const uintptr_t**>(ped);
+                if (complex && *reinterpret_cast<const int*>(complex + 20) == 4 && vtable[0xCC / 4] == preRenderAddress)
+                    topMount = true;
+            }
+            const auto previous = offsetContext;
+            offsetContext = topMount ? OffsetContext{ ped, 0 } : OffsetContext{};
+            const auto instanceBefore = topMount ? *reinterpret_cast<const uintptr_t*>(ped + instanceOffset) : 0;
+            const bool pendingRebase = topMount && (*reinterpret_cast<const uint8_t*>(task + 25) & 1);
+            shOffsetPedPosition.unsafe_fastcall<void>(task, edx, ped);
+            if (topMount)
+            {
+                const bool rebased = pendingRebase && !(*reinterpret_cast<const uint8_t*>(task + 25) & 1);
+                TopMountBounds::Refresh(ped, instanceBefore, offsetContext.root, rebased);
+            }
+            offsetContext = previous;
+        }
+
+        static void LocalRoot(SafetyHookContext& regs)
+        {
+            if (offsetContext.ped && offsetContext.ped == regs.edi)
+                offsetContext.root = regs.eax;
+        }
+
+        static void Install()
+        {
+            auto activeTask = hook::pattern("68 19 04 00 00 83 C1 44 E8 ? ? ? ? 80");
+            if (!activeTask.empty())
+                FindActiveTaskByType = (decltype(FindActiveTaskByType))injector::GetBranchDestination(activeTask.get_first(8)).as_int();
+            else
+            {
+                activeTask = hook::pattern("55 56 57 33 FF 8B E9 33 C0 8D A4 24 00 00 00 00 39 7C 85 00");
+                FindActiveTaskByType = (decltype(FindActiveTaskByType))activeTask.get_first(0);
+            }
+            auto offset = hook::pattern("55 8B EC 83 E4 F0 81 EC 78 01 00 00 56 57 8B F1");
+            auto render = find_pattern("55 8B EC 83 E4 F0 81 EC E4 00 00 00 53 56 57 8B F9 E8 ? ? ? ? 80 3D",
+                "55 8B EC 83 E4 F0 81 EC D8 00 00 00 56 57 8B F1 E8 ? ? ? ? 80 3D");
+            auto root = find_pattern("8B F0 8B 44 24 3C F6 40 19 02 0F 84",
+                "F6 43 19 02 8B F0 0F 84");
+            preRenderAddress = reinterpret_cast<uintptr_t>(render.get_first(0));
+            TopMountBounds::Resolve();
+            shLocalRoot = safetyhook::create_mid(root.get_first(0), LocalRoot);
+            if (!offset.empty())
+                shOffsetPedPosition = safetyhook::create_inline(offset.get_first(0), OffsetPedPosition);
+            else
+            {
+                offset = hook::pattern("F6 46 19 01 74 ? 57 8B CE E8");
+                shOffsetPedPosition = safetyhook::create_inline(
+                    injector::GetBranchDestination(offset.get_first(9)).as_int(), OffsetPedPosition);
+            }
+        }
+    }
+}
+
 class Fixes
 {
 public:
@@ -240,6 +413,8 @@ public:
 
     Fixes()
     {
+        FusionFix::onInitEvent() += LadderVisibilityRepair::TopMountHandoff::Install;
+
         FusionFix::onInitEventAsync() += []()
         {
             CIniReader iniReader("");
@@ -249,9 +424,7 @@ public:
             bool bRecoilFix = iniReader.ReadInteger("MAIN", "RecoilFix", 1) != 0;
 
             // [MISC]
-            bool bDefaultCameraAngleInTLaD = iniReader.ReadInteger("MISC", "DefaultCameraAngleInTLaD", 1) != 0;
             bool bPedDeathAnimFixFromTBoGT = iniReader.ReadInteger("MISC", "PedDeathAnimFixFromTBoGT", 1) != 0;
-            bool bDisableCameraCenteringInCover = iniReader.ReadInteger("MISC", "DisableCameraCenteringInCover", 1) != 0;
             bool bAlwaysDisplayHealthOnReticle = iniReader.ReadInteger("MISC", "AlwaysDisplayHealthOnReticle", 1) != 0;
             int bFixHelicopterSearchlights = iniReader.ReadInteger("MISC", "FixHelicopterSearchlights", 1);
 
@@ -339,21 +512,6 @@ public:
                 });
             }
 
-            // Disable the different camera offset on bikes in TLAD
-            if (bDefaultCameraAngleInTLaD)
-            {
-                auto pattern = hook::pattern("0F 44 C2 89 01 B0 ? C2 ? ? 8B 4C 24");
-                if (!pattern.empty())
-                {
-                    injector::MakeNOP(pattern.get_first(0), 5, true);
-                }
-                else
-                {
-                    pattern = hook::pattern("C7 00 ? ? ? ? B0 ? C2 ? ? 8B 44 24 ? C7 00 ? ? ? ? 83 3D");
-                    injector::MakeNOP(pattern.get_first(0), 6, true);
-                }
-            }
-
             // Disable the legacy 3D-era death animation played after an enemy falls and dies from a melee counter attack (TBoGT exclusive fix enabled for all episodes)
             if (bPedDeathAnimFixFromTBoGT)
             {
@@ -367,18 +525,6 @@ public:
                     pattern = hook::pattern("75 ? 80 7F ? ? 75 ? D9 EE");
                     injector::MakeNOP(pattern.get_first(0), 2, true); // jnz --> nop
                 }
-            }
-
-            // Disable the forced camera auto centering when getting to corners in cover
-            if (bDisableCameraCenteringInCover)
-            {
-                auto pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 47 ? F3 0F 11 47 ? 8B D1", "F3 0F 10 05 ? ? ? ? F3 0F 58 46 ? 89 8C 24");
-                injector::MakeNOP(pattern.get_first(0), 8, true);
-                static auto CTaskComplexNewUseCover__UpdateCoverStatus_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                {
-                    // This operates on or replaces CTimer::fTimeStep. Is this safe? At least for other related aspects; It works just fine to disable the centering for instance.
-                    regs.xmm0.f32[0] = FLT_MAX / 2.0f;
-                });
             }
 
             // Fix centered/twin reversing lights being attached to the headlights bone instead of the taillights bone
@@ -444,142 +590,6 @@ public:
                 {
                     pattern = hook::pattern("E8 ? ? ? ? 84 C0 75 ? A1 ? ? ? ? 83 F8 ? 74 ? 83 F8 ? 74 ? 83 F8");
                     injector::MakeNOP(pattern.get_first(0), 9, true);
-                }
-            }
-
-            // Camera centering delay/turn speed
-            {
-                // Timers
-                static uint32_t nTimeToPassBeforeCenteringCameraFollowPed = 0;
-                static uint32_t nTimeToPassBeforeCenteringCameraFollowVehicle = 0;
-
-                // Settings
-                static auto nTimeToWaitBeforeCenteringCameraFollowPed_KB = FusionFixSettings.GetRef("PREF_KBCAMCENTERDELAY");
-                static auto nTimeToWaitBeforeCenteringCameraFollowPed_Pad = FusionFixSettings.GetRef("PREF_PADCAMCENTERDELAY");
-
-                static auto nTimeToWaitBeforeCenteringCameraFollowVehicle_KB = FusionFixSettings.GetRef("PREF_KBCAMCENTERDELAYVEH");
-                static auto nTimeToWaitBeforeCenteringCameraFollowVehicle_Pad = FusionFixSettings.GetRef("PREF_PADCAMCENTERDELAYVEH");
-
-                static auto nCameraTurnSpeedFollowVehicle_KB = FusionFixSettings.GetRef("PREF_KBCAMTURNSPEEDVEH");
-                static auto nCameraTurnSpeedFollowVehicle_Pad = FusionFixSettings.GetRef("PREF_PADCAMTURNSPEEDVEH");
-
-                static auto ShouldCenter = [&](uint32_t& DelayTime, int DelaySetting, bool IsUsingPad) -> bool
-                {
-                    static uint32_t LastTime = 0;
-                    uint32_t CurrentTime = *CTimer::m_snTimeInMilliseconds;
-
-                    if (CurrentTime < LastTime)
-                        DelayTime = 0;
-
-                    LastTime = CurrentTime;
-
-                    int32_t X = 0, Y = 0;
-
-                    if (IsUsingPad)
-                    {
-                        Natives::GetPadState(0, 2, &X);
-                        Natives::GetPadState(0, 3, &Y);
-                    }
-                    else
-                        Natives::GetMouseInput(&X, &Y);
-
-                    if (X || Y)
-                    {
-                        DelayTime = CurrentTime + (DelaySetting * 500);
-                    }
-
-                    if (IsUsingPad && DelaySetting == 0)
-                        DelayTime = 0;
-
-                    return DelayTime < CurrentTime;
-                };
-
-                // CCamFollowPed
-                {
-                    auto pattern = find_pattern("F3 0F 11 4C 24 ? 85 DB 74", "F3 0F 11 44 24 ? 74 ? F6 86 ? ? ? ? ? 74");
-                    static auto reg = *pattern.get_first<uint8_t>(5);
-                    injector::MakeNOP(pattern.get_first(0), 6, true);
-                    static auto CCamFollowPed__Process_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                    {
-                        bool IsUsingPad = Natives::IsUsingController();
-                        int DelaySetting = IsUsingPad ? nTimeToWaitBeforeCenteringCameraFollowPed_Pad->get() : nTimeToWaitBeforeCenteringCameraFollowPed_KB->get();
-
-                        float f = (reg != 0x48) ? regs.xmm1.f32[0] : regs.xmm0.f32[0];
-                        float& AutoCenterValue = *(float*)(regs.esp + reg);
-
-                        if (ShouldCenter(nTimeToPassBeforeCenteringCameraFollowPed, DelaySetting, IsUsingPad))
-                            AutoCenterValue = f;
-                        else
-                            AutoCenterValue = 0.0f;
-                    });
-                }
-
-                // CCamFollowVehicle X axis
-                {
-                    auto pattern = hook::pattern("F3 0F 5E C1 F3 0F 11 44 24 ? 0F 84");
-                    static auto reg = *pattern.get_first<uint8_t>(9);
-                    injector::MakeNOP(pattern.get_first(0), 10, true);
-                    static auto CCamFollowVehicle__Process_Hook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                    {
-                        bool IsUsingPad = Natives::IsUsingController();
-                        int DelaySetting = IsUsingPad ? nTimeToWaitBeforeCenteringCameraFollowVehicle_Pad->get() : nTimeToWaitBeforeCenteringCameraFollowVehicle_KB->get();
-
-                        int TurnSpeed = IsUsingPad ? nCameraTurnSpeedFollowVehicle_Pad->get() : nCameraTurnSpeedFollowVehicle_KB->get();
-                        float f = regs.xmm0.f32[0] / (regs.xmm1.f32[0] * (1.0f - TurnSpeed * 0.1f));
-
-                        float& AutoCenterValue = *(float*)(regs.esp + reg);
-
-                        if (ShouldCenter(nTimeToPassBeforeCenteringCameraFollowVehicle, DelaySetting, IsUsingPad))
-                            AutoCenterValue = f;
-                        else
-                            AutoCenterValue = 0.0f;
-                    });
-                }
-
-                // CCamFollowVehicle Y axis
-                {
-                    auto pattern = hook::pattern("F3 0F 5E C8 F3 0F 10 04 85");
-                    if (!pattern.empty())
-                    {
-                        static auto dword_E9AA1C = *pattern.get_first<float*>(9);
-                        injector::MakeNOP(pattern.get_first(0), 22, true);
-                        static auto CCamFollowVehicle__Process_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                        {
-                            bool IsUsingPad = Natives::IsUsingController();
-                            int DelaySetting = IsUsingPad ? nTimeToWaitBeforeCenteringCameraFollowVehicle_Pad->get() : nTimeToWaitBeforeCenteringCameraFollowVehicle_KB->get();
-
-                            int TurnSpeed = IsUsingPad ? nCameraTurnSpeedFollowVehicle_Pad->get() : nCameraTurnSpeedFollowVehicle_KB->get();
-                            float f = regs.xmm1.f32[0] / (regs.xmm0.f32[0] * (1.0f - TurnSpeed * 0.1f));
-                            regs.xmm0.f32[0] = dword_E9AA1C[regs.eax];
-
-                            float& AutoCenterValue = *(float*)(regs.esp + 0x110 - 0x90);
-
-                            if (ShouldCenter(nTimeToPassBeforeCenteringCameraFollowVehicle, DelaySetting, IsUsingPad))
-                                AutoCenterValue = f;
-                            else
-                                AutoCenterValue = 0.0f;
-                        });
-                    }
-                    else
-                    {
-                        pattern = hook::pattern("F3 0F 5E C2 F3 0F 11 84 24 ? ? ? ? F3 0F 10 43");
-                        injector::MakeNOP(pattern.get_first(0), 13, true);
-                        static auto CCamFollowVehicle__Process_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                        {
-                            bool IsUsingPad = Natives::IsUsingController();
-                            int DelaySetting = IsUsingPad ? nTimeToWaitBeforeCenteringCameraFollowVehicle_Pad->get() : nTimeToWaitBeforeCenteringCameraFollowVehicle_KB->get();
-
-                            int TurnSpeed = IsUsingPad ? nCameraTurnSpeedFollowVehicle_Pad->get() : nCameraTurnSpeedFollowVehicle_KB->get();
-                            float f = regs.xmm0.f32[0] / (regs.xmm2.f32[0] * (1.0f - TurnSpeed * 0.1f));
-
-                            float& AutoCenterValue = *(float*)(regs.esp + 0x100 - 0x44);
-
-                            if (ShouldCenter(nTimeToPassBeforeCenteringCameraFollowVehicle, DelaySetting, IsUsingPad))
-                                AutoCenterValue = f;
-                            else
-                                AutoCenterValue = 0.0f;
-                        });
-                    }
                 }
             }
 
