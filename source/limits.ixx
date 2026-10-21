@@ -619,34 +619,38 @@ public:
             {
                 constexpr int NUM_STOCK_SLOTS = 0x19; // 25
                 constexpr int NUM_MAX_SLOTS = 64;
-                constexpr int STOCK_REQUESTED_AUDIO_HEAP = 0x7E00000;
+                static std::vector<uint32_t> extendedSlotsTable;
 
-                static std::vector<uint32_t> extendedSlotsTable((NUM_MAX_SLOTS + 2) * 4, 0);
-                auto aWaveSlots = *find_pattern("e8 ? ? ? ff 8b 87 3c 0a 00 00 83 f8 ff 74 0b c1 e0 04 8b 80 ? ? ? ? eb 02 33 c0").get_first<uintptr_t>(21);
-                // The first 32 bytes (8 32-bit words) are the header of the table, start binding after them.
-                auto WaveSlots = LimitAdjuster(aWaveSlots, 4, (NUM_STOCK_SLOTS + 2) * 4, 14).IncreaseBy(3).InsertNewArrayPointer((uint8_t*)&extendedSlotsTable[8]).ReplaceXrefs(0x0, 0x4, 0x8, 0xc);
-
-                // Original size passed to heap allecator is 0x7E00000 i.e 126 MiB
-                auto pattern = find_pattern("be 00 00 E0 07 e8 ? ? ? ff");
-                // Pass 192 MiB instead
-                injector::WriteMemory(pattern.get_first(1), 192 * 1024 * 1024, true);
-                // Original max slots the table could handle is 0x19 i.e 25
-                pattern = find_pattern("? 83 ? 10 83 ? 19 72");
-                // Increase to 64
-                injector::WriteMemory<uint8_t>(pattern.get_first(6), 64, true);
-
-                if (UAL::AddVirtualPathForOverloadW)
+                auto pattern = find_pattern("e8 ? ? ? ff 8b 87 3c 0a 00 00 83 f8 ff 74 0b c1 e0 04 8b 80 ? ? ? ? eb 02 33 c0");
+                if (!pattern.empty())
                 {
-                    std::wstring wPath;
-                    wPath.resize(MAX_PATH, L'\0');
-                    if (!UAL::GetOverloadPathW || !UAL::GetOverloadPathW(wPath.data(), wPath.size()))
+                    extendedSlotsTable.assign((NUM_MAX_SLOTS + 2) * 4, 0);
+                    auto aWaveSlots = *pattern.get_first<uintptr_t>(21);
+                    // The first 32 bytes (8 32-bit words) are the header of the table, start binding after them.
+                    auto WaveSlots = LimitAdjuster(aWaveSlots, 4, (NUM_STOCK_SLOTS + 2) * 4, 14).IncreaseBy(3).InsertNewArrayPointer((uint8_t*)&extendedSlotsTable[8]).ReplaceXrefs(0x0, 0x4, 0x8, 0xc);
+
+                    // Original size passed to heap allecator is 0x7E00000 i.e 126 MiB
+                    auto pattern = find_pattern("be 00 00 E0 07 e8 ? ? ? ff");
+                    // Pass 192 MiB instead
+                    injector::WriteMemory(pattern.get_first(1), 192 * 1024 * 1024, true);
+                    // Original max slots the table could handle is 0x19 i.e 25
+                    pattern = find_pattern("? 83 ? 10 83 ? 19 72");
+                    // Increase to 64
+                    injector::WriteMemory<uint8_t>(pattern.get_first(6), 64, true);
+
+                    if (UAL::AddVirtualPathForOverloadW)
                     {
-                        wPath = GetExeModulePath() / L"update";
+                        std::wstring wPath;
+                        wPath.resize(MAX_PATH, L'\0');
+                        if (!UAL::GetOverloadPathW || !UAL::GetOverloadPathW(wPath.data(), wPath.size()))
+                        {
+                            wPath = GetExeModulePath() / L"update";
+                        }
+                        auto updatePath = std::filesystem::path(wPath.data());
+                        auto extendedXmlPath = updatePath / L"pc/audio/config/extendedwaveslots.xml";
+                        auto xmlPath = GetExeModulePath() / std::filesystem::path(L"pc/audio/config/waveslots.xml");
+                        UAL::AddVirtualPathForOverloadW(xmlPath.c_str(), extendedXmlPath.c_str(), 1000);
                     }
-                    auto updatePath = std::filesystem::path(wPath.data());
-                    auto extendedXmlPath = updatePath / L"pc/audio/config/extendedwaveslots.xml";
-                    auto xmlPath = GetExeModulePath() / std::filesystem::path(L"pc/audio/config/waveslots.xml");
-                    UAL::AddVirtualPathForOverloadW(xmlPath.c_str(), extendedXmlPath.c_str(), 1000);
                 }
             }
         };
