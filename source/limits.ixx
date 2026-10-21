@@ -6,6 +6,7 @@ module;
 export module limits;
 
 import common;
+import comvars;
 import settings;
 
 class LimitAdjuster
@@ -633,6 +634,20 @@ public:
                 pattern = find_pattern("? 83 ? 10 83 ? 19 72");
                 // Increase to 64
                 injector::WriteMemory<uint8_t>(pattern.get_first(6), 64, true);
+
+                if (UAL::AddVirtualPathForOverloadW)
+                {
+                    std::wstring wPath;
+                    wPath.resize(MAX_PATH, L'\0');
+                    if (!UAL::GetOverloadPathW || !UAL::GetOverloadPathW(wPath.data(), wPath.size()))
+                    {
+                        wPath = GetExeModulePath() / L"update";
+                    }
+                    auto updatePath = std::filesystem::path(wPath.data());
+                    auto extendedXmlPath = updatePath / L"pc/audio/config/extendedwaveslots.xml";
+                    auto xmlPath = GetExeModulePath() / std::filesystem::path(L"pc/audio/config/waveslots.xml");
+                    UAL::AddVirtualPathForOverloadW(xmlPath.c_str(), extendedXmlPath.c_str(), 1000);
+                }
             }
         };
     }
