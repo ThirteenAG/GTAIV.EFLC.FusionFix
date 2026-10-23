@@ -1,0 +1,742 @@
+<WaveSlots>
+  <Slot>
+    <Name content="ascii">AMBIENT_RESIDENT</Name>
+    <MaxHeaderSize value="20480" />
+    <LoadType content="ascii">BANK</LoadType>
+    <StaticBank content="ascii">RESIDENT\AMB_RESIDENT</StaticBank>
+    <Size value="8777728" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">AMBIENT_SCRIPT_SLOT_0</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="552960" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">AMBIENT_SCRIPT_SLOT_1</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="552960" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">AMBIENT_SCRIPT_SLOT_2</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="552960" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">AMBIENT_SCRIPT_SLOT_3</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="552960" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">AMBIENT_SCRIPT_SLOT_4</Name>
+    <MaxHeaderSize value="4096" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="3354624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">COLLISIONS</Name>
+    <MaxHeaderSize value="49152" />
+    <LoadType content="ascii">BANK</LoadType>
+    <StaticBank content="ascii">RESIDENT\COLLISIONS</StaticBank>
+    <Size value="20799488" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">DJ_SPEECH</Name>
+    <MaxHeaderSize value="14336" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="446464" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">DOORS</Name>
+    <MaxHeaderSize value="6144" />
+    <LoadType content="ascii">BANK</LoadType>
+    <StaticBank content="ascii">RESIDENT\DOORS</StaticBank>
+    <Size value="960512" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">ENGINE_RESIDENT</Name>
+    <MaxHeaderSize value="4096" />
+    <LoadType content="ascii">BANK</LoadType>
+    <StaticBank content="ascii">RESIDENT\ENGINE_RESIDENT</StaticBank>
+    <Size value="1069056" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">EXPLOSIONS</Name>
+    <MaxHeaderSize value="8192" />
+    <LoadType content="ascii">BANK</LoadType>
+    <StaticBank content="ascii">RESIDENT\EXPLOSIONS</StaticBank>
+    <Size value="10930176" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">FEET_RESIDENT</Name>
+    <MaxHeaderSize value="14336" />
+    <LoadType content="ascii">BANK</LoadType>
+    <StaticBank content="ascii">RESIDENT\FEET_RESIDENT</StaticBank>
+    <Size value="3147776" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">FRONTEND_GAME</Name>
+    <MaxHeaderSize value="4096" />
+    <LoadType content="ascii">BANK</LoadType>
+    <StaticBank content="ascii">RESIDENT\FRONTEND_GAME</StaticBank>
+    <Size value="4689920" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">FRONTEND_MENU</Name>
+    <MaxHeaderSize value="4096" />
+    <LoadType content="ascii">BANK</LoadType>
+    <StaticBank content="ascii">RESIDENT\FRONTEND_MENU</StaticBank>
+    <Size value="1525760" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">GPS</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="2539520" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">HELICOPTER</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <StaticBank content="ascii">RESIDENT\HELICOPTER</StaticBank>
+    <Size value="2451456" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">HORNS</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <StaticBank content="ascii">RESIDENT\HORNS</StaticBank>
+    <Size value="1136640" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">MELEE_COMBAT</Name>
+    <MaxHeaderSize value="4096" />
+    <LoadType content="ascii">BANK</LoadType>
+    <StaticBank content="ascii">RESIDENT\MELEE</StaticBank>
+    <Size value="1288192" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">MISSION_SCRIPT_SLOT</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="724992" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">MONTAGE</Name>
+    <MaxHeaderSize value="133120" />
+    <LoadType content="ascii">STREAM</LoadType>
+    <Size value="1153024" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">NIKO_0</Name>
+    <MaxHeaderSize value="59392" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="172032" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">NIKO_1</Name>
+    <MaxHeaderSize value="59392" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="172032" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">PAIN_FEMALE_0</Name>
+    <MaxHeaderSize value="59392" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="147456" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">PAIN_FEMALE_1</Name>
+    <MaxHeaderSize value="59392" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="147456" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">PAIN_MALE_0</Name>
+    <MaxHeaderSize value="59392" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="157696" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">PAIN_MALE_1</Name>
+    <MaxHeaderSize value="59392" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="157696" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">PLAYER_RINGTONE</Name>
+    <MaxHeaderSize value="4096" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="114688" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">PLAYER_SPEECH</Name>
+    <MaxHeaderSize value="1730560" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="92160" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">RADIO1_A</Name>
+    <MaxHeaderSize value="133120" />
+    <LoadType content="ascii">STREAM</LoadType>
+    <Size value="1153024" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">RADIO1_B</Name>
+    <MaxHeaderSize value="133120" />
+    <LoadType content="ascii">STREAM</LoadType>
+    <Size value="1153024" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">RADIO2_A</Name>
+    <MaxHeaderSize value="133120" />
+    <LoadType content="ascii">STREAM</LoadType>
+    <Size value="1153024" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">RADIO2_B</Name>
+    <MaxHeaderSize value="133120" />
+    <LoadType content="ascii">STREAM</LoadType>
+    <Size value="1153024" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">RADIO3_A</Name>
+    <MaxHeaderSize value="133120" />
+    <LoadType content="ascii">STREAM</LoadType>
+    <Size value="1153024" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">RADIO3_B</Name>
+    <MaxHeaderSize value="133120" />
+    <LoadType content="ascii">STREAM</LoadType>
+    <Size value="1153024" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SCANNER_01</Name>
+    <MaxHeaderSize value="6144" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="49152" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SCANNER_02</Name>
+    <MaxHeaderSize value="10240" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="47104" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SCANNER_03</Name>
+    <MaxHeaderSize value="12288" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="40960" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SCANNER_04</Name>
+    <MaxHeaderSize value="12288" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="40960" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SCANNER_RESIDENT</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <StaticBank content="ascii">RESIDENT\SCANNER_RESIDENT</StaticBank>
+    <Size value="774144" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SCANNER_SMALL_01</Name>
+    <MaxHeaderSize value="4096" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="18432" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SCANNER_SMALL_02</Name>
+    <MaxHeaderSize value="4096" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="18432" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SCANNER_SMALL_03</Name>
+    <MaxHeaderSize value="4096" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="18432" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SCANNER_SMALL_04</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="12288" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SCRIPT_SPEECH_0</Name>
+    <MaxHeaderSize value="2185216" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="194560" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SCRIPT_SPEECH_1</Name>
+    <MaxHeaderSize value="2185216" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="194560" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SCRIPT_SPEECH_2</Name>
+    <MaxHeaderSize value="2185216" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="194560" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SCRIPT_SPEECH_3</Name>
+    <MaxHeaderSize value="2185216" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="194560" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SCRIPT_SPEECH_4</Name>
+    <MaxHeaderSize value="2185216" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="194560" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SCRIPT_SPEECH_5</Name>
+    <MaxHeaderSize value="2185216" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="194560" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SCRIPT_SPEECH_6</Name>
+    <MaxHeaderSize value="2185216" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="194560" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SCRIPT_SPEECH_7</Name>
+    <MaxHeaderSize value="2185216" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="194560" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SPEECH_0</Name>
+    <MaxHeaderSize value="1730560" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="92160" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SPEECH_1</Name>
+    <MaxHeaderSize value="1730560" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="92160" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SPEECH_2</Name>
+    <MaxHeaderSize value="1730560" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="92160" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SPEECH_3</Name>
+    <MaxHeaderSize value="1730560" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="92160" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SPEECH_4</Name>
+    <MaxHeaderSize value="1730560" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="92160" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SPEECH_5</Name>
+    <MaxHeaderSize value="1730560" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="92160" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SPEECH_6</Name>
+    <MaxHeaderSize value="1730560" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="92160" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SPEECH_7</Name>
+    <MaxHeaderSize value="1730560" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="92160" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SPEECH_8</Name>
+    <MaxHeaderSize value="1730560" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="92160" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SPEECH_RELATED_RESIDENT</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <StaticBank content="ascii">RESIDENT\SPEECH_RELATED</StaticBank>
+    <Size value="503808" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SPEECH_TEST</Name>
+    <MaxHeaderSize value="2185216" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="194560" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_1</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_10</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_11</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_12</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_13</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_14</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_15</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_16</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_17</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_18</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_19</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_2</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_20</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_21</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_22</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_23</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_24</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_25</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_26</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_27</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_28</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_29</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_3</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_30</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_31</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_32</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_33</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_34</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_35</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_36</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_37</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_38</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_39</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_4</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_40</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_41</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_42</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_43</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_44</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_45</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_46</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_47</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_48</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_49</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_5</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_50</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_6</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_7</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_8</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">STREAM_ENGINE_9</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <Size value="794624" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SUBWAY_TRAIN</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <StaticBank content="ascii">RESIDENT\TRAIN</StaticBank>
+    <Size value="1925120" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">TEST</Name>
+    <MaxHeaderSize value="28672" />
+    <LoadType content="ascii">BANK</LoadType>
+    <StaticBank content="ascii">TESTPACK\TESTBANK</StaticBank>
+    <Size value="26793984" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">VEHICLE_EXTRAS</Name>
+    <MaxHeaderSize value="10240" />
+    <LoadType content="ascii">BANK</LoadType>
+    <StaticBank content="ascii">RESIDENT\EXTRAS</StaticBank>
+    <Size value="3721216" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">WATER</Name>
+    <MaxHeaderSize value="4096" />
+    <LoadType content="ascii">BANK</LoadType>
+    <StaticBank content="ascii">RESIDENT\WATER</StaticBank>
+    <Size value="3026944" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">WEAPONS</Name>
+    <MaxHeaderSize value="20480" />
+    <LoadType content="ascii">BANK</LoadType>
+    <StaticBank content="ascii">RESIDENT\WEAPONS</StaticBank>
+    <Size value="13174784" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">WEATHER_RAIN</Name>
+    <MaxHeaderSize value="4096" />
+    <LoadType content="ascii">BANK</LoadType>
+    <StaticBank content="ascii">RESIDENT\RAIN</StaticBank>
+    <Size value="3348480" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">WHEEL_LOOPS</Name>
+    <MaxHeaderSize value="2048" />
+    <LoadType content="ascii">BANK</LoadType>
+    <StaticBank content="ascii">RESIDENT\WHEEL_LOOPS</StaticBank>
+    <Size value="1941504" />
+  </Slot>
+  <Slot>
+    <Name content="ascii">SCRATCH_HEADER_WAVE_SLOT</Name>
+    <MaxHeaderSize value="0" />
+    <LoadType content="ascii">WAVE</LoadType>
+    <Size value="2185216" />
+  </Slot>
+</WaveSlots>
