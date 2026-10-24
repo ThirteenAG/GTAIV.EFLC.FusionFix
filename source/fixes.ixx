@@ -177,6 +177,101 @@ bool __cdecl NATIVE_COMPARE_STRING_2(const char* a1, const char* a2)
     return a1 && a2 && IsBadReadPtr(a1, 1) == 0 && IsBadReadPtr(a2, 1) == 0 && strcmp(a1, a2) == 0;
 }
 
+namespace CWater
+{
+    SafetyHookMid shDeferBufferFlip = {};
+    SafetyHookMid shCommitBufferFlip = {};
+    static uint32_t* pBufferIndex = nullptr;
+    static uint8_t* pSyncMode = nullptr;
+    static uintptr_t FlipResume = 0;
+    static uintptr_t SafetyHookContext::*pFlipRegister = nullptr;
+    static uint32_t PendingBufferIndex = 0;
+    static bool bFlipPending = false;
+
+    void DeferBufferFlip(SafetyHookContext& regs)
+    {
+        // Mode 1 already waits at the end of the previous Synchronise.
+        if (*pSyncMode != 0)
+            return;
+
+        // Both callbacks run on the producer thread. Preserve the original
+        // target and any condition that guarded the store (including on 1.0.7.0).
+        if (!bFlipPending)
+        {
+            PendingBufferIndex = regs.*pFlipRegister;
+            bFlipPending = true;
+        }
+        regs.eip = FlipResume;
+    }
+
+    void CommitBufferFlip(SafetyHookContext&)
+    {
+        // The old render list has finished, and the new one has not been signaled.
+        if (bFlipPending)
+        {
+            *pBufferIndex = PendingBufferIndex;
+            bFlipPending = false;
+        }
+    }
+
+    void FixBufferFlip()
+    {
+        auto pattern = find_pattern(
+            "2B 0D ? ? ? ? FF 05 ? ? ? ? 89 0D ? ? ? ? 5E C3",
+            "BA 01 00 00 00 2B 15 ? ? ? ? 89 15 ? ? ? ? 83 05 ? ? ? ? 01 C3",
+            "B8 01 00 00 00 2B 05 ? ? ? ? 83 05 ? ? ? ? 01 A3 ? ? ? ? C3");
+        if (pattern.size() != 1)
+            return;
+
+        auto pFlip = pattern.get_first<uint8_t>();
+        uint8_t* pStore = nullptr;
+        uint32_t* pReadIndex = nullptr;
+        if (*pFlip == 0x2B) // Complete Edition
+        {
+            pStore = pFlip + 12;
+            pReadIndex = *(uint32_t**)(pFlip + 2);
+            pFlipRegister = &SafetyHookContext::ecx;
+        }
+        else // 1.0.7.0 / 1.0.8.0
+        {
+            pStore = pFlip + (*pFlip == 0xBA ? 11 : 18);
+            pReadIndex = *(uint32_t**)(pFlip + 7);
+            pFlipRegister = *pFlip == 0xBA ? &SafetyHookContext::edx : &SafetyHookContext::eax;
+        }
+        pBufferIndex = *(uint32_t**)(pStore + (*pStore == 0xA3 ? 1 : 2));
+        FlipResume = (uintptr_t)pStore + (*pStore == 0xA3 ? 5 : 6);
+        if (pBufferIndex != pReadIndex)
+            return;
+
+        pattern = find_pattern(
+            "51 56 8B F1 80 BE C8 0F 00 00 00 75 0B 8D 8E AC 0F 00 00 E8 ? ? ? ? 80 3D ? ? ? ? 00 57 BF 01 00 00 00",
+            "51 56 8B F1 80 BE C8 0F 00 00 00 75 0F 8B 86 B8 0F 00 00 50 E8 ? ? ? ? 83 C4 04 80 3D ? ? ? ? 00 57 BF 01 00 00 00");
+        if (pattern.size() != 1)
+            return;
+
+        auto pSynchronise = pattern.get_first<uint8_t>();
+        auto pAfterWait = pSynchronise + 13 + pSynchronise[12];
+        pattern = hook::pattern("B9 ? ? ? ? E8 ? ? ? ? 83 3F 00 76 ? FF");
+        if (pattern.size() != 1 || injector::GetBranchDestination(pattern.get_first(5)).get<void>() != pSynchronise)
+            return;
+
+        pSyncMode = *pattern.get_first<uint8_t*>(1) + 0xFC8;
+
+        // Prepare both hooks before changing code. Enable the commit hook first
+        // so a selector write can never be deferred without a place to publish it.
+        shCommitBufferFlip = safetyhook::create_mid(pAfterWait, CommitBufferFlip, SafetyHookMid::StartDisabled);
+        shDeferBufferFlip = safetyhook::create_mid(pStore, DeferBufferFlip, SafetyHookMid::StartDisabled);
+        if (!shCommitBufferFlip || !shDeferBufferFlip)
+            return;
+
+        if (!shCommitBufferFlip.enable())
+            return;
+
+        if (!shDeferBufferFlip.enable())
+            (void)shCommitBufferFlip.disable();
+    }
+}
+
 class Fixes
 {
 public:
@@ -981,6 +1076,9 @@ public:
                         return_to(loc_BA91F2);
                 });
             }
+
+            // Keep the water render buffer stable until the render thread finishes.
+            CWater::FixBufferFlip();
 
             // Water flicker mitigation experiment
             {
