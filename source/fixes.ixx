@@ -180,6 +180,8 @@ bool __cdecl NATIVE_COMPARE_STRING_2(const char* a1, const char* a2)
 namespace CWater
 {
     static uint32_t* pBufferIndex = nullptr;
+    static uint32_t* pSharedBufferIndex = nullptr;
+    static uint32_t RenderBufferIndex = 0;
     static uint8_t* pSyncMode = nullptr;
     static uintptr_t FlipResume = 0;
     static uintptr_t SafetyHookContext::*pFlipRegister = nullptr;
@@ -203,7 +205,9 @@ namespace CWater
 
     void CommitBufferFlip(SafetyHookContext&)
     {
-        if (bFlipPending)
+        if (pSharedBufferIndex)
+            RenderBufferIndex = *pSharedBufferIndex;
+        else if (bFlipPending)
         {
             *pBufferIndex = PendingBufferIndex;
             bFlipPending = false;
@@ -220,7 +224,6 @@ namespace CWater
         if (pattern.size() != 1)
             return;
 
-        // Defer only the store: patch 7 may skip it, and its counter must still advance.
         auto pFlip = pattern.get_first<uint8_t>();
         uint8_t* pStore = nullptr;
         uint32_t* pReadIndex = nullptr;
@@ -256,10 +259,43 @@ namespace CWater
 
         pSyncMode = *pattern.get_first<uint8_t*>(1) + 0xFC8;
 
-        // The commit hook must be active before any selector write is deferred.
+        std::vector<uint32_t**> RenderBufferReads;
+        if (*pFlip == 0xBA)
+        {
+            // Patch 7 shares its selector with surface textures; redirect only geometry reads.
+            for (auto signature : {
+                "A1 ? ? ? ? 69 C0 C4 10 00 00 89 0D ? ? ? ? 89 15",
+                "8B 0D ? ? ? ? 8B 7D 08 8B D1 69 D2 31 04 00 00 8B C7 2B C2 03 C0 8B B4",
+                "8B 0D ? ? ? ? 8B D1 69 D2 31 04 00 00 8B C7 2B C2 03 C0 8B 94",
+                "8B 0D ? ? ? ? 8B 7D 08 8B D1 69 D2 31 04 00 00 8B C7 2B C2 03 C0 8B 94",
+                "8B 0D ? ? ? ? F3 0F 10 0D ? ? ? ? 83 C4 20 8B D1 69 D2 31 04 00 00" })
+            {
+                auto readPattern = find_pattern<2>(signature);
+                if (readPattern.size() != 1)
+                    return;
+
+                auto pRead = readPattern.get_first<uint8_t>();
+                auto pOperand = (uint32_t**)(pRead + (*pRead == 0xA1 ? 1 : 2));
+                if (*pOperand != pBufferIndex)
+                    return;
+
+                RenderBufferReads.push_back(pOperand);
+            }
+            pSharedBufferIndex = pBufferIndex;
+            RenderBufferIndex = *pSharedBufferIndex;
+        }
+
+        // Install the commit hook before changing any selector access.
         static auto CommitBufferFlipHook = safetyhook::create_mid(pAfterWait, CommitBufferFlip);
         if (!CommitBufferFlipHook)
             return;
+
+        if (pSharedBufferIndex)
+        {
+            for (auto pOperand : RenderBufferReads)
+                injector::WriteMemory(pOperand, &RenderBufferIndex, true);
+            return;
+        }
 
         static auto DeferBufferFlipHook = safetyhook::create_mid(pStore, DeferBufferFlip);
         if (!DeferBufferFlipHook)
