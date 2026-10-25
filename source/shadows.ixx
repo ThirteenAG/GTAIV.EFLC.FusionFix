@@ -88,12 +88,12 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            CIniReader iniReader("");
+            SettingsReader reader;
 
             // [SHADOWS]
-            bExtraDynamicShadows    = iniReader.ReadInteger("SHADOWS", "ExtraDynamicShadows",    2);
-            bDynamicShadowsForTrees = iniReader.ReadInteger("SHADOWS", "DynamicShadowsForTrees", 1) != 0;
-            bHighResolutionShadows  = iniReader.ReadInteger("SHADOWS", "HighResolutionShadows",  0) != 0;
+            bExtraDynamicShadows    = reader.ReadInteger("SHADOWS", "ExtraDynamicShadows",    2);
+            bDynamicShadowsForTrees = reader.ReadInteger("SHADOWS", "DynamicShadowsForTrees", 1) != 0;
+            bHighResolutionShadows  = reader.ReadInteger("SHADOWS", "HighResolutionShadows",  0) != 0;
 
             // Dynamic shadows for trees
             if (bDynamicShadowsForTrees)

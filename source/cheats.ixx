@@ -190,9 +190,9 @@ public:
 
         FusionFix::onInitEventAsync() += []()
         {
-            CIniReader iniReader("");
-            bool bSnowCheat = iniReader.ReadInteger("CHEATS", "SnowCheat", 0) != 0;
-            bool bHalloweenCheat = iniReader.ReadInteger("CHEATS", "HalloweenCheat", 0) != 0;
+            SettingsReader reader;
+            bool bSnowCheat = reader.ReadInteger("CHEATS", "SnowCheat", 0) != 0;
+            bool bHalloweenCheat = reader.ReadInteger("CHEATS", "HalloweenCheat", 0) != 0;
 
             if (bSnowCheat)
                 FusionFix::onGameInitEvent() += []() { SnowCheat(); };

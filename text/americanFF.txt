@@ -10,6 +10,9 @@ Windowed
 [Borderless]
 Windowed Borderless
 
+[FF_BORDERLESS]
+Borderless
+
 [Focus Loss]
 Pause Game On Focus Loss
 
@@ -24,6 +27,18 @@ Cutscene Letterbox
 
 [Pillarbox]
 Cutscene Pillarbox
+
+[CutscBars]
+Cutscene Black Bars
+
+[CutscBars1]
+Pillarbox
+
+[CutscBars2]
+Letterbox
+
+[CutscBars3]
+Letterbox + Pillarbox
 
 [Alt. Dialogues]
 Alternate Dialogues
@@ -133,9 +148,6 @@ Ambient Occlusion
 [Zoomed Movement]
 Allow Movement When Zoomed
 
-[Distant Lights]
-Distant Lights
-
 [CenteredVehCam]
 Centered Vehicle Camera
 
@@ -153,18 +165,6 @@ Fence Climb & Car Jack Camera
 
 [FE_STEAMPAD]
 Steam Controller
-
-[CutscAudioSync]
-Cutscene Audio Sync
-
-[CutscAudioSync0]
-Cutscene Audio Sync - Off
-
-[CutscAudioSync1]
-Cutscene Audio Sync - Alternative
-
-[CutscAudioSync2]
-Cutscene Audio Sync - On
 
 [Turn Indicators]
 Turn Indicators
@@ -192,6 +192,9 @@ Streaming budget
 
 [Graphics API]
 Graphics API
+
+[FF_ADVANCED]
+Advanced
 
 [FF_RESTART]
 GTA IV must be restarted in order to apply settings.
@@ -241,9 +244,6 @@ Alternative
 [FF_WARN6]
 ~r~WARNING: CHSS only takes effect with Shadow Quality set to Very High.
 
-[FF_WARN7]
-~r~WARNING: Set Cutscene Audio Sync ON if you have audio desynchronization, OFF for animation smoothness. It can be toggled in a cutscene via ~PAD_UP~
-
 [USJ_FRST_KMB]
 During the stunt camera mode use ~INPUT_MOUSE_WHEEL_UP~ and ~INPUT_MOUSE_WHEEL_DOWN~ to control the slow motion speed.
 
@@ -264,6 +264,18 @@ Use ~PAD_LSTICK_ALL~ to move in the air. ~n~Press ~INPUT_MOUSE_LMB~ to activate 
 
 [ESS_PARA1_PC]
 When airborne use ~PAD_LSTICK_ALL~ to move. In freefall press ~INPUT_MOUSE_LMB~ to activate parachute. ~n~Hold ~INPUT_VEH_CIN_CAM~ to view different cameras.
+
+[FF_HDRCAL_PEAK]
+Increase until the logo in the box is barely visible. If your TV has HGIG, turn it on first.
+
+[FF_HDRCAL_PAPER]
+Set to a comfortable brightness for menus and the HUD. The logo in the box shows this brightness.
+
+[FF_HDRCAL_HDR]
+Select a brightness setting below to see its calibration pattern.
+
+[FF_HDRCAL_SDR]
+The calibration patterns of the brightness settings appear here when HDR output is on.
 
 [DUMMY_l11]
 Dummy label.

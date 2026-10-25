@@ -164,7 +164,9 @@ private:
         renderTargetDesc.field_24 = false;
         renderTargetDesc.mFormat = rage::getEngineTextureFormat(backBufferInfo.format);
 
-        auto* renderTarget = rage::grcTextureFactory::GetInstance()->CreateRenderTarget("ConsoleGammaScene", 3, backBufferInfo.width, backBufferInfo.height, 32, &renderTargetDesc);
+        // The back buffer is 16-bit float with HDR output
+        auto bitsPerPixel = backBufferInfo.format == D3DFMT_A16B16G16R16F ? 64 : 32;
+        auto* renderTarget = rage::grcTextureFactory::GetInstance()->CreateRenderTarget("ConsoleGammaScene", 3, backBufferInfo.width, backBufferInfo.height, bitsPerPixel, &renderTargetDesc);
 
         if (!renderTarget)
             return false;
@@ -230,7 +232,12 @@ private:
     static void Render(IDirect3DDevice9* device)
     {
         if (nConsoleGammaMode == 0 || !device)
+        {
+            // The copy of the scene exists only while the option is on
+            if (pSceneRT)
+                ReleaseSceneTexture();
             return;
+        }
 
         if (!LoadEffectFile(device) || !CreateSceneTexture(device))
             return;

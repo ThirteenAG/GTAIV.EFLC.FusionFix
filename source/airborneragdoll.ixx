@@ -9,6 +9,7 @@ export module airborneragdoll;
 import common;
 import comvars;
 import natives;
+import settings;
 
 namespace AirborneRagdoll
 {
@@ -424,11 +425,11 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            CIniReader iniReader("");
+            SettingsReader reader;
 
             // [MISC]
-            AirborneRagdoll::bPlayerJumpRagdollControl = iniReader.ReadInteger("MISC", "PlayerJumpRagdollControl", 0) != 0;
-            AirborneRagdoll::bPlayerClimbRagdollControl = iniReader.ReadInteger("MISC", "PlayerClimbRagdollControl", 0) != 0;
+            AirborneRagdoll::bPlayerJumpRagdollControl = reader.ReadInteger("MISC", "PlayerJumpRagdollControl", 0) != 0;
+            AirborneRagdoll::bPlayerClimbRagdollControl = reader.ReadInteger("MISC", "PlayerClimbRagdollControl", 0) != 0;
 
             if (AirborneRagdoll::bPlayerJumpRagdollControl || AirborneRagdoll::bPlayerClimbRagdollControl)
             {

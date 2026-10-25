@@ -10,6 +10,9 @@ Ventana
 [Borderless]
 Ventana sin bordes
 
+[FF_BORDERLESS]
+Sin bordes
+
 [Focus Loss]
 Pausar en segundo plano
 
@@ -24,6 +27,18 @@ Barras horizontales en escenas
 
 [Pillarbox]
 Barras laterales en escenas
+
+[CutscBars]
+Barras en escenas
+
+[CutscBars1]
+Barras laterales
+
+[CutscBars2]
+Barras horizontales
+
+[CutscBars3]
+Horizontales + laterales
 
 [Alt. Dialogues]
 Diálogos alternativos
@@ -133,9 +148,6 @@ Oclusión ambiental
 [Zoomed Movement]
 Permitir movimiento al acercar la mirilla
 
-[Distant Lights]
-Luces a lo lejos
-
 [CenteredVehCam]
 Centrar la cámara del vehículo
 
@@ -153,18 +165,6 @@ Cámara al trepar vallas y robar coches
 
 [FE_STEAMPAD]
 Steam Controller
-
-[CutscAudioSync]
-Sincronizar audio durante las escenas cinemáticas
-
-[CutscAudioSync0]
-Sincronizar audio durante las escenas cinemáticas - No
-
-[CutscAudioSync1]
-Sincronizar audio durante las escenas cinemáticas - Alternativo
-
-[CutscAudioSync2]
-Sincronizar audio durante las escenas cinemáticas - Sí
 
 [Turn Indicators]
 Indicadores de giro
@@ -192,6 +192,9 @@ Recurso de memoria de «streaming»
 
 [Graphics API]
 API gráfica
+
+[FF_ADVANCED]
+Avanzado
 
 [FF_RESTART]
 Es necesario reiniciar GTA IV para aplicar el ajuste.
@@ -241,9 +244,6 @@ Alternativo
 [FF_WARN6]
 ~r~NOTA: «CHSS» solo tiene efecto cuando la calidad de las sombras está establecida en «Muy alta».
 
-[FF_WARN7]
-~r~NOTA: Activa la sincronización de audio de las escenas cinemáticas si tienes desincronización de audio, y desactívala para que la animación sea más fluida. Se puede activar o desactivar en una escena cinemática con ~PAD_UP~.
-
 [USJ_FRST_KMB]
 Durante el modo cámara acrobática, usa ~INPUT_MOUSE_WHEEL_UP~ y ~INPUT_MOUSE_WHEEL_DOWN~ para controlar la velocidad de la cámara lenta.
 
@@ -264,6 +264,18 @@ Usa ~PAD_LSTICK_ALL~ para moverte en el aire. ~n~Pulsa ~INPUT_MOUSE_LMB~ para ab
 
 [ESS_PARA1_PC]
 En el aire, usa ~PAD_LSTICK_ALL~ para moverte. En caída libre, pulsa ~INPUT_MOUSE_LMB~ para abrir el paracaídas. ~n~Mantén pulsado ~INPUT_VEH_CIN_CAM~ para ver las distintas cámaras.
+
+[FF_HDRCAL_PEAK]
+Aumenta hasta que el logotipo del recuadro apenas se vea. Si tu televisor tiene HGIG, actívalo antes.
+
+[FF_HDRCAL_PAPER]
+Ajusta un brillo cómodo para los menús y el HUD. El logotipo del recuadro se muestra con este brillo.
+
+[FF_HDRCAL_HDR]
+Selecciona un ajuste de brillo de abajo para ver su patrón de calibración.
+
+[FF_HDRCAL_SDR]
+Los patrones de calibración de los ajustes de brillo aparecen aquí cuando la salida HDR está activada.
 
 [DUMMY_l11]
 Dummy label.

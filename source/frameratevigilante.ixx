@@ -127,6 +127,68 @@ namespace CPedIntelligence
             return shProcessStaticCounter.unsafe_fastcall(_this, edx);
         }
     }
+
+    // How pinned down a ped is (0-100, from being shot at) goes down by fTimeStep * 30 each frame, cut to a whole
+    // number. Below 1/30 s per frame that's 0: above 30 fps the amount never goes down, and peds that were shot at
+    // stay ducked in cover for good without peeking, firing or advancing. Taken off in whole points as they add up.
+    SafetyHookInline shDecreaseAmountPinnedDown = {};
+    void __fastcall DecreaseAmountPinnedDown(void* _this, void* edx, float fAmount)
+    {
+        auto PIExt = GetPedIntelligenceExt((uintptr_t)_this);
+        if (!PIExt)
+            return shDecreaseAmountPinnedDown.unsafe_fastcall(_this, edx, fAmount);
+
+        PIExt->m_fPinnedDownDecay += fAmount;
+        auto nPoints = (int)PIExt->m_fPinnedDownDecay;
+        PIExt->m_fPinnedDownDecay -= (float)nPoints;
+        return shDecreaseAmountPinnedDown.unsafe_fastcall(_this, edx, (float)nPoints);
+    }
+}
+
+// CTimer's millisecond clocks (the game's: GET_GAME_TIMER and the timers that use it, the camera's, the screen fades'
+// and the others) and the scripts' timers (TIMERA, TIMERB, WAIT) advance by the frame's time step in whole
+// milliseconds, the fraction dropped: at 144 fps 6.94 ms count as 6, so they run 14% slower than the real time, the
+// animations, the physics and the audio (4% at 60 or 120 fps). Among others, a screen fade then takes longer than the
+// cutscene it belongs to: Off Route's script finds the screen not faded out yet when its cutscene ends, doesn't fade it
+// back in, and the fade-out stays (the "infinite loading" screen). The fractions are carried over to the next frame.
+namespace MillisecondClocks
+{
+    constexpr size_t MaxClocks = 8;
+    float fRemainders[MaxClocks] = {};
+    uintptr_t pClocks[MaxClocks] = {}; // 1.0.8: the clock, its time step (s) is at +8
+    float fScriptRemainder = 0.0f;
+    int32_t nScriptCarry = 0;
+    uint32_t nScriptFrame = UINT32_MAX;
+
+    int32_t Carry(float& fRemainder, float fMs, int32_t nWholeMs)
+    {
+        if (nWholeMs != int32_t(fMs)) // not the step this was computed from: leave it
+            return 0;
+        fRemainder += fMs - float(nWholeMs);
+        auto nCarry = int32_t(fRemainder);
+        fRemainder -= float(nCarry);
+        return nCarry;
+    }
+
+    // CE: right after cvttss2si eax, xmm0 (xmm0 = time step * 1000)
+    template<size_t N>
+    void AfterTruncation(SafetyHookContext& regs)
+    {
+        regs.eax += Carry(fRemainders[N], regs.xmm0.f32[0], int32_t(regs.eax));
+    }
+
+    // 1.0.8: at add [clock], eax (eax = (int)(time step * 1000), the step stored at clock + 8)
+    template<size_t N>
+    void BeforeAdd(SafetyHookContext& regs)
+    {
+        regs.eax += Carry(fRemainders[N], *reinterpret_cast<float*>(pClocks[N] + 8) * 1000.0f, int32_t(regs.eax));
+    }
+
+    template<size_t... N>
+    constexpr auto MakeTable(std::index_sequence<N...>, bool bAfterTruncation)
+    {
+        return std::array<void(*)(SafetyHookContext&), MaxClocks>{ (bAfterTruncation ? &AfterTruncation<N> : &BeforeAdd<N>)... };
+    }
 }
 
 namespace CHandShaker
@@ -645,6 +707,46 @@ bool __cdecl NATIVE_SLIDE_OBJECT_2(Object object, float x, float y, float z, flo
     return shNATIVE_SLIDE_OBJECT.unsafe_ccall<bool>(object, x, y, z, xs * f, ys * f, zs * f, flag);
 }
 
+// Some mission cutscenes zoom by stepping a camera's FOV a fixed amount every script frame (fov += 0.05, WAIT 0)
+// while the shot itself lasts a fixed time, so the higher the frame rate, the further the camera zooms in or out.
+// Consecutive per-frame steps from these scripts are scaled to the 30 fps they were written for.
+injector::hook_back<decltype(&Natives::SetCamFov)> hbSET_CAM_FOV;
+void __cdecl NATIVE_SET_CAM_FOV(Camera camera, float fov)
+{
+    struct CamFovRamp
+    {
+        Camera camera;
+        uint32_t frame;
+        float requested;
+        float applied;
+    };
+    static CamFovRamp ramps[4] = {};
+    static uint32_t nextRamp = 0;
+
+    auto thread = rage::scrThread::GetActiveThread();
+    if (thread && (!_stricmp(thread->m_szProgramName, "roman2") || !_stricmp(thread->m_szProgramName, "derrick3") || !_stricmp(thread->m_szProgramName, "francis2b")))
+    {
+        auto ramp = std::find_if(std::begin(ramps), std::end(ramps), [camera](const CamFovRamp& r) { return r.camera == camera; });
+        if (ramp == std::end(ramps))
+        {
+            ramp = &ramps[nextRamp];
+            nextRamp = (nextRamp + 1) % std::size(ramps);
+            *ramp = { camera, 0, 0.0f, 0.0f };
+        }
+
+        auto frame = *CTimer::m_frameCount;
+        auto step = fov - ramp->requested;
+        auto applied = fov;
+        if (frame == ramp->frame + 1 && step != 0.0f && std::abs(step) <= 0.1f)
+            applied = ramp->applied + step * (*CTimer::fTimeStep / (1.0f / 30.0f));
+
+        *ramp = { camera, frame, fov, applied };
+        fov = applied;
+    }
+
+    return hbSET_CAM_FOV.fun(camera, fov);
+}
+
 class FramerateVigilante
 {
 public:
@@ -820,6 +922,70 @@ public:
             {
                 auto pattern = find_pattern("83 EC ? 56 8B F1 57 8B 46 ? C7 44 24", "55 8B EC 83 E4 ? 83 EC ? 56 8B F1 8B 46 ? 8B 88 ? ? ? ? 57");
                 CPedIntelligence::shProcessStaticCounter = safetyhook::create_inline(pattern.get_first(0), CPedIntelligence::ProcessStaticCounter);
+            }
+
+            // Keep the fractions of milliseconds of CTimer's clocks and of the scripts' timers
+            {
+                static std::vector<SafetyHookMid> ClockHooks;
+                auto ms = reinterpret_cast<uintptr_t>(CTimer::m_snTimeInMilliseconds);
+                auto pattern = hook::pattern(std::format("F3 0F 5E C1 01 05 {:02X} {:02X} {:02X} {:02X}", ms & 0xFF, (ms >> 8) & 0xFF, (ms >> 16) & 0xFF, ms >> 24));
+                if (!pattern.empty())
+                {
+                    // CE, CTimer::Update: each clock's step is truncated by its own cvttss2si eax, xmm0, followed by
+                    // movss xmm0, [1.0] or add [clock], eax; all within a few hundred bytes of the game clock's
+                    static constexpr auto Table = MillisecondClocks::MakeTable(std::make_index_sequence<MillisecondClocks::MaxClocks>{}, true);
+                    auto pGameAdd = pattern.get_first<uint8_t>(4);
+                    size_t n = 0;
+                    for (auto p = pGameAdd - 0x40; p < pGameAdd + 0x300 && n < MillisecondClocks::MaxClocks; ++p)
+                    {
+                        if (p[0] == 0xF3 && p[1] == 0x0F && p[2] == 0x2C && p[3] == 0xC0 &&
+                            ((p[4] == 0xF3 && p[5] == 0x0F && p[6] == 0x10 && p[7] == 0x05) || (p[4] == 0x01 && p[5] == 0x05)))
+                            ClockHooks.emplace_back(safetyhook::create_mid(p + 4, Table[n++]));
+                    }
+                }
+                else
+                {
+                    // 1.0.8: mov eax, [esp+8]; add [clock], eax for the game's clock and two others (one of them the
+                    // screen fades' clock), the step of each stored at clock + 8 by then
+                    static constexpr auto Table = MillisecondClocks::MakeTable(std::make_index_sequence<MillisecondClocks::MaxClocks>{}, false);
+                    pattern = hook::pattern(std::format("8B 44 24 08 01 05 {:02X} {:02X} {:02X} {:02X}", ms & 0xFF, (ms >> 8) & 0xFF, (ms >> 16) & 0xFF, ms >> 24));
+                    if (!pattern.empty())
+                    {
+                        auto pGameAdd = pattern.get_first<uint8_t>(4);
+                        size_t n = 0;
+                        for (auto p = pGameAdd - 0x10; p < pGameAdd + 0x400 && n < MillisecondClocks::MaxClocks; ++p)
+                        {
+                            if (p[0] == 0x8B && p[1] == 0x44 && p[2] == 0x24 && p[3] == 0x08 && p[4] == 0x01 && p[5] == 0x05)
+                            {
+                                MillisecondClocks::pClocks[n] = *reinterpret_cast<uintptr_t*>(p + 6);
+                                ClockHooks.emplace_back(safetyhook::create_mid(p + 4, Table[n++]));
+                            }
+                        }
+                    }
+                }
+
+                // rage::scrThread::Update, once per script per frame: eax = (int)(xmm0 = time step * 1000), added to the
+                // timers; the same carry for every script of a frame
+                pattern = hook::pattern("F3 0F 2C C0 01 41 1C 01 41 20 01 41 24");
+                if (!pattern.empty())
+                {
+                    static auto scrThread__Update_Timers = safetyhook::create_mid(pattern.get_first(4), [](SafetyHookContext& regs)
+                    {
+                        if (MillisecondClocks::nScriptFrame != *CTimer::m_frameCount)
+                        {
+                            MillisecondClocks::nScriptFrame = *CTimer::m_frameCount;
+                            MillisecondClocks::nScriptCarry = MillisecondClocks::Carry(MillisecondClocks::fScriptRemainder, regs.xmm0.f32[0], int32_t(regs.eax));
+                        }
+                        regs.eax += MillisecondClocks::nScriptCarry;
+                    });
+                }
+            }
+
+            // Fix peds staying pinned down (cops stuck in cover)
+            {
+                auto pattern = hook::pattern("F3 0F 2C 44 24 04 0F BE 91 ? ? ? ? 0F BE C0 2B D0");
+                if (!pattern.empty())
+                    CPedIntelligence::shDecreaseAmountPinnedDown = safetyhook::create_inline(pattern.get_first(0), CPedIntelligence::DecreaseAmountPinnedDown);
             }
 
             // Fix stalls when trying to climb ladders
@@ -1285,6 +1451,8 @@ public:
                 auto pattern = hook::pattern("55 8B EC 83 E4 ? 8B 45 ? 8B 0D ? ? ? ? 81 EC ? ? ? ? 56");
                 shNATIVE_SLIDE_OBJECT = safetyhook::create_inline(pattern.get_first(0), NATIVE_SLIDE_OBJECT_2);
             }
+
+            hbSET_CAM_FOV.fun = NativeOverride::Register(Natives::NativeHashes::SET_CAM_FOV, NATIVE_SET_CAM_FOV, "E8 ? ? ? ? 83 C4 08 C3", 30);
         };
     }
 } FramerateVigilante;

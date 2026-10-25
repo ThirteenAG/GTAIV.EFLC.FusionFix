@@ -7,6 +7,7 @@ export module brakelights;
 
 import common;
 import comvars;
+import settings;
 
 static constexpr float fStoppedSpeed = 0.5f; // Matches the game's own pedal split threshold
 static constexpr float fIdleThrottle = 0.01f;
@@ -30,10 +31,10 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            CIniReader iniReader("");
+            SettingsReader reader;
 
             // [MISC]
-            static bool bBrakeLightsWhenStopped = iniReader.ReadInteger("MISC", "BrakeLightsWhenStopped", 0) != 0;
+            static bool bBrakeLightsWhenStopped = reader.ReadInteger("MISC", "BrakeLightsWhenStopped", 0) != 0;
 
             if (bBrakeLightsWhenStopped)
             {

@@ -10,6 +10,9 @@ Fenêtre
 [Borderless]
 Fenêtre sans bordures
 
+[FF_BORDERLESS]
+Sans bordures
+
 [Focus Loss]
 Mettre le jeu en pause en cas de changement de fenêtre
 
@@ -24,6 +27,18 @@ Bandes noires horizontales dans les cinématiques
 
 [Pillarbox]
 Bandes noires verticales dans les cinématiques
+
+[CutscBars]
+Bandes noires dans les cinématiques
+
+[CutscBars1]
+Bandes verticales
+
+[CutscBars2]
+Bandes horizontales
+
+[CutscBars3]
+Horizontales + verticales
 
 [Alt. Dialogues]
 Dialogues alternatifs
@@ -133,9 +148,6 @@ Occlusion ambiante
 [Zoomed Movement]
 Permettre le mouvement en zoomant
 
-[Distant Lights]
-Lumières lointaines
-
 [CenteredVehCam]
 Centrer la caméra du véhicule
 
@@ -153,18 +165,6 @@ Caméra escalade et vol de véhicule
 
 [FE_STEAMPAD]
 Steam Controller
-
-[CutscAudioSync]
-Synchronisation audio des cinématiques
-
-[CutscAudioSync0]
-Synchronisation audio des cinématiques - Désactivée
-
-[CutscAudioSync1]
-Synchronisation audio des cinématiques - Alternative
-
-[CutscAudioSync2]
-Synchronisation audio des cinématiques - Activée
 
 [Turn Indicators]
 Clignotants
@@ -192,6 +192,9 @@ Budget de mémoire de streaming
 
 [Graphics API]
 API graphique
+
+[FF_ADVANCED]
+Avancé
 
 [FF_RESTART]
 GTA IV doit être redémarré pour appliquer les paramètres.
@@ -241,9 +244,6 @@ Alternatif
 [FF_WARN6]
 ~r~AVERTISSEMENT : CHSS ne fonctionne qu'avec la qualité des ombres réglée sur très élevée.
 
-[FF_WARN7]
-~r~AVERTISSEMENT : Activez la synchronisation audio des cinématiques en cas de désynchronisation du son, désactivez-la pour une animation plus fluide. Ce réglage peut être modifié pendant une cinématique via ~PAD_UP~.
-
 [USJ_FRST_KMB]
 Lorsque la caméra passe en mode saut unique, utilise ~INPUT_MOUSE_WHEEL_UP~ et ~INPUT_MOUSE_WHEEL_DOWN~ pour modifier la vitesse du ralenti.
 
@@ -264,6 +264,18 @@ Utilise ~PAD_LSTICK_ALL~ pour te déplacer dans les airs. ~n~Appuie sur ~INPUT_M
 
 [ESS_PARA1_PC]
 Dans les airs, utilise ~PAD_LSTICK_ALL~ pour te déplacer. En chute libre, appuie sur ~INPUT_MOUSE_LMB~ pour ouvrir ton parachute. ~n~Maintiens ~INPUT_VEH_CIN_CAM~ pour changer d'angle de caméra.
+
+[FF_HDRCAL_PEAK]
+Augmentez jusqu'à ce que le logo dans le cadre soit à peine visible. Si votre téléviseur propose le HGIG, activez-le d'abord.
+
+[FF_HDRCAL_PAPER]
+Réglez une luminosité confortable pour les menus et l'interface. Le logo dans le cadre est affiché à cette luminosité.
+
+[FF_HDRCAL_HDR]
+Sélectionnez un réglage de luminosité ci-dessous pour afficher sa mire de calibrage.
+
+[FF_HDRCAL_SDR]
+Les mires de calibrage des réglages de luminosité apparaissent ici quand la sortie HDR est activée.
 
 [DUMMY_l11]
 Dummy label.

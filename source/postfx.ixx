@@ -2,15 +2,18 @@ module;
 
 #include <common.hxx>
 #include <d3dx9tex.h>
+#include <automation/asi_automation_frames.h>
 
 export module postfx;
 
 import common;
 import comvars;
 import d3dx9_43;
+import hdr;
 import natives;
 import settings;
 import shaders;
+import temporal;
 
 #define IDR_FXAA                                 101
 #define IDR_SMAA                                 102
@@ -52,6 +55,14 @@ import shaders;
 #endif
 
 std::optional<std::reference_wrapper<int32_t>> UsePostFxAA;
+
+bool IsPostFxAA()
+{
+    if (!UsePostFxAA)
+        return false;
+    auto aa = UsePostFxAA->get();
+    return aa == FusionFixSettings.AntialiasingText.eFXAA || aa == FusionFixSettings.AntialiasingText.eSMAA;
+}
 
 class PostFxResource
 {
@@ -507,6 +518,8 @@ public:
             }
         }
 
+        TemporalAA::LoadShaders(pDevice);
+
         return ShadersFinishedLoading();
     }
 
@@ -534,6 +547,9 @@ public:
 
     void ReleaseTextures()
     {
+        TargetWidth = 0;
+        TargetHeight = 0;
+
         // NormalTex = nullptr;
         DiffuseTex = nullptr;
         // SpecularTex = nullptr;
@@ -616,19 +632,19 @@ public:
 
     void Readini()
     {
-        CIniReader iniReader("");
-        EnablePostfx = iniReader.ReadInteger("SRF", "EnablePostfx", 1);
+        SettingsReader reader;
+        EnablePostfx = reader.ReadInteger("SRF", "EnablePostfx", 1);
 
-        useStippleFilter = iniReader.ReadInteger("SRF", "StippleFilter", 1) != 0;
+        useStippleFilter = reader.ReadInteger("SRF", "StippleFilter", 1) != 0;
 
-        bEnablePreAlphaDepth = iniReader.ReadInteger("POSTFX", "EnablePreAlphaDepth", 1) != 0;
+        bEnablePreAlphaDepth = reader.ReadInteger("POSTFX", "EnablePreAlphaDepth", 1) != 0;
 
-        nAmbientOcclusionBlurPasses = iniReader.ReadInteger("POSTFX", "AmbientOcclusionBlurPasses", 1);
-        nAmbientOcclusionSamples = iniReader.ReadInteger("POSTFX", "AmbientOcclusionSamples", 9);
-        nAmbientOcclusionLogMaxOffset = iniReader.ReadInteger("POSTFX", "AmbientOcclusionLogMaxOffset", 3);
-        nAmbientOcclusionMaxMipLevel = iniReader.ReadInteger("POSTFX", "AmbientOcclusionMaxMipLevel", 5);
-        fAmbientOcclusionFarClip = iniReader.ReadFloat("POSTFX", "AmbientOcclusionFarClip", 150.0f);
-        fAmbientOcclusionBlurRadius = iniReader.ReadFloat("POSTFX", "AmbientOcclusionBlurRadius", 2.0f);
+        nAmbientOcclusionBlurPasses = reader.ReadInteger("POSTFX", "AmbientOcclusionBlurPasses", 1);
+        nAmbientOcclusionSamples = reader.ReadInteger("POSTFX", "AmbientOcclusionSamples", 9);
+        nAmbientOcclusionLogMaxOffset = reader.ReadInteger("POSTFX", "AmbientOcclusionLogMaxOffset", 3);
+        nAmbientOcclusionMaxMipLevel = reader.ReadInteger("POSTFX", "AmbientOcclusionMaxMipLevel", 5);
+        fAmbientOcclusionFarClip = reader.ReadFloat("POSTFX", "AmbientOcclusionFarClip", 150.0f);
+        fAmbientOcclusionBlurRadius = reader.ReadFloat("POSTFX", "AmbientOcclusionBlurRadius", 2.0f);
 
         nAmbientOcclusionBlurPasses = std::max(0, nAmbientOcclusionBlurPasses);
         nAmbientOcclusionSamples = std::clamp(nAmbientOcclusionSamples, 0, 128);
@@ -639,16 +655,16 @@ public:
 
         AOCamDepthSurf.resize(nAmbientOcclusionMaxMipLevel);
 
-        fAmbientOcclusionRadius = iniReader.ReadFloat("POSTFX", "AmbientOcclusionRadius", 1.125f);
-        fAmbientOcclusionBias = iniReader.ReadFloat("POSTFX", "AmbientOcclusionBias", 0.03f);
-        fAmbientOcclusionIntensity = iniReader.ReadFloat("POSTFX", "AmbientOcclusionIntensity", 0.4f);
+        fAmbientOcclusionRadius = reader.ReadFloat("POSTFX", "AmbientOcclusionRadius", 1.125f);
+        fAmbientOcclusionBias = reader.ReadFloat("POSTFX", "AmbientOcclusionBias", 0.03f);
+        fAmbientOcclusionIntensity = reader.ReadFloat("POSTFX", "AmbientOcclusionIntensity", 0.4f);
 
         fAmbientOcclusionRadius = std::max(fAmbientOcclusionRadius, 0.0f);
         fAmbientOcclusionBias = std::max(fAmbientOcclusionBias, 0.0f);
         fAmbientOcclusionIntensity = std::max(fAmbientOcclusionIntensity, 0.0f);
         // 0 off, 1 horizontal, 2 vertical, 3 horizontal e vertical.
-        //useScreenSpaceShadowsBlur = iniReader.ReadInteger("SRF", "ScreenSpaceShadowsBlur", 0);
-        //useHardwareBilinearSampling = iniReader.ReadInteger("SRF", "NewShadowAtlas", 0) != 0;
+        //useScreenSpaceShadowsBlur = reader.ReadInteger("SRF", "ScreenSpaceShadowsBlur", 0);
+        //useHardwareBilinearSampling = reader.ReadInteger("SRF", "NewShadowAtlas", 0) != 0;
     }
 
     void createTextures(UINT Width, UINT Height, HMODULE hm)
@@ -677,23 +693,10 @@ public:
 
         FullScreenTex_temp1 = CreateEmptyRT("FullScreenTex_temp1", 3, Width, Height, 64, &desc);
 
-        desc.mFormat = rage::GRCFMT_A8R8G8B8;
-        FullScreenTex_temp2 = CreateEmptyRT("FullScreenTex_temp2", 3, Width, Height, 32, &desc);
-
         //desc.mFormat = rage::GRCFMT_G16R16F;
         // 
         //pShadowBlurTex1 = CreateEmptyRT("pShadowBlurTex1", 3, Width, Height, 32, &desc);
         //pShadowBlurTex2 = CreateEmptyRT("pShadowBlurTex2", 3, Width, Height, 32, &desc);
-
-        desc.mFormat = rage::GRCFMT_X8R8G8B8;
-
-        edgesTex = CreateEmptyRT("edgesTex", 3, Width, Height, 32, &desc);
-
-        desc.mFormat = rage::GRCFMT_A8R8G8B8;
-
-        blendTex = CreateEmptyRT("blendTex", 3, Width, Height, 32, &desc);
-
-        desc.mFormat = rage::GRCFMT_A16B16G16R16F;
 
         FullScreenDownsampleTex = CreateEmptyRT("FullScreenDownsampleTex", 3, Width / 2, Height / 2, 64, &desc);
         FullScreenDownsampleTex2 = CreateEmptyRT("FullScreenDownsampleTex2", 3, Width / 2, Height / 2, 64, &desc);
@@ -709,6 +712,119 @@ public:
             D3DXCreateTextureFromResourceExW(pDevice, hm, MAKEINTRESOURCEW(IDR_AreaTex), 160, 560, 1, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_LINEAR, D3DX_FILTER_LINEAR, 0, NULL, NULL, &SMAA_areaTex);
         if (!SMAA_searchTex)
             D3DXCreateTextureFromResourceExW(pDevice, hm, MAKEINTRESOURCEW(IDR_SearchTex), 64, 16, 1, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_LINEAR, D3DX_FILTER_LINEAR, 0, NULL, NULL, &SMAA_searchTex);
+
+        TargetWidth = Width;
+        TargetHeight = Height;
+        EnsuredAA = -1;
+        bAOTargetsTried = false;
+        EnsureOptionalTargets();
+    }
+
+    // Size of the targets while the device is usable, 0 between its loss and reset
+    UINT TargetWidth = 0;
+    UINT TargetHeight = 0;
+    int32_t EnsuredAA = -1;
+    bool bAOTargetsTried = false;
+
+    static rage::grcRenderTargetPC* CreateTarget(const char* name, uint32_t width, uint32_t height, uint32_t bitsPerPixel, rage::grcRenderTargetDesc* desc)
+    {
+        auto rt = rage::grcTextureFactory::GetInstance()->CreateRenderTarget(name, 3, width, height, bitsPerPixel, desc);
+        if (!rt)
+            return nullptr;
+        rage::grcDevice::grcResolveFlags resolveFlags{};
+        rage::grcTextureFactoryPC::GetInstance()->LockRenderTarget(0, rt, nullptr);
+        rage::grcTextureFactoryPC::GetInstance()->UnlockRenderTarget(0, &resolveFlags);
+        return rt;
+    }
+
+    static rage::grcRenderTargetDesc TargetDesc(rage::grcTextureFormat format, int32_t levels = 1)
+    {
+        rage::grcRenderTargetDesc desc{};
+        desc.mMultisampleCount = 0;
+        desc.field_0 = 1;
+        desc.field_12 = 1;
+        desc.mDepthRT = nullptr;
+        desc.field_8 = 1;
+        desc.field_10 = 1;
+        desc.field_11 = 1;
+        desc.field_24 = false;
+        desc.mFormat = format;
+        desc.mLevels = levels;
+        return desc;
+    }
+
+    // Targets of FXAA, SMAA and ambient occlusion exist only once the option is on, and then until the device is reset.
+    // Render thread, outside the post processing: device reset and EndScene.
+    void EnsureOptionalTargets()
+    {
+        if (!TargetWidth || !TargetHeight)
+            return;
+
+        auto aa = UsePostFxAA ? UsePostFxAA->get() : 0;
+        if (aa != EnsuredAA)
+        {
+            // Once per choice: a target that can't be created isn't tried again every frame
+            EnsuredAA = aa;
+            if (IsPostFxAA() && !FullScreenTex_temp2)
+            {
+                // Composited into the back buffer by FXAA and SMAA, it must not clip the highlights of an HDR back buffer
+                auto desc = TargetDesc(HDROutput::IsBackBufferFloat() ? rage::GRCFMT_A16B16G16R16F : rage::GRCFMT_A8R8G8B8);
+                FullScreenTex_temp2 = CreateTarget("FullScreenTex_temp2", TargetWidth, TargetHeight, HDROutput::IsBackBufferFloat() ? 64 : 32, &desc);
+            }
+            if (aa == FusionFixSettings.AntialiasingText.eSMAA)
+            {
+                if (!edgesTex)
+                {
+                    auto desc = TargetDesc(rage::GRCFMT_X8R8G8B8);
+                    edgesTex = CreateTarget("edgesTex", TargetWidth, TargetHeight, 32, &desc);
+                }
+                if (!blendTex)
+                {
+                    auto desc = TargetDesc(rage::GRCFMT_A8R8G8B8);
+                    blendTex = CreateTarget("blendTex", TargetWidth, TargetHeight, 32, &desc);
+                }
+            }
+        }
+
+        static auto AO = FusionFixSettings.GetRef("PREF_SAO");
+        if (!bAOTargetsTried && AO && AO->get())
+        {
+            bAOTargetsTried = true;
+
+            auto desc = TargetDesc(rage::GRCFMT_R32F, nAmbientOcclusionMaxMipLevel);
+            AOCamDepthTex = CreateTarget("AOCamDepthTex", TargetWidth, TargetHeight, 32, &desc);
+
+            desc = TargetDesc(rage::GRCFMT_L8);
+            AOTex = CreateTarget("AOTex", TargetWidth, TargetHeight, 8, &desc);
+            AOBlurTex = CreateTarget("AOBlurTex", TargetWidth, TargetHeight, 8, &desc);
+
+            if (AOCamDepthTex && AOCamDepthTex->mD3DTexture)
+            {
+                for (auto i = 0; i < nAmbientOcclusionMaxMipLevel; ++i)
+                    AOCamDepthTex->mD3DTexture->GetSurfaceLevel(i, &AOCamDepthSurf[i]);
+            }
+            if (AOTex && AOTex->mD3DTexture)
+                AOTex->mD3DTexture->GetSurfaceLevel(0, &AOSurf);
+            if (AOBlurTex && AOBlurTex->mD3DTexture)
+                AOBlurTex->mD3DTexture->GetSurfaceLevel(0, &AOBlurSurf);
+        }
+    }
+
+    void ReleaseAOTargets()
+    {
+        for (auto i = 0; i < nAmbientOcclusionMaxMipLevel; ++i)
+            SAFE_RELEASE(AOCamDepthSurf[i]);
+        SAFE_RELEASE(AOSurf);
+        SAFE_RELEASE(AOBlurSurf);
+
+        for (auto rt : { &AOCamDepthTex, &AOTex, &AOBlurTex })
+        {
+            if (*rt)
+            {
+                (*rt)->Destroy();
+                *rt = nullptr;
+            }
+        }
     }
 };
 
@@ -760,6 +876,7 @@ private:
     static void __fastcall OnDeviceLost()
     {
         PostFxResources.ReleaseTextures();
+        TemporalAA::ReleaseResources();
         // PostFxResources.mSpecularAoRT    =nullptr;
         // PostFxResources.mNormalRT        =nullptr;
         PostFxResources.mDiffuseRT = nullptr;
@@ -788,26 +905,7 @@ private:
         if (PostFxResources.AOEffect)
             PostFxResources.AOEffect->OnLostDevice();
 
-        for (auto i = 0; i < PostFxResources.nAmbientOcclusionMaxMipLevel; ++i)
-            SAFE_RELEASE(PostFxResources.AOCamDepthSurf[i]);
-        SAFE_RELEASE(PostFxResources.AOSurf);
-        SAFE_RELEASE(PostFxResources.AOBlurSurf);
-
-        if (PostFxResources.AOCamDepthTex)
-        {
-            PostFxResources.AOCamDepthTex->Destroy();
-            PostFxResources.AOCamDepthTex = nullptr;
-        }
-        if (PostFxResources.AOTex)
-        {
-            PostFxResources.AOTex->Destroy();
-            PostFxResources.AOTex = nullptr;
-        }
-        if (PostFxResources.AOBlurTex)
-        {
-            PostFxResources.AOBlurTex->Destroy();
-            PostFxResources.AOBlurTex = nullptr;
-        }
+        PostFxResources.ReleaseAOTargets();
     }
 
     static void __fastcall OnDeviceReset()
@@ -828,7 +926,9 @@ private:
         auto width = *rage::grcDevice::ms_nActiveWidth;
         auto height = *rage::grcDevice::ms_nActiveHeight;
 
+        PostFxResources.ReleaseAOTargets();
         PostFxResources.createTextures(width, height, hm);
+        TemporalAA::CreateResources(width, height);
 
         D3DVERTEXELEMENT9 vertexDeclElements[] =
         {
@@ -857,63 +957,6 @@ private:
 
         if (PostFxResources.AOEffect)
             PostFxResources.AOEffect->OnResetDevice();
-
-        for (auto i = 0; i < PostFxResources.nAmbientOcclusionMaxMipLevel; ++i)
-            SAFE_RELEASE(PostFxResources.AOCamDepthSurf[i]);
-        SAFE_RELEASE(PostFxResources.AOSurf);
-        SAFE_RELEASE(PostFxResources.AOBlurSurf);
-
-        if (PostFxResources.AOCamDepthTex)
-        {
-            PostFxResources.AOCamDepthTex->Destroy();
-            PostFxResources.AOCamDepthTex = nullptr;
-        }
-        if (PostFxResources.AOTex)
-        {
-            PostFxResources.AOTex->Destroy();
-            PostFxResources.AOTex = nullptr;
-        }
-        if (PostFxResources.AOBlurTex)
-        {
-            PostFxResources.AOBlurTex->Destroy();
-            PostFxResources.AOBlurTex = nullptr;
-        }
-
-        auto pDevice = rage::grcDevice::GetD3DDevice();
-
-        rage::grcRenderTargetDesc aoDesc{};
-        aoDesc.mMultisampleCount = 0;
-        aoDesc.field_0 = 1;
-        aoDesc.field_12 = 1;
-        aoDesc.mDepthRT = nullptr;
-        aoDesc.field_8 = 1;
-        aoDesc.field_10 = 1;
-        aoDesc.field_11 = 1;
-        aoDesc.field_24 = false;
-
-        auto CreateEmptyRT = [](const char* name, int32_t a2, uint32_t w, uint32_t h, uint32_t bpp, rage::grcRenderTargetDesc* d) -> rage::grcRenderTargetPC*
-        {
-            auto rt = rage::grcTextureFactory::GetInstance()->CreateRenderTarget(name, a2, w, h, bpp, d);
-            rage::grcDevice::grcResolveFlags resolveFlags{};
-            rage::grcTextureFactoryPC::GetInstance()->LockRenderTarget(0, rt, nullptr);
-            rage::grcTextureFactoryPC::GetInstance()->UnlockRenderTarget(0, &resolveFlags);
-            return rt;
-        };
-
-        aoDesc.mFormat = rage::GRCFMT_R32F;
-        aoDesc.mLevels = PostFxResources.nAmbientOcclusionMaxMipLevel;
-        PostFxResources.AOCamDepthTex = CreateEmptyRT("AOCamDepthTex", 3, width, height, 32, &aoDesc);
-
-        aoDesc.mFormat = rage::GRCFMT_L8;
-        aoDesc.mLevels = 1;
-        PostFxResources.AOTex = CreateEmptyRT("AOTex", 3, width, height, 8, &aoDesc);
-        PostFxResources.AOBlurTex = CreateEmptyRT("AOBlurTex", 3, width, height, 8, &aoDesc);
-
-        for (auto i = 0; i < PostFxResources.nAmbientOcclusionMaxMipLevel; ++i)
-            PostFxResources.AOCamDepthTex->mD3DTexture->GetSurfaceLevel(i, &PostFxResources.AOCamDepthSurf[i]);
-
-        PostFxResources.AOTex->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.AOSurf);
-        PostFxResources.AOBlurTex->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.AOBlurSurf);
     }
 
     static void Init()
@@ -1059,6 +1102,13 @@ private:
 
     static void NewPostFX()
     {
+        // The game's own post processing without the scene, e.g. while the render targets are recreated
+        if (!PostFxResources.mFullScreenRT || !PostFxResources.mFullScreenRT->mD3DTexture)
+        {
+            hbDrawPrimitivePostFX.fun();
+            return;
+        }
+
         IDirect3DPixelShader9* oldps = 0;
         IDirect3DVertexShader9* oldvs = 0;
         IDirect3DDevice9* pDevice = rage::grcDevice::GetD3DDevice();
@@ -1084,9 +1134,13 @@ private:
         PostFxResources.FullScreenTex->GetSurfaceLevel(0, &PostFxResources.FullScreenSurface);
 
         PostFxResources.FullScreenTex_temp1->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.FullScreenSurface_temp1);
-        PostFxResources.FullScreenTex_temp2->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.FullScreenSurface_temp2);
-        PostFxResources.edgesTex->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.edgesSurf);
-        PostFxResources.blendTex->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.blendSurf);
+        // FXAA and SMAA targets exist once that anti-aliasing was chosen
+        if (PostFxResources.FullScreenTex_temp2 && PostFxResources.FullScreenTex_temp2->mD3DTexture)
+            PostFxResources.FullScreenTex_temp2->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.FullScreenSurface_temp2);
+        if (PostFxResources.edgesTex && PostFxResources.edgesTex->mD3DTexture)
+            PostFxResources.edgesTex->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.edgesSurf);
+        if (PostFxResources.blendTex && PostFxResources.blendTex->mD3DTexture)
+            PostFxResources.blendTex->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.blendSurf);
 
         PostFxResources.FullScreenDownsampleTex->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.FullScreenDownsampleSurf);
         PostFxResources.FullScreenDownsampleTex2->mD3DTexture->GetSurfaceLevel(0, &PostFxResources.FullScreenDownsampleSurf2);
@@ -1148,7 +1202,6 @@ private:
 
         HRESULT hr = S_FALSE;
 
-        DWORD OldSRGB = 0;
         DWORD OldSampler = 0;
 
         // save render state between post processing steps, 
@@ -1205,7 +1258,21 @@ private:
                     //    pDevice->SetPixelShader(pShader);
                     //}
 
-                    if (PostFxResources.useStippleFilter && PostFxResources.stipple_filter_ps)
+                    // Temporal anti-aliasing resolves the HDR scene before everything else. Normally ResolveScene did
+                    // it before the game computed bloom and exposure.
+                    if (TemporalAA::GetMode() != TemporalAA::Mode::Off && !TemporalAA::IsSceneResolved())
+                    {
+                        if (TemporalAA::Resolve(pDevice, PostFxResources.textureRead, PostFxResources.renderTargetTex, PostFxResources.renderTargetSurf))
+                        {
+                            PostFxResources.swapbuffers();
+                            pDevice->SetPixelShader(pShader);
+                        }
+                    }
+
+                    // Temporal reconstruction has already integrated stippled geometry. Applying the spatial
+                    // filter here would combine its resolved color with a jittered G-buffer mask and can
+                    // reintroduce flicker on thin detail. Keep it for frames without a temporal resolve.
+                    if (PostFxResources.useStippleFilter && PostFxResources.stipple_filter_ps && !TemporalAA::IsSceneResolved())
                     {
                         pDevice->SetPixelShader(PostFxResources.stipple_filter_ps);
                         pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);
@@ -1305,6 +1372,16 @@ private:
                         }
                     }
 
+                    // Its targets are created at the end of the frame the option was chosen in
+                    auto postFxAA = false;
+                    if (IsPostFxAA() && PostFxResources.FullScreenSurface_temp2)
+                    {
+                        if (UsePostFxAA->get() == FusionFixSettings.AntialiasingText.eFXAA)
+                            postFxAA = PostFxResources.FxaaPS != nullptr;
+                        else
+                            postFxAA = PostFxResources.resourcesFinishedLoading() && PostFxResources.edgesSurf && PostFxResources.blendSurf;
+                    }
+
                     // game postfx
                     {
                         for (int i = 0; i < 4; i++)
@@ -1313,7 +1390,7 @@ private:
                             pDevice->SetSamplerState(i, D3DSAMP_MAGFILTER, PostFxResources.Samplers[i]);
                         }
 
-                        if (UsePostFxAA->get() > FusionFixSettings.AntialiasingText.eMO_OFF)
+                        if (postFxAA)
                             pDevice->SetRenderTarget(0, PostFxResources.FullScreenSurface_temp2);
                         else
                             pDevice->SetRenderTarget(0, PostFxResources.backBuffer);
@@ -1332,7 +1409,7 @@ private:
                     }
 
                     // Anti aliasing
-                    if (UsePostFxAA && UsePostFxAA->get() > FusionFixSettings.AntialiasingText.eMO_OFF)
+                    if (postFxAA)
                     {
                         // FXAA
                         if ((UsePostFxAA->get() == FusionFixSettings.AntialiasingText.eFXAA) && PostFxResources.FxaaPS)
@@ -1350,23 +1427,27 @@ private:
                         }
 
                         // SMAA
-                        if (UsePostFxAA->get() >= FusionFixSettings.AntialiasingText.eSMAA &&
+                        if (UsePostFxAA->get() == FusionFixSettings.AntialiasingText.eSMAA &&
                            PostFxResources.SMAA_EdgeDetection && PostFxResources.SMAA_BlendingWeightsCalculation && PostFxResources.SMAA_NeighborhoodBlending &&
                            PostFxResources.SMAA_EdgeDetectionVS && PostFxResources.SMAA_BlendingWeightsCalculationVS && PostFxResources.SMAA_NeighborhoodBlendingVS &&
                            PostFxResources.SMAA_areaTex && PostFxResources.SMAA_searchTex && PostFxResources.edgesTex && PostFxResources.blendTex
                            )
                         {
-                            DWORD oldSample = 0;
-
-                            for (int i = 0; i <= 4; ++i)
-                            {
-                                pDevice->GetSamplerState(i, D3DSAMP_MINFILTER, &oldSample);
-                                pDevice->GetSamplerState(i, D3DSAMP_MAGFILTER, &oldSample);
-                                pDevice->GetSamplerState(i, D3DSAMP_MIPFILTER, &oldSample);
-                                pDevice->GetSamplerState(i, D3DSAMP_ADDRESSU, &oldSample);
-                                pDevice->GetSamplerState(i, D3DSAMP_ADDRESSV, &oldSample);
-                                pDevice->GetSamplerState(i, D3DSAMP_ADDRESSW, &oldSample);
-                            }
+                            // The sampler states of the game's five samplers, each one restored to its own value afterwards
+                            // (one shared value left them all alike before; D3D9on12 rejects such sampler addressing)
+                            static constexpr D3DSAMPLERSTATETYPE smaaSamplerStates[] = {
+                                D3DSAMP_MINFILTER, D3DSAMP_MAGFILTER, D3DSAMP_MIPFILTER,
+                                D3DSAMP_ADDRESSU, D3DSAMP_ADDRESSV, D3DSAMP_ADDRESSW
+                            };
+                            DWORD oldSamplers[5][std::size(smaaSamplerStates)]{};
+                            bool gotSamplers[5][std::size(smaaSamplerStates)]{};
+                            for (DWORD sampler = 0; sampler < 5; ++sampler)
+                                for (size_t state = 0; state < std::size(smaaSamplerStates); ++state)
+                                    gotSamplers[sampler][state] = SUCCEEDED(pDevice->GetSamplerState(sampler, smaaSamplerStates[state], &oldSamplers[sampler][state]));
+                            DWORD oldSrgbTexture = 0;
+                            DWORD oldSrgbWrite = 0;
+                            auto gotSrgbTexture = SUCCEEDED(pDevice->GetSamplerState(0, D3DSAMP_SRGBTEXTURE, &oldSrgbTexture));
+                            auto gotSrgbWrite = SUCCEEDED(pDevice->GetRenderState(D3DRS_SRGBWRITEENABLE, &oldSrgbWrite));
 
                             // colorTex / colorGammaTex
                             pDevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
@@ -1436,25 +1517,20 @@ private:
                             pDevice->SetTexture(0, PostFxResources.FullScreenTex_temp2->mD3DTexture);
                             pDevice->SetTexture(4, PostFxResources.blendTex->mD3DTexture);
 
-                            pDevice->GetSamplerState(0, D3DSAMP_SRGBTEXTURE, &oldSample);
-                            pDevice->GetRenderState(D3DRS_SRGBWRITEENABLE, &OldSRGB); // save srgb state
                             pDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, 1);
                             pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, 1);
 
                             pDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
 
-                            pDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, oldSample);
-                            pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, OldSRGB); // restore srgb state
+                            if (gotSrgbTexture)
+                                pDevice->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, oldSrgbTexture);
+                            if (gotSrgbWrite)
+                                pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, oldSrgbWrite);
 
-                            for (int i = 0; i <= 4; ++i)
-                            {
-                                pDevice->SetSamplerState(i, D3DSAMP_MINFILTER, oldSample);
-                                pDevice->SetSamplerState(i, D3DSAMP_MAGFILTER, oldSample);
-                                pDevice->SetSamplerState(i, D3DSAMP_MIPFILTER, oldSample);
-                                pDevice->SetSamplerState(i, D3DSAMP_ADDRESSU, oldSample);
-                                pDevice->SetSamplerState(i, D3DSAMP_ADDRESSV, oldSample);
-                                pDevice->SetSamplerState(i, D3DSAMP_ADDRESSW, oldSample);
-                            }
+                            for (DWORD sampler = 0; sampler < 5; ++sampler)
+                                for (size_t state = 0; state < std::size(smaaSamplerStates); ++state)
+                                    if (gotSamplers[sampler][state])
+                                        pDevice->SetSamplerState(sampler, smaaSamplerStates[state], oldSamplers[sampler][state]);
 
                             pDevice->SetTexture(0, PostFxResources.prePostFx[0]);
                             pDevice->SetTexture(1, PostFxResources.prePostFx[1]);
@@ -1497,7 +1573,9 @@ private:
     static void RenderAmbientOcclusion()
     {
         static auto AO = FusionFixSettings.GetRef("PREF_SAO");
-        if (PostFxResources.AOEffect && PostFxResources.AOEnabled && AO->get())
+        // The targets exist between the device's reset and its next loss
+        if (PostFxResources.AOEffect && PostFxResources.AOEnabled && AO->get() && PostFxResources.AOCamDepthTex && PostFxResources.AOTex &&
+            PostFxResources.AOBlurTex && PostFxResources.mSpecularRT && PostFxResources.mDepthRT && rage::GetCurrentViewport())
         { // AO
             IDirect3DDevice9* pDevice = rage::grcDevice::GetD3DDevice();
 
@@ -1689,6 +1767,39 @@ private:
         bInsteadDrawPrimitivePostFX = false;
     }
 
+    // The first pass of the game's post processing downsamples the scene for bloom and exposure
+    static inline thread_local bool bInsteadDrawPrimitiveDownsample = false;
+    static inline injector::hook_back<void(__fastcall*)(void*, void*, int, int, int)> hbDrawCallDownsample;
+    static void __fastcall DrawCallDownsample(void* _this, void* edx, int a2, int a3, int a4)
+    {
+        bInsteadDrawPrimitiveDownsample = true;
+        hbDrawCallDownsample.fun(_this, edx, a2, a3, a4);
+        bInsteadDrawPrimitiveDownsample = false;
+    }
+
+    // Temporal anti-aliasing resolves the scene before the game computes bloom from it, which would otherwise
+    // follow the jitter. The result goes back into the scene copy that the game and PostFx3 read.
+    static void ResolveScene()
+    {
+        if (TemporalAA::GetMode() == TemporalAA::Mode::Off || TemporalAA::IsSceneResolved())
+            return;
+        if (!PostFxResources.mFullScreenRT || !PostFxResources.mFullScreenRT->mD3DTexture ||
+            !PostFxResources.FullScreenTex_temp1 || !PostFxResources.FullScreenTex_temp1->mD3DTexture)
+            return;
+
+        auto pDevice = rage::grcDevice::GetD3DDevice();
+        auto scene = PostFxResources.mFullScreenRT->mD3DTexture;
+        auto resolved = PostFxResources.FullScreenTex_temp1->mD3DTexture;
+        IDirect3DSurface9* sceneSurface = nullptr;
+        IDirect3DSurface9* resolvedSurface = nullptr;
+        scene->GetSurfaceLevel(0, &sceneSurface);
+        resolved->GetSurfaceLevel(0, &resolvedSurface);
+        if (sceneSurface && resolvedSurface && TemporalAA::Resolve(pDevice, scene, resolved, resolvedSurface))
+            pDevice->StretchRect(resolvedSurface, nullptr, sceneSurface, nullptr, D3DTEXF_POINT);
+        SAFE_RELEASE(resolvedSurface);
+        SAFE_RELEASE(sceneSurface);
+    }
+
     static inline injector::hook_back<void(__stdcall*)()> hbDrawPrimitivePostFX;
     static void __stdcall DrawPrimitivePostFX()
     {
@@ -1696,13 +1807,28 @@ private:
         {
             bInsteadDrawPrimitiveFog = false;
             // Do not initialize shaders, RTs etc. here or we get a device reset error for some reason
-            NewFog();
+            if (PostFxResources.bEnablePreAlphaDepth)
+                NewFog();
+            else
+                hbDrawPrimitivePostFX.fun();
+            // Transparent geometry and visual effects come next: the reactive mask of temporal AA starts here
+            TemporalAA::OnFogDrawn();
         }
         else if (bInsteadDrawPrimitivePostFX)
         {
             bInsteadDrawPrimitivePostFX = false;
             Init();
             NewPostFX();
+            // What the scene phase draws after the post processing is not resolved, it must not be jittered
+            TemporalAA::OnPostFXDrawn();
+            // The finished 3D image (post processing and anti-aliasing, before the HUD) for the dev-only automation plugin
+            asi_automation_frames::Fire(ASI_AUTOMATION_STAGE_BEFORE_UI, rage::grcDevice::GetD3DDevice());
+        }
+        else if (bInsteadDrawPrimitiveDownsample)
+        {
+            bInsteadDrawPrimitiveDownsample = false;
+            ResolveScene();
+            hbDrawPrimitivePostFX.fun();
         }
         else
         {
@@ -1770,22 +1896,37 @@ public:
                 pattern = find_pattern("E8 ? ? ? ? 6A ? FF B7 ? ? ? ? 8B CF FF 77 ? E8 ? ? ? ? 5F", "E8 ? ? ? ? 8B 8E ? ? ? ? 8B 56 ? 6A ? 51");
                 hbDrawCallPostFX.fun = injector::MakeCALL(pattern.get_first(0), DrawCallPostFX).get();
 
-                if (PostFxResources.bEnablePreAlphaDepth)
+                // Downsampling of the scene for bloom and exposure, the first pass of the game's post processing
+                pattern = hook::pattern("6A 00 FF B7 ? ? ? ? FF 77 18 E8 ? ? ? ? FF 77 18 8B 4F 60");
+                if (!pattern.empty())
+                    hbDrawCallDownsample.fun = injector::MakeCALL(pattern.get_first(11), DrawCallDownsample).get();
+                else
                 {
-                    pattern = hook::pattern("FF B6 ? ? ? ? 6A ? E8 ? ? ? ? 5E 8B E5 5D C3");
+                    pattern = hook::pattern("8B 46 18 6A 00 52 50 8B CE E8 ? ? ? ? 8B 4E 18 8B 46 60");
                     if (!pattern.empty())
-                    {
-                        hbDrawCallFog.fun = injector::MakeCALL(pattern.get_first(8), DrawCallFog).get();
-                    }
-                    else
-                    {
-                        pattern = hook::pattern("6A ? 8B CE E8 ? ? ? ? 5E 8B E5");
-                        hbDrawCallFog.fun = injector::MakeCALL(pattern.get_first(4), DrawCallFog).get();
-                    }
+                        hbDrawCallDownsample.fun = injector::MakeCALL(pattern.get_first(9), DrawCallDownsample).get();
+                }
+
+                // Fog pass: pre-alpha depth and the copy of the scene for raindrops, and the reactive mask of temporal AA
+                pattern = hook::pattern("FF B6 ? ? ? ? 6A ? E8 ? ? ? ? 5E 8B E5 5D C3");
+                if (!pattern.empty())
+                {
+                    hbDrawCallFog.fun = injector::MakeCALL(pattern.get_first(8), DrawCallFog).get();
+                }
+                else
+                {
+                    pattern = hook::pattern("6A ? 8B CE E8 ? ? ? ? 5E 8B E5");
+                    hbDrawCallFog.fun = injector::MakeCALL(pattern.get_first(4), DrawCallFog).get();
                 }
 
                 pattern = find_pattern("55 8B EC 83 E4 ? 8B 0D ? ? ? ? 8B 15 ? ? ? ? 8B 41", "55 8B EC 83 E4 ? 8B 0D ? ? ? ? 8B 41 ? 8B 15");
-                RenderPedAndVehicleFakeShadowsInlineHook = safetyhook::create_inline(pattern.get_first(0), RenderPedAndVehicleFakeShadows); 
+                RenderPedAndVehicleFakeShadowsInlineHook = safetyhook::create_inline(pattern.get_first(0), RenderPedAndVehicleFakeShadows);
+
+                // The targets of an anti-aliasing or ambient occlusion choice made since the last reset
+                FusionFix::onEndScene() += []()
+                {
+                    PostFxResources.EnsureOptionalTargets();
+                };
             }
         };
     }

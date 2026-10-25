@@ -1,0 +1,893 @@
+{
+  "format": "asi-settings",
+  "version": "1.0",
+  "plugin": {
+    "id": "GTAIV.EFLC.FusionFix",
+    "name": "@plugin.name",
+    "priority": 100,
+    "games": [ { "name": "Grand Theft Auto IV", "exe": [ "GTAIV.exe", "EFLC.exe" ], "launcher": [ "PlayGTAIV.exe", "LaunchGTAIV.exe", "LaunchEFLC.exe" ] } ]
+  },
+  "pages": [
+    { "id": "game", "title": "@page.game", "section": "gameplay" },
+    { "id": "display", "title": "@page.display", "section": "display" },
+    { "id": "hdr", "title": "@page.hdr", "section": "display" },
+    { "id": "graphics", "title": "@page.graphics", "section": "graphics" },
+    { "id": "controls", "title": "@page.controls", "section": "controls" },
+    { "id": "gamepad", "title": "@page.gamepad", "section": "gamepad" },
+    { "id": "audio", "title": "@page.audio", "section": "audio" },
+    { "id": "advanced", "title": "@page.advanced", "section": "advanced" },
+    { "id": "compatibility", "title": "@page.compatibility", "section": "compatibility" }
+  ],
+  "settings": [
+    {
+      "id": "MAIN.SkipIntro", "type": "bool", "default": 1,
+      "label": "@Skip Intro", "description": "@MAIN.SkipIntro.description",
+      "page": "game", "group": "@group.startup", "control": [ "switch", "cycler" ], "apply": "restart",
+      "presets": { "vanilla": 0, "recommended": 1, "enhanced": 1 }
+    },
+    {
+      "id": "MAIN.SkipMenu", "type": "bool", "default": 1,
+      "label": "@Skip Menu", "description": "@MAIN.SkipMenu.description",
+      "page": "game", "group": "@group.startup", "control": [ "switch", "cycler" ], "apply": "restart",
+      "presets": { "vanilla": 0, "recommended": 1, "enhanced": 1 }
+    },
+    {
+      "id": "MISC.CutsceneBorders", "type": "choice", "default": 3,
+      "choices": [ { "value": 0, "label": "@MO_OFF" }, { "value": 1, "label": "@borders.letterbox" }, { "value": 2, "label": "@borders.pillarbox" }, { "value": 3, "label": "@borders.both" } ],
+      "label": "@CutsceneBorders", "description": "@MISC.CutsceneBorders.description",
+      "page": "game", "group": "@group.interface", "control": [ "cycler", "dropdown" ]
+    },
+    {
+      "id": "MISC.TransparentMapMenu", "type": "bool", "default": 0,
+      "label": "@TranspMapMenu", "description": "@MISC.TransparentMapMenu.description",
+      "page": "game", "group": "@group.interface", "control": [ "switch", "cycler" ]
+    },
+    {
+      "id": "FRAMELIMIT.DisplayFpsCounter", "type": "bool", "default": 0,
+      "label": "@FPS Counter", "description": "@FRAMELIMIT.DisplayFpsCounter.description",
+      "page": "game", "group": "@group.interface", "control": [ "switch", "cycler" ]
+    },
+    {
+      "id": "MAIN.WindowMode", "type": "choice", "default": 0,
+      "choices": [ { "value": 0, "label": "@window.fullscreen" }, { "value": 1, "label": "@window.windowed" }, { "value": 2, "label": "@window.borderless" } ],
+      "label": "@WindowMode", "description": "@MAIN.WindowMode.description",
+      "page": "game", "group": "@group.window", "control": [ "cycler", "dropdown" ]
+    },
+    {
+      "id": "MAIN.BlockOnLostFocus", "type": "bool", "default": 0,
+      "label": "@Focus Loss", "description": "@MAIN.BlockOnLostFocus.description",
+      "page": "game", "group": "@group.window", "control": [ "switch", "cycler" ]
+    },
+    {
+      "id": "MISC.LightSyncRGB", "type": "bool", "default": 0,
+      "label": "@LightSyncRGB", "description": "@MISC.LightSyncRGB.description",
+      "page": "game", "group": "@group.extras", "control": [ "switch", "cycler" ]
+    },
+    {
+      "id": "MISC.TimedEvents", "type": "bool", "default": 1,
+      "label": "@Timed Events", "description": "@MISC.TimedEvents.description",
+      "page": "game", "group": "@group.extras", "control": [ "switch", "cycler" ]
+    },
+    {
+      "id": "UPDATE.CheckForUpdates", "type": "bool", "default": 0,
+      "label": "@Check Updates", "description": "@UPDATE.CheckForUpdates.description",
+      "page": "game", "group": "@group.updates", "control": [ "switch", "cycler" ]
+    },
+    {
+      "id": "LANGUAGEOVERRIDE.Language", "type": "choice", "default": -1,
+      "choices": [ { "value": -1, "label": "@lang.auto" }, { "value": 0, "label": "English" }, { "value": 1, "label": "Français" }, { "value": 2, "label": "Deutsch" }, { "value": 3, "label": "Italiano" }, { "value": 4, "label": "Español" }, { "value": 5, "label": "Русский" }, { "value": 6, "label": "日本語" } ],
+      "label": "@LANGUAGEOVERRIDE.Language", "description": "@LANGUAGEOVERRIDE.Language.description",
+      "page": "compatibility", "group": "@group.language", "control": [ "cycler", "dropdown" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "MISC.FieldOfView", "type": "int", "default": 0, "min": 0, "max": 9, "step": 1,
+      "label": "@MO_FOV", "description": "@MISC.FieldOfView.description",
+      "page": "display", "control": [ "slider" ]
+    },
+    {
+      "id": "MAIN.Definition", "type": "bool", "default": 1,
+      "label": "@MO_DOF", "description": "@MAIN.Definition.description",
+      "page": "display", "group": "@group.image", "control": [ "switch", "cycler" ]
+    },
+    {
+      "id": "MISC.ConsoleGamma", "type": "choice", "default": 1,
+      "choices": [ { "value": 0, "label": "@MO_OFF" }, { "value": 1, "label": "Xbox 360" }, { "value": 2, "label": "PlayStation 3" } ],
+      "label": "@Console Gamma", "description": "@MISC.ConsoleGamma.description",
+      "page": "display", "group": "@group.image", "control": [ "cycler", "dropdown" ],
+      "presets": { "vanilla": 0, "recommended": 1, "enhanced": 1 }
+    },
+    {
+      "id": "MISC.ConsoleAutoExposure", "type": "bool", "default": 1,
+      "label": "@Auto Exposure", "description": "@MISC.ConsoleAutoExposure.description",
+      "page": "display", "group": "@group.image", "control": [ "switch", "cycler" ],
+      "presets": { "vanilla": 0, "recommended": 1, "enhanced": 1 }
+    },
+    {
+      "id": "MAIN.MotionBlur", "type": "choice", "default": 2,
+      "choices": [ { "value": 0, "label": "@MO_OFF" }, { "value": 1, "label": "@MO_LOW" }, { "value": 2, "label": "@MO_MED" }, { "value": 3, "label": "@MO_HIGH" }, { "value": 4, "label": "@MO_VHIGH" } ],
+      "label": "@Motion Blur", "description": "@MAIN.MotionBlur.description",
+      "page": "display", "group": "@group.image", "control": [ "cycler", "dropdown" ]
+    },
+    {
+      "id": "MISC.DepthOfField", "type": "choice", "default": 1,
+      "choices": [ { "value": 0, "label": "@MO_OFF" }, { "value": 1, "label": "Cutscenes Only" }, { "value": 2, "label": "@MO_LOW" }, { "value": 3, "label": "@MO_MED" }, { "value": 4, "label": "@MO_HIGH" }, { "value": 5, "label": "@MO_VHIGH" } ],
+      "label": "@Depth of Field", "description": "@MISC.DepthOfField.description",
+      "page": "display", "group": "@group.image", "control": [ "cycler", "dropdown" ]
+    },
+    {
+      "id": "MISC.TreeLighting", "type": "choice", "default": 1,
+      "choices": [ { "value": 0, "label": "PC" }, { "value": 1, "label": "PC+" }, { "value": 2, "label": "Console" } ],
+      "label": "@TreeFX", "description": "@MISC.TreeLighting.description",
+      "page": "display", "group": "@group.image", "control": [ "cycler", "dropdown" ],
+      "presets": { "vanilla": 0, "recommended": 1, "enhanced": 1 }
+    },
+    {
+      "id": "MISC.TreeAlpha", "type": "choice", "default": 0,
+      "choices": [ { "value": 0, "label": "PC" }, { "value": 1, "label": "PC+" }, { "value": 2, "label": "Console" } ],
+      "label": "@Tree Alpha", "description": "@MISC.TreeAlpha.description",
+      "page": "display", "group": "@group.image", "control": [ "cycler", "dropdown" ]
+    },
+    {
+      "id": "MAIN.Bloom", "type": "bool", "default": 1,
+      "label": "@Bloom", "description": "@MAIN.Bloom.description",
+      "page": "display", "group": "@group.lighting", "control": [ "switch", "cycler" ]
+    },
+    {
+      "id": "MISC.ScreenFilter", "type": "choice", "default": 0,
+      "choices": [ { "value": 0, "label": "@MO_DEF" }, { "value": 1, "label": "@MO_OFF" }, { "value": 2, "label": "IV" }, { "value": 3, "label": "TLAD" }, { "value": 4, "label": "TBOGT" } ],
+      "label": "@Screen Filter", "description": "@MISC.ScreenFilter.description",
+      "page": "display", "group": "@group.lighting", "control": [ "cycler", "dropdown" ]
+    },
+    {
+      "id": "HDR.HDR", "type": "bool", "default": 0,
+      "label": "@ff.hdr", "description": "@HDR.HDR.description",
+      "page": "hdr", "control": [ "switch", "cycler" ]
+    },
+    {
+      "id": "HDR.PeakBrightnessNits", "type": "int", "default": 1000, "min": 50, "max": 4000, "step": 50, "unit": "nits",
+      "label": "@ff.peak", "description": "@HDR.PeakBrightnessNits.description",
+      "page": "hdr", "control": [ "slider" ], "visibleIf": { "setting": "HDR.HDR", "equals": 1 }
+    },
+    {
+      "id": "HDR.GameBrightnessNits", "type": "int", "default": 200, "min": 50, "max": 500, "step": 50, "unit": "nits",
+      "label": "@ff.paperwhite", "description": "@HDR.GameBrightnessNits.description",
+      "page": "hdr", "control": [ "slider" ], "visibleIf": { "setting": "HDR.HDR", "equals": 1 }
+    },
+    {
+      "id": "FRAMELIMIT.FpsLimitPreset", "type": "choice", "default": 0,
+      "choices": [ { "value": 0, "label": "@MO_OFF" }, { "value": 1, "label": "Custom" }, { "value": 2, "label": "30" }, { "value": 3, "label": "40" }, { "value": 4, "label": "50" }, { "value": 5, "label": "60" }, { "value": 6, "label": "75" }, { "value": 7, "label": "100" }, { "value": 8, "label": "120" }, { "value": 9, "label": "144" }, { "value": 10, "label": "165" }, { "value": 11, "label": "200" }, { "value": 12, "label": "240" } ],
+      "label": "@FPS Limiter", "description": "@FRAMELIMIT.FpsLimitPreset.description",
+      "page": "graphics", "control": [ "cycler", "dropdown" ]
+    },
+    {
+      "id": "MISC.Antialiasing", "type": "choice", "default": 2,
+      "choices": [ { "value": 0, "label": "@MO_OFF" }, { "value": 1, "label": "FXAA" }, { "value": 2, "label": "SMAA" }, { "value": 3, "label": "TAA" }, { "value": 4, "label": "DLAA" }, { "value": 5, "label": "FSR" } ],
+      "label": "@Antialiasing", "description": "@MISC.Antialiasing.description",
+      "page": "graphics", "control": [ "cycler", "dropdown" ],
+      "presets": { "vanilla": 0, "recommended": 2, "enhanced": 3 }
+    },
+    {
+      "id": "FOG.VolumetricFog", "type": "bool", "default": 0,
+      "label": "@Volumetric Fog", "description": "@FOG.VolumetricFog.description",
+      "page": "graphics", "group": "@group.effects", "control": [ "switch", "cycler" ],
+      "presets": { "vanilla": 0, "recommended": 0, "enhanced": 1 }
+    },
+    {
+      "id": "MISC.SunShafts", "type": "bool", "default": 0,
+      "label": "@Sun Shafts", "description": "@MISC.SunShafts.description",
+      "page": "graphics", "group": "@group.effects", "control": [ "switch", "cycler" ],
+      "presets": { "vanilla": 0, "recommended": 0, "enhanced": 1 }
+    },
+    {
+      "id": "MISC.UnclampLighting", "type": "bool", "default": 0,
+      "label": "@UnclampLighting", "description": "@MISC.UnclampLighting.description",
+      "page": "graphics", "group": "@group.effects", "control": [ "switch", "cycler" ],
+      "presets": { "vanilla": 0, "recommended": 0, "enhanced": 1 }
+    },
+    {
+      "id": "MISC.ToneMapping", "type": "bool", "default": 0,
+      "label": "@Tone Mapping", "description": "@MISC.ToneMapping.description",
+      "page": "graphics", "group": "@group.effects", "control": [ "switch", "cycler" ]
+    },
+    {
+      "id": "MISC.AmbientOcclusion", "type": "bool", "default": 0,
+      "label": "@AO", "description": "@MISC.AmbientOcclusion.description",
+      "page": "graphics", "group": "@group.effects", "control": [ "switch", "cycler" ],
+      "presets": { "vanilla": 0, "recommended": 0, "enhanced": 1 }
+    },
+    {
+      "id": "SHADOWS.ShadowFilter", "type": "choice", "default": 0,
+      "choices": [ { "value": 0, "label": "Sharp" }, { "value": 1, "label": "Soft" }, { "value": 2, "label": "CHSS" } ],
+      "label": "@Shadow Filter", "description": "@SHADOWS.ShadowFilter.description",
+      "page": "graphics", "group": "@group.effects", "control": [ "cycler", "dropdown" ]
+    },
+    {
+      "id": "SHADOWS.ExtraNightShadows", "type": "choice", "default": 0,
+      "choices": [ { "value": 0, "label": "@MO_OFF" }, { "value": 1, "label": "@Lampposts" }, { "value": 2, "label": "@LampostsHeadl" }, { "value": 3, "label": "@LampHeadlVNS" } ],
+      "label": "@ExtraNightShad", "description": "@SHADOWS.ExtraNightShadows.description",
+      "page": "graphics", "group": "@group.effects", "control": [ "cycler", "dropdown" ]
+    },
+    {
+      "id": "MAIN.GraphicsAPI", "type": "choice", "default": 0,
+      "choices": [ { "value": 0, "label": "DirectX 9" }, { "value": 1, "label": "Vulkan" }, { "value": 2, "label": "DirectX 12" } ],
+      "label": "@Graphics API", "description": "@MAIN.GraphicsAPI.description",
+      "page": "graphics", "group": "@group.effects", "control": [ "cycler", "dropdown" ], "apply": "restart"
+    },
+    {
+      "id": "MISC.AlwaysRun", "type": "bool", "default": 0,
+      "label": "@Always Run", "description": "@MISC.AlwaysRun.description",
+      "page": "controls", "group": "@group.movement", "control": [ "switch", "cycler" ]
+    },
+    {
+      "id": "MISC.ZoomedMovement", "type": "bool", "default": 1,
+      "label": "@Zoomed Movement", "description": "@MISC.ZoomedMovement.description",
+      "page": "controls", "group": "@group.movement", "control": [ "switch", "cycler" ]
+    },
+    {
+      "id": "MISC.ExtendedSniperControls", "type": "bool", "default": 0,
+      "label": "@Extended Sniper", "description": "@MISC.ExtendedSniperControls.description",
+      "page": "controls", "group": "@group.movement", "control": [ "switch", "cycler" ]
+    },
+    {
+      "id": "MAIN.CameraShake", "type": "bool", "default": 1,
+      "label": "@Camera Shake", "description": "@MAIN.CameraShake.description",
+      "page": "controls", "group": "@group.camera", "control": [ "switch", "cycler" ]
+    },
+    {
+      "id": "MISC.CenteredVehCam", "type": "bool", "default": 0,
+      "label": "@CenteredVehCam", "description": "@MISC.CenteredVehCam.description",
+      "page": "controls", "group": "@group.camera", "control": [ "switch", "cycler" ]
+    },
+    {
+      "id": "MISC.CenteredFootCam", "type": "bool", "default": 0,
+      "label": "@CenteredFootCam", "description": "@MISC.CenteredFootCam.description",
+      "page": "controls", "group": "@group.camera", "control": [ "switch", "cycler" ]
+    },
+    {
+      "id": "MISC.StuntJumpCamera", "type": "bool", "default": 1,
+      "label": "@Stunt Jump Cam", "description": "@MISC.StuntJumpCamera.description",
+      "page": "controls", "group": "@group.camera", "control": [ "switch", "cycler" ]
+    },
+    {
+      "id": "MISC.ActionCamera", "type": "bool", "default": 1,
+      "label": "@Action Cam", "description": "@MISC.ActionCamera.description",
+      "page": "controls", "group": "@group.camera", "control": [ "switch", "cycler" ]
+    },
+    {
+      "id": "MISC.TurnIndicators", "type": "bool", "default": 0,
+      "label": "@Turn Indicators", "description": "@MISC.TurnIndicators.description",
+      "page": "controls", "group": "@group.gameplay", "control": [ "switch", "cycler" ]
+    },
+    {
+      "id": "MISC.AlwaysShowBulletTraces", "type": "bool", "default": 0,
+      "label": "@Bullet Traces", "description": "@MISC.AlwaysShowBulletTraces.description",
+      "page": "controls", "group": "@group.gameplay", "control": [ "switch", "cycler" ]
+    },
+    {
+      "id": "MISC.DisableWardrobeTransition", "type": "bool", "default": 0,
+      "label": "@Wardrobe Fading", "description": "@MISC.DisableWardrobeTransition.description",
+      "page": "controls", "group": "@group.gameplay", "control": [ "switch", "cycler" ]
+    },
+    {
+      "id": "MISC.InstantStopTaxi", "type": "bool", "default": 0,
+      "label": "@Stop Taxi", "description": "@MISC.InstantStopTaxi.description",
+      "page": "controls", "group": "@group.gameplay", "control": [ "switch", "cycler" ]
+    },
+    {
+      "id": "MISC.AutoClimbLadders", "type": "bool", "default": 0,
+      "label": "@Ladders Climb", "description": "@MISC.AutoClimbLadders.description",
+      "page": "controls", "group": "@group.gameplay", "control": [ "switch", "cycler" ]
+    },
+    {
+      "id": "MISC.MouseAimSensitivity", "type": "int", "default": 10, "min": 0, "max": 20, "step": 1,
+      "label": "@MouseAimSens", "description": "@MISC.MouseAimSensitivity.description",
+      "page": "controls", "group": "@group.keyboard", "control": [ "slider" ]
+    },
+    {
+      "id": "MISC.DelayBeforeCenteringCameraKB", "type": "int", "default": 4, "min": 0, "max": 9, "step": 1,
+      "label": "@CenterDelayFoot", "description": "@MISC.DelayBeforeCenteringCameraKB.description",
+      "page": "controls", "group": "@group.keyboard", "control": [ "slider" ]
+    },
+    {
+      "id": "MISC.DelayBeforeCenteringCameraKBInCar", "type": "int", "default": 0, "min": 0, "max": 9, "step": 1,
+      "label": "@CenterDelayVeh", "description": "@MISC.DelayBeforeCenteringCameraKBInCar.description",
+      "page": "controls", "group": "@group.keyboard", "control": [ "slider" ]
+    },
+    {
+      "id": "MISC.CameraTurnSpeedKBInCar", "type": "int", "default": 3, "min": 0, "max": 7, "step": 1,
+      "label": "@CamTurnSpeedVeh", "description": "@MISC.CameraTurnSpeedKBInCar.description",
+      "page": "controls", "group": "@group.keyboard", "control": [ "slider" ]
+    },
+    {
+      "id": "MISC.RawInput", "type": "bool", "default": 1,
+      "label": "@Raw Input", "description": "@MISC.RawInput.description",
+      "page": "controls", "group": "@group.keyboard", "control": [ "switch", "cycler" ],
+      "presets": { "vanilla": 0, "recommended": 1, "enhanced": 1 }
+    },
+    {
+      "id": "MAIN.ConfineCursor", "type": "bool", "default": 1,
+      "label": "@Confine Cursor", "description": "@MAIN.ConfineCursor.description",
+      "page": "controls", "group": "@group.keyboard", "control": [ "switch", "cycler" ],
+      "presets": { "vanilla": 1, "recommended": 1, "enhanced": 1 }
+    },
+    {
+      "id": "MISC.PadLookSensitivity", "type": "int", "default": 10, "min": 0, "max": 20, "step": 1,
+      "label": "@PadLookSens", "description": "@MISC.PadLookSensitivity.description",
+      "page": "gamepad", "control": [ "slider" ]
+    },
+    {
+      "id": "MISC.PadAimSensitivity", "type": "int", "default": 10, "min": 0, "max": 20, "step": 1,
+      "label": "@MO_SENS", "description": "@MISC.PadAimSensitivity.description",
+      "page": "gamepad", "control": [ "slider" ]
+    },
+    {
+      "id": "MISC.DelayBeforeCenteringCameraPad", "type": "int", "default": 0, "min": 0, "max": 9, "step": 1,
+      "label": "@CenterDelayFootPad", "description": "@MISC.DelayBeforeCenteringCameraPad.description",
+      "page": "gamepad", "group": "@group.camera", "control": [ "slider" ]
+    },
+    {
+      "id": "MISC.DelayBeforeCenteringCameraPadInCar", "type": "int", "default": 0, "min": 0, "max": 9, "step": 1,
+      "label": "@CenterDelayVehPad", "description": "@MISC.DelayBeforeCenteringCameraPadInCar.description",
+      "page": "gamepad", "group": "@group.camera", "control": [ "slider" ]
+    },
+    {
+      "id": "MISC.CameraTurnSpeedPadInCar", "type": "int", "default": 0, "min": 0, "max": 7, "step": 1,
+      "label": "@CamTurnSpeedVehPad", "description": "@MISC.CameraTurnSpeedPadInCar.description",
+      "page": "gamepad", "group": "@group.camera", "control": [ "slider" ]
+    },
+    {
+      "id": "MISC.Buttons", "type": "choice", "default": 1,
+      "choices": [ { "value": 0, "label": "Xbox 360" }, { "value": 1, "label": "Xbox One" }, { "value": 2, "label": "PlayStation 3" }, { "value": 3, "label": "PlayStation 4" }, { "value": 4, "label": "PlayStation 5" }, { "value": 5, "label": "Nintendo Switch" }, { "value": 6, "label": "Steam Deck" }, { "value": 7, "label": "@FE_STEAMPAD" } ],
+      "label": "@Gamepad Icons", "description": "@MISC.Buttons.description",
+      "page": "gamepad", "group": "@group.camera", "control": [ "cycler", "dropdown" ]
+    },
+    {
+      "id": "MISC.AltDialogue", "type": "bool", "default": 0,
+      "label": "@Alt. Dialogues", "description": "@MISC.AltDialogue.description",
+      "page": "audio", "control": [ "switch", "cycler" ]
+    },
+    {
+      "id": "MAIN.OverlayHotkey", "type": "choice", "default": 121,
+      "choices": [ { "value": 112, "label": "Ctrl+F1" }, { "value": 113, "label": "Ctrl+F2" }, { "value": 114, "label": "Ctrl+F3" }, { "value": 115, "label": "Ctrl+F4" }, { "value": 116, "label": "Ctrl+F5" }, { "value": 117, "label": "Ctrl+F6" }, { "value": 118, "label": "Ctrl+F7" }, { "value": 119, "label": "Ctrl+F8" }, { "value": 120, "label": "Ctrl+F9" }, { "value": 121, "label": "Ctrl+F10" }, { "value": 122, "label": "Ctrl+F11" }, { "value": 123, "label": "Ctrl+F12" }, { "value": 45, "label": "Ctrl+Insert" }, { "value": 36, "label": "Ctrl+Home" }, { "value": 33, "label": "Ctrl+Page Up" }, { "value": 34, "label": "Ctrl+Page Down" }, { "value": 35, "label": "Ctrl+End" }, { "value": 46, "label": "Ctrl+Delete" }, { "value": 19, "label": "Ctrl+Pause" }, { "value": 145, "label": "Ctrl+Scroll Lock" }, { "value": 192, "label": "Ctrl+` (grave)" } ],
+      "label": "Overlay hotkey", "description": "Opens the in-game settings overlay (Ctrl held with the key). Back + Start on a controller also opens it.",
+      "page": "advanced", "group": "@group.main", "control": [ "dropdown" ], "visibility": "editor"
+    },
+    {
+      "id": "MAIN.RecoilFix", "type": "bool", "default": 1,
+      "label": "@MAIN.RecoilFix", "description": "@MAIN.RecoilFix.description",
+      "page": "advanced", "group": "@group.main", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "MAIN.AimingZoomFix", "type": "choice", "default": 1,
+      "choices": [ { "value": -1, "label": "TBoGT like IV and TLaD" }, { "value": 0, "label": "Off" }, { "value": 1, "label": "TBoGT like Xbox" }, { "value": 2, "label": "Xbox in all episodes" } ],
+      "label": "@MAIN.AimingZoomFix", "description": "@MAIN.AimingZoomFix.description",
+      "page": "advanced", "group": "@group.main", "control": [ "cycler", "dropdown" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "CAMERASENSITIVITY.MouseLookSensitivityRange", "type": "string", "default": "0.1, 2.0",
+      "label": "@CAMERASENSITIVITY.MouseLookSensitivityRange", "description": "@CAMERASENSITIVITY.MouseLookSensitivityRange.description",
+      "page": "advanced", "group": "@group.camera sensitivity", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "CAMERASENSITIVITY.GamepadLookSensitivityRange", "type": "string", "default": "0.1, 2.0",
+      "label": "@CAMERASENSITIVITY.GamepadLookSensitivityRange", "description": "@CAMERASENSITIVITY.GamepadLookSensitivityRange.description",
+      "page": "advanced", "group": "@group.camera sensitivity", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "CAMERASENSITIVITY.MouseAimSensitivityRange", "type": "string", "default": "0.1, 2.0",
+      "label": "@CAMERASENSITIVITY.MouseAimSensitivityRange", "description": "@CAMERASENSITIVITY.MouseAimSensitivityRange.description",
+      "page": "advanced", "group": "@group.camera sensitivity", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "CAMERASENSITIVITY.GamepadAimSensitivityRange", "type": "string", "default": "0.1, 2.0",
+      "label": "@CAMERASENSITIVITY.GamepadAimSensitivityRange", "description": "@CAMERASENSITIVITY.GamepadAimSensitivityRange.description",
+      "page": "advanced", "group": "@group.camera sensitivity", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "SHADOWS.ExtraDynamicShadows", "type": "choice", "default": 2,
+      "choices": [ { "value": 0, "label": "Off" }, { "value": 1, "label": "Some vegetation" }, { "value": 2, "label": "Fences, grates, roads, walls and vegetation" } ],
+      "label": "@SHADOWS.ExtraDynamicShadows", "description": "@SHADOWS.ExtraDynamicShadows.description",
+      "page": "advanced", "group": "@group.shadows", "control": [ "cycler", "dropdown" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "SHADOWS.CascadeBlendSize", "type": "float", "default": 0.1, "min": 0, "max": 1, "step": 0.05,
+      "label": "@SHADOWS.CascadeBlendSize", "description": "@SHADOWS.CascadeBlendSize.description",
+      "page": "advanced", "group": "@group.shadows", "control": [ "slider" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "SHADOWS.HighResolutionShadows", "type": "bool", "default": 0,
+      "label": "@SHADOWS.HighResolutionShadows", "description": "@SHADOWS.HighResolutionShadows.description",
+      "page": "advanced", "group": "@group.shadows", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "SHADOWS.ForceShadowFilter", "type": "choice", "default": 0,
+      "choices": [ { "value": 0, "label": "Tied to Definition" }, { "value": 1, "label": "Always low" }, { "value": 2, "label": "Always high" } ],
+      "label": "@SHADOWS.ForceShadowFilter", "description": "@SHADOWS.ForceShadowFilter.description",
+      "page": "advanced", "group": "@group.shadows", "control": [ "cycler", "dropdown" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "SHADOWS.DynamicShadowsForTrees", "type": "bool", "default": 1,
+      "label": "@SHADOWS.DynamicShadowsForTrees",
+      "page": "advanced", "group": "@group.shadows", "control": [ "switch", "cycler" ], "visibility": "file", "apply": "restart"
+    },
+    {
+      "id": "SHADOWS.HighResolutionNightShadows", "type": "bool", "default": 0,
+      "label": "@SHADOWS.HighResolutionNightShadows",
+      "page": "advanced", "group": "@group.shadows", "control": [ "switch", "cycler" ], "visibility": "file", "apply": "restart"
+    },
+    {
+      "id": "FRAMELIMIT.FrameLimitType", "type": "choice", "default": 2,
+      "choices": [ { "value": 1, "label": "Realtime (thread lock)" }, { "value": 2, "label": "Accurate (sleep and yield)" } ],
+      "label": "@FRAMELIMIT.FrameLimitType", "description": "@FRAMELIMIT.FrameLimitType.description",
+      "page": "advanced", "group": "@group.frame limit", "control": [ "cycler", "dropdown" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "FRAMELIMIT.FpsLimit", "type": "int", "default": -2, "min": -60, "max": 1000, "step": 1,
+      "label": "@FRAMELIMIT.FpsLimit", "description": "@FRAMELIMIT.FpsLimit.description",
+      "page": "advanced", "group": "@group.frame limit", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "FRAMELIMIT.CutsceneFpsLimit", "type": "int", "default": 0, "min": 0, "max": 1000, "step": 1,
+      "label": "@FRAMELIMIT.CutsceneFpsLimit", "description": "@FRAMELIMIT.CutsceneFpsLimit.description",
+      "page": "advanced", "group": "@group.frame limit", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "FRAMELIMIT.UnlockFramerateDuringLoadscreens", "type": "bool", "default": 1,
+      "label": "@FRAMELIMIT.UnlockFramerateDuringLoadscreens", "description": "@FRAMELIMIT.UnlockFramerateDuringLoadscreens.description",
+      "page": "advanced", "group": "@group.frame limit", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "FRAMELIMIT.MinigamesFpsLimit", "type": "int", "default": 30, "min": 0, "max": 1000, "step": 1,
+      "label": "@FRAMELIMIT.MinigamesFpsLimit", "description": "@FRAMELIMIT.MinigamesFpsLimit.description",
+      "page": "advanced", "group": "@group.frame limit", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "FRAMELIMIT.MinigamesList", "type": "string", "default": "pool_game, air_hockey, arm_wrestling, tenpinbowl, drinking",
+      "label": "@FRAMELIMIT.MinigamesList", "description": "@FRAMELIMIT.MinigamesList.description",
+      "page": "advanced", "group": "@group.frame limit", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "MISC.DefaultCameraAngleInTLaD", "type": "bool", "default": 1,
+      "label": "@MISC.DefaultCameraAngleInTLaD", "description": "@MISC.DefaultCameraAngleInTLaD.description",
+      "page": "advanced", "group": "@group.misc", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "MISC.PedDeathAnimFixFromTBoGT", "type": "bool", "default": 1,
+      "label": "@MISC.PedDeathAnimFixFromTBoGT", "description": "@MISC.PedDeathAnimFixFromTBoGT.description",
+      "page": "advanced", "group": "@group.misc", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "MISC.DisableCameraCenteringInCover", "type": "bool", "default": 1,
+      "label": "@MISC.DisableCameraCenteringInCover", "description": "@MISC.DisableCameraCenteringInCover.description",
+      "page": "advanced", "group": "@group.misc", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "MISC.ExtraInfo", "type": "bool", "default": 1,
+      "label": "@MISC.ExtraInfo", "description": "@MISC.ExtraInfo.description",
+      "page": "advanced", "group": "@group.misc", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "MISC.OverrideTreeAlpha", "type": "float", "default": 0.0, "step": 0.125, "min": 0, "max": 255,
+      "label": "@MISC.OverrideTreeAlpha", "description": "@MISC.OverrideTreeAlpha.description",
+      "page": "advanced", "group": "@group.misc", "control": [ "slider" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "MISC.ConsoleCarReflectionsAndDirt", "type": "bool", "default": 1,
+      "label": "@MISC.ConsoleCarReflectionsAndDirt", "description": "@MISC.ConsoleCarReflectionsAndDirt.description",
+      "page": "advanced", "group": "@group.misc", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "MISC.BrakeLightsWhenStopped", "type": "bool", "default": 0,
+      "label": "@MISC.BrakeLightsWhenStopped", "description": "@MISC.BrakeLightsWhenStopped.description",
+      "page": "advanced", "group": "@group.misc", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "MISC.FixHelicopterSearchlights", "type": "choice", "default": 1,
+      "choices": [ { "value": 0, "label": "Off (may flicker)" }, { "value": 1, "label": "One at a time (up to 10 s)" }, { "value": 2, "label": "All independently" } ],
+      "label": "@MISC.FixHelicopterSearchlights", "description": "@MISC.FixHelicopterSearchlights.description",
+      "page": "advanced", "group": "@group.misc", "control": [ "cycler", "dropdown" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "MISC.AlwaysDisplayHealthOnReticle", "type": "bool", "default": 1,
+      "label": "@MISC.AlwaysDisplayHealthOnReticle", "description": "@MISC.AlwaysDisplayHealthOnReticle.description",
+      "page": "advanced", "group": "@group.misc", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "MISC.SmoothShorelines", "type": "bool", "default": 1,
+      "label": "@MISC.SmoothShorelines", "description": "@MISC.SmoothShorelines.description",
+      "page": "advanced", "group": "@group.misc", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "MISC.SmoothLightVolumes", "type": "bool", "default": 1,
+      "label": "@MISC.SmoothLightVolumes", "description": "@MISC.SmoothLightVolumes.description",
+      "page": "advanced", "group": "@group.misc", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "MISC.NoBloomColorShift", "type": "bool", "default": 1,
+      "label": "@MISC.NoBloomColorShift", "description": "@MISC.NoBloomColorShift.description",
+      "page": "advanced", "group": "@group.misc", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "MISC.MenuEnteringDelay", "type": "int", "default": 0, "step": 10, "min": 0, "max": 400, "unit": "ms",
+      "label": "@MISC.MenuEnteringDelay", "description": "@MISC.MenuEnteringDelay.description",
+      "page": "advanced", "group": "@group.misc", "control": [ "slider" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "MISC.MenuExitingDelay", "type": "int", "default": 0, "step": 10, "min": 0, "max": 800, "unit": "ms",
+      "label": "@MISC.MenuExitingDelay", "description": "@MISC.MenuExitingDelay.description",
+      "page": "advanced", "group": "@group.misc", "control": [ "slider" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "MISC.MenuAccessDelayOnStartup", "type": "int", "default": 0, "step": 50, "min": 0, "max": 3000, "unit": "ms",
+      "label": "@MISC.MenuAccessDelayOnStartup", "description": "@MISC.MenuAccessDelayOnStartup.description",
+      "page": "advanced", "group": "@group.misc", "control": [ "slider" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "MISC.RadarZoomDelay", "type": "int", "default": 3000, "step": 100, "min": 0, "max": 60000, "unit": "ms",
+      "label": "@MISC.RadarZoomDelay", "description": "@MISC.RadarZoomDelay.description",
+      "page": "advanced", "group": "@group.misc", "control": [ "slider" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "MISC.DeathMusic", "type": "bool", "default": 0,
+      "label": "@MISC.DeathMusic", "description": "@MISC.DeathMusic.description",
+      "page": "advanced", "group": "@group.misc", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "MISC.AutoClimbLaddersRange", "type": "float", "default": 1.5, "step": 0.1, "min": 0, "max": 4,
+      "label": "@MISC.AutoClimbLaddersRange", "description": "@MISC.AutoClimbLaddersRange.description",
+      "page": "advanced", "group": "@group.misc", "control": [ "slider" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "MISC.PlayerJumpRagdollControl", "type": "bool", "default": 0,
+      "label": "@MISC.PlayerJumpRagdollControl", "description": "@MISC.PlayerJumpRagdollControl.description",
+      "page": "advanced", "group": "@group.misc", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "MISC.PlayerClimbRagdollControl", "type": "bool", "default": 0,
+      "label": "@MISC.PlayerClimbRagdollControl", "description": "@MISC.PlayerClimbRagdollControl.description",
+      "page": "advanced", "group": "@group.misc", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "MISC.SkipLoadingSpinner", "type": "bool", "default": 1,
+      "label": "@MISC.SkipLoadingSpinner",
+      "page": "advanced", "group": "@group.misc", "control": [ "switch", "cycler" ], "visibility": "file", "apply": "restart"
+    },
+    {
+      "id": "MISC.MaxPQValue", "type": "float", "default": 100.0, "min": 1, "max": 10000, "step": 1,
+      "label": "@MISC.MaxPQValue",
+      "page": "advanced", "group": "@group.misc", "visibility": "file", "apply": "restart"
+    },
+    {
+      "id": "FOG.VolFogFarClip", "type": "float", "default": 4500.0, "min": 100, "max": 10000, "step": 100,
+      "label": "@FOG.VolFogFarClip", "description": "@FOG.VolFogFarClip.description",
+      "page": "advanced", "group": "@group.fog", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "FOG.ExtendedTimecycEditing", "type": "bool", "default": 0,
+      "label": "@FOG.ExtendedTimecycEditing", "description": "@FOG.ExtendedTimecycEditing.description",
+      "page": "advanced", "group": "@group.fog", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "BudgetedIV.VehicleBudget", "type": "int", "default": 0, "min": 0, "max": 2000000000, "step": 1000000,
+      "label": "@BudgetedIV.VehicleBudget", "description": "@BudgetedIV.VehicleBudget.description",
+      "page": "advanced", "group": "@group.budgeted iv", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "BudgetedIV.PedBudget", "type": "int", "default": 0, "min": 0, "max": 2000000000, "step": 1000000,
+      "label": "@BudgetedIV.PedBudget", "description": "@BudgetedIV.PedBudget.description",
+      "page": "advanced", "group": "@group.budgeted iv", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "BudgetedIV.ExtendedLimits", "type": "bool", "default": 0,
+      "label": "@BudgetedIV.ExtendedLimits", "description": "@BudgetedIV.ExtendedLimits.description",
+      "page": "advanced", "group": "@group.budgeted iv", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "BudgetedIV.LiveriesLimit", "type": "int", "default": 127, "step": 1, "min": 0, "max": 127,
+      "label": "@BudgetedIV.LiveriesLimit",
+      "page": "advanced", "group": "@group.budgeted iv", "control": [ "slider" ], "visibility": "file", "apply": "restart"
+    },
+    {
+      "id": "EPISODICCONTENT.EpisodicVehicles", "type": "bool", "default": 0,
+      "label": "@EPISODICCONTENT.EpisodicVehicles", "description": "@EPISODICCONTENT.EpisodicVehicles.description",
+      "page": "advanced", "group": "@group.episodic content", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "EPISODICCONTENT.EpisodicWeapons", "type": "bool", "default": 0,
+      "label": "@EPISODICCONTENT.EpisodicWeapons", "description": "@EPISODICCONTENT.EpisodicWeapons.description",
+      "page": "advanced", "group": "@group.episodic content", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "EPISODICCONTENT.ExplosiveAnnihilator", "type": "bool", "default": 0,
+      "label": "@EPISODICCONTENT.ExplosiveAnnihilator", "description": "@EPISODICCONTENT.ExplosiveAnnihilator.description",
+      "page": "advanced", "group": "@group.episodic content", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "EPISODICCONTENT.OtherEpisodicChecks", "type": "bool", "default": 0,
+      "label": "@EPISODICCONTENT.OtherEpisodicChecks", "description": "@EPISODICCONTENT.OtherEpisodicChecks.description",
+      "page": "advanced", "group": "@group.episodic content", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "EPISODICCONTENT.TBoGTHelicopterHeightLimit", "type": "bool", "default": 0,
+      "label": "@EPISODICCONTENT.TBoGTHelicopterHeightLimit", "description": "@EPISODICCONTENT.TBoGTHelicopterHeightLimit.description",
+      "page": "advanced", "group": "@group.episodic content", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "EPISODICCONTENT.TBoGTPoliceWeapons", "type": "bool", "default": 0,
+      "label": "@EPISODICCONTENT.TBoGTPoliceWeapons", "description": "@EPISODICCONTENT.TBoGTPoliceWeapons.description",
+      "page": "advanced", "group": "@group.episodic content", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "EPISODICCONTENT.RemoveSCOSignatureCheck", "type": "bool", "default": 0,
+      "label": "@EPISODICCONTENT.RemoveSCOSignatureCheck", "description": "@EPISODICCONTENT.RemoveSCOSignatureCheck.description",
+      "page": "advanced", "group": "@group.episodic content", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "EPISODICCONTENT.EpisodicDeathMusic", "type": "bool", "default": 0,
+      "label": "@EPISODICCONTENT.EpisodicDeathMusic", "description": "@EPISODICCONTENT.EpisodicDeathMusic.description",
+      "page": "advanced", "group": "@group.episodic content", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "SUNSHAFTS.SunShaftsDensity", "type": "float", "default": 0.9, "min": 0, "max": 1, "step": 0.05,
+      "label": "@SUNSHAFTS.SunShaftsDensity", "description": "@SUNSHAFTS.SunShaftsDensity.description",
+      "page": "advanced", "group": "@group.sun shafts", "control": [ "slider" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "SUNSHAFTS.SunShaftsDecay", "type": "float", "default": 0.95, "min": 0, "max": 1, "step": 0.05,
+      "label": "@SUNSHAFTS.SunShaftsDecay", "description": "@SUNSHAFTS.SunShaftsDecay.description",
+      "page": "advanced", "group": "@group.sun shafts", "control": [ "slider" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "POSTFX.EnablePreAlphaDepth", "type": "bool", "default": 1,
+      "label": "@POSTFX.EnablePreAlphaDepth", "description": "@POSTFX.EnablePreAlphaDepth.description",
+      "page": "advanced", "group": "@group.post processing", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "POSTFX.AmbientOcclusionBlurPasses", "type": "int", "default": 1, "min": 0, "max": 8, "step": 1,
+      "label": "@POSTFX.AmbientOcclusionBlurPasses",
+      "page": "advanced", "group": "@group.post processing", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "POSTFX.AmbientOcclusionSamples", "type": "int", "default": 9, "min": 1, "max": 32, "step": 1,
+      "label": "@POSTFX.AmbientOcclusionSamples",
+      "page": "advanced", "group": "@group.post processing", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "POSTFX.AmbientOcclusionLogMaxOffset", "type": "int", "default": 3, "min": 0, "max": 8, "step": 1,
+      "label": "@POSTFX.AmbientOcclusionLogMaxOffset",
+      "page": "advanced", "group": "@group.post processing", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "POSTFX.AmbientOcclusionMaxMipLevel", "type": "int", "default": 5, "min": 0, "max": 10, "step": 1,
+      "label": "@POSTFX.AmbientOcclusionMaxMipLevel",
+      "page": "advanced", "group": "@group.post processing", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "POSTFX.AmbientOcclusionFarClip", "type": "float", "default": 150.0, "min": 10, "max": 1000, "step": 10,
+      "label": "@POSTFX.AmbientOcclusionFarClip",
+      "page": "advanced", "group": "@group.post processing", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "POSTFX.AmbientOcclusionRadius", "type": "float", "default": 1.125, "min": 0.125, "max": 5, "step": 0.125,
+      "label": "@POSTFX.AmbientOcclusionRadius",
+      "page": "advanced", "group": "@group.post processing", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "POSTFX.AmbientOcclusionBias", "type": "float", "default": 0.03, "min": 0, "max": 0.2, "step": 0.005,
+      "label": "@POSTFX.AmbientOcclusionBias",
+      "page": "advanced", "group": "@group.post processing", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "POSTFX.AmbientOcclusionIntensity", "type": "float", "default": 0.4, "min": 0, "max": 2, "step": 0.05,
+      "label": "@POSTFX.AmbientOcclusionIntensity",
+      "page": "advanced", "group": "@group.post processing", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "POSTFX.AmbientOcclusionBlurRadius", "type": "float", "default": 2.0, "min": 0, "max": 8, "step": 0.25,
+      "label": "@POSTFX.AmbientOcclusionBlurRadius",
+      "page": "advanced", "group": "@group.post processing", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "SRF.EnablePostfx", "type": "int", "default": 1, "min": 0, "max": 1, "step": 1,
+      "label": "@SRF.EnablePostfx",
+      "page": "advanced", "group": "@group.post processing", "visibility": "file", "apply": "restart"
+    },
+    {
+      "id": "SRF.StippleFilter", "type": "bool", "default": 1,
+      "label": "@SRF.StippleFilter",
+      "page": "advanced", "group": "@group.post processing", "control": [ "switch", "cycler" ], "visibility": "file", "apply": "restart"
+    },
+    {
+      "id": "TEMPORAL.JitterPhases", "type": "int", "default": 8, "step": 1, "min": 2, "max": 128,
+      "label": "@TEMPORAL.JitterPhases", "description": "@TEMPORAL.JitterPhases.description",
+      "page": "advanced", "group": "@group.temporal", "control": [ "slider" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "TEMPORAL.CurrentFrameWeightMin", "type": "float", "default": 0.05, "step": 0.01, "min": 0.01, "max": 1,
+      "label": "@TEMPORAL.CurrentFrameWeightMin", "description": "@TEMPORAL.CurrentFrameWeightMin.description",
+      "page": "advanced", "group": "@group.temporal", "control": [ "slider" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "TEMPORAL.CurrentFrameWeightMax", "type": "float", "default": 0.2, "step": 0.01, "min": 0.01, "max": 1,
+      "label": "@TEMPORAL.CurrentFrameWeightMax", "description": "@TEMPORAL.CurrentFrameWeightMax.description",
+      "page": "advanced", "group": "@group.temporal", "control": [ "slider" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "TEMPORAL.CurrentFrameWeightPerPixelOfMotion", "type": "float", "default": 0.1, "max": 1, "step": 0.01, "min": 0,
+      "label": "@TEMPORAL.CurrentFrameWeightPerPixelOfMotion", "description": "@TEMPORAL.CurrentFrameWeightPerPixelOfMotion.description",
+      "page": "advanced", "group": "@group.temporal", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "TEMPORAL.VarianceClipGamma", "type": "float", "default": 1.25, "step": 0.05, "min": 0.5, "max": 4,
+      "label": "@TEMPORAL.VarianceClipGamma", "description": "@TEMPORAL.VarianceClipGamma.description",
+      "page": "advanced", "group": "@group.temporal", "control": [ "slider" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "TEMPORAL.StaticHistoryTrust", "type": "float", "default": 0.5, "step": 0.05, "min": 0, "max": 1,
+      "label": "@TEMPORAL.StaticHistoryTrust", "description": "@TEMPORAL.StaticHistoryTrust.description",
+      "page": "advanced", "group": "@group.temporal", "control": [ "slider" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "TEMPORAL.LumaWeight", "type": "float", "default": 1.0, "step": 0.25, "min": 0, "max": 16,
+      "label": "@TEMPORAL.LumaWeight", "description": "@TEMPORAL.LumaWeight.description",
+      "page": "advanced", "group": "@group.temporal", "control": [ "slider" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "TEMPORAL.ObjectMotionVectors", "type": "bool", "default": 1,
+      "label": "@TEMPORAL.ObjectMotionVectors", "description": "@TEMPORAL.ObjectMotionVectors.description",
+      "page": "advanced", "group": "@group.temporal", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "TEMPORAL.SkinnedMotionVectors", "type": "bool", "default": 1,
+      "label": "@TEMPORAL.SkinnedMotionVectors", "description": "@TEMPORAL.SkinnedMotionVectors.description",
+      "page": "advanced", "group": "@group.temporal", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "TEMPORAL.ObjectDepthBias", "type": "float", "default": 2e-05, "step": 1e-05, "min": 0, "max": 0.01,
+      "label": "@TEMPORAL.ObjectDepthBias", "description": "@TEMPORAL.ObjectDepthBias.description",
+      "page": "advanced", "group": "@group.temporal", "control": [ "slider" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "TEMPORAL.CameraCutDistance", "type": "float", "default": 25.0, "max": 1000, "step": 1, "min": 1,
+      "label": "@TEMPORAL.CameraCutDistance", "description": "@TEMPORAL.CameraCutDistance.description",
+      "page": "advanced", "group": "@group.temporal", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "TEMPORAL.DLSSPreset", "type": "choice", "default": 0,
+      "choices": [ { "value": 0, "label": "Default" }, { "value": 10, "label": "J" }, { "value": 11, "label": "K" }, { "value": 12, "label": "L" }, { "value": 13, "label": "M" } ],
+      "label": "@TEMPORAL.DLSSPreset", "description": "@TEMPORAL.DLSSPreset.description",
+      "page": "advanced", "group": "@group.temporal", "control": [ "cycler", "dropdown" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "TEMPORAL.FSRSharpness", "type": "float", "default": 0.0, "min": 0, "max": 1, "step": 0.05,
+      "label": "@TEMPORAL.FSRSharpness", "description": "@TEMPORAL.FSRSharpness.description",
+      "page": "advanced", "group": "@group.temporal", "control": [ "slider" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "TEMPORAL.D3D9on12Interop", "type": "bool", "default": 0,
+      "label": "@TEMPORAL.D3D9on12Interop", "description": "@TEMPORAL.D3D9on12Interop.description",
+      "page": "compatibility", "group": "@group.temporal", "control": [ "switch", "cycler" ], "visibility": "file", "apply": "restart"
+    },
+    {
+      "id": "TEMPORAL.ReactiveMask", "type": "bool", "default": 1,
+      "label": "@TEMPORAL.ReactiveMask", "description": "@TEMPORAL.ReactiveMask.description",
+      "page": "advanced", "group": "@group.temporal", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "TEMPORAL.ReactiveMaskScale", "type": "float", "default": 2.0, "step": 0.5, "min": 0, "max": 64,
+      "label": "@TEMPORAL.ReactiveMaskScale", "description": "@TEMPORAL.ReactiveMaskScale.description",
+      "page": "advanced", "group": "@group.temporal", "control": [ "slider" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "TEMPORAL.ReactiveMaskMaximum", "type": "float", "default": 0.75, "step": 0.05, "min": 0, "max": 1,
+      "label": "@TEMPORAL.ReactiveMaskMaximum", "description": "@TEMPORAL.ReactiveMaskMaximum.description",
+      "page": "advanced", "group": "@group.temporal", "control": [ "slider" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "HDR.RollOffStart", "type": "float", "default": 0.8, "min": 0, "max": 1, "step": 0.05,
+      "label": "@HDR.RollOffStart", "description": "@HDR.RollOffStart.description",
+      "page": "advanced", "group": "@group.hdr", "control": [ "slider" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "SHADOWFILTERSHARP.ShadowSoftness", "type": "float", "default": 1.5, "min": 0, "max": 10, "step": 0.25,
+      "label": "@SHADOWFILTERSHARP.ShadowSoftness", "description": "@SHADOWFILTERSHARP.ShadowSoftness.description",
+      "page": "advanced", "group": "@group.shadow filters", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "SHADOWFILTERSHARP.ShadowBias", "type": "float", "default": 5.0, "min": 0, "max": 20, "step": 0.5,
+      "label": "@SHADOWFILTERSHARP.ShadowBias", "description": "@SHADOWFILTERSHARP.ShadowBias.description",
+      "page": "advanced", "group": "@group.shadow filters", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "SHADOWFILTERSOFT.ShadowSoftness", "type": "float", "default": 3.0, "min": 0, "max": 10, "step": 0.25,
+      "label": "@SHADOWFILTERSOFT.ShadowSoftness", "description": "@SHADOWFILTERSOFT.ShadowSoftness.description",
+      "page": "advanced", "group": "@group.shadow filters", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "SHADOWFILTERSOFT.ShadowBias", "type": "float", "default": 8.0, "min": 0, "max": 20, "step": 0.5,
+      "label": "@SHADOWFILTERSOFT.ShadowBias", "description": "@SHADOWFILTERSOFT.ShadowBias.description",
+      "page": "advanced", "group": "@group.shadow filters", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "SHADOWFILTERCHSS.ShadowSoftness", "type": "float", "default": 1.5, "min": 0, "max": 10, "step": 0.25,
+      "label": "@SHADOWFILTERCHSS.ShadowSoftness", "description": "@SHADOWFILTERCHSS.ShadowSoftness.description",
+      "page": "advanced", "group": "@group.shadow filters", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "SHADOWFILTERCHSS.ShadowBias", "type": "float", "default": 5.0, "min": 0, "max": 20, "step": 0.5,
+      "label": "@SHADOWFILTERCHSS.ShadowBias", "description": "@SHADOWFILTERCHSS.ShadowBias.description",
+      "page": "advanced", "group": "@group.shadow filters", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "SHADOWFILTERCHSS.MaxSoftness", "type": "float", "default": 20.0, "min": 1, "max": 64, "step": 1,
+      "label": "@SHADOWFILTERCHSS.MaxSoftness", "description": "@SHADOWFILTERCHSS.MaxSoftness.description",
+      "page": "advanced", "group": "@group.shadow filters", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "TURNINDICATORS.ManualTurnIndicators", "type": "bool", "default": 0,
+      "label": "@TURNINDICATORS.ManualTurnIndicators", "description": "@TURNINDICATORS.ManualTurnIndicators.description",
+      "page": "advanced", "group": "@group.turn indicators", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "TURNINDICATORS.LeftIndicatorKey", "type": "key", "default": "0xDB",
+      "label": "@TURNINDICATORS.LeftIndicatorKey", "description": "@TURNINDICATORS.LeftIndicatorKey.description",
+      "page": "advanced", "group": "@group.turn indicators", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "TURNINDICATORS.RightIndicatorKey", "type": "key", "default": "0xDD",
+      "label": "@TURNINDICATORS.RightIndicatorKey", "description": "@TURNINDICATORS.RightIndicatorKey.description",
+      "page": "advanced", "group": "@group.turn indicators", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "EXPERIMENTAL.DisplayMemoryStats", "type": "bool", "default": 0,
+      "label": "@EXPERIMENTAL.DisplayMemoryStats", "description": "@EXPERIMENTAL.DisplayMemoryStats.description",
+      "page": "advanced", "group": "@group.experimental", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "EXPERIMENTAL.ReflectionMSAAQuality", "type": "choice", "default": 0,
+      "choices": [ { "value": 0, "label": "Off" }, { "value": 2, "label": "2x" }, { "value": 4, "label": "4x" }, { "value": 8, "label": "8x" } ],
+      "label": "@EXPERIMENTAL.ReflectionMSAAQuality", "description": "@EXPERIMENTAL.ReflectionMSAAQuality.description",
+      "page": "advanced", "group": "@group.experimental", "control": [ "cycler", "dropdown" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "EXPERIMENTAL.EnableHighDetailReflections", "type": "bool", "default": 0,
+      "label": "@EXPERIMENTAL.EnableHighDetailReflections",
+      "page": "advanced", "group": "@group.experimental", "control": [ "switch", "cycler" ], "visibility": "file", "apply": "restart"
+    },
+    {
+      "id": "EXPERIMENTAL.RemoveBBoxCulling", "type": "bool", "default": 0,
+      "label": "@EXPERIMENTAL.RemoveBBoxCulling",
+      "page": "advanced", "group": "@group.experimental", "control": [ "switch", "cycler" ], "visibility": "file", "apply": "restart"
+    },
+    {
+      "id": "EXPERIMENTAL.ExtraStreamingMemory", "type": "bool", "default": 0,
+      "label": "@EXPERIMENTAL.ExtraStreamingMemory",
+      "page": "advanced", "group": "@group.experimental", "control": [ "switch", "cycler" ], "visibility": "file", "apply": "restart"
+    },
+    {
+      "id": "CHEATS.SnowCheat", "type": "bool", "default": 0,
+      "label": "@CHEATS.SnowCheat",
+      "page": "advanced", "group": "@group.cheats", "control": [ "switch", "cycler" ], "visibility": "file", "apply": "restart"
+    },
+    {
+      "id": "CHEATS.HalloweenCheat", "type": "bool", "default": 0,
+      "label": "@CHEATS.HalloweenCheat",
+      "page": "advanced", "group": "@group.cheats", "control": [ "switch", "cycler" ], "visibility": "file", "apply": "restart"
+    },
+    {
+      "id": "FILELOADER.LoadIMG", "type": "bool", "default": 0,
+      "label": "@FILELOADER.LoadIMG",
+      "page": "advanced", "group": "@group.file loader", "control": [ "switch", "cycler" ], "visibility": "file", "apply": "restart"
+    },
+    {
+      "id": "FILELOADER.LoadRPF", "type": "bool", "default": 0,
+      "label": "@FILELOADER.LoadRPF",
+      "page": "advanced", "group": "@group.file loader", "control": [ "switch", "cycler" ], "visibility": "file", "apply": "restart"
+    },
+    {
+      "id": "USERPROFILE.CustomUserProfilePath", "type": "path", "default": "",
+      "label": "@USERPROFILE.CustomUserProfilePath", "description": "@USERPROFILE.CustomUserProfilePath.description",
+      "page": "compatibility", "group": "@group.user profile", "visibility": "editor", "apply": "restart"
+    }
+  ]
+}

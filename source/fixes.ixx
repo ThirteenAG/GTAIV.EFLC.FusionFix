@@ -242,23 +242,23 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            CIniReader iniReader("");
+            SettingsReader reader;
 
             // [MAIN]
-            int nAimingZoomFix = iniReader.ReadInteger("MAIN", "AimingZoomFix", 1);
-            bool bRecoilFix = iniReader.ReadInteger("MAIN", "RecoilFix", 1) != 0;
+            int nAimingZoomFix = reader.ReadInteger("MAIN", "AimingZoomFix", 1);
+            bool bRecoilFix = reader.ReadInteger("MAIN", "RecoilFix", 1) != 0;
 
             // [MISC]
-            bool bDefaultCameraAngleInTLaD = iniReader.ReadInteger("MISC", "DefaultCameraAngleInTLaD", 1) != 0;
-            bool bPedDeathAnimFixFromTBoGT = iniReader.ReadInteger("MISC", "PedDeathAnimFixFromTBoGT", 1) != 0;
-            bool bDisableCameraCenteringInCover = iniReader.ReadInteger("MISC", "DisableCameraCenteringInCover", 1) != 0;
-            bool bAlwaysDisplayHealthOnReticle = iniReader.ReadInteger("MISC", "AlwaysDisplayHealthOnReticle", 1) != 0;
-            int bFixHelicopterSearchlights = iniReader.ReadInteger("MISC", "FixHelicopterSearchlights", 1);
+            bool bDefaultCameraAngleInTLaD = reader.ReadInteger("MISC", "DefaultCameraAngleInTLaD", 1) != 0;
+            bool bPedDeathAnimFixFromTBoGT = reader.ReadInteger("MISC", "PedDeathAnimFixFromTBoGT", 1) != 0;
+            bool bDisableCameraCenteringInCover = reader.ReadInteger("MISC", "DisableCameraCenteringInCover", 1) != 0;
+            bool bAlwaysDisplayHealthOnReticle = reader.ReadInteger("MISC", "AlwaysDisplayHealthOnReticle", 1) != 0;
+            int bFixHelicopterSearchlights = reader.ReadInteger("MISC", "FixHelicopterSearchlights", 1);
 
-            int nMenuEnteringDelay = std::clamp(iniReader.ReadInteger("MISC", "MenuEnteringDelay", 0), 20, 400);
-            int nMenuExitingDelay = std::clamp(iniReader.ReadInteger("MISC", "MenuExitingDelay", 0), 0, 800);
-            int nMenuAccessDelayOnStartup = std::clamp(iniReader.ReadInteger("MISC", "MenuAccessDelayOnStartup", 0), 300, 3000);
-            nRadarZoomDelay = std::clamp(iniReader.ReadInteger("MISC", "RadarZoomDelay", 3000), 0, 60000);
+            int nMenuEnteringDelay = std::clamp(reader.ReadInteger("MISC", "MenuEnteringDelay", 0), 20, 400);
+            int nMenuExitingDelay = std::clamp(reader.ReadInteger("MISC", "MenuExitingDelay", 0), 0, 800);
+            int nMenuAccessDelayOnStartup = std::clamp(reader.ReadInteger("MISC", "MenuAccessDelayOnStartup", 0), 300, 3000);
+            nRadarZoomDelay = std::clamp(reader.ReadInteger("MISC", "RadarZoomDelay", 3000), 0, 60000);
 
             // Fix weapon zoom states in TBoGT
             if (nAimingZoomFix)

@@ -1,11 +1,13 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <stdio.h>
-#include <vector>
-#include <string>
-#include <fstream>
-#include <filesystem>
-#include <shlobj.h>
+
+// Fusion Fix's pass-through d3d9.dll. It only exists so that unpacking a new release over an old one replaces the old
+// graphics-API proxy d3d9.dll (up to 5.1.2) with a harmless file. Every export goes to the system's d3d9.dll
+// (System32, or SysWOW64 for the 32-bit game); it reads no settings, loads no DXVK and no D3D9On12 driver, shows
+// nothing. The graphics API is the plugin's (MAIN.GraphicsAPI, FusionFixUtils upscaler/graphics_api.h): it points the
+// game's imports that resolve here at its own functions, which tell this file by the export
+// FusionFixPassThroughD3D9. FusionFixHub installs this file only where there is no d3d9.dll or a Fusion Fix one, never
+// over a third-party d3d9.dll (ReShade, ENB, dxwrapper, an ASI loader).
 
 struct d3d9_dll
 {
@@ -98,43 +100,11 @@ __declspec(naked) void _PSGPSampleTexture()
     _asm { jmp[d3d9.PSGPSampleTexture] }
 }
 
-void _FusionFixGraphicsApiSwitch()
+// Tells this file apart from the old proxies (FusionFixGraphicsApiSwitch) and from third-party d3d9.dll files.
+// Returns 1, the version of this pass-through.
+int _FusionFixPassThroughD3D9()
 {
-    return;
-}
-
-std::filesystem::path GetModulePath(HMODULE hModule)
-{
-    static constexpr auto INITIAL_BUFFER_SIZE = MAX_PATH;
-    static constexpr auto MAX_ITERATIONS = 7;
-
-    std::u16string ret;
-    std::filesystem::path pathret;
-    auto bufferSize = INITIAL_BUFFER_SIZE;
-    for (size_t iterations = 0; iterations < MAX_ITERATIONS; ++iterations)
-    {
-        ret.resize(bufferSize);
-        size_t charsReturned = 0;
-        charsReturned = GetModuleFileNameW(hModule, (LPWSTR)&ret[0], bufferSize);
-        if (charsReturned < ret.length())
-        {
-            ret.resize(charsReturned);
-            pathret = ret;
-            return pathret;
-        }
-        else
-        {
-            bufferSize *= 2;
-        }
-    }
-
-    return {};
-}
-
-std::filesystem::path GetExeModulePath()
-{
-    std::filesystem::path r = GetModulePath(NULL);
-    return r.parent_path();
+    return 1;
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
@@ -143,102 +113,15 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
     {
     case DLL_PROCESS_ATTACH:
     {
-        d3d9.dll = NULL;
-
+        // The system's d3d9.dll by its full path
         WCHAR path[MAX_PATH];
-        int apiValue = 0;
-        {
-            std::vector<std::filesystem::path> cfgPaths;
-            auto cfgName = L"d3d9.cfg";
-            cfgPaths.emplace_back(GetExeModulePath() / cfgName);
-            if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, path)))
-                cfgPaths.emplace_back(std::filesystem::path(path) / L"Rockstar Games\\GTA IV\\" / cfgName);
-            if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, path)))
-                cfgPaths.emplace_back(std::filesystem::path(path) / cfgName);
-            if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_MYDOCUMENTS, NULL, 0, path)))
-                cfgPaths.emplace_back(std::filesystem::path(path) / cfgName);
-
-            std::filesystem::path cfgPath;
-
-            // First, try to find an existing readable file
-            for (auto& it : cfgPaths)
-            {
-                std::error_code ec;
-                if (std::filesystem::exists(it, ec) && !ec)
-                {
-                    auto status = std::filesystem::status(it, ec);
-                    if (!ec && status.type() == std::filesystem::file_type::regular)
-                    {
-                        // Check if we can read from this file
-                        std::ifstream testFile(it);
-                        if (testFile.good())
-                        {
-                            cfgPath = it;
-                            testFile.close();
-                            break;
-                        }
-                    }
-                }
-            }
-
-            // If no existing readable file found, find a writable location for new file creation
-            if (cfgPath.empty())
-            {
-                for (auto& it : cfgPaths)
-                {
-                    std::error_code ec;
-                    auto status = std::filesystem::status(it, ec);
-
-                    if (ec && ec.value() == 2) // File doesn't exist, check if directory is writable
-                    {
-                        std::ofstream ofile;
-                        ofile.open(it, std::ios::binary);
-                        if (ofile.is_open())
-                        {
-                            cfgPath = it;
-                            ofile.close();
-                            break;
-                        }
-                    }
-                    else if (!ec && ((std::filesystem::perms::owner_read & status.permissions()) == std::filesystem::perms::owner_read &&
-                        (std::filesystem::perms::owner_write & status.permissions()) == std::filesystem::perms::owner_write))
-                    {
-                        cfgPath = it;
-                        break;
-                    }
-                }
-            }
-
-            // Fallback to first path if nothing else worked
-            if (cfgPath.empty())
-            {
-                cfgPath = cfgPaths.front();
-            }
-
-            apiValue = GetPrivateProfileIntW(L"MAIN", L"API", 0, cfgPath.c_str());
-        }
-
-        if (apiValue)
-        {
-            lstrcpyW(path, L"vulkan.dll");
-            d3d9.dll = LoadLibraryW(path);
-        }
-
-        if (d3d9.dll == NULL)
-        {
-            DWORD pathLen = GetSystemDirectoryW(path, MAX_PATH - wcslen(L"\\d3d9.dll"));
-            lstrcpyW(path + pathLen, L"\\d3d9.dll");
-            d3d9.dll = LoadLibraryW(path);
-        }
-
-        if (d3d9.dll == NULL)
-        {
-            DWORD error = GetLastError();
-            wchar_t errorMsg[512];
-            wsprintfW(errorMsg, L"Failed to load both vulkan.dll and d3d9.dll!\nError code: %lu\nPath: %ls", error, path);
-            MessageBoxW(0, errorMsg, L"DLL Load Error", MB_ICONERROR);
-            ExitProcess(0);
-        }
+        UINT length = GetSystemDirectoryW(path, MAX_PATH - 10);
+        if (length == 0 || length >= MAX_PATH - 10)
+            return FALSE;
+        lstrcpyW(path + length, L"\\d3d9.dll");
+        d3d9.dll = LoadLibraryW(path);
+        if (!d3d9.dll)
+            return FALSE;
 
         d3d9.D3DPERF_BeginEvent = GetProcAddress(d3d9.dll, "D3DPERF_BeginEvent");
         d3d9.D3DPERF_EndEvent = GetProcAddress(d3d9.dll, "D3DPERF_EndEvent");
@@ -261,7 +144,8 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
     }
     case DLL_PROCESS_DETACH:
     {
-        FreeLibrary(d3d9.dll);
+        if (!lpReserved && d3d9.dll)
+            FreeLibrary(d3d9.dll);
         break;
     }
     }

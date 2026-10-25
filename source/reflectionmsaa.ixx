@@ -368,10 +368,10 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            CIniReader iniReader("");
+            SettingsReader reader;
 
             // [EXPERIMENTAL]
-            static int nReflectionMSAAQuality = std::clamp(iniReader.ReadInteger("EXPERIMENTAL", "ReflectionMSAAQuality", 0), 0, 8);
+            static int nReflectionMSAAQuality = std::clamp(reader.ReadInteger("EXPERIMENTAL", "ReflectionMSAAQuality", 0), 0, 8);
 
             if (nReflectionMSAAQuality > 0 && nReflectionMSAAQuality != 6 && nReflectionMSAAQuality % 2 == 0)
             {

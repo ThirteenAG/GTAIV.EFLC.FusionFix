@@ -5,7 +5,11 @@ module;
 #include <d3dx9.h>
 #include <psapi.h>
 #include <span>
+#include <deque>
+#include <atomic>
 #include <stdexcept>
+#include <asi_settings/asi_settings.hpp>
+#include <upscaler/graphics_api.h>
 
 export module settings;
 
@@ -162,38 +166,127 @@ namespace CText
     }
 }
 
+// The settings of Fusion Fix are described in settings/GTAIV.EFLC.FusionFix.json, which the build embeds together
+// with its translations (source/resources/Settings.rc). asi_settings::Plugin takes the defaults from it, reads and
+// writes GTAIV.EFLC.FusionFix.cfg next to the plugin, and answers menu hosts and editors through the
+// AsiSettings_GetApi export below (ASI Settings, see external/FusionFixUtils/asi_settings).
+export asi_settings::Plugin& SettingsPlugin()
+{
+    static asi_settings::Plugin plugin;
+    static bool loaded = []()
+    {
+        if (!plugin.Load())
+            OutputDebugStringA(("GTAIV.EFLC.FusionFix: settings unavailable, " + plugin.Error() + "\n").c_str());
+        // FusionFixHub changes the values while the game runs (the live link, served for all plugins of the game)
+        else
+            asi_settings::LiveLink::Start();
+        return plugin.Loaded();
+    }();
+    return plugin;
+}
+
+ASI_SETTINGS_EXPORT(SettingsPlugin())
+
+// The modules' reader of the plugin's settings: the value in effect of SECTION.Key from the description and the cfg
+// (ASI Settings), with Read* calls. The default given here is only used for keys the description lacks.
+export class SettingsReader
+{
+    static const asi_settings::Setting* Find(std::string_view section, std::string_view key)
+    {
+        return SettingsPlugin().GetDescription().Find(std::string(section) + "." + std::string(key));
+    }
+
+    static std::string Id(std::string_view section, std::string_view key)
+    {
+        return std::string(section) + "." + std::string(key);
+    }
+
+public:
+    int ReadInteger(std::string_view section, std::string_view key, int defaultValue)
+    {
+        auto setting = Find(section, key);
+        if (!setting)
+            return defaultValue;
+        if (setting->FloatValued())
+            return static_cast<int>(SettingsPlugin().Float(setting->id));
+        if (setting->StringValued())
+        {
+            // Keys are virtual-key codes like 0xDB
+            int value = 0;
+            return asi_settings::detail::ParseInt(SettingsPlugin().Get(setting->id), value) ? value : defaultValue;
+        }
+        return SettingsPlugin().Int(setting->id);
+    }
+
+    float ReadFloat(std::string_view section, std::string_view key, float defaultValue)
+    {
+        auto setting = Find(section, key);
+        if (!setting)
+            return defaultValue;
+        if (setting->FloatValued())
+            return SettingsPlugin().Float(setting->id);
+        return static_cast<float>(ReadInteger(section, key, static_cast<int>(defaultValue)));
+    }
+
+    std::string ReadString(std::string_view section, std::string_view key, std::string_view defaultValue)
+    {
+        return Find(section, key) ? SettingsPlugin().Get(Id(section, key)) : std::string(defaultValue);
+    }
+};
+
 export class CSettings
 {
 private:
     struct CSetting
     {
-        int32_t value = 0;
+        int32_t value = 0;              // the value in effect, a copy of the plugin's for settings of the description
         std::string prefName;
-        std::string iniSec;
-        std::string iniName;
-        std::string strEnum;
-        int32_t iniDefValInt = 0;
+        std::string id;                 // SECTION.Key of the description, empty for in-memory preferences
         std::function<void(int32_t value)> callback;
-        int32_t idStart;
-        int32_t idEnd;
+        int32_t idStart = 0;
+        int32_t idEnd = 1;
         // Code-defined options keep their value outside the preference (AddToggle/AddEnum/AddSlider with callbacks)
         std::function<int32_t()> getter;
         std::function<void(int32_t)> setter;
+        std::function<bool(int32_t value)> available;
 
         auto GetValue() { return getter ? getter() : value; }
         void SetValue(int32_t v)
         {
-            value = std::clamp(v, idStart, idEnd);
+            v = std::clamp(v, idStart, idEnd);
+            // The menu wraps around, so a step from the last value to the first one counts as forward
+            auto previous = GetValue();
+            v = FindAvailable(v, v == previous + 1 || (previous == idEnd && v == idStart));
+            if (!id.empty())
+            {
+                // The plugin checks, stores and applies it: OnPluginChange copies the value in effect and runs the
+                // callback, here on the game's thread
+                if (v != previous)
+                    SettingsPlugin().Set(id, std::to_string(v));
+                return;
+            }
+            value = v;
             if (setter)
                 setter(value);
-            else
-                WriteToIni();
             if (callback) callback(value);
         }
-        auto ReadFromIni(auto& iniReader) { return iniReader.ReadInteger(iniSec, iniName, iniDefValInt); }
-        auto ReadFromIni() { CIniReader iniReader(cfgPath); return ReadFromIni(iniReader); }
-        void WriteToIni(auto& iniWriter) { if (!iniName.empty()) iniWriter.WriteInteger(iniSec, iniName, value, true); }
-        void WriteToIni() { CIniReader iniWriter(cfgPath); if (!iniName.empty()) iniWriter.WriteInteger(iniSec, iniName, value, true); }
+
+        // Values that are not available on this system are skipped, in the direction the value was changed
+        int32_t FindAvailable(int32_t v, bool forward)
+        {
+            if (!available)
+                return v;
+            for (auto i = idStart; i <= idEnd; ++i)
+            {
+                if (available(v))
+                    return v;
+                if (forward)
+                    v = v == idEnd ? idStart : v + 1;
+                else
+                    v = v == idStart ? idEnd : v - 1;
+            }
+            return idStart;
+        }
     };
 
     struct MenuPrefs
@@ -202,7 +295,6 @@ private:
         char* name;
     };
 
-    static inline std::filesystem::path cfgPath;
     static inline std::vector<MenuPrefs> aMenuPrefs;
     static inline auto firstCustomID = 0;
     static inline bool legacyExecutable = false;
@@ -220,21 +312,246 @@ private:
         int32_t screen;
         SettingsTables::Option option;
         std::function<void()> selected;
-        int32_t submenu = -1;   // screen of the page the row opens
+        int32_t submenu = -1;           // screen of the page the row opens
+        std::string before;             // label of the row it's inserted before, else it's added at the end
+        int32_t beforePreference = -1;  // or the preference of that row
+        uint8_t episodes = 0xFF;        // shown in these episodes: 1 IV, 2 TLAD, 4 TBoGT
+        bool gap = false;               // an empty line
+        std::function<bool()> visible;  // the row is left out while false (settings of other plugins)
     };
     static inline std::vector<DynamicOption> dynamicOptions;
 
-    // Custom screens (AddScreen: tabs, AddSubmenu: pages opened from a row) are shown in place of
-    // the Display screen, whose option array points at the page's rows while one is active.
+    // A plugin with ASI Settings whose settings the menu shows: Fusion Fix itself, whose values go through
+    // SettingsPlugin(), or another plugin of the process, through the table of its AsiSettings_GetApi export
+    struct MenuPlugin
+    {
+        HMODULE module = nullptr;
+        const AsiSettingsApi* api = nullptr;
+        asi_settings::DescribedFile file;
+
+        // Functions past the plugin's table don't exist (SPEC.md, Compatibility)
+        bool Has(size_t offset) const { return api && api->size >= offset + sizeof(void*); }
+
+        // The value in effect, as text
+        std::string Get(const std::string& id) const
+        {
+            if (!api)
+                return SettingsPlugin().Get(id);
+            char buffer[256];
+            auto length = api->Get(id.c_str(), buffer, sizeof(buffer));
+            if (length < 0)
+                return {};
+            if (length < static_cast<int32_t>(sizeof(buffer)))
+                return std::string(buffer, length);
+            std::string value(static_cast<size_t>(length) + 1, '\0');
+            length = api->Get(id.c_str(), value.data(), static_cast<uint32_t>(value.size()));
+            value.resize(length >= 0 ? std::min<size_t>(length, value.size() - 1) : 0);
+            return value;
+        }
+
+        int32_t Set(const std::string& id, const std::string& value) const
+        {
+            return api ? api->Set(id.c_str(), value.c_str()) : SettingsPlugin().Set(id, value);
+        }
+
+        // The values usable now (SPEC.md, Availability), nothing when every value is
+        std::optional<std::vector<std::string>> Usable(const asi_settings::Setting& setting) const
+        {
+            if (!api)
+            {
+                if (setting.type != asi_settings::Type::Bool && setting.type != asi_settings::Type::Choice)
+                    return std::nullopt;
+                return SettingsPlugin().UsableValues(setting.id);
+            }
+            if (!Has(offsetof(AsiSettingsApi, GetChoices)) || !api->GetChoices)
+                return std::nullopt;
+            char buffer[1024];
+            auto length = api->GetChoices(setting.id.c_str(), buffer, sizeof(buffer));
+            if (length < 0)
+                return std::nullopt;
+            std::string json(buffer, std::min<size_t>(length, sizeof(buffer) - 1));
+            if (length >= static_cast<int32_t>(sizeof(buffer)))
+            {
+                json.assign(static_cast<size_t>(length) + 1, '\0');
+                length = api->GetChoices(setting.id.c_str(), json.data(), static_cast<uint32_t>(json.size()));
+                json.resize(length >= 0 ? std::min<size_t>(length, json.size() - 1) : 0);
+            }
+            asi_settings::json::Value root;
+            if (!asi_settings::json::Parse(json, root) || !root.IsArray())
+                return std::nullopt;
+            std::vector<std::string> values;
+            for (auto& item : root.items)
+                if (auto value = item.Find("value"))
+                    values.push_back(asi_settings::detail::JsonToText(*value));
+            return values;
+        }
+
+        static bool IsUsable(const std::optional<std::vector<std::string>>& usable, const std::string& value)
+        {
+            return !usable || std::any_of(usable->begin(), usable->end(), [&](const std::string& u)
+            {
+                float a, b;
+                return asi_settings::text::IEquals(u, value) ||
+                    (asi_settings::detail::ParseFloat(u, a) && asi_settings::detail::ParseFloat(value, b) && a == b);
+            });
+        }
+
+        // No usable value now: the setting is left out (ASI_SETTINGS_STATE_HIDDEN)
+        bool Hidden(const std::string& id) const
+        {
+            if (!api)
+                return SettingsPlugin().State(id) == ASI_SETTINGS_STATE_HIDDEN;
+            return Has(offsetof(AsiSettingsApi, GetState)) && api->GetState && api->GetState(id.c_str(), nullptr, 0) == ASI_SETTINGS_STATE_HIDDEN;
+        }
+
+        // The plugin's values as the menu sees them, to evaluate conditions and presets
+        std::vector<asi_settings::Slot> Slots() const
+        {
+            std::vector<asi_settings::Slot> slots;
+            for (auto& setting : file.description.settings)
+            {
+                if (!setting.HasValue())
+                    continue;
+                asi_settings::Slot slot;
+                slot.setting = &setting;
+                asi_settings::SetDefault(slot);
+                asi_settings::ParseValue(slot, Get(setting.id), false);
+                slots.push_back(std::move(slot));
+            }
+            return slots;
+        }
+
+        bool Evaluate(const asi_settings::Condition& condition) const
+        {
+            auto slots = Slots();
+            return asi_settings::Evaluate(condition, [&](std::string_view id) -> const asi_settings::Slot*
+            {
+                for (auto& slot : slots)
+                    if (asi_settings::text::IEquals(slot.setting->id, id))
+                        return &slot;
+                return nullptr;
+            });
+        }
+
+        bool HasPresets() const
+        {
+            auto& settings = file.description.settings;
+            // Presets change only menu settings, never compatibility ones (SPEC.md, Presets)
+            return std::any_of(settings.begin(), settings.end(), [](auto& s) { return s.InPresets() && s.HasValue(); });
+        }
+
+        // The preset its preset settings match, -1 for Custom
+        int32_t CurrentPreset() const
+        {
+            if (!api)
+                return static_cast<int32_t>(SettingsPlugin().CurrentPreset());
+            return static_cast<int32_t>(asi_settings::CurrentPreset(Slots()));
+        }
+
+        void ApplyPreset(int32_t preset) const
+        {
+            if (!api)
+            {
+                SettingsPlugin().ApplyPreset(static_cast<asi_settings::Preset>(preset));
+                return;
+            }
+            for (auto& slot : Slots())
+            {
+                auto& presets = slot.setting->presets;
+                if (!slot.setting->InPresets())
+                    continue;
+                auto value = asi_settings::detail::JsonToText((*presets)[preset]);
+                if (!asi_settings::detail::JsonEquals((*presets)[preset], asi_settings::FormatValue(slot), !slot.setting->StringValued()))
+                    api->Set(slot.setting->id.c_str(), value.c_str());
+            }
+        }
+
+        std::string Name() const { return file.texts.Resolve(file.description.name); }
+    };
+    static inline MenuPlugin ownPlugin;
+    static inline std::deque<MenuPlugin> otherPlugins;  // never moved: rows keep pointers to them
+
+    // Text of the number next to code-defined sliders (MENU_DISPLAY_VALUE_SLIDERBAR), by preference
+    static inline std::unordered_map<int32_t, std::function<std::wstring()>> valueTexts;
+    static inline SafetyHookMid valueTextHook;
+
+    // Changes of rows loaded from the frontend XML: removed, or another scaler
+    struct RowEdit
+    {
+        int32_t screen;
+        std::string label;
+        int32_t preference = -1;        // any preference
+        bool remove = false;
+        int32_t scaler = -1;
+    };
+    static inline std::vector<RowEdit> rowEdits;
+
+    // Custom screens (AddScreen: tabs, AddSubmenu: pages opened from a row, AddCategory) are shown in place
+    // of a host screen, whose option array points at the page's rows while one is active: the Display
+    // screen in the pause menu, the parent screen itself in the title menu (no tabs there) and for categories.
     struct Page
     {
-        char label[240]{};
+        char label[240]{};              // a key of the texts, else the text itself
         std::wstring text;
-        std::array<SettingsTables::Option, 17> rows{};
+        std::array<SettingsTables::Option, 50> rows{};
         int32_t parent = -1;
         int32_t parentRow = 0;
         bool displayGame = false;
+        bool category = false;          // selected in the column of categories of its parent screen
+        std::function<std::wstring()> value;    // shown in the row that opens the page
     };
+
+    // A column of categories left of the options of a screen or a page: the screen's own options first (a screen of
+    // the game), then pages. A page's column has only pages: the page shows the selected one (Plugins).
+    struct CategoryScreen
+    {
+        int32_t screen = -1;
+        bool ownRows = true;
+        std::vector<int32_t> pages;
+        int32_t current = 0;
+        std::vector<int32_t> selectedRows;  // the row selected when the category was left
+
+        int32_t Count() const { return static_cast<int32_t>(pages.size()) + (ownRows ? 1 : 0); }
+        // The page of an entry, -1 for the screen's own options
+        int32_t PageOf(int32_t entry) const { return ownRows ? (entry > 0 ? pages[entry - 1] : -1) : pages[entry]; }
+    };
+    static inline std::vector<CategoryScreen> categoryScreens;
+
+    struct Bounds
+    {
+        float left = 0.0f;
+        float top = 0.0f;
+        float right = 0.0f;
+        float bottom = 0.0f;
+    };
+    // The column of categories is drawn by the menu API of CE; elsewhere categories are submenus
+    static inline bool categoriesEnabled = false;
+    static inline bool categoryFocus = true;            // up and down change the category, else the option
+    static inline bool backConsumed = false;
+    static inline bool categorySwitched = false;
+    static inline bool blockAccept = false;             // Enter was taken (Preset rows)
+    static inline int32_t swallowFrames = 0;            // frames Enter and Back are ignored after the confirmation
+    static inline int32_t pendingSelection = -2;        // the row to select once the screen is filled, -1 for the first
+    static inline std::array<Bounds, 64> categoryBounds{};
+    static inline uint8_t* layoutMenu = nullptr;
+    static inline std::array<float, 2> originalPosition{};
+    static inline std::array<float, 2> originalWidths{};
+    static inline std::array<float, 3> appliedLayout{};     // position and widths written by ApplyLayout
+    static inline std::array<uint8_t, 2> originalAutoScale{};
+    static inline float* bodyPosition = nullptr;
+    static inline uint8_t* fontStates = nullptr;
+    static inline float valueColumnWidth = 0.0f;
+    static inline float sidebarWidth = 0.0f;
+    static inline int32_t(__cdecl* selectRow)(int32_t, int32_t) = nullptr;
+    static inline void(__cdecl* setFontStyle)(int32_t) = nullptr;
+    static inline void(__cdecl* setFontOrientation)(int32_t) = nullptr;
+    static inline void(__cdecl* setFontWrap)(float, float) = nullptr;
+    static inline void(__cdecl* setFontEdge)(float) = nullptr;
+    static inline void(__cdecl* setFontEdgeColor)(uint32_t) = nullptr;
+    static inline int32_t(__cdecl* getFontContext)() = nullptr;
+    static inline float* (__cdecl* getColumnWidth)(float*) = nullptr;
+    static inline uint8_t(__cdecl* adjustForWidescreen)(int32_t, float*, float*, float*) = nullptr;
+    static inline SafetyHookInline menuDraw;
 
     struct Tab
     {
@@ -249,7 +566,10 @@ private:
     static constexpr int32_t FirstCustomScreen = 256;
     static constexpr int32_t NoTab = 73;
     static constexpr int32_t DisplayScreen = 8;
-    static inline std::array<Page, 16> pages;
+    // Pages are never moved: the host screen's option array points at the rows of the page shown. Each sub-page
+    // takes one for the pause menu and one for the title menu.
+    static constexpr size_t MaxPages = 512;
+    static inline std::deque<Page> pages;
     static inline size_t pageCount = 0;
     static inline size_t customTabCount = 0;
     // Stock tabs in visual order; Stats is skipped online and Game uses NetworkGame
@@ -257,6 +577,8 @@ private:
     static inline bool tabsInitialized = false;
     static inline SettingsTables::Array<SettingsTables::Option> displayOptions{};
     static inline int32_t activePage = -1;
+    static inline int32_t activeHost = DisplayScreen;   // screen showing the active page
+    static inline bool pendingTitleBack = false;
     static inline int32_t pendingPage = -1;
     static inline int32_t requestedTab = -1;
     static inline int32_t openSubmenu = -1;
@@ -344,7 +666,8 @@ private:
         if (menu < 0 || *currentScreen < 0 || *currentScreen >= 73 || row < 0 || row >= 50)
             return;
         auto& options = screens[*currentScreen].options;
-        if (row >= options.count || !options.data || options.data[row].display != 101 || options.data[row].preference < firstCustomID)
+        if (row >= options.count || !options.data || (options.data[row].display != 101 && options.data[row].display != 108) ||
+            options.data[row].preference < firstCustomID)
             return;
         auto handle = menuHandles[menu];
         if (handle < 0 || !menuInstances[handle])
@@ -392,15 +715,56 @@ private:
         }
         if (!options.data || options.count == 0 || options.count > options.capacity || options.data[options.count - 1].action != 46)
             return;
+        if (!page)
+            RecordGraphicsRows(screen);
+
+        // Rows of the XML that are removed (after the rows inserted before them) or get another scaler
+        auto editRows = [&](bool remove)
+        {
+            if (page)
+                return;
+            for (auto& edit : rowEdits)
+            {
+                if (edit.screen != screen || edit.remove != remove)
+                    continue;
+                for (int32_t row = 0; row + 1 < options.count; ++row)
+                {
+                    auto& option = options.data[row];
+                    if (option.action == 127 || edit.label != option.label || (edit.preference >= 0 && edit.preference != option.preference))
+                        continue;
+                    if (remove)
+                    {
+                        std::memmove(&options.data[row], &options.data[row + 1], (options.count - row - 1) * sizeof(SettingsTables::Option));
+                        --options.count;
+                        --row;
+                    }
+                    else if (edit.scaler >= 0)
+                        option.scaler = static_cast<uint8_t>(edit.scaler);
+                }
+            }
+        };
+        editRows(false);
+
+        auto episode = uint8_t(1) << (_dwCurrentEpisode ? std::clamp(*_dwCurrentEpisode, 0, 2) : 0);
         for (auto& added : dynamicOptions)
         {
-            if (added.screen != logical)
+            if (added.screen != logical || (added.episodes & episode) == 0)
                 continue;
             auto found = std::find_if(options.data, options.data + options.count, [&](const auto& option)
             {
                 return option.action == added.option.action && option.preference == added.option.preference &&
                     std::strcmp(option.label, added.option.label) == 0;
             });
+            // A hidden row is taken out again when the XML's rows still have it
+            if (added.visible && !added.visible())
+            {
+                if (found != options.data + options.count && !page)
+                {
+                    std::memmove(found, found + 1, (options.data + options.count - found - 1) * sizeof(SettingsTables::Option));
+                    --options.count;
+                }
+                continue;
+            }
             if (found != options.data + options.count)
                 continue;
             // The frontend instance has visibility/layout storage for 50 rows,
@@ -408,23 +772,388 @@ private:
             // sufficient to lift that limit.
             if (options.count >= (page ? static_cast<uint16_t>(page->rows.size()) : 50))
                 return;
+            // Before END_OF_MENU_OPTIONS, or before the row with the label or the preference given by 'before'
+            auto position = options.count - 1;
+            if (!added.before.empty())
+                for (uint16_t row = 0; row + 1 < options.count; ++row)
+                    if (added.beforePreference >= 0 ? options.data[row].preference == added.beforePreference && options.data[row].action != 127 :
+                        added.before == options.data[row].label)
+                    {
+                        position = row;
+                        break;
+                    }
             auto sentinel = options.data[options.count - 1];
             if (page)
                 options.data[options.count++] = sentinel;
             else
                 *AppendOption(&options) = sentinel;
-            options.data[options.count - 2] = added.option;
+            std::memmove(&options.data[position + 1], &options.data[position], (options.count - 2 - position) * sizeof(SettingsTables::Option));
+            options.data[position] = added.option;
         }
+        editRows(true);
+        shownVisibility = VisibleRows(logical);
+    }
+
+    // Empty lines added through the API: MENUOPT_NONE rows with a label of their own, shown without text. Like the
+    // empty lines of the XML the menu can't select them, it only selects rows with a text.
+    static bool IsGap(const SettingsTables::Option& option)
+    {
+        return option.action == 0 && std::strncmp(option.label, "FFGAP", 5) == 0;
+    }
+
+    // After the rows of another category are shown: the selection goes to the row selected there before, else to
+    // the first selectable row (CE)
+    static void FixSelection(int32_t menu, bool reset, int32_t preferred = -1)
+    {
+        auto handle = menuHandles[menu];
+        if (!selectRow || handle < 0 || !menuInstances[handle] || *currentScreen < 0 || *currentScreen >= 73)
+            return;
+        auto instance = menuInstances[handle];
+        auto& options = screens[*currentScreen].options;
+        auto count = std::min<int32_t>(options.count, 50);
+        // Like the menu's own navigation: shown, selectable, enabled and with a text
+        auto selectable = [&](int32_t row)
+        {
+            return row >= 0 && row < count && options.data[row].action != 46 && !IsHeading(options.data[row]) && instance[0x33E4 + row] != 0 &&
+                instance[0x3416 + row] != 0 && instance[0x34AC + row] == 0 && *reinterpret_cast<const wchar_t*>(instance + 4 + 120 * row) != 0;
+        };
+        auto selected = *reinterpret_cast<int32_t*>(instance + 0x361C);
+        if (!reset && preferred < 0 && selectable(selected))
+            return;
+        auto target = selectable(preferred) ? preferred : -1;
+        if (auto categories = GetActiveCategories(); target < 0 && reset && categories && selectable(categories->selectedRows[categories->current]))
+            target = categories->selectedRows[categories->current];
+        for (int32_t row = 0; target < 0 && row < count; ++row)
+            if (selectable(row))
+                target = row;
+        if (target < 0)
+            return;
+        *reinterpret_cast<int32_t*>(instance + 0x362C) = 0;
+        selectRow(menu, target);
+        // The menu highlights the selected row only
+        std::memset(instance + 0x3448, 0, 50);
+        instance[0x3448 + target] = 1;
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Column of categories left of the options of Display and Graphics (CE only)
+
+    static CategoryScreen* FindCategories(int32_t screen)
+    {
+        for (auto& categories : categoryScreens)
+            if (categories.screen == screen)
+                return &categories;
+        return nullptr;
+    }
+
+    // The categories of the current screen while its column is shown: a screen's own column, not in pages opened from
+    // its rows, or the column of the page whose category is shown
+    static CategoryScreen* GetActiveCategories()
+    {
+        if (!categoriesEnabled || *currentScreen < 0 || *currentScreen >= 73)
+            return nullptr;
+        auto page = FindPage(activePage);
+        if (!page)
+            return FindCategories(*currentScreen);
+        if (!page->category || activeHost != *currentScreen)
+            return nullptr;
+        return FindCategories(page->parent);
+    }
+
+    static uint8_t* GetMenu()
+    {
+        auto handle = menuHandles[0];
+        return handle >= 0 ? menuInstances[handle] : nullptr;
+    }
+
+    // The rows of the category selected in the column of the current screen replace its own rows
+    static void ShowCategory()
+    {
+        if (!categoriesEnabled)
+            return;
+        auto page = FindPage(activePage);
+        auto categories = !page ? FindCategories(*currentScreen) : page->category && activeHost == *currentScreen ? FindCategories(page->parent) : nullptr;
+        if (!categories || categories->Count() == 0)
+            return;
+        categories->current = std::clamp(categories->current, 0, categories->Count() - 1);
+        if (auto shown = categories->PageOf(categories->current); shown != -1)
+            ActivatePage(shown);
+        else
+            RestoreDisplay();
+    }
+
+    // The name of a page: its label is a key of FF's texts, else the text itself
+    static const wchar_t* GetPageName(const Page& page)
+    {
+        if (auto text = CText::FindMenuText(GetHash(page.label)))
+            return text;
+        return page.text.c_str();
+    }
+
+    static void ResetCategories()
+    {
+        RestoreLayout();
+        for (auto& categories : categoryScreens)
+        {
+            categories.current = 0;
+            std::fill(categories.selectedRows.begin(), categories.selectedRows.end(), -1);
+        }
+        categoryFocus = true;
+        categorySwitched = false;
+    }
+
+    static bool HasBodyFocus()
+    {
+        return GetActiveCategories() && tabState && tabState[0] == 0 && tabState[1] == 0 && hasTabModal() == 0;
+    }
+
+    // The options move right of the column, the values stay where they are. The layout stays while the column is
+    // shown: the render thread draws the menu while the main thread processes its input, a layout changed around
+    // either of them shows up in the other one. Main thread only.
+    static void ApplyLayout()
+    {
+        auto instance = GetMenu();
+        if (!instance || !GetActiveCategories())
+            return;
+        auto position = reinterpret_cast<float*>(instance + 0x35D0);
+        auto widths = reinterpret_cast<float*>(instance + 0x35C8);
+        // The first time, or the menu was laid out again since: its values are the original ones
+        if (layoutMenu != instance || position[0] != appliedLayout[0] || widths[0] != appliedLayout[1] || widths[1] != appliedLayout[2])
+        {
+            layoutMenu = instance;
+            std::memcpy(originalPosition.data(), position, sizeof(originalPosition));
+            std::memcpy(originalWidths.data(), widths, sizeof(originalWidths));
+            std::memcpy(originalAutoScale.data(), instance + 0x3605, originalAutoScale.size());
+            float width[2]{};
+            getColumnWidth(width);
+            width[1] = 0.0f;
+            adjustForWidescreen(2, nullptr, width, nullptr);
+            valueColumnWidth = width[0];
+        }
+        // The column takes room from the labels, the values stay where the menu draws their sliders. A page's column of
+        // plugins has longer names than a screen's categories.
+        sidebarWidth = valueColumnWidth * (GetActiveCategories()->ownRows ? 0.38f : 0.55f);
+        position[0] = bodyPosition[0] + sidebarWidth;
+        widths[0] = valueColumnWidth - sidebarWidth;
+        widths[1] = std::max(0.05f, std::min(originalWidths[1], 0.97f - bodyPosition[0] - valueColumnWidth));
+        instance[0x3605] = 1;
+        instance[0x3606] = 1;
+        appliedLayout = { position[0], widths[0], widths[1] };
+    }
+
+    // The layout of the current screen: with the column of categories or without
+    static void UpdateLayout()
+    {
+        if (GetActiveCategories())
+            ApplyLayout();
+        else
+            RestoreLayout();
+    }
+
+    static void RestoreLayout()
+    {
+        if (!layoutMenu)
+            return;
+        if (GetMenu() == layoutMenu)
+        {
+            std::memcpy(layoutMenu + 0x35D0, originalPosition.data(), sizeof(originalPosition));
+            std::memcpy(layoutMenu + 0x35C8, originalWidths.data(), sizeof(originalWidths));
+            std::memcpy(layoutMenu + 0x3605, originalAutoScale.data(), originalAutoScale.size());
+        }
+        layoutMenu = nullptr;
+    }
+
+    static void SelectCategory(CategoryScreen& categories, int32_t category)
+    {
+        if (auto instance = GetMenu())
+            categories.selectedRows[categories.current] = *reinterpret_cast<int32_t*>(instance + 0x361C);
+        categories.current = category;
+        categoryFocus = true;
+        categorySwitched = true;
+        FillMenu(0);
+    }
+
+    static void MoveCategory(CategoryScreen& categories, int32_t direction)
+    {
+        auto count = categories.Count();
+        SelectCategory(categories, (categories.current + count + direction) % count);
+    }
+
+    static int32_t HitTestCategory(const CategoryScreen& categories)
+    {
+        auto x = mousePosition[0] * mouseScale[0];
+        auto y = mousePosition[3] * mouseScale[2];
+        for (size_t i = 0; i < std::min<size_t>(categories.Count(), categoryBounds.size()); ++i)
+        {
+            auto& bounds = categoryBounds[i];
+            if (x >= bounds.left && x < bounds.right && y >= bounds.top && y < bounds.bottom)
+                return static_cast<int32_t>(i);
+        }
+        return -1;
+    }
+
+    // Up and down change the category while the column has the focus, accept and right go to the options. Taken
+    // input isn't seen by the menu.
+    static bool CategoryInput(int32_t menu)
+    {
+        auto categories = GetActiveCategories();
+        if (menu != 0 || !categories || !tabState || tabState[0] != 0 || hasTabModal() != 0 || confirming)
+            return false;
+        ApplyLayout();
+        auto current = static_cast<uint32_t>(mousePosition[2]);
+        auto previous = static_cast<uint32_t>(mousePosition[1]);
+        if ((current & (current ^ previous) & 1) != 0)
+        {
+            if (auto hit = HitTestCategory(*categories); hit >= 0)
+            {
+                tabState[1] = 0;
+                SelectCategory(*categories, hit);
+                return true;
+            }
+            if (mousePosition[0] * mouseScale[0] >= bodyPosition[0] + sidebarWidth)
+                categoryFocus = false;
+        }
+        if (!HasBodyFocus() || !categoryFocus)
+            return false;
+        auto query = [](int32_t input) { return queryInput.ccall<uint8_t>(input, uint8_t(1), uint8_t(0), uint8_t(0), uint8_t(0), uint8_t(0), uint8_t(0)) != 0; };
+        if (query(0))
+            MoveCategory(*categories, -1);
+        else if (query(1))
+            MoveCategory(*categories, 1);
+        else if (query(8) || query(3))
+            categoryFocus = false;
+        return true;
+    }
+
+    // Back in the options goes to the column of categories. Taken for the rest of the frame, the menu checks it more
+    // than once.
+    static bool ConsumeBack()
+    {
+        if (!HasBodyFocus() || (categoryFocus && !backConsumed))
+            return false;
+        categoryFocus = true;
+        backConsumed = true;
+        return true;
+    }
+
+    static void DrawCategories(const CategoryScreen& categories)
+    {
+        auto instance = GetMenu();
+        if (!instance || !tabState || tabState[0] != 0 || hasTabModal() != 0)
+            return;
+        auto count = std::min<size_t>(categories.Count(), categoryBounds.size());
+        std::vector<std::wstring> names(count);
+        for (size_t i = 0; i < count; ++i)
+        {
+            auto page = categories.PageOf(static_cast<int32_t>(i));
+            names[i] = page == -1 ? CText::getText(screens[categories.screen].header) : GetPageName(*FindPage(page));
+        }
+
+        auto x = bodyPosition[0];
+        auto y = originalPosition[1] + 0.04f;
+        auto step = *reinterpret_cast<float*>(instance + 0x3600) * 1.35f;
+        auto scaleX = *reinterpret_cast<float*>(instance + 0x35DC) * *reinterpret_cast<float*>(instance + 0x35E4);
+        auto scaleY = *reinterpret_cast<float*>(instance + 0x35E0) * *reinterpret_cast<float*>(instance + 0x35E8);
+
+        // The font of the menu's rows: its style and scale, outlined like them. The font state of the menu is restored
+        // afterwards.
+        auto font = fontStates + getFontContext() * 0x48;
+        std::array<uint8_t, 0x48> saved;
+        std::memcpy(saved.data(), font, saved.size());
+        font[0x14] = 0;
+        font[0x15] = 0;
+        font[0x16] = 1;
+        font[0x1A] = 255;
+        setFontOrientation(1);
+        setFontStyle(*reinterpret_cast<int32_t*>(instance + 0x35D8));
+        setTabScale(scaleX, scaleY);
+        setFontEdge(*reinterpret_cast<float*>(instance + 0x3608));
+        setFontEdgeColor(uint32_t(instance[0x363C]) << 24);
+        // Names stay on one line: the font is made narrower down to 2/3, longer names are cut with "..."
+        auto available = sidebarWidth * 0.92f;
+        auto width = 0.0f;
+        for (size_t i = 0; i < count; ++i)
+            width = std::max(width, measureTab.ccall<float>(names[i].c_str(), uint8_t(1)));
+        auto scale = width > available ? std::max(0.66f, available / width) : 1.0f;
+        setTabScale(scaleX * scale, scaleY);
+        for (auto& name : names)
+        {
+            if (measureTab.ccall<float>(name.c_str(), uint8_t(1)) <= available)
+                continue;
+            while (name.size() > 1 && measureTab.ccall<float>((name + L"...").c_str(), uint8_t(1)) > available)
+                name.pop_back();
+            while (!name.empty() && name.back() == L' ')
+                name.pop_back();
+            name += L"...";
+        }
+        setFontWrap(x - 0.02f, x + 1.0f);
+
+        for (size_t i = 0; i < count; ++i)
+        {
+            categoryBounds[i] = { x, y, x + sidebarWidth * 0.9f, y + step };
+            bool selected = static_cast<int32_t>(i) == categories.current;
+            bool highlighted = selected && categoryFocus && tabState[1] == 0;
+            setTabColor(*reinterpret_cast<uint32_t*>(instance + (highlighted ? 0x3634 : 0x3630)));
+            if (selected)
+                printTab.ccall<void>(x - 0.015f, y, L">", -1, -1);
+            printTab.ccall<void>(x, y, names[i].c_str(), -1, -1);
+            y += step;
+        }
+        std::memcpy(font, saved.data(), saved.size());
+    }
+
+    // Render thread: the layout is left as the main thread set it
+    static void __cdecl MenuDraw(int32_t handle)
+    {
+        StyleRows(handle);
+        // While the column of categories has the focus, the rows right of it show no selected row: the menu draws a
+        // row in its selected colour only while its highlight flag is set, so the flags are taken away while it draws
+        auto instance = handle >= 0 ? menuInstances[handle] : nullptr;
+        std::array<uint8_t, 50> highlights{};
+        bool unfocused = instance && handle == menuHandles[0] && categoryFocus && GetActiveCategories() && tabState && tabState[0] == 0;
+        if (unfocused)
+        {
+            std::memcpy(highlights.data(), instance + 0x3448, highlights.size());
+            std::memset(instance + 0x3448, 0, highlights.size());
+        }
+        menuDraw.ccall<void>(handle);
+        if (unfocused)
+            std::memcpy(instance + 0x3448, highlights.data(), highlights.size());
+        if (auto categories = GetActiveCategories(); categories && handle == menuHandles[0] && layoutMenu && layoutMenu == GetMenu())
+            DrawCategories(*categories);
+        DrawBreadcrumb(handle);
+        DrawDescription(handle);
+        NoteHdrPage(handle);
+    }
+
+    // The HDR page is shown: HDR draws its calibration pattern for the selected row at the end of the frame
+    static void NoteHdrPage(int32_t handle)
+    {
+        if (handle < 0 || handle != menuHandles[0] || !menuInstances[handle] || !tabState || hasTabModal() != 0 || confirming ||
+            activePage == -1 || activeHost != *currentScreen || std::find(hdrScreens.begin(), hdrScreens.end(), static_cast<MenuScreen>(activePage)) == hdrScreens.end())
+            return;
+        std::string id;
+        auto& options = screens[*currentScreen].options;
+        auto row = CMenu::getSelectedItem();
+        if (options.data && row >= 0 && row < options.count && options.data[row].action != 127)
+            if (auto it = rowSettings.find(options.data[row].preference); it != rowSettings.end() && it->second.setting)
+                id = it->second.setting->id;
+        hdrPageRow = std::move(id);
     }
 
     static int32_t __cdecl FillMenu(int32_t menu)
     {
+        // Other plugins' pages are looked for when the menu is opened, the title menu included; texts follow the
+        // game's language
+        FindOtherPlugins();
+        ResolveMenuTexts(false);
         if (tabsInitialized)
         {
             if (*currentScreen == DisplayScreen && pendingPage != -1)
                 ActivatePage(pendingPage);
-            else if (*currentScreen != DisplayScreen)
+            else if (*currentScreen != activeHost)
                 RestoreDisplay();
+            ShowCategory();
         }
 
         InjectMenu(*currentScreen);
@@ -434,15 +1163,28 @@ private:
         else
             result = fillMenu.ccall<int32_t>(menu);
 
-        if (activePage != -1)
+        auto handle = menuHandles[menu];
+        if (handle >= 0 && menuInstances[handle] && *currentScreen >= 0 && *currentScreen < 73)
         {
-            auto handle = menuHandles[menu];
-            if (handle >= 0 && menuInstances[handle])
-            {
-                auto count = screens[DisplayScreen].options.count;
-                for (uint16_t row = 0; row + 1 < count; ++row)
+            // The game hides rows of its screens by index, pages show all of theirs
+            auto& options = screens[*currentScreen].options;
+            if (activePage != -1 && *currentScreen == activeHost)
+                for (uint16_t row = 0; row + 1 < options.count; ++row)
                     hideRow(handle, row, 0);
+        }
+        if (menu == 0)
+        {
+            UpdateLayout();
+            // A page that was opened or returned to: the row asked for, else the first one that can be selected, and the
+            // list has the focus, not the tabs
+            if (auto row = std::exchange(pendingSelection, -2); row != -2)
+            {
+                FixSelection(menu, true, row);
+                if (tabState && !GetActiveCategories())
+                    tabState[1] = 0;
             }
+            else if (GetActiveCategories())
+                FixSelection(menu, std::exchange(categorySwitched, false));
         }
         return result;
     }
@@ -505,16 +1247,59 @@ private:
 
     static uint8_t __cdecl ProcessMenu(int32_t menu)
     {
+        if (menu == 0 && ProcessConfirmation())
+            return 0;
+        if (CategoryInput(menu))
+            return 0;
+        if (menu == 0)
+        {
+            ResetSelectedRow();
+            // Enter on a Preset row asks to apply the chosen preset, the menu doesn't step its value
+            auto selector = FindSelector(SelectedSettingPreference());
+            if (selector && queryInput.ccall<uint8_t>(8, uint8_t(0), uint8_t(0), uint8_t(0), uint8_t(0), uint8_t(0), uint8_t(0)) != 0)
+            {
+                ConfirmPreset(*selector);
+                blockAccept = true;
+            }
+            // Leaving a Preset row forgets its choice
+            for (auto& [key, other] : presetSelectors)
+                if (&other != selector && other.pending >= 0)
+                    other = { -1, other.preference, other.plugin, false };
+        }
         auto previous = std::exchange(selectedButton, -1);
         auto previousMenu = std::exchange(inputMenu, menu);
         auto previousSubmenu = std::exchange(openSubmenu, -1);
         auto result = processMenu.ccall<uint8_t>(menu);
+        blockAccept = false;
         auto submenu = openSubmenu;
         selectedButton = previous;
         inputMenu = previousMenu;
         openSubmenu = previousSubmenu;
+        // A click on the label of a row that opens a page: the menu only selects the row (a click on its value
+        // accepts it). The row under the mouse is found again every frame (-1 when there is none).
+        if (menu == 0 && submenu == -1 && !confirming)
+        {
+            auto instance = GetMenu();
+            auto current = static_cast<uint32_t>(mousePosition[2]);
+            auto previousButtons = static_cast<uint32_t>(mousePosition[1]);
+            if (instance && (current & (current ^ previousButtons) & 1) != 0)
+            {
+                auto row = *reinterpret_cast<int32_t*>(instance + 0x34E0);
+                if (row >= 0 && row == *reinterpret_cast<int32_t*>(instance + 0x361C))
+                    if (auto button = FindButton(row); button >= 0 && dynamicOptions[button].submenu != -1)
+                        if (auto page = FindPage(dynamicOptions[button].submenu))
+                        {
+                            page->parentRow = row;
+                            submenu = dynamicOptions[button].submenu;
+                        }
+            }
+        }
         if (menu == 0 && submenu != -1)
             OpenPage(submenu);
+        // Back in a page of the title menu, taken over by QueryInput
+        if (menu == 0 && std::exchange(pendingTitleBack, false))
+            if (auto page = FindPage(activePage))
+                GoBack(*page);
         return result;
     }
 
@@ -529,7 +1314,53 @@ private:
 
     static int32_t GetLogicalScreen(int32_t screen)
     {
-        return screen == DisplayScreen && activePage != -1 ? activePage : screen;
+        return screen == activeHost && activePage != -1 ? activePage : screen;
+    }
+
+    // The settings screens of the title menu, which has no tabs
+    static bool IsTitleScreen(int32_t screen)
+    {
+        return screen >= static_cast<int32_t>(MenuScreen::TitleControls) && screen <= static_cast<int32_t>(MenuScreen::TitleGame);
+    }
+
+    // Pages of the pause menu are shown on the Display screen, pages of the title menu on their title screen,
+    // categories on the screen they're a category of
+    static int32_t HostOf(int32_t page)
+    {
+        if (auto found = FindPage(page); found && found->category)
+            return FindPage(found->parent) ? HostOf(found->parent) : found->parent;
+        auto root = GetRootScreen(page);
+        return IsTitleScreen(root) ? root : DisplayScreen;
+    }
+
+    // The page whose look the shown page has: a category of a page looks like that page
+    static Page* ShownPage()
+    {
+        auto page = FindPage(activePage);
+        if (page && page->category)
+            if (auto parent = FindPage(page->parent))
+                return parent;
+        return page;
+    }
+
+    // Where Back goes from a page: the row of its parent that opened it. A category of a page goes back to where the
+    // page was opened from, a category of a screen leaves the screen (-1).
+    static std::pair<int32_t, int32_t> BackTarget(const Page& page)
+    {
+        if (!page.category)
+            return { page.parent, page.parentRow };
+        if (auto parent = FindPage(page.parent))
+            return { parent->parent, parent->parentRow };
+        return { -1, 0 };
+    }
+
+    static bool GoBack(const Page& page)
+    {
+        auto [screen, row] = BackTarget(page);
+        if (screen == -1)
+            return false;
+        OpenPage(screen, row);
+        return true;
     }
 
     static int32_t GetRootScreen(int32_t screen)
@@ -548,10 +1379,14 @@ private:
         auto page = FindPage(screen);
         if (!page || activePage == screen)
             return;
-        auto& options = screens[DisplayScreen].options;
+        auto host = HostOf(screen);
+        if (activePage != -1 && activeHost != host)
+            RestoreDisplay();
+        auto& options = screens[host].options;
         if (activePage == -1)
             displayOptions = options;
         activePage = screen;
+        activeHost = host;
         options.data = page->rows.data();
         options.count = 1;
         options.capacity = static_cast<uint16_t>(page->rows.size());
@@ -563,15 +1398,17 @@ private:
     {
         if (activePage == -1)
             return;
-        screens[DisplayScreen].options = displayOptions;
+        screens[activeHost].options = displayOptions;
         displayOptions = {};
         activePage = -1;
+        pendingTitleBack = false;
     }
 
     // Before the frontend XML is reloaded or its rows are reset: the game must free its own array
     static void ResetPages()
     {
         RestoreDisplay();
+        ResetCategories();
         pendingPage = -1;
         for (auto& tab : tabs)
             tab.visible = false;
@@ -579,14 +1416,42 @@ private:
 
     static void OpenPage(int32_t screen, int32_t row = 0)
     {
-        bool custom = FindPage(screen) != nullptr;
+        // A page with a column of pages shows the category selected last, the column has the focus
+        if (auto categories = FindCategories(screen); categories && !categories->ownRows && categoriesEnabled)
+        {
+            if (categories->Count() == 0)
+                return;
+            categories->current = std::clamp(categories->current, 0, categories->Count() - 1);
+            screen = categories->PageOf(categories->current);
+            row = 0;
+            ActivatePage(screen);
+            categoryFocus = true;
+            categorySwitched = true;
+            pendingPage = -1;
+            if (tabState && !IsTitleScreen(activeHost))
+                *reinterpret_cast<int32_t*>(tabState + 0x18) = activeHost;
+            switchToNewScreen.ccall<int32_t>(0, activeHost, row);
+            return;
+        }
+        // Back to a screen with categories: the options keep the focus, a category is selected in the column
+        auto target = FindPage(screen);
+        if (auto categories = FindCategories(target && target->category ? target->parent : screen))
+        {
+            auto found = std::find(categories->pages.begin(), categories->pages.end(), screen);
+            if (found != categories->pages.end())
+                categories->current = static_cast<int32_t>(found - categories->pages.begin()) + 1;
+            categoryFocus = false;
+        }
+        bool custom = target != nullptr;
         if (custom)
             ActivatePage(screen);
         else
             RestoreDisplay();
-        auto physical = custom ? DisplayScreen : screen;
+        auto physical = custom ? activeHost : screen;
         pendingPage = -1;
-        if (tabState)
+        pendingSelection = custom && row == 0 ? -1 : row;
+        // The tab bar of the pause menu
+        if (tabState && !IsTitleScreen(physical))
             *reinterpret_cast<int32_t*>(tabState + 0x18) = physical;
         switchToNewScreen.ccall<int32_t>(0, physical, row);
     }
@@ -610,7 +1475,7 @@ private:
     static const wchar_t* GetTabLabel(const Tab& tab)
     {
         if (auto page = FindPage(tab.id))
-            return page->text.c_str();
+            return GetPageName(*page);
         return tabLabels[tab.id].data();
     }
 
@@ -677,6 +1542,11 @@ private:
     static uint8_t __fastcall ProcessTabs(uint8_t* state, void*, uint8_t inside)
     {
         tabState = state;
+        // A new frame of the menu: the column of categories has the focus when it's shown again
+        backConsumed = false;
+        UpdateLayout();
+        if (!GetActiveCategories())
+            categoryFocus = true;
         if (!HasTabs(state))
             return CallProcessTabs(state, inside);
 
@@ -689,7 +1559,7 @@ private:
         auto hovered = HitTestTab();
         auto current = static_cast<uint32_t>(mousePosition[2]);
         auto previous = static_cast<uint32_t>(mousePosition[1]);
-        if ((current & (current ^ previous) & 1) != 0 && hasTabModal() == 0 &&
+        if ((current & (current ^ previous) & 1) != 0 && hasTabModal() == 0 && !confirming &&
             (FindPage(hovered) || (hovered == DisplayScreen && activePage != -1)))
         {
             requestedTab = hovered;
@@ -707,6 +1577,10 @@ private:
 
     static uint8_t __cdecl QueryInput(int32_t input, uint8_t sound, uint8_t flags, uint8_t force, uint8_t tabsInput, uint8_t unknown, uint8_t repeat)
     {
+        if ((blockAccept || swallowFrames > 0) && input == 8)
+            return 0;
+        if (swallowFrames > 0 && input == 11)
+            return 0;
         if (tabInputState && mouseTabRequest && (input == 2 || input == 8))
         {
             if (input == 2)
@@ -718,11 +1592,24 @@ private:
 
         if (result != 0 && input == 11)
         {
-            pendingPage = -1;
-            if (auto page = FindPage(activePage); checkingBack && page && page->parent != -1)
-            {
-                submenuBack = true;
+            if ((checkingBack || inputMenu >= 0) && ConsumeBack())
                 return 0;
+            pendingPage = -1;
+            // Back from a page opened from a row returns to it, from a category of a screen it leaves the screen
+            if (auto page = FindPage(activePage); page && BackTarget(*page).first != -1)
+            {
+                if (checkingBack)
+                {
+                    submenuBack = true;
+                    return 0;
+                }
+                // The title menu doesn't always check Back through CheckForBackInput: the page goes back to
+                // its parent after the menu input
+                if (IsTitleScreen(activeHost))
+                {
+                    pendingTitleBack = true;
+                    return 0;
+                }
             }
         }
 
@@ -751,7 +1638,7 @@ private:
         checkingBack = previousChecking;
         submenuBack = previousBack;
         if (auto page = FindPage(activePage); back && page)
-            OpenPage(page->parent, page->parentRow);
+            GoBack(*page);
         return result;
     }
 
@@ -763,7 +1650,7 @@ private:
             ActivatePage(pendingPage);
             row = 0;
         }
-        else if (screen != DisplayScreen || (tabInputState && requestedTab == DisplayScreen))
+        else if (screen != activeHost || (tabInputState && requestedTab == DisplayScreen))
             RestoreDisplay();
         pendingPage = -1;
         return switchToNewScreen.ccall<int32_t>(menu, screen, row);
@@ -771,6 +1658,7 @@ private:
 
     static int32_t __fastcall DrawTabs(uint8_t* state, void*)
     {
+        tabState = state;
         auto hovered = HitTestTab();
         for (auto& tab : tabs)
             tab.visible = false;
@@ -885,7 +1773,8 @@ private:
         }
     }
 
-    // Submenu rows show the page's text, which is longer than a label
+    // Submenu rows show the page's text, which is longer than a label. Empty lines have no text, so the menu can't
+    // select them.
     static const char* __cdecl CopyRowLabel(const char* label, wchar_t* text)
     {
         auto& options = screens[*currentScreen].options;
@@ -893,11 +1782,25 @@ private:
         {
             if (label != options.data[row].label)
                 continue;
+            if (IsGap(options.data[row]))
+            {
+                text[0] = L'\0';
+                return nullptr;
+            }
+            if (IsHeading(options.data[row]))
+            {
+                auto heading = CText::FindMenuText(GetHash(label));
+                wcsncpy_s(text, 60, heading ? heading : L"", _TRUNCATE);
+                return nullptr;
+            }
             if (auto button = FindButton(row); button >= 0)
             {
                 if (auto page = FindPage(dynamicOptions[button].submenu))
                 {
-                    std::wmemcpy(text, page->text.c_str(), page->text.size() + 1);
+                    // The row's text has room for 59 characters, the mark of rows that open a page included
+                    std::wstring name = GetPageName(*page);
+                    name = name.substr(0, 59 - std::wcslen(SubmenuMark)) + SubmenuMark;
+                    wcsncpy_s(text, 60, name.c_str(), _TRUNCATE);
                     return nullptr;
                 }
             }
@@ -1012,6 +1915,45 @@ private:
             rowLabel = hook::pattern("8D 47 01 03 C1 50 E8").get_first(6);
 
             resetScreenRowsHook = safetyhook::create_mid(hook::pattern("7C D5 5F 5E C3").get_first(-0x2E), resetRows);
+
+            // The column of categories: the menu's position, fonts, the width of its first column and its drawing
+            bodyPosition = *hook::pattern("8B 01 8D 34 FD ? ? ? ? 8D 14 FD").get_first<float*>(5);
+            auto color = hook::pattern("0F 2F C1 76 35 C1 E8 18").get_first<uint8_t>();
+            fontStates = *reinterpret_cast<uint8_t**>(color - 4);
+            getFontContext = reinterpret_cast<decltype(getFontContext)>(branch(color - 0x2A));
+            selectRow = reinterpret_cast<decltype(selectRow)>(hook::pattern("6A 01 FF 74 24 18 FF 34 BD").get_first(-0x15));
+            setFontStyle = reinterpret_cast<decltype(setFontStyle)>(hook::pattern("8B 5C 24 0C 53 8D 34 C0").get_first(-7));
+            setFontOrientation = reinterpret_cast<decltype(setFontOrientation)>(branch(hook::pattern("8D 44 24 28 6A 03 50").get_first(-8)));
+            setFontWrap = reinterpret_cast<decltype(setFontWrap)>(hook::pattern("F3 0F 10 44 24 08 F3 0F 11 04 C5 ? ? ? ? C3").get_first(-0x17));
+            // The menu's title: proportional, an outline of 1 and its colour
+            auto outline = hook::pattern("6A 01 E8 ? ? ? ? 83 C4 08 C7 04 24 00 00 80 3F E8 ? ? ? ? 68 00 00 00 FF E8").get_first<uint8_t>();
+            setFontEdge = reinterpret_cast<decltype(setFontEdge)>(branch(outline + 0x11));
+            setFontEdgeColor = reinterpret_cast<decltype(setFontEdgeColor)>(branch(outline + 0x1B));
+            auto columns = hook::pattern("8D 44 24 4C 50 E8 ? ? ? ? F3 0F 10 00").get_first<uint8_t>();
+            getColumnWidth = reinterpret_cast<decltype(getColumnWidth)>(branch(columns + 5));
+            adjustForWidescreen = reinterpret_cast<decltype(adjustForWidescreen)>(branch(columns + 0x27));
+            menuDraw = safetyhook::create_inline(hook::pattern("83 38 00 75 09 89 4C 24 04").get_first(-0x0F), MenuDraw);
+            // The info text of Graphics: its place and font, and the index of the row it describes
+            auto info = hook::pattern("8D 44 24 40 6A 08 50 E8 ? ? ? ? 8D 44 24 58 50 E8 ? ? ? ? F3 0F 10 00 83 C4 0C 8D 44 24 50 6A 16 50");
+            auto infoWidth = hook::pattern("50 E8 ? ? ? ? F3 0F 10 00 83 C4 04 8D 44 24 28 6A 00 50 6A 00 6A 02");
+            auto infoRow = hook::pattern("83 C4 04 83 F8 A4 0F 84 ? ? ? ? 83 F8 0B 0F 87");
+            if (!info.empty() && !infoWidth.empty() && !infoRow.empty())
+            {
+                getInfoPosition = reinterpret_cast<decltype(getInfoPosition)>(branch(info.get_first<uint8_t>(0x11)));
+                setFontDropShadow = reinterpret_cast<decltype(setFontDropShadow)>(branch(info.get_first<uint8_t>(0x7E)));
+                getInfoLabelWidth = reinterpret_cast<decltype(getInfoLabelWidth)>(branch(infoWidth.get_first<uint8_t>(1)));
+                infoTextRow = safetyhook::create_mid(infoRow.get_first(), InfoTextRow);
+            }
+            categoriesEnabled = true;
+
+            // The language: FillMenu hides its row of Display (9, 10 in TLAD) and of the title menu's Display (6)
+            auto language = hook::pattern("83 F9 08 75 19 83 3D ? ? ? ? 01 B8 09 00 00 00 B9 0A 00 00 00 0F 44 C1 6A 01 50 EB 09 83 F9 3D 75 18");
+            if (!language.empty())
+            {
+                // jnz over the Display check -> jmp past both checks
+                injector::WriteMemory<uint8_t>(language.get_first<uint8_t>(3), 0xEB, true);
+                injector::WriteMemory<uint8_t>(language.get_first<uint8_t>(4), 0x36, true);
+            }
         }
         setTabScale = reinterpret_cast<decltype(setTabScale)>(branch(scaleCalls[0]));
 
@@ -1042,14 +1984,16 @@ private:
         // The game keeps rendering behind pages created with displayGame
         gameVisibilityHook = safetyhook::create_mid(gameVisibilityHookAddress, [](SafetyHookContext&)
         {
-            if (auto page = FindPage(activePage); page && page->displayGame && *frontendActive != 0 && *currentScreen == DisplayScreen)
+            if (auto page = ShownPage(); page && page->displayGame && activeHost == DisplayScreen && *frontendActive != 0 &&
+                *currentScreen == DisplayScreen)
                 *renderGame = 1;
         });
-        // mov eax, [current screen]; pages get the menu background unless they show the game
+        // mov eax, [current screen]; pages get the menu background unless they show the game, categories look like
+        // their screen
         pageBackgroundHook = safetyhook::create_mid(pageBackground, [](SafetyHookContext& regs)
         {
             regs.eax = static_cast<uintptr_t>(*currentScreen);
-            if (auto page = FindPage(activePage); page && *currentScreen == DisplayScreen)
+            if (auto page = ShownPage(); page && !page->category && activeHost == DisplayScreen && *currentScreen == DisplayScreen)
                 regs.eip = page->displayGame ? afterPageBackground : drawPageBackground;
             else
                 regs.eip = pageBackground + 5;
@@ -1080,6 +2024,16 @@ private:
             scrollMenu = safetyhook::create_inline(scroll, ScrollMenu);
             selectOption = safetyhook::create_inline(hook::pattern("83 EC 10 57 8B 7C 24 1C 85 FF 0F 8C ? ? ? ? 8B 0D").get_first(), SelectOption);
             processMenu = safetyhook::create_inline(process, ProcessMenu);
+            // The game's warning screen for its own questions (1.1.2.0, 1.0.8.0)
+            if (auto warning = hook::pattern("8B 44 24 04 50 C7 05 ? ? ? ? 01 00 00 00 E8 ? ? ? ? 8B 4C 24 0C 51 E8"); !warning.empty())
+            {
+                setWarningMessage = reinterpret_cast<decltype(setWarningMessage)>(warning.get_first());
+                warningState = *warning.get_first<int32_t*>(7);
+            }
+            // The number of MENU_DISPLAY_VALUE_SLIDERBAR is printed from a buffer at esp+0xF0, the row offset is in EDI
+            auto valueText = hook::pattern("83 C4 0C 6A FF 6A FF 8D 8C 24 F8 00 00 00 51 E9");
+            if (!valueText.empty())
+                valueTextHook = safetyhook::create_mid(valueText.get_first(3), [](SafetyHookContext& regs) { SetValueText(regs.edi, regs.esp + 0xF0); });
             InitializeTabs();
             return;
         }
@@ -1097,6 +2051,16 @@ private:
         scrollMenu = safetyhook::create_inline(scroll, ScrollMenu);
         selectOption = safetyhook::create_inline(hook::pattern("0F B7 3C D5 ? ? ? ? 3B F7").get_first(-0x25), SelectOption);
         processMenu = safetyhook::create_inline(hook::pattern("C7 05 ? ? ? ? FF FF FF 7F FF 34 BD").get_first(-0x1E), ProcessMenu);
+        // The game's warning screen for its own questions: title (not shown), text key, keys (0x48: yes and no), ...
+        if (auto warning = hook::pattern("FF 74 24 04 C7 05 ? ? ? ? 01 00 00 00 E8 ? ? ? ? FF 74 24 0C E8"); !warning.empty())
+        {
+            setWarningMessage = reinterpret_cast<decltype(setWarningMessage)>(warning.get_first());
+            warningState = *warning.get_first<int32_t*>(6);
+        }
+        // The number of MENU_DISPLAY_VALUE_SLIDERBAR is printed from a buffer at esp+0xF0, the row offset is in EBX
+        auto valueText = hook::pattern("83 C4 0C 8D 84 24 F0 00 00 00 6A FF 6A FF 50 E9");
+        if (!valueText.empty())
+            valueTextHook = safetyhook::create_mid(valueText.get_first(3), [](SafetyHookContext& regs) { SetValueText(regs.ebx, regs.esp + 0xF0); });
         InitializeTabs();
     }
 
@@ -1334,201 +2298,261 @@ private:
         return std::nullopt;
     }
 public:
-    static inline std::filesystem::path d3d9cfgPath;
 
     CSettings()
     {
-        TCHAR szPath[MAX_PATH];
-        std::vector<std::filesystem::path> cfgPaths;
-        auto cfgName = GetThisModuleName().replace_extension(L".cfg");
-        cfgPaths.emplace_back(GetThisModulePath() / cfgName);
-        cfgPaths.emplace_back(GetExeModulePath() / cfgName);
-        if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, szPath)))
-            cfgPaths.emplace_back(std::filesystem::path(szPath) / L"Rockstar Games\\GTA IV\\" / cfgName);
-        if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, szPath)))
-            cfgPaths.emplace_back(std::filesystem::path(szPath) / GetThisModuleName().stem() / cfgName);
-        if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_MYDOCUMENTS, NULL, 0, szPath)))
-            cfgPaths.emplace_back(std::filesystem::path(szPath) / GetThisModuleName().stem() / cfgName);
-
-        cfgPath = cfgPaths.front();
-        for (auto& it : cfgPaths)
-        {
-            auto status = std::filesystem::status(it).permissions();
-            if (status == std::filesystem::perms::unknown)
-            {
-                std::ofstream ofile;
-                ofile.open(it, std::ios::binary);
-                if (ofile.is_open())
-                {
-                    cfgPath = it;
-                    ofile.close();
-                    break;
-                }
-            }
-            else if ((std::filesystem::perms::owner_read & status) == std::filesystem::perms::owner_read &&
-            (std::filesystem::perms::owner_write & status) == std::filesystem::perms::owner_write)
-            {
-                cfgPath = it;
-                break;
-            }
-        }
-
-        {
-            WCHAR szPath[MAX_PATH];
-            std::vector<std::filesystem::path> d3d9cfgPaths;
-            auto cfgName = L"d3d9.cfg";
-            d3d9cfgPaths.emplace_back(GetExeModulePath() / cfgName);
-            if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, szPath)))
-                d3d9cfgPaths.emplace_back(std::filesystem::path(szPath) / L"Rockstar Games\\GTA IV\\" / cfgName);
-            if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, szPath)))
-                d3d9cfgPaths.emplace_back(std::filesystem::path(szPath) / cfgName);
-            if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_MYDOCUMENTS, NULL, 0, szPath)))
-                d3d9cfgPaths.emplace_back(std::filesystem::path(szPath) / cfgName);
-
-            // First, try to find an existing readable file
-            for (auto& it : d3d9cfgPaths)
-            {
-                std::error_code ec;
-                if (std::filesystem::exists(it, ec) && !ec)
-                {
-                    auto status = std::filesystem::status(it, ec);
-                    if (!ec && status.type() == std::filesystem::file_type::regular)
-                    {
-                        // Check if we can read from this file
-                        std::ifstream testFile(it);
-                        if (testFile.good())
-                        {
-                            d3d9cfgPath = it;
-                            testFile.close();
-                            break;
-                        }
-                    }
-                }
-            }
-
-            // If no existing readable file found, find a writable location for new file creation
-            if (d3d9cfgPath.empty())
-            {
-                for (auto& it : d3d9cfgPaths)
-                {
-                    std::error_code ec;
-                    auto status = std::filesystem::status(it, ec);
-
-                    if (ec && ec.value() == 2) // File doesn't exist, check if directory is writable
-                    {
-                        std::ofstream ofile;
-                        ofile.open(it, std::ios::binary);
-                        if (ofile.is_open())
-                        {
-                            d3d9cfgPath = it;
-                            ofile.close();
-                            break;
-                        }
-                    }
-                    else if (!ec && ((std::filesystem::perms::owner_read & status.permissions()) == std::filesystem::perms::owner_read &&
-                             (std::filesystem::perms::owner_write & status.permissions()) == std::filesystem::perms::owner_write))
-                    {
-                        d3d9cfgPath = it;
-                        break;
-                    }
-                }
-            }
-
-            // Fallback to first path if nothing else worked
-            if (d3d9cfgPath.empty())
-            {
-                d3d9cfgPath = d3d9cfgPaths.front();
-            }
-        }
+        // Fusion Fix's own description and texts, for its rows in the menu
+        GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+            reinterpret_cast<LPCWSTR>(&SettingsPlugin), &ownPlugin.module);
+        asi_settings::ReadModule(ownPlugin.module, ownPlugin.file);
 
         InitializeTables();
 
-        CIniReader iniReader(cfgPath);
-
-        // IDs and XML display records are independent of registration order.
-        static CSetting arr[] = {
-            { 0, "PREF_SKIP_INTRO",             "MAIN",       "SkipIntro",                          "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_SKIP_MENU",              "MAIN",       "SkipMenu",                           "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_BORDERLESS",             "MAIN",       "BorderlessWindowed",                 "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_FPS_LIMIT_PRESET",       "FRAMELIMIT", "FpsLimitPreset",                     "MENU_DISPLAY_FRAMELIMIT",    0, nullptr, (int32_t)FpsCaps.eOFF, std::distance(std::begin(FpsCaps.data), std::end(FpsCaps.data)) - 1 },
-            { 0, "PREF_BLOOM",                  "MAIN",       "Bloom",                              "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_CONSOLE_GAMMA",          "MISC",       "ConsoleGamma",                       "MENU_DISPLAY_CONSOLE_GAMMA",                           1, nullptr, 0, 2 },
-            { 0, "PREF_TIMECYC",                "MISC",       "ScreenFilter",                       "MENU_DISPLAY_TIMECYC",       0, nullptr, (int32_t)TimecycText.eMO_DEF, std::distance(std::begin(TimecycText.data), std::end(TimecycText.data)) - 1 },
-            { 0, "PREF_WINDOWED",               "MAIN",       "Windowed",                           "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_DEFINITION",             "MAIN",       "Definition",                         "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_SHADOWFILTER",           "SHADOWS",    "ShadowFilter",                       "MENU_DISPLAY_SHADOWFILTER",  0, nullptr, (int32_t)ShadowFilterText.eSharp, std::distance(std::begin(ShadowFilterText.data), std::end(ShadowFilterText.data)) - 1 },
-            { 0, "PREF_TREE_LIGHTING",          "MISC",       "TreeLighting",                       "MENU_DISPLAY_TREE_LIGHTING", 1, nullptr, (int32_t)TreeFxText.ePC, std::distance(std::begin(TreeFxText.data), std::end(TreeFxText.data)) - 1 },
-            { 0, "PREF_TCYC_DOF",               "MISC",       "DepthOfField",                       "MENU_DISPLAY_DOF",           1, nullptr, (int32_t)DofText.eOff, std::distance(std::begin(DofText.data), std::end(DofText.data)) - 1 },
-            { 0, "PREF_MOTIONBLUR",             "MAIN",       "MotionBlur",                         "",                           2, nullptr, 0, 4 },
-            { 0, "PREF_LEDILLUMINATION",        "MISC",       "LightSyncRGB",                       "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_TREEALPHA",              "MISC",       "TreeAlpha",                          "MENU_DISPLAY_TREE_LIGHTING", 0, nullptr, (int32_t)TreeFxText.ePC, std::distance(std::begin(TreeFxText.data), std::end(TreeFxText.data)) - 1 },
-            { 0, "PREF_SUNSHAFTS",              "MISC",       "SunShafts",                          "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_FPSCOUNTER",             "FRAMELIMIT", "DisplayFpsCounter",                  "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_ALWAYSRUN",              "MISC",       "AlwaysRun",                          "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_ALTDIALOGUE",            "MISC",       "AltDialogue",                        "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_COVERCENTERING",         "MISC",       "CameraCenteringInCover",             "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_KBCAMCENTERDELAY",       "MISC",       "DelayBeforeCenteringCameraKB",       "",                           4, nullptr, 0, 9 },
-            { 0, "PREF_PADCAMCENTERDELAY",      "MISC",       "DelayBeforeCenteringCameraPad",      "",                           0, nullptr, 0, 9 },
-            { 0, "PREF_CUSTOMFOV",              "MISC",       "FieldOfView",                        "",                           0, nullptr, 0, 9 },
-            { 0, "PREF_RAWINPUT",               "MISC",       "RawInput",                           "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_BUTTONS",                "MISC",       "Buttons",                            "MENU_DISPLAY_BUTTONS",       1, nullptr, (int32_t)ButtonsText.eXbox360, std::distance(std::begin(ButtonsText.data), std::end(ButtonsText.data)) - 1 },
-            { 0, "PREF_LETTERBOX",              "MISC",       "Letterbox",                          "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_PILLARBOX",              "MISC",       "Pillarbox",                          "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_ANTIALIASING",           "MISC",       "Antialiasing",                       "MENU_DISPLAY_ANTIALIASING",  2, nullptr, (int32_t)AntialiasingText.eMO_OFF, std::distance(std::begin(AntialiasingText.data), std::end(AntialiasingText.data)) - 1 },
-            { 0, "PREF_UPDATE",                 "UPDATE",     "CheckForUpdates",                    "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_BLOCKONLOSTFOCUS",       "MAIN",       "BlockOnLostFocus",                   "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_TRANSPARENTMAPMENU",     "MISC",       "TransparentMapMenu",                 "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_EXTENDEDSNIPERCONTROLS", "MISC",       "ExtendedSniperControls",             "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_TIMEDEVENTS",            "MISC",       "TimedEvents",                        "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_VOLUMETRICFOG",          "FOG",        "VolumetricFog",                      "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_TONEMAPPING",            "MISC",       "ToneMapping",                        "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_ZOOMEDMOVEMENT",         "MISC",       "ZoomedMovement",                     "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_UNCLAMPLIGHTING",        "MISC",       "UnclampLighting",                    "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_DISTANTLIGHTS",          "MISC",       "DistantLights",                      "MENU_DISPLAY_DISTANT_LIGHTS",                           0, nullptr, 0, 1 },
-            { 0, "PREF_CENTEREDCAMERA",         "MISC",       "CenteredVehCam",                     "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_CENTEREDCAMERAFOOT",     "MISC",       "CenteredFootCam",                    "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_CAMERASHAKE",            "MAIN",       "CameraShake",                        "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_CUTSCENEAUDIOSYNC",      "MAIN",       "CutsceneAudioSync",                  "MENU_DISPLAY_AUDIO_SYNC",                           0, nullptr, 0, 2 },
-            { 0, "PREF_TURNINDICATORS",         "MISC",       "TurnIndicators",                     "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_EXTRANIGHTSHADOWS",      "SHADOWS",    "ExtraNightShadows",                  "MENU_DISPLAY_EXTRA_NIGHT_SHADOWS",                           0, nullptr, 0, 3 },
-            { 0, "PREF_GRAPHICSAPI",            "MAIN",       "GraphicsAPI",                        "MENU_DISPLAY_GRAPHICS_API",                           0, nullptr, 0, 1 },
-            { 0, "PREF_BULLETTRACES",           "MISC",       "AlwaysShowBulletTraces",             "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_AUTOEXPOSURE",           "MISC",       "ConsoleAutoExposure",                "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_KBCAMCENTERDELAYVEH",    "MISC",       "DelayBeforeCenteringCameraKBInCar",  "",                           0, nullptr, 0, 9 },
-            { 0, "PREF_PADCAMCENTERDELAYVEH",   "MISC",       "DelayBeforeCenteringCameraPadInCar", "",                           0, nullptr, 0, 9 },
-            { 0, "PREF_KBCAMTURNSPEEDVEH",      "MISC",       "CameraTurnSpeedKBInCar",             "",                           3, nullptr, 0, 7 },
-            { 0, "PREF_PADCAMTURNSPEEDVEH",     "MISC",       "CameraTurnSpeedPadInCar",            "",                           0, nullptr, 0, 7 },
-            { 0, "PREF_PADLOOKSENSITIVITY",     "MISC",       "PadLookSensitivity",                 "",                           10, nullptr, 0, 20 },
-            { 0, "PREF_PADAIMSENSITIVITY",      "MISC",       "PadAimSensitivity",                  "",                           10, nullptr, 0, 20 },
-            { 0, "PREF_MOUSEAIMSENSITIVITY",    "MISC",       "MouseAimSensitivity",                "",                           10, nullptr, 0, 20 },
-            { 0, "PREF_NOWARDROBEFADING",       "MISC",       "DisableWardrobeTransition",          "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_STOPTAXI",               "MISC",       "InstantStopTaxi",                    "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_SAO",                    "MISC",       "AmbientOcclusion",                   "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_AUTOCLIMBLADDERS",       "MISC",       "AutoClimbLadders",                   "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_STUNTJUMPCAM",           "MISC",       "StuntJumpCamera",                    "",                           1, nullptr, 0, 1 },
-            { 0, "PREF_ACTIONCAM",              "MISC",       "ActionCamera",                       "",                           1, nullptr, 0, 1 },
+        // The preferences of the menu and of scripts (GET_NUMBER_OF_INSTANCES_OF_STREAMED_SCRIPT), by the setting of
+        // the description that stores them. IDs and XML display records are independent of registration order.
+        static constexpr std::pair<const char*, const char*> arr[] = {
+            { "PREF_SKIP_INTRO",             "MAIN.SkipIntro" },
+            { "PREF_SKIP_MENU",              "MAIN.SkipMenu" },
+            { "PREF_FPS_LIMIT_PRESET",       "FRAMELIMIT.FpsLimitPreset" },
+            { "PREF_BLOOM",                  "MAIN.Bloom" },
+            { "PREF_CONSOLE_GAMMA",          "MISC.ConsoleGamma" },
+            { "PREF_TIMECYC",                "MISC.ScreenFilter" },
+            { "PREF_WINDOWMODE",             "MAIN.WindowMode" },
+            { "PREF_DEFINITION",             "MAIN.Definition" },
+            { "PREF_SHADOWFILTER",           "SHADOWS.ShadowFilter" },
+            { "PREF_TREE_LIGHTING",          "MISC.TreeLighting" },
+            { "PREF_TCYC_DOF",               "MISC.DepthOfField" },
+            { "PREF_MOTIONBLUR",             "MAIN.MotionBlur" },
+            { "PREF_LEDILLUMINATION",        "MISC.LightSyncRGB" },
+            { "PREF_TREEALPHA",              "MISC.TreeAlpha" },
+            { "PREF_SUNSHAFTS",              "MISC.SunShafts" },
+            { "PREF_FPSCOUNTER",             "FRAMELIMIT.DisplayFpsCounter" },
+            { "PREF_ALWAYSRUN",              "MISC.AlwaysRun" },
+            { "PREF_ALTDIALOGUE",            "MISC.AltDialogue" },
+            { "PREF_KBCAMCENTERDELAY",       "MISC.DelayBeforeCenteringCameraKB" },
+            { "PREF_PADCAMCENTERDELAY",      "MISC.DelayBeforeCenteringCameraPad" },
+            { "PREF_CUSTOMFOV",              "MISC.FieldOfView" },
+            { "PREF_RAWINPUT",               "MISC.RawInput" },
+            { "PREF_BUTTONS",                "MISC.Buttons" },
+            { "PREF_CUTSCENEBORDERS",        "MISC.CutsceneBorders" },
+            { "PREF_ANTIALIASING",           "MISC.Antialiasing" },
+            { "PREF_UPDATE",                 "UPDATE.CheckForUpdates" },
+            { "PREF_BLOCKONLOSTFOCUS",       "MAIN.BlockOnLostFocus" },
+            { "PREF_TRANSPARENTMAPMENU",     "MISC.TransparentMapMenu" },
+            { "PREF_EXTENDEDSNIPERCONTROLS", "MISC.ExtendedSniperControls" },
+            { "PREF_TIMEDEVENTS",            "MISC.TimedEvents" },
+            { "PREF_VOLUMETRICFOG",          "FOG.VolumetricFog" },
+            { "PREF_TONEMAPPING",            "MISC.ToneMapping" },
+            { "PREF_ZOOMEDMOVEMENT",         "MISC.ZoomedMovement" },
+            { "PREF_UNCLAMPLIGHTING",        "MISC.UnclampLighting" },
+            { "PREF_CENTEREDCAMERA",         "MISC.CenteredVehCam" },
+            { "PREF_CENTEREDCAMERAFOOT",     "MISC.CenteredFootCam" },
+            { "PREF_CAMERASHAKE",            "MAIN.CameraShake" },
+            { "PREF_TURNINDICATORS",         "MISC.TurnIndicators" },
+            { "PREF_EXTRANIGHTSHADOWS",      "SHADOWS.ExtraNightShadows" },
+            { "PREF_GRAPHICSAPI",            "MAIN.GraphicsAPI" },
+            { "PREF_BULLETTRACES",           "MISC.AlwaysShowBulletTraces" },
+            { "PREF_AUTOEXPOSURE",           "MISC.ConsoleAutoExposure" },
+            { "PREF_KBCAMCENTERDELAYVEH",    "MISC.DelayBeforeCenteringCameraKBInCar" },
+            { "PREF_PADCAMCENTERDELAYVEH",   "MISC.DelayBeforeCenteringCameraPadInCar" },
+            { "PREF_KBCAMTURNSPEEDVEH",      "MISC.CameraTurnSpeedKBInCar" },
+            { "PREF_PADCAMTURNSPEEDVEH",     "MISC.CameraTurnSpeedPadInCar" },
+            { "PREF_PADLOOKSENSITIVITY",     "MISC.PadLookSensitivity" },
+            { "PREF_PADAIMSENSITIVITY",      "MISC.PadAimSensitivity" },
+            { "PREF_MOUSEAIMSENSITIVITY",    "MISC.MouseAimSensitivity" },
+            { "PREF_NOWARDROBEFADING",       "MISC.DisableWardrobeTransition" },
+            { "PREF_STOPTAXI",               "MISC.InstantStopTaxi" },
+            { "PREF_SAO",                    "MISC.AmbientOcclusion" },
+            { "PREF_AUTOCLIMBLADDERS",       "MISC.AutoClimbLadders" },
+            { "PREF_STUNTJUMPCAM",           "MISC.StuntJumpCamera" },
+            { "PREF_ACTIONCAM",              "MISC.ActionCamera" },
+            { "PREF_CONFINECURSOR",          "MAIN.ConfineCursor" },
         };
 
-        for (auto& setting : arr)
+        for (auto& [name, id] : arr)
+            RegisterPreference(name, id);
+
+        // The graphics API is MAIN.GraphicsAPI, applied by the plugin at its init (graphicsapi.ixx, FusionFixUtils
+        // upscaler/graphics_api.h; no d3d9.dll proxy, no d3d9.cfg). Vulkan needs DXVK as vulkan.dll next to the exe (a
+        // build FusionFixHub installs), DirectX 12 Fusion Fix's own D3D9On12 driver next to the exe (FusionFixHub
+        // installs it), never Windows' slow one. When the API didn't start, the next start falls back to DirectX 9 and
+        // sets this back (the crash guard of graphics_api.h).
+        FusionFixSettings.SetAvailability("PREF_GRAPHICSAPI", [](int32_t value) -> bool
         {
-            auto id = static_cast<int32_t>(aMenuPrefs.size());
-            auto& stored = mFusionPrefs.emplace(id, std::move(setting)).first->second;
-            stored.value = std::clamp(stored.ReadFromIni(iniReader), stored.idStart, stored.idEnd);
-            SettingsTables::scalers[id] = stored.idEnd + 1;
-            aMenuPrefs.emplace_back(id, stored.prefName.data());
-            if (!stored.strEnum.empty() && !displayIDs.contains(stored.strEnum))
-                displayIDs.emplace(stored.strEnum, nextDisplayID++);
+            return FusionFixGraphicsApi::Available(static_cast<FusionFixGraphicsApi::Api>(std::clamp(value, 0, 2)));
+        });
+        InitializeMenuAPI();
+        RegisterMenuRows();
+        SnapshotRestartValues(ownPlugin);
+    }
+
+    // The options of Fusion Fix in the menus, the frontend XMLs are the original ones. Fusion Fix's settings are where
+    // they have always been in the game's lists; settings Fusion Fix didn't have there before are on pages opened from
+    // a row (HDR), other plugins on the Plugins page of Game. Every list fits the menu at Fusion Fix's font size
+    // (PageRows). Rows name the settings of the description (settings/GTAIV.EFLC.FusionFix.json), which give their
+    // texts and values.
+    void RegisterMenuRows()
+    {
+        constexpr uint8_t NotTLAD = 1 | 4;
+
+        // CE hides these rows every time the menu is filled, after the menu has shown them: they flicker. Marketplace
+        // (TLAD, TBoGT) and voice output.
+        if (!legacyExecutable)
+        {
+            RemoveOption(MenuScreen::Game, "MO_MARKETPLACE");
+            for (auto screen : { MenuScreen::Audio, MenuScreen::TitleAudio })
+                RemoveOption(screen, "MO_VOUT", "PREF_VOICE_OUTPUT");
         }
 
-        CIniReader d3d9cfg(d3d9cfgPath);
-        auto api = d3d9cfg.ReadInteger("MAIN", "API", 0);
-        FusionFixSettings.Set("PREF_GRAPHICSAPI", api);
-        InitializeMenuAPI();
+        // Game: the pause menu before Exit Game, the title menu at the end. The Plugins page follows them: one entry per
+        // plugin, Fusion Fix first with its Preset row (its settings are on the game's tabs), then the other plugins
+        // (FindOtherPlugins). A preset of all plugins is FusionFixHub's.
+        for (auto [screen, before] : { std::pair{ MenuScreen::Game, "MO_EXITGAM" }, std::pair{ MenuScreen::TitleGame, "" } })
+        {
+            if (screen == MenuScreen::TitleGame)
+                AddEmptyLine(screen, before);
+            AddSetting(screen, "MAIN.SkipIntro", before);
+            AddSetting(screen, "MAIN.SkipMenu", before);
+            AddEmptyLine(screen, before);
+            AddSetting(screen, "MISC.CutsceneBorders", before);
+            AddSetting(screen, "MISC.TransparentMapMenu", before);
+            AddSetting(screen, "FRAMELIMIT.DisplayFpsCounter", before);
+            AddEmptyLine(screen, before);
+            AddSetting(screen, "MAIN.WindowMode", before);
+            AddSetting(screen, "MAIN.BlockOnLostFocus", before);
+            // Shown on the game, with a warning in the help line while it's on
+            AddSetting(screen, "SHADOWS.ExtraNightShadows", before);
+            AddEmptyLine(screen, before);
+            AddSetting(screen, "MISC.LightSyncRGB", before);
+            AddSetting(screen, "MISC.TimedEvents", before);
+            AddEmptyLine(screen, before);
+            AddSetting(screen, "UPDATE.CheckForUpdates", before);
+            AddEmptyLine(screen, before);
+            pluginsBefore[static_cast<int32_t>(screen)] = before;
+            if (auto own = AddCategory(PluginsPage(screen), MenuKey(ownPlugin, ownPlugin.file.description.name)); own != MenuScreen::Invalid)
+                AddPresetRow(own, ownPlugin);
+            // Exit Game apart from the Plugins row, like the groups above
+            if (screen == MenuScreen::Game)
+                AddEmptyLine(screen, before);
+        }
+
+        // Controls, at the end. TLAD has no wardrobe.
+        for (auto screen : { MenuScreen::Controls, MenuScreen::TitleControls })
+        {
+            AddEmptyLine(screen);
+            AddSetting(screen, "MISC.AlwaysRun");
+            AddSetting(screen, "MISC.ZoomedMovement");
+            AddSetting(screen, "MISC.ExtendedSniperControls");
+            AddEmptyLine(screen);
+            AddSetting(screen, "MAIN.CameraShake");
+            AddSetting(screen, "MISC.CenteredVehCam");
+            AddSetting(screen, "MISC.CenteredFootCam");
+            AddSetting(screen, "MISC.StuntJumpCamera");
+            AddSetting(screen, "MISC.ActionCamera");
+            AddEmptyLine(screen);
+            AddSetting(screen, "MISC.TurnIndicators");
+            AddSetting(screen, "MISC.AlwaysShowBulletTraces");
+            AddSetting(screen, "MISC.DisableWardrobeTransition", {}, NotTLAD);
+            AddSetting(screen, "MISC.InstantStopTaxi");
+            AddSetting(screen, "MISC.AutoClimbLadders");
+        }
+
+        // Keyboard options: 21 steps of mouse sensitivity, the camera settings before Remap Keyboard
+        SetOptionScaler(MenuScreen::KeyboardOptions, "MO_MOUSE", 21);
+        AddSetting(MenuScreen::KeyboardOptions, "MISC.MouseAimSensitivity", "MO_MOWHEEL");
+        AddSetting(MenuScreen::KeyboardOptions, "MISC.DelayBeforeCenteringCameraKB", "MO_KBMAP");
+        AddSetting(MenuScreen::KeyboardOptions, "MISC.DelayBeforeCenteringCameraKBInCar", "MO_KBMAP");
+        AddSetting(MenuScreen::KeyboardOptions, "MISC.CameraTurnSpeedKBInCar", "MO_KBMAP");
+        AddSetting(MenuScreen::KeyboardOptions, "MISC.RawInput", "MO_KBMAP");
+        AddSetting(MenuScreen::KeyboardOptions, "MAIN.ConfineCursor", "MO_KBMAP");
+        AddEmptyLine(MenuScreen::KeyboardOptions, "MO_KBMAP");
+
+        // Controller options: look and aim sensitivity sliders instead of the three sensitivity steps
+        for (auto screen : { MenuScreen::ControllerOptions, MenuScreen::NetworkControls })
+        {
+            constexpr auto sensitivity = "PREF_CONTROLLER_SENSITIVITY";
+            AddSetting(screen, "MISC.PadLookSensitivity", sensitivity);
+            AddSetting(screen, "MISC.PadAimSensitivity", sensitivity);
+            if (screen == MenuScreen::ControllerOptions)
+            {
+                AddEmptyLine(screen, sensitivity);
+                AddSetting(screen, "MISC.DelayBeforeCenteringCameraPad", sensitivity);
+                AddSetting(screen, "MISC.DelayBeforeCenteringCameraPadInCar", sensitivity);
+                AddSetting(screen, "MISC.CameraTurnSpeedPadInCar", sensitivity);
+                AddSetting(screen, "MISC.Buttons", sensitivity);
+            }
+            RemoveOption(screen, "MO_SENS", sensitivity);
+        }
+
+        // Audio: no microphone, the options at the end
+        for (auto screen : { MenuScreen::Audio, MenuScreen::TitleAudio })
+        {
+            RemoveOption(screen, "MO_VMIC");
+            AddEmptyLine(screen);
+            AddSetting(screen, "MISC.AltDialogue");
+        }
+
+        // Display: Field of View after Saturation, the image and lighting options before Restore Defaults, then the HDR
+        // page, whose rows HDR adds (GetHdrScreens)
+        for (auto screen : { MenuScreen::Display, MenuScreen::TitleDisplay })
+        {
+            AddSetting(screen, "MISC.FieldOfView", "MO_SUB");
+            AddSetting(screen, "MAIN.Definition", "MO_DEF");
+            AddSetting(screen, "MISC.ConsoleGamma", "MO_DEF");
+            AddSetting(screen, "MISC.ConsoleAutoExposure", "MO_DEF");
+            AddSetting(screen, "MAIN.MotionBlur", "MO_DEF");
+            AddSetting(screen, "MISC.DepthOfField", "MO_DEF");
+            AddSetting(screen, "MISC.TreeLighting", "MO_DEF");
+            AddSetting(screen, "MISC.TreeAlpha", "MO_DEF");
+            AddEmptyLine(screen, "MO_DEF");
+            AddSetting(screen, "MAIN.Bloom", "MO_DEF");
+            AddSetting(screen, "MISC.ScreenFilter", "MO_DEF");
+            AddEmptyLine(screen, "MO_DEF");
+            hdrScreens.push_back(AddPage(screen, "@ff.page.hdr", "MO_DEF", true, [] { return SettingValueText(ownPlugin, "HDR.HDR"); }));
+            AddEmptyLine(screen, "MO_DEF");
+        }
+
+        // Graphics: after VSync, before Graphics Analyzer
+        for (auto screen : { MenuScreen::Graphics, MenuScreen::TitleGraphics })
+        {
+            // Definition is in Display
+            RemoveOption(screen, "MO_DOF", "PREF_DOF");
+            AddSetting(screen, "FRAMELIMIT.FpsLimitPreset", "MO_ANALYZER");
+            AddSetting(screen, "MISC.Antialiasing", "MO_ANALYZER");
+            AddEmptyLine(screen, "MO_ANALYZER");
+            AddSetting(screen, "FOG.VolumetricFog", "MO_ANALYZER");
+            AddSetting(screen, "MISC.SunShafts", "MO_ANALYZER");
+            AddSetting(screen, "MISC.UnclampLighting", "MO_ANALYZER");
+            AddSetting(screen, "MISC.ToneMapping", "MO_ANALYZER");
+            AddSetting(screen, "MISC.AmbientOcclusion", "MO_ANALYZER");
+            AddSetting(screen, "SHADOWS.ShadowFilter", "MO_ANALYZER");
+            AddSetting(screen, "MAIN.GraphicsAPI", "MO_ANALYZER");
+        }
     }
+
+
 public:
+    // A setting of Fusion Fix or another plugin applied after a restart was changed since the game was started: the
+    // line below the menu says the game must be restarted (FF_RESTART), as it always did for the graphics API
+    static bool RestartPending() { return PendingRestarts() > 0; }
+    // A text of Fusion Fix's description (settings/*.json) in the game's language, e.g. "@ff.update.hub"
+    static std::string Text(std::string_view key) { return ownPlugin.file.texts.Resolve(key); }
+    // A text the game shows for a key of its own (help text, menu rows), e.g. for PRINT_HELP
+    static void SetGameText(const char* key, std::wstring text) { CText::menuTexts[GetHash(key)] = std::move(text); }
+    // A restart setting the plugin changed itself while starting (the graphics API's crash guard set it back): its
+    // value now is the one the game started with, no restart is pending for it
+    static void RestartBaseline(std::string_view id)
+    {
+        auto key = ownPlugin.file.id + "|" + std::string(id);
+        if (restartValues.contains(key))
+            restartValues[key] = ownPlugin.Get(std::string(id));
+    }
+
     // A custom screen is shown in place of the Display screen
     static bool IsCustomScreenActive() { return activePage != -1; }
-    // Before the game frees the screens' rows (frontend XML reload)
+    // The tab the shown custom screen belongs to, -1 for none
+    static int32_t CustomScreenRoot() { return activePage != -1 ? GetRootScreen(activePage) : -1; }
+    // Before the game frees the screens' rows (frontend XML reload), and after the menu is closed
     static void ResetCustomScreens() { ResetPages(); }
     // Tab change, the tab state is in EBX (EBP in 1.1.2.0): a custom tab is shown on the Display screen
     static void OnTabTransition(uintptr_t ebx, uintptr_t ebp)
@@ -1545,8 +2569,8 @@ public:
     enum class MenuScreen : int32_t
     {
         Invalid = -1,
-        Game = 0, NetworkGame = 1, Brief = 2, Map = 3, Stats = 4, Controls = 5, Audio = 7, Display = 8, Graphics = 49,
-        TitleControls = 59, TitleAudio = 60, TitleDisplay = 61, TitleGraphics = 62,
+        Game = 0, NetworkGame = 1, Brief = 2, Map = 3, Stats = 4, Controls = 5, NetworkControls = 6, Audio = 7, Display = 8, Graphics = 49,
+        TitleControls = 59, TitleAudio = 60, TitleDisplay = 61, TitleGraphics = 62, TitleGame = 63,
         KeyboardOptions = 71, ControllerOptions = 72
     };
 
@@ -1565,7 +2589,7 @@ public:
         for (size_t i = 0; i < pageCount; ++i)
             if (pages[i].parent == -1 && label == pages[i].label)
                 return static_cast<MenuScreen>(FirstCustomScreen + i);
-        if (pageCount == pages.size() || customTabCount == 4)
+        if (pageCount == MaxPages || customTabCount == 4)
             return MenuScreen::Invalid;
         auto afterId = static_cast<int32_t>(after);
         if (after != MenuScreen::Controls && after != MenuScreen::Audio && after != MenuScreen::Display && after != MenuScreen::Graphics && !FindPage(afterId))
@@ -1576,7 +2600,8 @@ public:
             return MenuScreen::Invalid;
 
         auto screen = FirstCustomScreen + static_cast<int32_t>(pageCount);
-        auto& page = pages[pageCount++];
+        auto& page = pages.emplace_back();
+        ++pageCount;
         std::memcpy(page.label, label.data(), label.size());
         page.text = std::move(text);
         page.rows[0].action = 46;
@@ -1586,31 +2611,36 @@ public:
         return static_cast<MenuScreen>(screen);
     }
 
-    // A page opened from a row of a settings tab or a custom screen, Back returns to it (CE only).
-    // The label is UTF-8, up to 59 characters.
-    MenuScreen AddSubmenu(MenuScreen parent, std::string_view label, bool displayGame = false)
+    // A page opened from a row of a settings screen of the pause menu or the title menu, or of a custom screen;
+    // Back returns to it. The label is a key of FF's texts, or UTF-8 text up to 59 characters. displayGame keeps
+    // the game visible behind a page of the pause menu. The row is inserted before the row labelled 'before', else
+    // added at the end.
+    static MenuScreen AddSubmenu(MenuScreen parent, std::string_view label, bool displayGame = false, std::string_view before = {})
     {
         auto parentId = static_cast<int32_t>(parent);
         if (!tabsInitialized || label.empty() || label.size() >= sizeof(Page::label) || label.find('\0') != label.npos ||
-            (!FindPage(parentId) && parent != MenuScreen::Controls && parent != MenuScreen::Audio && parent != MenuScreen::Display && parent != MenuScreen::Graphics))
+            (!FindPage(parentId) && parent != MenuScreen::Game && parent != MenuScreen::Controls && parent != MenuScreen::Audio && parent != MenuScreen::Display &&
+                parent != MenuScreen::Graphics && !IsTitleScreen(parentId)))
             return MenuScreen::Invalid;
         for (size_t i = 0; i < pageCount; ++i)
-            if (pages[i].parent == parentId && label == pages[i].label)
+            if (pages[i].parent == parentId && !pages[i].category && label == pages[i].label)
                 return static_cast<MenuScreen>(FirstCustomScreen + i);
         auto text = ToWide(label, 60);
-        if (text.empty() || pageCount == pages.size())
+        if (text.empty() || pageCount == MaxPages)
             return MenuScreen::Invalid;
 
         auto screen = FirstCustomScreen + static_cast<int32_t>(pageCount);
         char key[16]{};
-        std::snprintf(key, sizeof(key), "NY_SUB_%02u", static_cast<uint32_t>(pageCount));
-        if (!AddOption(parent, key, static_cast<int32_t>(dynamicOptions.size()), 100, {}, screen))
+        std::snprintf(key, sizeof(key), "NY_SUB_%03u", static_cast<uint32_t>(pageCount));
+        if (!AddOption(parent, key, static_cast<int32_t>(dynamicOptions.size()), 100, {}, screen, before))
             return MenuScreen::Invalid;
 
-        auto& page = pages[pageCount++];
+        auto& page = pages.emplace_back();
+        ++pageCount;
         std::memcpy(page.label, label.data(), label.size());
         page.parent = parentId;
-        page.displayGame = displayGame;
+        // The title menu shows no game
+        page.displayGame = displayGame && !IsTitleScreen(GetRootScreen(parentId));
         page.rows[0].action = 46;
         CText::menuTexts[GetHash(key)] = text;
         page.text = std::move(text);
@@ -1670,7 +2700,7 @@ public:
         return AddEnum(screen, label, std::span<const EnumValue>(values.begin(), values.size()), std::move(get), std::move(set));
     }
 
-    // From minimum to maximum in steps, 2..255 positions
+    // From minimum to maximum in steps, 2..255 positions. The value is shown next to the slider.
     bool AddSlider(MenuScreen screen, std::string_view label, float minimum, float maximum, float step, std::function<float()> get, std::function<void(float)> set)
     {
         if (!std::isfinite(minimum) || !std::isfinite(maximum) || !std::isfinite(step) || minimum >= maximum || step <= 0.0f || !get || !set ||
@@ -1708,32 +2738,118 @@ public:
             if (get() != value)
                 set(value);
         });
-        return id >= 0 && AddOption(screen, label, id, 101);
+        if (id < 0)
+            return false;
+        // MENU_DISPLAY_VALUE_SLIDERBAR where the game's number can be replaced, else MENU_DISPLAY_SLIDERBAR
+        if (valueTextHook)
+            valueTexts[id] = [get] { return std::format(L"{}", get()); };
+        return AddOption(screen, label, id, valueTextHook ? 108 : 101);
+    }
+
+    // The HDR page of Display, in the pause menu and in the title menu. Options for both menus are added to each.
+    const std::vector<MenuScreen>& GetHdrScreens() const
+    {
+        return hdrScreens;
+    }
+
+    // Render thread: whether the menu showed the HDR page in the frame drawn since the last call, and the setting of
+    // its selected row (empty for a row that changes no setting)
+    static std::optional<std::string> TakeHdrPageRow()
+    {
+        return std::exchange(hdrPageRow, std::nullopt);
+    }
+
+    // A line below the description of a setting's row in the menu's info text, e.g. how to set it; empty for none.
+    // Called on the render thread while the row is selected.
+    static void SetRowHint(std::string settingId, std::function<std::string()> hint)
+    {
+        rowHints[std::move(settingId)] = std::move(hint);
+    }
+
+    // A text of the game's (GXT), the fallback when the game's texts don't have the key
+    static std::string GameText(const char* key, std::string_view fallback)
+    {
+        return CText::g_text && GameHasText(key) ? Narrow(CText::getText(key)) : std::string(fallback);
     }
 
     // Call registration APIs on the game thread, or during startup before the
     // frontend is loaded. Values are zero-based positions, also for sliders.
-    // Empty iniName creates an in-memory preference. Callback runs on Set().
-    int32_t RegisterPreference(std::string name, int32_t maximum, int32_t defaultValue = 0,
-        std::string iniSection = {}, std::string iniName = {}, std::function<void(int32_t)> callback = {})
+    // An in-memory preference. Callback runs on Set().
+    static int32_t RegisterPreference(std::string name, int32_t maximum, int32_t defaultValue = 0, std::function<void(int32_t)> callback = {})
     {
         if (!name.starts_with("PREF_") || name.size() == 5 || maximum < 1 || maximum > 254 ||
-            GetPrefIDByName(name) || aMenuPrefs.size() >= SettingsTables::PreferenceCapacity ||
-            (!iniName.empty() && iniSection.empty()))
+            GetPrefIDByName(name) || aMenuPrefs.size() >= SettingsTables::PreferenceCapacity)
             return -1;
         auto id = static_cast<int32_t>(aMenuPrefs.size());
-        CSetting setting{ 0, std::move(name), std::move(iniSection), std::move(iniName), {},
-            defaultValue, std::move(callback), 0, maximum };
-        setting.value = std::clamp(setting.iniName.empty() ? defaultValue : setting.ReadFromIni(), 0, maximum);
+        CSetting setting;
+        setting.value = std::clamp(defaultValue, 0, maximum);
+        setting.prefName = std::move(name);
+        setting.callback = std::move(callback);
+        setting.idEnd = maximum;
         auto& stored = mFusionPrefs.emplace(id, std::move(setting)).first->second;
         aMenuPrefs.emplace_back(id, stored.prefName.data());
         SettingsTables::scalers[id] = maximum + 1;
         return id;
     }
 
+    // A preference stored by a setting of the description (SECTION.Key): a bool, a choice of the values 0, 1, 2...,
+    // or an int from 0 on. Its value is the setting's value in effect; the callback runs on the game's thread after
+    // it changed, whoever changed it (the menu, a preset, an editor, availability).
+    static int32_t RegisterPreference(std::string name, std::string_view settingId, std::function<void(int32_t)> callback = {})
+    {
+        auto setting = SettingsPlugin().GetDescription().Find(settingId);
+        if (!setting || !name.starts_with("PREF_") || name.size() == 5 || GetPrefIDByName(name) ||
+            aMenuPrefs.size() >= SettingsTables::PreferenceCapacity)
+            return -1;
+        int32_t maximum = 1;
+        switch (setting->type)
+        {
+        case asi_settings::Type::Bool:
+            break;
+        case asi_settings::Type::Choice:
+            maximum = static_cast<int32_t>(setting->choices.size()) - 1;
+            for (int32_t i = 0; i <= maximum; ++i)
+                if (!setting->choices[i].value.IsNumber() || setting->choices[i].value.number != i)
+                    return -1;
+            break;
+        case asi_settings::Type::Int:
+            if (setting->min.value_or(-1.0) != 0.0 || !setting->max || setting->step.value_or(1.0) != 1.0)
+                return -1;
+            maximum = static_cast<int32_t>(*setting->max);
+            break;
+        default:
+            return -1;
+        }
+        if (maximum < 1 || maximum > 254)
+            return -1;
+
+        auto id = static_cast<int32_t>(aMenuPrefs.size());
+        CSetting stored;
+        stored.prefName = std::move(name);
+        stored.id = setting->id;
+        stored.value = SettingsPlugin().Int(setting->id);
+        stored.callback = std::move(callback);
+        stored.idEnd = maximum;
+        // Values that can't be used now are skipped in the menu (SetAvailability)
+        stored.available = [settingId = setting->id](int32_t value) { return SettingsPlugin().Usable(settingId, std::to_string(value)); };
+        auto& added = mFusionPrefs.emplace(id, std::move(stored)).first->second;
+        aMenuPrefs.emplace_back(id, added.prefName.data());
+        SettingsTables::scalers[id] = maximum + 1;
+
+        // The values' texts: keys of the game's texts, else the description's text
+        if (setting->type == asi_settings::Type::Choice)
+        {
+            std::vector<std::string> keys;
+            for (auto& choice : setting->choices)
+                keys.push_back(MenuKey(ownPlugin, choice.label.empty() ? asi_settings::detail::JsonToText(choice.value) : choice.label));
+            DefineDisplay(ChoiceDisplay(added.prefName), keys);
+        }
+        SettingsPlugin().OnChange(setting->id, [id] { OnPluginChange(id); });
+        return id;
+    }
     // Text entries are GXT keys or literal labels, using the native 15-byte
     // field. Register before XML loading when the name will be used in XML.
-    int32_t RegisterEnum(std::string name, std::span<const std::string_view> labels)
+    static int32_t RegisterEnum(std::string name, std::span<const std::string_view> labels)
     {
         if (!name.starts_with("MENU_DISPLAY_") || name.size() == 13 || displayIDs.contains(name) ||
             nextDisplayID >= SettingsTables::DisplayCapacity || labels.size() < 2 || labels.size() > 255)
@@ -1787,7 +2903,1405 @@ public:
         return AddOption(screen, label, static_cast<int32_t>(dynamicOptions.size()), 100, std::move(callback));
     }
 
+    // An empty line between groups of options. Inserted before the row labelled 'before' (or with that preference,
+    // "PREF_..."), else added at the end. Episodes: 1 IV, 2 TLAD, 4 TBoGT.
+    static bool AddEmptyLine(MenuScreen screen, std::string_view before = {}, uint8_t episodes = 0xFF)
+    {
+        auto label = std::format("FFGAP{:03}", gapCount++);
+        CText::menuTexts[GetHash(label.c_str())] = L"";
+        return AddOption(screen, label, 0, 100, {}, -1, before, 0, episodes, true);
+    }
+
+    // Removes a row of the frontend XML: the row with the label, and with the preference when one is given
+    bool RemoveOption(MenuScreen screen, std::string_view label, std::string_view preference = {})
+    {
+        auto id = preference.empty() ? std::optional<int32_t>(-1) : GetPrefIDByName(preference);
+        if (!id || label.empty())
+            return false;
+        rowEdits.push_back({ static_cast<int32_t>(screen), std::string(label), *id, true, -1 });
+        return true;
+    }
+
+    // Changes the scaler of a row of the frontend XML: the number of values of its preference
+    bool SetOptionScaler(MenuScreen screen, std::string_view label, int32_t scaler)
+    {
+        if (label.empty() || scaler < 1 || scaler > 255)
+            return false;
+        rowEdits.push_back({ static_cast<int32_t>(screen), std::string(label), -1, false, scaler });
+        return true;
+    }
+
+    // A category of options of Display or Graphics in the pause menu, or of a page: a column of categories left of the
+    // options (CE). The screen's own options are the first category of Display and Graphics, a page shows only its
+    // categories. Elsewhere the category is a submenu opened from a row before the row labelled 'before'. The name is
+    // a key of FF's texts or the text itself. Options of the category are added to the returned screen.
+    static MenuScreen AddCategory(MenuScreen screen, std::string_view name, std::string_view before = {})
+    {
+        auto id = static_cast<int32_t>(screen);
+        auto parentPage = FindPage(id);
+        if (!categoriesEnabled || (screen != MenuScreen::Display && screen != MenuScreen::Graphics && (!parentPage || parentPage->category)))
+            return AddSubmenu(screen, name, !parentPage || parentPage->displayGame, before);
+        if (name.empty() || name.size() >= sizeof(Page::label) || name.find('\0') != name.npos)
+            return MenuScreen::Invalid;
+        for (size_t i = 0; i < pageCount; ++i)
+            if (pages[i].category && pages[i].parent == id && name == pages[i].label)
+                return static_cast<MenuScreen>(FirstCustomScreen + i);
+        if (pageCount == MaxPages)
+            return MenuScreen::Invalid;
+        auto text = ToWide(name, 60);
+        if (text.empty())
+            return MenuScreen::Invalid;
+        auto categories = FindCategories(id);
+        if (!categories)
+        {
+            categories = &categoryScreens.emplace_back();
+            categories->screen = id;
+            categories->ownRows = parentPage == nullptr;
+            if (categories->ownRows)
+                categories->selectedRows.push_back(-1);
+        }
+        if (static_cast<size_t>(categories->Count()) >= categoryBounds.size())
+            return MenuScreen::Invalid;
+
+        auto page = FirstCustomScreen + static_cast<int32_t>(pageCount);
+        auto& entry = pages.emplace_back();
+        ++pageCount;
+        std::memcpy(entry.label, name.data(), name.size());
+        entry.text = std::move(text);
+        entry.parent = id;
+        entry.category = true;
+        entry.displayGame = parentPage ? parentPage->displayGame : screen == MenuScreen::Display;
+        entry.rows[0].action = 46;
+        categories->pages.push_back(page);
+        categories->selectedRows.push_back(-1);
+        return static_cast<MenuScreen>(page);
+    }
+
+    // The preference of the selected row of the current menu screen, -1 for none
+    static int32_t GetSelectedPreference()
+    {
+        if (!currentScreen || *currentScreen < 0 || *currentScreen >= 73)
+            return -1;
+        auto& options = screens[*currentScreen].options;
+        auto row = CMenu::getSelectedItem();
+        if (!options.data || row < 0 || row >= options.count)
+            return -1;
+        return options.data[row].preference;
+    }
+
+    // A row of a setting of Fusion Fix's description (SECTION.Key), which gives its text and values
+    static bool AddSettingRow(MenuScreen screen, std::string_view id, std::string_view before = {}, uint8_t episodes = 0xFF)
+    {
+        return AddSetting(screen, id, before, episodes);
+    }
+
+    // -1 for an unknown name
+    static int32_t GetPreferenceID(std::string_view name)
+    {
+        return GetPrefIDByName(name).value_or(-1);
+    }
+
 private:
+    static inline int32_t gapCount = 0;
+
+    // ---------------------------------------------------------------------------------------------
+    // Rows of the settings of descriptions (ASI Settings): Fusion Fix's own and other plugins'
+
+    // A text of a description in the menu, resolved in the game's language
+    struct MenuTextSource
+    {
+        std::string key;
+        std::function<std::string()> text;  // UTF-8
+        bool gameText = false;              // a key of the game's texts (Fusion Fix's GXT), which win when they have it
+    };
+    static inline std::vector<MenuTextSource> menuTextSources;
+    static inline std::string menuTextLanguage;
+    static inline bool menuTextsChanged = true;
+
+    // The BCP 47 tags of the game's languages (GameLanguage)
+    static const char* GameLanguageTag()
+    {
+        static constexpr const char* tags[] = { "en", "fr", "de", "it", "es", "ru", "ja" };
+        static auto language = GetPrefIDByName("PREF_CURRENT_LANGUAGE");
+        auto value = language && mPrefs ? mPrefs[*language] : 0;
+        return tags[value >= 0 && value < static_cast<int32_t>(std::size(tags)) ? value : 0];
+    }
+
+    static std::string AddMenuText(std::string key, std::function<std::string()> text, bool gameText = false)
+    {
+        if (std::none_of(menuTextSources.begin(), menuTextSources.end(), [&](auto& source) { return source.key == key; }))
+            menuTextSources.push_back({ key, std::move(text), gameText });
+        menuTextsChanged = true;
+        return key;
+    }
+
+    // The key a row or a value shows for a text of a description. A text key of Fusion Fix's description that fits
+    // the 15 bytes of a label is the key of its text in Fusion Fix's GXT; other texts get a key of their own.
+    static std::string MenuKey(const MenuPlugin& plugin, std::string_view text)
+    {
+        auto resolve = [&plugin, text = std::string(text)] { return plugin.file.texts.Resolve(text); };
+        if (&plugin == &ownPlugin && text.size() > 1 && text.size() <= sizeof(SettingsTables::Option::label) && text[0] == '@' && text[1] != '@')
+            return AddMenuText(std::string(text.substr(1)), resolve, true);
+        return AddMenuText(std::format("FFT{:08X}", GetHash((plugin.file.id + "|" + std::string(text)).c_str())), resolve);
+    }
+
+    static bool GameHasText(const std::string& key)
+    {
+        if (gxtEntries.contains(GetHash(key.c_str())))
+            return true;
+        return CText::g_text && CText::shDoesTextLabelExist && CText::shDoesTextLabelExist.fastcall<char>(CText::g_text, nullptr, key.c_str()) != 0;
+    }
+
+    // The texts in the game's language, again after it changed or texts were added
+    static void ResolveMenuTexts(bool force)
+    {
+        std::string language = GameLanguageTag();
+        if (!force && !menuTextsChanged && language == menuTextLanguage)
+            return;
+        if (language != menuTextLanguage)
+        {
+            ownPlugin.file.texts.Select(language);
+            for (auto& plugin : otherPlugins)
+                plugin.file.texts.Select(language);
+            menuTextLanguage = language;
+        }
+        menuTextsChanged = false;
+        for (auto& source : menuTextSources)
+        {
+            auto hash = GetHash(source.key.c_str());
+            if (source.gameText && GameHasText(source.key))
+                CText::menuTexts.erase(hash);
+            else
+                CText::menuTexts[hash] = asi_settings::text::Widen(source.text());
+        }
+    }
+
+    static std::string ChoiceDisplay(std::string_view preference)
+    {
+        return "MENU_DISPLAY_FF_" + std::string(preference.substr(5));
+    }
+
+    // Values as text: the same text, or the same number
+    static bool SameValue(const std::string& a, const std::string& b)
+    {
+        float x, y;
+        return asi_settings::text::IEquals(a, b) || (asi_settings::detail::ParseFloat(a, x) && asi_settings::detail::ParseFloat(b, y) && x == y);
+    }
+
+    // A row of a setting of Fusion Fix's description: like the <options> of the frontend XML with its preference
+    // where it has one, else a row of its own
+    static bool AddSetting(MenuScreen screen, std::string_view id, std::string_view before = {}, uint8_t episodes = 0xFF)
+    {
+        auto setting = ownPlugin.file.description.Find(id);
+        if (!setting)
+            return false;
+        auto found = std::find_if(mFusionPrefs.begin(), mFusionPrefs.end(), [&](auto& pref) { return asi_settings::text::IEquals(pref.second.id, id); });
+        if (found == mFusionPrefs.end())
+        {
+            std::function<bool()> visible;
+            if (setting->visibleIf)
+                visible = [setting] { return ownPlugin.Evaluate(*setting->visibleIf); };
+            return AddDescribedRow({ &screen, 1 }, ownPlugin, *setting, visible, before, episodes);
+        }
+        auto& stored = found->second;
+        auto display = setting->type == asi_settings::Type::Bool ? FindDisplay("MENU_DISPLAY_ON_OFF") :
+            setting->type == asi_settings::Type::Choice ? FindDisplay(ChoiceDisplay(stored.prefName)) : FindDisplay("MENU_DISPLAY_SLIDERBAR");
+        rowSettings[found->first] = { &ownPlugin, setting, {} };
+        return display >= 0 && AddOption(screen, LabelKey(ownPlugin, *setting), static_cast<int32_t>(found->first), display, {}, -1, before,
+            stored.idEnd + 1, episodes);
+    }
+
+    // The preference and display of a setting's rows, shared by the pause menu and the title menu
+    struct DescribedRow
+    {
+        int32_t preference = -1;
+        int32_t display = -1;
+        int32_t scaler = 0;
+    };
+    static inline std::map<std::string, DescribedRow> describedRows;
+    static inline int32_t describedDisplays = 0;
+
+    // A row of any setting of a description, read and changed as text through its plugin: a toggle for bool, a list
+    // for choices (and for numbers or text with special values or suggestions), a slider for numbers with a range.
+    // The menu offers only usable values and refuses changes while enabledIf is false. Settings it can't show remain
+    // in editors and the file.
+    static bool AddDescribedRow(std::span<const MenuScreen> screens, const MenuPlugin& plugin, const asi_settings::Setting& setting,
+        std::function<bool()> visible, std::string_view before = {}, uint8_t episodes = 0xFF)
+    {
+        using asi_settings::Type;
+        if (!setting.HasValue() || setting.visibility != "menu")
+            return false;
+        auto p = &plugin;
+        auto s = &setting;
+        auto enabled = [p, s] { return !s->enabledIf || p->Evaluate(*s->enabledIf); };
+
+        auto cacheKey = plugin.file.id + "|" + setting.id;
+        auto cached = describedRows.find(cacheKey);
+        if (cached == describedRows.end())
+        {
+            DescribedRow row;
+            bool range = setting.min && setting.max && *setting.min < *setting.max && (setting.type == Type::Int || setting.type == Type::Float);
+            bool listPreferred = !setting.special.empty() || !setting.suggestions.empty();
+            for (auto& control : setting.controls)
+            {
+                if (control == "slider" || control == "stepper")
+                    break;
+                if (control == "cycler" || control == "dropdown" || control == "segmented")
+                {
+                    range = range && !listPreferred;
+                    break;
+                }
+            }
+            if (setting.type == Type::Bool)
+            {
+                row.preference = RegisterCallbackPreference(1, [p, s]
+                {
+                    int value = 0;
+                    asi_settings::detail::ParseBool(p->Get(s->id), value);
+                    return value;
+                }, [p, s, enabled](int32_t value)
+                {
+                    if (enabled())
+                        p->Set(s->id, value ? "1" : "0");
+                });
+                row.display = FindDisplay("MENU_DISPLAY_ON_OFF");
+                row.scaler = 2;
+                if (row.preference >= 0)
+                    mFusionPrefs.at(row.preference).available = [p, s](int32_t value) { return MenuPlugin::IsUsable(p->Usable(*s), std::to_string(value)); };
+            }
+            else if (range)
+            {
+                double minimum = *setting.min, maximum = *setting.max;
+                double step = setting.step ? *setting.step : setting.type == Type::Int ? 1.0 : (maximum - minimum) / 20.0;
+                auto steps = std::ceil((maximum - minimum) / step - 0.000001);
+                if (steps >= 1.0 && steps <= 253.0)
+                {
+                    auto count = static_cast<int32_t>(steps);
+                    auto valueAt = [minimum, maximum, step, count](int32_t position)
+                    {
+                        return position >= count ? maximum : minimum + position * step;
+                    };
+                    auto integer = setting.type == Type::Int;
+                    row.preference = RegisterCallbackPreference(count, [p, s, minimum, step, count]
+                    {
+                        float value = 0.0f;
+                        if (!asi_settings::detail::ParseFloat(p->Get(s->id), value))
+                            return 0;
+                        return std::clamp(static_cast<int32_t>(std::lround((value - minimum) / step)), 0, count);
+                    }, [p, s, enabled, valueAt, integer](int32_t position)
+                    {
+                        auto value = valueAt(position);
+                        if (enabled())
+                            p->Set(s->id, integer ? std::to_string(std::llround(value)) : asi_settings::text::FormatNumber(value));
+                    });
+                    row.display = valueTextHook ? 108 : 101;
+                    row.scaler = count + 1;
+                    auto decimals = setting.decimals >= 0 ? setting.decimals : integer ? 0 :
+                        std::clamp(static_cast<int32_t>(std::ceil(-std::log10(step) - 0.000001)), 0, 6);
+                    if (row.preference >= 0)
+                        valueTexts[row.preference] = [p, s, decimals]
+                        {
+                            float value = 0.0f;
+                            asi_settings::detail::ParseFloat(p->Get(s->id), value);
+                            auto text = std::format("{:.{}f}", value, decimals) + (s->unit.empty() ? "" : (s->unit == "%" || s->unit == "\xC2\xB0" ? "" : " ") + s->unit);
+                            return asi_settings::text::Widen(text);
+                        };
+                }
+            }
+            else
+            {
+                // The values and the text fields of their labels
+                std::vector<std::pair<std::string, std::string>> list;
+                auto addList = [&](const std::vector<asi_settings::Labelled>& items)
+                {
+                    for (auto& item : items)
+                    {
+                        auto value = asi_settings::detail::JsonToText(item.value);
+                        list.emplace_back(value, item.label.empty() ? value : item.label);
+                    }
+                };
+                if (setting.type == Type::Choice)
+                    addList(setting.choices);
+                else
+                {
+                    addList(setting.special);
+                    addList(setting.suggestions);
+                }
+                if (list.size() >= 2 && list.size() <= 254 && nextDisplayID < static_cast<int32_t>(SettingsTables::DisplayCapacity))
+                {
+                    // A value outside the list shows as Custom
+                    std::vector<std::string> keys;
+                    for (auto& [value, label] : list)
+                        keys.push_back(MenuKey(plugin, label));
+                    keys.push_back(MenuKey(ownPlugin, "@ff.custom"));
+                    std::vector<std::string_view> labels(keys.begin(), keys.end());
+                    row.display = RegisterEnum(std::format("MENU_DISPLAY_FFH{:03}", describedDisplays++), labels);
+                    std::vector<std::string> values;
+                    for (auto& [value, label] : list)
+                        values.push_back(value);
+                    auto count = static_cast<int32_t>(values.size());
+                    if (row.display >= 0)
+                        row.preference = RegisterCallbackPreference(count - 1, [p, s, values, count]
+                        {
+                            auto current = p->Get(s->id);
+                            for (int32_t i = 0; i < count; ++i)
+                                if (SameValue(values[i], current))
+                                    return i;
+                            return count;
+                        }, [p, s, enabled, values](int32_t position)
+                        {
+                            if (enabled() && position >= 0 && position < static_cast<int32_t>(values.size()))
+                                p->Set(s->id, values[position]);
+                        });
+                    row.scaler = count;
+                    if (row.preference >= 0)
+                        mFusionPrefs.at(row.preference).available = [p, s, values](int32_t position)
+                        {
+                            return position < 0 || position >= static_cast<int32_t>(values.size()) || MenuPlugin::IsUsable(p->Usable(*s), values[position]);
+                        };
+                }
+            }
+            cached = describedRows.emplace(cacheKey, row).first;
+        }
+        auto& row = cached->second;
+        if (row.preference < 0 || row.display < 0)
+            return false;
+        rowSettings[row.preference] = { &plugin, &setting, {} };
+        auto label = LabelKey(plugin, setting);
+        bool added = false;
+        for (auto screen : screens)
+            added |= AddOption(screen, label, row.preference, row.display, {}, -1, before, row.scaler, episodes, false, visible);
+        return added;
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Pages, headings and the texts around rows
+
+    // Rows the list of the menu shows at Fusion Fix's font size (update/common/data/frontend_pc.dat; 27, measured at
+    // 16:10), the end of the list included: pages are laid out to fit them, the list doesn't scroll
+    static constexpr int32_t PageRows = 28;
+
+    // The setting a row changes: its help line, its default, whether it can be changed now
+    struct RowSetting
+    {
+        const MenuPlugin* plugin = nullptr;
+        const asi_settings::Setting* setting = nullptr;
+        std::string description;            // a text of the description that replaces the setting's own
+        std::function<void()> reset;        // rows of several settings
+    };
+    static inline std::unordered_map<int32_t, RowSetting> rowSettings;     // by preference
+    static inline std::vector<MenuScreen> hdrScreens;
+    static inline std::optional<std::string> hdrPageRow;                    // TakeHdrPageRow
+    static inline std::unordered_map<std::string, std::function<std::string()>> rowHints;  // by setting
+    static inline std::unordered_map<int32_t, std::string> pluginsBefore;  // the row the Plugins row goes before, by screen
+    static inline std::unordered_map<int32_t, MenuScreen> pluginsPages;     // by screen
+    static inline std::unordered_map<std::string, std::string> restartValues; // values of restart settings at start
+
+    static std::string Narrow(std::wstring_view text)
+    {
+        if (text.empty())
+            return {};
+        auto size = WideCharToMultiByte(CP_UTF8, 0, text.data(), static_cast<int32_t>(text.size()), nullptr, 0, nullptr, nullptr);
+        std::string out(size > 0 ? size : 0, '\0');
+        if (size > 0)
+            WideCharToMultiByte(CP_UTF8, 0, text.data(), static_cast<int32_t>(text.size()), out.data(), size, nullptr, nullptr);
+        return out;
+    }
+
+    static std::string Upper(const std::string& text)
+    {
+        auto wide = asi_settings::text::Widen(text);
+        if (!wide.empty())
+            CharUpperBuffW(wide.data(), static_cast<DWORD>(wide.size()));
+        return Narrow(wide);
+    }
+
+    // A text of a description: a key of Fusion Fix's that the game's texts have (GXT) is taken from there
+    static std::string ResolveText(const MenuPlugin& plugin, std::string_view text)
+    {
+        if (&plugin == &ownPlugin && text.size() > 1 && text.size() <= sizeof(SettingsTables::Option::label) && text[0] == '@' && text[1] != '@')
+            if (auto key = std::string(text.substr(1)); CText::g_text && GameHasText(key))
+                return Narrow(CText::getText(key.c_str()));
+        return plugin.file.texts.Resolve(text);
+    }
+
+    static std::string OwnText(std::string_view key)
+    {
+        return ownPlugin.file.texts.Resolve(key);
+    }
+
+    // A text of Fusion Fix's with values for its {} (std::format), the text itself when a translation breaks it
+    template<class... Args> static std::string FormatText(std::string_view key, Args&&... args)
+    {
+        auto text = OwnText(key);
+        try
+        {
+            return std::vformat(text, std::make_format_args(args...));
+        }
+        catch (const std::format_error&)
+        {
+            return text;
+        }
+    }
+
+    // The label of a row. Settings applied after a restart have no marker (as before ASI Settings): changing one shows
+    // the game's restart warning in the line below the menu (extrainfo.ixx, CSettings::RestartPending).
+    static std::string LabelKey(const MenuPlugin& plugin, const asi_settings::Setting& setting)
+    {
+        return MenuKey(plugin, setting.label);
+    }
+
+    // A value as the menu shows it: the label of a choice, On or Off, the number with its unit
+    static std::string ValueText(const MenuPlugin& plugin, const asi_settings::Setting& setting, const std::string& value)
+    {
+        if (setting.type == asi_settings::Type::Bool)
+        {
+            int on = 0;
+            asi_settings::detail::ParseBool(value, on);
+            return CText::g_text ? Narrow(CText::getText(on ? "MO_ON" : "MO_OFF")) : (on ? "On" : "Off");
+        }
+        for (auto list : { &setting.choices, &setting.special, &setting.suggestions })
+            for (auto& item : *list)
+                if (SameValue(asi_settings::detail::JsonToText(item.value), value))
+                    return item.label.empty() ? value : ResolveText(plugin, item.label);
+        return value + (setting.unit.empty() ? "" : (setting.unit == "%" || setting.unit == "\xC2\xB0" ? "" : " ") + setting.unit);
+    }
+
+    static std::wstring SettingValueText(const MenuPlugin& plugin, std::string_view id)
+    {
+        auto setting = plugin.file.description.Find(id);
+        return setting ? asi_settings::text::Widen(ValueText(plugin, *setting, plugin.Get(setting->id))) : std::wstring();
+    }
+
+    static std::string DefaultText(const asi_settings::Setting& setting)
+    {
+        asi_settings::Slot slot;
+        slot.setting = &setting;
+        asi_settings::SetDefault(slot);
+        return asi_settings::FormatValue(slot);
+    }
+
+    // A row with a text and nothing to change: a heading above a group of rows, in capitals
+    static bool AddHeading(MenuScreen screen, std::string_view text, std::string_view before = {}, const MenuPlugin& plugin = ownPlugin)
+    {
+        if (text.empty())
+            return false;
+        auto p = &plugin;
+        auto key = AddMenuText(std::format("FFHD{:08X}", GetHash((plugin.file.id + "|" + std::string(text)).c_str())), [p, text = std::string(text)]
+        {
+            return Upper(ResolveText(*p, text));
+        });
+        return AddOption(screen, key, 0, 100, {}, -1, before, 0, 0xFF, true);
+    }
+
+    static bool IsHeading(const SettingsTables::Option& option)
+    {
+        return option.action == 0 && std::strncmp(option.label, "FFHD", 4) == 0;
+    }
+
+    // A page of Fusion Fix's settings opened from a row; the row shows the value given, when there is one
+    static MenuScreen AddPage(MenuScreen parent, std::string_view text, std::string_view before = {}, bool displayGame = false,
+        std::function<std::wstring()> value = {})
+    {
+        auto screen = AddSubmenu(parent, MenuKey(ownPlugin, text), displayGame, before);
+        if (auto page = FindPage(static_cast<int32_t>(screen)))
+            page->value = std::move(value);
+        return screen;
+    }
+
+    // The text of a row's label key
+    static std::wstring RowText(const SettingsTables::Option& option)
+    {
+        return CText::g_text ? CText::getText(option.label) : L"";
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Presets (ASI Settings): a Preset row whose choice is applied with Enter after a confirmation that lists the changes
+
+    struct PresetSelector
+    {
+        int32_t pending = -1;           // the preset chosen in the Preset row, -1 for the one the values match
+        int32_t preference = -1;        // of its row
+        const MenuPlugin* plugin = nullptr;
+        bool armed = false;             // without the game's warning screen: Enter was pressed once
+    };
+    static inline std::map<std::string, PresetSelector> presetSelectors;
+    static inline DescribedRow presetDisplay;
+
+    // The game's warning screen (CE): the frontend shows it while its state isn't -1, the menu's input waits for it
+    static inline void(__cdecl* setWarningMessage)(const char*, const char*, int32_t, uint8_t, int32_t, uint8_t, const wchar_t*, const wchar_t*) = nullptr;
+    static inline int32_t* warningState = nullptr;
+    static inline PresetSelector* confirming = nullptr;
+    static inline int32_t confirmingPreset = -1;
+    static inline bool confirmReady = false;        // the keys answer once the one that opened it was let go
+
+    // The plugin a selector sets, when it has presets. Presets of all plugins at once are FusionFixHub's, the menu
+    // offers each plugin's own in its page.
+    static std::vector<const MenuPlugin*> PresetPlugins(const MenuPlugin* plugin)
+    {
+        std::vector<const MenuPlugin*> plugins;
+        if (plugin && plugin->HasPresets())
+            plugins.push_back(plugin);
+        return plugins;
+    }
+
+    // The preset all the plugins match, -1 for Custom
+    static int32_t CurrentPreset(const std::vector<const MenuPlugin*>& plugins)
+    {
+        int32_t preset = -1;
+        for (size_t i = 0; i < plugins.size(); ++i)
+        {
+            auto current = plugins[i]->CurrentPreset();
+            if (current < 0 || (i > 0 && current != preset))
+                return -1;
+            preset = current;
+        }
+        return preset;
+    }
+
+    static void ResetPresetSelectors()
+    {
+        for (auto& [key, selector] : presetSelectors)
+        {
+            selector.pending = -1;
+            selector.armed = false;
+        }
+    }
+
+    // Whether a plugin's values are those of a preset (presets can share values)
+    static bool MatchesPreset(const MenuPlugin& plugin, int32_t preset)
+    {
+        for (auto& slot : plugin.Slots())
+            if (slot.setting->InPresets() &&
+                !asi_settings::detail::JsonEquals((*slot.setting->presets)[preset], asi_settings::FormatValue(slot), !slot.setting->StringValued()))
+                return false;
+        return true;
+    }
+
+    // A preset chosen in the row that the values don't match yet, -1 for none
+    static int32_t PendingPreset(const PresetSelector& selector)
+    {
+        if (selector.pending < 0 || selector.pending > 2)
+            return -1;
+        auto plugins = PresetPlugins(selector.plugin);
+        if (std::all_of(plugins.begin(), plugins.end(), [&](auto plugin) { return MatchesPreset(*plugin, selector.pending); }))
+            return -1;
+        return selector.pending;
+    }
+
+    static PresetSelector* FindSelector(int32_t preference)
+    {
+        for (auto& [key, selector] : presetSelectors)
+            if (selector.preference == preference && preference >= 0)
+                return &selector;
+        return nullptr;
+    }
+
+    // The Preset row of a plugin, at the top of its page
+    static void AddPresetRow(MenuScreen screen, const MenuPlugin& owner, std::string_view before = {})
+    {
+        if (!owner.HasPresets())
+            return;
+        auto plugin = &owner;
+        auto key = plugin->file.id;
+        auto selector = &presetSelectors[key];
+        selector->plugin = plugin;
+        if (presetDisplay.display < 0)
+        {
+            std::vector<std::string> keys = { MenuKey(ownPlugin, "@ff.vanilla"), MenuKey(ownPlugin, "@ff.recommended"),
+                MenuKey(ownPlugin, "@ff.enhanced"), MenuKey(ownPlugin, "@ff.custom") };
+            std::vector<std::string_view> labels(keys.begin(), keys.end());
+            presetDisplay.display = RegisterEnum(std::format("MENU_DISPLAY_FFH{:03}", describedDisplays++), labels);
+            if (presetDisplay.display < 0)
+                return;
+        }
+        auto& row = describedRows["preset|" + key];
+        if (row.preference < 0)
+        {
+            // Values 0-2 are chosen, 3 shows Custom
+            row.preference = RegisterCallbackPreference(2, [selector, plugin]
+            {
+                if (selector->pending >= 0)
+                    return selector->pending;
+                auto current = CurrentPreset(PresetPlugins(plugin));
+                return current < 0 ? 3 : current;
+            }, [selector](int32_t value)
+            {
+                selector->pending = value;
+                selector->armed = false;
+            });
+            row.display = presetDisplay.display;
+            row.scaler = 3;
+        }
+        selector->preference = row.preference;
+        auto label = MenuKey(ownPlugin, "@ff.preset");
+        AddOption(screen, label, row.preference, row.display, {}, -1, before, row.scaler);
+    }
+
+    // What a preset changes, as the warning screen shows it: the question, per plugin the changed settings ("old >
+    // new"), cut to the 600 characters of the screen
+    static std::wstring ConfirmationText(const PresetSelector& selector, int32_t preset)
+    {
+        static constexpr const char* names[] = { "@ff.vanilla", "@ff.recommended", "@ff.enhanced" };
+        struct Change { std::string text; bool restart = false; };
+        struct PluginChanges { std::string name; std::vector<Change> changes; };
+        std::vector<PluginChanges> plugins;
+        int32_t restarts = 0;
+        size_t total = 0;
+        for (auto plugin : PresetPlugins(selector.plugin))
+        {
+            PluginChanges entry{ plugin->Name() };
+            for (auto& slot : plugin->Slots())
+            {
+                auto& setting = *slot.setting;
+                if (!setting.InPresets())
+                    continue;
+                auto& target = (*setting.presets)[preset];
+                auto current = asi_settings::FormatValue(slot);
+                if (asi_settings::detail::JsonEquals(target, current, !setting.StringValued()))
+                    continue;
+                auto value = asi_settings::detail::JsonToText(target);
+                bool restart = setting.apply == "restart";
+                auto text = ResolveText(*plugin, setting.label) + ": " + ValueText(*plugin, setting, current) + " > " +
+                    ValueText(*plugin, setting, value);
+                // A value that can't be used now stays as it is until it can
+                if (!MenuPlugin::IsUsable(plugin->Usable(setting), value))
+                    text += " " + OwnText("@ff.confirm.unavailable");
+                restarts += restart;
+                entry.changes.push_back({ std::move(text), restart });
+            }
+            total += entry.changes.size();
+            if (!entry.changes.empty())
+                plugins.push_back(std::move(entry));
+        }
+
+        auto presetName = ResolveText(ownPlugin, names[preset]);
+        auto title = FormatText("@ff.confirm.title", presetName);
+        std::string footer;
+        if (restarts)
+            footer += "~n~" + FormatText(restarts == 1 ? "@ff.confirm.restart1" : "@ff.confirm.restart", restarts);
+        if (total == 0)
+            footer = "~n~" + OwnText("@ff.confirm.none") + footer;
+
+        // The screen copies 600 characters: changes are listed while they fit, the rest is counted
+        constexpr size_t Budget = 590;
+        auto body = "~y~" + title + "~s~~n~";
+        size_t shown = 0;
+        auto more = [&](size_t left) { return "~n~" + FormatText("@ff.confirm.more", left); };
+        for (auto& plugin : plugins)
+        {
+            auto header = "~n~~y~" + plugin.name + " (" + std::to_string(plugin.changes.size()) + ")~s~";
+            if (asi_settings::text::Widen(body + header + footer + more(total - shown)).size() > Budget)
+                break;
+            body += header;
+            for (auto& change : plugin.changes)
+            {
+                auto line = "~n~" + change.text;
+                if (asi_settings::text::Widen(body + line + footer + more(total - shown - 1)).size() > Budget)
+                    break;
+                body += line;
+                ++shown;
+            }
+        }
+        if (shown < total)
+            body += more(total - shown);
+        body += footer;
+        auto wide = asi_settings::text::Widen(body);
+        if (wide.size() > Budget)
+            wide.resize(Budget);
+        return wide;
+    }
+
+    static void ApplyPreset(const PresetSelector& selector, int32_t preset)
+    {
+        for (auto plugin : PresetPlugins(selector.plugin))
+            plugin->ApplyPreset(preset);
+        ResetPresetSelectors();
+        ResolveMenuTexts(true);
+    }
+
+    // Enter on a Preset row with a preset chosen: the game's warning screen asks, without it a second Enter applies
+    static bool ConfirmPreset(PresetSelector& selector)
+    {
+        auto preset = PendingPreset(selector);
+        if (preset < 0)
+            return false;
+        if (setWarningMessage && warningState)
+        {
+            CText::menuTexts[GetHash("FF_CONFIRM")] = ConfirmationText(selector, preset);
+            confirming = &selector;
+            confirmingPreset = preset;
+            confirmReady = false;
+            return true;
+        }
+        if (!selector.armed)
+            selector.armed = true;
+        else
+            ApplyPreset(selector, preset);
+        return true;
+    }
+
+    // While the confirmation is shown: its own keys answer, the game's menu ignores other input meanwhile. Setting
+    // the warning screen again would start its fade again.
+    static bool ProcessConfirmation()
+    {
+        if (!confirming)
+            return false;
+        if (*warningState == -1)
+            setWarningMessage(nullptr, "FF_CONFIRM", 0x48, 0, -1, 0, nullptr, nullptr);
+        auto yes = queryInput.ccall<uint8_t>(8, uint8_t(1), uint8_t(2), uint8_t(0), uint8_t(0), uint8_t(0), uint8_t(0)) != 0;
+        auto no = !yes && queryInput.ccall<uint8_t>(11, uint8_t(1), uint8_t(2), uint8_t(0), uint8_t(0), uint8_t(0), uint8_t(0)) != 0;
+        // The Enter that opened it is still pressed in the frame it opened
+        if (!confirmReady)
+        {
+            confirmReady = !yes && !no;
+            return true;
+        }
+        if (yes || no)
+        {
+            // The key that answered isn't seen by the menu (Back would leave the list)
+            swallowFrames = 2;
+            *warningState = -1;
+            auto selector = std::exchange(confirming, nullptr);
+            if (yes)
+                ApplyPreset(*selector, confirmingPreset);
+            else
+                selector->pending = -1;
+            FillMenu(0);
+        }
+        return true;
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Other plugins with ASI Settings in the game's menu (Fusion Fix is the menu host)
+
+    static inline std::set<HMODULE> knownModules;
+    static inline bool pluginsSearched = false;             // since the menu was opened
+    static inline std::atomic<bool> conditionsChanged = false;
+    static inline std::string shownVisibility;              // the visible rows of the screen last filled
+
+    static void __cdecl OnOtherPluginChanged(void*, const char*)
+    {
+        conditionsChanged = true;
+    }
+
+    // Each time the menu is opened: plugins found since are added to the menu. Only one menu host draws other
+    // plugins' pages; without the role only Fusion Fix's own settings are shown.
+    static void FindOtherPlugins()
+    {
+        if (pluginsSearched)
+            return;
+        pluginsSearched = true;
+        if (!ownPlugin.module || !asi_settings::ClaimHostRole())
+            return;
+        for (auto& found : asi_settings::FindLoadedPlugins(ownPlugin.module, GameLanguageTag()))
+        {
+            if (found.module == ownPlugin.module || knownModules.contains(found.module))
+                continue;
+            knownModules.insert(found.module);
+            auto& plugin = otherPlugins.emplace_back();
+            plugin.module = found.module;
+            plugin.api = found.api;
+            plugin.file = std::move(found.file);
+            // Rows follow changes made elsewhere: presets, editors through Reload, other hosts
+            if (plugin.Has(offsetof(AsiSettingsApi, Subscribe)) && plugin.api->Subscribe)
+                plugin.api->Subscribe(OnOtherPluginChanged, nullptr);
+            SnapshotRestartValues(plugin);
+            AddPluginPages(plugin);
+            menuTextsChanged = true;
+        }
+    }
+
+    // The Plugins page of the Game tab (and of the title menu's Game): a row below the empty line after Fusion Fix's
+    // rows, before Exit Game. Its column lists Fusion Fix (the presets) and the other plugins (CE), elsewhere they're
+    // rows of the page that open their own.
+    static MenuScreen PluginsPage(MenuScreen screen)
+    {
+        if (auto it = pluginsPages.find(static_cast<int32_t>(screen)); it != pluginsPages.end())
+            return it->second;
+        auto& before = pluginsBefore[static_cast<int32_t>(screen)];
+        auto page = AddPage(screen, "@ff.plugins", before);
+        pluginsPages[static_cast<int32_t>(screen)] = page;
+        return page;
+    }
+
+    // The entries of a plugin in the Plugins page: the plugin, or when its settings don't fit one page, its pages,
+    // then its groups ("Plugin: Group"), then parts of them. The first one starts with its presets.
+    struct PluginEntry
+    {
+        std::string title;              // a text of the description, empty for the plugin's name
+        std::vector<const asi_settings::Setting*> settings;
+    };
+
+    static int32_t RowsOf(const std::vector<const asi_settings::Setting*>& settings)
+    {
+        int32_t rows = 0;
+        std::string group;
+        for (auto setting : settings)
+        {
+            if (!setting->group.empty() && setting->group != group)
+                ++rows;
+            group = setting->group;
+            ++rows;
+        }
+        return rows;
+    }
+
+    static std::vector<PluginEntry> PluginEntries(const MenuPlugin& plugin)
+    {
+        auto& description = plugin.file.description;
+        auto settingsOf = [&](const std::string& page)
+        {
+            std::vector<const asi_settings::Setting*> settings;
+            for (auto& setting : description.settings)
+                if ((page.empty() || asi_settings::text::IEquals(setting.page, page)) && setting.InMenu() && setting.HasValue())
+                    settings.push_back(&setting);
+            std::stable_sort(settings.begin(), settings.end(), [](auto a, auto b) { return a->order < b->order; });
+            return settings;
+        };
+        // Rows for the settings and the end of the list; the first page also has the Preset row
+        const int32_t budget = PageRows - 1 - (plugin.HasPresets() ? 1 : 0);
+        std::vector<PluginEntry> entries;
+        auto all = settingsOf({});
+        if (all.empty())
+            return entries;
+        if (RowsOf(all) <= budget)
+            return { { {}, all } };
+
+        std::vector<PluginEntry> pages;
+        for (auto& page : description.pages)
+            if (auto settings = settingsOf(page.id); !settings.empty())
+                pages.push_back({ page.title, settings });
+        if (pages.size() < 2)
+            pages = { { {}, all } };
+        for (auto& page : pages)
+        {
+            if (RowsOf(page.settings) <= budget)
+            {
+                entries.push_back(page);
+                continue;
+            }
+            // By groups, a group in parts of what fits
+            PluginEntry part;
+            for (auto setting : page.settings)
+            {
+                auto next = part.settings;
+                next.push_back(setting);
+                if (!part.settings.empty() && (setting->group != part.settings.back()->group || RowsOf(next) > budget))
+                {
+                    entries.push_back(std::move(part));
+                    part = {};
+                }
+                if (part.settings.empty())
+                    part.title = setting->group.empty() ? page.title : setting->group;
+                part.settings.push_back(setting);
+            }
+            if (!part.settings.empty())
+                entries.push_back(std::move(part));
+        }
+        return entries;
+    }
+
+    // A plugin's settings in the Plugins page of the Game tab, its Preset row at the top of its first page
+    static void AddPluginPages(const MenuPlugin& plugin)
+    {
+        auto entries = PluginEntries(plugin);
+        auto p = &plugin;
+        for (auto& entry : entries)
+        {
+            auto key = plugin.file.id + "|" + entry.title + "|" + std::to_string(entry.settings.front()->order) + entry.settings.front()->id;
+            auto name = AddMenuText(std::format("FFPG{:08X}", GetHash(key.c_str())), [p, title = entry.title]
+            {
+                return title.empty() ? p->Name() : p->Name() + ": " + p->file.texts.Resolve(title);
+            });
+            for (auto screen : { MenuScreen::Game, MenuScreen::TitleGame })
+            {
+                auto plugins = PluginsPage(screen);
+                if (plugins == MenuScreen::Invalid)
+                    continue;
+                auto target = AddCategory(plugins, name);
+                if (target == MenuScreen::Invalid)
+                    continue;
+                if (&entry == &entries.front())
+                    AddPresetRow(target, plugin);
+                std::string group;
+                for (auto setting : entry.settings)
+                {
+                    // The group of an entry named after it has no heading
+                    if (!setting->group.empty() && setting->group != group && setting->group != entry.title)
+                        AddHeading(target, setting->group, {}, plugin);
+                    group = setting->group;
+                    AddDescribedRow({ &target, 1 }, plugin, *setting, [p, setting]
+                    {
+                        return !p->Hidden(setting->id) && (!setting->visibleIf || p->Evaluate(*setting->visibleIf));
+                    });
+                }
+            }
+        }
+    }
+
+    static void SnapshotRestartValues(const MenuPlugin& plugin)
+    {
+        for (auto& setting : plugin.file.description.settings)
+            if (setting.apply == "restart" && setting.HasValue())
+                restartValues.try_emplace(plugin.file.id + "|" + setting.id, plugin.Get(setting.id));
+    }
+
+    // Restart settings changed since the game was started
+    static int32_t PendingRestarts()
+    {
+        int32_t count = 0;
+        auto check = [&](const MenuPlugin& plugin)
+        {
+            for (auto& setting : plugin.file.description.settings)
+                if (auto it = restartValues.find(plugin.file.id + "|" + setting.id); it != restartValues.end() && !SameValue(it->second, plugin.Get(setting.id)))
+                    ++count;
+        };
+        check(ownPlugin);
+        for (auto& plugin : otherPlugins)
+            check(plugin);
+        return count;
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // The help line and the look of the rows
+
+    static bool RowEnabled(const RowSetting& row)
+    {
+        return !row.setting || !row.setting->enabledIf || row.plugin->Evaluate(*row.setting->enabledIf);
+    }
+
+    // Why a row can't be changed: the setting it waits for, when the condition names one
+    static std::string DisabledNote(const RowSetting& row)
+    {
+        auto& condition = *row.setting->enabledIf;
+        if (!condition.setting.empty())
+            if (auto other = row.plugin->file.description.Find(condition.setting))
+            {
+                auto label = ResolveText(*row.plugin, other->label);
+                return FormatText("@ff.note.disabled", label);
+            }
+        return OwnText("@ff.note.disabled.other");
+    }
+
+    static std::string Cut(std::string text, size_t length)
+    {
+        auto wide = asi_settings::text::Widen(text);
+        if (wide.size() <= length)
+            return text;
+        wide.resize(length - 3);
+        while (!wide.empty() && wide.back() == L' ')
+            wide.pop_back();
+        return Narrow(wide) + "...";
+    }
+
+    // The note of a row, at most one: why it's greyed, a warning for its value, values that can't be used now, a restart
+    static std::string RowNote(const RowSetting& row)
+    {
+        if (!row.setting)
+            return {};
+        auto& setting = *row.setting;
+        if (!RowEnabled(row))
+            return DisabledNote(row);
+        if (row.plugin == &ownPlugin)
+        {
+            auto gameText = [](const char* key) { auto text = CText::getText(key); return text && text[0] ? Narrow(text) : std::string(); };
+            if (setting.id == "SHADOWS.ExtraNightShadows" && SettingsPlugin().Int(setting.id) != 0)
+                return gameText("FF_WARN2");
+            if (setting.id == "SHADOWS.ShadowFilter" && SettingsPlugin().Int(setting.id) == 2 && GetPrefIDByName("PREF_SHADOW_QUALITY") &&
+                mPrefs[*GetPrefIDByName("PREF_SHADOW_QUALITY")] < 4)
+                return gameText("FF_WARN6");
+        }
+        if (setting.type == asi_settings::Type::Choice || setting.type == asi_settings::Type::Bool)
+        {
+            if (auto usable = row.plugin->Usable(setting))
+            {
+                std::string missing;
+                for (auto& choice : setting.choices)
+                    if (auto value = asi_settings::detail::JsonToText(choice.value); !MenuPlugin::IsUsable(usable, value))
+                        missing += (missing.empty() ? "" : ", ") + ValueText(*row.plugin, setting, value);
+                if (!missing.empty())
+                {
+                    auto note = FormatText("@ff.note.unavailable", missing);
+                    if (row.plugin == &ownPlugin && setting.id == "MISC.Antialiasing")
+                        note += " " + OwnText("@ff.note.upscaler");
+                    if (row.plugin == &ownPlugin && setting.id == "MAIN.GraphicsAPI" && !MenuPlugin::IsUsable(usable, "2"))
+                        note += " " + OwnText("@ff.note.d3d9on12");
+                    return note;
+                }
+            }
+        }
+        if (setting.apply == "restart")
+        {
+            auto pending = PendingRestarts();
+            return pending > 1 ? FormatText("@ff.note.restarts", pending) : OwnText("@ff.note.restart");
+        }
+        return {};
+    }
+
+    // What a page opened from a row contains: the labels of its rows
+    static std::string PageHelp(int32_t screen)
+    {
+        if (auto it = std::find_if(pluginsPages.begin(), pluginsPages.end(), [screen](auto& entry) { return static_cast<int32_t>(entry.second) == screen; });
+            it != pluginsPages.end())
+        {
+            std::string names = ownPlugin.Name();
+            for (auto& plugin : otherPlugins)
+                names += ", " + plugin.Name();
+            return FormatText("@ff.plugins.description", names);
+        }
+        std::string labels;
+        for (auto& added : dynamicOptions)
+        {
+            if (added.screen != screen || added.gap || (added.visible && !added.visible()))
+                continue;
+            labels += (labels.empty() ? "" : ", ") + Narrow(RowText(added.option));
+        }
+        return FormatText("@ff.page.contains", labels);
+    }
+
+    // The info text of the selected row of Fusion Fix or another plugin: its description and at most one note below
+    // it. Empty for rows of the game.
+    static std::wstring DescriptionText()
+    {
+        if (!currentScreen || *currentScreen < 0 || *currentScreen >= 73 || confirming)
+            return {};
+        auto& options = screens[*currentScreen].options;
+        auto row = CMenu::getSelectedItem();
+        if (!options.data || row < 0 || row >= options.count)
+            return {};
+        auto& option = options.data[row];
+        std::string description, note;
+        if (auto button = FindButton(row); button >= 0 && dynamicOptions[button].submenu != -1)
+            description = PageHelp(dynamicOptions[button].submenu);
+        else if (option.action == 127 || option.preference < firstCustomID)
+            return {};
+        else if (auto selector = FindSelector(option.preference))
+        {
+            description = OwnText(selector->plugin == &ownPlugin ? "@ff.preset.description.own" : "@ff.preset.description.plugin");
+            if (auto preset = PendingPreset(*selector); preset >= 0)
+                note = OwnText(setWarningMessage && warningState ? "@ff.preset.enter" : selector->armed ? "@ff.preset.again" : "@ff.preset.enter");
+        }
+        else if (auto it = rowSettings.find(option.preference); it != rowSettings.end() && it->second.setting)
+        {
+            auto& found = it->second;
+            description = ResolveText(*found.plugin, found.description.empty() ? found.setting->description : found.description);
+            note = RowNote(found);
+            if (auto hint = rowHints.find(found.setting->id); hint != rowHints.end() && hint->second)
+                if (auto text = hint->second(); !text.empty())
+                    description = Cut(description, 300) + (description.empty() ? "" : "~n~~n~") + text;
+        }
+        else
+            return {};
+        std::wstring lines = asi_settings::text::Widen(Cut(description, 600));
+        if (!note.empty())
+            lines += (lines.empty() ? L"" : L"~n~~n~") + asi_settings::text::Widen(note.starts_with("~") ? note : "~r~" + note);
+        return lines;
+    }
+
+    static constexpr const wchar_t* SubmenuMark = L" >";
+
+    // Render thread, before the menu draws its rows: rows that open a page show the page's value. Rows keep the
+    // menu's own colours (idle, hovered, selected); their labels are never changed, so they don't flicker.
+    static void StyleRows(int32_t handle)
+    {
+        auto instance = handle >= 0 ? menuInstances[handle] : nullptr;
+        if (!instance || handle != menuHandles[0] || *currentScreen < 0 || *currentScreen >= 73)
+            return;
+        auto& options = screens[*currentScreen].options;
+        auto count = std::min<int32_t>(options.count, 50);
+        for (int32_t row = 0; row < count && options.data; ++row)
+        {
+            auto button = FindButton(row);
+            if (button < 0 || dynamicOptions[button].submenu == -1)
+                continue;
+            auto page = FindPage(dynamicOptions[button].submenu);
+            if (!page || !page->value)
+                continue;
+            auto text = reinterpret_cast<wchar_t*>(instance + 4 + 6000 + 120 * row);
+            if (auto value = page->value(); value != text)
+                wcsncpy_s(text, 60, value.c_str(), _TRUNCATE);
+        }
+    }
+
+    // The way to the page shown above its rows: "GAME > STARTUP AND WINDOW"
+    static void DrawBreadcrumb(int32_t handle)
+    {
+        auto instance = handle >= 0 ? menuInstances[handle] : nullptr;
+        auto page = ShownPage();
+        if (!instance || handle != menuHandles[0] || !page || activeHost != *currentScreen || !tabState || hasTabModal() != 0 || confirming)
+            return;
+        auto root = GetRootScreen(activePage);
+        if (root < 0 || root >= 73)
+            return;
+        auto text = asi_settings::text::Widen(Upper(Narrow(CText::getText(screens[root].header)) + " > " + Narrow(GetPageName(*page))));
+        auto position = reinterpret_cast<float*>(instance + 0x35D0);
+        auto scaleX = *reinterpret_cast<float*>(instance + 0x35DC) * *reinterpret_cast<float*>(instance + 0x35E4);
+        auto scaleY = *reinterpret_cast<float*>(instance + 0x35E0) * *reinterpret_cast<float*>(instance + 0x35E8);
+        auto font = fontStates + getFontContext() * 0x48;
+        std::array<uint8_t, 0x48> saved;
+        std::memcpy(saved.data(), font, saved.size());
+        font[0x14] = 0;
+        font[0x15] = 0;
+        font[0x16] = 1;
+        font[0x1A] = 255;
+        setFontOrientation(1);
+        setFontStyle(*reinterpret_cast<int32_t*>(instance + 0x35D8));
+        setTabScale(scaleX * 0.6f, scaleY * 0.6f);
+        setFontEdge(*reinterpret_cast<float*>(instance + 0x3608));
+        setFontEdgeColor(uint32_t(instance[0x363C]) << 24);
+        auto x = GetActiveCategories() ? bodyPosition[0] : position[0];
+        setFontWrap(x - 0.02f, x + 1.0f);
+        setTabColor(*reinterpret_cast<uint32_t*>(instance + 0x3630));
+        printTab.ccall<void>(x, position[1] + 0.019f, (L"~m~" + text).c_str(), -1, -1);
+        std::memcpy(font, saved.data(), saved.size());
+    }
+
+    // The menu's info text at the top right (Graphics: the video memory and what the selected row affects), for rows
+    // of Fusion Fix and other plugins on every tab: at the place, in the font and the colour of the game's
+    static inline float* (__cdecl* getInfoPosition)(float*) = nullptr;
+    static inline float* (__cdecl* getInfoLabelWidth)(float*) = nullptr;
+    static inline void(__cdecl* setFontDropShadow)(float) = nullptr;
+    static inline SafetyHookMid infoTextRow;
+    static inline std::array<std::vector<std::string>, 2> graphicsLabels;  // rows of the XML of Graphics, title Graphics
+
+    static void DrawDescription(int32_t handle)
+    {
+        auto instance = handle >= 0 ? menuInstances[handle] : nullptr;
+        if (!instance || handle != menuHandles[0] || !getInfoPosition || !tabState || hasTabModal() != 0 || confirming)
+            return;
+        if (GetActiveCategories() && categoryFocus)
+            return;
+        auto text = DescriptionText();
+        if (text.empty())
+            return;
+        auto font = fontStates + getFontContext() * 0x48;
+        std::array<uint8_t, 0x48> saved;
+        std::memcpy(saved.data(), font, saved.size());
+        float scale[2], position[2], width[2], right[2];
+        getTabWidget(scale, 8);
+        getInfoPosition(position);
+        float x[2] = { position[0], position[1] };
+        adjustForWidescreen(2, x, scale, nullptr);
+        getInfoLabelWidth(width);
+        width[1] = 0.0f;
+        adjustForWidescreen(2, nullptr, width, nullptr);
+        getTabWidget(right, 17);
+        font[0x14] = 0;
+        font[0x15] = 0;
+        font[0x16] = 1;
+        font[0x1A] = 255;
+        setFontOrientation(1);
+        setFontStyle(*reinterpret_cast<int32_t*>(instance + 0x35D8));
+        setTabScale(scale[0], scale[1]);
+        setFontDropShadow(0.0f);
+        setFontEdge(1.0f);
+        setFontEdgeColor(0xFF000000);
+        auto left = x[0] + 2.0f * width[0];
+        setFontWrap(left, right[0]);
+        uint32_t colour = 0;
+        setTabColor(*getHudColour(&colour, 59));
+        printTab.ccall<void>(left, position[1] + 0.04f, text.c_str(), -1, -1);
+        std::memcpy(font, saved.data(), saved.size());
+    }
+
+    // Graphics: the game picks its info text by the index of the selected row in its XML. Rows are found by their
+    // label among the XML's rows; rows of Fusion Fix and pages have none of the game's.
+    static void RecordGraphicsRows(int32_t screen)
+    {
+        auto slot = screen == 49 ? 0 : screen == 62 ? 1 : -1;
+        if (slot < 0 || !graphicsLabels[slot].empty())
+            return;
+        auto& options = screens[screen].options;
+        if (!options.data || options.count == 0)
+            return;
+        for (int32_t row = 0; row < options.count; ++row)
+            if (options.data[row].action == 127 || options.data[row].preference >= firstCustomID)
+                return;
+        for (int32_t row = 0; row < options.count; ++row)
+            graphicsLabels[slot].emplace_back(options.data[row].label, strnlen(options.data[row].label, sizeof(options.data[row].label)));
+    }
+
+    static void InfoTextRow(SafetyHookContext& regs)
+    {
+        constexpr auto None = static_cast<uintptr_t>(-92);
+        auto screen = *currentScreen;
+        auto slot = screen == 49 ? 0 : screen == 62 ? 1 : -1;
+        auto row = static_cast<int32_t>(regs.eax);
+        if (slot < 0 || row < 0)
+            return;
+        auto& options = screens[screen].options;
+        if ((activePage != -1 && activeHost == screen) || !options.data || row >= options.count || graphicsLabels[slot].empty())
+        {
+            regs.eax = None;
+            return;
+        }
+        auto& option = options.data[row];
+        auto& labels = graphicsLabels[slot];
+        auto found = std::find(labels.begin(), labels.end(), std::string(option.label, strnlen(option.label, sizeof(option.label))));
+        regs.eax = option.action == 127 || option.preference >= firstCustomID || found == labels.end() ? None :
+            static_cast<uintptr_t>(found - labels.begin());
+    }
+
+    // The preference of the selected row when it changes a value, -1 for rows that open a page or do something
+    static int32_t SelectedSettingPreference()
+    {
+        if (!currentScreen || *currentScreen < 0 || *currentScreen >= 73)
+            return -1;
+        auto& options = screens[*currentScreen].options;
+        auto row = CMenu::getSelectedItem();
+        if (!options.data || row < 0 || row >= options.count || options.data[row].action != 1)
+            return -1;
+        return options.data[row].preference;
+    }
+
+    // Del on the keyboard, X on the gamepad: the selected row of Fusion Fix or another plugin goes back to its default
+    static void ResetSelectedRow()
+    {
+        static bool deleteDown = false;
+        auto down = IsKeyboardKeyPressed(VK_DELETE);
+        auto pressed = (down && !deleteDown) || queryInput.ccall<uint8_t>(9, uint8_t(0), uint8_t(0), uint8_t(0), uint8_t(0), uint8_t(0), uint8_t(0)) != 0;
+        deleteDown = down;
+        auto preference = SelectedSettingPreference();
+        if (!pressed || preference < firstCustomID)
+            return;
+        auto it = rowSettings.find(preference);
+        if (it == rowSettings.end() || !it->second.setting || !RowEnabled(it->second))
+            return;
+        if (it->second.reset)
+            it->second.reset();
+        else
+            it->second.plugin->Set(it->second.setting->id, DefaultText(*it->second.setting));
+    }
+
+    // Which rows of a screen with conditions are shown
+    static std::string VisibleRows(int32_t logical)
+    {
+        std::string rows;
+        for (auto& added : dynamicOptions)
+            if (added.screen == logical && added.visible)
+                rows += added.visible() ? '1' : '0';
+        return rows;
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Changes of Fusion Fix's settings
+
+    static inline DWORD gameThread = 0;
+    static inline std::mutex changesMutex;
+    static inline std::vector<int32_t> pendingChanges;
+
+    // The plugin changed a value in effect: the preference follows and the feature applies it on the game's thread.
+    // Changes from other threads (editors through Reload, other menu hosts) are applied with the next frame.
+    static void OnPluginChange(int32_t preference)
+    {
+        if (gameThread && GetCurrentThreadId() != gameThread)
+        {
+            std::lock_guard lock(changesMutex);
+            pendingChanges.push_back(preference);
+            return;
+        }
+        ApplyChange(preference);
+    }
+
+    static void ApplyChange(int32_t preference)
+    {
+        auto it = mFusionPrefs.find(preference);
+        if (it == mFusionPrefs.end() || it->second.id.empty())
+            return;
+        it->second.value = SettingsPlugin().Int(it->second.id);
+        // Rows whose conditions depend on it are shown or left out
+        conditionsChanged = true;
+        if (it->second.callback)
+            it->second.callback(it->second.value);
+    }
+
+    static std::string SettingId(std::string_view name)
+    {
+        if (!name.starts_with("PREF_"))
+            return std::string(name);
+        auto preference = GetPrefIDByName(name);
+        if (preference && mFusionPrefs.contains(*preference))
+            return mFusionPrefs.at(*preference).id;
+        return {};
+    }
+
+public:
+    // Once per frame on the game's thread: changes made on other threads, rows of other plugins whose conditions
+    // changed
+    static void ProcessChanges()
+    {
+        gameThread = GetCurrentThreadId();
+        std::vector<int32_t> changes;
+        {
+            std::lock_guard lock(changesMutex);
+            changes.swap(pendingChanges);
+        }
+        for (auto preference : changes)
+            ApplyChange(preference);
+        // The menu isn't processed while the warning screen is shown
+        if (swallowFrames > 0)
+            --swallowFrames;
+        if (confirming && GetMenu())
+            ProcessConfirmation();
+        if (conditionsChanged.exchange(false) && GetMenu() && currentScreen && *currentScreen >= 0 && *currentScreen < 73 &&
+            VisibleRows(GetLogicalScreen(*currentScreen)) != shownVisibility)
+            FillMenu(0);
+    }
+
+    // The menu was closed: the next one looks for plugins again, presets wait for a new confirmation
+    static void OnMenuClosed()
+    {
+        pluginsSearched = false;
+        ResetPresetSelectors();
+        if (std::exchange(confirming, nullptr) && warningState)
+            *warningState = -1;
+    }
+
+private:
+    static int32_t FindDisplay(std::string_view name)
+    {
+        // Value types drawn by the menu itself
+        constexpr std::pair<std::string_view, int32_t> types[] =
+        {
+            { "MENU_DISPLAY_NONE", 100 }, { "MENU_DISPLAY_SLIDERBAR", 101 }, { "MENU_DISPLAY_ONE_NUMBER", 102 },
+            { "MENU_DISPLAY_TWO_NUMBERS", 103 }, { "MENU_DISPLAY_VALUE_SLIDERBAR", 108 },
+        };
+        for (auto& [type, id] : types)
+            if (type == name)
+                return id;
+        auto it = displayIDs.find(std::string(name));
+        return it != displayIDs.end() ? it->second : -1;
+    }
+
+    // The values of a display (MENU_DISPLAY_...) that used to be defined in the frontend XML: GXT keys or literals
+    static void DefineDisplay(std::string name, std::initializer_list<std::string_view> labels)
+    {
+        DefineDisplay(std::move(name), std::vector<std::string>(labels.begin(), labels.end()));
+    }
+
+    static void DefineDisplay(std::string name, const std::vector<std::string>& labels)
+    {
+        auto it = displayIDs.find(name);
+        auto id = it != displayIDs.end() ? it->second : nextDisplayID;
+        if (id >= static_cast<int32_t>(SettingsTables::DisplayCapacity))
+            return;
+        std::vector<SettingsTables::DisplayValue> values;
+        for (auto label : labels)
+        {
+            SettingsTables::DisplayValue value;
+            std::memcpy(value.text, label.data(), std::min(label.size(), sizeof(value.text) - 1));
+            value.value = static_cast<int32_t>(values.size());
+            values.push_back(value);
+        }
+        if (it == displayIDs.end())
+        {
+            displayIDs.emplace(std::move(name), id);
+            ++nextDisplayID;
+        }
+        dynamicDisplays[id] = std::move(values);
+    }
+
     static std::wstring ToWide(std::string_view text, int32_t capacity)
     {
         std::wstring wide(capacity, L'\0');
@@ -1797,7 +4311,7 @@ private:
     }
 
     // An in-memory preference whose value is read and written through the callbacks
-    int32_t RegisterCallbackPreference(int32_t maximum, std::function<int32_t()> getter, std::function<void(int32_t)> setter)
+    static int32_t RegisterCallbackPreference(int32_t maximum, std::function<int32_t()> getter, std::function<void(int32_t)> setter)
     {
         auto id = RegisterPreference(std::format("PREF_FFMENU_{}", callbackCount++), maximum);
         if (id >= 0)
@@ -1808,6 +4322,14 @@ private:
         return id;
     }
 
+    // Labels up to 15 bytes are stored in the row, longer ones as a text key resolved by CText
+    static std::string StoredLabel(std::string_view label)
+    {
+        if (label.size() < sizeof(SettingsTables::Option::label))
+            return std::string(label);
+        return std::format("FFL{:08X}", GetHash(std::string(label).c_str()));
+    }
+
     static bool CanAddOption(MenuScreen screen, std::string_view label)
     {
         auto id = static_cast<int32_t>(screen);
@@ -1816,17 +4338,18 @@ private:
         {
             switch (screen)
             {
-            case MenuScreen::Game: case MenuScreen::Controls: case MenuScreen::Audio: case MenuScreen::Display:
-            case MenuScreen::Graphics: case MenuScreen::TitleControls: case MenuScreen::TitleAudio:
-            case MenuScreen::TitleDisplay: case MenuScreen::TitleGraphics: case MenuScreen::KeyboardOptions:
-            case MenuScreen::ControllerOptions: break;
+            case MenuScreen::Game: case MenuScreen::Controls: case MenuScreen::NetworkControls: case MenuScreen::Audio:
+            case MenuScreen::Display: case MenuScreen::Graphics: case MenuScreen::TitleControls: case MenuScreen::TitleAudio:
+            case MenuScreen::TitleDisplay: case MenuScreen::TitleGraphics: case MenuScreen::TitleGame:
+            case MenuScreen::KeyboardOptions: case MenuScreen::ControllerOptions: break;
             default: return false;
             }
         }
-        if (label.empty() || label.size() >= sizeof(SettingsTables::Option::label) || label.find('\0') != label.npos)
+        if (label.empty() || label.size() >= 60 || label.find('\0') != label.npos)
             return false;
+        auto stored = StoredLabel(label);
         for (auto& added : dynamicOptions)
-            if (added.screen == id && label == added.option.label)
+            if (added.screen == id && stored == added.option.label)
                 return false;
         if (page)
         {
@@ -1847,19 +4370,42 @@ private:
         return options.count + pending <= 50;
     }
 
-    static bool AddOption(MenuScreen screen, std::string_view label, int32_t preference, int32_t display, std::function<void()> callback = {}, int32_t submenu = -1)
+    static bool AddOption(MenuScreen screen, std::string_view label, int32_t preference, int32_t display, std::function<void()> callback = {},
+        int32_t submenu = -1, std::string_view before = {}, int32_t scaler = -1, uint8_t episodes = 0xFF, bool gap = false,
+        std::function<bool()> visible = {})
     {
         if (!CanAddOption(screen, label))
             return false;
+        auto stored = StoredLabel(label);
+        if (stored != label)
+            CText::menuTexts[GetHash(stored.c_str())] = ToWide(label, 60);
         bool action = callback || submenu != -1;
         SettingsTables::Option option;
-        option.action = action ? 127 : 1; // MENUOPT_ADJUST
-        std::memcpy(option.label, label.data(), label.size());
+        option.action = gap ? 0 : action ? 127 : 1; // MENUOPT_NONE, custom, MENUOPT_ADJUST
+        std::memcpy(option.label, stored.data(), stored.size());
         option.preference = static_cast<int16_t>(preference);
-        option.scaler = action ? 0 : static_cast<uint8_t>(SettingsTables::scalers[preference]);
+        option.scaler = gap || action ? 0 : static_cast<uint8_t>(scaler >= 0 ? scaler : SettingsTables::scalers[preference]);
         option.display = static_cast<uint8_t>(display);
-        dynamicOptions.push_back({ static_cast<int32_t>(screen), option, std::move(callback), submenu });
+        // Rows are also inserted before the row of a preference
+        auto beforePreference = before.starts_with("PREF_") ? GetPrefIDByName(before).value_or(-1) : -1;
+        dynamicOptions.push_back({ static_cast<int32_t>(screen), option, std::move(callback), submenu, std::string(before), beforePreference,
+            episodes, gap, std::move(visible) });
         return true;
+    }
+
+    // The number next to MENU_DISPLAY_VALUE_SLIDERBAR rows: the game prints its own for a few graphics options,
+    // FF's sliders replace it with their value
+    static void SetValueText(uintptr_t rowOffset, uintptr_t buffer)
+    {
+        auto screen = *currentScreen;
+        if (screen < 0 || screen >= 73)
+            return;
+        auto& options = screens[screen].options;
+        if (!options.data || rowOffset / sizeof(SettingsTables::Option) >= options.count)
+            return;
+        auto& option = *reinterpret_cast<SettingsTables::Option*>(reinterpret_cast<uint8_t*>(options.data) + rowOffset);
+        if (auto it = valueTexts.find(option.preference); it != valueTexts.end())
+            wcsncpy_s(reinterpret_cast<wchar_t*>(buffer), 64, it->second().c_str(), _TRUNCATE);
     }
 
 public:
@@ -1938,6 +4484,30 @@ public:
         const auto prefID = GetPrefIDByName(name);
         if (prefID && mFusionPrefs.contains(*prefID)) mFusionPrefs.at(*prefID).callback = nullptr;
     }
+    // Values the predicate rejects can't be used now (ASI Settings, Availability): the menu skips them, the value in
+    // effect falls back to the default or the first usable value, and the cfg keeps the player's choice, which comes
+    // back once it can be used. The name is the preference (PREF_...) or the setting (SECTION.Key).
+    void SetAvailability(std::string_view name, std::function<bool(int32_t)>&& available)
+    {
+        auto id = SettingId(name);
+        if (id.empty())
+        {
+            const auto prefID = GetPrefIDByName(name);
+            if (prefID && mFusionPrefs.contains(*prefID)) mFusionPrefs.at(*prefID).available = std::move(available);
+            return;
+        }
+        SettingsPlugin().Availability(id, [available = std::move(available)](std::string_view value)
+        {
+            int number = 0;
+            return !asi_settings::detail::ParseInt(value, number) || available(number);
+        });
+    }
+    // Asks the availability again after what it depends on may have changed: the value in effect and the menu follow
+    void RefreshAvailability(std::string_view name)
+    {
+        if (auto id = SettingId(name); !id.empty())
+            SettingsPlugin().Refresh(id);
+    }
     void ForEachPref(std::function<void(int32_t id, int32_t idStart, int32_t idEnd)>&& cb)
     {
         for (auto& it : mFusionPrefs)
@@ -1948,16 +4518,15 @@ public:
     auto operator()(int32_t i) { return Get(i); }
     auto operator()(std::string_view name) { return Get(name); }
 
+    // The language chosen in the menu, -1 for the language of the installation
     void SaveLanguagePref(int32_t value)
     {
-        CIniReader iniWriter(cfgPath);
-        iniWriter.WriteInteger("LANGUAGEOVERRIDE", "Language", value, true);
+        SettingsPlugin().Set("LANGUAGEOVERRIDE.Language", std::to_string(value));
     }
 
     int32_t LoadLanguagePref()
     {
-        CIniReader iniReader(cfgPath);
-        return iniReader.ReadInteger("LANGUAGEOVERRIDE", "Language", -1);
+        return SettingsPlugin().Int("LANGUAGEOVERRIDE.Language");
     }
 
 public:
@@ -2014,8 +4583,8 @@ public:
 
     struct
     {
-        enum eAntialiasingText { eMO_OFF, eFXAA, eSMAA };
-        const std::vector<const char*> data = { "MO_OFF", "FXAA", "SMAA" };
+        enum eAntialiasingText { eMO_OFF, eFXAA, eSMAA, eTAA, eDLAA, eFSR };
+        const std::vector<const char*> data = { "MO_OFF", "FXAA", "SMAA", "TAA", "DLAA", "FSR" };
     } AntialiasingText;
 
     struct
@@ -2053,6 +4622,23 @@ class Settings
 public:
     Settings()
     {
+        // The next pause menu starts at the screens' own options, not at a page or another category
+        FusionFix::onMenuExitEvent() += []()
+        {
+            CSettings::ResetCustomScreens();
+            CSettings::OnMenuClosed();
+        };
+
+        // Changes of settings made on other threads, and the rows of other plugins, follow on the game's thread
+        FusionFix::onGameProcessEvent() += []()
+        {
+            CSettings::ProcessChanges();
+        };
+        FusionFix::onMenuDrawingEvent() += []()
+        {
+            CSettings::ProcessChanges();
+        };
+
         FusionFix::onInitEventAsync() += []()
         {
             auto stationslimit = GetModulePath(GetModuleHandleW(NULL)).parent_path() / "pc" / "audio" / "Config" / "stationslimit.txt";
@@ -2168,26 +4754,6 @@ public:
                         FusionFixSettings.SaveLanguagePref(value);
                     }
 
-                    // custom handler for graphics api switch
-                    if (FusionFixSettings.isSame(id, "PREF_GRAPHICSAPI"))
-                    {
-                        auto vulkan = LoadLibraryExW(L"vulkan.dll", NULL, LOAD_LIBRARY_AS_DATAFILE);
-                        auto FusionFixGraphicsApiSwitch = GetProcAddress(GetModuleHandleW(L"d3d9.dll"), "FusionFixGraphicsApiSwitch");
-
-                        if (vulkan == NULL || !FusionFixGraphicsApiSwitch)
-                        {
-                            if (GetModuleHandleW(L"winevulkan.dll") || GetModuleHandleW(L"vulkan-1.dll"))
-                                FusionFixSettings.Set(id, 1);
-                            else
-                                FusionFixSettings.Set(id, 0);
-                        }
-                        else
-                        {
-                            FreeLibrary(vulkan);
-                            CIniReader d3d9cfg(CSettings::d3d9cfgPath);
-                            d3d9cfg.WriteInteger("MAIN", "API", value, true);
-                        }
-                    }
                 }
             }; injector::MakeInline<IniWriter>(pattern.get_first(0), pattern.get_first(7));
 
@@ -2242,14 +4808,15 @@ public:
                     injector::MakeNOP(pattern.get_first(3), 2);
             }
 
-            // Same but for Game tab
+            // Same but for the camera options of the Controls tab. The Graphics tab shows the game anyway (Extra Night
+            // Shadows).
             static auto shouldModifyMenuBackground = [](int curMenuTab = *pMenuTab) -> bool
             {
-                auto selectedItem = CMenu::getSelectedItem();
+                static auto centeredCamera = CSettings::GetPreferenceID("PREF_CENTEREDCAMERA");
+                static auto centeredCameraFoot = CSettings::GetPreferenceID("PREF_CENTEREDCAMERAFOOT");
+                auto selected = CSettings::GetSelectedPreference();
                 return (curMenuTab == 8) ||  // Everything in Display Tab
-                    (curMenuTab == 0 && selectedItem == 18) ||  // PREF_EXTRANIGHTSHADOWS in Game Tab
-                    (curMenuTab == 5 && selectedItem == 8) ||  // PREF_CENTEREDCAMERA in Controls Tab
-                    (curMenuTab == 5 && selectedItem == 9);     // PREF_CENTEREDCAMERAFOOT in Controls Tab
+                    (curMenuTab == 5 && (selected == centeredCamera || selected == centeredCameraFoot));    // Controls Tab
             };
 
             pattern = hook::pattern("83 FE ? 75 ? FF 35 ? ? ? ? E8 ? ? ? ? 83 C4 ? 85 C0 79");
@@ -2535,13 +5102,13 @@ public:
         // FPS Counter
         if (GetD3DX9_43DLL())
         {
-            CIniReader iniReader("");
+            SettingsReader reader;
 
             // [FOG]
-            static bool bExtendedTimecycEditing = iniReader.ReadInteger("FOG", "ExtendedTimecycEditing", 0) != 0;
+            static bool bExtendedTimecycEditing = reader.ReadInteger("FOG", "ExtendedTimecycEditing", 0) != 0;
 
             // [EXPERIMENTAL]
-            static bool bDisplayMemoryStats = iniReader.ReadInteger("EXPERIMENTAL", "DisplayMemoryStats", 0) != 0;
+            static bool bDisplayMemoryStats = reader.ReadInteger("EXPERIMENTAL", "DisplayMemoryStats", 0) != 0;
 
             static ID3DXFont* pFPSFont = nullptr;
 
@@ -2555,7 +5122,11 @@ public:
             FusionFix::onEndScene() += []()
             {
                 static auto fpsc = FusionFixSettings.GetRef("PREF_FPSCOUNTER");
-                if (pMenuTab && *pMenuTab == 8 || *pMenuTab == 49 || (*pMenuTab == 0 && CMenu::getSelectedItem() == 13) || fpsc->get())
+                static auto fpsCounterID = CSettings::GetPreferenceID("PREF_FPSCOUNTER");
+                // Display and Graphics and their pages, not the pages of other tabs shown on the Display screen
+                auto root = CSettings::CustomScreenRoot();
+                auto graphicsTab = pMenuTab && ((*pMenuTab == 8 && (root == -1 || root == 8 || root == 49)) || *pMenuTab == 49);
+                if (graphicsTab || (pMenuTab && CSettings::GetSelectedPreference() == fpsCounterID) || fpsc->get())
                 {
                     static std::list<int> m_times;
                     static int fontSize = 0;
@@ -2778,17 +5349,6 @@ public:
                 // The game frees the screens' rows before reading the XML again
                 CSettings::ResetCustomScreens();
 
-                static bool bOnce = false;
-
-                if (!bOnce)
-                {
-                    bOnce = true;
-                    auto api = FusionFixSettings.GetRef("PREF_GRAPHICSAPI")->get();
-                    if (api && !GetModuleHandleW(L"winevulkan.dll") && !GetModuleHandleW(L"vulkan-1.dll"))
-                        FusionFixSettings.Set("PREF_GRAPHICSAPI", 0);
-                    else if (!api && (GetModuleHandleW(L"winevulkan.dll") || GetModuleHandleW(L"vulkan-1.dll")))
-                        FusionFixSettings.Set("PREF_GRAPHICSAPI", 1);
-                }
             });
 
             // RMB as previous in menus

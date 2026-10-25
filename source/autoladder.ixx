@@ -40,10 +40,10 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            CIniReader iniReader("");
+            SettingsReader reader;
 
             // [MISC]
-            fAutoClimbRadius = iniReader.ReadFloat("MISC", "AutoClimbLaddersRange", 1.5f);
+            fAutoClimbRadius = reader.ReadFloat("MISC", "AutoClimbLaddersRange", 1.5f);
 
             auto pattern = find_pattern("76 ? 8A 81 ? ? ? ? 32 C2 3C ? 76 ? F7 87 ? ? ? ? ? ? ? ? 74", "76 ? 8A 96 ? ? ? ? 32 D0 80 FA ? 76 ? F7 83 ? ? ? ? ? ? ? ? 74 ? 8B 44 24");
             static auto loc_A72369 = resolve_next_displacement(pattern.get_first(2)).value();

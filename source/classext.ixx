@@ -15,6 +15,7 @@ export class CPedIntelligenceExt
 {
 public:
     float m_fTimeStepAccumulator = 0.0f;
+    float m_fPinnedDownDecay = 0.0f; // the part of a point not taken off the pinned-down amount yet
 };
 
 export class CCamFollowVehicleExt

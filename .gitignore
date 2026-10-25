@@ -330,6 +330,7 @@ ASALocalRun/
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
 
+tests/**
 data/**/*.img
 shaders/external/**/*.asm
 data/update/common/shaders/**/*.fxc
@@ -349,8 +350,8 @@ data/update/common/text/*.gxt
 data/update/TLAD/pc/textures/*.wtd
 data/plugins/GTAIV.EFLC.FusionFix.asi
 data/d3d9.dll
-data/vulkan.dll
 GTAIV.EFLC.FusionFix.zip
-GTAIV.EFLC.FusionFixOfflineInstaller.exe
-GTAIV.EFLC.FusionFixWebInstaller.exe
 .env
+# Release outputs: the hub
+FusionFixHub.exe
+data/FusionFixHub.exe

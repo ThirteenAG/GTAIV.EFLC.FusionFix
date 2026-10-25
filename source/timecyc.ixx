@@ -347,10 +347,10 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            CIniReader iniReader("");
+            SettingsReader reader;
 
             // [FOG]
-            fVolFogFarClip = iniReader.ReadFloat("FOG", "VolFogFarClip", 4500.0f);
+            fVolFogFarClip = reader.ReadFloat("FOG", "VolFogFarClip", 4500.0f);
 
             FusionFixSettings.SetCallback("PREF_TIMECYC", [](int32_t value)
             {

@@ -137,16 +137,16 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            CIniReader iniReader("");
+            SettingsReader reader;
 
             // Increasing all pools is not safe, leads to crashing
             static std::vector<std::string> poolNames = { "Task" };
 
             // [BudgetedIV]
-            uint32_t nVehicleBudget = iniReader.ReadInteger("BudgetedIV", "VehicleBudget", 0);
-            uint32_t nPedBudget = iniReader.ReadInteger("BudgetedIV", "PedBudget", 0);
-            auto bExtendedLimits = iniReader.ReadInteger("BudgetedIV", "ExtendedLimits", 0);
-            auto nLiveriesLimit = std::clamp(iniReader.ReadInteger("BudgetedIV", "LiveriesLimit", CHAR_MAX), 0, CHAR_MAX);
+            uint32_t nVehicleBudget = reader.ReadInteger("BudgetedIV", "VehicleBudget", 0);
+            uint32_t nPedBudget = reader.ReadInteger("BudgetedIV", "PedBudget", 0);
+            auto bExtendedLimits = reader.ReadInteger("BudgetedIV", "ExtendedLimits", 0);
+            auto nLiveriesLimit = std::clamp(reader.ReadInteger("BudgetedIV", "LiveriesLimit", CHAR_MAX), 0, CHAR_MAX);
 
             // Pools
             if (bExtendedLimits)
@@ -409,10 +409,10 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            CIniReader iniReader("");
+            SettingsReader reader;
 
             // [BudgetedIV]
-            auto bExtendedLimits = iniReader.ReadInteger("BudgetedIV", "ExtendedLimits", 0);
+            auto bExtendedLimits = reader.ReadInteger("BudgetedIV", "ExtendedLimits", 0);
 
             if (bExtendedLimits)
             {

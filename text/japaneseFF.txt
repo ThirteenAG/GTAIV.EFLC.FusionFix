@@ -10,6 +10,9 @@
 [Borderless]
 ウィンドウ表示(フチなし)
 
+[FF_BORDERLESS]
+フチなし
+
 [Focus Loss]
 フォーカスの喪失時にゲームをポーズ
 
@@ -24,6 +27,18 @@
 
 [Pillarbox]
 カットシーンのピラーボックス
+
+[CutscBars]
+カットシーンの黒帯
+
+[CutscBars1]
+ピラーボックス
+
+[CutscBars2]
+レターボックス
+
+[CutscBars3]
+レターボックス + ピラーボックス
 
 [Alt. Dialogues]
 代替台詞
@@ -133,9 +148,6 @@ FPSリミッター
 [Zoomed Movement]
 ズーム中の移動を許可
 
-[Distant Lights]
-遠くの光
-
 [CenteredVehCam]
 乗車時カメラのセンタリング
 
@@ -153,18 +165,6 @@ FPSリミッター
 
 [FE_STEAMPAD]
 Steam Controller
-
-[CutscAudioSync]
-カットシーンの音声同期
-
-[CutscAudioSync0]
-カットシーンの音声同期 - オフ
-
-[CutscAudioSync1]
-カットシーンの音声同期 - 代替案
-
-[CutscAudioSync2]
-カットシーンの音声同期 - オン
 
 [Turn Indicators]
 ウィンカー
@@ -192,6 +192,9 @@ Steam Controller
 
 [Graphics API]
 グラフィックスAPI
+
+[FF_ADVANCED]
+詳細設定
 
 [FF_RESTART]
 設定を適用するにはGTA IVを再起動する必要があります。
@@ -241,9 +244,6 @@ Steam Controller
 [FF_WARN6]
 ~r~警告: CHSSは影表現の設定を「非常に高い」に設定した場合のみ有効になります。
 
-[FF_WARN7]
-~r~警告: 音ズレが発生する場合はカットシーンの音声同期をONに、アニメーションを滑らかにするにはOFFにしてください。カットシーン中に~PAD_UP~で切り替えられます。
-
 [USJ_FRST_KMB]
 スタントカメラモード中は~INPUT_MOUSE_WHEEL_UP~と~INPUT_MOUSE_WHEEL_DOWN~でスローモーションの速度を調節できる
 
@@ -264,6 +264,18 @@ Steam Controller
 
 [ESS_PARA1_PC]
 空中では~PAD_LSTICK_ALL~で移動できる。自由落下中に~INPUT_MOUSE_LMB~でパラシュートを開く。~n~~INPUT_VEH_CIN_CAM~を長押しでカメラを切り替えられる。
+
+[FF_HDRCAL_PEAK]
+ボックス内のロゴがかろうじて見える程度になるまで上げてください。テレビにHGIGがある場合は、先に有効にしてください。
+
+[FF_HDRCAL_PAPER]
+メニューとHUDが見やすい明るさに設定してください。ボックス内のロゴはこの明るさで表示されます。
+
+[FF_HDRCAL_HDR]
+下の明るさの設定を選ぶと、そのキャリブレーション画面が表示されます。
+
+[FF_HDRCAL_SDR]
+HDR出力がオンのとき、明るさの設定のキャリブレーション画面がここに表示されます。
 
 [DUMMY_l11]
 Dummy label.

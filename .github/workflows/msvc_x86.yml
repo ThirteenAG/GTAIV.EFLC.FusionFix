@@ -40,6 +40,7 @@ concurrency:
 
 permissions:
   contents: write
+  id-token: write      # GitHub Actions OIDC token for fusionfix.io (no secret involved)
 
 jobs:
   build:
@@ -66,7 +67,8 @@ jobs:
       run: ./premake5 vs2026 --with-version=${{ steps.versioning.outputs.version }}
 
     - name: Build
-      run: msbuild -m build/GTAIV.EFLC.FusionFix.slnx /property:Configuration=Release /property:Platform=Win32
+      run: |
+        msbuild -m build/GTAIV.EFLC.FusionFix.slnx /property:Configuration=Release /property:Platform=Win32
 
     - name: Download Ultimate ASI Loader x86
       uses: robinraju/release-downloader@v1.13
@@ -75,12 +77,58 @@ jobs:
         tag: "Win32-latest"
         fileName: "dinput8-Win32.zip"
 
-    - name: Download DXVK
-      uses: robinraju/release-downloader@v1.13
-      with:
-        repository: "doitsujin/dxvk"
-        tag: 'v3.1.1'
-        fileName: "dxvk-*.tar.gz"
+    # FusionFixHub.exe ships with the fix (game root): the latest signed release of the private repository
+    # ThirteenAG/FusionFixHub-App, read with the read-only secret HUB_RELEASE_TOKEN (readme, "Release packages and
+    # secrets"). The vendor runtimes and DXVK are never packaged: the hub downloads them. A release run fails without
+    # the hub; a push or pull request without the secret (forks) builds the package without it, with a warning.
+    - name: Download FusionFixHub
+      shell: pwsh
+      env:
+        GH_TOKEN: ${{ secrets.HUB_RELEASE_TOKEN }}
+        RELEASE: ${{ github.event.inputs.release }}
+        # SHA-256 of the signing certificate's SubjectPublicKeyInfo (CN=FusionFix): the key the hub pins for its own updates
+        HUB_SIGNER_SPKI_SHA256: 08498b939a9d0743268a74bd824d9cdae5d4557137eef693343e452156ecbfc4
+      run: |
+        $release = $env:RELEASE -eq 'true'
+        if (-not $env:GH_TOKEN) {
+          if ($release) { throw "HUB_RELEASE_TOKEN is not set: a release ships FusionFixHub.exe (readme, Release packages and secrets)" }
+          Write-Output "::warning::HUB_RELEASE_TOKEN is not set: the package is built without FusionFixHub.exe"
+          exit 0
+        }
+        gh release download --repo ThirteenAG/FusionFixHub-App --pattern FusionFixHub.exe --clobber
+        if ($LASTEXITCODE -ne 0) { throw "gh release download failed (an expired HUB_RELEASE_TOKEN, or no release with FusionFixHub.exe)" }
+        # The signature as the hub checks its own updates: the digest through WinVerifyTrust (the only chain error allowed
+        # is the self-signed root, CERT_E_UNTRUSTEDROOT; never unsigned, altered, revoked or expired), and the signer's
+        # public key must be the pinned one. Get-AuthenticodeSignature alone can't tell an untrusted root from other errors.
+        Add-Type -TypeDefinition @'
+        using System; using System.Runtime.InteropServices;
+        public static class HubTrust {
+            [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+            public struct FileInfo { public uint cbStruct; public string pcwszFilePath; public IntPtr hFile; public IntPtr pgKnownSubject; }
+            [StructLayout(LayoutKind.Sequential)]
+            public struct Data { public uint cbStruct; public IntPtr pPolicyCallbackData; public IntPtr pSIPClientData; public uint dwUIChoice; public uint fdwRevocationChecks; public uint dwUnionChoice; public IntPtr pFile; public uint dwStateAction; public IntPtr hWVTStateData; public IntPtr pwszURLReference; public uint dwProvFlags; public uint dwUIContext; public IntPtr pSignatureSettings; }
+            [DllImport("wintrust.dll")] static extern int WinVerifyTrust(IntPtr hwnd, ref Guid action, ref Data data);
+            public static int Verify(string path) {
+                var file = new FileInfo { cbStruct = (uint)Marshal.SizeOf(typeof(FileInfo)), pcwszFilePath = path };
+                var pFile = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(FileInfo)));
+                Marshal.StructureToPtr(file, pFile, false);
+                var data = new Data { cbStruct = (uint)Marshal.SizeOf(typeof(Data)), dwUIChoice = 2, fdwRevocationChecks = 0, dwUnionChoice = 1, pFile = pFile, dwProvFlags = 0x40 };
+                var action = new Guid("00AAC56B-CD44-11d0-8CC2-00C04FC295EE");
+                int result = WinVerifyTrust(IntPtr.Zero, ref action, ref data);
+                Marshal.FreeHGlobal(pFile);
+                return result;
+            }
+        }
+        '@
+        $result = [HubTrust]::Verify((Resolve-Path FusionFixHub.exe).Path)
+        $untrustedRoot = -2146762487   # CERT_E_UNTRUSTEDROOT 0x800B0109: the certificate is self-signed
+        if ($result -ne 0 -and $result -ne $untrustedRoot) { throw ("FusionFixHub.exe's signature doesn't verify: 0x{0:X8}" -f $result) }
+        $sig = Get-AuthenticodeSignature FusionFixHub.exe
+        if (-not $sig.SignerCertificate) { throw "FusionFixHub.exe has no signer certificate" }
+        $spki = $sig.SignerCertificate.PublicKey.ExportSubjectPublicKeyInfo()
+        $key = ([System.Security.Cryptography.SHA256]::HashData($spki) | ForEach-Object { $_.ToString('x2') }) -join ''
+        if ($key -ne $env:HUB_SIGNER_SPKI_SHA256) { throw "FusionFixHub.exe is signed with another key ($key, subject '$($sig.SignerCertificate.Subject)'); the pinned key is $env:HUB_SIGNER_SPKI_SHA256" }
+        Write-Output ("FusionFixHub.exe: signature verified (0x{0:X8}), signer '{1}', pinned key matches" -f $result, $sig.SignerCertificate.Subject)
 
     - name: Download Legacy Package
       uses: robinraju/release-downloader@v1.13
@@ -95,9 +143,6 @@ jobs:
           7z x dinput8-Win32.zip -odata/ -y
           del dinput8-Win32.zip
           del data\dinput8-Win32.SHA512
-          for %%f in (dxvk-*.tar.gz) do 7z x -so "%%f" | 7z x -si -ttar -odxvk
-          for /d %%d in (dxvk\dxvk-*) do if exist "%%d\x32\d3d9.dll" copy "%%d\x32\d3d9.dll" "data\vulkan.dll"
-          rmdir /s /q dxvk
 
     - name: Pack binaries
       run: |
@@ -132,18 +177,6 @@ jobs:
         archive: false
         path: data/plugins/GTAIV.EFLC.FusionFix.asi
 
-    - name: Upload Web Installer
-      uses: actions/upload-artifact@v7
-      with:
-        archive: false
-        path: GTAIV.EFLC.FusionFixWebInstaller.exe
-
-    - name: Upload Offline Installer
-      uses: actions/upload-artifact@v7
-      with:
-        archive: false
-        path: GTAIV.EFLC.FusionFixOfflineInstaller.exe
-
     - name: Upload Legacy Addon
       uses: actions/upload-artifact@v7
       with:
@@ -163,5 +196,73 @@ jobs:
         name: GTAIV.EFLC.FusionFix v${{ steps.versioning.outputs.version }}
         body: "[README](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix#readme)"
         tag: v${{ steps.versioning.outputs.version }}
-        artifacts: GTAIV.EFLC.FusionFix.zip, GTAIV.EFLC.FusionFixWebInstaller.exe, GTAIV.EFLC.FusionFixOfflineInstaller.exe, GTAIV.EFLC.FusionFixLegacyAddon.zip
+        artifacts: GTAIV.EFLC.FusionFix.zip, GTAIV.EFLC.FusionFixLegacyAddon.zip
+        artifactErrorsFailBuild: true
 
+    # The settings description inside the shipped .asi, published to fusionfix.io (FusionFixHub-Site README,
+    # "Settings from CI"): GitHub Actions OIDC, no secret. Channel release on release runs (after Upload Release),
+    # dev on pushes to the default branch; a refused dev upload only warns.
+    - name: Publish the settings description to fusionfix.io
+      if: |
+        github.repository == 'ThirteenAG/GTAIV.EFLC.FusionFix' && github.ref_name == 'master' &&
+        (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+      continue-on-error: ${{ github.event.inputs.release != 'true' }}
+      shell: python
+      env:
+        FIX: GTAIV.EFLC.FusionFix
+        ZIP: GTAIV.EFLC.FusionFix.zip
+        CHANNEL: ${{ github.event.inputs.release == 'true' && 'release' || 'dev' }}
+        TAG: ${{ github.event.inputs.release == 'true' && format('v{0}', steps.versioning.outputs.version) || '' }}
+      run: |
+        import hashlib, json, os, subprocess, sys, urllib.request, zipfile
+        subprocess.run([sys.executable, "-m", "pip", "install", "--quiet", "pefile==2024.8.26"], check=True)
+        import pefile
+
+        fix, zip_path, channel, tag = os.environ["FIX"], os.environ["ZIP"], os.environ["CHANNEL"], os.environ["TAG"]
+        data = open(zip_path, "rb").read()
+        with zipfile.ZipFile(zip_path) as z:
+            asi = next(n for n in z.namelist() if n.lower().endswith(f"/{fix.lower()}.asi") or n.lower() == f"{fix.lower()}.asi")
+            pe = pefile.PE(data=z.read(asi))
+
+        def resources(type_name):
+            out = {}
+            for t in pe.DIRECTORY_ENTRY_RESOURCE.entries:
+                if t.name is None or str(t.name) != type_name:
+                    continue
+                for n in t.directory.entries:
+                    for lang in n.directory.entries:
+                        s = lang.data.struct
+                        out[str(n.name) if n.name is not None else str(n.id)] = pe.get_data(s.OffsetToData, s.Size).decode("utf-8-sig")
+            return out
+
+        def tag_case(name):   # rc.exe upper-cases resource names: EN -> en, PT-BR -> pt-BR
+            p = name.split("-")
+            return "-".join([p[0].lower()] + [x.upper() if len(x) == 2 else x.title() if len(x) == 4 else x for x in p[1:]])
+
+        description = json.loads(next(iter(resources("ASISETTINGS").values())))
+        translations = {tag_case(k): json.loads(v) for k, v in resources("ASISETTINGS_TEXT").items()}
+        info = {}
+        for fi in getattr(pe, "FileInfo", []):
+            for entry in fi:
+                for st in getattr(entry, "StringTable", []):
+                    info.update({k.decode(): v.decode() for k, v in st.entries.items()})
+
+        body = {
+            "fix": fix, "channel": channel, "version": info.get("FileVersion", "").strip() or tag,
+            "buildTimeUtc": info.get("BuildTimeUtc") or sys.exit("no BuildTimeUtc in the plugin's version resource"), "sha": os.environ["GITHUB_SHA"],
+            "asset": {"name": os.path.basename(zip_path), "sha256": hashlib.sha256(data).hexdigest(), "size": len(data)},
+            "settings": {"format": 1, "description": description, "translations": translations},
+        }
+        if channel == "release":
+            body["tag"] = tag
+
+        req = urllib.request.Request(os.environ["ACTIONS_ID_TOKEN_REQUEST_URL"] + "&audience=fusionfix.io",
+                                     headers={"Authorization": "bearer " + os.environ["ACTIONS_ID_TOKEN_REQUEST_TOKEN"]})
+        token = json.load(urllib.request.urlopen(req))["value"]
+        req = urllib.request.Request("https://fusionfix.io/api/publish/settings", data=json.dumps(body).encode(), method="POST",
+                                     headers={"Authorization": "Bearer " + token, "Content-Type": "application/json"})
+        try:
+            print(urllib.request.urlopen(req).read().decode())
+        except urllib.error.HTTPError as e:
+            print(e.read().decode())
+            raise
