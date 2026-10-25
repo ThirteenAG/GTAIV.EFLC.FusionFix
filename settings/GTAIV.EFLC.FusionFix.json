@@ -578,6 +578,16 @@
       "page": "advanced", "group": "@group.budgeted iv", "visibility": "editor", "apply": "restart"
     },
     {
+      "id": "BudgetedIV.ExtendedWaveSlots", "type": "bool", "default": 0,
+      "label": "@BudgetedIV.ExtendedWaveSlots", "description": "@BudgetedIV.ExtendedWaveSlots.description",
+      "page": "advanced", "group": "@group.budgeted iv", "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "BudgetedIV.OverrideWaveSlotsXML", "type": "bool", "default": 0,
+      "label": "@BudgetedIV.OverrideWaveSlotsXML", "description": "@BudgetedIV.OverrideWaveSlotsXML.description",
+      "page": "advanced", "group": "@group.budgeted iv", "visibility": "editor", "apply": "restart"
+    },
+    {
       "id": "BudgetedIV.ExtendedLimits", "type": "bool", "default": 0,
       "label": "@BudgetedIV.ExtendedLimits", "description": "@BudgetedIV.ExtendedLimits.description",
       "page": "advanced", "group": "@group.budgeted iv", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
