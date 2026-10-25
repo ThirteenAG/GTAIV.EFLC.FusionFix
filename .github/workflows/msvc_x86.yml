@@ -260,7 +260,7 @@ jobs:
                                      headers={"Authorization": "bearer " + os.environ["ACTIONS_ID_TOKEN_REQUEST_TOKEN"]})
         token = json.load(urllib.request.urlopen(req))["value"]
         req = urllib.request.Request("https://fusionfix.io/api/publish/settings", data=json.dumps(body).encode(), method="POST",
-                                     headers={"Authorization": "Bearer " + token, "Content-Type": "application/json"})
+                                     headers={"Authorization": "Bearer " + token, "Content-Type": "application/json", "User-Agent": "FusionFix-CI"})
         try:
             print(urllib.request.urlopen(req).read().decode())
         except urllib.error.HTTPError as e:
