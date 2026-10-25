@@ -1,0 +1,32 @@
+version: '{build}'
+skip_tags: true
+image: Visual Studio 2026
+configuration: Release
+platform: Win32
+skip_commits:
+  files:
+    - '**/*.md'
+install:
+- cmd: git submodule update --init --recursive
+- cmd: premake5 vs2026 --with-version=%APPVEYOR_BUILD_VERSION%
+build:
+  project: build/GTAIV.EFLC.FusionFix.slnx
+  parallel: true
+  verbosity: minimal
+# The same package as the GitHub workflow (.github/workflows/msvc_x86.yml), without the hub and signing: those need
+# the repository's secrets, which only the GitHub workflow has
+after_build:
+- ps: Start-FileDownload https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/download/Win32-latest/dinput8-Win32.zip -FileName dinput8-Win32.zip
+- ps: Start-FileDownload https://github.com/GTAmodding/XLivelessAddon/releases/latest/download/XLivelessAddon.zip -FileName XLivelessAddon.zip
+- cmd: 7z x dinput8-Win32.zip -odata/ -y
+- cmd: del dinput8-Win32.zip data\dinput8-Win32.SHA512
+- cmd: release.bat
+- cmd: 7z e XLivelessAddon.zip plugins/XLivelessAddon.asi -y
+- cmd: mkdir legacy\plugins
+- cmd: copy data\dinput8.dll legacy\xlive.dll
+- cmd: copy XLivelessAddon.asi legacy\plugins\
+- cmd: cd legacy && 7z a -tzip ..\GTAIV.EFLC.FusionFixLegacyAddon.zip * && cd ..
+artifacts:
+- path: GTAIV.EFLC.FusionFix.zip
+- path: GTAIV.EFLC.FusionFixLegacyAddon.zip
+- path: data\plugins\GTAIV.EFLC.FusionFix.asi

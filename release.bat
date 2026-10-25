@@ -11,7 +11,7 @@ if not defined HUB_EXE if exist FusionFixHub.exe set "HUB_EXE=FusionFixHub.exe"
 if not defined HUB_EXE set "HUB_EXE=%~dp0..\FusionFixHub-App\bin\Release\FusionFixHub.exe"
 if exist "%HUB_EXE%" (
     copy /y "%HUB_EXE%" data\FusionFixHub.exe
-) else if "%GITHUB_ACTIONS%"=="true" (
+) else if defined CI (
     echo WARNING: no FusionFixHub.exe ^(HUB_RELEASE_TOKEN not set^): the package is built without the hub
 ) else (
     echo ERROR: FusionFixHub.exe not found at "%HUB_EXE%". Build FusionFixHub-App ^(Release^) or set HUB_EXE to the signed FusionFixHub.exe.
