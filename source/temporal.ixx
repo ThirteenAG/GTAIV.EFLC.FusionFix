@@ -1056,6 +1056,9 @@ public:
             options.FSRSharpness = std::clamp(reader.ReadFloat("TEMPORAL", "FSRSharpness", 0.0f), 0.0f, 1.0f);
             // Hidden: DLAA and FSR on Windows' D3D9on12 (Graphics API DirectX 12), which is too slow to be offered
             options.D3D9On12Interop = reader.ReadInteger("TEMPORAL", "D3D9on12Interop", 0) != 0;
+            // The depth after the G-buffer pass holds peds and vehicles: where one of them stood last frame, the history is
+            // rejected instead of leaving a trail behind it
+            options.DisocclusionDepth = 0.02f;
             options.ReactiveMask = reader.ReadInteger("TEMPORAL", "ReactiveMask", 1) != 0;
             options.ReactiveScale = std::clamp(reader.ReadFloat("TEMPORAL", "ReactiveMaskScale", 2.0f), 0.0f, 64.0f);
             options.ReactiveMax = std::clamp(reader.ReadFloat("TEMPORAL", "ReactiveMaskMaximum", 0.75f), 0.0f, 1.0f);

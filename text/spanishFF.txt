@@ -1,173 +1,5 @@
-﻿[Skip Intro]
-Omitir introducción
-
-[Skip Menu]
-Omitir menú principal
-
-[Windowed]
-Ventana
-
-[Borderless]
-Ventana sin bordes
-
-[FF_BORDERLESS]
-Sin bordes
-
-[Focus Loss]
-Pausar en segundo plano
-
-[LightSyncRGB]
-Logitech LightSync RGB
-
-[FPS Counter]
-Contador de FPS
-
-[Letterbox]
-Barras horizontales en escenas
-
-[Pillarbox]
-Barras laterales en escenas
-
-[CutscBars]
-Barras en escenas
-
-[CutscBars1]
-Barras laterales
-
-[CutscBars2]
-Barras horizontales
-
-[CutscBars3]
-Horizontales + laterales
-
-[Alt. Dialogues]
-Diálogos alternativos
-
-[Check Updates]
-Buscar actualizaciones de Fusion Fix
-
-[Raw Input]
-Entrada directa
-
-[Always Run]
-Correr siempre
-
-[Cover Centering]
-Centrar cámara al cubrirse
-
-[PadLookSens]
-Sensibilidad al mirar alrededor
-
-[MO_SENS]
-Sensibilidad al apuntar
-
-[MO_MOUSE]
+﻿[MO_MOUSE]
 Sensibilidad del ratón al mirar
-
-[MouseAimSens]
-Sensibilidad del ratón al apuntar
-
-[CenterDelayFoot]
-Demora al centrar cámara a pie
-
-[CenterDelayVeh]
-Demora al centrar cámara en vehículo
-
-[CamTurnSpeedVeh]
-Velocidad de giro de la cámara en vehículo
-
-[Gamepad Icons]
-Iconos del mando
-
-[Motion Blur]
-Desenfoque de movimiento
-
-[Bloom]
-Resplandor
-
-[Console Gamma]
-Gamma de consola
-
-[Auto Exposure]
-Exposición automática de consola
-
-[Screen Filter]
-Filtro de pantalla
-
-[Depth of Field]
-Profundidad de campo
-
-[TreeFX]
-Iluminación de árboles
-
-[Sun Shafts]
-Rayos solares
-
-[Antialiasing]
-Suavizado de líneas
-
-[FPS Limiter]
-Limitador de FPS
-
-[ExtraNightShad]
-Sombras nocturnas adicionales
-
-[Lampposts]
-Farolas
-
-[LampostsHeadl]
-Farolas y faros
-
-[LampHeadlVNS]
-Farolas, faros y sombras nocturnas de vehículos
-
-[Tree Alpha]
-Transparencia de árboles
-
-[UnclampLighting]
-Alcance ampliado de la luz solar
-
-[Shadow Filter]
-Filtro de sombras
-
-[HeadlightShadow]
-Sombras de faros
-
-[Timed Events]
-Eventos estacionales
-
-[Tone Mapping]
-Mapeo de tonos
-
-[Volumetric Fog]
-Niebla volumétrica
-
-[AO]
-Oclusión ambiental
-
-[Zoomed Movement]
-Permitir movimiento al acercar la mirilla
-
-[CenteredVehCam]
-Centrar la cámara del vehículo
-
-[CenteredFootCam]
-Centrar la cámara a pie
-
-[Camera Shake]
-Sacudida de la cámara
-
-[Stunt Jump Cam]
-Cámara de saltos acrobáticos
-
-[Action Cam]
-Cámara al trepar vallas y robar coches
-
-[FE_STEAMPAD]
-Steam Controller
-
-[Turn Indicators]
-Indicadores de giro
 
 [WinterEvent0]
 Evento de invierno: Desactivado
@@ -181,38 +13,8 @@ Evento de Halloween: Desactivado
 [HalloweenEvent1]
 Evento de Halloween: Activado
 
-[TranspMapMenu]
-Transparencia del mapa del menú de pausa
-
-[Extra Streaming]
-Memoria de «streaming» adicional
-
-[FF_SM]
-Recurso de memoria de «streaming»
-
-[Graphics API]
-API gráfica
-
-[FF_ADVANCED]
-Avanzado
-
 [FF_RESTART]
 Es necesario reiniciar GTA IV para aplicar el ajuste.
-
-[Extended Sniper]
-Controles extendidos del rifle de francotirador
-
-[Ladders Climb]
-Escalada automática de escaleras
-
-[Bullet Traces]
-Mostrar siempre los rastros de balas
-
-[Wardrobe Fading]
-Desactivar transición de vestuario
-
-[Stop Taxi]
-Parada instantánea de taxi
 
 [CP_6AXIS]
 Guardado rápido
@@ -223,23 +25,11 @@ Buffalo policía
 [FF_WARN0]
 ~p~Archivos IMG:
 
-[MO_ALT]
-Alternativo
-
 [FF_WARN1]
 ; ~r~NOTA: Se ha superado el límite de 255 IMG, lo que provocará problemas de «streaming».
 
 [FF_WARN2]
 ~r~NOTA: «Sombras nocturnas adicionales» es una opción original de PC de Rockstar. No se recomienda su uso debido a que presenta numerosos errores.
-
-[FF_WARN3]
-~r~NOTA: Si el valor del deslizador «Distancia de visión» es superior a 25 y el del deslizador «Detalle de distancia» es superior a 31, es posible que aparezcan objetos de forma repentina.
-
-[FF_WARN4]
-~r~NOTA: Si el valor del deslizador de «Distancia de visión» es superior a 25, pueden aparecer objetos de forma repentina.
-
-[FF_WARN5]
-~r~NOTA: Si el valor del deslizador de «Detalle de distancia» es superior a 31, pueden aparecer objetos de forma repentina.
 
 [FF_WARN6]
 ~r~NOTA: «CHSS» solo tiene efecto cuando la calidad de las sombras está establecida en «Muy alta».

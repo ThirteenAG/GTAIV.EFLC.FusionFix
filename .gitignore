@@ -338,6 +338,30 @@ source/**/*.cso
 source/**/*.fxo
 source/**/*.pso
 source/**/*.vso
+# Shaders the build compiles (tools/compileshaders.ps1) are committed, with source/resources/shaders.lock
+!source/resources/shaders/win32_30/ConsoleGamma.fxo
+!source/resources/shaders/win32_30/ConsoleGamma_Dither.fxo
+!source/resources/snow/blitps.pso
+!source/resources/snow/blitvs.vso
+!source/resources/snow/snowps.pso
+!source/resources/snow/snowvs.vso
+!source/resources/SSDraw_PS.pso
+!source/resources/SSPrepass_PS.pso
+!source/resources/SSAdd_PS.pso
+!source/resources/FxaaPS.pso
+!source/resources/SMAA_EdgeDetection.pso
+!source/resources/SMAA_BlendingWeightsCalculation.pso
+!source/resources/SMAA_NeighborhoodBlending.pso
+!source/resources/SMAA_EdgeDetectionVS.vso
+!source/resources/SMAA_BlendingWeightsCalculationVS.vso
+!source/resources/SMAA_NeighborhoodBlendingVS.vso
+!source/resources/temporal/VelocityRigid.vso
+!source/resources/temporal/VelocitySkinned.vso
+!source/resources/temporal/Velocity.pso
+!source/resources/temporal/BoneWrite.vso
+!source/resources/temporal/BoneWrite.pso
+!source/resources/hdr/HDROutput.pso
+!source/resources/hdr/HDRCalibration.pso
 !source/dxsdk/**
 
 data/update/common/shaders/db/gta_trees_extended.sps

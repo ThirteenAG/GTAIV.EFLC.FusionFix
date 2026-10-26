@@ -195,7 +195,7 @@ class UpdateCheck
         auto text = CSettings::Text(hub ? "@ff.update.hub" : "@ff.update.site");
         if (auto at = text.find("{}"); at != std::string::npos)
             text.replace(at, 2, version);
-        CSettings::SetGameText("FF_UPDATE", asi_settings::text::Widen(text));
+        CSettings::SetGameText("FF_UPDATE", text);
         Natives::PrintHelp((char*)"FF_UPDATE");
         hubAtExit = hub;
         state = State::Shown;

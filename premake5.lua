@@ -32,15 +32,24 @@ function envdir(key)
    return path.translate(value)
 end
 
+-- The pre-build step writing BuildTime.h of a project that embeds Versioninfo.rc: a new time only when one of `inputs`
+-- (files or folders, relative to the repository) is newer than the project's target, so a build without changes
+-- doesn't link again
+function buildtime(inputs)
+   local args = '"$(MSBuildProjectFullPath)"'
+   for _, i in ipairs(inputs) do args = args .. ' "../' .. i .. '"' end
+   prebuildcommands { 'powershell -NoProfile -ExecutionPolicy Bypass -File "../tools/buildtime.ps1" -Out "../build/generated/%{prj.name}/%{cfg.buildcfg}/BuildTime.h" -Target "$(TargetPath)" ' .. args }
+end
+
 workspace "GTAIV.EFLC.FusionFix"
    configurations { "Release", "Debug" }
    architecture "x86"
    location "build"
-   -- BuildTimeUtc (Versioninfo.rc): the build's own time in UTC, written before every build; the in-game update
-   -- check compares it with the release asset's time (FileVersion is only shown)
-   includedirs { "build/generated" }
-   resincludedirs { "build/generated" }
-   prebuildcommands { 'powershell -NoProfile -ExecutionPolicy Bypass -File "../tools/buildtime.ps1" -Out "../build/generated/BuildTime.h"' }
+   -- BuildTimeUtc (Versioninfo.rc): the build's own time in UTC, written by tools/buildtime.ps1 before a build that
+   -- links (see buildtime() below); the in-game update check compares it with the release asset's time (FileVersion is
+   -- only shown)
+   includedirs { "build/generated/%{prj.name}/%{cfg.buildcfg}" }
+   resincludedirs { "build/generated/%{prj.name}/%{cfg.buildcfg}" }
    cppdialect "C++latest"
    kind "SharedLib"
    language "C++"
@@ -122,6 +131,8 @@ workspace "GTAIV.EFLC.FusionFix"
    -- ASI Settings: the description and translations of the settings, embedded by source/resources/Settings.rc
    files { "source/resources/Settings.rc" }
    files { "settings/*.json" }
+   -- The fonts' character tables, for text of the descriptions shown in the menu
+   files { "source/resources/GameFont.rc" }
    links { "LogitechLEDLib.lib" }
 
    includedirs { "external/injector/safetyhook/include" }
@@ -135,46 +146,6 @@ workspace "GTAIV.EFLC.FusionFix"
    files { "external/injector/safetyhook/include/**.hpp", "external/injector/safetyhook/src/**.cpp" }
    files { "external/injector/zydis/**.h", "external/injector/zydis/**.c" }
    files { "source/gxt/src/**.h", "source/gxt/src/**.cpp" }
-
-   os.mkdir("shaders/external/gamma/asm")
-   os.mkdir("source/resources/shaders/win32_30")
-
-   -- Compile hlsl shaders to .fxo (Output to "../source/resources/shaders/win32_30"). Assembly variants are still output for convenience to "../shaders/external/%shadername%/asm".
-   prebuildcommands {
-      -- ConsoleGamma
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T fx_2_0 /nologo /Fo \"../source/resources/shaders/win32_30/ConsoleGamma.fxo\" /Fc \"../shaders/external/gamma/asm/ConsoleGamma.asm\" \"../shaders/external/gamma/fx/ConsoleGamma.fx\"",
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T fx_2_0 /nologo /Fo \"../source/resources/shaders/win32_30/ConsoleGamma_Dither.fxo\" /Fc \"../shaders/external/gamma/asm/ConsoleGamma_Dither.asm\" \"../shaders/external/gamma/fx/ConsoleGamma_Dither.fx\"",
-    }
-
-   prebuildcommands {
-      "for /R \"../source/resources/snow/\" %%f in (*.ps) do (\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E main /Fo \"../source/resources/snow/%%~nfps.pso\" %%f)",
-      "for /R \"../source/resources/snow/\" %%f in (*.vs) do (\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E main /Fo \"../source/resources/snow/%%~nfvs.vso\" %%f)",
-
-      -- Compile HLSL shaders to .pso/.vso (output to ../source/resources/)
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E SSDraw /Fo \"../source/resources/SSDraw_PS.pso\" \"../source/resources/SunShafts_PS.hlsl\"",
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E SSPrepass /Fo \"../source/resources/SSPrepass_PS.pso\" \"../source/resources/SunShafts_PS.hlsl\"",
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E SSAdd /Fo \"../source/resources/SSAdd_PS.pso\" \"../source/resources/SunShafts_PS.hlsl\"",
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E ApplyFXAA /Fo \"../source/resources/FxaaPS.pso\" \"../source/resources/FXAA3_11.h\"",
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E DX9_SMAALumaEdgeDetectionPS /Fo \"../source/resources/SMAA_EdgeDetection.pso\" \"../source/resources/SMAA.hlsl\"",
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E DX9_SMAABlendingWeightCalculationPS /Fo \"../source/resources/SMAA_BlendingWeightsCalculation.pso\" \"../source/resources/SMAA.hlsl\"",
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E DX9_SMAANeighborhoodBlendingPS /Fo \"../source/resources/SMAA_NeighborhoodBlending.pso\" \"../source/resources/SMAA.hlsl\"",
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E DX9_SMAAEdgeDetectionVS /Fo \"../source/resources/SMAA_EdgeDetectionVS.vso\" \"../source/resources/SMAA.hlsl\"",
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E DX9_SMAABlendingWeightCalculationVS /Fo \"../source/resources/SMAA_BlendingWeightsCalculationVS.vso\" \"../source/resources/SMAA.hlsl\"",
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E DX9_SMAANeighborhoodBlendingVS /Fo \"../source/resources/SMAA_NeighborhoodBlendingVS.vso\" \"../source/resources/SMAA.hlsl\"",
-
-      -- Temporal anti-aliasing
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E VS_VelocityRigid /Fo \"../source/resources/temporal/VelocityRigid.vso\" \"../source/resources/temporal/Temporal.hlsl\"",
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E VS_VelocitySkinned /Fo \"../source/resources/temporal/VelocitySkinned.vso\" \"../source/resources/temporal/Temporal.hlsl\"",
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E PS_Velocity /Fo \"../source/resources/temporal/Velocity.pso\" \"../source/resources/temporal/Temporal.hlsl\"",
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E VS_BoneWrite /Fo \"../source/resources/temporal/BoneWrite.vso\" \"../source/resources/temporal/Temporal.hlsl\"",
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E PS_BoneWrite /Fo \"../source/resources/temporal/BoneWrite.pso\" \"../source/resources/temporal/Temporal.hlsl\"",
-      -- The shared module of FusionFixUtils (aa/AntiAliasing.hpp): its pixel shaders, embedded by aa/AntiAliasing.rc
-      "for %%f in (\"..\\external\\FusionFixUtils\\aa\\shaders\\*.hlsl\") do (\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E main /Fo \"..\\external\\FusionFixUtils\\aa\\shaders\\%%~nf.pso\" \"%%f\")",
-
-      -- HDR output
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E PS_HDROutput /Fo \"../source/resources/hdr/HDROutput.pso\" \"../source/resources/hdr/HDR.hlsl\"",
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E PS_HDRCalibration /Fo \"../source/resources/hdr/HDRCalibration.pso\" \"../source/resources/hdr/HDR.hlsl\"",
-   }
 
    filter "configurations:Debug"
       defines { "DEBUG" }
@@ -191,6 +162,12 @@ project "GTAIV.EFLC.FusionFix"
    dependson { "AsiSettingsValidator" }
    prebuildcommands { '"../bin/tools/asi-settings-validate.exe" "../settings/GTAIV.EFLC.FusionFix.json" "../settings/GTAIV.EFLC.FusionFix.en.json" "../settings/GTAIV.EFLC.FusionFix.fr.json" "../settings/GTAIV.EFLC.FusionFix.de.json" "../settings/GTAIV.EFLC.FusionFix.it.json" "../settings/GTAIV.EFLC.FusionFix.es.json" "../settings/GTAIV.EFLC.FusionFix.ru.json" "../settings/GTAIV.EFLC.FusionFix.ja.json"' }
    postbuildcommands { '"../bin/tools/asi-settings-validate.exe" "$(TargetPath)"' }
+
+   -- HLSL shaders compiled with fxc: the table of them is in tools/compileshaders.ps1. The compiled shaders are
+   -- committed with source/resources/shaders.lock; only the ones whose source, includes or fxc arguments changed
+   -- compile, in parallel
+   prebuildcommands { 'powershell -NoProfile -ExecutionPolicy Bypass -File "../tools/compileshaders.ps1" -LocalLock "../build/obj/shaders.lock"' }
+   buildtime { "source", "external", "settings" }
 
    local gamedir = envdir("GTAIV_DIR")
    if gamedir then
@@ -242,6 +219,7 @@ project "d3d9"
    files { "source/d3d9/d3d9.def" }
    files { "source/d3d9/d3d9.cpp" }
    files { "source/resources/Versioninfo.rc" }
+   buildtime { "source/d3d9", "source/resources/Versioninfo.rc", "source/resources/VersionInfo.h" }
 
    filter "configurations:Debug"
       defines { "DEBUG" }

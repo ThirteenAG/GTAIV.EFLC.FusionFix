@@ -707,46 +707,6 @@ bool __cdecl NATIVE_SLIDE_OBJECT_2(Object object, float x, float y, float z, flo
     return shNATIVE_SLIDE_OBJECT.unsafe_ccall<bool>(object, x, y, z, xs * f, ys * f, zs * f, flag);
 }
 
-// Some mission cutscenes zoom by stepping a camera's FOV a fixed amount every script frame (fov += 0.05, WAIT 0)
-// while the shot itself lasts a fixed time, so the higher the frame rate, the further the camera zooms in or out.
-// Consecutive per-frame steps from these scripts are scaled to the 30 fps they were written for.
-injector::hook_back<decltype(&Natives::SetCamFov)> hbSET_CAM_FOV;
-void __cdecl NATIVE_SET_CAM_FOV(Camera camera, float fov)
-{
-    struct CamFovRamp
-    {
-        Camera camera;
-        uint32_t frame;
-        float requested;
-        float applied;
-    };
-    static CamFovRamp ramps[4] = {};
-    static uint32_t nextRamp = 0;
-
-    auto thread = rage::scrThread::GetActiveThread();
-    if (thread && (!_stricmp(thread->m_szProgramName, "roman2") || !_stricmp(thread->m_szProgramName, "derrick3") || !_stricmp(thread->m_szProgramName, "francis2b")))
-    {
-        auto ramp = std::find_if(std::begin(ramps), std::end(ramps), [camera](const CamFovRamp& r) { return r.camera == camera; });
-        if (ramp == std::end(ramps))
-        {
-            ramp = &ramps[nextRamp];
-            nextRamp = (nextRamp + 1) % std::size(ramps);
-            *ramp = { camera, 0, 0.0f, 0.0f };
-        }
-
-        auto frame = *CTimer::m_frameCount;
-        auto step = fov - ramp->requested;
-        auto applied = fov;
-        if (frame == ramp->frame + 1 && step != 0.0f && std::abs(step) <= 0.1f)
-            applied = ramp->applied + step * (*CTimer::fTimeStep / (1.0f / 30.0f));
-
-        *ramp = { camera, frame, fov, applied };
-        fov = applied;
-    }
-
-    return hbSET_CAM_FOV.fun(camera, fov);
-}
-
 class FramerateVigilante
 {
 public:
@@ -1452,7 +1412,6 @@ public:
                 shNATIVE_SLIDE_OBJECT = safetyhook::create_inline(pattern.get_first(0), NATIVE_SLIDE_OBJECT_2);
             }
 
-            hbSET_CAM_FOV.fun = NativeOverride::Register(Natives::NativeHashes::SET_CAM_FOV, NATIVE_SET_CAM_FOV, "E8 ? ? ? ? 83 C4 08 C3", 30);
         };
     }
 } FramerateVigilante;

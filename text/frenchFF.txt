@@ -1,173 +1,5 @@
-﻿[Skip Intro]
-Sauter l'intro
-
-[Skip Menu]
-Sauter le menu
-
-[Windowed]
-Fenêtre
-
-[Borderless]
-Fenêtre sans bordures
-
-[FF_BORDERLESS]
-Sans bordures
-
-[Focus Loss]
-Mettre le jeu en pause en cas de changement de fenêtre
-
-[LightSyncRGB]
-Logitech LightSync RGB
-
-[FPS Counter]
-Compteur de FPS
-
-[Letterbox]
-Bandes noires horizontales dans les cinématiques
-
-[Pillarbox]
-Bandes noires verticales dans les cinématiques
-
-[CutscBars]
-Bandes noires dans les cinématiques
-
-[CutscBars1]
-Bandes verticales
-
-[CutscBars2]
-Bandes horizontales
-
-[CutscBars3]
-Horizontales + verticales
-
-[Alt. Dialogues]
-Dialogues alternatifs
-
-[Check Updates]
-Vérifier les mises à jour de FusionFix
-
-[Raw Input]
-Raw input
-
-[Always Run]
-Toujours courir
-
-[Cover Centering]
-Centrage de la caméra à couvert
-
-[PadLookSens]
-Sensibilité caméra
-
-[MO_SENS]
-Sensibilité visée
-
-[MO_MOUSE]
+﻿[MO_MOUSE]
 Sensibilité caméra souris
-
-[MouseAimSens]
-Sensibilité visée souris
-
-[CenterDelayFoot]
-Délai de recentrage caméra à pied
-
-[CenterDelayVeh]
-Délai de recentrage caméra en véhicule
-
-[CamTurnSpeedVeh]
-Vitesse de rotation de la caméra en véhicule
-
-[Gamepad Icons]
-Icônes de la manette de jeu
-
-[Motion Blur]
-Flou de mouvement
-
-[Bloom]
-Effets de bloom
-
-[Console Gamma]
-Gamma des consoles
-
-[Auto Exposure]
-Exposition automatique des consoles
-
-[Screen Filter]
-Filtre d'écran
-
-[Depth of Field]
-Profondeur de champ
-
-[TreeFX]
-Éclairage des arbres
-
-[Sun Shafts]
-Rayons de soleil
-
-[Antialiasing]
-Anticrénelage
-
-[FPS Limiter]
-Limiteur de FPS
-
-[ExtraNightShad]
-Ombres nocturnes supplémentaires
-
-[Lampposts]
-Lampadaires
-
-[LampostsHeadl]
-Lampadaires et phares
-
-[LampHeadlVNS]
-Lampadaires et phares + ombres nocturnes des véhicules
-
-[Tree Alpha]
-Alpha des arbres
-
-[UnclampLighting]
-Portée étendue de la lumière du soleil
-
-[Shadow Filter]
-Filtrage des ombres
-
-[HeadlightShadow]
-Ombres des phares
-
-[Timed Events]
-Évènements saisonniers
-
-[Tone Mapping]
-Mappage tonal
-
-[Volumetric Fog]
-Brouillard volumétrique
-
-[AO]
-Occlusion ambiante
-
-[Zoomed Movement]
-Permettre le mouvement en zoomant
-
-[CenteredVehCam]
-Centrer la caméra du véhicule
-
-[CenteredFootCam]
-Centrer la caméra à pied
-
-[Camera Shake]
-Tremblements de caméra
-
-[Stunt Jump Cam]
-Caméra des cascades
-
-[Action Cam]
-Caméra escalade et vol de véhicule
-
-[FE_STEAMPAD]
-Steam Controller
-
-[Turn Indicators]
-Clignotants
 
 [WinterEvent0]
 Évènement d'hiver désactivé
@@ -181,38 +13,8 @@ Clignotants
 [HalloweenEvent1]
 Évènement d'Halloween activé
 
-[TranspMapMenu]
-Carte du menu transparente
-
-[Extra Streaming]
-Mémoire de streaming supplémentaire
-
-[FF_SM]
-Budget de mémoire de streaming
-
-[Graphics API]
-API graphique
-
-[FF_ADVANCED]
-Avancé
-
 [FF_RESTART]
 GTA IV doit être redémarré pour appliquer les paramètres.
-
-[Extended Sniper]
-Commandes étendues du fusil de sniper
-
-[Ladders Climb]
-Grimper automatiquement aux échelles
-
-[Bullet Traces]
-Toujours afficher les traces de balles
-
-[Wardrobe Fading]
-Désactiver la transition de garde-robe
-
-[Stop Taxi]
-Arrêt instantané du taxi
 
 [CP_6AXIS]
 Sauvegarde rapide
@@ -223,23 +25,11 @@ Police Buffalo
 [FF_WARN0]
 ~p~Fichiers IMG :
 
-[MO_ALT]
-Alternatif
-
 [FF_WARN1]
 ; ~r~AVERTISSEMENT : la limite de 255 IMG est dépassée, des problèmes de streaming vont survenir.
 
 [FF_WARN2]
 ~r~AVERTISSEMENT : Ombres nocturnes supplémentaires est une option PC originale de Rockstar. Très défectueuse et donc déconseillée.
-
-[FF_WARN3]
-~r~AVERTISSEMENT : Une valeur de distance d'affichage supérieure à 25 et une valeur de distance d'affichage des détails supérieure à 31 peuvent entraîner l'apparition soudaine d'objets.
-
-[FF_WARN4]
-~r~AVERTISSEMENT : Une valeur de distance d'affichage supérieure à 25 peut entraîner l'apparition soudaine d'objets.
-
-[FF_WARN5]
-~r~AVERTISSEMENT : Une valeur de distance d'affichage des détails supérieure à 31 peut entraîner l'apparition soudaine d'objets.
 
 [FF_WARN6]
 ~r~AVERTISSEMENT : CHSS ne fonctionne qu'avec la qualité des ombres réglée sur très élevée.

@@ -1,2 +1,7 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Compiled shaders (tools/compileshaders.ps1)
+*.fxo binary
+*.pso binary
+*.vso binary

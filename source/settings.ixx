@@ -166,6 +166,111 @@ namespace CText
     }
 }
 
+// The game's fonts keep some characters at positions of their own. GXT texts are compiled through the fonts' character
+// tables (source/resources/GameFont.rc); text of the descriptions goes through the same tables on its way to the menu.
+namespace GameFont
+{
+    struct Table
+    {
+        std::unordered_map<wchar_t, wchar_t> toGame;
+        std::unordered_map<wchar_t, wchar_t> toUnicode;
+    };
+
+    // "XXXX=YYYY" lines: a Unicode character and its position in the font; the first line of a character counts
+    static Table Load(const wchar_t* name)
+    {
+        Table table;
+        HMODULE module = nullptr;
+        GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)&Load, &module);
+        auto resource = FindResourceW(module, name, L"GAMEFONT");
+        auto data = resource ? LoadResource(module, resource) : nullptr;
+        auto text = data ? static_cast<const char*>(LockResource(data)) : nullptr;
+        if (!text)
+            return table;
+        std::string_view rest(text, SizeofResource(module, resource));
+        while (!rest.empty())
+        {
+            auto end = rest.find('\n');
+            auto line = rest.substr(0, end);
+            rest = end == rest.npos ? std::string_view() : rest.substr(end + 1);
+            uint32_t unicode = 0, game = 0;
+            auto equals = line.find('=');
+            if (equals == line.npos ||
+                std::from_chars(line.data(), line.data() + equals, unicode, 16).ec != std::errc() ||
+                std::from_chars(line.data() + equals + 1, line.data() + line.size(), game, 16).ec != std::errc())
+                continue;
+            table.toGame.emplace(static_cast<wchar_t>(unicode), static_cast<wchar_t>(game));
+            table.toUnicode.emplace(static_cast<wchar_t>(game), static_cast<wchar_t>(unicode));
+        }
+        return table;
+    }
+
+    // The table of the font of a language (BCP 47 tag): Russian and Japanese have fonts of their own
+    static const Table& Find(std::string_view language)
+    {
+        static const Table latin = Load(L"LATIN");
+        static const Table russian = Load(L"RU");
+        static const Table japanese = Load(L"JA");
+        return language == "ru" ? russian : language == "ja" ? japanese : latin;
+    }
+
+    // A similar character for one the font lacks: full-width forms as ASCII, a long dash as a shorter one
+    static wchar_t StandIn(const std::unordered_map<wchar_t, wchar_t>& table, wchar_t c)
+    {
+        if (c >= 0xFF01 && c <= 0xFF5E)
+            return static_cast<wchar_t>(c - 0xFEE0);
+        if (c == 0x2014 || c == 0x2015)
+        {
+            for (wchar_t dash : { 0x2014, 0x2015, 0x2013 })
+                if (table.contains(dash))
+                    return dash;
+            return L'-';
+        }
+        return c;
+    }
+
+    // Unicode text to the font's positions. Tokens (~r~, ~INPUT_JUMP~) stay as they are.
+    static std::wstring ToGame(std::wstring text, std::string_view language)
+    {
+        auto& table = Find(language).toGame;
+        bool token = false;
+        for (auto& c : text)
+        {
+            if (c == L'~')
+                token = !token;
+            else if (!token)
+            {
+                if (c >= 0x100 && !table.contains(c))
+                    c = StandIn(table, c);
+                if (auto it = table.find(c); it != table.end())
+                    c = it->second;
+            }
+        }
+        return text;
+    }
+
+    // Text of the game's to Unicode. GXT texts mark the characters of tokens with the high bit, which is dropped.
+    static std::wstring ToUnicode(std::wstring_view text, std::string_view language)
+    {
+        auto& table = Find(language).toUnicode;
+        std::wstring out(text);
+        bool token = false;
+        for (auto& c : out)
+        {
+            if ((c & 0x7FFF) == L'~')
+            {
+                c = L'~';
+                token = !token;
+            }
+            else if (token)
+                c &= 0x7FFF;
+            else if (auto it = table.find(c); it != table.end())
+                c = it->second;
+        }
+        return out;
+    }
+}
+
 // The settings of Fusion Fix are described in settings/GTAIV.EFLC.FusionFix.json, which the build embeds together
 // with its translations (source/resources/Settings.rc). asi_settings::Plugin takes the defaults from it, reads and
 // writes GTAIV.EFLC.FusionFix.cfg next to the plugin, and answers menu hosts and editors through the
@@ -2373,8 +2478,8 @@ public:
             RegisterPreference(name, id);
 
         // The graphics API is MAIN.GraphicsAPI, applied by the plugin at its init (graphicsapi.ixx, FusionFixUtils
-        // upscaler/graphics_api.h; no d3d9.dll proxy, no d3d9.cfg). Vulkan needs DXVK as vulkan.dll next to the exe (a
-        // build FusionFixHub installs), DirectX 12 Fusion Fix's own D3D9On12 driver next to the exe (FusionFixHub
+        // upscaler/graphics_api.h; no d3d9.dll proxy, no d3d9.cfg). Vulkan needs DXVK as vulkan.dll next to the exe (the
+        // build FusionFixHub installs or the player's own), DirectX 12 Fusion Fix's own D3D9On12 driver next to the exe (FusionFixHub
         // installs it), never Windows' slow one. When the API didn't start, the next start falls back to DirectX 9 and
         // sets this back (the crash guard of graphics_api.h).
         FusionFixSettings.SetAvailability("PREF_GRAPHICSAPI", [](int32_t value) -> bool
@@ -2539,6 +2644,7 @@ public:
     static std::string Text(std::string_view key) { return ownPlugin.file.texts.Resolve(key); }
     // A text the game shows for a key of its own (help text, menu rows), e.g. for PRINT_HELP
     static void SetGameText(const char* key, std::wstring text) { CText::menuTexts[GetHash(key)] = std::move(text); }
+    static void SetGameText(const char* key, std::string_view text) { SetGameText(key, ToGameText(text)); }
     // A restart setting the plugin changed itself while starting (the graphics API's crash guard set it back): its
     // value now is the one the game started with, no restart is pending for it
     static void RestartBaseline(std::string_view id)
@@ -2769,7 +2875,7 @@ public:
     // A text of the game's (GXT), the fallback when the game's texts don't have the key
     static std::string GameText(const char* key, std::string_view fallback)
     {
-        return CText::g_text && GameHasText(key) ? Narrow(CText::getText(key)) : std::string(fallback);
+        return CText::g_text && GameHasText(key) ? FromGameText(CText::getText(key)) : std::string(fallback);
     }
 
     // Call registration APIs on the game thread, or during startup before the
@@ -3036,7 +3142,8 @@ private:
     }
 
     // The key a row or a value shows for a text of a description. A text key of Fusion Fix's description that fits
-    // the 15 bytes of a label is the key of its text in Fusion Fix's GXT; other texts get a key of their own.
+    // the 15 bytes of a label is used as is, so a key of the game's own texts (MO_HIGH) shows the game's text; other
+    // texts get a key of their own.
     static std::string MenuKey(const MenuPlugin& plugin, std::string_view text)
     {
         auto resolve = [&plugin, text = std::string(text)] { return plugin.file.texts.Resolve(text); };
@@ -3049,6 +3156,12 @@ private:
     {
         if (gxtEntries.contains(GetHash(key.c_str())))
             return true;
+        return VanillaHasText(key);
+    }
+
+    // Whether the game's own texts have the key, Fusion Fix's GXT aside
+    static bool VanillaHasText(const std::string& key)
+    {
         return CText::g_text && CText::shDoesTextLabelExist && CText::shDoesTextLabelExist.fastcall<char>(CText::g_text, nullptr, key.c_str()) != 0;
     }
 
@@ -3069,10 +3182,10 @@ private:
         for (auto& source : menuTextSources)
         {
             auto hash = GetHash(source.key.c_str());
-            if (source.gameText && GameHasText(source.key))
+            if (source.gameText && VanillaHasText(source.key))
                 CText::menuTexts.erase(hash);
             else
-                CText::menuTexts[hash] = asi_settings::text::Widen(source.text());
+                CText::menuTexts[hash] = ToGameText(source.text());
         }
     }
 
@@ -3204,7 +3317,7 @@ private:
                             float value = 0.0f;
                             asi_settings::detail::ParseFloat(p->Get(s->id), value);
                             auto text = std::format("{:.{}f}", value, decimals) + (s->unit.empty() ? "" : (s->unit == "%" || s->unit == "\xC2\xB0" ? "" : " ") + s->unit);
-                            return asi_settings::text::Widen(text);
+                            return ToGameText(text);
                         };
                 }
             }
@@ -3308,6 +3421,18 @@ private:
         return out;
     }
 
+    // UTF-8 text as the game draws it, in the font of the game's language
+    static std::wstring ToGameText(std::string_view text)
+    {
+        return GameFont::ToGame(asi_settings::text::Widen(text), GameLanguageTag());
+    }
+
+    // A text of the game's as UTF-8
+    static std::string FromGameText(const wchar_t* text)
+    {
+        return text ? Narrow(GameFont::ToUnicode(text, GameLanguageTag())) : std::string();
+    }
+
     static std::string Upper(const std::string& text)
     {
         auto wide = asi_settings::text::Widen(text);
@@ -3316,12 +3441,12 @@ private:
         return Narrow(wide);
     }
 
-    // A text of a description: a key of Fusion Fix's that the game's texts have (GXT) is taken from there
+    // A text of a description: a key that the game's own texts have (MO_HIGH) is taken from there
     static std::string ResolveText(const MenuPlugin& plugin, std::string_view text)
     {
         if (&plugin == &ownPlugin && text.size() > 1 && text.size() <= sizeof(SettingsTables::Option::label) && text[0] == '@' && text[1] != '@')
-            if (auto key = std::string(text.substr(1)); CText::g_text && GameHasText(key))
-                return Narrow(CText::getText(key.c_str()));
+            if (auto key = std::string(text.substr(1)); CText::g_text && VanillaHasText(key))
+                return FromGameText(CText::getText(key.c_str()));
         return plugin.file.texts.Resolve(text);
     }
 
@@ -3358,7 +3483,7 @@ private:
         {
             int on = 0;
             asi_settings::detail::ParseBool(value, on);
-            return CText::g_text ? Narrow(CText::getText(on ? "MO_ON" : "MO_OFF")) : (on ? "On" : "Off");
+            return CText::g_text ? FromGameText(CText::getText(on ? "MO_ON" : "MO_OFF")) : (on ? "On" : "Off");
         }
         for (auto list : { &setting.choices, &setting.special, &setting.suggestions })
             for (auto& item : *list)
@@ -3370,7 +3495,7 @@ private:
     static std::wstring SettingValueText(const MenuPlugin& plugin, std::string_view id)
     {
         auto setting = plugin.file.description.Find(id);
-        return setting ? asi_settings::text::Widen(ValueText(plugin, *setting, plugin.Get(setting->id))) : std::wstring();
+        return setting ? ToGameText(ValueText(plugin, *setting, plugin.Get(setting->id))) : std::wstring();
     }
 
     static std::string DefaultText(const asi_settings::Setting& setting)
@@ -3606,7 +3731,7 @@ private:
         if (shown < total)
             body += more(total - shown);
         body += footer;
-        auto wide = asi_settings::text::Widen(body);
+        auto wide = ToGameText(body);
         if (wide.size() > Budget)
             wide.resize(Budget);
         return wide;
@@ -3905,7 +4030,7 @@ private:
             return DisabledNote(row);
         if (row.plugin == &ownPlugin)
         {
-            auto gameText = [](const char* key) { auto text = CText::getText(key); return text && text[0] ? Narrow(text) : std::string(); };
+            auto gameText = [](const char* key) { return FromGameText(CText::getText(key)); };
             if (setting.id == "SHADOWS.ExtraNightShadows" && SettingsPlugin().Int(setting.id) != 0)
                 return gameText("FF_WARN2");
             if (setting.id == "SHADOWS.ShadowFilter" && SettingsPlugin().Int(setting.id) == 2 && GetPrefIDByName("PREF_SHADOW_QUALITY") &&
@@ -3955,7 +4080,7 @@ private:
         {
             if (added.screen != screen || added.gap || (added.visible && !added.visible()))
                 continue;
-            labels += (labels.empty() ? "" : ", ") + Narrow(RowText(added.option));
+            labels += (labels.empty() ? "" : ", ") + FromGameText(RowText(added.option).c_str());
         }
         return FormatText("@ff.page.contains", labels);
     }
@@ -3993,9 +4118,9 @@ private:
         }
         else
             return {};
-        std::wstring lines = asi_settings::text::Widen(Cut(description, 600));
+        std::wstring lines = ToGameText(Cut(description, 600));
         if (!note.empty())
-            lines += (lines.empty() ? L"" : L"~n~~n~") + asi_settings::text::Widen(note.starts_with("~") ? note : "~r~" + note);
+            lines += (lines.empty() ? L"" : L"~n~~n~") + ToGameText(note.starts_with("~") ? note : "~r~" + note);
         return lines;
     }
 
@@ -4034,7 +4159,7 @@ private:
         auto root = GetRootScreen(activePage);
         if (root < 0 || root >= 73)
             return;
-        auto text = asi_settings::text::Widen(Upper(Narrow(CText::getText(screens[root].header)) + " > " + Narrow(GetPageName(*page))));
+        auto text = ToGameText(Upper(FromGameText(CText::getText(screens[root].header)) + " > " + FromGameText(GetPageName(*page))));
         auto position = reinterpret_cast<float*>(instance + 0x35D0);
         auto scaleX = *reinterpret_cast<float*>(instance + 0x35DC) * *reinterpret_cast<float*>(instance + 0x35E4);
         auto scaleY = *reinterpret_cast<float*>(instance + 0x35E0) * *reinterpret_cast<float*>(instance + 0x35E8);
@@ -4307,7 +4432,7 @@ private:
         std::wstring wide(capacity, L'\0');
         auto length = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, text.data(), static_cast<int32_t>(text.size()), wide.data(), capacity - 1);
         wide.resize(length > 0 ? length : 0);
-        return wide;
+        return GameFont::ToGame(std::move(wide), GameLanguageTag());
     }
 
     // An in-memory preference whose value is read and written through the callbacks

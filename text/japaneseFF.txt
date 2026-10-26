@@ -1,173 +1,5 @@
-﻿[Skip Intro]
-イントロをスキップ
-
-[Skip Menu]
-メニューをスキップ
-
-[Windowed]
-ウィンドウ表示
-
-[Borderless]
-ウィンドウ表示(フチなし)
-
-[FF_BORDERLESS]
-フチなし
-
-[Focus Loss]
-フォーカスの喪失時にゲームをポーズ
-
-[LightSyncRGB]
-ロジクール LIGHTSYNC RGB
-
-[FPS Counter]
-フレームレートの表示
-
-[Letterbox]
-カットシーンのレターボックス
-
-[Pillarbox]
-カットシーンのピラーボックス
-
-[CutscBars]
-カットシーンの黒帯
-
-[CutscBars1]
-ピラーボックス
-
-[CutscBars2]
-レターボックス
-
-[CutscBars3]
-レターボックス + ピラーボックス
-
-[Alt. Dialogues]
-代替台詞
-
-[Check Updates]
-FusionFixのアップデートを確認する
-
-[Raw Input]
-Raw Input
-
-[Always Run]
-常に走る
-
-[Cover Centering]
-カバー時カメラのセンタリング
-
-[PadLookSens]
-ルックアラウンド感度
-
-[MO_SENS]
-照準感度
-
-[MO_MOUSE]
+﻿[MO_MOUSE]
 マウスのルック感度
-
-[MouseAimSens]
-マウスの照準感度
-
-[CenterDelayFoot]
-徒歩時のカメラセンタリング遅延
-
-[CenterDelayVeh]
-乗り物搭乗時のカメラセンタリング遅延
-
-[CamTurnSpeedVeh]
-乗り物搭乗時のカメラ旋回速度
-
-[Gamepad Icons]
-コントローラーのアイコン
-
-[Motion Blur]
-モーションブラー
-
-[Bloom]
-ブルーム効果
-
-[Console Gamma]
-コンソール風のガンマ
-
-[Auto Exposure]
-コンソール風の自動露出
-
-[Screen Filter]
-画面フィルター
-
-[Depth of Field]
-背景ぼかし
-
-[TreeFX]
-木のライティング
-
-[Sun Shafts]
-薄明光線(ゴッドレイ)
-
-[Antialiasing]
-アンチエイリアシング
-
-[FPS Limiter]
-FPSリミッター
-
-[ExtraNightShad]
-夜間時の追加シャドウ
-
-[Lampposts]
-街灯
-
-[LampostsHeadl]
-街灯とヘッドライト
-
-[LampHeadlVNS]
-街灯とヘッドライト + 車両の影
-
-[Tree Alpha]
-木の透過
-
-[UnclampLighting]
-日照範囲の拡大
-
-[Shadow Filter]
-ソフトシャドウ
-
-[HeadlightShadow]
-ヘッドライトの影
-
-[Timed Events]
-季節イベント
-
-[Tone Mapping]
-トーンマッピング
-
-[Volumetric Fog]
-ボリュメトリックフォグ
-
-[AO]
-アンビエントオクルージョン
-
-[Zoomed Movement]
-ズーム中の移動を許可
-
-[CenteredVehCam]
-乗車時カメラのセンタリング
-
-[CenteredFootCam]
-歩行時カメラのセンタリング
-
-[Camera Shake]
-カメラの振動
-
-[Stunt Jump Cam]
-スタントジャンプのカメラ
-
-[Action Cam]
-フェンス越え・車両強奪時のカメラ
-
-[FE_STEAMPAD]
-Steam Controller
-
-[Turn Indicators]
-ウィンカー
 
 [WinterEvent0]
 ウィンターイベントが無効化されました
@@ -181,38 +13,8 @@ Steam Controller
 [HalloweenEvent1]
 ハロウィーンイベントが有効化されました
 
-[TranspMapMenu]
-マップメニューの透過
-
-[Extra Streaming]
-ストリーミングメモリの追加割り当て
-
-[FF_SM]
-ストリーミングメモリの割り当て
-
-[Graphics API]
-グラフィックスAPI
-
-[FF_ADVANCED]
-詳細設定
-
 [FF_RESTART]
 設定を適用するにはGTA IVを再起動する必要があります。
-
-[Extended Sniper]
-スナイパーライフルの追加操作
-
-[Ladders Climb]
-自動はしご登り
-
-[Bullet Traces]
-常に弾道を表示する
-
-[Wardrobe Fading]
-ワードローブのフェードを無効にする
-
-[Stop Taxi]
-タクシー即時停止
 
 [CP_6AXIS]
 クイックセーブ
@@ -223,23 +25,11 @@ Steam Controller
 [FF_WARN0]
 ~p~IMGファイル:
 
-[MO_ALT]
-代替案
-
 [FF_WARN1]
 ; ~r~警告: IMGファイルの個数が制限の255個を超過しています。ストリーミング関連の不具合が発生する可能性があります。
 
 [FF_WARN2]
 ~r~警告: 夜間時の追加シャドウはロックスター製のオプションです。深刻な不具合があるため、推奨されません。
-
-[FF_WARN3]
-~r~警告: 視界範囲を25より大きく、詳細表示距離を31より大きく設定すると、オブジェクトが突然表示される等の不具合が発生する可能性があります。
-
-[FF_WARN4]
-~r~警告: 視界範囲を25より大きく設定すると、オブジェクトが突然表示される等の不具合が発生する可能性があります。
-
-[FF_WARN5]
-~r~警告: 詳細表示距離を31より大きく設定すると、オブジェクトが突然表示される等の不具合が発生する可能性があります。
 
 [FF_WARN6]
 ~r~警告: CHSSは影表現の設定を「非常に高い」に設定した場合のみ有効になります。

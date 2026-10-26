@@ -1,173 +1,5 @@
-﻿[Skip Intro]
-Skip Intro
-
-[Skip Menu]
-Skip Menu
-
-[Windowed]
-Windowed
-
-[Borderless]
-Windowed Borderless
-
-[FF_BORDERLESS]
-Borderless
-
-[Focus Loss]
-Pause Game On Focus Loss
-
-[LightSyncRGB]
-Logitech LightSync RGB
-
-[FPS Counter]
-FPS Counter
-
-[Letterbox]
-Cutscene Letterbox
-
-[Pillarbox]
-Cutscene Pillarbox
-
-[CutscBars]
-Cutscene Black Bars
-
-[CutscBars1]
-Pillarbox
-
-[CutscBars2]
-Letterbox
-
-[CutscBars3]
-Letterbox + Pillarbox
-
-[Alt. Dialogues]
-Alternate Dialogues
-
-[Check Updates]
-Check For Fusion Fix Updates
-
-[Raw Input]
-Raw Input
-
-[Always Run]
-Always Run
-
-[Cover Centering]
-Cover Centering
-
-[PadLookSens]
-Look-Around Sensitivity
-
-[MO_SENS]
-Aiming Sensitivity
-
-[MO_MOUSE]
+﻿[MO_MOUSE]
 Mouse Look Sensitivity
-
-[MouseAimSens]
-Mouse Aim Sensitivity
-
-[CenterDelayFoot]
-On Foot Camera Centering Delay
-
-[CenterDelayVeh]
-Vehicle Camera Centering Delay
-
-[CamTurnSpeedVeh]
-Vehicle Camera Turn Speed
-
-[Gamepad Icons]
-Gamepad Icons
-
-[Motion Blur]
-Motion Blur
-
-[Bloom]
-Bloom
-
-[Console Gamma]
-Console Gamma
-
-[Auto Exposure]
-Console Auto Exposure
-
-[Screen Filter]
-Screen Filter
-
-[Depth of Field]
-Depth of Field
-
-[TreeFX]
-Tree Lighting
-
-[Sun Shafts]
-Sun Shafts
-
-[Antialiasing]
-Anti-aliasing
-
-[FPS Limiter]
-FPS Limiter
-
-[ExtraNightShad]
-Extra Night Shadows
-
-[Lampposts]
-Lampposts
-
-[LampostsHeadl]
-Lampposts and Headlights
-
-[LampHeadlVNS]
-Lampposts and Headlights + Vehicle Night Shadows
-
-[Tree Alpha]
-Tree Alpha
-
-[UnclampLighting]
-Extended Sunlight Reach
-
-[Shadow Filter]
-Shadow Filter
-
-[HeadlightShadow]
-Headlight Shadows
-
-[Timed Events]
-Seasonal Events
-
-[Tone Mapping]
-Tone Mapping
-
-[Volumetric Fog]
-Volumetric Fog
-
-[AO]
-Ambient Occlusion
-
-[Zoomed Movement]
-Allow Movement When Zoomed
-
-[CenteredVehCam]
-Centered Vehicle Camera
-
-[CenteredFootCam]
-Centered On Foot Camera
-
-[Camera Shake]
-Camera Shake
-
-[Stunt Jump Cam]
-Stunt Jump Camera
-
-[Action Cam]
-Fence Climb & Car Jack Camera
-
-[FE_STEAMPAD]
-Steam Controller
-
-[Turn Indicators]
-Turn Indicators
 
 [WinterEvent0]
 Winter event deactivated
@@ -181,38 +13,8 @@ Halloween event deactivated
 [HalloweenEvent1]
 Halloween event activated
 
-[TranspMapMenu]
-Transparent Map Menu
-
-[Extra Streaming]
-Extra Streaming Memory
-
-[FF_SM]
-Streaming budget
-
-[Graphics API]
-Graphics API
-
-[FF_ADVANCED]
-Advanced
-
 [FF_RESTART]
 GTA IV must be restarted in order to apply settings.
-
-[Extended Sniper]
-Extended Sniper Controls
-
-[Ladders Climb]
-Auto Climb Ladders
-
-[Bullet Traces]
-Always Show Bullet Traces
-
-[Wardrobe Fading]
-Disable Wardrobe Transition
-
-[Stop Taxi]
-Instant Stop Taxi
 
 [CP_6AXIS]
 Quick Save
@@ -223,23 +25,11 @@ Police Buffalo
 [FF_WARN0]
 ~p~IMG Files:
 
-[MO_ALT]
-Alternative
-
 [FF_WARN1]
 ; ~r~WARNING: 255 IMG limit exceeded, will cause streaming issues.
 
 [FF_WARN2]
 ~r~WARNING: Extra Night Shadows is an original PC option by Rockstar. Extremely broken, not recommended.
-
-[FF_WARN3]
-~r~WARNING: View Distance slider above 25 and Detail Distance slider above 31 may cause object pop-in.
-
-[FF_WARN4]
-~r~WARNING: View Distance slider above 25 may cause object pop-in.
-
-[FF_WARN5]
-~r~WARNING: Detail Distance slider above 31 may cause object pop-in.
 
 [FF_WARN6]
 ~r~WARNING: CHSS only takes effect with Shadow Quality set to Very High.

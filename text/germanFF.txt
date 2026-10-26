@@ -1,173 +1,5 @@
-﻿[Skip Intro]
-Intro überspringen
-
-[Skip Menu]
-Menü überspringen
-
-[Windowed]
-Fenstermodus
-
-[Borderless]
-Fenstermodus ohne Rahmen
-
-[FF_BORDERLESS]
-Ohne Rahmen
-
-[Focus Loss]
-Bei Fokusverlust Spielpause einlegen
-
-[LightSyncRGB]
-Logitech LightSync RGB
-
-[FPS Counter]
-FPS-Anzeige
-
-[Letterbox]
-Letterbox-Balken in Zwischensequenzen
-
-[Pillarbox]
-Pillarbox-Balken in Zwischensequenzen
-
-[CutscBars]
-Balken in Zwischensequenzen
-
-[CutscBars1]
-Pillarbox
-
-[CutscBars2]
-Letterbox
-
-[CutscBars3]
-Letterbox + Pillarbox
-
-[Alt. Dialogues]
-Alternative Dialoge
-
-[Check Updates]
-Auf Fusion-Fix-Updates prüfen
-
-[Raw Input]
-Raw Input
-
-[Always Run]
-Immer rennen
-
-[Cover Centering]
-Deckungszentrierung
-
-[PadLookSens]
-Umschau-Empfindlichkeit
-
-[MO_SENS]
-Zielempfindlichkeit
-
-[MO_MOUSE]
+﻿[MO_MOUSE]
 Maus-Umschau-Empfindlichkeit
-
-[MouseAimSens]
-Maus-Zielempfindlichkeit
-
-[CenterDelayFoot]
-Zentrierungsverzögerung (zu Fuß)
-
-[CenterDelayVeh]
-Zentrierungsverzögerung (Fahrzeug)
-
-[CamTurnSpeedVeh]
-Kamera-Drehgeschwindigkeit (Fahrzeug)
-
-[Gamepad Icons]
-Controllersymbole
-
-[Motion Blur]
-Bewegungsunschärfe
-
-[Bloom]
-Bloom-Effekt
-
-[Console Gamma]
-Konsolengamma
-
-[Auto Exposure]
-Konsolen-Belichtungsautomatik
-
-[Screen Filter]
-Bildschirmfilter
-
-[Depth of Field]
-Schärfentiefe
-
-[TreeFX]
-Baumbeleuchtung
-
-[Sun Shafts]
-Sonnenstrahlen
-
-[Antialiasing]
-Kantenglättung
-
-[FPS Limiter]
-FPS-Begrenzung
-
-[ExtraNightShad]
-Zusätzliche Nachtschatten
-
-[Lampposts]
-Straßenlaternen
-
-[LampostsHeadl]
-Straßenlaternen und Scheinwerfer
-
-[LampHeadlVNS]
-Straßenlaternen und Scheinwerfer + Fahrzeug-Nachtschatten
-
-[Tree Alpha]
-Baumtransparenz
-
-[UnclampLighting]
-Erweiterte Sonnenlicht-Reichweite
-
-[Shadow Filter]
-Schattenfilter
-
-[HeadlightShadow]
-Scheinwerfer-Schatten
-
-[Timed Events]
-Saisonale Ereignisse
-
-[Tone Mapping]
-Tone Mapping
-
-[Volumetric Fog]
-Volumetrischer Nebel
-
-[AO]
-Umgebungsverdeckung
-
-[Zoomed Movement]
-Bewegung beim Zoomen erlauben
-
-[CenteredVehCam]
-Zentrierte Fahrzeugkamera
-
-[CenteredFootCam]
-Zentrierte Zu-Fuß-Kamera
-
-[Camera Shake]
-Kamerawackeln
-
-[Stunt Jump Cam]
-Monsterstunt-Kamera
-
-[Action Cam]
-Kamera bei Zaunklettern & Fahrzeugklauen
-
-[FE_STEAMPAD]
-Steam Controller
-
-[Turn Indicators]
-Blinker
 
 [WinterEvent0]
 Winterevent deaktiviert
@@ -181,38 +13,8 @@ Halloween-Event deaktiviert
 [HalloweenEvent1]
 Halloween-Event aktiviert
 
-[TranspMapMenu]
-Transparenter Kartenhintergrund im Menü
-
-[Extra Streaming]
-Zusätzlicher Streaming-Speicher
-
-[FF_SM]
-Streaming-Budget
-
-[Graphics API]
-Grafik-API
-
-[FF_ADVANCED]
-Erweitert
-
 [FF_RESTART]
 GTA IV muss neu gestartet werden, um die Einstellungen anzuwenden.
-
-[Extended Sniper]
-Erweiterte Sniper-Steuerung
-
-[Ladders Climb]
-Automatisch auf Leitern steigen
-
-[Bullet Traces]
-Schussspuren immer sichtbar
-
-[Wardrobe Fading]
-Garderobenübergang deaktivieren
-
-[Stop Taxi]
-Sofortiger Taxi-Stopp
 
 [CP_6AXIS]
 Schnellspeichern
@@ -223,23 +25,11 @@ Polizei-Buffalo
 [FF_WARN0]
 ~p~IMG-Dateien:
 
-[MO_ALT]
-Alternativ
-
 [FF_WARN1]
 ; ~r~ACHTUNG: Obergrenze von 255 IMG-Dateien überschritten, was zu Streaming-Problemen führt.
 
 [FF_WARN2]
 ~r~ACHTUNG: "Zusätzliche Nachtschatten" ist eine extrem fehlerbehaftete PC-Option von Rockstar. Aktivieren nicht empfohlen.
-
-[FF_WARN3]
-~r~ACHTUNG: Bei Werten von über 25 für die Sichtdistanz und über 31 für die Detaildistanz kann es zu Pop-in von Objekten kommen.
-
-[FF_WARN4]
-~r~ACHTUNG: Bei Werten von über 25 für die Sichtdistanz kann es zu Pop-in von Objekten kommen.
-
-[FF_WARN5]
-~r~ACHTUNG: Bei Werten von über 31 für die Detaildistanz kann es zu Pop-in von Objekten kommen.
 
 [FF_WARN6]
 ~r~ACHTUNG: CHSS bewirkt nur etwas, wenn die Schattenqualität auf "Sehr hoch" eingestellt ist.

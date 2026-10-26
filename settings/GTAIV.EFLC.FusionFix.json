@@ -317,7 +317,7 @@
     },
     {
       "id": "MISC.PadAimSensitivity", "type": "int", "default": 10, "min": 0, "max": 20, "step": 1,
-      "label": "@MO_SENS", "description": "@MISC.PadAimSensitivity.description",
+      "label": "@PadAimSens", "description": "@MISC.PadAimSensitivity.description",
       "page": "gamepad", "control": [ "slider" ]
     },
     {
