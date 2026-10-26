@@ -164,9 +164,9 @@ project "GTAIV.EFLC.FusionFix"
    postbuildcommands { '"../bin/tools/asi-settings-validate.exe" "$(TargetPath)"' }
 
    -- HLSL shaders compiled with fxc: the table of them is in tools/compileshaders.ps1. The compiled shaders are
-   -- committed with source/resources/shaders.lock; only the ones whose source, includes or fxc arguments changed
-   -- compile, in parallel
-   prebuildcommands { 'powershell -NoProfile -ExecutionPolicy Bypass -File "../tools/compileshaders.ps1" -LocalLock "../build/obj/shaders.lock"' }
+   -- committed with source/resources/shaders.lock (those of FusionFixUtils in its aa/shaders.lock); only the ones whose
+   -- source, includes or fxc arguments changed compile, in parallel
+   prebuildcommands { 'powershell -NoProfile -ExecutionPolicy Bypass -File "../tools/compileshaders.ps1"' }
    buildtime { "source", "external", "settings" }
 
    local gamedir = envdir("GTAIV_DIR")

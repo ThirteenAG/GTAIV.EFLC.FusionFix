@@ -3,24 +3,23 @@
 # itself, and a hash of the compiled file. A shader compiles only when that input hash changed or the compiled file is
 # missing or differs, so a fresh clone compiles nothing; the ones that need it compile in parallel and a failed compile
 # fails the build with fxc's messages. After changing a shader, build and commit its compiled file with shaders.lock.
-# Shaders compiled into a submodule are not committed: their hashes go to -LocalLock instead.
+# The shaders of the FusionFixUtils submodule are committed there: its tools/compileshaders.ps1 runs with this fxc and
+# compiles only the ones its aa/shaders.lock says are stale.
 # -Force compiles every shader; -Verify then fails when a committed file differs from git (CI).
 param(
-    [Parameter(Mandatory = $true)][string]$LocalLock,
     [switch]$Force,
     [switch]$Verify
 )
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
-$LocalLock = [IO.Path]::GetFullPath((Join-Path (Get-Location) $LocalLock))
 $lock = Join-Path $root "source\resources\shaders.lock"
 $fxcDir = Join-Path $root "source\dxsdk\lib\x86"
 $fxc = Join-Path $fxcDir "fxc.exe"
 
 # Src: the source, relative to the repository root; a wildcard compiles every match, {0} in the outputs is the matched
 # file's name without extension. T: profile, E: entry point, Fo: compiled file, Fc: assembly listing (only for
-# convenience, not committed), Flags: more fxc options, Local: not committed.
+# convenience, not committed), Flags: more fxc options.
 $shaders = @(
     # ConsoleGamma
     @{ Src = "shaders/external/gamma/fx/ConsoleGamma.fx"; T = "fx_2_0"; Fo = "source/resources/shaders/win32_30/ConsoleGamma.fxo"; Fc = "shaders/external/gamma/asm/ConsoleGamma.asm" }
@@ -49,9 +48,6 @@ $shaders = @(
     @{ Src = "source/resources/temporal/Temporal.hlsl"; T = "vs_3_0"; E = "VS_BoneWrite"; Fo = "source/resources/temporal/BoneWrite.vso" }
     @{ Src = "source/resources/temporal/Temporal.hlsl"; T = "ps_3_0"; E = "PS_BoneWrite"; Fo = "source/resources/temporal/BoneWrite.pso" }
 
-    # The shared module of FusionFixUtils (aa/AntiAliasing.hpp): its pixel shaders, embedded by aa/AntiAliasing.rc
-    @{ Src = "external/FusionFixUtils/aa/shaders/*.hlsl"; T = "ps_3_0"; E = "main"; Fo = "external/FusionFixUtils/aa/shaders/{0}.pso"; Local = $true }
-
     # HDR output
     @{ Src = "source/resources/hdr/HDR.hlsl"; T = "ps_3_0"; E = "PS_HDROutput"; Fo = "source/resources/hdr/HDROutput.pso" }
     @{ Src = "source/resources/hdr/HDR.hlsl"; T = "ps_3_0"; E = "PS_HDRCalibration"; Fo = "source/resources/hdr/HDRCalibration.pso" }
@@ -59,6 +55,9 @@ $shaders = @(
 
 $sha = [Security.Cryptography.SHA256]::Create()
 $latin1 = [Text.Encoding]::GetEncoding(28591)
+# Ordinal, the same in every culture and PowerShell edition
+function Get-Sorted($items) { $a = [string[]]@($items); [Array]::Sort($a, [StringComparer]::Ordinal); return $a }
+
 function Get-Hash([byte[]]$bytes) { return [BitConverter]::ToString($sha.ComputeHash($bytes)).Replace("-", "").ToLowerInvariant() }
 function Get-RelativePath([string]$path) { return $path.Substring($root.Length + 1).Replace('\', '/') }
 
@@ -109,7 +108,7 @@ function Read-Lock([string]$path)
 # Rewritten only when an entry changed
 function Write-Lock([string]$path, [hashtable]$entries, [string]$header)
 {
-    $lines = @($header) + @($entries.Keys | Sort-Object | ForEach-Object { "$_ $($entries[$_])" })
+    $lines = @($header) + @(Get-Sorted $entries.Keys | ForEach-Object { "$_ $($entries[$_])" })
     $text = ($lines -join "`r`n") + "`r`n"
     if ((Test-Path $path) -and ([IO.File]::ReadAllText($path).Replace("`r`n", "`n") -eq $text.Replace("`r`n", "`n"))) { return }
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $path) | Out-Null
@@ -117,12 +116,11 @@ function Write-Lock([string]$path, [hashtable]$entries, [string]$header)
 }
 
 $fxcHash = Get-Hash $latin1.GetBytes((@("fxc.exe", "D3DCompiler_43.dll", "D3DX9_43.dll") | ForEach-Object { Get-Hash ([IO.File]::ReadAllBytes((Join-Path $fxcDir $_))) }) -join " ")
-$locks = @{ $false = (Read-Lock $lock); $true = (Read-Lock $LocalLock) }
-$newLocks = @{ $false = @{}; $true = @{} }
+$oldLock = Read-Lock $lock
+$newLock = @{}
 $jobs = @()
 foreach ($s in $shaders)
 {
-    $local = [bool]$s.Local
     $dir = Split-Path -Parent $s.Src
     $sources = @(Get-ChildItem -Path (Join-Path $root $dir) -Filter (Split-Path -Leaf $s.Src) -File |
         Where-Object { $_.Extension -eq [IO.Path]::GetExtension($s.Src) } | Sort-Object Name)
@@ -141,18 +139,18 @@ foreach ($s in $shaders)
         $seen = @{}
         Get-Inputs $src.FullName $src.DirectoryName $seen
         $key = "$fxcHash`n$arguments `"$(Get-RelativePath $src.FullName)`"`n"
-        foreach ($in in ($seen.Keys | Sort-Object)) { $key += "$(Get-RelativePath $in) $(Get-ContentHash $in)`n" }
+        foreach ($in in (Get-Sorted $seen.Keys)) { $key += "$(Get-RelativePath $in) $(Get-ContentHash $in)`n" }
         $inputHash = Get-Hash $latin1.GetBytes($key)
 
-        $old = $locks[$local][$fo]
+        $old = $oldLock[$fo]
         $foPath = Join-Path $root $fo
         if (-not $Force -and $old -and [IO.File]::Exists($foPath) -and $old -eq "$inputHash $(Get-Hash ([IO.File]::ReadAllBytes($foPath)))")
         {
-            $newLocks[$local][$fo] = $old
+            $newLock[$fo] = $old
             continue
         }
         # fxc gets the full path of the source, for its messages
-        $jobs += @{ Arguments = "$arguments `"$($src.FullName)`""; Outputs = @($fo, $fc); Fo = $fo; InputHash = $inputHash; Local = $local }
+        $jobs += @{ Arguments = "$arguments `"$($src.FullName)`""; Outputs = @($fo, $fc); Fo = $fo; InputHash = $inputHash }
     }
 }
 
@@ -194,19 +192,24 @@ while ($queue.Count -gt 0 -or $running.Count -gt 0)
         {
             # Warnings
             if ($err) { [Console]::Out.WriteLine($err) }
-            $newLocks[$job.Local][$job.Fo] = "$($job.InputHash) $(Get-Hash ([IO.File]::ReadAllBytes((Join-Path $root $job.Fo))))"
+            $newLock[$job.Fo] = "$($job.InputHash) $(Get-Hash ([IO.File]::ReadAllBytes((Join-Path $root $job.Fo))))"
         }
     }
 }
 
-Write-Lock $lock $newLocks[$false] "# Generated by tools/compileshaders.ps1: compiled shader, hash of its inputs, hash of the compiled file"
-Write-Lock $LocalLock $newLocks[$true] "# Generated by tools/compileshaders.ps1"
+Write-Lock $lock $newLock "# Generated by tools/compileshaders.ps1: compiled shader, hash of its inputs, hash of the compiled file"
 if ($failed) { exit 1 }
 if ($jobs.Count -gt 0) { [Console]::Out.WriteLine("compileshaders: compiled $($jobs.Count) shader(s)") }
 
+# The shaders of FusionFixUtils (aa/AntiAliasing.rc), Direct3D 9 only; -Verify fails when one is stale there
+$utils = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Join-Path $root "external/FusionFixUtils/tools/compileshaders.ps1"), "-FxcDir", $fxcDir, "-Set", "d3d9")
+if ($Verify) { $utils += "-Verify" }
+& powershell @utils
+if ($LASTEXITCODE -ne 0) { exit 1 }
+
 if ($Verify)
 {
-    $committed = @(Get-RelativePath $lock) + @($newLocks[$false].Keys | Sort-Object)
+    $committed = @(Get-RelativePath $lock) + @(Get-Sorted $newLock.Keys)
     $changed = @(& git -C $root status --porcelain --untracked-files=all -- $committed)
     if ($LASTEXITCODE -ne 0) { throw "compileshaders: git status failed" }
     if ($changed.Count -gt 0)

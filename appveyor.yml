@@ -9,8 +9,9 @@ skip_commits:
 install:
 - cmd: git submodule update --init --recursive
 - cmd: premake5 vs2026 --with-version=%APPVEYOR_BUILD_VERSION%
-# Every shader compiled again: the job fails when a committed compiled shader doesn't match its sources
-- cmd: powershell -NoProfile -ExecutionPolicy Bypass -File tools\compileshaders.ps1 -LocalLock build\obj\shaders.lock -Force -Verify
+# Every shader compiled again (those of FusionFixUtils checked against its lock): the job fails when a committed
+# compiled shader doesn't match its sources
+- cmd: powershell -NoProfile -ExecutionPolicy Bypass -File tools\compileshaders.ps1 -Force -Verify
 build:
   project: build/GTAIV.EFLC.FusionFix.slnx
   parallel: true
