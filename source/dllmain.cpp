@@ -9,7 +9,6 @@ ASI_AUTOMATION_FRAMES_EXPORT()
 import common;
 import comvars;
 import compat;
-import fusiondxhook;
 import graphicsapi;
 
 std::vector<std::future<void>> initializationFutures;
