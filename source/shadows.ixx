@@ -81,6 +81,28 @@ void __cdecl CBaseModelInfo__setFlagsHook(void* pModel, int dwFlags, int a3)
     return injector::cstd<void(void*, int, int)>::call(CBaseModelInfo__setFlags, pModel, dwFlags, a3);
 }
 
+namespace CCascadeShadows
+{
+    static SafetyHookInline shGetSize = {};
+    static int GetSize()
+    {
+        int Size = 0;
+
+        if (*CSettings::ms_ShadowQuality > 0)
+        {
+            Size = 128 << *CSettings::ms_ShadowQuality;
+
+            if (Size > 2048)
+                Size = 2048;
+
+            if (bHighResolutionShadows)
+                Size *= 2;
+        }
+
+        return Size;
+    }
+}
+
 class Shadows
 {
 public:
@@ -227,7 +249,19 @@ public:
                 pattern = find_pattern("BA ? ? ? ? 84 C0 0F 45 CA 8B 15", "40 05 00 00 00 8B 0D ? ? ? ? 8B 11 8B 52 38 8D 74 24 14 56 50 A1");
                 injector::WriteMemory(pattern.get_first(1), rage::getEngineTextureFormat(D3DFMT_A8R8G8B8), true);
 
-                if (bHighResolutionShadows)
+                // Fix cascaded shadow map resolution
+                {
+                    // Remove a multiplier by 2 on cascade size in CCascadeShadows::InitRTs
+                    pattern = hook::pattern("03 F6 E8 ? ? ? ? 8B 0D");
+                    injector::MakeNOP(pattern.get_first(0), 2, true);
+
+                    // Patch Shadow Quality to support a case where HighResolutionShadows doubles the resolution results per-setting
+                    pattern = find_pattern("8B 0D ? ? ? ? 85 C9 7E ? B8 ? ? ? ? D3 E0", "8B 0D ? ? ? ? 33 C0 85 C9 7E ? B8");
+                    CSettings::ms_ShadowQuality = *pattern.get_first<int32_t*>(2);
+                    CCascadeShadows::shGetSize = safetyhook::create_inline(pattern.get_first(0), CCascadeShadows::GetSize);
+                }
+
+                /*if (bHighResolutionShadows)
                 {
                     pattern = hook::pattern("8D 7D 40 8B 01 57 FF 75 10 FF 75 24 FF 75 0C FF 75 20 FF 75 18");
                     if (!pattern.empty())
@@ -269,7 +303,7 @@ public:
                     // Remove code that doubled shadow cascade resolution
                     pattern = find_pattern("03 F6 E8 ? ? ? ? 8B 0D ? ? ? ? 8D 54 24 0C", "03 F6 E8 ? ? ? ? 8B 0D ? ? ? ? 8D 44 24 0C");
                     injector::MakeNOP(pattern.get_first(0), 2, true);
-                }
+                }*/
 
                 // Override cascade ranges
                 struct CascadeRange
