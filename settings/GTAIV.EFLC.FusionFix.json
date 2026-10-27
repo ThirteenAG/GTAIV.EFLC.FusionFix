@@ -723,16 +723,6 @@
       "page": "advanced", "group": "@group.temporal", "control": [ "slider" ], "visibility": "editor", "apply": "restart"
     },
     {
-      "id": "TEMPORAL.StaticHistoryTrust", "type": "float", "default": 0.5, "step": 0.05, "min": 0, "max": 1,
-      "label": "@TEMPORAL.StaticHistoryTrust", "description": "@TEMPORAL.StaticHistoryTrust.description",
-      "page": "advanced", "group": "@group.temporal", "control": [ "slider" ], "visibility": "editor", "apply": "restart"
-    },
-    {
-      "id": "TEMPORAL.LumaWeight", "type": "float", "default": 1.0, "step": 0.25, "min": 0, "max": 16,
-      "label": "@TEMPORAL.LumaWeight", "description": "@TEMPORAL.LumaWeight.description",
-      "page": "advanced", "group": "@group.temporal", "control": [ "slider" ], "visibility": "editor", "apply": "restart"
-    },
-    {
       "id": "TEMPORAL.ObjectMotionVectors", "type": "bool", "default": 1,
       "label": "@TEMPORAL.ObjectMotionVectors", "description": "@TEMPORAL.ObjectMotionVectors.description",
       "page": "advanced", "group": "@group.temporal", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
@@ -741,11 +731,6 @@
       "id": "TEMPORAL.SkinnedMotionVectors", "type": "bool", "default": 1,
       "label": "@TEMPORAL.SkinnedMotionVectors", "description": "@TEMPORAL.SkinnedMotionVectors.description",
       "page": "advanced", "group": "@group.temporal", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
-    },
-    {
-      "id": "TEMPORAL.ObjectDepthBias", "type": "float", "default": 2e-05, "step": 1e-05, "min": 0, "max": 0.01,
-      "label": "@TEMPORAL.ObjectDepthBias", "description": "@TEMPORAL.ObjectDepthBias.description",
-      "page": "advanced", "group": "@group.temporal", "control": [ "slider" ], "visibility": "editor", "apply": "restart"
     },
     {
       "id": "TEMPORAL.CameraCutDistance", "type": "float", "default": 25.0, "max": 1000, "step": 1, "min": 1,
@@ -767,21 +752,6 @@
       "id": "TEMPORAL.D3D9on12Interop", "type": "bool", "default": 0,
       "label": "@TEMPORAL.D3D9on12Interop", "description": "@TEMPORAL.D3D9on12Interop.description",
       "page": "compatibility", "group": "@group.temporal", "control": [ "switch", "cycler" ], "visibility": "file", "apply": "restart"
-    },
-    {
-      "id": "TEMPORAL.ReactiveMask", "type": "bool", "default": 1,
-      "label": "@TEMPORAL.ReactiveMask", "description": "@TEMPORAL.ReactiveMask.description",
-      "page": "advanced", "group": "@group.temporal", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
-    },
-    {
-      "id": "TEMPORAL.ReactiveMaskScale", "type": "float", "default": 2.0, "step": 0.5, "min": 0, "max": 64,
-      "label": "@TEMPORAL.ReactiveMaskScale", "description": "@TEMPORAL.ReactiveMaskScale.description",
-      "page": "advanced", "group": "@group.temporal", "control": [ "slider" ], "visibility": "editor", "apply": "restart"
-    },
-    {
-      "id": "TEMPORAL.ReactiveMaskMaximum", "type": "float", "default": 0.75, "step": 0.05, "min": 0, "max": 1,
-      "label": "@TEMPORAL.ReactiveMaskMaximum", "description": "@TEMPORAL.ReactiveMaskMaximum.description",
-      "page": "advanced", "group": "@group.temporal", "control": [ "slider" ], "visibility": "editor", "apply": "restart"
     },
     {
       "id": "HDR.RollOffStart", "type": "float", "default": 0.8, "min": 0, "max": 1, "step": 0.05,

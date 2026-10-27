@@ -1703,6 +1703,13 @@ export namespace rage
                 height /= 2;
             }
 
+            else if (std::string_view(name) == "_STENCIL_BUFFER_" && desc)
+            {
+                // The fourth G-buffer target: the stencil stays in r, the motion vectors of temporal AA go to g and b
+                desc->mFormat = GRCFMT_A16B16G16R16F;
+                bitsPerPixel = 64;
+            }
+
             auto ret = shCreateRT.stdcall<grcRenderTargetPC*>(name, a2, width, height, bitsPerPixel, desc);
 
             RTCache[name] = ret;

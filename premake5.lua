@@ -108,8 +108,8 @@ workspace "GTAIV.EFLC.FusionFix"
    defines { "_CRT_SECURE_NO_WARNINGS" }
 
    includedirs { "source" }
-   -- Shared headers, ASI Settings, overlay, automation and the upscaler bridge's client: FusionFixUtils, a submodule
-   -- (change them there)
+   -- Shared headers, ASI Settings, overlay, automation and the upscaler bridge's protocol and client (upscaler/, shared
+   -- with FusionFixHub): FusionFixUtils, a submodule (change them there)
    includedirs { "external/FusionFixUtils/include", "external/FusionFixUtils" }
    includedirs { "source/ledsdk" }
    includedirs { "source/dxsdk" }
@@ -126,7 +126,10 @@ workspace "GTAIV.EFLC.FusionFix"
    files { "source/resources/Shaders.rc" }
    files { "source/resources/snow/*.rc" }
    files { "source/resources/temporal/*.rc" }
-   files { "external/FusionFixUtils/aa/AntiAliasing.rc", "external/FusionFixUtils/aa/*.hpp" }
+   -- Temporal anti-aliasing, DLAA and FSR through FusionFixHub's upscaler bridge (source/aa); the graphics API, DXVK
+   -- and D3D9On12 interop (source/upscaler)
+   files { "source/aa/*.hpp", "source/aa/*.inl" }
+   files { "source/upscaler/*.h", "source/upscaler/*.hpp" }
    files { "source/resources/hdr/*.rc" }
    -- ASI Settings: the description and translations of the settings, embedded by source/resources/Settings.rc
    files { "source/resources/Settings.rc" }
@@ -164,8 +167,8 @@ project "GTAIV.EFLC.FusionFix"
    postbuildcommands { '"../bin/tools/asi-settings-validate.exe" "$(TargetPath)"' }
 
    -- HLSL shaders compiled with fxc: the table of them is in tools/compileshaders.ps1. The compiled shaders are
-   -- committed with source/resources/shaders.lock (those of FusionFixUtils in its aa/shaders.lock); only the ones whose
-   -- source, includes or fxc arguments changed compile, in parallel
+   -- committed with source/resources/shaders.lock; only the ones whose source, includes or fxc arguments changed
+   -- compile, in parallel
    prebuildcommands { 'powershell -NoProfile -ExecutionPolicy Bypass -File "../tools/compileshaders.ps1"' }
    buildtime { "source", "external", "settings" }
 
@@ -205,7 +208,7 @@ project "AsiSettingsValidator"
 
 
 -- d3d9.dll: a pass-through to the system's d3d9.dll, shipped only so that unpacking a release over an old one replaces
--- the old graphics-API proxy (the plugin applies the graphics API itself, FusionFixUtils upscaler/graphics_api.h)
+-- the old graphics-API proxy (the plugin applies the graphics API itself, source/upscaler/graphics_api.h)
 project "d3d9"
    language "C++"
    targetdir "bin"

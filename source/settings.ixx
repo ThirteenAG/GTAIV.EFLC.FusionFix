@@ -2477,8 +2477,8 @@ public:
         for (auto& [name, id] : arr)
             RegisterPreference(name, id);
 
-        // The graphics API is MAIN.GraphicsAPI, applied by the plugin at its init (graphicsapi.ixx, FusionFixUtils
-        // upscaler/graphics_api.h; no d3d9.dll proxy, no d3d9.cfg). Vulkan needs DXVK as vulkan.dll next to the exe (the
+        // The graphics API is MAIN.GraphicsAPI, applied by the plugin at its init (graphicsapi.ixx,
+        // source/upscaler/graphics_api.h; no d3d9.dll proxy, no d3d9.cfg). Vulkan needs DXVK as vulkan.dll next to the exe (the
         // build FusionFixHub installs or the player's own), DirectX 12 Fusion Fix's own D3D9On12 driver next to the exe (FusionFixHub
         // installs it), never Windows' slow one. When the API didn't start, the next start falls back to DirectX 9 and
         // sets this back (the crash guard of graphics_api.h).

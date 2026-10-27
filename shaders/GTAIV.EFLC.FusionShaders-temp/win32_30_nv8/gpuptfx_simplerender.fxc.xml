@@ -1,0 +1,645 @@
+<?xml version="1.0" encoding="UTF - 8"?>
+<Magic value="1635280754" />
+<Game>GTAIV</Game>
+<Platform>PC</Platform>
+<Effect>
+	<Shaders>
+		<VertexShaders value="4" >
+			<Item>
+				<DataType>asm</DataType>
+				<File>gpuptfx_simplerender\gpuptfx_simplerenderVS0.asm</File>
+				<Variables value="7" >
+					<Item>
+						<Type>float4</Type>
+						<Name>gColorTint</Name>
+						<Index value="67" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gMotionBlur</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gRadius</Name>
+						<Index value="65" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gTextureAnimation</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>bool</Type>
+						<Name>gUseDirectional</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>gpuptfx_simplerender\gpuptfx_simplerenderVS1.asm</File>
+				<Variables value="7" >
+					<Item>
+						<Type>float4</Type>
+						<Name>gColorTint</Name>
+						<Index value="67" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gColorTintPhase2</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gMotionBlur</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gRadius</Name>
+						<Index value="65" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gTextureAnimation</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>gpuptfx_simplerender\gpuptfx_simplerenderVS2.asm</File>
+				<Variables value="9" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>PositionTexSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>VelocityTexSampler</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gColorTint</Name>
+						<Index value="67" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gColorTintPhase2</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gMotionBlur</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gRadius</Name>
+						<Index value="65" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gTextureAnimation</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>gpuptfx_simplerender\gpuptfx_simplerenderVS3.asm</File>
+				<Variables value="7" >
+					<Item>
+						<Type>float4</Type>
+						<Name>gColorTint</Name>
+						<Index value="67" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gColorTintPhase2</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gMotionBlur</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gRadius</Name>
+						<Index value="65" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gTextureAnimation</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+				</Variables>
+			</Item>
+		</VertexShaders>
+		<PixelShaders value="2" >
+			<Item>
+				<DataType>asm</DataType>
+				<File>gpuptfx_simplerender\gpuptfx_simplerenderPS1.asm</File>
+				<Variables value="2" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>DiffuseSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>gpuptfx_simplerender\gpuptfx_simplerenderPS2.asm</File>
+				<Variables value="3" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>DiffuseSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>DiffuseSamplerPhase2</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+		</PixelShaders>
+	</Shaders>
+	<GlobalVariables value="14" >
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="64" />
+			<Name1>gAllGlobals</Name1>
+			<Name2>AllGlobals</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorld</Name1>
+			<Name2>World</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorldView</Name1>
+			<Name2>WorldView</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorldViewProj</Name1>
+			<Name2>WorldViewProjection</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gViewInverse</Name1>
+			<Name2>ViewInverse</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="4" />
+			<Name1>gLightPosDir</Name1>
+			<Name2>Position</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>Object</Name>
+					<Type>String</Type>
+					<Value>PointDirLight</Value>
+				</Item>
+				<Item>
+					<Name>Space</Name>
+					<Type>String</Type>
+					<Value>World</Value>
+				</Item>
+			</Annotation>
+			<Values value="16" >
+			1403
+			1441
+			1690
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="4" />
+			<Name1>gLightDir</Name1>
+			<Name2>Direction</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>Object</Name>
+					<Type>String</Type>
+					<Value>Light Direction</Value>
+				</Item>
+				<Item>
+					<Name>Space</Name>
+					<Type>String</Type>
+					<Value>World</Value>
+				</Item>
+			</Annotation>
+			<Values value="16" >
+			0
+			0
+			-1
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="4" />
+			<Name1>gLightColor</Name1>
+			<Name2>Diffuse</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Diffuse Light Color</Value>
+				</Item>
+				<Item>
+					<Name>Object</Name>
+					<Type>String</Type>
+					<Value>LightPos</Value>
+				</Item>
+			</Annotation>
+			<Values value="16" >
+			1
+			1
+			1
+			1
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightType</Name1>
+			<Name2>LightType</Name2>
+			<Annotation value="1" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>The type of each light source</Value>
+				</Item>
+			</Annotation>
+			<Values value="4" >
+			0
+			0
+			0
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightAmbient</Name1>
+			<Name2>Ambient</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Ambient Light Color</Value>
+				</Item>
+				<Item>
+					<Name>Space</Name>
+					<Type>String</Type>
+					<Value>material</Value>
+				</Item>
+			</Annotation>
+			<Values value="4" >
+			0
+			0
+			0
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gInvColorExpBias</Name1>
+			<Name2>ColorExpBias</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gForcedColor</Name1>
+			<Name2>ForcedColor</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gAspectRatio</Name1>
+			<Name2>AspectRatio</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>NearFarPlane</Name1>
+			<Name2>NearFarPlane</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+	</GlobalVariables>
+	<LocalVariables value="11" >
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>DiffuseSampler</Name1>
+			<Name2>DiffuseTex</Name2>
+			<Annotation value="1" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Diffuse Texture</Value>
+				</Item>
+			</Annotation>
+			<Values value="6" >
+			MipFilter Linear
+			MinFilter Linear
+			MagFilter Linear
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gMotionBlur</Name1>
+			<Name2>MotionBlur</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gRadius</Name1>
+			<Name2>Radius</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float2</Type>
+			<ArrayCount value="0" />
+			<Name1>gLifeFade</Name1>
+			<Name2>LifeFade</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>bool</Type>
+			<ArrayCount value="0" />
+			<Name1>gUseDirectional</Name1>
+			<Name2>UseDirectional</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gTextureAnimation</Name1>
+			<Name2>TextureAnimation</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gColorTint</Name1>
+			<Name2>ColorTint</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gColorTintPhase2</Name1>
+			<Name2>ColorTintPhase2</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>DiffuseSamplerPhase2</Name1>
+			<Name2>DiffuseTex2</Name2>
+			<Annotation value="1" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Second Phase Diffuse Texture</Value>
+				</Item>
+			</Annotation>
+			<Values value="12" >
+			AddressU Clamp
+			AddressV Clamp
+			AddressW Clamp
+			MipFilter Linear
+			MinFilter Linear
+			MagFilter Linear
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>PositionTexSampler</Name1>
+			<Name2>PositionTex</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Point
+			MagFilter Point
+			MipFilter None
+			AddressU Clamp
+			AddressV Clamp
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>VelocityTexSampler</Name1>
+			<Name2>VelocityTex</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Point
+			MagFilter Point
+			MipFilter None
+			AddressU Clamp
+			AddressV Clamp
+		</Values>
+		</Item>
+	</LocalVariables>
+	<Techniques value="5" >
+		<Item>
+			<Name>draw</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>1</PixelShader>
+					<Params />
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>unlit_draw</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>1</PixelShader>
+					<Params />
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>draw_Rain</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>1</VertexShader>
+					<PixelShader>2</PixelShader>
+					<Params />
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>draw_Rain_VERTEXTEX</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>2</VertexShader>
+					<PixelShader>2</PixelShader>
+					<Params value="1" >
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>draw_Rain_R2VB</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>3</VertexShader>
+					<PixelShader>2</PixelShader>
+					<Params value="1" >
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+	</Techniques>
+</Effect>

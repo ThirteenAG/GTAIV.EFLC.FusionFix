@@ -1811,8 +1811,6 @@ private:
                 NewFog();
             else
                 hbDrawPrimitivePostFX.fun();
-            // Transparent geometry and visual effects come next: the reactive mask of temporal AA starts here
-            TemporalAA::OnFogDrawn();
         }
         else if (bInsteadDrawPrimitivePostFX)
         {

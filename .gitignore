@@ -355,11 +355,7 @@ source/**/*.vso
 !source/resources/SMAA_EdgeDetectionVS.vso
 !source/resources/SMAA_BlendingWeightsCalculationVS.vso
 !source/resources/SMAA_NeighborhoodBlendingVS.vso
-!source/resources/temporal/VelocityRigid.vso
-!source/resources/temporal/VelocitySkinned.vso
-!source/resources/temporal/Velocity.pso
-!source/resources/temporal/BoneWrite.vso
-!source/resources/temporal/BoneWrite.pso
+!source/resources/temporal/*.pso
 !source/resources/hdr/HDROutput.pso
 !source/resources/hdr/HDRCalibration.pso
 !source/dxsdk/**

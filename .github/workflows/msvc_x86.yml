@@ -66,8 +66,7 @@ jobs:
     - name: Configure build
       run: ./premake5 vs2026 --with-version=${{ steps.versioning.outputs.version }}
 
-    # Every shader compiled again (those of FusionFixUtils checked against its lock): the job fails when a committed
-    # compiled shader doesn't match its sources
+    # Every shader compiled again: the job fails when a committed compiled shader doesn't match its sources
     - name: Compile shaders
       run: powershell -NoProfile -ExecutionPolicy Bypass -File tools/compileshaders.ps1 -Force -Verify
 

@@ -4,7 +4,7 @@
 // Fusion Fix's pass-through d3d9.dll. It only exists so that unpacking a new release over an old one replaces the old
 // graphics-API proxy d3d9.dll (up to 5.1.2) with a harmless file. Every export goes to the system's d3d9.dll
 // (System32, or SysWOW64 for the 32-bit game); it reads no settings, loads no DXVK and no D3D9On12 driver, shows
-// nothing. The graphics API is the plugin's (MAIN.GraphicsAPI, FusionFixUtils upscaler/graphics_api.h): it points the
+// nothing. The graphics API is the plugin's (MAIN.GraphicsAPI, source/upscaler/graphics_api.h): it points the
 // game's imports that resolve here at its own functions, which tell this file by the export
 // FusionFixPassThroughD3D9. FusionFixHub installs this file only where there is no d3d9.dll or a Fusion Fix one, never
 // over a third-party d3d9.dll (ReShade, ENB, dxwrapper, an ASI loader).

@@ -1,0 +1,103 @@
+Version 1 10
+{
+	Attribute 0
+	{
+		Position -0.00122833 -0.00228328 0.02687220
+		Direction 0.00000000 1.00000000 -0.00000008
+		Origin 0.00000000 0.00000008 1.00000000
+		Color 255 236 204 0
+		_f28 100.00000000
+		_f2C 1.00000000
+		_f30 1.00000000
+		Distance 5.00000000
+		Range 3.00000000
+		CoronaSize 0.80000001
+		HotSpot 0.00000000
+		Falloff 0.00000000
+		Flags 64
+		CoronaHash 3191162493
+		LuminescenceHash 0
+		TypeFlags
+		Type Omni
+		_f58 1.00000000
+		_f5C 75.00000000
+		_f60 15.00000000
+		BoneID 60357
+		_f66 0
+	}
+	Attribute 1
+	{
+		Position -0.00890732 -0.01624010 0.02687240
+		Direction 0.00000000 1.00000000 -0.00000008
+		Origin 0.00000000 0.00000008 1.00000000
+		Color 255 236 204 0
+		_f28 100.00000000
+		_f2C 1.00000000
+		_f30 1.00000000
+		Distance 5.00000000
+		Range 3.00000000
+		CoronaSize 0.80000001
+		HotSpot 0.00000000
+		Falloff 0.00000000
+		Flags 64
+		CoronaHash 3191162493
+		LuminescenceHash 0
+		TypeFlags
+		Type Omni
+		_f58 1.00000000
+		_f5C 75.00000000
+		_f60 15.00000000
+		BoneID 60360
+		_f66 0
+	}
+	Attribute 2
+	{
+		Position -0.00395966 -0.00209728 0.02687220
+		Direction 0.00000000 1.00000000 -0.00000008
+		Origin 0.00000000 0.00000008 1.00000000
+		Color 204 232 252 0
+		_f28 100.00000000
+		_f2C 1.00000000
+		_f30 1.00000000
+		Distance 5.00000000
+		Range 3.00000000
+		CoronaSize 0.80000001
+		HotSpot 0.00000000
+		Falloff 0.00000000
+		Flags 64
+		CoronaHash 3191162493
+		LuminescenceHash 0
+		TypeFlags
+		Type Omni
+		_f58 1.00000000
+		_f5C 75.00000000
+		_f60 15.00000000
+		BoneID 60359
+		_f66 0
+	}
+	Attribute 3
+	{
+		Position 0.00513458 -0.44705200 1.56800997
+		Direction 0.00000000 1.00000000 -0.00000008
+		Origin 0.00000000 0.00000008 1.00000000
+		Color 255 236 204 0
+		_f28 100.00000000
+		_f2C 1.00000000
+		_f30 1.00000000
+		Distance 5.00000000
+		Range 3.00000000
+		CoronaSize 0.80000001
+		HotSpot 0.00000000
+		Falloff 0.00000000
+		Flags 64
+		CoronaHash 3191162493
+		LuminescenceHash 0
+		TypeFlags
+		Type Omni
+		_f58 1.00000000
+		_f5C 75.00000000
+		_f60 15.00000000
+		BoneID 0
+		_f66 0
+	}
+}

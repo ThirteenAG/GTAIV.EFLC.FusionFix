@@ -1,0 +1,3254 @@
+<?xml version="1.0" encoding="UTF - 8"?>
+<Magic value="1635280754" />
+<Game>GTAIV</Game>
+<Platform>PC</Platform>
+<Effect>
+	<Shaders>
+		<VertexShaders value="8" >
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_atmoscatt_clouds\rage_atmoscatt_cloudsVS0.asm</File>
+				<Variables value="14" >
+					<Item>
+						<Type>float3</Type>
+						<Name>AzimuthColor</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>AzimuthColorEast</Name>
+						<Index value="67" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>AzimuthHeight</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>AzimuthStrength</Name>
+						<Index value="71" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>CloudShadowOffset</Name>
+						<Index value="70" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>CloudThicknessEdgeSmoothDetailScaleStrength</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float2</Type>
+						<Name>DetailOffset</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float2</Type>
+						<Name>GalaxyOffset</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>SkyColor</Name>
+						<Index value="65" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>StarFieldUVRepeat</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>SunDirection</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TopCloudBiasDetailThresholdHeight</Name>
+						<Index value="69" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorld</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_atmoscatt_clouds\rage_atmoscatt_cloudsVS1.asm</File>
+				<Variables value="15" >
+					<Item>
+						<Type>float3</Type>
+						<Name>AzimuthColor</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>AzimuthColorEast</Name>
+						<Index value="67" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>AzimuthHeight</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>AzimuthStrength</Name>
+						<Index value="71" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>CloudShadowOffset</Name>
+						<Index value="70" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>CloudThicknessEdgeSmoothDetailScaleStrength</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float2</Type>
+						<Name>DetailOffset</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float2</Type>
+						<Name>GalaxyOffset</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>SkyColor</Name>
+						<Index value="65" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>StarFieldUVRepeat</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>SunDirection</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TopCloudBiasDetailThresholdHeight</Name>
+						<Index value="69" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>dpMapFarClip</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorld</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_atmoscatt_clouds\rage_atmoscatt_cloudsVS2.asm</File>
+				<Variables value="15" >
+					<Item>
+						<Type>float3</Type>
+						<Name>AzimuthColor</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>AzimuthColorEast</Name>
+						<Index value="67" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>AzimuthHeight</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>AzimuthStrength</Name>
+						<Index value="71" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>CloudShadowOffset</Name>
+						<Index value="70" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>CloudThicknessEdgeSmoothDetailScaleStrength</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float2</Type>
+						<Name>DetailOffset</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float2</Type>
+						<Name>GalaxyOffset</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>SkyColor</Name>
+						<Index value="65" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>StarFieldUVRepeat</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>SunDirection</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TopCloudBiasDetailThresholdHeight</Name>
+						<Index value="69" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>dpMapFarClip</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorld</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_atmoscatt_clouds\rage_atmoscatt_cloudsVS3.asm</File>
+				<Variables />
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_atmoscatt_clouds\rage_atmoscatt_cloudsVS4.asm</File>
+				<Variables />
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_atmoscatt_clouds\rage_atmoscatt_cloudsVS5.asm</File>
+				<Variables value="14" >
+					<Item>
+						<Type>float3</Type>
+						<Name>AzimuthColor</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>AzimuthColorEast</Name>
+						<Index value="67" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>AzimuthHeight</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>AzimuthStrength</Name>
+						<Index value="71" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>CloudShadowOffset</Name>
+						<Index value="70" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>CloudThicknessEdgeSmoothDetailScaleStrength</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float2</Type>
+						<Name>DetailOffset</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float2</Type>
+						<Name>GalaxyOffset</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>SkyColor</Name>
+						<Index value="65" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>StarFieldUVRepeat</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>SunDirection</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TopCloudBiasDetailThresholdHeight</Name>
+						<Index value="69" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorld</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldView</Name>
+						<Index value="4" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_atmoscatt_clouds\rage_atmoscatt_cloudsVS6.asm</File>
+				<Variables value="12" >
+					<Item>
+						<Type>float3</Type>
+						<Name>AzimuthColor</Name>
+						<Index value="65" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>AzimuthColorEast</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>AzimuthHeight</Name>
+						<Index value="67" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>AzimuthStrength</Name>
+						<Index value="70" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>CloudFadeOut</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float2</Type>
+						<Name>GalaxyOffset</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>MoonTexPosition</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>SkyColor</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>StarFieldUVRepeat</Name>
+						<Index value="71" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TopCloudBiasDetailThresholdHeight</Name>
+						<Index value="69" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorld</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_atmoscatt_clouds\rage_atmoscatt_cloudsVS7.asm</File>
+				<Variables value="1" >
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+				</Variables>
+			</Item>
+		</VertexShaders>
+		<PixelShaders value="10" >
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_atmoscatt_clouds\rage_atmoscatt_cloudsPS1.asm</File>
+				<Variables value="23" >
+					<Item>
+						<Type>float</Type>
+						<Name>CloudBias</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>CloudColor</Name>
+						<Index value="69" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>CloudFadeOut</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>CloudShadowStrength</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>CloudThicknessEdgeSmoothDetailScaleStrength</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>CloudThreshold</Name>
+						<Index value="71" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GalaxySampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>HDRExposure</Name>
+						<Index value="80" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>HDRExposureClamp</Name>
+						<Index value="82" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>HDRSunExposure</Name>
+						<Index value="81" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>HighDetailNoiseSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>PerlinNoiseSampler</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>StarFieldBrightness</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>SunCentre</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>SunColor</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>SunDirection</Name>
+						<Index value="65" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>SunSize</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>SunsetColor</Name>
+						<Index value="70" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TopCloudBiasDetailThresholdHeight</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>TopCloudColor</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gtaSkyDomeClip</Name>
+						<Index value="67" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gtaWaterColor</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_atmoscatt_clouds\rage_atmoscatt_cloudsPS2.asm</File>
+				<Variables value="25" >
+					<Item>
+						<Type>float3</Type>
+						<Name>AzimuthColor</Name>
+						<Index value="67" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>AzimuthColorEast</Name>
+						<Index value="69" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>AzimuthHeight</Name>
+						<Index value="70" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>AzimuthStrength</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>CloudBias</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>CloudColor</Name>
+						<Index value="71" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>CloudFadeOut</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>CloudShadowStrength</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>CloudThicknessEdgeSmoothDetailScaleStrength</Name>
+						<Index value="80" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>CloudThreshold</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GalaxySampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>HDRExposure</Name>
+						<Index value="83" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>HDRExposureClamp</Name>
+						<Index value="85" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>HDRSunExposure</Name>
+						<Index value="84" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>HighDetailNoiseSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>PerlinNoiseSampler</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>SkyColor</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>StarFieldBrightness</Name>
+						<Index value="81" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>SunCentre</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>SunColor</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>SunDirection</Name>
+						<Index value="65" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>SunSize</Name>
+						<Index value="82" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>SunsetColor</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TopCloudBiasDetailThresholdHeight</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>TopCloudColor</Name>
+						<Index value="77" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_atmoscatt_clouds\rage_atmoscatt_cloudsPS3.asm</File>
+				<Variables value="2" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>SkyMapSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="64" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_atmoscatt_clouds\rage_atmoscatt_cloudsPS4.asm</File>
+				<Variables value="2" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>SkyMapSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="64" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_atmoscatt_clouds\rage_atmoscatt_cloudsPS5.asm</File>
+				<Variables value="22" >
+					<Item>
+						<Type>float</Type>
+						<Name>CloudBias</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>CloudColor</Name>
+						<Index value="69" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>CloudFadeOut</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>CloudShadowStrength</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>CloudThicknessEdgeSmoothDetailScaleStrength</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>CloudThreshold</Name>
+						<Index value="71" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GalaxySampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>HDRExposure</Name>
+						<Index value="80" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>HDRExposureClamp</Name>
+						<Index value="82" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>HDRSunExposure</Name>
+						<Index value="81" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>HighDetailNoiseSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>PerlinNoiseSampler</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>StarFieldBrightness</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>SunCentre</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>SunColor</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>SunDirection</Name>
+						<Index value="65" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>SunSize</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>SunsetColor</Name>
+						<Index value="70" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TopCloudBiasDetailThresholdHeight</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>TopCloudColor</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gtaSkyDomeClip</Name>
+						<Index value="67" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gtaWaterColor</Name>
+						<Index value="68" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_atmoscatt_clouds\rage_atmoscatt_cloudsPS6.asm</File>
+				<Variables value="6" >
+					<Item>
+						<Type>float3</Type>
+						<Name>HDRExposureClamp</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>HDRSunExposure</Name>
+						<Index value="67" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>SunCentre</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>SunColor</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>SunDirection</Name>
+						<Index value="65" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_atmoscatt_clouds\rage_atmoscatt_cloudsPS7.asm</File>
+				<Variables value="32" >
+					<Item>
+						<Type>float</Type>
+						<Name>CloudBias</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>CloudColor</Name>
+						<Index value="70" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>CloudFadeOut</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>CloudShadowStrength</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>CloudThicknessEdgeSmoothDetailScaleStrength</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>CloudThreshold</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GalaxySampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>HDRExposure</Name>
+						<Index value="87" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>HDRExposureClamp</Name>
+						<Index value="89" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>HDRSunExposure</Name>
+						<Index value="88" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>HighDetailNoiseSampler</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>MoonColorConstant</Name>
+						<Index value="83" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>MoonGlow</Name>
+						<Index value="69" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>MoonGlowSampler</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>MoonLight</Name>
+						<Index value="80" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>MoonPosition</Name>
+						<Index value="84" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>MoonSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>MoonVisiblity</Name>
+						<Index value="81" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>MoonXVector</Name>
+						<Index value="85" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>MoonYVector</Name>
+						<Index value="86" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>PerlinNoiseSampler</Name>
+						<Index value="3" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>StarFieldBrightness</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>SunCentre</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>SunColor</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>SunDirection</Name>
+						<Index value="65" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>SunSize</Name>
+						<Index value="82" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>SunsetColor</Name>
+						<Index value="71" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TopCloudBiasDetailThresholdHeight</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>TopCloudColor</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gtaSkyDomeClip</Name>
+						<Index value="67" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gtaWaterColor</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_atmoscatt_clouds\rage_atmoscatt_cloudsPS8.asm</File>
+				<Variables value="24" >
+					<Item>
+						<Type>float</Type>
+						<Name>CloudBias</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>CloudColor</Name>
+						<Index value="69" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>CloudFadeOut</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>CloudShadowStrength</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>CloudThicknessEdgeSmoothDetailScaleStrength</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>CloudThreshold</Name>
+						<Index value="71" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GalaxySampler</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>HDRExposure</Name>
+						<Index value="80" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>HDRExposureClamp</Name>
+						<Index value="82" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>HDRSunExposure</Name>
+						<Index value="81" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>HighDetailNoiseSampler</Name>
+						<Index value="3" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>PerlinNoiseSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>StarFieldBrightness</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>StarFieldSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>SunCentre</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>SunColor</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>SunDirection</Name>
+						<Index value="65" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>SunSize</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>SunsetColor</Name>
+						<Index value="70" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TopCloudBiasDetailThresholdHeight</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>TopCloudColor</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gtaSkyDomeClip</Name>
+						<Index value="67" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gtaWaterColor</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_atmoscatt_clouds\rage_atmoscatt_cloudsPS9.asm</File>
+				<Variables value="33" >
+					<Item>
+						<Type>float</Type>
+						<Name>CloudBias</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>CloudColor</Name>
+						<Index value="70" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>CloudFadeOut</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>CloudShadowStrength</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>CloudThicknessEdgeSmoothDetailScaleStrength</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>CloudThreshold</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GalaxySampler</Name>
+						<Index value="3" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>HDRExposure</Name>
+						<Index value="87" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>HDRExposureClamp</Name>
+						<Index value="89" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>HDRSunExposure</Name>
+						<Index value="88" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>HighDetailNoiseSampler</Name>
+						<Index value="5" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>MoonColorConstant</Name>
+						<Index value="83" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>MoonGlow</Name>
+						<Index value="69" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>MoonGlowSampler</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>MoonLight</Name>
+						<Index value="80" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>MoonPosition</Name>
+						<Index value="84" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>MoonSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>MoonVisiblity</Name>
+						<Index value="81" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>MoonXVector</Name>
+						<Index value="85" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>MoonYVector</Name>
+						<Index value="86" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>PerlinNoiseSampler</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>StarFieldBrightness</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>StarFieldSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>SunCentre</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>SunColor</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>SunDirection</Name>
+						<Index value="65" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>SunSize</Name>
+						<Index value="82" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>SunsetColor</Name>
+						<Index value="71" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TopCloudBiasDetailThresholdHeight</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>TopCloudColor</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gtaSkyDomeClip</Name>
+						<Index value="67" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gtaWaterColor</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_atmoscatt_clouds\rage_atmoscatt_cloudsPS10.asm</File>
+				<Variables value="1" >
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+		</PixelShaders>
+	</Shaders>
+	<GlobalVariables value="14" >
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="64" />
+			<Name1>gAllGlobals</Name1>
+			<Name2>AllGlobals</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorld</Name1>
+			<Name2>World</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorldView</Name1>
+			<Name2>WorldView</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorldViewProj</Name1>
+			<Name2>WorldViewProjection</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gViewInverse</Name1>
+			<Name2>ViewInverse</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="4" />
+			<Name1>gLightPosDir</Name1>
+			<Name2>Position</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>Object</Name>
+					<Type>String</Type>
+					<Value>PointDirLight</Value>
+				</Item>
+				<Item>
+					<Name>Space</Name>
+					<Type>String</Type>
+					<Value>World</Value>
+				</Item>
+			</Annotation>
+			<Values value="16" >
+			1403
+			1441
+			1690
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="4" />
+			<Name1>gLightDir</Name1>
+			<Name2>Direction</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>Object</Name>
+					<Type>String</Type>
+					<Value>Light Direction</Value>
+				</Item>
+				<Item>
+					<Name>Space</Name>
+					<Type>String</Type>
+					<Value>World</Value>
+				</Item>
+			</Annotation>
+			<Values value="16" >
+			0
+			0
+			-1
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="4" />
+			<Name1>gLightColor</Name1>
+			<Name2>Diffuse</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Diffuse Light Color</Value>
+				</Item>
+				<Item>
+					<Name>Object</Name>
+					<Type>String</Type>
+					<Value>LightPos</Value>
+				</Item>
+			</Annotation>
+			<Values value="16" >
+			1
+			1
+			1
+			1
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightType</Name1>
+			<Name2>LightType</Name2>
+			<Annotation value="1" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>The type of each light source</Value>
+				</Item>
+			</Annotation>
+			<Values value="4" >
+			0
+			0
+			0
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightAmbient</Name1>
+			<Name2>Ambient</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Ambient Light Color</Value>
+				</Item>
+				<Item>
+					<Name>Space</Name>
+					<Type>String</Type>
+					<Value>material</Value>
+				</Item>
+			</Annotation>
+			<Values value="4" >
+			0
+			0
+			0
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gInvColorExpBias</Name1>
+			<Name2>ColorExpBias</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gForcedColor</Name1>
+			<Name2>ForcedColor</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gAspectRatio</Name1>
+			<Name2>AspectRatio</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>NearFarPlane</Name1>
+			<Name2>NearFarPlane</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+	</GlobalVariables>
+	<LocalVariables value="59" >
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>AttenuationSampler</Name1>
+			<Name2>AttenuationMap</Name2>
+			<Annotation value="1" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Attenuation Map</Value>
+				</Item>
+			</Annotation>
+			<Values />
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>SunElevation</Name1>
+			<Name2>SunElevation</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Sun Elevation</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="-10.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="10.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.500000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			-1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float3</Type>
+			<ArrayCount value="0" />
+			<Name1>SunCentre</Name1>
+			<Name2>SunCentre</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>TexelSize</Name1>
+			<Name2>TexelSize</Name2>
+			<Annotation />
+			<Values value="4" >
+			0
+			0
+			0
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>DepthMapSampler</Name1>
+			<Name2>DepthMap</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Point
+			MagFilter Point
+			MipFilter None
+			AddressU Clamp
+			AddressV Clamp
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>SkyMapSampler</Name1>
+			<Name2>SkyMapTexture</Name2>
+			<Annotation />
+			<Values value="14" >
+			AddressU Clamp
+			AddressV Clamp
+			AddressW Wrap
+			MipFilter Linear
+			MinFilter Linear
+			MagFilter Linear
+			MipMapLodBias 0
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>MoonSampler</Name1>
+			<Name2>MoonTexture</Name2>
+			<Annotation value="1" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>MoonTexture</Value>
+				</Item>
+			</Annotation>
+			<Values value="16" >
+			AddressU Clamp
+			AddressV Clamp
+			AddressW Wrap
+			MipFilter Linear
+			MinFilter Linear
+			MagFilter Linear
+			MipMapLodBias 0
+			BorderColor -nan
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>MoonGlowSampler</Name1>
+			<Name2>MoonGlowTexture</Name2>
+			<Annotation value="1" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>MoonTexture</Value>
+				</Item>
+			</Annotation>
+			<Values value="16" >
+			AddressU Clamp
+			AddressV Clamp
+			AddressW Clamp
+			MipFilter Linear
+			MinFilter Linear
+			MagFilter Linear
+			MipMapLodBias 0
+			BorderColor -nan
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>StarFieldSampler</Name1>
+			<Name2>StarFieldTexture</Name2>
+			<Annotation value="1" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>StarFieldTexture</Value>
+				</Item>
+			</Annotation>
+			<Values value="14" >
+			AddressU Wrap
+			AddressV Wrap
+			AddressW Wrap
+			MipFilter Linear
+			MinFilter Linear
+			MagFilter Linear
+			MipMapLodBias 0
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>GalaxySampler</Name1>
+			<Name2>GalaxyTexture</Name2>
+			<Annotation value="1" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>GalaxyTexture</Value>
+				</Item>
+			</Annotation>
+			<Values value="14" >
+			AddressU Wrap
+			AddressV Wrap
+			AddressW Wrap
+			MipFilter None
+			MinFilter Linear
+			MagFilter Linear
+			MipMapLodBias 0
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>PerlinNoiseSampler</Name1>
+			<Name2>PerlinNoiseMap</Name2>
+			<Annotation value="1" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Perlin Noise Map</Value>
+				</Item>
+			</Annotation>
+			<Values value="14" >
+			AddressU Wrap
+			AddressV Wrap
+			AddressW Wrap
+			MipFilter Linear
+			MinFilter Linear
+			MagFilter Linear
+			MipMapLodBias 0
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>HighDetailNoiseSampler</Name1>
+			<Name2>HighDetailNoiseMap</Name2>
+			<Annotation value="1" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>HighDetailNoiseMap</Value>
+				</Item>
+			</Annotation>
+			<Values value="14" >
+			AddressU Wrap
+			AddressV Wrap
+			AddressW Wrap
+			MipFilter Linear
+			MinFilter Linear
+			MagFilter Linear
+			MipMapLodBias 0
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>HighDetailNoiseBumpSampler</Name1>
+			<Name2>HighDetailNoiseBumpMap</Name2>
+			<Annotation value="1" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>HighDetailNoiseBumpMap</Value>
+				</Item>
+			</Annotation>
+			<Values value="14" >
+			AddressU Wrap
+			AddressV Wrap
+			AddressW Wrap
+			MipFilter Linear
+			MinFilter Linear
+			MagFilter Linear
+			MipMapLodBias 0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>SunDirection</Name1>
+			<Name2>SunDirection</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float3</Type>
+			<ArrayCount value="0" />
+			<Name1>SkyColor</Name1>
+			<Name2>SkyColor</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float3</Type>
+			<ArrayCount value="0" />
+			<Name1>AzimuthColor</Name1>
+			<Name2>AzimuthColor</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float3</Type>
+			<ArrayCount value="0" />
+			<Name1>SunColor</Name1>
+			<Name2>SunColor</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>UnderLightStrength</Name1>
+			<Name2>UnderLightStrength</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gtaSkyDomeClip</Name1>
+			<Name2>gtaSkyDomeClip</Name2>
+			<Annotation />
+			<Values value="1" >
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float3</Type>
+			<ArrayCount value="0" />
+			<Name1>gtaWaterColor</Name1>
+			<Name2>gtaWaterColor</Name2>
+			<Annotation />
+			<Values value="3" >
+			0
+			0
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>MoonGlow</Name1>
+			<Name2>MoonGlow</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Moon Glow</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="2.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			0.2
+		</Values>
+		</Item>
+		<Item>
+			<Type>float2</Type>
+			<ArrayCount value="0" />
+			<Name1>SunAxias</Name1>
+			<Name2>SunAxias</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Sun Axias</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="-1.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="1.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+			</Annotation>
+			<Values value="2" >
+			1
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float3</Type>
+			<ArrayCount value="0" />
+			<Name1>AzimuthColorEast</Name1>
+			<Name2>AzimuthColorEast</Name2>
+			<Annotation value="4" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Azimuth Color East</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Color</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="1.000000" />
+				</Item>
+			</Annotation>
+			<Values value="3" >
+			1
+			0
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>AzimuthHeight</Name1>
+			<Name2>AzimuthHeight</Name2>
+			<Annotation value="4" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Azimuth Height</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="20.000000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			8
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>CloudColor</Name1>
+			<Name2>CloudColor</Name2>
+			<Annotation value="4" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Cloud Color</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Color</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="1.000000" />
+				</Item>
+			</Annotation>
+			<Values value="4" >
+			0.93
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>SunsetColor</Name1>
+			<Name2>SunsetColor</Name2>
+			<Annotation value="4" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Sunset Color</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Color</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="1.000000" />
+				</Item>
+			</Annotation>
+			<Values value="4" >
+			1
+			0.51
+			0.38
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>CloudThreshold</Name1>
+			<Name2>CloudThreshold</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Cloud Threshold</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="-5.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="5.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.050000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			1.8
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>CloudBias</Name1>
+			<Name2>CloudBias</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Cloud Bias</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="1.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.050000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			0.8
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>CloudFadeOut</Name1>
+			<Name2>CloudFadeOut</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Cloud Fade Out</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="1.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.050000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>TopCloudHeight</Name1>
+			<Name2>TopCloudHeight</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Top Cloudlayer Height</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="10.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.050000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			2
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>TopCloudDetail</Name1>
+			<Name2>TopCloudDetail</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Top Cloudlayer Detail</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="10.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.050000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			3
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>TopCloudThreshold</Name1>
+			<Name2>TopCloudThreshold</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Top Cloudlayer Threshold</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="-5.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="5.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.020000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			0.9
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>TopCloudBiasDetailThresholdHeight</Name1>
+			<Name2>TopCloudBiasDetailThresholdHeight</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Top CloudLayer Bias Height</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="10.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.020000" />
+				</Item>
+			</Annotation>
+			<Values value="4" >
+			0.4
+			3
+			0.9
+			2
+		</Values>
+		</Item>
+		<Item>
+			<Type>float3</Type>
+			<ArrayCount value="0" />
+			<Name1>TopCloudColor</Name1>
+			<Name2>TopCloudColor</Name2>
+			<Annotation value="4" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Top Cloud Color</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Color</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="1.000000" />
+				</Item>
+			</Annotation>
+			<Values value="3" >
+			0.93
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>TopCloudLight</Name1>
+			<Name2>TopCloudLight</Name2>
+			<Annotation value="4" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Top Cloud LIght</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="10.000000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>CloudShadowStrength</Name1>
+			<Name2>CloudShadowStrength</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Cloud Shadow Strength</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="1.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.025000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			0.4
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>CloudShadowOffset</Name1>
+			<Name2>CloudShadowOffset</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Cloud Shadow Offset</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="1.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			0.12
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>CloudInscatteringRange</Name1>
+			<Name2>CloudInscatteringRange</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Cloud Inscattering Range</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.100000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="1.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.100000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>AzimuthStrength</Name1>
+			<Name2>AzimuthStrength</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Azimuth Strength</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="1.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.100000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			0.5
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>CloudThicknessEdgeSmoothDetailScaleStrength</Name1>
+			<Name2>CloudThicknessEdgeSmoothDetailScaleStrength</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Cloud Thickness &amp;	EdgeSmooth DetailScale &amp; Strength</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="64.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.100000" />
+				</Item>
+			</Annotation>
+			<Values value="4" >
+			0.35
+			1
+			16
+			0.15
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>StarFieldBrightness</Name1>
+			<Name2>StarFieldBrightness</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>StarFieldUVRepeat</Name1>
+			<Name2>StarFieldUVRepeat</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>StarFieldUVRepeat</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="64.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			16
+		</Values>
+		</Item>
+		<Item>
+			<Type>float2</Type>
+			<ArrayCount value="0" />
+			<Name1>GalaxyOffset</Name1>
+			<Name2>GalaxyOffset</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>GalaxyOffset</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="-16.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="16.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+			</Annotation>
+			<Values value="2" >
+			0
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>MoonTexPosition</Name1>
+			<Name2>MoonTexPosition</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>MoonTexPosition</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="64.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+			</Annotation>
+			<Values value="4" >
+			0.5
+			0.5
+			0.5
+			0.5
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>MoonLight</Name1>
+			<Name2>MoonLight</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Moon Light</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="64.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+			</Annotation>
+			<Values value="4" >
+			0.5
+			0.5
+			0.5
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>StarThreshold</Name1>
+			<Name2>StarThreshold</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>StarField Threshold</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="-1.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="1.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>MoonVisiblity</Name1>
+			<Name2>MoonVisiblity</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Moon Visiblity</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="5.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>SunSize</Name1>
+			<Name2>SunSize</Name2>
+			<Annotation />
+			<Values value="1" >
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>MoonColorConstant</Name1>
+			<Name2>MoonColorConstant</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float3</Type>
+			<ArrayCount value="0" />
+			<Name1>MoonPosition</Name1>
+			<Name2>MoonPosition</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float3</Type>
+			<ArrayCount value="0" />
+			<Name1>MoonXVector</Name1>
+			<Name2>MoonXVector</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float3</Type>
+			<ArrayCount value="0" />
+			<Name1>MoonYVector</Name1>
+			<Name2>MoonYVector</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float2</Type>
+			<ArrayCount value="0" />
+			<Name1>DetailOffset</Name1>
+			<Name2>DetailOffset</Name2>
+			<Annotation />
+			<Values value="2" >
+			0
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>TimeOfDay</Name1>
+			<Name2>TimeOfDay</Name2>
+			<Annotation />
+			<Values value="1" >
+			5
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>HDRExposure</Name1>
+			<Name2>HDRExposure</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>HDRSunExposure</Name1>
+			<Name2>HDRSunExposure</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float3</Type>
+			<ArrayCount value="0" />
+			<Name1>HDRExposureClamp</Name1>
+			<Name2>HDRExposureClamp</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>dpMapNearClip</Name1>
+			<Name2>dpMapNearClip</Name2>
+			<Annotation />
+			<Values value="1" >
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>dpMapFarClip</Name1>
+			<Name2>dpMapFarClip</Name2>
+			<Annotation />
+			<Values value="1" >
+			20000
+		</Values>
+		</Item>
+	</LocalVariables>
+	<Techniques value="13" >
+		<Item>
+			<Name>draw</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>1</PixelShader>
+					<Params value="5" >
+						<Item>
+							<Type value="0" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>unlit_draw</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>1</PixelShader>
+					<Params value="5" >
+						<Item>
+							<Type value="0" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>dpskyfront_draw</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>1</VertexShader>
+					<PixelShader>1</PixelShader>
+					<Params value="5" >
+						<Item>
+							<Type value="0" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>dpskyback_draw</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>2</VertexShader>
+					<PixelShader>1</PixelShader>
+					<Params value="4" >
+						<Item>
+							<Type value="0" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>drawMiniMe</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>3</VertexShader>
+					<PixelShader>2</PixelShader>
+					<Params value="5" >
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>FastblurMiniMe</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>4</VertexShader>
+					<PixelShader>3</PixelShader>
+					<Params value="5" >
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>blurMiniMe</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>4</VertexShader>
+					<PixelShader>4</PixelShader>
+					<Params value="5" >
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>paraboloid_draw</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>5</VertexShader>
+					<PixelShader>5</PixelShader>
+					<Params value="4" >
+						<Item>
+							<Type value="0" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>draw_sunonly</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>6</VertexShader>
+					<PixelShader>6</PixelShader>
+					<Params value="8" >
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="23" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="4" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="5" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>draw_withmoon</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>7</PixelShader>
+					<Params />
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>draw_withstarfield</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>8</PixelShader>
+					<Params />
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>draw_withstarfield_withmoon</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>9</PixelShader>
+					<Params />
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>draw_stencil</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>7</VertexShader>
+					<PixelShader>10</PixelShader>
+					<Params />
+				</Item>
+			</Passes>
+		</Item>
+	</Techniques>
+</Effect>

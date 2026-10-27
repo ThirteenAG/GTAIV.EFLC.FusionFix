@@ -1,0 +1,1432 @@
+<?xml version="1.0" encoding="UTF - 8"?>
+<Magic value="1635280754" />
+<Game>GTAIV</Game>
+<Platform>PC</Platform>
+<Effect>
+	<Shaders>
+		<VertexShaders value="1" >
+			<Item>
+				<DataType>asm</DataType>
+				<File>gpuptfx_update\gpuptfx_updateVS0.asm</File>
+				<Variables />
+			</Item>
+		</VertexShaders>
+		<PixelShaders value="9" >
+			<Item>
+				<DataType>asm</DataType>
+				<File>gpuptfx_update\gpuptfx_updatePS1.asm</File>
+				<Variables value="15" >
+					<Item>
+						<Type>float4</Type>
+						<Name>Acceleration_Delta</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>EmitterParamLifeAndSpeed</Name>
+						<Index value="71" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>EmitterParamPos</Name>
+						<Index value="69" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>EmitterParamPosRange</Name>
+						<Index value="70" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>EmitterTransform</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>EmitterVelocityBoxPos</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>EmitterVelocityBoxRange</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>InitPositionTexSampler</Name>
+						<Index value="3" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>InitVelocityTexSampler</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>NoiseTexSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>ParticlePosXYTexSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>ParticlePosZWTexSampler</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gCollisionVelocityModifier</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDispersalSettings</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>bool</Type>
+						<Name>gFirstTimeUpdate</Name>
+						<Index value="0" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>gpuptfx_update\gpuptfx_updatePS2.asm</File>
+				<Variables value="20" >
+					<Item>
+						<Type>float4</Type>
+						<Name>Acceleration_Delta</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>EmitterParamLifeAndSpeed</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>EmitterParamPos</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>EmitterParamPosRange</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>EmitterParamProbablityPhase2</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>EmitterTransform</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>EmitterVelocityBoxPos</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>EmitterVelocityBoxRange</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>InitPositionTexSampler</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>InitVelocityTexSampler</Name>
+						<Index value="5" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>NoiseTexSampler</Name>
+						<Index value="3" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>ParticleCollisionSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>ParticlePosXYTexSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>ParticlePosZWTexSampler</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float2</Type>
+						<Name>gCollisionLifeModifier</Name>
+						<Index value="80" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gCollisionPositionModifier</Name>
+						<Index value="81" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gCollisionVelocityModifier</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gDepthViewProjMtx</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDispersalSettings</Name>
+						<Index value="82" />
+					</Item>
+					<Item>
+						<Type>bool</Type>
+						<Name>gFirstTimeUpdate</Name>
+						<Index value="0" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>gpuptfx_update\gpuptfx_updatePS3.asm</File>
+				<Variables value="22" >
+					<Item>
+						<Type>float4</Type>
+						<Name>Acceleration_Delta</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>EmitterParamLifeAndSpeed</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>EmitterParamPos</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>EmitterParamPosRange</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>EmitterParamProbablityPhase2</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>EmitterTransform</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>EmitterVelocityBoxPos</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>EmitterVelocityBoxRange</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>InitPositionTexSampler</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>InitVelocityTexSampler</Name>
+						<Index value="5" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>NoiseTexSampler</Name>
+						<Index value="3" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>ParticleCollisionSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>ParticlePosXYTexSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>ParticlePosZWTexSampler</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float2</Type>
+						<Name>gCollisionLifeModifier</Name>
+						<Index value="80" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gCollisionPositionModifier</Name>
+						<Index value="81" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gCollisionVelocityModifier</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gDepthViewProjMtx</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDispersalSettings</Name>
+						<Index value="82" />
+					</Item>
+					<Item>
+						<Type>bool</Type>
+						<Name>gFirstTimeUpdate</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gGustAmplifier</Name>
+						<Index value="84" />
+					</Item>
+					<Item>
+						<Type>float2</Type>
+						<Name>gGustSpacing</Name>
+						<Index value="83" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>gpuptfx_update\gpuptfx_updatePS4.asm</File>
+				<Variables value="17" >
+					<Item>
+						<Type>float4</Type>
+						<Name>Acceleration_Delta</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>EmitterParamLifeAndSpeed</Name>
+						<Index value="71" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>EmitterParamPos</Name>
+						<Index value="69" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>EmitterParamPosRange</Name>
+						<Index value="70" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>EmitterTransform</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>EmitterVelocityBoxPos</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>EmitterVelocityBoxRange</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>InitPositionTexSampler</Name>
+						<Index value="3" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>InitVelocityTexSampler</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>NoiseTexSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>ParticlePosXYTexSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>ParticlePosZWTexSampler</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gCollisionVelocityModifier</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDispersalSettings</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>bool</Type>
+						<Name>gFirstTimeUpdate</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gGustAmplifier</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float2</Type>
+						<Name>gGustSpacing</Name>
+						<Index value="76" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>gpuptfx_update\gpuptfx_updatePS5.asm</File>
+				<Variables value="18" >
+					<Item>
+						<Type>float4</Type>
+						<Name>Acceleration_Delta</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>EmitterParamLifeAndSpeed</Name>
+						<Index value="71" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>EmitterParamPos</Name>
+						<Index value="69" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>EmitterParamPosRange</Name>
+						<Index value="70" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>EmitterParamProbablityPhase2</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>EmitterTransform</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>EmitterVelocityBoxPos</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>EmitterVelocityBoxRange</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>InitPositionTexSampler</Name>
+						<Index value="3" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>InitVelocityTexSampler</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>NoiseTexSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>ParticlePosXYTexSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>ParticlePosZWTexSampler</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float2</Type>
+						<Name>gCollisionLifeModifier</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gCollisionVelocityModifier</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDispersalSettings</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>bool</Type>
+						<Name>gFirstTimeUpdate</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gHitPlane</Name>
+						<Index value="75" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>gpuptfx_update\gpuptfx_updatePS6.asm</File>
+				<Variables value="20" >
+					<Item>
+						<Type>float4</Type>
+						<Name>Acceleration_Delta</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>EmitterParamLifeAndSpeed</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>EmitterParamPos</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>EmitterParamPosRange</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>EmitterParamProbablityPhase2</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>EmitterTransform</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>EmitterVelocityBoxPos</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>EmitterVelocityBoxRange</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>InitPositionTexSampler</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>InitVelocityTexSampler</Name>
+						<Index value="5" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>NoiseTexSampler</Name>
+						<Index value="3" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>ParticleCollisionSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>ParticlePosXYTexSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>ParticlePosZWTexSampler</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float2</Type>
+						<Name>gCollisionLifeModifier</Name>
+						<Index value="80" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gCollisionPositionModifier</Name>
+						<Index value="81" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gCollisionVelocityModifier</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gDepthViewProjMtx</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDispersalSettings</Name>
+						<Index value="82" />
+					</Item>
+					<Item>
+						<Type>bool</Type>
+						<Name>gFirstTimeUpdate</Name>
+						<Index value="0" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>gpuptfx_update\gpuptfx_updatePS7.asm</File>
+				<Variables value="22" >
+					<Item>
+						<Type>float4</Type>
+						<Name>Acceleration_Delta</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>EmitterParamLifeAndSpeed</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>EmitterParamPos</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>EmitterParamPosRange</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>EmitterParamProbablityPhase2</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>EmitterTransform</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>EmitterVelocityBoxPos</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>EmitterVelocityBoxRange</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>InitPositionTexSampler</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>InitVelocityTexSampler</Name>
+						<Index value="5" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>NoiseTexSampler</Name>
+						<Index value="3" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>ParticleCollisionSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>ParticlePosXYTexSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>ParticlePosZWTexSampler</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float2</Type>
+						<Name>gCollisionLifeModifier</Name>
+						<Index value="80" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gCollisionPositionModifier</Name>
+						<Index value="81" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gCollisionVelocityModifier</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gDepthViewProjMtx</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDispersalSettings</Name>
+						<Index value="82" />
+					</Item>
+					<Item>
+						<Type>bool</Type>
+						<Name>gFirstTimeUpdate</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gGustAmplifier</Name>
+						<Index value="84" />
+					</Item>
+					<Item>
+						<Type>float2</Type>
+						<Name>gGustSpacing</Name>
+						<Index value="83" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>gpuptfx_update\gpuptfx_updatePS8.asm</File>
+				<Variables value="20" >
+					<Item>
+						<Type>float4</Type>
+						<Name>Acceleration_Delta</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>EmitterParamLifeAndSpeed</Name>
+						<Index value="71" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>EmitterParamPos</Name>
+						<Index value="69" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>EmitterParamPosRange</Name>
+						<Index value="70" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>EmitterParamProbablityPhase2</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>EmitterTransform</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>EmitterVelocityBoxPos</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>EmitterVelocityBoxRange</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>InitPositionTexSampler</Name>
+						<Index value="3" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>InitVelocityTexSampler</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>NoiseTexSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>ParticlePosXYTexSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>ParticlePosZWTexSampler</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float2</Type>
+						<Name>gCollisionLifeModifier</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gCollisionVelocityModifier</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDispersalSettings</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>bool</Type>
+						<Name>gFirstTimeUpdate</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gGustAmplifier</Name>
+						<Index value="80" />
+					</Item>
+					<Item>
+						<Type>float2</Type>
+						<Name>gGustSpacing</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gHitPlane</Name>
+						<Index value="75" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>gpuptfx_update\gpuptfx_updatePS9.asm</File>
+				<Variables />
+			</Item>
+		</PixelShaders>
+	</Shaders>
+	<GlobalVariables value="14" >
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="64" />
+			<Name1>gAllGlobals</Name1>
+			<Name2>AllGlobals</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x3</Type>
+			<ArrayCount value="48" />
+			<Name1>gBoneMtx</Name1>
+			<Name2>WorldMatrixArray</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorld</Name1>
+			<Name2>World</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorldView</Name1>
+			<Name2>WorldView</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorldViewProj</Name1>
+			<Name2>WorldViewProjection</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gViewInverse</Name1>
+			<Name2>ViewInverse</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="4" />
+			<Name1>gLightPosDir</Name1>
+			<Name2>Position</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>Object</Name>
+					<Type>String</Type>
+					<Value>PointDirLight</Value>
+				</Item>
+				<Item>
+					<Name>Space</Name>
+					<Type>String</Type>
+					<Value>World</Value>
+				</Item>
+			</Annotation>
+			<Values value="16" >
+			1403
+			1441
+			1690
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="4" />
+			<Name1>gLightDir</Name1>
+			<Name2>Direction</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>Object</Name>
+					<Type>String</Type>
+					<Value>Light Direction</Value>
+				</Item>
+				<Item>
+					<Name>Space</Name>
+					<Type>String</Type>
+					<Value>World</Value>
+				</Item>
+			</Annotation>
+			<Values value="16" >
+			0
+			0
+			-1
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="4" />
+			<Name1>gLightColor</Name1>
+			<Name2>Diffuse</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Diffuse Light Color</Value>
+				</Item>
+				<Item>
+					<Name>Object</Name>
+					<Type>String</Type>
+					<Value>LightPos</Value>
+				</Item>
+			</Annotation>
+			<Values value="16" >
+			1
+			1
+			1
+			1
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightType</Name1>
+			<Name2>LightType</Name2>
+			<Annotation value="1" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>The type of each light source</Value>
+				</Item>
+			</Annotation>
+			<Values value="4" >
+			0
+			0
+			0
+			0
+			</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightAmbient</Name1>
+			<Name2>Ambient</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Ambient Light Color</Value>
+				</Item>
+				<Item>
+					<Name>Space</Name>
+					<Type>String</Type>
+					<Value>material</Value>
+				</Item>
+			</Annotation>
+			<Values value="4" >
+			0
+			0
+			0
+			1
+			</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gInvColorExpBias</Name1>
+			<Name2>ColorExpBias</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gForcedColor</Name1>
+			<Name2>ForcedColor</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+			</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gAspectRatio</Name1>
+			<Name2>AspectRatio</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+			</Values>
+		</Item>
+	</GlobalVariables>
+	<LocalVariables value="25" >
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>ParticlePosXYTexSampler</Name1>
+			<Name2>ParticlePosXY</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Point
+			MagFilter Point
+			MipFilter None
+			AddressU Clamp
+			AddressV Clamp
+			</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>ParticlePosZWTexSampler</Name1>
+			<Name2>ParticlePosZW</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Point
+			MagFilter Point
+			MipFilter None
+			AddressU Clamp
+			AddressV Clamp
+			</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>ParticleVelXYTexSampler</Name1>
+			<Name2>ParticleVelXY</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Point
+			MagFilter Point
+			MipFilter None
+			AddressU Clamp
+			AddressV Clamp
+			</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>ParticleVelZWTexSampler</Name1>
+			<Name2>ParticleVelZW</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Point
+			MagFilter Point
+			MipFilter None
+			AddressU Clamp
+			AddressV Clamp
+			</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>ParticleCollisionSampler</Name1>
+			<Name2>ParticleCollisionTexture</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Point
+			MagFilter Point
+			MipFilter None
+			AddressU Clamp
+			AddressV Clamp
+			</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>NoiseTexSampler</Name1>
+			<Name2>NoiseTexture</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Point
+			MagFilter Point
+			MipFilter None
+			AddressU Wrap
+			AddressV Wrap
+			</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>InitPositionTexSampler</Name1>
+			<Name2>InitPositionTex</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Point
+			MagFilter Point
+			MipFilter None
+			AddressU Clamp
+			AddressV Clamp
+			</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>InitVelocityTexSampler</Name1>
+			<Name2>InitVelocityTex</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Point
+			MagFilter Point
+			MipFilter None
+			AddressU Clamp
+			AddressV Clamp
+			</Values>
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>EmitterTransform</Name1>
+			<Name2>EmitterTransform</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>Acceleration_Delta</Name1>
+			<Name2>Acceleration_Delta</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float3</Type>
+			<ArrayCount value="0" />
+			<Name1>EmitterParamPos</Name1>
+			<Name2>EmitterParamPos</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float3</Type>
+			<ArrayCount value="0" />
+			<Name1>EmitterParamPosRange</Name1>
+			<Name2>EmitterParamPosRange</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>EmitterParamLifeAndSpeed</Name1>
+			<Name2>EmitterParamLifeAndSpeed</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>EmitterParamProbablityPhase2</Name1>
+			<Name2>EmitterParamProbablityPhase2</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float3</Type>
+			<ArrayCount value="0" />
+			<Name1>EmitterVelocityBoxPos</Name1>
+			<Name2>EmitterVelocityBoxPos</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>EmitterVelocityBoxRange</Name1>
+			<Name2>EmitterVelocityBoxRange</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gHitPlane</Name1>
+			<Name2>gHitPlane</Name2>
+			<Annotation />
+			<Values value="4" >
+			0
+			1
+			0
+			2
+			</Values>
+		</Item>
+		<Item>
+			<Type>float3</Type>
+			<ArrayCount value="0" />
+			<Name1>gCollisionVelocityModifier</Name1>
+			<Name2>CollisionVelocityModifier</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float2</Type>
+			<ArrayCount value="0" />
+			<Name1>gCollisionLifeModifier</Name1>
+			<Name2>CollisionLifeModifier</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float3</Type>
+			<ArrayCount value="0" />
+			<Name1>gCollisionPositionModifier</Name1>
+			<Name2>CollisionPositionModifier</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gDepthViewProjMtx</Name1>
+			<Name2>DepthViewProjMtx</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gDispersalSettings</Name1>
+			<Name2>DispersalSettings</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float2</Type>
+			<ArrayCount value="0" />
+			<Name1>gGustSpacing</Name1>
+			<Name2>GustSpacing</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float3</Type>
+			<ArrayCount value="0" />
+			<Name1>gGustAmplifier</Name1>
+			<Name2>GustAmplifier</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>bool</Type>
+			<ArrayCount value="0" />
+			<Name1>gFirstTimeUpdate</Name1>
+			<Name2>FirstTimeUpdate</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+	</LocalVariables>
+	<Techniques value="10" >
+		<Item>
+			<Name>draw</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>1</PixelShader>
+					<Params />
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>unlit_draw</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>1</PixelShader>
+					<Params />
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>drawHeightMap</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>2</PixelShader>
+					<Params />
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>drawHeightMapGusts</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>3</PixelShader>
+					<Params />
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>drawPlaneGusts</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>4</PixelShader>
+					<Params />
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>drawYUp</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>5</PixelShader>
+					<Params />
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>drawHeightMapYUp</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>6</PixelShader>
+					<Params />
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>drawHeightMapGustsYUp</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>7</PixelShader>
+					<Params />
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>drawPlaneGustsYUp</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>8</PixelShader>
+					<Params />
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>InitialiseParticles</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>9</PixelShader>
+					<Params />
+				</Item>
+			</Passes>
+		</Item>
+	</Techniques>
+</Effect>

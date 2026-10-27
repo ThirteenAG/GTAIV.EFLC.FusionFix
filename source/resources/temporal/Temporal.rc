@@ -1,12 +1,5 @@
-#define IDR_TEMPORAL_VS_RIGID           3001
-#define IDR_TEMPORAL_VS_SKINNED         3002
-#define IDR_TEMPORAL_PS_VELOCITY        3003
-#define IDR_TEMPORAL_VS_BONEWRITE       3004
-#define IDR_TEMPORAL_PS_BONEWRITE       3005
-
-IDR_TEMPORAL_VS_RIGID           RCDATA "VelocityRigid.vso"
-IDR_TEMPORAL_VS_SKINNED         RCDATA "VelocitySkinned.vso"
-IDR_TEMPORAL_PS_VELOCITY        RCDATA "Velocity.pso"
-IDR_TEMPORAL_VS_BONEWRITE       RCDATA "BoneWrite.vso"
-IDR_TEMPORAL_PS_BONEWRITE       RCDATA "BoneWrite.pso"
+3001 RCDATA "Resolve.pso"
+3002 RCDATA "CopyDepth.pso"
+3003 RCDATA "Copy.pso"
+3004 RCDATA "BridgeMotion.pso"
 

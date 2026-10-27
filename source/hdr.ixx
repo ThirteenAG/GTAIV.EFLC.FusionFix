@@ -33,7 +33,7 @@ import windowed;
 //   space and the HDR metadata are set with DXVK's swap chain extension.
 // - DirectX 12: the system's D3D9 runtime refuses float back buffers, so the back buffer keeps its 8-bit format for the
 //   runtime and the game, and the driver stores it as 16-bit float and presents it in scRGB with the HDR metadata
-//   (D3D9On12SetHdrOutput, FusionFixUtils upscaler/D3D9On12Extensions.h). Only a window's swap chain has a color
+//   (D3D9On12SetHdrOutput, source/upscaler/D3D9On12Extensions.h). Only a window's swap chain has a color
 //   space: with HDR on, fullscreen is a window over the monitor instead of exclusive (graphics_api.h
 //   SetWindowedOnDriver, ApplyResetWindowMode; windowed.ixx places it). Keep this presentation path for the
 //   session, including SDR, so focus recovery never transfers the window between runtime-owned exclusive

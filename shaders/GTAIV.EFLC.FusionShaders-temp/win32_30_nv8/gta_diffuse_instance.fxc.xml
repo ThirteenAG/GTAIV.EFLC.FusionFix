@@ -1,0 +1,1588 @@
+<?xml version="1.0" encoding="UTF - 8"?>
+<Magic value="1635280754" />
+<Game>GTAIV</Game>
+<Platform>PC</Platform>
+<Effect>
+	<Shaders>
+		<VertexShaders value="3" >
+			<Item>
+				<DataType>asm</DataType>
+				<File>gta_diffuse_instance\gta_diffuse_instanceVS0.asm</File>
+				<Variables value="3" >
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldInstanceInverseTranspose</Name>
+						<Index value="212" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldInstanceMatrix</Name>
+						<Index value="208" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>gta_diffuse_instance\gta_diffuse_instanceVS1.asm</File>
+				<Variables value="4" >
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorld</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldInstanceInverseTranspose</Name>
+						<Index value="212" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldInstanceMatrix</Name>
+						<Index value="208" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>gta_diffuse_instance\gta_diffuse_instanceVS2.asm</File>
+				<Variables value="2" >
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gShadowMatrix</Name>
+						<Index value="60" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldInstanceMatrix</Name>
+						<Index value="208" />
+					</Item>
+				</Variables>
+			</Item>
+		</VertexShaders>
+		<PixelShaders value="7" >
+			<Item>
+				<DataType>asm</DataType>
+				<File>gta_diffuse_instance\gta_diffuse_instancePS1.asm</File>
+				<Variables value="45" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>StippleTexture</Name>
+						<Index value="10" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>TextureSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDepthFxParams</Name>
+						<Index value="16" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDirectionalColour</Name>
+						<Index value="18" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDirectionalLight</Name>
+						<Index value="17" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gFacetCentre</Name>
+						<Index value="54" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightAmbient0</Name>
+						<Index value="37" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightAmbient1</Name>
+						<Index value="38" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightColB</Name>
+						<Index value="31" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightColG</Name>
+						<Index value="30" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightColR</Name>
+						<Index value="29" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightConeOffset</Name>
+						<Index value="27" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightConeOffset2</Name>
+						<Index value="71" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightConeScale</Name>
+						<Index value="26" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightConeScale2</Name>
+						<Index value="70" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightDir2X</Name>
+						<Index value="67" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightDir2Y</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightDir2Z</Name>
+						<Index value="69" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightDirX</Name>
+						<Index value="22" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightDirY</Name>
+						<Index value="23" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightDirZ</Name>
+						<Index value="24" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightFallOff</Name>
+						<Index value="25" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPointColB</Name>
+						<Index value="65" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPointColG</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPointColR</Name>
+						<Index value="35" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPointFallOff</Name>
+						<Index value="36" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPointPosX</Name>
+						<Index value="32" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPointPosY</Name>
+						<Index value="33" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPointPosZ</Name>
+						<Index value="34" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPosX</Name>
+						<Index value="19" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPosY</Name>
+						<Index value="20" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPosZ</Name>
+						<Index value="21" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gShadowMatrix</Name>
+						<Index value="60" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam0123</Name>
+						<Index value="57" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam14151617</Name>
+						<Index value="56" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam18192021</Name>
+						<Index value="53" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam4567</Name>
+						<Index value="58" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam891113</Name>
+						<Index value="59" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>gShadowZSamplerDir</Name>
+						<Index value="15" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalFogColor</Name>
+						<Index value="42" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalFogColorN</Name>
+						<Index value="43" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalFogParams</Name>
+						<Index value="41" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalScalars</Name>
+						<Index value="39" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>gta_diffuse_instance\gta_diffuse_instancePS2.asm</File>
+				<Variables value="2" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>TextureSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>gta_diffuse_instance\gta_diffuse_instancePS3.asm</File>
+				<Variables value="4" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>TextureSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalScalars</Name>
+						<Index value="39" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>stencil</Name>
+						<Index value="52" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>gta_diffuse_instance\gta_diffuse_instancePS4.asm</File>
+				<Variables value="21" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>StippleTexture</Name>
+						<Index value="10" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>TextureSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDepthFxParams</Name>
+						<Index value="16" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDirectionalColour</Name>
+						<Index value="18" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDirectionalLight</Name>
+						<Index value="17" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gFacetCentre</Name>
+						<Index value="54" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightAmbient0</Name>
+						<Index value="37" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightAmbient1</Name>
+						<Index value="38" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gShadowMatrix</Name>
+						<Index value="60" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam0123</Name>
+						<Index value="57" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam14151617</Name>
+						<Index value="56" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam18192021</Name>
+						<Index value="53" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam4567</Name>
+						<Index value="58" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam891113</Name>
+						<Index value="59" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>gShadowZSamplerDir</Name>
+						<Index value="15" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalFogColor</Name>
+						<Index value="42" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalFogColorN</Name>
+						<Index value="43" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalFogParams</Name>
+						<Index value="41" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalScalars</Name>
+						<Index value="39" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>gta_diffuse_instance\gta_diffuse_instancePS5.asm</File>
+				<Variables value="3" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>StippleTexture</Name>
+						<Index value="10" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>TextureSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalScalars</Name>
+						<Index value="39" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>gta_diffuse_instance\gta_diffuse_instancePS6.asm</File>
+				<Variables value="3" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>StippleTexture</Name>
+						<Index value="10" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>TextureSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalScalars</Name>
+						<Index value="39" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>gta_diffuse_instance\gta_diffuse_instancePS7.asm</File>
+				<Variables value="33" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>StippleTexture</Name>
+						<Index value="10" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>TextureSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDepthFxParams</Name>
+						<Index value="16" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDirectionalColour</Name>
+						<Index value="18" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDirectionalLight</Name>
+						<Index value="17" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gFacetCentre</Name>
+						<Index value="54" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightAmbient0</Name>
+						<Index value="37" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightAmbient1</Name>
+						<Index value="38" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightColB</Name>
+						<Index value="31" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightColG</Name>
+						<Index value="30" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightColR</Name>
+						<Index value="29" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightConeOffset</Name>
+						<Index value="27" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightConeScale</Name>
+						<Index value="26" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightDirX</Name>
+						<Index value="22" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightDirY</Name>
+						<Index value="23" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightDirZ</Name>
+						<Index value="24" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightFallOff</Name>
+						<Index value="25" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPosX</Name>
+						<Index value="19" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPosY</Name>
+						<Index value="20" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPosZ</Name>
+						<Index value="21" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gShadowMatrix</Name>
+						<Index value="60" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam0123</Name>
+						<Index value="57" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam14151617</Name>
+						<Index value="56" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam18192021</Name>
+						<Index value="53" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam4567</Name>
+						<Index value="58" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam891113</Name>
+						<Index value="59" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>gShadowZSamplerDir</Name>
+						<Index value="15" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalFogColor</Name>
+						<Index value="42" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalFogColorN</Name>
+						<Index value="43" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalFogParams</Name>
+						<Index value="41" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalScalars</Name>
+						<Index value="39" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+		</PixelShaders>
+	</Shaders>
+	<GlobalVariables value="59" >
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="64" />
+			<Name1>gAllGlobals</Name1>
+			<Name2>AllGlobals</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorld</Name1>
+			<Name2>World</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorldView</Name1>
+			<Name2>WorldView</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorldViewProj</Name1>
+			<Name2>WorldViewProjection</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gViewInverse</Name1>
+			<Name2>ViewInverse</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>StippleTexture</Name1>
+			<Name2>stippletexture</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Point
+			MagFilter Point
+			MipFilter Point
+			AddressU Wrap
+			AddressV Wrap
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gDepthFxParams</Name1>
+			<Name2>DepthFxParams</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gDirectionalLight</Name1>
+			<Name2>DirectionalLight</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gDirectionalColour</Name1>
+			<Name2>DirectionalColour</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPosX</Name1>
+			<Name2>LightPositionX</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPosY</Name1>
+			<Name2>LightPositionY</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPosZ</Name1>
+			<Name2>LightPositionZ</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightDirX</Name1>
+			<Name2>LightDirX</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightDirY</Name1>
+			<Name2>LightDirY</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightDirZ</Name1>
+			<Name2>LightDirZ</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightFallOff</Name1>
+			<Name2>LightFallOff</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightConeScale</Name1>
+			<Name2>LightConeScale</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightConeOffset</Name1>
+			<Name2>LightConeOffset</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightColR</Name1>
+			<Name2>LightColR</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightColG</Name1>
+			<Name2>LightColG</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightColB</Name1>
+			<Name2>LightColB</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointPosX</Name1>
+			<Name2>LightPointPositionX</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointPosY</Name1>
+			<Name2>LightPointPositionY</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointPosZ</Name1>
+			<Name2>LightPointPositionZ</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointColR</Name1>
+			<Name2>LightPointColR</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointColG</Name1>
+			<Name2>LightPointColG</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointColB</Name1>
+			<Name2>LightPointColB</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointFallOff</Name1>
+			<Name2>LightPointFallOff</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightDir2X</Name1>
+			<Name2>LightDir2X</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightDir2Y</Name1>
+			<Name2>LightDir2Y</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightDir2Z</Name1>
+			<Name2>LightDir2Z</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightConeScale2</Name1>
+			<Name2>LightConeScale2</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightConeOffset2</Name1>
+			<Name2>LightConeOffset2</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightAmbient0</Name1>
+			<Name2>LightAmbientColor0</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Ambient Light Color 0</Value>
+				</Item>
+				<Item>
+					<Name>Space</Name>
+					<Type>String</Type>
+					<Value>material</Value>
+				</Item>
+			</Annotation>
+			<Values value="4" >
+			0
+			0
+			0
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightAmbient1</Name1>
+			<Name2>LightAmbientColor1</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Ambient Light Color 1</Value>
+				</Item>
+				<Item>
+					<Name>Space</Name>
+					<Type>String</Type>
+					<Value>material</Value>
+				</Item>
+			</Annotation>
+			<Values value="4" >
+			0
+			0
+			0
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>globalScalars</Name1>
+			<Name2>globalScalars</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>globalScalars2</Name1>
+			<Name2>globalScalars2</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gAspectRatio</Name1>
+			<Name2>gAspectRatio</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>globalScreenSize</Name1>
+			<Name2>globalScreenSize</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>globalFogParams</Name1>
+			<Name2>globalFogParams</Name2>
+			<Annotation />
+			<Values value="4" >
+			1600
+			9e+06
+			0.01
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>globalFogColor</Name1>
+			<Name2>globalFogColor</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>globalFogColorN</Name1>
+			<Name2>globalFogColorN</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gDayNightEffects</Name1>
+			<Name2>globalDayNightEffects</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			0
+			1
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gInvColorExpBias</Name1>
+			<Name2>ColorExpBias</Name2>
+			<Annotation />
+			<Values value="1" >
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>colorize</Name1>
+			<Name2>Colorize</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>stencil</Name1>
+			<Name2>Stencil</Name2>
+			<Annotation />
+			<Values value="4" >
+			0
+			255
+			0
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gFacetCentre</Name1>
+			<Name2>FacetCentre</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowCommonParam0123</Name1>
+			<Name2>ShadowCommonParam0123</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowParam14151617</Name1>
+			<Name2>ShadowParam14151617</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowParam18192021</Name1>
+			<Name2>ShadowParam18192021</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowParam0123</Name1>
+			<Name2>ShadowParam0123</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowParam4567</Name1>
+			<Name2>ShadowParam4567</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowParam891113</Name1>
+			<Name2>ShadowParam891113</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowMatrix</Name1>
+			<Name2>ShadowMatrix</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowZSamplerDir</Name1>
+			<Name2>ShadowZTextureDir</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Clamp
+			AddressV Clamp
+			MipFilter Point
+			MinFilter Point
+			MagFilter Point
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowZSamplerDirVS</Name1>
+			<Name2>ShadowZTextureDirVS</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Clamp
+			AddressV Clamp
+			MipFilter Point
+			MinFilter Point
+			MagFilter Point
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowZSamplerCache</Name1>
+			<Name2>ShadowZTextureCache</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Clamp
+			AddressV Clamp
+			MipFilter Point
+			MinFilter Point
+			MagFilter Point
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowSamplerLUT</Name1>
+			<Name2>ShadowTextureLUT</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Wrap
+			AddressV Wrap
+			MipFilter Point
+			MinFilter Linear
+			MagFilter Linear
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>NearFarPlane</Name1>
+			<Name2>NearFarPlane</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+	</GlobalVariables>
+	<LocalVariables value="6" >
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>TextureSampler</Name1>
+			<Name2>DiffuseTex</Name2>
+			<Annotation value="1" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Diffuse Texture</Value>
+				</Item>
+			</Annotation>
+			<Values value="14" >
+			AddressU Wrap
+			AddressV Wrap
+			AddressW Wrap
+			AddressW Wrap
+			MipFilter Linear
+			MinFilter Anisotropic
+			MagFilter Linear
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>shadowmap_res</Name1>
+			<Name2>ShadowMapResolution</Name2>
+			<Annotation />
+			<Values value="1" >
+			1280
+		</Values>
+		</Item>
+		<Item>
+			<Type>float2</Type>
+			<ArrayCount value="4" />
+			<Name1>facetMask</Name1>
+			<Name2>facetMask</Name2>
+			<Annotation />
+			<Values value="8" >
+			-1
+			0
+			1
+			0
+			0
+			-1
+			0
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float3</Type>
+			<ArrayCount value="0" />
+			<Name1>LuminanceConstants</Name1>
+			<Name2>LuminanceConstants</Name2>
+			<Annotation />
+			<Values value="3" >
+			0.2125
+			0.7154
+			0.0721
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorldInstanceMatrix</Name1>
+			<Name2>gWorldInstanceMatrix</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorldInstanceInverseTranspose</Name1>
+			<Name2>gWorldInstanceInverseTranspose</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+	</LocalVariables>
+	<Techniques value="16" >
+		<Item>
+			<Name>draw</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>1</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>drawskinned</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>1</VertexShader>
+					<PixelShader>1</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>unlit_draw</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>2</PixelShader>
+					<Params value="1" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>unlit_drawskinned</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>1</VertexShader>
+					<PixelShader>2</PixelShader>
+					<Params value="1" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>deferred_draw</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>3</PixelShader>
+					<Params />
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>deferred_drawskinned</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>1</VertexShader>
+					<PixelShader>3</PixelShader>
+					<Params />
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>reflection_draw</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>4</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>reflection_drawskinned</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>1</VertexShader>
+					<PixelShader>4</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>wd_draw</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>2</VertexShader>
+					<PixelShader>5</PixelShader>
+					<Params />
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>wd_drawskinned</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>2</VertexShader>
+					<PixelShader>5</PixelShader>
+					<Params />
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>wd_masked_draw</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>2</VertexShader>
+					<PixelShader>6</PixelShader>
+					<Params />
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>wd_masked_drawskinned</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>2</VertexShader>
+					<PixelShader>6</PixelShader>
+					<Params />
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>lightweight0_draw</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>4</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>lightweight0_drawskinned</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>1</VertexShader>
+					<PixelShader>4</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>lightweight4_draw</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>7</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>lightweight4_drawskinned</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>1</VertexShader>
+					<PixelShader>7</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+	</Techniques>
+</Effect>

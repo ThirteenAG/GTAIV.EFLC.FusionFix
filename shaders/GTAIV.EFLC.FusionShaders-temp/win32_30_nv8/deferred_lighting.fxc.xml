@@ -1,0 +1,5693 @@
+<?xml version="1.0" encoding="UTF - 8"?>
+<Magic value="1635280754" />
+<Game>GTAIV</Game>
+<Platform>PC</Platform>
+<Effect>
+	<Shaders>
+		<VertexShaders value="21" >
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingVS0.asm</File>
+				<Variables value="3" >
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredProjParams</Name>
+						<Index value="209" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="208" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingVS1.asm</File>
+				<Variables value="9" >
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeAngle</Name>
+						<Index value="215" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeAngleI</Name>
+						<Index value="214" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightDirection</Name>
+						<Index value="210" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightPosition</Name>
+						<Index value="209" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightRadius</Name>
+						<Index value="212" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightTangent</Name>
+						<Index value="211" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightType</Name>
+						<Index value="208" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredVolumeRadiusScale</Name>
+						<Index value="213" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingVS2.asm</File>
+				<Variables value="9" >
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeAngle</Name>
+						<Index value="215" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeAngleI</Name>
+						<Index value="214" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightDirection</Name>
+						<Index value="210" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightPosition</Name>
+						<Index value="209" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightRadius</Name>
+						<Index value="212" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightTangent</Name>
+						<Index value="211" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightType</Name>
+						<Index value="208" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredVolumeRadiusScale</Name>
+						<Index value="213" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingVS3.asm</File>
+				<Variables value="10" >
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeAngle</Name>
+						<Index value="215" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeAngleI</Name>
+						<Index value="214" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightDirection</Name>
+						<Index value="210" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightPosition</Name>
+						<Index value="209" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightRadius</Name>
+						<Index value="212" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightTangent</Name>
+						<Index value="211" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightType</Name>
+						<Index value="208" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredVolumeRadiusScale</Name>
+						<Index value="213" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingVS4.asm</File>
+				<Variables value="9" >
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeAngle</Name>
+						<Index value="215" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeAngleI</Name>
+						<Index value="214" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightDirection</Name>
+						<Index value="210" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightPosition</Name>
+						<Index value="209" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightRadius</Name>
+						<Index value="212" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightTangent</Name>
+						<Index value="211" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightType</Name>
+						<Index value="208" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredVolumeRadiusScale</Name>
+						<Index value="213" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingVS5.asm</File>
+				<Variables value="9" >
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeAngle</Name>
+						<Index value="215" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeAngleI</Name>
+						<Index value="214" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightDirection</Name>
+						<Index value="210" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightPosition</Name>
+						<Index value="209" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightRadius</Name>
+						<Index value="212" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightTangent</Name>
+						<Index value="211" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightType</Name>
+						<Index value="208" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredVolumeRadiusScale</Name>
+						<Index value="213" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingVS6.asm</File>
+				<Variables value="10" >
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeAngle</Name>
+						<Index value="215" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeAngleI</Name>
+						<Index value="214" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightDirection</Name>
+						<Index value="210" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightPosition</Name>
+						<Index value="209" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightRadius</Name>
+						<Index value="212" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightTangent</Name>
+						<Index value="211" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightType</Name>
+						<Index value="208" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredVolumeRadiusScale</Name>
+						<Index value="213" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingVS7.asm</File>
+				<Variables value="12" >
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredLightColourAndIntensity</Name>
+						<Index value="216" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeAngle</Name>
+						<Index value="215" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeAngleI</Name>
+						<Index value="214" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightDirection</Name>
+						<Index value="210" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightPosition</Name>
+						<Index value="209" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightRadius</Name>
+						<Index value="212" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightTangent</Name>
+						<Index value="211" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightType</Name>
+						<Index value="208" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredLightVolumeParams</Name>
+						<Index value="217" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredVolumeRadiusScale</Name>
+						<Index value="213" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingVS8.asm</File>
+				<Variables value="17" >
+					<Item>
+						<Type>float4x4</Type>
+						<Name>dShadowMatrix</Name>
+						<Index value="208" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dShadowOffsetScale</Name>
+						<Index value="214" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dShadowParam0123</Name>
+						<Index value="212" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dShadowParam891113</Name>
+						<Index value="213" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredLightColourAndIntensity</Name>
+						<Index value="223" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeAngle</Name>
+						<Index value="222" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeAngleI</Name>
+						<Index value="221" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightDirection</Name>
+						<Index value="217" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightPosition</Name>
+						<Index value="216" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightRadius</Name>
+						<Index value="219" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>gDeferredLightSampler1</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightTangent</Name>
+						<Index value="218" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightType</Name>
+						<Index value="215" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredLightVolumeParams</Name>
+						<Index value="224" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredVolumeRadiusScale</Name>
+						<Index value="220" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingVS9.asm</File>
+				<Variables value="9" >
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredLightColourAndIntensity</Name>
+						<Index value="212" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightDirection</Name>
+						<Index value="209" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightPosition</Name>
+						<Index value="208" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightRadius</Name>
+						<Index value="211" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredLightShaftParams</Name>
+						<Index value="213" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightTangent</Name>
+						<Index value="210" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDirectionalLight</Name>
+						<Index value="17" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingVS10.asm</File>
+				<Variables value="9" >
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredLightColourAndIntensity</Name>
+						<Index value="212" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightDirection</Name>
+						<Index value="209" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightPosition</Name>
+						<Index value="208" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightRadius</Name>
+						<Index value="211" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredLightShaftParams</Name>
+						<Index value="213" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightTangent</Name>
+						<Index value="210" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDirectionalLight</Name>
+						<Index value="17" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingVS11.asm</File>
+				<Variables value="7" >
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorld</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldView</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalScreenSize</Name>
+						<Index value="44" />
+					</Item>
+					<Item>
+						<Type>float2</Type>
+						<Name>poisson12</Name>
+						<Index value="208" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingVS12.asm</File>
+				<Variables value="3" >
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorld</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingVS13.asm</File>
+				<Variables value="2" >
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldView</Name>
+						<Index value="4" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingVS14.asm</File>
+				<Variables value="6" >
+					<Item>
+						<Type>float4</Type>
+						<Name>gDepthFxParams</Name>
+						<Index value="16" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalFogColor</Name>
+						<Index value="42" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalFogColorN</Name>
+						<Index value="43" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalFogParams</Name>
+						<Index value="41" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalScalars</Name>
+						<Index value="39" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingVS15.asm</File>
+				<Variables value="1" >
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingVS16.asm</File>
+				<Variables value="14" >
+					<Item>
+						<Type>float4</Type>
+						<Name>gDirectionalColour</Name>
+						<Index value="18" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDirectionalLight</Name>
+						<Index value="17" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gFacetCentre</Name>
+						<Index value="54" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gInvColorExpBias</Name>
+						<Index value="46" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightAmbient0</Name>
+						<Index value="37" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gShadowMatrix</Name>
+						<Index value="60" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam0123</Name>
+						<Index value="57" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam14151617</Name>
+						<Index value="56" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam4567</Name>
+						<Index value="58" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam891113</Name>
+						<Index value="59" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>gShadowZSamplerDirVS</Name>
+						<Index value="3" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+					<Item>
+						<Type>float2</Type>
+						<Name>poisson12</Name>
+						<Index value="208" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingVS17.asm</File>
+				<Variables value="2" >
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingVS18.asm</File>
+				<Variables value="10" >
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeAngle</Name>
+						<Index value="215" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeAngleI</Name>
+						<Index value="214" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightDirection</Name>
+						<Index value="210" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightPosition</Name>
+						<Index value="209" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightRadius</Name>
+						<Index value="212" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightTangent</Name>
+						<Index value="211" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightType</Name>
+						<Index value="208" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredVolumeRadiusScale</Name>
+						<Index value="213" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingVS19.asm</File>
+				<Variables />
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingVS20.asm</File>
+				<Variables />
+			</Item>
+		</VertexShaders>
+		<PixelShaders value="41" >
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS1.asm</File>
+				<Variables value="24" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferStencilTextureSampler</Name>
+						<Index value="6" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalScreenSize</Name>
+						<Index value="44" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler0</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler1</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler2</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>ParabSampler</Name>
+						<Index value="5" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dReflectionParams</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredProjParams</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDirectionalColour</Name>
+						<Index value="18" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDirectionalLight</Name>
+						<Index value="17" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gFacetCentre</Name>
+						<Index value="54" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightAmbient0</Name>
+						<Index value="37" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightAmbient1</Name>
+						<Index value="38" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gShadowMatrix</Name>
+						<Index value="60" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam0123</Name>
+						<Index value="57" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam14151617</Name>
+						<Index value="56" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam18192021</Name>
+						<Index value="53" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam4567</Name>
+						<Index value="58" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam891113</Name>
+						<Index value="59" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>gShadowZSamplerDir</Name>
+						<Index value="15" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalScalars</Name>
+						<Index value="39" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS2.asm</File>
+				<Variables value="24" >
+					<Item>
+						<Type>float4</Type>
+						<Name>globalScreenSize</Name>
+						<Index value="44" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferStencilTextureSampler</Name>
+						<Index value="5" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler0</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler1</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler2</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>ParabSampler</Name>
+						<Index value="6" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dReflectionParams</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredProjParams</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDirectionalColour</Name>
+						<Index value="18" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDirectionalLight</Name>
+						<Index value="17" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gFacetCentre</Name>
+						<Index value="54" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightAmbient0</Name>
+						<Index value="37" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightAmbient1</Name>
+						<Index value="38" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gShadowMatrix</Name>
+						<Index value="60" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam0123</Name>
+						<Index value="57" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam14151617</Name>
+						<Index value="56" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam18192021</Name>
+						<Index value="53" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam4567</Name>
+						<Index value="58" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam891113</Name>
+						<Index value="59" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>gShadowZSamplerDir</Name>
+						<Index value="15" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalScalars</Name>
+						<Index value="39" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS3.asm</File>
+				<Variables value="14" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferStencilTextureSampler</Name>
+						<Index value="6" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler0</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler1</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler2</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>ParabSampler</Name>
+						<Index value="5" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dReflectionParams</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredProjParams</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDirectionalColour</Name>
+						<Index value="18" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDirectionalLight</Name>
+						<Index value="17" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightAmbient0</Name>
+						<Index value="37" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightAmbient1</Name>
+						<Index value="38" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalScalars</Name>
+						<Index value="39" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS4.asm</File>
+				<Variables value="14" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferStencilTextureSampler</Name>
+						<Index value="5" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler0</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler1</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler2</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>ParabSampler</Name>
+						<Index value="6" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dReflectionParams</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredProjParams</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDirectionalColour</Name>
+						<Index value="18" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDirectionalLight</Name>
+						<Index value="17" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightAmbient0</Name>
+						<Index value="37" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightAmbient1</Name>
+						<Index value="38" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalScalars</Name>
+						<Index value="39" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS5.asm</File>
+				<Variables value="1" >
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS6.asm</File>
+				<Variables value="14" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler0</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler1</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler2</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredLightColourAndIntensity</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeOffset</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeScale</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightDirection</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightInvSqrRadius</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightPosition</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredProjParams</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS7.asm</File>
+				<Variables value="15" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferStencilTextureSampler</Name>
+						<Index value="5" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler0</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler1</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler2</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredLightColourAndIntensity</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeOffset</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeScale</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightDirection</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightInvSqrRadius</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightPosition</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredProjParams</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS8.asm</File>
+				<Variables value="15" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferStencilTextureSampler</Name>
+						<Index value="5" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler0</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler1</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler2</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredLightColourAndIntensity</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeOffset</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeScale</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightDirection</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightInvSqrRadius</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightPosition</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredProjParams</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS9.asm</File>
+				<Variables value="15" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferStencilTextureSampler</Name>
+						<Index value="5" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler0</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler1</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler2</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredLightColourAndIntensity</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeOffset</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeScale</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightDirection</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightInvSqrRadius</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightPosition</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredProjParams</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS10.asm</File>
+				<Variables value="13" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler0</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler1</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredLightColourAndIntensity</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeOffset</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeScale</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightDirection</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightInvSqrRadius</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightPosition</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredProjParams</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS11.asm</File>
+				<Variables value="14" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferStencilTextureSampler</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler0</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler1</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredLightColourAndIntensity</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeOffset</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeScale</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightDirection</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightInvSqrRadius</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightPosition</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredProjParams</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS12.asm</File>
+				<Variables value="14" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferStencilTextureSampler</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler0</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler1</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredLightColourAndIntensity</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeOffset</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeScale</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightDirection</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightInvSqrRadius</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightPosition</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredProjParams</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS13.asm</File>
+				<Variables value="2" >
+					<Item>
+						<Type>float4</Type>
+						<Name>debugLightColour</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS14.asm</File>
+				<Variables value="20" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferStencilTextureSampler</Name>
+						<Index value="5" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler0</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler1</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler2</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>dShadowMatrix</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dShadowOffsetScale</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dShadowParam0123</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dShadowParam891113</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredLightColourAndIntensity</Name>
+						<Index value="83" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeOffset</Name>
+						<Index value="81" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeScale</Name>
+						<Index value="82" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightDirection</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightInvSqrRadius</Name>
+						<Index value="80" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightPosition</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredProjParams</Name>
+						<Index value="85" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>gShadowZSamplerCache</Name>
+						<Index value="14" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="84" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS15.asm</File>
+				<Variables value="18" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler0</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler1</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>dShadowMatrix</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dShadowOffsetScale</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dShadowParam0123</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dShadowParam891113</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredLightColourAndIntensity</Name>
+						<Index value="83" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeOffset</Name>
+						<Index value="81" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeScale</Name>
+						<Index value="82" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightDirection</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightInvSqrRadius</Name>
+						<Index value="80" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightPosition</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredProjParams</Name>
+						<Index value="85" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>gShadowZSamplerCache</Name>
+						<Index value="14" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="84" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS16.asm</File>
+				<Variables value="17" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler0</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler1</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler2</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="5" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredLightColourAndIntensity</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeOffset</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeScale</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightDirection</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightInvSqrRadius</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightPosition</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>gDeferredLightSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightTangent</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightType</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredProjParams</Name>
+						<Index value="80" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS17.asm</File>
+				<Variables value="22" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler0</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler1</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler2</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="5" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>dShadowMatrix</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dShadowOffsetScale</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dShadowParam0123</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dShadowParam891113</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredLightColourAndIntensity</Name>
+						<Index value="85" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeOffset</Name>
+						<Index value="83" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeScale</Name>
+						<Index value="84" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightDirection</Name>
+						<Index value="80" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightInvSqrRadius</Name>
+						<Index value="82" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightPosition</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>gDeferredLightSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightTangent</Name>
+						<Index value="81" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightType</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredProjParams</Name>
+						<Index value="87" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>gShadowZSamplerCache</Name>
+						<Index value="14" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="86" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS18.asm</File>
+				<Variables value="6" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightRadius</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>gDeferredLightSampler2</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredProjParams</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS19.asm</File>
+				<Variables value="6" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightRadius</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>gDeferredLightSampler2</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredProjParams</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS20.asm</File>
+				<Variables value="5" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightRadius</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredProjParams</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS21.asm</File>
+				<Variables value="5" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightRadius</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredProjParams</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS22.asm</File>
+				<Variables value="5" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightRadius</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredProjParams</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS23.asm</File>
+				<Variables value="5" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightRadius</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredProjParams</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS24.asm</File>
+				<Variables value="2" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>gDeferredLightSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS25.asm</File>
+				<Variables value="1" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>gDeferredLightSampler</Name>
+						<Index value="0" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS26.asm</File>
+				<Variables value="1" >
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS27.asm</File>
+				<Variables value="2" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>gDeferredLightSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS28.asm</File>
+				<Variables value="6" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>gDeferredLightSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredProjParams</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS29.asm</File>
+				<Variables value="15" >
+					<Item>
+						<Type>float4</Type>
+						<Name>globalScalars2</Name>
+						<Index value="40" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler1</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredLightColourAndIntensity</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeOffset</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeScale</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightDirection</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightPosition</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightRadius</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>gDeferredLightSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightTangent</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredProjParams</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS30.asm</File>
+				<Variables value="11" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler1</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredLightColourAndIntensity</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDeferredLightConeOffset</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightDirection</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>gDeferredLightTangent</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredProjParams</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalScalars2</Name>
+						<Index value="40" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS31.asm</File>
+				<Variables value="2" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler0</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="66" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS32.asm</File>
+				<Variables value="2" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler1</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="66" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS33.asm</File>
+				<Variables value="2" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler2</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="66" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS34.asm</File>
+				<Variables value="2" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>depthSourceSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="66" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS35.asm</File>
+				<Variables value="3" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>gDeferredLightSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="66" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS36.asm</File>
+				<Variables value="11" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredProjParams</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gFacetCentre</Name>
+						<Index value="54" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gShadowMatrix</Name>
+						<Index value="60" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam0123</Name>
+						<Index value="57" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam14151617</Name>
+						<Index value="56" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam4567</Name>
+						<Index value="58" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gShadowParam891113</Name>
+						<Index value="59" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>gShadowZSamplerDir</Name>
+						<Index value="15" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="66" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS37.asm</File>
+				<Variables value="1" >
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredLightColourAndIntensity</Name>
+						<Index value="66" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS38.asm</File>
+				<Variables value="1" >
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredLightColourAndIntensity</Name>
+						<Index value="66" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS39.asm</File>
+				<Variables value="2" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>gDeferredLightSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gooDeferredLightScreenSize</Name>
+						<Index value="66" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS40.asm</File>
+				<Variables value="2" >
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredLightColourAndIntensity</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>gDeferredLightSampler</Name>
+						<Index value="0" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>deferred_lighting\deferred_lightingPS41.asm</File>
+				<Variables value="2" >
+					<Item>
+						<Type>float4</Type>
+						<Name>gDeferredLightColourAndIntensity</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>gDeferredLightSampler</Name>
+						<Index value="0" />
+					</Item>
+				</Variables>
+			</Item>
+		</PixelShaders>
+	</Shaders>
+	<GlobalVariables value="60" >
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="64" />
+			<Name1>gAllGlobals</Name1>
+			<Name2>AllGlobals</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x3</Type>
+			<ArrayCount value="48" />
+			<Name1>gBoneMtx</Name1>
+			<Name2>WorldMatrixArray</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorld</Name1>
+			<Name2>World</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorldView</Name1>
+			<Name2>WorldView</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorldViewProj</Name1>
+			<Name2>WorldViewProjection</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gViewInverse</Name1>
+			<Name2>ViewInverse</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>StippleTexture</Name1>
+			<Name2>stippletexture</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Point
+			MagFilter Point
+			MipFilter Point
+			AddressU Wrap
+			AddressV Wrap
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gDepthFxParams</Name1>
+			<Name2>DepthFxParams</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gDirectionalLight</Name1>
+			<Name2>DirectionalLight</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gDirectionalColour</Name1>
+			<Name2>DirectionalColour</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPosX</Name1>
+			<Name2>LightPositionX</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPosY</Name1>
+			<Name2>LightPositionY</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPosZ</Name1>
+			<Name2>LightPositionZ</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightDirX</Name1>
+			<Name2>LightDirX</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightDirY</Name1>
+			<Name2>LightDirY</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightDirZ</Name1>
+			<Name2>LightDirZ</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightFallOff</Name1>
+			<Name2>LightFallOff</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightConeScale</Name1>
+			<Name2>LightConeScale</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightConeOffset</Name1>
+			<Name2>LightConeOffset</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightColR</Name1>
+			<Name2>LightColR</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightColG</Name1>
+			<Name2>LightColG</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightColB</Name1>
+			<Name2>LightColB</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointPosX</Name1>
+			<Name2>LightPointPositionX</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointPosY</Name1>
+			<Name2>LightPointPositionY</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointPosZ</Name1>
+			<Name2>LightPointPositionZ</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointColR</Name1>
+			<Name2>LightPointColR</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointColG</Name1>
+			<Name2>LightPointColG</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointColB</Name1>
+			<Name2>LightPointColB</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointFallOff</Name1>
+			<Name2>LightPointFallOff</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightDir2X</Name1>
+			<Name2>LightDir2X</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightDir2Y</Name1>
+			<Name2>LightDir2Y</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightDir2Z</Name1>
+			<Name2>LightDir2Z</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightConeScale2</Name1>
+			<Name2>LightConeScale2</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightConeOffset2</Name1>
+			<Name2>LightConeOffset2</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightAmbient0</Name1>
+			<Name2>LightAmbientColor0</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Ambient Light Color 0</Value>
+				</Item>
+				<Item>
+					<Name>Space</Name>
+					<Type>String</Type>
+					<Value>material</Value>
+				</Item>
+			</Annotation>
+			<Values value="4" >
+			0
+			0
+			0
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightAmbient1</Name1>
+			<Name2>LightAmbientColor1</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Ambient Light Color 1</Value>
+				</Item>
+				<Item>
+					<Name>Space</Name>
+					<Type>String</Type>
+					<Value>material</Value>
+				</Item>
+			</Annotation>
+			<Values value="4" >
+			0
+			0
+			0
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>globalScalars</Name1>
+			<Name2>globalScalars</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>globalScalars2</Name1>
+			<Name2>globalScalars2</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gAspectRatio</Name1>
+			<Name2>gAspectRatio</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>globalScreenSize</Name1>
+			<Name2>globalScreenSize</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>globalFogParams</Name1>
+			<Name2>globalFogParams</Name2>
+			<Annotation />
+			<Values value="4" >
+			1600
+			9e+06
+			0.01
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>globalFogColor</Name1>
+			<Name2>globalFogColor</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>globalFogColorN</Name1>
+			<Name2>globalFogColorN</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gDayNightEffects</Name1>
+			<Name2>globalDayNightEffects</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			0
+			1
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gInvColorExpBias</Name1>
+			<Name2>ColorExpBias</Name2>
+			<Annotation />
+			<Values value="1" >
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>colorize</Name1>
+			<Name2>Colorize</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>stencil</Name1>
+			<Name2>Stencil</Name2>
+			<Annotation />
+			<Values value="4" >
+			0
+			255
+			0
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gFacetCentre</Name1>
+			<Name2>FacetCentre</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowCommonParam0123</Name1>
+			<Name2>ShadowCommonParam0123</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowParam14151617</Name1>
+			<Name2>ShadowParam14151617</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowParam18192021</Name1>
+			<Name2>ShadowParam18192021</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowParam0123</Name1>
+			<Name2>ShadowParam0123</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowParam4567</Name1>
+			<Name2>ShadowParam4567</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowParam891113</Name1>
+			<Name2>ShadowParam891113</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowMatrix</Name1>
+			<Name2>ShadowMatrix</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowZSamplerDir</Name1>
+			<Name2>ShadowZTextureDir</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Clamp
+			AddressV Clamp
+			MipFilter Point
+			MinFilter Point
+			MagFilter Point
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowZSamplerDirVS</Name1>
+			<Name2>ShadowZTextureDirVS</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Clamp
+			AddressV Clamp
+			MipFilter Point
+			MinFilter Point
+			MagFilter Point
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowZSamplerCache</Name1>
+			<Name2>ShadowZTextureCache</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Clamp
+			AddressV Clamp
+			MipFilter Point
+			MinFilter Point
+			MagFilter Point
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowSamplerLUT</Name1>
+			<Name2>ShadowTextureLUT</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Wrap
+			AddressV Wrap
+			MipFilter Point
+			MinFilter Linear
+			MagFilter Linear
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>NearFarPlane</Name1>
+			<Name2>NearFarPlane</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+	</GlobalVariables>
+	<LocalVariables value="41" >
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>shadowmap_res</Name1>
+			<Name2>ShadowMapResolution</Name2>
+			<Annotation />
+			<Values value="1" >
+			1280
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>dShadowParam0123</Name1>
+			<Name2>dShadowParam0123</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>dShadowParam4567</Name1>
+			<Name2>dShadowParam4567</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>dShadowParam891113</Name1>
+			<Name2>dShadowParam891113</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>dShadowOffsetScale</Name1>
+			<Name2>dShadowOffsetScale</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>dShadowMatrix</Name1>
+			<Name2>dShadowMatrix</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float3</Type>
+			<ArrayCount value="0" />
+			<Name1>LuminanceConstants</Name1>
+			<Name2>LuminanceConstants</Name2>
+			<Annotation />
+			<Values value="3" >
+			0.2125
+			0.7154
+			0.0721
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gDeferredLightType</Name1>
+			<Name2>deferredLightType</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float3</Type>
+			<ArrayCount value="0" />
+			<Name1>gDeferredLightPosition</Name1>
+			<Name2>deferredLightPosition</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float3</Type>
+			<ArrayCount value="0" />
+			<Name1>gDeferredLightDirection</Name1>
+			<Name2>deferredLightDirection</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float3</Type>
+			<ArrayCount value="0" />
+			<Name1>gDeferredLightTangent</Name1>
+			<Name2>deferredLightTangent</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gDeferredLightRadius</Name1>
+			<Name2>deferredLightRadius</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gDeferredLightInvSqrRadius</Name1>
+			<Name2>deferredLightInvSqrRadius</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gDeferredVolumeRadiusScale</Name1>
+			<Name2>deferredVolumeRadiusScale</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gDeferredLightConeAngleI</Name1>
+			<Name2>deferredLightConeAngleI</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gDeferredLightConeAngle</Name1>
+			<Name2>deferredLightConeAngle</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gDeferredLightConeOffset</Name1>
+			<Name2>deferredLightConeOffset</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gDeferredLightConeScale</Name1>
+			<Name2>deferredLightConeScale</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gDeferredLightColourAndIntensity</Name1>
+			<Name2>deferredLightColourAndIntensity</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gooDeferredLightScreenSize</Name1>
+			<Name2>deferredLightScreenSize</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gDeferredProjParams</Name1>
+			<Name2>deferredProjectionParams</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gDeferredLightShaftParams</Name1>
+			<Name2>deferredLightShaftParams</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gDeferredLightVolumeParams</Name1>
+			<Name2>deferredLightVolumeParams</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gDeferredInverseViewProjMatrix</Name1>
+			<Name2>deferredLightInverseViewProjMatrix</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>gDeferredLightSampler</Name1>
+			<Name2>deferredLightTexture</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Clamp
+			AddressV Clamp
+			MinFilter Linear
+			MagFilter Linear
+			MipFilter Linear
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>gDeferredLightSampler1</Name1>
+			<Name2>deferredLightTexture1</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Clamp
+			AddressV Clamp
+			MinFilter Linear
+			MagFilter Linear
+			MipFilter Linear
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>gDeferredLightSampler2</Name1>
+			<Name2>deferredLightTexture2</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Clamp
+			AddressV Clamp
+			MinFilter Linear
+			MagFilter Linear
+			MipFilter Linear
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>GBufferTextureSampler0</Name1>
+			<Name2>gbufferTexture0</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Clamp
+			AddressV Clamp
+			MinFilter Point
+			MagFilter Point
+			MipFilter Point
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>GBufferTextureSampler1</Name1>
+			<Name2>gbufferTexture1</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Clamp
+			AddressV Clamp
+			MinFilter Point
+			MagFilter Point
+			MipFilter Point
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>GBufferTextureSampler2</Name1>
+			<Name2>gbufferTexture2</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Clamp
+			AddressV Clamp
+			MinFilter Point
+			MagFilter Point
+			MipFilter Point
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>GBufferTextureSampler3</Name1>
+			<Name2>gbufferTexture3</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Clamp
+			AddressV Clamp
+			MinFilter Point
+			MagFilter Point
+			MipFilter Point
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>GBufferStencilTextureSampler</Name1>
+			<Name2>gbufferStencilTexture</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Clamp
+			AddressV Clamp
+			MinFilter Point
+			MagFilter Point
+			MipFilter Point
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>dReflectionParams</Name1>
+			<Name2>ReflectionParams</Name2>
+			<Annotation />
+			<Values value="4" >
+			0.00666667
+			0
+			0
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>ParabSampler</Name1>
+			<Name2>ParabTexture</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Wrap
+			AddressV Wrap
+			MinFilter Linear
+			MagFilter Linear
+			MipFilter Linear
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>importanceBufferSampler</Name1>
+			<Name2>importanceBufferTexture</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Clamp
+			AddressV Clamp
+			MinFilter Point
+			MagFilter Point
+			MipFilter Point
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>accumulationBufferSampler0</Name1>
+			<Name2>accumulationBufferTexture0</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Clamp
+			AddressV Clamp
+			MinFilter Point
+			MagFilter Point
+			MipFilter Point
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>accumulationBufferSampler1</Name1>
+			<Name2>accumulationBufferTexture1</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Clamp
+			AddressV Clamp
+			MinFilter Point
+			MagFilter Point
+			MipFilter Point
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>depthSourceSampler</Name1>
+			<Name2>depthSourceTexture</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Clamp
+			AddressV Clamp
+			MinFilter Point
+			MagFilter Point
+			MipFilter Point
+		</Values>
+		</Item>
+		<Item>
+			<Type>float2</Type>
+			<ArrayCount value="12" />
+			<Name1>poisson12</Name1>
+			<Name2>poisson12</Name2>
+			<Annotation />
+			<Values value="24" >
+			-0.326212
+			-0.40581
+			-0.840144
+			-0.07358
+			-0.695914
+			0.457137
+			-0.203345
+			0.620716
+			0.96234
+			-0.194983
+			0.473434
+			-0.480026
+			0.519456
+			0.767022
+			0.185461
+			-0.893124
+			0.507431
+			0.064425
+			0.89642
+			0.412458
+			-0.32194
+			-0.932615
+			-0.791559
+			-0.59771
+		</Values>
+		</Item>
+		<Item>
+			<Type>float2</Type>
+			<ArrayCount value="12" />
+			<Name1>vol_offsets</Name1>
+			<Name2>vol_offsets</Name2>
+			<Annotation />
+			<Values value="24" >
+			0
+			-0.7
+			0.5
+			0.5
+			-0.5
+			0.5
+			1
+			-1
+			0
+			1.5
+			-1
+			-1
+			-4
+			0
+			-2.5
+			-3
+			2.5
+			-3
+			4
+			0
+			2.5
+			3
+			-2.5
+			3
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>debugLightColour</Name1>
+			<Name2>debugLightColour</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+	</LocalVariables>
+	<Techniques value="19" >
+		<Item>
+			<Name>lightShadowDirectional</Name>
+			<Passes value="2" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>1</PixelShader>
+					<Params value="4" >
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>2</PixelShader>
+					<Params value="4" >
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>lightNoDirectional</Name>
+			<Passes value="2" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>3</PixelShader>
+					<Params value="4" >
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>4</PixelShader>
+					<Params value="4" >
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>stencilVolumePoint</Name>
+			<Passes value="4" >
+				<Item>
+					<VertexShader>1</VertexShader>
+					<PixelShader>5</PixelShader>
+					<Params value="3" >
+						<Item>
+							<Type value="6" />
+							<Value value="3" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>1</VertexShader>
+					<PixelShader>5</PixelShader>
+					<Params value="3" >
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>2</VertexShader>
+					<PixelShader>5</PixelShader>
+					<Params value="3" >
+						<Item>
+							<Type value="6" />
+							<Value value="3" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>2</VertexShader>
+					<PixelShader>5</PixelShader>
+					<Params value="3" >
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>lightVolumePoint</Name>
+			<Passes value="4" >
+				<Item>
+					<VertexShader>3</VertexShader>
+					<PixelShader>6</PixelShader>
+					<Params value="4" >
+						<Item>
+							<Type value="6" />
+							<Value value="3" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="5" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>3</VertexShader>
+					<PixelShader>7</PixelShader>
+					<Params value="4" >
+						<Item>
+							<Type value="6" />
+							<Value value="3" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="5" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>3</VertexShader>
+					<PixelShader>8</PixelShader>
+					<Params value="4" >
+						<Item>
+							<Type value="6" />
+							<Value value="3" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="5" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>3</VertexShader>
+					<PixelShader>9</PixelShader>
+					<Params value="4" >
+						<Item>
+							<Type value="6" />
+							<Value value="3" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="5" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>fillerVolumePoint</Name>
+			<Passes value="3" >
+				<Item>
+					<VertexShader>3</VertexShader>
+					<PixelShader>10</PixelShader>
+					<Params value="4" >
+						<Item>
+							<Type value="6" />
+							<Value value="3" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="5" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>3</VertexShader>
+					<PixelShader>11</PixelShader>
+					<Params value="4" >
+						<Item>
+							<Type value="6" />
+							<Value value="3" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="5" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>3</VertexShader>
+					<PixelShader>12</PixelShader>
+					<Params value="4" >
+						<Item>
+							<Type value="6" />
+							<Value value="3" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="5" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>debugVolumePoint</Name>
+			<Passes value="2" >
+				<Item>
+					<VertexShader>4</VertexShader>
+					<PixelShader>13</PixelShader>
+					<Params value="4" >
+						<Item>
+							<Type value="6" />
+							<Value value="3" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="5" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>5</VertexShader>
+					<PixelShader>13</PixelShader>
+					<Params value="4" >
+						<Item>
+							<Type value="6" />
+							<Value value="3" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="5" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>lightVolumeShadowPoint</Name>
+			<Passes value="2" >
+				<Item>
+					<VertexShader>3</VertexShader>
+					<PixelShader>14</PixelShader>
+					<Params value="4" >
+						<Item>
+							<Type value="6" />
+							<Value value="3" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="5" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>6</VertexShader>
+					<PixelShader>14</PixelShader>
+					<Params value="4" >
+						<Item>
+							<Type value="6" />
+							<Value value="3" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="5" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>fillerVolumeShadowPoint</Name>
+			<Passes value="2" >
+				<Item>
+					<VertexShader>3</VertexShader>
+					<PixelShader>15</PixelShader>
+					<Params value="4" >
+						<Item>
+							<Type value="6" />
+							<Value value="3" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="5" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>6</VertexShader>
+					<PixelShader>15</PixelShader>
+					<Params value="4" >
+						<Item>
+							<Type value="6" />
+							<Value value="3" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="5" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>lightVolumeTexPoint</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>3</VertexShader>
+					<PixelShader>16</PixelShader>
+					<Params value="4" >
+						<Item>
+							<Type value="6" />
+							<Value value="3" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="5" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>lightVolumeShadowTexPoint</Name>
+			<Passes value="2" >
+				<Item>
+					<VertexShader>3</VertexShader>
+					<PixelShader>17</PixelShader>
+					<Params value="4" >
+						<Item>
+							<Type value="6" />
+							<Value value="3" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="5" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>6</VertexShader>
+					<PixelShader>17</PixelShader>
+					<Params value="4" >
+						<Item>
+							<Type value="6" />
+							<Value value="3" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="5" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>lightShafts</Name>
+			<Passes value="12" >
+				<Item>
+					<VertexShader>7</VertexShader>
+					<PixelShader>18</PixelShader>
+					<Params value="9" >
+						<Item>
+							<Type value="6" />
+							<Value value="3" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="11" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="23" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="4" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="5" />
+							<Value value="2" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>7</VertexShader>
+					<PixelShader>19</PixelShader>
+					<Params value="9" >
+						<Item>
+							<Type value="6" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="11" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="23" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="4" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="5" />
+							<Value value="2" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>8</VertexShader>
+					<PixelShader>18</PixelShader>
+					<Params value="9" >
+						<Item>
+							<Type value="6" />
+							<Value value="3" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="11" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="23" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="4" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="5" />
+							<Value value="2" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>8</VertexShader>
+					<PixelShader>19</PixelShader>
+					<Params value="9" >
+						<Item>
+							<Type value="6" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="11" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="23" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="4" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="5" />
+							<Value value="2" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>7</VertexShader>
+					<PixelShader>20</PixelShader>
+					<Params value="9" >
+						<Item>
+							<Type value="6" />
+							<Value value="3" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="11" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="23" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="4" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="5" />
+							<Value value="2" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>7</VertexShader>
+					<PixelShader>21</PixelShader>
+					<Params value="9" >
+						<Item>
+							<Type value="6" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="11" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="23" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="4" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="5" />
+							<Value value="2" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>8</VertexShader>
+					<PixelShader>20</PixelShader>
+					<Params value="9" >
+						<Item>
+							<Type value="6" />
+							<Value value="3" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="11" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="23" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="4" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="5" />
+							<Value value="2" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>8</VertexShader>
+					<PixelShader>21</PixelShader>
+					<Params value="9" >
+						<Item>
+							<Type value="6" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="11" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="23" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="4" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="5" />
+							<Value value="2" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>9</VertexShader>
+					<PixelShader>22</PixelShader>
+					<Params value="9" >
+						<Item>
+							<Type value="6" />
+							<Value value="3" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="11" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="23" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="4" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="5" />
+							<Value value="2" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>9</VertexShader>
+					<PixelShader>23</PixelShader>
+					<Params value="9" >
+						<Item>
+							<Type value="6" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="11" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="23" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="4" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="5" />
+							<Value value="2" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>10</VertexShader>
+					<PixelShader>22</PixelShader>
+					<Params value="9" >
+						<Item>
+							<Type value="6" />
+							<Value value="3" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="11" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="23" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="4" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="5" />
+							<Value value="2" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>10</VertexShader>
+					<PixelShader>23</PixelShader>
+					<Params value="9" >
+						<Item>
+							<Type value="6" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="11" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="23" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="4" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="5" />
+							<Value value="2" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>corona</Name>
+			<Passes value="2" >
+				<Item>
+					<VertexShader>11</VertexShader>
+					<PixelShader>24</PixelShader>
+					<Params value="9" >
+						<Item>
+							<Type value="6" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="11" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="23" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="4" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="5" />
+							<Value value="2" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>12</VertexShader>
+					<PixelShader>24</PixelShader>
+					<Params value="9" >
+						<Item>
+							<Type value="6" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="11" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="23" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="4" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="5" />
+							<Value value="2" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>paraboloid_corona</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>13</VertexShader>
+					<PixelShader>25</PixelShader>
+					<Params value="9" >
+						<Item>
+							<Type value="6" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="11" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="23" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="4" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="5" />
+							<Value value="2" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>brightlight</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>14</VertexShader>
+					<PixelShader>26</PixelShader>
+					<Params value="6" >
+						<Item>
+							<Type value="6" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="11" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>smokeBoard</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>15</VertexShader>
+					<PixelShader>27</PixelShader>
+					<Params value="9" >
+						<Item>
+							<Type value="6" />
+							<Value value="2" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="11" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="23" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="4" />
+							<Value value="5" />
+						</Item>
+						<Item>
+							<Type value="5" />
+							<Value value="6" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>waterFx</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>16</VertexShader>
+					<PixelShader>28</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="0" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>ambientScaleVolume</Name>
+			<Passes value="2" >
+				<Item>
+					<VertexShader>17</VertexShader>
+					<PixelShader>29</PixelShader>
+					<Params value="4" >
+						<Item>
+							<Type value="0" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="6" />
+							<Value value="3" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="5" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>18</VertexShader>
+					<PixelShader>30</PixelShader>
+					<Params value="4" >
+						<Item>
+							<Type value="0" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="6" />
+							<Value value="3" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="5" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>gbufferDepthCopy</Name>
+			<Passes value="10" >
+				<Item>
+					<VertexShader>19</VertexShader>
+					<PixelShader>31</PixelShader>
+					<Params value="6" >
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="8" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>19</VertexShader>
+					<PixelShader>32</PixelShader>
+					<Params value="6" >
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="8" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>19</VertexShader>
+					<PixelShader>33</PixelShader>
+					<Params value="6" >
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="8" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>19</VertexShader>
+					<PixelShader>34</PixelShader>
+					<Params value="3" >
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>19</VertexShader>
+					<PixelShader>34</PixelShader>
+					<Params value="3" >
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>19</VertexShader>
+					<PixelShader>35</PixelShader>
+					<Params value="5" >
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="8" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>19</VertexShader>
+					<PixelShader>36</PixelShader>
+					<Params value="5" >
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="8" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>19</VertexShader>
+					<PixelShader>37</PixelShader>
+					<Params value="5" >
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="8" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>19</VertexShader>
+					<PixelShader>38</PixelShader>
+					<Params value="5" >
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="8" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>19</VertexShader>
+					<PixelShader>39</PixelShader>
+					<Params value="7" >
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="8" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>refMipBlur</Name>
+			<Passes value="2" >
+				<Item>
+					<VertexShader>20</VertexShader>
+					<PixelShader>40</PixelShader>
+					<Params value="6" >
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="8" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>20</VertexShader>
+					<PixelShader>41</PixelShader>
+					<Params value="8" >
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="7" />
+							<Value value="8" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="4" />
+							<Value value="5" />
+						</Item>
+						<Item>
+							<Type value="5" />
+							<Value value="6" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+	</Techniques>
+</Effect>

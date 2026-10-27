@@ -11,7 +11,7 @@ import settings;
 
 // The graphics API, MAIN.GraphicsAPI: 0 DirectX 9, 1 Vulkan (DXVK as vulkan.dll next to the exe), 2 DirectX 12 (Fusion
 // Fix's D3D9On12 driver next to the exe). Fusion Fix no longer has a d3d9.dll proxy for it and reads no d3d9.cfg: the
-// plugin applies it itself with FusionFixUtils' upscaler/graphics_api.h (which explains how), from Init() in
+// plugin applies it itself with source/upscaler/graphics_api.h (which explains how), from Init() in
 // dllmain.cpp, the first thing it does. That runs when the Ultimate ASI Loader starts the plugins at the game's entry
 // point (or, for exes that unpack themselves, as soon as the code is unpacked), long before WinMain creates the window
 // and calls Direct3DCreate9 (rage's device setup). The d3d9.dll in the package is a pass-through placeholder that only
