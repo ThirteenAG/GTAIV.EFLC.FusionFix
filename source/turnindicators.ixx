@@ -2,6 +2,7 @@ module;
 
 #include <common.hxx>
 #include <deque>
+#include <atomic>
 
 export module turnindicators;
 
@@ -15,6 +16,58 @@ constexpr float STEER_THRESHOLD = 0.50f;    // Minimum steering to trigger blink
 constexpr float ACTIVATION_DELAY = 400.0f;  // ms delay before activation
 constexpr float BLINK_INTERVAL = 400.0f;    // ms blink interval (on/off cycle)
 constexpr float TAP_THRESHOLD = 300.0f;     // ms threshold for tap detection
+
+// Controller bumpers with manual turn indicators: LB/RB also fire/aim and pull the handbrake in vehicles. While the
+// player drives with manual indicators, the game only gets a bumper once it has been held longer than a tap
+// (TAP_THRESHOLD), so a tap only works the turn indicator. The raw state is kept for the indicator logic.
+namespace BumperGate
+{
+    constexpr uint16_t LB = 0x0100, RB = 0x0200; // XINPUT_GAMEPAD_LEFT_SHOULDER / RIGHT_SHOULDER
+    std::atomic<bool> active{ false };
+    std::atomic<uint16_t> raw{ 0 };
+    SafetyHookInline shXInputGetState{};
+    DWORD lbStart = 0, rbStart = 0;
+
+    void Gate(uint16_t& buttons, uint16_t mask, DWORD& start, DWORD now)
+    {
+        if (buttons & mask)
+        {
+            if (!start)
+                start = now ? now : 1;
+            if (now - start < (DWORD)TAP_THRESHOLD)
+                buttons &= ~mask;
+        }
+        else
+            start = 0;
+    }
+
+    DWORD WINAPI XInputGetStateHook(DWORD userIndex, void* state)
+    {
+        DWORD res = shXInputGetState.unsafe_stdcall<DWORD>(userIndex, state);
+        if (res == ERROR_SUCCESS && userIndex == 0 && state)
+        {
+            auto& buttons = *reinterpret_cast<uint16_t*>(reinterpret_cast<uint8_t*>(state) + 4); // XINPUT_STATE::Gamepad.wButtons
+            raw = buttons;
+            if (active)
+            {
+                DWORD now = GetTickCount();
+                Gate(buttons, LB, lbStart, now);
+                Gate(buttons, RB, rbStart, now);
+            }
+            else
+                lbStart = rbStart = 0;
+        }
+        return res;
+    }
+
+    void Install()
+    {
+        auto xinput = LoadLibraryW(L"xinput9_1_0.dll");
+        auto fn = xinput ? GetProcAddress(xinput, "XInputGetState") : nullptr;
+        if (fn)
+            shXInputGetState = safetyhook::create_inline(fn, XInputGetStateHook);
+    }
+}
 
 // Struct to hold all vehicle state data
 struct VehicleState
@@ -143,6 +196,7 @@ public:
             static bool bManualTurnIndicators = reader.ReadInteger("TURNINDICATORS", "ManualTurnIndicators", 0);
             static uint32_t nLeftIndicatorKey = reader.ReadInteger("TURNINDICATORS", "LeftIndicatorKey", VK_OEM_4);
             static uint32_t nRightIndicatorKey = reader.ReadInteger("TURNINDICATORS", "RightIndicatorKey", VK_OEM_6);
+            BumperGate::Install();
 
             struct VehicleFlags
             {
@@ -406,6 +460,8 @@ public:
                     Natives::GetCarCharIsUsing(PlayerPed, &PlayerCar);
                 }
 
+                if (!PlayerCar)
+                    BumperGate::active = false;
                 // Check if player has fully entered the vehicle (can actually drive)
                 auto pVehicleStruct = FindPlayerVehicle(0);
                 bool player_fully_in_vehicle = (PlayerCar != 0 && pVehicleStruct != nullptr);
@@ -452,6 +508,8 @@ public:
 
                     bool is_player_vehicle = (veh == PlayerCar);
                     bool player_in_vehicle = is_player_vehicle && player_fully_in_vehicle;
+                    if (is_player_vehicle)
+                        BumperGate::active = player_in_vehicle && bManualMode;
 
                     // Skip processing if feature is disabled and no active blinkers
                     if (!ti->get() && state.current_blinker == 0)
@@ -466,8 +524,8 @@ public:
                     {
                         if (bManualMode)
                         {
-                            bool lb_pressed = Natives::IsButtonPressed(0, BUTTON_BUMPER_LEFT) || IsKeyboardKeyPressed(nLeftIndicatorKey);
-                            bool rb_pressed = Natives::IsButtonPressed(0, BUTTON_BUMPER_RIGHT) || IsKeyboardKeyPressed(nRightIndicatorKey);
+                            bool lb_pressed = (BumperGate::raw & BumperGate::LB) || Natives::IsButtonPressed(0, BUTTON_BUMPER_LEFT) || IsKeyboardKeyPressed(nLeftIndicatorKey);
+                            bool rb_pressed = (BumperGate::raw & BumperGate::RB) || Natives::IsButtonPressed(0, BUTTON_BUMPER_RIGHT) || IsKeyboardKeyPressed(nRightIndicatorKey);
                             if (lb_pressed && !prev_lb_pressed)
                             {
                                 lb_press_time = 0.0f;
