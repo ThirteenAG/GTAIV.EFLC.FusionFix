@@ -254,9 +254,10 @@
       "page": "controls", "group": "@group.camera", "control": [ "switch", "cycler" ]
     },
     {
-      "id": "MISC.TurnIndicators", "type": "bool", "default": 0,
+      "id": "MISC.TurnIndicators", "type": "choice", "default": 0,
+      "choices": [ { "value": 0, "label": "@MO_OFF" }, { "value": 1, "label": "@turnindicators.automatic" }, { "value": 2, "label": "@turnindicators.manual" }, { "value": 3, "label": "@turnindicators.both" } ],
       "label": "@Turn Indicators", "description": "@MISC.TurnIndicators.description",
-      "page": "controls", "group": "@group.gameplay", "control": [ "switch", "cycler" ]
+      "page": "controls", "group": "@group.gameplay", "control": [ "cycler", "dropdown" ]
     },
     {
       "id": "MISC.AlwaysShowBulletTraces", "type": "bool", "default": 0,

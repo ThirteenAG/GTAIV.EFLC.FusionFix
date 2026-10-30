@@ -227,7 +227,7 @@
   "MISC.TransparentMapMenu.description": "Mostra il gioco dietro la mappa del menu di pausa.",
   "MISC.TreeAlpha.description": "Come vengono ritagliate le foglie degli alberi.",
   "MISC.TreeLighting.description": "Come vengono illuminati gli alberi.",
-  "MISC.TurnIndicators.description": "I veicoli del giocatore usano gli indicatori di direzione.",
+  "MISC.TurnIndicators.description": "I veicoli del giocatore usano gli indicatori di direzione. Automatici: si accendono da soli in curva. Attivi (manuali): premi LB o RB sul controller o i tasti delle frecce. Automatici + manuali: entrambi; una freccia accesa a mano ha la precedenza finché non viene spenta.",
   "MISC.UnclampLighting.description": "La luce solare arriva più lontano.",
   "MISC.ZoomedMovement.description": "Permette di muoversi mentre si mira con un'arma con zoom.",
   "MO_ALT": "Alternativo",
@@ -336,7 +336,7 @@
   "TURNINDICATORS.LeftIndicatorKey": "Tasto indicatore sinistro",
   "TURNINDICATORS.LeftIndicatorKey.description": "Il tasto dell'indicatore di direzione sinistro, un codice virtual-key (0xDB è [).",
   "TURNINDICATORS.ManualTurnIndicators": "Indicatori di direzione manuali",
-  "TURNINDICATORS.ManualTurnIndicators.description": "Indicatori di direzione a mano: premi LB o RB sul controller, oppure i tasti qui sotto.",
+  "TURNINDICATORS.ManualTurnIndicators.description": "Obsoleto: fa funzionare Automatici come Attivi (manuali). Indicatori di direzione offre Attivi (manuali) e Automatici + manuali.",
   "TURNINDICATORS.RightIndicatorKey": "Tasto indicatore destro",
   "TURNINDICATORS.RightIndicatorKey.description": "Il tasto dell'indicatore di direzione destro, un codice virtual-key (0xDD è ]).",
   "UnclampLighting": "Estensione della portata della luce solare",
@@ -384,5 +384,8 @@
   "window.windowed": "In finestra",
   "window.borderless": "Senza bordi",
   "MAIN.WindowMode.description": "Schermo intero, una finestra con bordi o una finestra senza bordi che copre lo schermo. Alt+Invio passa dallo schermo intero all'ultima modalità finestra.",
-  "ff.note.d3d9on12": "Installa D3D9On12 dalla pagina Miglioramenti grafici di FusionFixHub per attivare DirectX 12."
+  "ff.note.d3d9on12": "Installa D3D9On12 dalla pagina Miglioramenti grafici di FusionFixHub per attivare DirectX 12.",
+  "turnindicators.automatic": "Automatici",
+  "turnindicators.both": "Automatici + manuali",
+  "turnindicators.manual": "Attivi (manuali)"
 }

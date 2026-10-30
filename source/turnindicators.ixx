@@ -38,6 +38,7 @@ struct VehicleState
     float blink_timer = 0.0f;
     float final_blink_timer = 0.0f;
     bool manual_hazard = false;
+    bool manual_active = false; // a blinker the player switched on by hand (automatic blinkers stay out until it is switched off)
     int pending_blinker = 0;
 };
 
@@ -386,6 +387,11 @@ public:
             FusionFix::onGameProcessEvent() += [&]()
             {
                 static auto ti = FusionFixSettings.GetRef("PREF_TURNINDICATORS");
+                // Turn Indicators: 0 Off, 1 Automatic, 2 On (manual), 3 Automatic + manual (changes apply live).
+                // [TURNINDICATORS] ManualTurnIndicators = 1 keeps its old meaning: Automatic becomes Manual.
+                const int tiMode = ti->get();
+                const bool bManualMode = tiMode == 2 || tiMode == 3 || (tiMode == 1 && bManualTurnIndicators);
+                const bool bAutoMode = tiMode == 3 || (tiMode == 1 && !bManualTurnIndicators);
                 static Vehicle last_player_car = 0;
                 static bool prev_lb_pressed = false;
                 static bool prev_rb_pressed = false;
@@ -458,7 +464,7 @@ public:
 
                     if (player_in_vehicle && vehicleStruct)
                     {
-                        if (bManualTurnIndicators)
+                        if (bManualMode)
                         {
                             bool lb_pressed = Natives::IsButtonPressed(0, BUTTON_BUMPER_LEFT) || IsKeyboardKeyPressed(nLeftIndicatorKey);
                             bool rb_pressed = Natives::IsButtonPressed(0, BUTTON_BUMPER_RIGHT) || IsKeyboardKeyPressed(nRightIndicatorKey);
@@ -494,6 +500,7 @@ public:
                                     state.blink_timer = 0.0f;
                                     state.final_blink_timer = 0.0f;
                                     state.pending_blinker = 0;
+                                    state.manual_active = false;
                                 }
                             }
                             else if (lb_tapped)
@@ -513,6 +520,7 @@ public:
                                     state.blink_timer = 0.0f;
                                     state.final_blink_timer = 0.0f;
                                     state.pending_blinker = 0;
+                                    state.manual_active = false;
                                 }
                                 else
                                 {
@@ -522,6 +530,7 @@ public:
                                         state.should_stop_blinking = true;
                                         state.final_blink_timer = 0.0f;
                                         state.pending_blinker = 1;
+                                        state.manual_active = true;
                                     }
                                     else
                                     {
@@ -532,6 +541,7 @@ public:
                                         state.blink_state = true;
                                         Natives::SetVehIndicatorlights(veh, true);
                                         state.pending_blinker = 0;
+                                        state.manual_active = true;
                                     }
                                 }
                             }
@@ -552,6 +562,7 @@ public:
                                     state.blink_timer = 0.0f;
                                     state.final_blink_timer = 0.0f;
                                     state.pending_blinker = 0;
+                                    state.manual_active = false;
                                 }
                                 else
                                 {
@@ -561,6 +572,7 @@ public:
                                         state.should_stop_blinking = true;
                                         state.final_blink_timer = 0.0f;
                                         state.pending_blinker = 2;
+                                        state.manual_active = true;
                                     }
                                     else
                                     {
@@ -571,6 +583,7 @@ public:
                                         state.blink_state = true;
                                         Natives::SetVehIndicatorlights(veh, true);
                                         state.pending_blinker = 0;
+                                        state.manual_active = true;
                                     }
                                 }
                             }
@@ -578,6 +591,9 @@ public:
                             prev_rb_pressed = rb_pressed;
                         }
                         else
+                            state.manual_active = false;
+                        // Automatic blinkers (in Automatic + manual only while no blinker or hazard was switched on by hand)
+                        if (bAutoMode && !state.manual_active && !state.manual_hazard)
                         {
                             // Process player vehicle with turn indicators
                             auto m_fSteerAngle = *reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(vehicleStruct) + SteerAngleOffset);

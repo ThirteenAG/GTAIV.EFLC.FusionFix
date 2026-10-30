@@ -227,7 +227,7 @@
   "MISC.TransparentMapMenu.description": "Показывает игру за картой в меню паузы.",
   "MISC.TreeAlpha.description": "Как вырезаются листья деревьев.",
   "MISC.TreeLighting.description": "Как освещаются деревья.",
-  "MISC.TurnIndicators.description": "Транспорт игрока использует указатели поворота.",
+  "MISC.TurnIndicators.description": "Транспорт игрока использует указатели поворота. Автоматически: включаются сами при повороте. Вкл. (вручную): нажатие LB или RB на геймпаде или клавиш поворотников. Автоматически + вручную: оба; включённый вручную указатель имеет приоритет, пока его не выключат.",
   "MISC.UnclampLighting.description": "Солнечный свет достает дальше.",
   "MISC.ZoomedMovement.description": "Позволяет двигаться при прицеливании из оружия с приближением.",
   "MO_ALT": "Альтернативный",
@@ -336,7 +336,7 @@
   "TURNINDICATORS.LeftIndicatorKey": "Клавиша левого поворотника",
   "TURNINDICATORS.LeftIndicatorKey.description": "Клавиша левого указателя поворота, код виртуальной клавиши (0xDB — это [).",
   "TURNINDICATORS.ManualTurnIndicators": "Ручные указатели поворота",
-  "TURNINDICATORS.ManualTurnIndicators.description": "Указатели поворота вручную: нажатие LB или RB на геймпаде или клавиш ниже.",
+  "TURNINDICATORS.ManualTurnIndicators.description": "Устаревшее: режим «Автоматически» работает как «Вкл. (вручную)». В «Указателях поворота» есть «Вкл. (вручную)» и «Автоматически + вручную».",
   "TURNINDICATORS.RightIndicatorKey": "Клавиша правого поворотника",
   "TURNINDICATORS.RightIndicatorKey.description": "Клавиша правого указателя поворота, код виртуальной клавиши (0xDD — это ]).",
   "UnclampLighting": "Увеличенная дистанция солнечного света",
@@ -384,5 +384,8 @@
   "window.windowed": "Окно",
   "window.borderless": "Без рамки",
   "MAIN.WindowMode.description": "Полный экран, окно с рамкой или окно без рамки на весь экран. Alt+Enter переключает между полным экраном и последним оконным режимом.",
-  "ff.note.d3d9on12": "Установите D3D9On12 на странице «Graphics enhancements» в FusionFixHub, чтобы включить DirectX 12."
+  "ff.note.d3d9on12": "Установите D3D9On12 на странице «Graphics enhancements» в FusionFixHub, чтобы включить DirectX 12.",
+  "turnindicators.automatic": "Автоматически",
+  "turnindicators.both": "Автоматически + вручную",
+  "turnindicators.manual": "Вкл. (вручную)"
 }
