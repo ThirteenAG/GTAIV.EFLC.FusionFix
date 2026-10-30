@@ -333,6 +333,8 @@
   "Tree Alpha": "Trasparenza degli alberi",
   "TreeFX": "Illuminazione degli alberi",
   "Turn Indicators": "Indicatori di direzione",
+  "TURNINDICATORS.GpsTurnIndicators": "Indicatori di direzione GPS",
+  "TURNINDICATORS.GpsTurnIndicators.description": "Con un percorso GPS (un punto sulla mappa o la destinazione di una missione), gli indicatori di direzione automatici segnalano anche la prossima svolta del percorso, come la annuncia la voce del GPS.",
   "TURNINDICATORS.LeftIndicatorKey": "Tasto indicatore sinistro",
   "TURNINDICATORS.LeftIndicatorKey.description": "Il tasto dell'indicatore di direzione sinistro, un codice virtual-key (0xDB è [).",
   "TURNINDICATORS.ManualTurnIndicators": "Indicatori di direzione manuali",

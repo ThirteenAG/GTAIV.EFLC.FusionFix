@@ -810,6 +810,11 @@
       "page": "advanced", "group": "@group.turn indicators", "visibility": "editor", "apply": "restart"
     },
     {
+      "id": "TURNINDICATORS.GpsTurnIndicators", "type": "bool", "default": 1,
+      "label": "@TURNINDICATORS.GpsTurnIndicators", "description": "@TURNINDICATORS.GpsTurnIndicators.description",
+      "page": "advanced", "group": "@group.turn indicators", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
       "id": "EXPERIMENTAL.DisplayMemoryStats", "type": "bool", "default": 0,
       "label": "@EXPERIMENTAL.DisplayMemoryStats", "description": "@EXPERIMENTAL.DisplayMemoryStats.description",
       "page": "advanced", "group": "@group.experimental", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"

@@ -333,6 +333,8 @@
   "Tree Alpha": "Transparencia de árboles",
   "TreeFX": "Iluminación de árboles",
   "Turn Indicators": "Indicadores de giro",
+  "TURNINDICATORS.GpsTurnIndicators": "Intermitentes por GPS",
+  "TURNINDICATORS.GpsTurnIndicators.description": "Con una ruta de GPS (un punto de ruta en el mapa o el destino de una misión), los intermitentes automáticos también señalan el próximo giro de la ruta, como lo anuncia la voz del GPS.",
   "TURNINDICATORS.LeftIndicatorKey": "Tecla del intermitente izquierdo",
   "TURNINDICATORS.LeftIndicatorKey.description": "La tecla del intermitente izquierdo, un código de tecla virtual (0xDB es [).",
   "TURNINDICATORS.ManualTurnIndicators": "Intermitentes manuales",

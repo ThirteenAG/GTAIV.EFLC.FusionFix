@@ -333,6 +333,8 @@
   "Tree Alpha": "Alpha des arbres",
   "TreeFX": "Éclairage des arbres",
   "Turn Indicators": "Clignotants",
+  "TURNINDICATORS.GpsTurnIndicators": "Clignotants GPS",
+  "TURNINDICATORS.GpsTurnIndicators.description": "Avec un itinéraire GPS (un point de repère sur la carte ou la destination d'une mission), les clignotants automatiques signalent aussi le prochain virage de l'itinéraire, comme l'annonce la voix du GPS.",
   "TURNINDICATORS.LeftIndicatorKey": "Touche du clignotant gauche",
   "TURNINDICATORS.LeftIndicatorKey.description": "La touche du clignotant gauche, un code de touche virtuelle (0xDB est [).",
   "TURNINDICATORS.ManualTurnIndicators": "Clignotants manuels",

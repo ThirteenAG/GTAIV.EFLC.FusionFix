@@ -333,6 +333,8 @@
   "Tree Alpha": "Прозрачность деревьев",
   "TreeFX": "Освещение деревьев",
   "Turn Indicators": "Указатели поворота",
+  "TURNINDICATORS.GpsTurnIndicators": "Поворотники по GPS",
+  "TURNINDICATORS.GpsTurnIndicators.description": "При маршруте GPS (метка на карте или цель миссии) автоматические указатели поворота также включаются перед следующим поворотом маршрута, как его объявляет голос GPS.",
   "TURNINDICATORS.LeftIndicatorKey": "Клавиша левого поворотника",
   "TURNINDICATORS.LeftIndicatorKey.description": "Клавиша левого указателя поворота, код виртуальной клавиши (0xDB — это [).",
   "TURNINDICATORS.ManualTurnIndicators": "Ручные указатели поворота",

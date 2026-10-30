@@ -333,6 +333,8 @@
   "Tree Alpha": "木の透過",
   "TreeFX": "木のライティング",
   "Turn Indicators": "ウィンカー",
+  "TURNINDICATORS.GpsTurnIndicators": "GPSウィンカー",
+  "TURNINDICATORS.GpsTurnIndicators.description": "GPSルート（マップのウェイポイントまたはミッションの目的地）があるとき、自動ウィンカーはGPS音声の案内どおりに、ルートの次の曲がり角も合図します。",
   "TURNINDICATORS.LeftIndicatorKey": "左ウィンカーのキー",
   "TURNINDICATORS.LeftIndicatorKey.description": "左ウィンカーのキーです。仮想キーコードで指定します（0xDBは[）。",
   "TURNINDICATORS.ManualTurnIndicators": "手動ウィンカー",

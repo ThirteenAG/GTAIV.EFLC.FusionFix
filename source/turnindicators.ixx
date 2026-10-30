@@ -69,6 +69,78 @@ namespace BumperGate
     }
 }
 
+// GPS-driven blinkers: with a GPS route (a waypoint set on the map, or a mission destination), the automatic
+// blinkers also follow the route, the way the GPS voice does. GENERATE_DIRECTIONS (the call behind the GPS voice)
+// gives the next instruction towards a point: 0 none, 1 turn right, 2 turn left, 3 straight on, 4 turn around
+// (found by driving logged routes). It reports a turn from shortly before the junction until the turn is made.
+// The route target is the waypoint if one is set, otherwise the blip with the route flag (SET_ROUTE).
+namespace GpsBlinkers
+{
+    // FusionFix's NativeInvoke only copies Vector3 out-parameters back for natives with a return value, and these two
+    // are void: call them through a context and copy the vectors back explicitly.
+    template<typename... Args>
+    void InvokeWithVectors(uint32_t hash, Args... args)
+    {
+        NativeContext cxt;
+        (cxt.Push(args), ...);
+        if (auto fn = NativeInvoke::GetNativeHandler(hash))
+        {
+            fn(&cxt);
+            static_cast<scrNativeCallContext&>(cxt).GetResult<int32_t>(0);
+        }
+    }
+
+    constexpr uint32_t SPRITE_WAYPOINT = 8;
+    constexpr int32_t MaxBlips = 1500;      // CRadar's blip array (index <= 0x5DB)
+    constexpr uint16_t BLIP_FLAG_ROUTE = 0x10;
+    uint8_t** blips = nullptr;              // array of blip pointers; a blip starts with its 16-bit generation
+
+    void Init()
+    {
+        // mov eax, [eax*4+blips]; cmp byte ptr [eax+8], 0; jnz; mov eax, ... (the blip flag readers)
+        auto pattern = hook::pattern("8B 04 85 ? ? ? ? 80 78 08 00 75 0C A1");
+        if (!pattern.empty())
+            blips = *pattern.get_first<uint8_t**>(3);
+    }
+
+    // 0 none, 1 left, 2 right (the turn indicator directions)
+    int Direction()
+    {
+        static float timer = 0.0f;
+        static int last = 0;
+        timer += 1000.0f * Natives::Timestep();
+        if (timer < 250.0f)
+            return last;
+        timer = 0.0f;
+        last = 0;
+        if (!blips)
+            return 0;
+
+        Blip waypoint = 0, route = 0;
+        for (int32_t i = 0; i < MaxBlips && !waypoint; i++)
+        {
+            uint8_t* b = blips[i];
+            if (!b)
+                continue;
+            Blip handle = (Blip)((uint32_t)*(uint16_t*)b << 16 | (uint32_t)i);
+            if (Natives::GetBlipSprite(handle) == SPRITE_WAYPOINT)
+                waypoint = handle;
+            else if (!route && b[8] && (*(uint16_t*)(b + 0x20) & BLIP_FLAG_ROUTE))
+                route = handle;
+        }
+        Blip target = waypoint ? waypoint : route;
+        if (!target)
+            return 0;
+        Vector3 pos{};
+        InvokeWithVectors(std::to_underlying(Natives::NativeHashes::GET_BLIP_COORDS), target, &pos);
+        int32_t instruction = 0;
+        Vector3 unused{};
+        InvokeWithVectors(std::to_underlying(Natives::NativeHashes::GENERATE_DIRECTIONS), pos.fX, pos.fY, pos.fZ, &instruction, &unused);
+        last = (instruction == 2) ? 1 : (instruction == 1) ? 2 : 0;
+        return last;
+    }
+}
+
 // Struct to hold all vehicle state data
 struct VehicleState
 {
@@ -196,6 +268,8 @@ public:
             static bool bManualTurnIndicators = reader.ReadInteger("TURNINDICATORS", "ManualTurnIndicators", 0);
             static uint32_t nLeftIndicatorKey = reader.ReadInteger("TURNINDICATORS", "LeftIndicatorKey", VK_OEM_4);
             static uint32_t nRightIndicatorKey = reader.ReadInteger("TURNINDICATORS", "RightIndicatorKey", VK_OEM_6);
+            static bool bGpsBlinkers = reader.ReadInteger("TURNINDICATORS", "GpsTurnIndicators", 1) != 0;
+            GpsBlinkers::Init();
             BumperGate::Install();
 
             struct VehicleFlags
@@ -662,6 +736,8 @@ public:
                                 current_turn_direction = 1; // Left
                             else if (m_fSteerAngle < -STEER_THRESHOLD)
                                 current_turn_direction = 2; // Right
+                            if (current_turn_direction == 0 && bGpsBlinkers)
+                                current_turn_direction = GpsBlinkers::Direction();
 
                             bool currently_turning = (current_turn_direction != 0);
                             bool direction_changed = (current_turn_direction != state.last_turn_direction &&

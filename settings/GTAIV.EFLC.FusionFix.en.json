@@ -333,6 +333,8 @@
   "Tree Alpha": "Tree Alpha",
   "TreeFX": "Tree Lighting",
   "Turn Indicators": "Turn Indicators",
+  "TURNINDICATORS.GpsTurnIndicators": "GPS Turn Indicators",
+  "TURNINDICATORS.GpsTurnIndicators.description": "With a GPS route (a map waypoint or a mission destination), the automatic turn indicators also signal the route's next turn, as the GPS voice announces it.",
   "TURNINDICATORS.LeftIndicatorKey": "Left Indicator Key",
   "TURNINDICATORS.LeftIndicatorKey.description": "The key of the left turn indicator, a virtual-key code (0xDB is [).",
   "TURNINDICATORS.ManualTurnIndicators": "Manual Turn Indicators",

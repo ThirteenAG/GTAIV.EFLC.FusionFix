@@ -333,6 +333,8 @@
   "Tree Alpha": "Baumtransparenz",
   "TreeFX": "Baumbeleuchtung",
   "Turn Indicators": "Blinker",
+  "TURNINDICATORS.GpsTurnIndicators": "GPS-Blinker",
+  "TURNINDICATORS.GpsTurnIndicators.description": "Mit einer GPS-Route (Wegpunkt auf der Karte oder Missionsziel) blinken die automatischen Blinker auch für die nächste Abbiegung der Route, wie die GPS-Stimme sie ansagt.",
   "TURNINDICATORS.LeftIndicatorKey": "Taste für linken Blinker",
   "TURNINDICATORS.LeftIndicatorKey.description": "Die Taste für den linken Blinker, ein Virtual-Key-Code (0xDB ist [).",
   "TURNINDICATORS.ManualTurnIndicators": "Manuelle Blinker",
