@@ -60,6 +60,8 @@ float4 PSMain_BlitXenonGamma(float2 uv : TEXCOORD0) : COLOR0
     return color;
 }
 
+// Most of Rockstar's RAGE engine games released on the PlayStation 3 have the final image colors boosted by 1.2x, very likely meant to approximate the gamma curve on the Xbox 360 versions.
+// This process has also been preserved in newer releases of Red Dead Redemption for other platforms, while mistakenly being labeled by the devs as "Apply360Gamma".
 float4 PSMain_BlitCellGamma(float2 uv : TEXCOORD0) : COLOR0
 {
     float4 color = tex2D(FrameBufferSampler, uv);
