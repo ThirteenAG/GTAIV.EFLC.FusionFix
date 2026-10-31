@@ -16,37 +16,38 @@ $fxcDir = Join-Path $root "source\dxsdk\lib\x86"
 $fxc = Join-Path $fxcDir "fxc.exe"
 
 # Src: the source, relative to the repository root; a wildcard compiles every match, {0} in the outputs is the matched
-# file's name without extension. T: profile, E: entry point, Fo: compiled file, Fc: assembly listing (only for
-# convenience, not committed), Flags: more fxc options.
+# file's name without extension. T: profile, E: entry point, Fo: binary file.
 $shaders = @(
-    # ConsoleGamma
-    @{ Src = "shaders/external/gamma/fx/ConsoleGamma.fx"; T = "fx_2_0"; Fo = "source/resources/shaders/win32_30/ConsoleGamma.fxo"; Fc = "shaders/external/gamma/asm/ConsoleGamma.asm" }
-    @{ Src = "shaders/external/gamma/fx/ConsoleGamma_Dither.fx"; T = "fx_2_0"; Fo = "source/resources/shaders/win32_30/ConsoleGamma_Dither.fxo"; Fc = "shaders/external/gamma/asm/ConsoleGamma_Dither.asm" }
+    # Gamma
+    @{ Src = "source/resources/gamma/ConsoleGamma.fx";        T = "fx_2_0"; Fo = "source/resources/shaders/win32_30/ConsoleGamma.fxo"        }
+    @{ Src = "source/resources/gamma/ConsoleGamma_Dither.fx"; T = "fx_2_0"; Fo = "source/resources/shaders/win32_30/ConsoleGamma_Dither.fxo" }
 
     # Snow
     @{ Src = "source/resources/snow/*.ps"; T = "ps_3_0"; E = "main"; Fo = "source/resources/snow/{0}ps.pso" }
     @{ Src = "source/resources/snow/*.vs"; T = "vs_3_0"; E = "main"; Fo = "source/resources/snow/{0}vs.vso" }
 
-    # Sun shafts, FXAA, SMAA
-    @{ Src = "source/resources/SunShafts_PS.hlsl"; T = "ps_3_0"; E = "SSDraw"; Fo = "source/resources/SSDraw_PS.pso" }
+    # Sunshafts
+    @{ Src = "source/resources/SunShafts_PS.hlsl"; T = "ps_3_0"; E = "SSDraw";    Fo = "source/resources/SSDraw_PS.pso"    }
     @{ Src = "source/resources/SunShafts_PS.hlsl"; T = "ps_3_0"; E = "SSPrepass"; Fo = "source/resources/SSPrepass_PS.pso" }
-    @{ Src = "source/resources/SunShafts_PS.hlsl"; T = "ps_3_0"; E = "SSAdd"; Fo = "source/resources/SSAdd_PS.pso" }
-    @{ Src = "source/resources/FXAA3_11.h"; T = "ps_3_0"; E = "ApplyFXAA"; Fo = "source/resources/FxaaPS.pso" }
-    @{ Src = "source/resources/SMAA.hlsl"; T = "ps_3_0"; E = "DX9_SMAALumaEdgeDetectionPS"; Fo = "source/resources/SMAA_EdgeDetection.pso" }
-    @{ Src = "source/resources/SMAA.hlsl"; T = "ps_3_0"; E = "DX9_SMAABlendingWeightCalculationPS"; Fo = "source/resources/SMAA_BlendingWeightsCalculation.pso" }
-    @{ Src = "source/resources/SMAA.hlsl"; T = "ps_3_0"; E = "DX9_SMAANeighborhoodBlendingPS"; Fo = "source/resources/SMAA_NeighborhoodBlending.pso" }
-    @{ Src = "source/resources/SMAA.hlsl"; T = "vs_3_0"; E = "DX9_SMAAEdgeDetectionVS"; Fo = "source/resources/SMAA_EdgeDetectionVS.vso" }
-    @{ Src = "source/resources/SMAA.hlsl"; T = "vs_3_0"; E = "DX9_SMAABlendingWeightCalculationVS"; Fo = "source/resources/SMAA_BlendingWeightsCalculationVS.vso" }
-    @{ Src = "source/resources/SMAA.hlsl"; T = "vs_3_0"; E = "DX9_SMAANeighborhoodBlendingVS"; Fo = "source/resources/SMAA_NeighborhoodBlendingVS.vso" }
+    @{ Src = "source/resources/SunShafts_PS.hlsl"; T = "ps_3_0"; E = "SSAdd";     Fo = "source/resources/SSAdd_PS.pso"     }
 
-    # Temporal anti-aliasing
-    @{ Src = "source/resources/temporal/Resolve.hlsl"; T = "ps_3_0"; E = "Resolve"; Fo = "source/resources/temporal/Resolve.pso" }
-    @{ Src = "source/resources/temporal/Resolve.hlsl"; T = "ps_3_0"; E = "CopyDepth"; Fo = "source/resources/temporal/CopyDepth.pso" }
-    @{ Src = "source/resources/temporal/Resolve.hlsl"; T = "ps_3_0"; E = "Copy"; Fo = "source/resources/temporal/Copy.pso" }
+    # Anti-aliasing
+    @{ Src = "source/resources/FXAA3_11.h"; T = "ps_3_0"; E = "ApplyFXAA";                           Fo = "source/resources/FxaaPS.pso"                            }
+    @{ Src = "source/resources/SMAA.hlsl";  T = "ps_3_0"; E = "DX9_SMAALumaEdgeDetectionPS";         Fo = "source/resources/SMAA_EdgeDetection.pso"                }
+    @{ Src = "source/resources/SMAA.hlsl";  T = "ps_3_0"; E = "DX9_SMAABlendingWeightCalculationPS"; Fo = "source/resources/SMAA_BlendingWeightsCalculation.pso"   }
+    @{ Src = "source/resources/SMAA.hlsl";  T = "ps_3_0"; E = "DX9_SMAANeighborhoodBlendingPS";      Fo = "source/resources/SMAA_NeighborhoodBlending.pso"         }
+    @{ Src = "source/resources/SMAA.hlsl";  T = "vs_3_0"; E = "DX9_SMAAEdgeDetectionVS";             Fo = "source/resources/SMAA_EdgeDetectionVS.vso"              }
+    @{ Src = "source/resources/SMAA.hlsl";  T = "vs_3_0"; E = "DX9_SMAABlendingWeightCalculationVS"; Fo = "source/resources/SMAA_BlendingWeightsCalculationVS.vso" }
+    @{ Src = "source/resources/SMAA.hlsl";  T = "vs_3_0"; E = "DX9_SMAANeighborhoodBlendingVS";      Fo = "source/resources/SMAA_NeighborhoodBlendingVS.vso"       }
+
+    # Temporal
+    @{ Src = "source/resources/temporal/Resolve.hlsl"; T = "ps_3_0"; E = "Resolve";      Fo = "source/resources/temporal/Resolve.pso"      }
+    @{ Src = "source/resources/temporal/Resolve.hlsl"; T = "ps_3_0"; E = "CopyDepth";    Fo = "source/resources/temporal/CopyDepth.pso"    }
+    @{ Src = "source/resources/temporal/Resolve.hlsl"; T = "ps_3_0"; E = "Copy";         Fo = "source/resources/temporal/Copy.pso"         }
     @{ Src = "source/resources/temporal/Resolve.hlsl"; T = "ps_3_0"; E = "BridgeMotion"; Fo = "source/resources/temporal/BridgeMotion.pso" }
 
-    # HDR output
-    @{ Src = "source/resources/hdr/HDR.hlsl"; T = "ps_3_0"; E = "PS_HDROutput"; Fo = "source/resources/hdr/HDROutput.pso" }
+    # HDR
+    @{ Src = "source/resources/hdr/HDR.hlsl"; T = "ps_3_0"; E = "PS_HDROutput";      Fo = "source/resources/hdr/HDROutput.pso"      }
     @{ Src = "source/resources/hdr/HDR.hlsl"; T = "ps_3_0"; E = "PS_HDRCalibration"; Fo = "source/resources/hdr/HDRCalibration.pso" }
 )
 
