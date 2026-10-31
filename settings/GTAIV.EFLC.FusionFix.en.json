@@ -227,7 +227,7 @@
   "MISC.TransparentMapMenu.description": "Shows the game behind the map of the pause menu.",
   "MISC.TreeAlpha.description": "How the leaves of trees are cut out.",
   "MISC.TreeLighting.description": "How trees are lit.",
-  "MISC.TurnIndicators.description": "Vehicles of the player use their turn indicators.",
+  "MISC.TurnIndicators.description": "The player's vehicles use their turn indicators. Automatic: they blink by themselves when turning. On (manual): tap LB or RB on a controller, or the turn indicator keys. Automatic + manual: both; a blinker switched on by hand takes priority until it is switched off.",
   "MISC.UnclampLighting.description": "Sunlight reaches further.",
   "MISC.ZoomedMovement.description": "Allows moving while aiming with a zoomed weapon.",
   "MO_ALT": "Alternative",
@@ -333,10 +333,12 @@
   "Tree Alpha": "Tree Alpha",
   "TreeFX": "Tree Lighting",
   "Turn Indicators": "Turn Indicators",
+  "TURNINDICATORS.GpsTurnIndicators": "GPS Turn Indicators",
+  "TURNINDICATORS.GpsTurnIndicators.description": "With a GPS route (a map waypoint or a mission destination), the automatic turn indicators also signal the route's next turn, as the GPS voice announces it.",
   "TURNINDICATORS.LeftIndicatorKey": "Left Indicator Key",
   "TURNINDICATORS.LeftIndicatorKey.description": "The key of the left turn indicator, a virtual-key code (0xDB is [).",
   "TURNINDICATORS.ManualTurnIndicators": "Manual Turn Indicators",
-  "TURNINDICATORS.ManualTurnIndicators.description": "Turn indicators by hand: tap LB or RB on a controller, or the keys below.",
+  "TURNINDICATORS.ManualTurnIndicators.description": "Legacy: makes Automatic behave as On (manual). Turn Indicators offers On (manual) and Automatic + manual.",
   "TURNINDICATORS.RightIndicatorKey": "Right Indicator Key",
   "TURNINDICATORS.RightIndicatorKey.description": "The key of the right turn indicator, a virtual-key code (0xDD is ]).",
   "UnclampLighting": "Extended Sunlight Reach",
@@ -384,5 +386,8 @@
   "window.windowed": "Windowed",
   "window.borderless": "Borderless",
   "MAIN.WindowMode.description": "Fullscreen, a window with borders, or a borderless window that covers the screen. Alt+Enter switches between fullscreen and the last window mode.",
-  "ff.note.d3d9on12": "Install D3D9On12 on FusionFixHub's Graphics enhancements page to enable DirectX 12."
+  "ff.note.d3d9on12": "Install D3D9On12 on FusionFixHub's Graphics enhancements page to enable DirectX 12.",
+  "turnindicators.automatic": "Automatic",
+  "turnindicators.both": "Automatic + manual",
+  "turnindicators.manual": "On (manual)"
 }

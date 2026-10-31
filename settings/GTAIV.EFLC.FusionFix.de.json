@@ -227,7 +227,7 @@
   "MISC.TransparentMapMenu.description": "Zeigt das Spiel hinter der Karte im Pausenmenü.",
   "MISC.TreeAlpha.description": "Wie die Blätter von Bäumen ausgeschnitten werden.",
   "MISC.TreeLighting.description": "Wie Bäume beleuchtet werden.",
-  "MISC.TurnIndicators.description": "Fahrzeuge des Spielers verwenden ihre Blinker.",
+  "MISC.TurnIndicators.description": "Fahrzeuge des Spielers verwenden ihre Blinker. Automatisch: sie blinken beim Abbiegen von selbst. An (manuell): LB oder RB am Controller oder die Blinkertasten antippen. Automatisch + manuell: beides; ein von Hand eingeschalteter Blinker hat Vorrang, bis er ausgeschaltet wird.",
   "MISC.UnclampLighting.description": "Sonnenlicht reicht weiter.",
   "MISC.ZoomedMovement.description": "Erlaubt Bewegung beim Zielen mit einer Zoom-Waffe.",
   "MO_ALT": "Alternativ",
@@ -333,10 +333,12 @@
   "Tree Alpha": "Baumtransparenz",
   "TreeFX": "Baumbeleuchtung",
   "Turn Indicators": "Blinker",
+  "TURNINDICATORS.GpsTurnIndicators": "GPS-Blinker",
+  "TURNINDICATORS.GpsTurnIndicators.description": "Mit einer GPS-Route (Wegpunkt auf der Karte oder Missionsziel) blinken die automatischen Blinker auch für die nächste Abbiegung der Route, wie die GPS-Stimme sie ansagt.",
   "TURNINDICATORS.LeftIndicatorKey": "Taste für linken Blinker",
   "TURNINDICATORS.LeftIndicatorKey.description": "Die Taste für den linken Blinker, ein Virtual-Key-Code (0xDB ist [).",
   "TURNINDICATORS.ManualTurnIndicators": "Manuelle Blinker",
-  "TURNINDICATORS.ManualTurnIndicators.description": "Blinker von Hand: LB oder RB am Controller antippen oder die Tasten unten.",
+  "TURNINDICATORS.ManualTurnIndicators.description": "Veraltet: lässt Automatisch wie An (manuell) arbeiten. Die Blinker-Option bietet An (manuell) und Automatisch + manuell.",
   "TURNINDICATORS.RightIndicatorKey": "Taste für rechten Blinker",
   "TURNINDICATORS.RightIndicatorKey.description": "Die Taste für den rechten Blinker, ein Virtual-Key-Code (0xDD ist ]).",
   "UnclampLighting": "Erweiterte Sonnenlicht-Reichweite",
@@ -384,5 +386,8 @@
   "window.windowed": "Fenster",
   "window.borderless": "Rahmenlos",
   "MAIN.WindowMode.description": "Vollbild, ein Fenster mit Rahmen oder ein rahmenloses Fenster, das den Bildschirm füllt. Alt+Enter wechselt zwischen Vollbild und dem letzten Fenstermodus.",
-  "ff.note.d3d9on12": "Installiere D3D9On12 auf der Seite Grafikverbesserungen in FusionFixHub, um DirectX 12 zu aktivieren."
+  "ff.note.d3d9on12": "Installiere D3D9On12 auf der Seite Grafikverbesserungen in FusionFixHub, um DirectX 12 zu aktivieren.",
+  "turnindicators.automatic": "Automatisch",
+  "turnindicators.both": "Automatisch + manuell",
+  "turnindicators.manual": "An (manuell)"
 }

@@ -227,7 +227,7 @@
   "MISC.TransparentMapMenu.description": "Muestra el juego detrás del mapa del menú de pausa.",
   "MISC.TreeAlpha.description": "Cómo se recortan las hojas de los árboles.",
   "MISC.TreeLighting.description": "Cómo se iluminan los árboles.",
-  "MISC.TurnIndicators.description": "Los vehículos del jugador usan sus intermitentes.",
+  "MISC.TurnIndicators.description": "Los vehículos del jugador usan sus intermitentes. Automáticos: se encienden solos al girar. Activados (manuales): pulsa LB o RB en el mando o las teclas de intermitente. Automáticos + manuales: ambos; un intermitente encendido a mano tiene prioridad hasta que se apaga.",
   "MISC.UnclampLighting.description": "La luz solar llega más lejos.",
   "MISC.ZoomedMovement.description": "Permite moverse al apuntar con un arma con zoom.",
   "MO_ALT": "Alternativo",
@@ -333,10 +333,12 @@
   "Tree Alpha": "Transparencia de árboles",
   "TreeFX": "Iluminación de árboles",
   "Turn Indicators": "Indicadores de giro",
+  "TURNINDICATORS.GpsTurnIndicators": "Intermitentes por GPS",
+  "TURNINDICATORS.GpsTurnIndicators.description": "Con una ruta de GPS (un punto de ruta en el mapa o el destino de una misión), los intermitentes automáticos también señalan el próximo giro de la ruta, como lo anuncia la voz del GPS.",
   "TURNINDICATORS.LeftIndicatorKey": "Tecla del intermitente izquierdo",
   "TURNINDICATORS.LeftIndicatorKey.description": "La tecla del intermitente izquierdo, un código de tecla virtual (0xDB es [).",
   "TURNINDICATORS.ManualTurnIndicators": "Intermitentes manuales",
-  "TURNINDICATORS.ManualTurnIndicators.description": "Intermitentes a mano: toca LB o RB en el mando, o las teclas de abajo.",
+  "TURNINDICATORS.ManualTurnIndicators.description": "Obsoleto: hace que Automáticos funcione como Activados (manuales). Intermitentes ofrece Activados (manuales) y Automáticos + manuales.",
   "TURNINDICATORS.RightIndicatorKey": "Tecla del intermitente derecho",
   "TURNINDICATORS.RightIndicatorKey.description": "La tecla del intermitente derecho, un código de tecla virtual (0xDD es ]).",
   "UnclampLighting": "Alcance ampliado de la luz solar",
@@ -384,5 +386,8 @@
   "window.windowed": "Ventana",
   "window.borderless": "Sin bordes",
   "MAIN.WindowMode.description": "Pantalla completa, una ventana con bordes o una ventana sin bordes que cubre la pantalla. Alt+Intro cambia entre pantalla completa y el último modo de ventana.",
-  "ff.note.d3d9on12": "Instala D3D9On12 en la página de mejoras gráficas de FusionFixHub para activar DirectX 12."
+  "ff.note.d3d9on12": "Instala D3D9On12 en la página de mejoras gráficas de FusionFixHub para activar DirectX 12.",
+  "turnindicators.automatic": "Automáticos",
+  "turnindicators.both": "Automáticos + manuales",
+  "turnindicators.manual": "Activados (manuales)"
 }

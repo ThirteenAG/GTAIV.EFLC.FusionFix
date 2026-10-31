@@ -227,7 +227,7 @@
   "MISC.TransparentMapMenu.description": "Affiche le jeu derrière la carte du menu pause.",
   "MISC.TreeAlpha.description": "Comment les feuilles des arbres sont découpées.",
   "MISC.TreeLighting.description": "Comment les arbres sont éclairés.",
-  "MISC.TurnIndicators.description": "Les véhicules du joueur utilisent leurs clignotants.",
+  "MISC.TurnIndicators.description": "Les véhicules du joueur utilisent leurs clignotants. Automatiques : ils s'allument seuls en tournant. Activés (manuels) : appuyez sur LB ou RB à la manette ou sur les touches de clignotant. Automatiques + manuels : les deux ; un clignotant allumé à la main reste prioritaire jusqu'à ce qu'il soit éteint.",
   "MISC.UnclampLighting.description": "La lumière du soleil porte plus loin.",
   "MISC.ZoomedMovement.description": "Permet de se déplacer en visant avec une arme à zoom.",
   "MO_ALT": "Alternatif",
@@ -333,10 +333,12 @@
   "Tree Alpha": "Alpha des arbres",
   "TreeFX": "Éclairage des arbres",
   "Turn Indicators": "Clignotants",
+  "TURNINDICATORS.GpsTurnIndicators": "Clignotants GPS",
+  "TURNINDICATORS.GpsTurnIndicators.description": "Avec un itinéraire GPS (un point de repère sur la carte ou la destination d'une mission), les clignotants automatiques signalent aussi le prochain virage de l'itinéraire, comme l'annonce la voix du GPS.",
   "TURNINDICATORS.LeftIndicatorKey": "Touche du clignotant gauche",
   "TURNINDICATORS.LeftIndicatorKey.description": "La touche du clignotant gauche, un code de touche virtuelle (0xDB est [).",
   "TURNINDICATORS.ManualTurnIndicators": "Clignotants manuels",
-  "TURNINDICATORS.ManualTurnIndicators.description": "Clignotants à la main : appuyez sur LB ou RB à la manette, ou sur les touches ci-dessous.",
+  "TURNINDICATORS.ManualTurnIndicators.description": "Obsolète : fait fonctionner Automatiques comme Activés (manuels). Clignotants propose Activés (manuels) et Automatiques + manuels.",
   "TURNINDICATORS.RightIndicatorKey": "Touche du clignotant droit",
   "TURNINDICATORS.RightIndicatorKey.description": "La touche du clignotant droit, un code de touche virtuelle (0xDD est ]).",
   "UnclampLighting": "Portée étendue de la lumière du soleil",
@@ -384,5 +386,8 @@
   "window.windowed": "Fenêtre",
   "window.borderless": "Sans bordures",
   "MAIN.WindowMode.description": "Plein écran, une fenêtre avec bordures ou une fenêtre sans bordures qui couvre l'écran. Alt+Entrée bascule entre le plein écran et le dernier mode fenêtré.",
-  "ff.note.d3d9on12": "Installez D3D9On12 depuis la page Améliorations graphiques de FusionFixHub pour activer DirectX 12."
+  "ff.note.d3d9on12": "Installez D3D9On12 depuis la page Améliorations graphiques de FusionFixHub pour activer DirectX 12.",
+  "turnindicators.automatic": "Automatiques",
+  "turnindicators.both": "Automatiques + manuels",
+  "turnindicators.manual": "Activés (manuels)"
 }

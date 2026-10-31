@@ -227,7 +227,7 @@
   "MISC.TransparentMapMenu.description": "ポーズメニューのマップの背後にゲーム画面を表示します。",
   "MISC.TreeAlpha.description": "木の葉の切り抜き方です。",
   "MISC.TreeLighting.description": "木の照らされ方です。",
-  "MISC.TurnIndicators.description": "プレイヤーの乗り物がウィンカーを使います。",
+  "MISC.TurnIndicators.description": "プレイヤーの乗り物がウィンカーを使います。自動：曲がる時に自動で点滅。オン（手動）：コントローラーのLB/RBかウィンカーキーを押す。自動＋手動：両方。手動で出したウィンカーは消すまで優先されます。",
   "MISC.UnclampLighting.description": "日光がより遠くまで届きます。",
   "MISC.ZoomedMovement.description": "ズーム可能な武器で狙っている間も移動できます。",
   "MO_ALT": "代替案",
@@ -333,10 +333,12 @@
   "Tree Alpha": "木の透過",
   "TreeFX": "木のライティング",
   "Turn Indicators": "ウィンカー",
+  "TURNINDICATORS.GpsTurnIndicators": "GPSウィンカー",
+  "TURNINDICATORS.GpsTurnIndicators.description": "GPSルート（マップのウェイポイントまたはミッションの目的地）があるとき、自動ウィンカーはGPS音声の案内どおりに、ルートの次の曲がり角も合図します。",
   "TURNINDICATORS.LeftIndicatorKey": "左ウィンカーのキー",
   "TURNINDICATORS.LeftIndicatorKey.description": "左ウィンカーのキーです。仮想キーコードで指定します（0xDBは[）。",
   "TURNINDICATORS.ManualTurnIndicators": "手動ウィンカー",
-  "TURNINDICATORS.ManualTurnIndicators.description": "ウィンカーを手動で操作します。コントローラーではLBまたはRBを軽く押すか、下記のキーを使います。",
+  "TURNINDICATORS.ManualTurnIndicators.description": "旧設定：「自動」を「オン（手動）」として動作させます。ウィンカー設定で「オン（手動）」と「自動＋手動」を選べます。",
   "TURNINDICATORS.RightIndicatorKey": "右ウィンカーのキー",
   "TURNINDICATORS.RightIndicatorKey.description": "右ウィンカーのキーです。仮想キーコードで指定します（0xDDは]）。",
   "UnclampLighting": "日照範囲の拡大",
@@ -384,5 +386,8 @@
   "window.windowed": "ウィンドウ",
   "window.borderless": "フチなし",
   "MAIN.WindowMode.description": "フルスクリーン、枠付きウィンドウ、または画面を覆うフチなしウィンドウ。Alt+Enterでフルスクリーンと前回のウィンドウモードを切り替えます。",
-  "ff.note.d3d9on12": "DirectX 12を有効にするには、FusionFixHubの「グラフィック強化」ページでD3D9On12をインストールしてください。"
+  "ff.note.d3d9on12": "DirectX 12を有効にするには、FusionFixHubの「グラフィック強化」ページでD3D9On12をインストールしてください。",
+  "turnindicators.automatic": "自動",
+  "turnindicators.both": "自動＋手動",
+  "turnindicators.manual": "オン（手動）"
 }
