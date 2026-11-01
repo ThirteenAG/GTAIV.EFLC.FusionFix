@@ -28,6 +28,8 @@ namespace NewDistantLights
     static float nightFade{};
     static Dataset xbox;
     static std::vector<Road> roads;
+    static SafetyHookMid pcStreetlightFade;
+    static float heightStart = 0.0f;
 
     static bool LoadConsoleData()
     {
@@ -97,13 +99,12 @@ namespace NewDistantLights
         }
         auto viewport = rage::GetCurrentViewport();
         const Vector camera{ viewport->mCameraMatrix[3][0], viewport->mCameraMatrix[3][1], viewport->mCameraMatrix[3][2] };
-        const float inland = std::clamp((camera.z-75.0f)/40.0f, 0.0f, 1.0f);
         const uint32_t time = *milliseconds;
         const bool tbogt = *_dwCurrentEpisode == 2;
         const float nativeScale = NativeAircraftScale(tbogt, std::span<const uint8_t, 2>(aircraftSizeBranch, 2));
         SubmitConsoleCoronas(tbogt, nativeScale, positions, colors, count, right, up, [&](auto append)
         {
-            auto emit = [&](Vector light, float intensity, uint32_t rgb)
+            auto emit = [&](Vector light, float intensity, uint32_t rgb, bool interior)
             {
                 const float distance = (light-camera).Length();
                 // Retail Xbox culls blocks and stored path spheres, then applies
@@ -112,7 +113,8 @@ namespace NewDistantLights
                 if (distance <= 150.0f) return;
                 // Use the game's shared generator once per emitted sprite/pass;
                 // retain Xbox's range mapping and staged integer colour rounding.
-                append(light, XboxSpriteColor(rgb, intensity, distance, XboxBrightness(uint32_t(game_rand()))));
+                const float fadeDistance = interior ? HeightLimitedDistance(distance, camera.z, 100.0f) : distance;
+                append(light, XboxSpriteColor(rgb, intensity, fadeDistance, XboxBrightness(uint32_t(game_rand()))));
             };
             for (size_t block = 0; block < 64; ++block)
             {
@@ -122,7 +124,7 @@ namespace NewDistantLights
                 if (!sphereVisible(viewport, x, y, 20.0f, 525.0f, nullptr)) continue;
                 for (size_t interior = 0; interior < 2; ++interior)
                 {
-                    if (interior && camera.z <= 75.0f) continue;
+                    if (interior && camera.z <= 0.0f) continue;
                     const uint32_t begin = xbox.firstString[block] + (interior ? xbox.coastalCount[block] : 0);
                     const uint32_t size = interior ? xbox.interiorCount[block] : xbox.coastalCount[block];
                     for (uint32_t i = begin; i < begin+size; ++i)
@@ -131,10 +133,9 @@ namespace NewDistantLights
                         const auto& road = roads[i];
                         if (road.Length() <= 0.0f || !sphereVisible(viewport, float(line.x), float(line.y),
                             float(line.z), float(line.radius), nullptr)) continue;
-                        const float traffic = nightFade*(interior ? inland : 1.0f);
                         ForEachVehicle(road, time, [&](Vector light, bool red, uint32_t)
                         {
-                            emit(light, traffic, red ? 0xFF0000u : 0xFFFFFFu);
+                            emit(light, nightFade, red ? 0xFF0000u : 0xFFFFFFu, interior != 0);
                         });
                         if (nightFade < StreetlightThreshold(xbox.points[line.firstPoint])) continue;
                         for (float s = 0; s < road.Length(); s += 30.0f)
@@ -143,7 +144,7 @@ namespace NewDistantLights
                             light.z += 12.0f;
                             // Streetlights switch as whole strings; nightFade is
                             // a threshold here, not a second continuous dimmer.
-                            emit(light, 1.0f, 0xFFDC80u);
+                            emit(light, 1.0f, 0xFFDC80u, interior != 0);
                         }
                     }
                 }
@@ -230,7 +231,14 @@ namespace NewDistantLights
         // six-byte operand layout is identical. The body remains unmodified.
         const auto aircraftSize = Unique("83 3D ? ? ? ? 02 ? ? ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 10 8C 24",
             spritePass, spritePass+0x1000);
-        if (!spriteFinal || !timer || !visibility || !streetlightIndex || !aircraftSize)
+        const auto heightGate = Unique("F3 0F 5C 0D ? ? ? ? F3 0F 11 84 24 C8 00 00 00 F3 0F 10 05 ? ? ? ? F3 0F 59 0D ? ? ? ? 0F 2F C8 F3 0F 11 4C 24 58",
+            spritePass, spritePass+0x500);
+        const auto streetlightFade = Unique("51 8D 84 24 80 00 00 00 F3 0F 11 04 24 50 E8 ? ? ? ?",
+            spritePass, spritePass+0x1000);
+        const auto roadGroup = Unique("8B 74 24 1C 8B 7C 24 4C 47 89 7C 24 4C 83 FF 02",
+            spritePass, spritePass+0x1000);
+        if (!spriteFinal || !timer || !visibility || !streetlightIndex || !aircraftSize ||
+            !heightGate || !streetlightFade || !roadGroup)
         {
             OutputDebugStringA("FusionFix: Distant Lights pass bindings unavailable; retaining PC rendering.\n");
             return;
@@ -256,6 +264,25 @@ namespace NewDistantLights
         originalNightModels = reinterpret_cast<decltype(originalNightModels)>(modelPass);
         flushSprites = reinterpret_cast<SpriteFlush>(nativeFlush);
         sphereVisible = reinterpret_cast<decltype(sphereVisible)>(Target(visibility+5));
+
+        // CE, immediately before PUSH ECX at the road-only attenuation call:
+        // ESP+4C is the coastal/inland loop index; ESP+C8 is saved camera Z.
+        // Cap XMM0's distance before the native random/colour function. This
+        // preserves its rounding and random draw, with no second attenuation.
+        pcStreetlightFade = safetyhook::create_mid(streetlightFade, [](SafetyHookContext& regs)
+        {
+            if (*reinterpret_cast<const int*>(regs.esp + 0x4C) == 1)
+                regs.xmm0.f32[0] = HeightLimitedDistance(regs.xmm0.f32[0],
+                    *reinterpret_cast<const float*>(regs.esp + 0xC8), 150.0f);
+        });
+        if (!pcStreetlightFade)
+        {
+            OutputDebugStringA("FusionFix: Distant Lights height fade unavailable; retaining PC rendering.\n");
+            return;
+        }
+        // Lower only the sprite pass's eligibility gate. The colour hook above
+        // supplies the gradual fade; coastal sprites and aircraft bypass it.
+        injector::WriteMemory<float*>(heightGate+4, &heightStart, true);
 
         // CE native streetlight hash: AND EAX,8000000Fh implements signed
         // remainder before the table read. Drop the sign bit so the result is

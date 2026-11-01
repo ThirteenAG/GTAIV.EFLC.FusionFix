@@ -55,6 +55,34 @@ int main(int argc, char** argv)
     assert(XboxSpriteColor(0xFFFFFF,0,250,254)==0xFF000000);
     assert(XboxSpriteColor(0xFFDC80,1,300,254)==XboxSpriteColor(0xFFDC80,1,250,254));
 
+    // Height limits brightness once, rather than multiplying two fades.
+    // Both native distance ramps produce the same 0..100 m height policy.
+    for (float span : {100.0f, 150.0f})
+    for (float distance : {150.0f, 175.0f, 200.0f, 250.0f, 300.0f, 1000.0f})
+    {
+        float previous = -1.0f;
+        for (int z = -10; z <= 120; ++z)
+        {
+            const float brightness = Ramp(150, 150+span, HeightLimitedDistance(distance, float(z), span));
+            Near(brightness, std::min(Ramp(150,150+span,distance), Ramp(0,100,float(z))));
+            assert(brightness >= previous);
+            if (previous >= 0) assert(brightness-previous < 0.01001f);
+            previous = brightness;
+        }
+        Near(Ramp(150,150+span,HeightLimitedDistance(distance,100,span)), Ramp(150,150+span,distance));
+    }
+    // A distant inland sprite is already 75% visible at Z=75, with no gate.
+    Near(HeightLimitedDistance(1000,75,100),225);
+    Near(HeightLimitedDistance(1000,75,150),262.5f);
+    // Half distance fade and half height fade still yield half, not quarter.
+    assert(XboxSpriteColor(0xFFFFFF,1,HeightLimitedDistance(200,50,100),254)
+        == XboxSpriteColor(0xFFFFFF,1,200,254));
+    assert(XboxSpriteColor(0xFFFFFF,1,HeightLimitedDistance(1000,0,100),254) == 0xFF000000);
+    for (uint32_t brightness : {170u, 211u, 254u})
+    for (uint32_t rgb : {0xFFFFFFu, 0xFF0000u, 0xFFDC80u})
+        assert(XboxSpriteColor(rgb,1,HeightLimitedDistance(1000,100,100),brightness)
+            == XboxSpriteColor(rgb,1,1000,brightness));
+
     Near(FirstDistance(42,false), 0);
     Near(FirstDistance(43,false), 33.0f/256);
     Near(FirstDistance(56,true), 45.5f);

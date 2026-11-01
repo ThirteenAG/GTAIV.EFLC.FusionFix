@@ -19,7 +19,9 @@ The separate loader validates file size, counts, block partitions, bounds and po
 
 ## Rendering
 
-Both modes retain native coastal/inland visibility rules. Coastal paths have no additional camera-height gate. Inland streetlights require camera world Z > 75. Console inland traffic additionally fades over Z=75 to Z=115. The lower-height override in `lodlights.ixx` is commented out.
+Inland streetlight sprites in both modes and Console inland traffic sprites fade smoothly with camera world Z from 0 to 100 metres. They are invisible at Z=0, half bright at Z=50 and fully bright at Z=100 before other rendering effects. This height fade and the native near-distance fade use whichever is dimmer, without multiplying them together. The native distance transition remains 150-300 metres for PC streetlights and 150-250 metres for Console sprites. Coastal sprites and aircraft have no added height fade. Default traffic models retain their native behavior.
+
+The `distantlights.ixx` module lowers the PC streetlight eligibility cutoff to Z=0 and adjusts the distance passed to the native streetlight colour routine for inland paths. Native placement, random sampling and colour rounding are retained. The separate override in `lodlights.ixx` remains commented out.
 
 Console traffic uses opposing white/red streams, 33/45.5-unit spacing, 43/57-ms timer divisors and path Z+2. Streetlights use 30-unit spacing and path Z+12. Whole streetlight paths follow staggered dusk/dawn thresholds. The corrected lookup wraps negative coordinate indices into the original 16-entry table on both platforms. Native PC streetlight spacing remains 60 units.
 

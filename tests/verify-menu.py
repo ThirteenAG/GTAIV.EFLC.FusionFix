@@ -34,6 +34,7 @@ height = (root/'source/lodlights.ixx').read_text()
 active = '\n'.join(line for line in height.splitlines() if not line.lstrip().startswith('//'))
 assert 'onInitEventAsync' not in active and 'fadeStartHeight' not in active
 assert 'camera Z > 75' in height
-assert 'camera.z <= 75.0f' in module
+assert 'camera.z <= 0.0f' in module
+assert 'WriteMemory<float*>(heightGate+4, &heightStart' in module
 assert hashlib.sha256((root/'data/update/pc/data/paths/distantlights_360.dat').read_bytes()).hexdigest() == '81562cfc0f7d5b4477bcbbdd8245aa5bc32889d0f59203bcf5f538344c3c7148'
 print('Distant Lights: live 0/1 preference, Game/title placement, seven languages, height policy and Xbox data passed.')
