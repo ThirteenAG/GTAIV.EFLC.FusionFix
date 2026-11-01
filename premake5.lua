@@ -157,6 +157,7 @@ workspace "GTAIV.EFLC.FusionFix"
    filter "configurations:Release"
       defines { "NDEBUG" }
       optimize "On"
+      linkoptions { "/PDBALTPATH:%_PDB%" }
 
 project "GTAIV.EFLC.FusionFix"
    targetdir "bin"

@@ -384,5 +384,8 @@
   "window.windowed": "Fenster",
   "window.borderless": "Rahmenlos",
   "MAIN.WindowMode.description": "Vollbild, ein Fenster mit Rahmen oder ein rahmenloses Fenster, das den Bildschirm füllt. Alt+Enter wechselt zwischen Vollbild und dem letzten Fenstermodus.",
-  "ff.note.d3d9on12": "Installiere D3D9On12 auf der Seite Grafikverbesserungen in FusionFixHub, um DirectX 12 zu aktivieren."
+  "ff.note.d3d9on12": "Installiere D3D9On12 auf der Seite Grafikverbesserungen in FusionFixHub, um DirectX 12 zu aktivieren.",
+  "Distant Lights": "Entfernte Lichter",
+  "NDL_CONSOLE": "Konsole",
+  "MISC.NewDistantLights.description": "Standard nutzt entfernte Straßenlichter und Fahrzeugmodelle der PC-Version. Konsole nutzt Xbox-360-Lichtpfade und Verkehrssprites. Beide korrigieren fehlende Lichter. Konsole benötigt distantlights_360.dat; bei fehlenden oder ungültigen Daten gilt Standard. Nach Dateiaustausch neu starten."
 }

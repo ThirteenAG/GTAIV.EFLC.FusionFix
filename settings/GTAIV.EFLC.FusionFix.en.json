@@ -384,5 +384,8 @@
   "window.windowed": "Windowed",
   "window.borderless": "Borderless",
   "MAIN.WindowMode.description": "Fullscreen, a window with borders, or a borderless window that covers the screen. Alt+Enter switches between fullscreen and the last window mode.",
-  "ff.note.d3d9on12": "Install D3D9On12 on FusionFixHub's Graphics enhancements page to enable DirectX 12."
+  "ff.note.d3d9on12": "Install D3D9On12 on FusionFixHub's Graphics enhancements page to enable DirectX 12.",
+  "Distant Lights": "Distant Lights",
+  "NDL_CONSOLE": "Console",
+  "MISC.NewDistantLights.description": "Default uses PC distant streetlights and traffic models. Console uses Xbox 360 streetlight paths and moving traffic sprites. Both correct missing streetlights. Console requires distantlights_360.dat; missing or invalid data uses Default. Restart after replacing the file."
 }

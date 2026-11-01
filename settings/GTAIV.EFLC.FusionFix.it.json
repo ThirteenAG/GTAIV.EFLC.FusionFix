@@ -384,5 +384,8 @@
   "window.windowed": "In finestra",
   "window.borderless": "Senza bordi",
   "MAIN.WindowMode.description": "Schermo intero, una finestra con bordi o una finestra senza bordi che copre lo schermo. Alt+Invio passa dallo schermo intero all'ultima modalità finestra.",
-  "ff.note.d3d9on12": "Installa D3D9On12 dalla pagina Miglioramenti grafici di FusionFixHub per attivare DirectX 12."
+  "ff.note.d3d9on12": "Installa D3D9On12 dalla pagina Miglioramenti grafici di FusionFixHub per attivare DirectX 12.",
+  "Distant Lights": "Luci distanti",
+  "NDL_CONSOLE": "Console",
+  "MISC.NewDistantLights.description": "Predefinito usa lampioni distanti e modelli di traffico PC. Console usa percorsi dei lampioni e sprite del traffico Xbox 360. Entrambi correggono le luci mancanti. Console richiede distantlights_360.dat; dati mancanti o non validi usano Predefinito. Riavvia dopo aver sostituito il file."
 }

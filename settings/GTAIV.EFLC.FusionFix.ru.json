@@ -384,5 +384,8 @@
   "window.windowed": "Окно",
   "window.borderless": "Без рамки",
   "MAIN.WindowMode.description": "Полный экран, окно с рамкой или окно без рамки на весь экран. Alt+Enter переключает между полным экраном и последним оконным режимом.",
-  "ff.note.d3d9on12": "Установите D3D9On12 на странице «Graphics enhancements» в FusionFixHub, чтобы включить DirectX 12."
+  "ff.note.d3d9on12": "Установите D3D9On12 на странице «Graphics enhancements» в FusionFixHub, чтобы включить DirectX 12.",
+  "Distant Lights": "Дальние огни",
+  "NDL_CONSOLE": "Консоль",
+  "MISC.NewDistantLights.description": "По умолчанию используются дальние фонари и модели машин версии для ПК. Консоль использует пути фонарей и спрайты машин Xbox 360. Оба режима исправляют пропавшие огни. Для режима Консоль нужен distantlights_360.dat; без корректного файла используется режим по умолчанию. После замены файла перезапустите игру."
 }
