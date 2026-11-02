@@ -42,6 +42,11 @@ namespace NewDistantLights
         return std::min(distance, 150.0f + distanceSpan * Ramp(0.0f, 100.0f, cameraZ - spriteZ));
     }
 
+    inline float HeightLimitedOpacity(float distanceFade, float cameraZ, float modelZ)
+    {
+        return std::min(distanceFade, Ramp(0.0f, 100.0f, cameraZ - modelZ));
+    }
+
     // Map the game's 15-bit rand() output to the retail Xbox range [170,255).
     inline uint32_t XboxBrightness(uint32_t sample)
     {

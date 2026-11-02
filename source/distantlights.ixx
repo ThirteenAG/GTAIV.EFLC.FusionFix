@@ -28,7 +28,7 @@ namespace NewDistantLights
     static float nightFade{};
     static Dataset xbox;
     static std::vector<Road> roads;
-    static SafetyHookMid pcStreetlightFade;
+    static SafetyHookMid pcStreetlightFade, pcDayTrafficFade, pcNightTrafficFade;
 
     static bool LoadConsoleData()
     {
@@ -220,6 +220,7 @@ namespace NewDistantLights
         }
         const auto spritePass = Target(night+5);
         const auto modelPass = Target(night+13);
+        const auto dayPass = Target(day+5);
         const auto epilogue = "E8 ? ? ? ? 83 C4 10 C7 04 24 00 00 80 3F E8 ? ? ? ? 6A 00 6A 02";
         const auto spriteFinal = Unique(epilogue, spritePass, spritePass+0x1000);
         const auto timer = Unique("A1 ? ? ? ? 33 D2 F7 F1 F3 0F 10 15", modelPass, modelPass+0x700);
@@ -238,8 +239,23 @@ namespace NewDistantLights
             spritePass, spritePass+0x1000);
         const auto roadGroup = Unique("8B 74 24 1C 8B 7C 24 4C 47 89 7C 24 4C 83 FF 02",
             spritePass, spritePass+0x1000);
+        const auto dayHeightGate = Unique("83 F9 01 0F 85 ? ? ? ? F3 0F 10 84 24 DC 00 00 00 0F 2F 05 ? ? ? ? 0F 86 ? ? ? ?",
+            dayPass, dayPass+0x500);
+        const auto nightHeightGate = Unique("83 F9 01 0F 85 ? ? ? ? F3 0F 10 84 24 08 01 00 00 0F 2F 05 ? ? ? ? 0F 86 ? ? ? ?",
+            modelPass, modelPass+0x500);
+        const auto dayTrafficFade = Unique("8B 0C CD ? ? ? ? 51 8D 84 24 94 01 00 00 50 8D 84 24 88 01 00 00",
+            dayPass, dayPass+0xCE0);
+        const auto nightTrafficFade = Unique("6A 00 8D 84 24 A4 01 00 00 50 8D 84 24 98 01 00 00 50 8D 84 24 E8 00 00 00 50 68 ? ? ? ? 8D 84 24 94 01 00 00",
+            modelPass, modelPass+0xC70);
+        // Verify the stack slots used below against their native stores.
+        const auto dayTrafficGroup = Unique("89 8C 24 E4 00 00 00 85 C9 75 0E", dayPass, dayPass+0x500);
+        const auto nightTrafficGroup = Unique("89 8C 24 C8 00 00 00 85 C9 75 0E", modelPass, modelPass+0x500);
+        const auto dayTrafficHeight = Unique("F3 0F 11 94 24 08 01 00 00 F3 0F 5C 94 24 38 01 00 00", dayPass, dayPass+0xCE0);
+        const auto nightTrafficHeight = Unique("F3 0F 11 B4 24 18 01 00 00 F3 0F 5C B4 24 38 01 00 00", modelPass, modelPass+0xC70);
         if (!spriteFinal || !timer || !visibility || !streetlightIndex || !aircraftSize ||
-            !heightGate || !spriteHeight || !streetlightFade || !roadGroup)
+            !heightGate || !spriteHeight || !streetlightFade || !roadGroup ||
+            !dayHeightGate || !nightHeightGate || !dayTrafficFade || !nightTrafficFade ||
+            !dayTrafficGroup || !nightTrafficGroup || !dayTrafficHeight || !nightTrafficHeight)
         {
             OutputDebugStringA("FusionFix: Distant Lights pass bindings unavailable; retaining PC rendering.\n");
             return;
@@ -260,7 +276,7 @@ namespace NewDistantLights
         coastalCount = *reinterpret_cast<int32_t**>(data+48);
         interiorCount = *reinterpret_cast<int32_t**>(data+64);
         milliseconds = *reinterpret_cast<uint32_t**>(timer+1);
-        originalDay = reinterpret_cast<decltype(originalDay)>(Target(day+5));
+        originalDay = reinterpret_cast<decltype(originalDay)>(dayPass);
         originalNightSprites = reinterpret_cast<decltype(originalNightSprites)>(spritePass);
         originalNightModels = reinterpret_cast<decltype(originalNightModels)>(modelPass);
         flushSprites = reinterpret_cast<SpriteFlush>(nativeFlush);
@@ -277,14 +293,36 @@ namespace NewDistantLights
                     *reinterpret_cast<const float*>(regs.esp + 0xC8),
                     *reinterpret_cast<const float*>(regs.esp + 0x168), 150.0f);
         });
-        if (!pcStreetlightFade)
+        // Before model submission pushes its arguments, the native distance
+        // opacity is in XMM1 (day) / XMM0 (night). Camera Z is ESP+138 in both;
+        // model Z includes the native +0.6 placement offset. Coastal is untouched.
+        pcDayTrafficFade = safetyhook::create_mid(dayTrafficFade, [](SafetyHookContext& regs)
         {
+            if (*reinterpret_cast<const int*>(regs.esp + 0xE4) == 1)
+                regs.xmm1.f32[0] = HeightLimitedOpacity(regs.xmm1.f32[0],
+                    *reinterpret_cast<const float*>(regs.esp + 0x138),
+                    *reinterpret_cast<const float*>(regs.esp + 0x108));
+        });
+        pcNightTrafficFade = safetyhook::create_mid(nightTrafficFade, [](SafetyHookContext& regs)
+        {
+            if (*reinterpret_cast<const int*>(regs.esp + 0xC8) == 1)
+                regs.xmm0.f32[0] = HeightLimitedOpacity(regs.xmm0.f32[0],
+                    *reinterpret_cast<const float*>(regs.esp + 0x138),
+                    *reinterpret_cast<const float*>(regs.esp + 0x118));
+        });
+        if (!pcStreetlightFade || !pcDayTrafficFade || !pcNightTrafficFade)
+        {
+            pcStreetlightFade.reset();
+            pcDayTrafficFade.reset();
+            pcNightTrafficFade.reset();
             OutputDebugStringA("FusionFix: Distant Lights height fade unavailable; retaining PC rendering.\n");
             return;
         }
-        // Remove only the inland world-height JBE. Eligibility now depends on
-        // each sprite's Z, including paths below sea level; keep the group guard.
+        // Remove only the inland world-height JBEs. Eligibility now depends on
+        // each light/car's Z, including paths below sea level; keep group guards.
         injector::MakeNOP(heightGate+22, 6, true);
+        injector::MakeNOP(dayHeightGate+25, 6, true);
+        injector::MakeNOP(nightHeightGate+25, 6, true);
 
         // CE native streetlight hash: AND EAX,8000000Fh implements signed
         // remainder before the table read. Drop the sign bit so the result is

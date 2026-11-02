@@ -91,6 +91,28 @@ int main(int argc, char** argv)
     Near(HeightLimitedDistance(1000,112,72,100),190);
     Near(HeightLimitedDistance(1000,-25,-50,150),187.5f);
 
+    // PC traffic uses its existing opacity, not the streetlight distance ramp.
+    // Day and night have the same 250..325 m native transition; the height
+    // limit preserves that input exactly once the camera is 100 m above a car.
+    for (float modelZ : {-25.4f, 0.6f, 50.6f, 150.6f})
+    for (float distance : {150.0f, 249.0f, 250.0f, 275.0f, 300.0f, 325.0f, 1000.0f})
+    {
+        const float nativeFade = Ramp(250,325,distance);
+        float previous = -1;
+        for (int above = -10; above <= 120; ++above)
+        {
+            const float fade = HeightLimitedOpacity(nativeFade, modelZ+float(above), modelZ);
+            Near(fade,std::min(nativeFade,Ramp(0,100,float(above))));
+            assert(fade+0.00001f >= previous);
+            if (previous >= 0) assert(fade-previous < 0.01001f);
+            previous = fade;
+        }
+        Near(HeightLimitedOpacity(nativeFade,modelZ+100,modelZ),nativeFade);
+    }
+    Near(HeightLimitedOpacity(1,75,50.6f),.244f);
+    Near(HeightLimitedOpacity(.5f,100.6f,50.6f),.5f);
+    Near(HeightLimitedOpacity(1,75,150.6f),0);
+
     Near(FirstDistance(42,false), 0);
     Near(FirstDistance(43,false), 33.0f/256);
     Near(FirstDistance(56,true), 45.5f);
