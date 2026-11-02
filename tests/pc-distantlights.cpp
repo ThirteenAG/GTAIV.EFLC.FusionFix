@@ -4,7 +4,7 @@
 #include <iostream>
 #include <iterator>
 
-using namespace NewDistantLights;
+using namespace DistantLights;
 
 // Execute the exact verified CE instruction window with the patched AND
 // immediate. In a Win32 test process, DEC/INC retain their original encodings.

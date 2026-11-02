@@ -386,6 +386,6 @@
   "MAIN.WindowMode.description": "Plein écran, une fenêtre avec bordures ou une fenêtre sans bordures qui couvre l'écran. Alt+Entrée bascule entre le plein écran et le dernier mode fenêtré.",
   "ff.note.d3d9on12": "Installez D3D9On12 depuis la page Améliorations graphiques de FusionFixHub pour activer DirectX 12.",
   "Distant Lights": "Lumières lointaines",
-  "NDL_CONSOLE": "Console",
-  "MISC.NewDistantLights.description": "Par défaut : lampadaires lointains et véhicules du PC. Console : tracés des lampadaires et sprites de circulation Xbox 360. Les deux modes corrigent les lumières manquantes. Console nécessite distantlights_360.dat ; sinon, le rendu par défaut est utilisé. Redémarrez après remplacement du fichier."
+  "DL_CONSOLE": "Console",
+  "MISC.DistantLights.description": "Par défaut : lampadaires et véhicules du PC. Console : tracés des lampadaires et sprites de circulation Xbox 360 ; nécessite distantlights_360.dat."
 }

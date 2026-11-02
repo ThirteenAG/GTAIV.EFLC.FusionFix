@@ -80,6 +80,13 @@
       "page": "compatibility", "group": "@group.language", "control": [ "cycler", "dropdown" ], "visibility": "editor", "apply": "restart"
     },
     {
+      "id": "MISC.DistantLights", "type": "choice", "default": 0,
+      "choices": [ { "value": 0, "label": "@MO_DEF" }, { "value": 1, "label": "@DL_CONSOLE" } ],
+      "label": "@Distant Lights", "description": "@MISC.DistantLights.description",
+      "page": "game", "group": "@group.lighting", "control": [ "cycler", "dropdown" ],
+      "presets": { "vanilla": 0, "recommended": 0, "enhanced": 0 }
+    },
+    {
       "id": "MISC.FieldOfView", "type": "int", "default": 0, "min": 0, "max": 9, "step": 1,
       "label": "@MO_FOV", "description": "@MISC.FieldOfView.description",
       "page": "display", "control": [ "slider" ]
@@ -126,13 +133,6 @@
       "choices": [ { "value": 0, "label": "PC" }, { "value": 1, "label": "PC+" }, { "value": 2, "label": "Console" } ],
       "label": "@Tree Alpha", "description": "@MISC.TreeAlpha.description",
       "page": "display", "group": "@group.image", "control": [ "cycler", "dropdown" ]
-    },
-    {
-      "id": "MISC.NewDistantLights", "type": "choice", "default": 0,
-      "choices": [ { "value": 0, "label": "@MO_DEF" }, { "value": 1, "label": "@NDL_CONSOLE" } ],
-      "label": "@Distant Lights", "description": "@MISC.NewDistantLights.description",
-      "page": "game", "group": "@group.lighting", "control": [ "cycler", "dropdown" ],
-      "presets": { "vanilla": 0, "recommended": 0, "enhanced": 0 }
     },
     {
       "id": "MAIN.Bloom", "type": "bool", "default": 1,

@@ -386,6 +386,6 @@
   "MAIN.WindowMode.description": "フルスクリーン、枠付きウィンドウ、または画面を覆うフチなしウィンドウ。Alt+Enterでフルスクリーンと前回のウィンドウモードを切り替えます。",
   "ff.note.d3d9on12": "DirectX 12を有効にするには、FusionFixHubの「グラフィック強化」ページでD3D9On12をインストールしてください。",
   "Distant Lights": "遠景ライト",
-  "NDL_CONSOLE": "コンソール",
-  "MISC.NewDistantLights.description": "デフォルトはPC版の遠景街灯と車両モデルを使用します。コンソールはXbox 360版の街灯パスと車両スプライトを使用します。両モードで欠落した街灯を修正します。コンソールにはdistantlights_360.datが必要です。ファイルがない、または無効な場合はデフォルトを使用します。交換後はゲームを再起動してください。"
+  "DL_CONSOLE": "コンソール",
+  "MISC.DistantLights.description": "デフォルトはPC版の街灯と車両モデルを使用します。コンソールはXbox 360版の街灯パスと交通スプライトを使用し、distantlights_360.datが必要です。"
 }

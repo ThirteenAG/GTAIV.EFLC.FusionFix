@@ -4,7 +4,7 @@
 #include <iostream>
 #include <iterator>
 
-using namespace NewDistantLights;
+using namespace DistantLights;
 static void Near(float a, float b) { assert(std::abs(a-b) < .0002f); }
 
 int main(int argc, char** argv)

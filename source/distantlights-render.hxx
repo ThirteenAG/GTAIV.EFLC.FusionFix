@@ -3,15 +3,18 @@
 #include "distantlights.hxx"
 #include <d3d9.h>
 
-namespace NewDistantLights
+namespace DistantLights
 {
-    // CE's original conditional halves the aircraft basis only in TBoGT.
-    // FusionFix replaces it with NOP/JMP. Read the live branch, not init order.
+    // Read the live TBoGT branch: original JNE halves the basis; FusionFix's
+    // NOP/JMP bypasses it. Zero denotes an unsupported patch.
     inline float NativeAircraftScale(bool tbogt, std::span<const uint8_t, 2> branch)
     {
-        if (!tbogt) return 1.0f;
-        if (branch[0] == 0x0F && branch[1] == 0x85) return 0.5f;
-        if (branch[0] == 0x90 && branch[1] == 0xE9) return 1.0f;
+        if (!tbogt)
+            return 1.0f;
+        if (branch[0] == 0x0F && branch[1] == 0x85)
+            return 0.5f;
+        if (branch[0] == 0x90 && branch[1] == 0xE9)
+            return 1.0f;
         return 0.0f;
     }
 
@@ -39,9 +42,8 @@ namespace NewDistantLights
         flush(aircraft, aircraftColors, aircraftCount, &aircraftRight, &aircraftUp);
     }
 
-    // Apply after grcBegin has bound the shader's sampler, immediately around
-    // DrawPrimitive. Restore the actual device state, leaving RAGE's state
-    // cache and all subsequent PC draws in agreement. No texture is modified.
+    // Override the sampler only around the draw, after grcBegin binds it.
+    // Restore the device state to keep it consistent with RAGE's cache.
     template<class Device>
     class XboxCoronaSampler
     {
@@ -67,7 +69,8 @@ namespace NewDistantLights
         {
             // Do not change anything unless every original value is known.
             for (size_t i = 0; i < states.size(); ++i)
-                if (FAILED(device->GetSamplerState(0, states[i], &saved[i]))) return;
+                if (FAILED(device->GetSamplerState(0, states[i], &saved[i])))
+                    return;
             for (size_t i = 0; i < states.size(); ++i)
             {
                 ++changed;

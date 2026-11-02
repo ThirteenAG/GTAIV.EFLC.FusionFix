@@ -386,6 +386,6 @@
   "MAIN.WindowMode.description": "Pantalla completa, una ventana con bordes o una ventana sin bordes que cubre la pantalla. Alt+Intro cambia entre pantalla completa y el último modo de ventana.",
   "ff.note.d3d9on12": "Instala D3D9On12 en la página de mejoras gráficas de FusionFixHub para activar DirectX 12.",
   "Distant Lights": "Luces lejanas",
-  "NDL_CONSOLE": "Consola",
-  "MISC.NewDistantLights.description": "Predeterminado usa luces lejanas y modelos de tráfico de PC. Consola usa rutas de alumbrado y sprites de tráfico de Xbox 360. Ambos corrigen luces ausentes. Consola requiere distantlights_360.dat; si falta o no es válido, se usa Predeterminado. Reinicia tras sustituir el archivo."
+  "DL_CONSOLE": "Consola",
+  "MISC.DistantLights.description": "Predeterminado usa luces y modelos de tráfico de PC. Consola usa rutas de alumbrado y sprites de tráfico de Xbox 360 y requiere distantlights_360.dat."
 }

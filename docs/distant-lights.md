@@ -7,7 +7,7 @@ The Game tab places **Distant Lights** directly below **Extra Night Shadows** in
 | Default (0) | Native PC distant streetlights and traffic models, with the streetlight lookup corrected. |
 | Console (1) | Xbox 360 streetlight paths and moving traffic sprites, with the streetlight lookup corrected. Native PC road lights and traffic models are suppressed during this mode. |
 
-Default is the initial value and the value selected by all presets. Mode changes apply live. The setting is stored as `[MISC] NewDistantLights` in `GTAIV.EFLC.FusionFix.cfg` through the shared settings API. Set the option again when migrating from an old INI-based build; this module does not import the old INI.
+Default is the initial value and the value selected by all presets. Mode changes apply live. The setting is stored as `[MISC] DistantLights` in `GTAIV.EFLC.FusionFix.cfg` through the shared settings API.
 
 ## Data
 

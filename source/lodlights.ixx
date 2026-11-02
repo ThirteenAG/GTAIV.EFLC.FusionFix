@@ -6,7 +6,7 @@ export module lodlights;
 
 import common;
 
-// Coastal lights have no height gate; inland lights require camera Z > 75 on PC and Xbox.
+// Vanilla coastal lights have no height gate; inland lights require camera Z > 75 on PC and Xbox.
 class LODLights
 {
 public:

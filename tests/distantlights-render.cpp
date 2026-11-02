@@ -3,7 +3,7 @@
 #include <cassert>
 #include <iostream>
 
-using namespace NewDistantLights;
+using namespace DistantLights;
 
 struct FakeDevice
 {
