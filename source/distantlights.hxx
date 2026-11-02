@@ -35,11 +35,11 @@ namespace NewDistantLights
         return std::clamp((distance-start)/(end-start), 0.0f, 1.0f);
     }
 
-    // Reuse the native distance attenuation once, capped by a 0..100 m
-    // world-height fade. PC's fade spans 150 m; Xbox's spans 100 m.
-    inline float HeightLimitedDistance(float distance, float cameraZ, float distanceSpan)
+    // Reuse distance attenuation once, capped by the camera's height above
+    // this sprite (0..100 m). PC's distance fade spans 150 m; Xbox's 100 m.
+    inline float HeightLimitedDistance(float distance, float cameraZ, float spriteZ, float distanceSpan)
     {
-        return std::min(distance, 150.0f + distanceSpan * Ramp(0.0f, 100.0f, cameraZ));
+        return std::min(distance, 150.0f + distanceSpan * Ramp(0.0f, 100.0f, cameraZ - spriteZ));
     }
 
     // Map the game's 15-bit rand() output to the retail Xbox range [170,255).

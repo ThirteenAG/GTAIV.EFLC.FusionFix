@@ -29,7 +29,6 @@ namespace NewDistantLights
     static Dataset xbox;
     static std::vector<Road> roads;
     static SafetyHookMid pcStreetlightFade;
-    static float heightStart = 0.0f;
 
     static bool LoadConsoleData()
     {
@@ -106,6 +105,7 @@ namespace NewDistantLights
         {
             auto emit = [&](Vector light, float intensity, uint32_t rgb, bool interior)
             {
+                if (interior && camera.z <= light.z) return;
                 const float distance = (light-camera).Length();
                 // Retail Xbox culls blocks and stored path spheres, then applies
                 // only this near-distance test to individual sprites. GPU clipping
@@ -113,7 +113,7 @@ namespace NewDistantLights
                 if (distance <= 150.0f) return;
                 // Use the game's shared generator once per emitted sprite/pass;
                 // retain Xbox's range mapping and staged integer colour rounding.
-                const float fadeDistance = interior ? HeightLimitedDistance(distance, camera.z, 100.0f) : distance;
+                const float fadeDistance = interior ? HeightLimitedDistance(distance, camera.z, light.z, 100.0f) : distance;
                 append(light, XboxSpriteColor(rgb, intensity, fadeDistance, XboxBrightness(uint32_t(game_rand()))));
             };
             for (size_t block = 0; block < 64; ++block)
@@ -124,7 +124,6 @@ namespace NewDistantLights
                 if (!sphereVisible(viewport, x, y, 20.0f, 525.0f, nullptr)) continue;
                 for (size_t interior = 0; interior < 2; ++interior)
                 {
-                    if (interior && camera.z <= 0.0f) continue;
                     const uint32_t begin = xbox.firstString[block] + (interior ? xbox.coastalCount[block] : 0);
                     const uint32_t size = interior ? xbox.interiorCount[block] : xbox.coastalCount[block];
                     for (uint32_t i = begin; i < begin+size; ++i)
@@ -231,14 +230,16 @@ namespace NewDistantLights
         // six-byte operand layout is identical. The body remains unmodified.
         const auto aircraftSize = Unique("83 3D ? ? ? ? 02 ? ? ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 10 8C 24",
             spritePass, spritePass+0x1000);
-        const auto heightGate = Unique("F3 0F 5C 0D ? ? ? ? F3 0F 11 84 24 C8 00 00 00 F3 0F 10 05 ? ? ? ? F3 0F 59 0D ? ? ? ? 0F 2F C8 F3 0F 11 4C 24 58",
+        const auto heightGate = Unique("83 FF 01 0F 85 ? ? ? ? F3 0F 10 44 24 58 0F 2F 05 ? ? ? ? 0F 86 ? ? ? ?",
             spritePass, spritePass+0x500);
+        const auto spriteHeight = Unique("F3 0F 11 84 24 68 01 00 00 F3 0F 5C 84 24 C8 00 00 00 F3 0F 59 E4",
+            spritePass, spritePass+0x1000);
         const auto streetlightFade = Unique("51 8D 84 24 80 00 00 00 F3 0F 11 04 24 50 E8 ? ? ? ?",
             spritePass, spritePass+0x1000);
         const auto roadGroup = Unique("8B 74 24 1C 8B 7C 24 4C 47 89 7C 24 4C 83 FF 02",
             spritePass, spritePass+0x1000);
         if (!spriteFinal || !timer || !visibility || !streetlightIndex || !aircraftSize ||
-            !heightGate || !streetlightFade || !roadGroup)
+            !heightGate || !spriteHeight || !streetlightFade || !roadGroup)
         {
             OutputDebugStringA("FusionFix: Distant Lights pass bindings unavailable; retaining PC rendering.\n");
             return;
@@ -266,23 +267,24 @@ namespace NewDistantLights
         sphereVisible = reinterpret_cast<decltype(sphereVisible)>(Target(visibility+5));
 
         // CE, immediately before PUSH ECX at the road-only attenuation call:
-        // ESP+4C is the coastal/inland loop index; ESP+C8 is saved camera Z.
+        // ESP+4C is the group; ESP+C8 is camera Z; ESP+168 is sprite Z (+12).
         // Cap XMM0's distance before the native random/colour function. This
         // preserves its rounding and random draw, with no second attenuation.
         pcStreetlightFade = safetyhook::create_mid(streetlightFade, [](SafetyHookContext& regs)
         {
             if (*reinterpret_cast<const int*>(regs.esp + 0x4C) == 1)
                 regs.xmm0.f32[0] = HeightLimitedDistance(regs.xmm0.f32[0],
-                    *reinterpret_cast<const float*>(regs.esp + 0xC8), 150.0f);
+                    *reinterpret_cast<const float*>(regs.esp + 0xC8),
+                    *reinterpret_cast<const float*>(regs.esp + 0x168), 150.0f);
         });
         if (!pcStreetlightFade)
         {
             OutputDebugStringA("FusionFix: Distant Lights height fade unavailable; retaining PC rendering.\n");
             return;
         }
-        // Lower only the sprite pass's eligibility gate. The colour hook above
-        // supplies the gradual fade; coastal sprites and aircraft bypass it.
-        injector::WriteMemory<float*>(heightGate+4, &heightStart, true);
+        // Remove only the inland world-height JBE. Eligibility now depends on
+        // each sprite's Z, including paths below sea level; keep the group guard.
+        injector::MakeNOP(heightGate+22, 6, true);
 
         // CE native streetlight hash: AND EAX,8000000Fh implements signed
         // remainder before the table read. Drop the sign bit so the result is

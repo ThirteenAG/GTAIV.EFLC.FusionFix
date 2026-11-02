@@ -59,29 +59,37 @@ int main(int argc, char** argv)
     // Both native distance ramps produce the same 0..100 m height policy.
     for (float span : {100.0f, 150.0f})
     for (float distance : {150.0f, 175.0f, 200.0f, 250.0f, 300.0f, 1000.0f})
+    for (float spriteZ : {-50.0f, 0.0f, 12.0f, 65.0f, 180.0f})
     {
         float previous = -1.0f;
         for (int z = -10; z <= 120; ++z)
         {
-            const float brightness = Ramp(150, 150+span, HeightLimitedDistance(distance, float(z), span));
+            const float brightness = Ramp(150, 150+span, HeightLimitedDistance(distance, spriteZ + float(z), spriteZ, span));
             Near(brightness, std::min(Ramp(150,150+span,distance), Ramp(0,100,float(z))));
             assert(brightness >= previous);
             if (previous >= 0) assert(brightness-previous < 0.01001f);
             previous = brightness;
         }
-        Near(Ramp(150,150+span,HeightLimitedDistance(distance,100,span)), Ramp(150,150+span,distance));
+        Near(Ramp(150,150+span,HeightLimitedDistance(distance,spriteZ+100,spriteZ,span)), Ramp(150,150+span,distance));
     }
-    // A distant inland sprite is already 75% visible at Z=75, with no gate.
-    Near(HeightLimitedDistance(1000,75,100),225);
-    Near(HeightLimitedDistance(1000,75,150),262.5f);
+    // A sprite at sea level is 75% visible at camera Z=75, with no world-height gate.
+    Near(HeightLimitedDistance(1000,75,0,100),225);
+    Near(HeightLimitedDistance(1000,75,0,150),262.5f);
     // Half distance fade and half height fade still yield half, not quarter.
-    assert(XboxSpriteColor(0xFFFFFF,1,HeightLimitedDistance(200,50,100),254)
+    assert(XboxSpriteColor(0xFFFFFF,1,HeightLimitedDistance(200,50,0,100),254)
         == XboxSpriteColor(0xFFFFFF,1,200,254));
-    assert(XboxSpriteColor(0xFFFFFF,1,HeightLimitedDistance(1000,0,100),254) == 0xFF000000);
+    assert(XboxSpriteColor(0xFFFFFF,1,HeightLimitedDistance(1000,0,0,100),254) == 0xFF000000);
     for (uint32_t brightness : {170u, 211u, 254u})
     for (uint32_t rgb : {0xFFFFFFu, 0xFF0000u, 0xFFDC80u})
-        assert(XboxSpriteColor(rgb,1,HeightLimitedDistance(1000,100,100),brightness)
+        assert(XboxSpriteColor(rgb,1,HeightLimitedDistance(1000,100,0,100),brightness)
             == XboxSpriteColor(rgb,1,1000,brightness));
+
+    // Actual rendered Z includes the per-type offset: traffic +2, streetlights +12.
+    Near(HeightLimitedDistance(1000,62,62,100),150);
+    Near(HeightLimitedDistance(1000,62,72,100),150);
+    Near(HeightLimitedDistance(1000,112,62,100),200);
+    Near(HeightLimitedDistance(1000,112,72,100),190);
+    Near(HeightLimitedDistance(1000,-25,-50,150),187.5f);
 
     Near(FirstDistance(42,false), 0);
     Near(FirstDistance(43,false), 33.0f/256);
