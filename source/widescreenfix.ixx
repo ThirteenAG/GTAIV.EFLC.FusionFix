@@ -336,6 +336,7 @@ public:
             // link picking goes through the same projection, so the mouse keeps hitting the links.
             {
                 auto pattern = hook::pattern("C7 04 24 AB AA 2A BE E8");
+                // 1.2.0.32, 1.2.0.43, 1.2.0.59 : 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 auto addr = !pattern.empty() ? pattern.get_first(7) : hook::get_pattern("D9 1C 24 E8 ? ? ? ? B8 ? ? ? ? 89 44 24 24", 3);
                 static auto WebPageWindowHook = safetyhook::create_mid(addr, [](SafetyHookContext& regs)
                 {
@@ -371,7 +372,7 @@ public:
             // Script
             {
                 hbGetMousePosition.fun = NativeOverride::Register(Natives::NativeHashes::GET_MOUSE_POSITION, GetMousePosition, "E8 ? ? ? ? 83 C4 08", 30);
-                hbGetWebPageLinkAtPosn.fun = NativeOverride::Register(Natives::NativeHashes::GET_WEB_PAGE_LINK_AT_POSN, GetWebPageLinkAtPosn, "E8 ? ? ? ? 8B 0E 83 C4 0C", 40);
+                hbGetWebPageLinkAtPosn.fun = NativeOverride::Register(Natives::NativeHashes::GET_WEB_PAGE_LINK_AT_POSN, GetWebPageLinkAtPosn, "E8 ? ? ? ? 8B 0E 83 C4 0C", 48);
             }
         };
     }

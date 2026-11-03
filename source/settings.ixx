@@ -2042,23 +2042,17 @@ private:
             auto info = hook::pattern("8D 44 24 40 6A 08 50 E8 ? ? ? ? 8D 44 24 58 50 E8 ? ? ? ? F3 0F 10 00 83 C4 0C 8D 44 24 50 6A 16 50");
             auto infoWidth = hook::pattern("50 E8 ? ? ? ? F3 0F 10 00 83 C4 04 8D 44 24 28 6A 00 50 6A 00 6A 02");
             auto infoRow = hook::pattern("83 C4 04 83 F8 A4 0F 84 ? ? ? ? 83 F8 0B 0F 87");
-            if (!info.empty() && !infoWidth.empty() && !infoRow.empty())
-            {
-                getInfoPosition = reinterpret_cast<decltype(getInfoPosition)>(branch(info.get_first<uint8_t>(0x11)));
-                setFontDropShadow = reinterpret_cast<decltype(setFontDropShadow)>(branch(info.get_first<uint8_t>(0x7E)));
-                getInfoLabelWidth = reinterpret_cast<decltype(getInfoLabelWidth)>(branch(infoWidth.get_first<uint8_t>(1)));
-                infoTextRow = safetyhook::create_mid(infoRow.get_first(), InfoTextRow);
-            }
+            getInfoPosition = reinterpret_cast<decltype(getInfoPosition)>(branch(info.get_first<uint8_t>(0x11)));
+            setFontDropShadow = reinterpret_cast<decltype(setFontDropShadow)>(branch(info.get_first<uint8_t>(0x7E)));
+            getInfoLabelWidth = reinterpret_cast<decltype(getInfoLabelWidth)>(branch(infoWidth.get_first<uint8_t>(1)));
+            infoTextRow = safetyhook::create_mid(infoRow.get_first(), InfoTextRow);
             categoriesEnabled = true;
 
             // The language: FillMenu hides its row of Display (9, 10 in TLAD) and of the title menu's Display (6)
             auto language = hook::pattern("83 F9 08 75 19 83 3D ? ? ? ? 01 B8 09 00 00 00 B9 0A 00 00 00 0F 44 C1 6A 01 50 EB 09 83 F9 3D 75 18");
-            if (!language.empty())
-            {
-                // jnz over the Display check -> jmp past both checks
-                injector::WriteMemory<uint8_t>(language.get_first<uint8_t>(3), 0xEB, true);
-                injector::WriteMemory<uint8_t>(language.get_first<uint8_t>(4), 0x36, true);
-            }
+            // jnz over the Display check -> jmp past both checks
+            injector::WriteMemory<uint8_t>(language.get_first<uint8_t>(3), 0xEB, true);
+            injector::WriteMemory<uint8_t>(language.get_first<uint8_t>(4), 0x36, true);
         }
         setTabScale = reinterpret_cast<decltype(setTabScale)>(branch(scaleCalls[0]));
 
@@ -2129,16 +2123,13 @@ private:
             scrollMenu = safetyhook::create_inline(scroll, ScrollMenu);
             selectOption = safetyhook::create_inline(hook::pattern("83 EC 10 57 8B 7C 24 1C 85 FF 0F 8C ? ? ? ? 8B 0D").get_first(), SelectOption);
             processMenu = safetyhook::create_inline(process, ProcessMenu);
-            // The game's warning screen for its own questions (1.1.2.0, 1.0.8.0)
-            if (auto warning = hook::pattern("8B 44 24 04 50 C7 05 ? ? ? ? 01 00 00 00 E8 ? ? ? ? 8B 4C 24 0C 51 E8"); !warning.empty())
-            {
-                setWarningMessage = reinterpret_cast<decltype(setWarningMessage)>(warning.get_first());
-                warningState = *warning.get_first<int32_t*>(7);
-            }
+            // The game's warning screen for its own questions
+            auto warning = hook::pattern("8B 44 24 04 50 C7 05 ? ? ? ? 01 00 00 00 E8 ? ? ? ? 8B 4C 24 0C 51 E8");
+            setWarningMessage = reinterpret_cast<decltype(setWarningMessage)>(warning.get_first());
+            warningState = *warning.get_first<int32_t*>(7);
             // The number of MENU_DISPLAY_VALUE_SLIDERBAR is printed from a buffer at esp+0xF0, the row offset is in EDI
             auto valueText = hook::pattern("83 C4 0C 6A FF 6A FF 8D 8C 24 F8 00 00 00 51 E9");
-            if (!valueText.empty())
-                valueTextHook = safetyhook::create_mid(valueText.get_first(3), [](SafetyHookContext& regs) { SetValueText(regs.edi, regs.esp + 0xF0); });
+            valueTextHook = safetyhook::create_mid(valueText.get_first(3), [](SafetyHookContext& regs) { SetValueText(regs.edi, regs.esp + 0xF0); });
             InitializeTabs();
             return;
         }
@@ -2157,15 +2148,12 @@ private:
         selectOption = safetyhook::create_inline(hook::pattern("0F B7 3C D5 ? ? ? ? 3B F7").get_first(-0x25), SelectOption);
         processMenu = safetyhook::create_inline(hook::pattern("C7 05 ? ? ? ? FF FF FF 7F FF 34 BD").get_first(-0x1E), ProcessMenu);
         // The game's warning screen for its own questions: title (not shown), text key, keys (0x48: yes and no), ...
-        if (auto warning = hook::pattern("FF 74 24 04 C7 05 ? ? ? ? 01 00 00 00 E8 ? ? ? ? FF 74 24 0C E8"); !warning.empty())
-        {
-            setWarningMessage = reinterpret_cast<decltype(setWarningMessage)>(warning.get_first());
-            warningState = *warning.get_first<int32_t*>(6);
-        }
+        auto warning = hook::pattern("FF 74 24 04 C7 05 ? ? ? ? 01 00 00 00 E8 ? ? ? ? FF 74 24 0C E8");
+        setWarningMessage = reinterpret_cast<decltype(setWarningMessage)>(warning.get_first());
+        warningState = *warning.get_first<int32_t*>(6);
         // The number of MENU_DISPLAY_VALUE_SLIDERBAR is printed from a buffer at esp+0xF0, the row offset is in EBX
         auto valueText = hook::pattern("83 C4 0C 8D 84 24 F0 00 00 00 6A FF 6A FF 50 E9");
-        if (!valueText.empty())
-            valueTextHook = safetyhook::create_mid(valueText.get_first(3), [](SafetyHookContext& regs) { SetValueText(regs.ebx, regs.esp + 0xF0); });
+        valueTextHook = safetyhook::create_mid(valueText.get_first(3), [](SafetyHookContext& regs) { SetValueText(regs.ebx, regs.esp + 0xF0); });
         InitializeTabs();
     }
 
@@ -2204,7 +2192,7 @@ private:
     void InitializeTables()
     {
         auto prefPattern = hook::pattern("FF 34 FD ? ? ? ? 56 E8 ? ? ? ? 83 C4 08 85 C0 0F 84 ? ? ? ? 47 81 FF");
-        legacyExecutable = prefPattern.empty();
+        legacyExecutable = prefPattern.empty(); // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
         if (legacyExecutable)
             prefPattern = hook::pattern("8B 04 F5 ? ? ? ? 50 57 E8 ? ? ? ? 83 C4 08 85 C0 74 ? 83 C6 01 81 FE");
         auto prefNames = prefPattern.get_first<uint8_t>();
@@ -4777,11 +4765,8 @@ public:
                 if (limit >= 0 && limit <= 23)
                 {
                     auto pattern = hook::pattern("0F B6 35 ? ? ? ? 85 F6");
-                    if (!pattern.empty())
-                    {
-                        static int stationsLimit = limit;
-                        injector::WriteMemory(pattern.get_first(3), &stationsLimit, true);
-                    }
+                    static int stationsLimit = limit;
+                    injector::WriteMemory(pattern.get_first(3), &stationsLimit, true);
                 }
             }
         };
@@ -4906,7 +4891,7 @@ public:
             injector::MakeNOP(pattern.get_first(), 2);
 
             pattern = hook::pattern("83 F8 03 0F 44 CE");
-            if (!pattern.empty())
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
             {
                 struct MenuHook
                 {
@@ -4916,21 +4901,19 @@ public:
                     }
                 }; injector::MakeInline<MenuHook>(pattern.get_first(0), pattern.get_first(6));
             }
-            else
+            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
             {
                 pattern = hook::pattern("75 02 B3 01 57 E8");
-                if (!pattern.empty())
-                    injector::MakeNOP(pattern.get_first(), 2);
+                injector::MakeNOP(pattern.get_first(), 2);
             }
 
             pattern = hook::pattern("7E 4E 8A 1D ? ? ? ? 8B 35");
-            if (!pattern.empty())
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
-            else
+            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
             {
                 pattern = hook::pattern("83 F8 03 7F 06");
-                if (!pattern.empty())
-                    injector::MakeNOP(pattern.get_first(3), 2);
+                injector::MakeNOP(pattern.get_first(3), 2);
             }
 
             // Same but for the camera options of the Controls tab. The Graphics tab shows the game anyway (Extra Night
@@ -4945,7 +4928,7 @@ public:
             };
 
             pattern = hook::pattern("83 FE ? 75 ? FF 35 ? ? ? ? E8 ? ? ? ? 83 C4 ? 85 C0 79");
-            if (!pattern.empty())
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
             {
                 static auto loc_5C27AD = resolve_displacement(pattern.get_first(3)).value();
                 struct MenuBackgroundHook1
@@ -4959,7 +4942,7 @@ public:
                     }
                 }; injector::MakeInline<MenuBackgroundHook1>(pattern.get_first(0));
             }
-            else
+            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
             {
                 pattern = hook::pattern("83 3D ? ? ? ? ? 75 13 8B 0D ? ? ? ? 51 E8 ? ? ? ? 83 C4 04 85 C0 7D 21");
                 static auto loc_5C27AD = resolve_displacement(pattern.get_first(7)).value();
@@ -4991,7 +4974,7 @@ public:
 
             // And for map tab
             pattern = hook::pattern("83 3D ? ? ? ? ? 75 ? 83 FE ? 74 ? C6 05 ? ? ? ? ? E8 ? ? ? ? 83 3D");
-            if (!pattern.empty())
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
             {
                 static auto loc_5A8557 = resolve_displacement(pattern.get_first(7)).value();
                 struct MenuBackgroundHook3
@@ -5005,7 +4988,7 @@ public:
                     }
                 }; injector::MakeInline<MenuBackgroundHook3>(pattern.get_first(0), pattern.get_first(9));
             }
-            else
+            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
             {
                 pattern = hook::pattern("39 05 ? ? ? ? 75 12 39 44 24 14 74 2B C6 05 ? ? ? ? ? E8 ? ? ? ? B8 ? ? ? ? 39 05 ? ? ? ? 75 12");
                 static auto loc_5A8557 = resolve_displacement(pattern.get_first(6)).value();
@@ -5038,7 +5021,7 @@ public:
 
             // TLAD
             pattern = hook::pattern("8D 83 ? ? ? ? 50 8D 84 24 ? ? ? ? EB ? 8D 83 ? ? ? ? 50 8D 84 24 ? ? ? ? EB ? 8D 83 ? ? ? ? 50 8D 84 24 ? ? ? ? EB ? 8D 83");
-            if (!pattern.empty())
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
             {
                 struct MenuBackgroundHook5
                 {
@@ -5051,7 +5034,7 @@ public:
                     }
                 }; injector::MakeInline<MenuBackgroundHook5>(pattern.get_first(0), pattern.get_first(6));
             }
-            else
+            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
             {
                 pattern = hook::pattern("8D 8D ? ? ? ? 51 52 E8 ? ? ? ? 8B 08 89 4C 24 18");
                 struct MenuBackgroundHook5
@@ -5084,26 +5067,24 @@ public:
             pattern = find_pattern("83 F8 10 7E 37 6A 00 E8 ? ? ? ? 83 C4 04 8D 70 F8 E8 ? ? ? ? D9 5C 24 30", "83 F8 10 7E 2A 6A 00 E8 ? ? ? ? 83 E8 08 89 44 24 14");
             injector::WriteMemory<uint8_t>(pattern.get_first(2), 0x10 * 2, true);
             pattern = hook::pattern("8D 70 F8 E8 ? ? ? ? D9 5C 24 30");
-            if (!pattern.empty())
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 injector::WriteMemory<uint8_t>(pattern.get_first(2), 0xF0, true);
-            else
+            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
             {
                 pattern = hook::pattern("83 E8 08 89 44 24 14");
-                if (!pattern.empty())
-                    injector::WriteMemory<uint8_t>(pattern.get_first(2), 0x10, true);
+                injector::WriteMemory<uint8_t>(pattern.get_first(2), 0x10, true);
             }
             pattern = find_pattern("83 FE 10 7F 08", "83 FF 10 7F 0C");
             injector::WriteMemory<uint8_t>(pattern.get_first(2), 0x10 * 2, true);
             pattern = find_pattern("83 F8 10 7E 37 6A 00 E8 ? ? ? ? 83 C4 04 8D 70 F8", "83 F8 ? 7E ? 6A 00 E8 ? ? ? ? 83 E8 08 89 44 24 24");
             injector::WriteMemory<uint8_t>(pattern.get_first(2), 0x10 * 2, true);
             pattern = hook::pattern("8D 70 F8 E8 ? ? ? ? D9 5C 24 38");
-            if (!pattern.empty())
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 injector::WriteMemory<uint8_t>(pattern.get_first(2), 0xF0, true);
-            else
+            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
             {
                 pattern = hook::pattern("83 E8 08 89 44 24 24");
-                if (!pattern.empty())
-                    injector::WriteMemory<uint8_t>(pattern.get_first(2), 0x10, true);
+                injector::WriteMemory<uint8_t>(pattern.get_first(2), 0x10, true);
             }
             pattern = find_pattern("8D 46 F0 66 0F 6E C0", "83 C7 F0 89 7C");
             injector::WriteMemory<uint8_t>(pattern.get_first(2), 0xE0, true);
@@ -5113,7 +5094,7 @@ public:
 
             // FOG
             pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 5C C1 F3 0F 59 C2 F3 0F 58 C1 F3 0F 11 05 ? ? ? ? F3 0F 10 05");
-            if (!pattern.empty())
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
             {
                 static float* farClipMultiplier = *pattern.get_first<float*>(4);
                 injector::MakeNOP(pattern.get_first(), 8);
@@ -5132,7 +5113,7 @@ public:
                     }
                 });
             }
-            else
+            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
             {
                 pattern = find_pattern("F3 0F 10 15 ? ? ? ? F3 0F 5C D1 F3 0F 59 D0 F3 0F 58 D1 F3 0F 11 15 ? ? ? ? F3 0F 10 15");
                 static float* farClipMultiplier = *pattern.get_first<float*>(4);
@@ -5154,7 +5135,7 @@ public:
             }
 
             pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 5C C1 F3 0F 59 C2 F3 0F 58 C1 F3 0F 11 05 ? ? ? ? 8B E5");
-            if (!pattern.empty())
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
             {
                 static float* nearFogMultiplier = *pattern.get_first<float*>(4);
                 injector::MakeNOP(pattern.get_first(), 8);
@@ -5167,7 +5148,7 @@ public:
                         regs.xmm0.f32[0] = *nearFogMultiplier;
                 });
             }
-            else
+            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
             {
                 pattern = find_pattern("F3 0F 10 15 ? ? ? ? F3 0F 5C D1 F3 0F 59 D0 F3 0F 58 D1 F3 0F 11 15 ? ? ? ? 8B E5");
                 static float* nearFogMultiplier = *pattern.get_first<float*>(4);
@@ -5192,9 +5173,11 @@ public:
                     return shGetUserLanguage.call<int>();
                 };
 
-                auto pattern = hook::pattern("83 EC ? A1 ? ? ? ? 33 C4 89 44 24 ? A1 ? ? ? ? 8B 0D ? ? ? ? 53 55 56 33 ED 57 33 FF 85 C0 0F 45 E8");
-                if (!pattern.empty())
-                    shGetUserLanguage = safetyhook::create_inline(pattern.get_first(0), static_cast<int(*)()>(GetUserLanguage));
+                auto pattern = find_pattern(
+                    "83 EC ? A1 ? ? ? ? 33 C4 89 44 24 ? A1 ? ? ? ? 8B 0D ? ? ? ? 53 55 56 33 ED 57 33 FF 85 C0 0F 45 E8",  // 1.2.0.43, 1.2.0.59
+                    "83 EC 74 A1 ? ? ? ? 33 C4 89 44 24 70 A1 ? ? ? ? 53 55 56 57 33 FF 33 ED 85 C0",                        // 1.2.0.32
+                    "56 33 F6 FF 15 ? ? ? ? 25 FF 03 00 00 83 C0 F9 83 F8 12 77");                                           // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
+                shGetUserLanguage = safetyhook::create_inline(pattern.get_first(0), static_cast<int(*)()>(GetUserLanguage));
             }
 
             // Shadows setting
@@ -5485,14 +5468,14 @@ public:
 
             static bool bRmb = false;
             pattern = find_pattern("F6 C1 01 0F 84 ? ? ? ? 80 BC 16");
-            if (!pattern.empty())
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
             {
                 static auto GetRMBClick = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                 {
                     bRmb = (*(uint8_t*)&regs.ecx & 2) != 0;
                 });
             }
-            else
+            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
             {
                 pattern = find_pattern("F6 C2 01 0F 84 ? ? ? ? 80 BC 08");
                 static auto GetRMBClick = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
@@ -5520,7 +5503,7 @@ public:
                 CTimer::hbIsUserPaused.fun = injector::MakeCALL(pattern.get_first(0), CTimer::IsCameraBaseProcessingUserPaused).get();
 
                 pattern = hook::pattern("0A 05 ? ? ? ? 0A 05 ? ? ? ? 74 12");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     injector::MakeNOP(pattern.get_first(0), 6, true);
                     static auto CCam__BaseProcess_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
@@ -5535,7 +5518,7 @@ public:
                         }
                     });
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("E8 ? ? ? ? 84 C0 74 ? 80 3D ? ? ? ? ? 75 ? 80 3D ? ? ? ? ? 74 ? 84 DB");
                     CTimer::hbIsGamePaused.fun = injector::MakeCALL(pattern.get_first(0), CTimer::IsCameraBaseProcessingGamePaused).get();
@@ -5545,7 +5528,7 @@ public:
             // Make timecycle changes visible in menus
             {
                 pattern = hook::pattern("0A 05 ? ? ? ? 0A 05 ? ? ? ? 0F 85 ? ? ? ? E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 11 04 24");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     injector::MakeNOP(pattern.get_first(0), 6, true);
                     static auto CVisualEffects__Update_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
@@ -5560,14 +5543,14 @@ public:
                         }
                     });
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("E8 ? ? ? ? 84 C0 5F 0F 85");
                     CTimer::hbIsGamePaused.fun = injector::MakeCALL(pattern.get_first(0), CTimer::AreVisualEffectUpdatesGamePaused).get();
                 }
 
                 pattern = hook::pattern("0A 05 ? ? ? ? 0A 05 ? ? ? ? 74 ? 8B 0D");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     injector::MakeNOP(pattern.get_first(0), 6, true);
                     static auto TimeCycle__UpdateFinalize_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
@@ -5582,7 +5565,7 @@ public:
                         }
                     });
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("E8 ? ? ? ? 84 C0 74 ? A1 ? ? ? ? 69 C0");
                     CTimer::hbIsGamePaused.fun = injector::MakeCALL(pattern.get_first(0), CTimer::AreVisualEffectUpdatesGamePaused).get();

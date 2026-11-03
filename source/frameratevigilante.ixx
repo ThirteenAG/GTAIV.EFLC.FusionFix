@@ -722,7 +722,7 @@ public:
 
                 // Implement the logical frame counter right next to the regular one in CTimer::Update
                 pattern = hook::pattern("A1 ? ? ? ? F3 0F 11 05 ? ? ? ? FF 35");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     injector::MakeNOP(pattern.get_first(0), 5, true);
                     static auto CTimer__Update_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
@@ -746,7 +746,7 @@ public:
                         CTimer::m_logicalFrameCount += CTimer::m_logicalFramesPassed;
                     });
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("8B 15 ? ? ? ? F3 0F 5E C1");
                     injector::MakeNOP(pattern.get_first(0), 6, true);
@@ -799,7 +799,7 @@ public:
                 {
                     // Helicopter blinkers' speed
                     auto pattern = hook::pattern("03 0D ? ? ? ? F3 0F 10 0D");
-                    if (!pattern.empty())
+                    if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                     {
                         injector::MakeNOP(pattern.get_first(0), 6, true);
                         static auto CHeli__PreRender2_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
@@ -807,7 +807,7 @@ public:
                             regs.ecx += CTimer::GetLogicalFrameCount();
                         });
                     }
-                    else
+                    else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                     {
                         pattern = hook::pattern("8B 15 ? ? ? ? F3 0F 10 15 ? ? ? ? F3 0F 10 0D");
                         injector::MakeNOP(pattern.get_first(0), 6, true);
@@ -839,7 +839,7 @@ public:
 
                 // Helicopter downwash wind particles
                 pattern = hook::pattern("F7 F7 85 D2 75");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     static auto CVehicleFx__UpdateFxHeliDownwash_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
@@ -848,7 +848,7 @@ public:
                         regs.edi = std::max((int)((float)regs.edi / f), 1);
                     });
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("F7 F1 85 D2 75 ? D9 44 24");
                     static auto CVehicleFx__UpdateFxHeliDownwash_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
@@ -909,17 +909,14 @@ public:
                     // screen fades' clock), the step of each stored at clock + 8 by then
                     static constexpr auto Table = MillisecondClocks::MakeTable(std::make_index_sequence<MillisecondClocks::MaxClocks>{}, false);
                     pattern = hook::pattern(std::format("8B 44 24 08 01 05 {:02X} {:02X} {:02X} {:02X}", ms & 0xFF, (ms >> 8) & 0xFF, (ms >> 16) & 0xFF, ms >> 24));
-                    if (!pattern.empty())
+                    auto pGameAdd = pattern.get_first<uint8_t>(4);
+                    size_t n = 0;
+                    for (auto p = pGameAdd - 0x10; p < pGameAdd + 0x400 && n < MillisecondClocks::MaxClocks; ++p)
                     {
-                        auto pGameAdd = pattern.get_first<uint8_t>(4);
-                        size_t n = 0;
-                        for (auto p = pGameAdd - 0x10; p < pGameAdd + 0x400 && n < MillisecondClocks::MaxClocks; ++p)
+                        if (p[0] == 0x8B && p[1] == 0x44 && p[2] == 0x24 && p[3] == 0x08 && p[4] == 0x01 && p[5] == 0x05)
                         {
-                            if (p[0] == 0x8B && p[1] == 0x44 && p[2] == 0x24 && p[3] == 0x08 && p[4] == 0x01 && p[5] == 0x05)
-                            {
-                                MillisecondClocks::pClocks[n] = *reinterpret_cast<uintptr_t*>(p + 6);
-                                ClockHooks.emplace_back(safetyhook::create_mid(p + 4, Table[n++]));
-                            }
+                            MillisecondClocks::pClocks[n] = *reinterpret_cast<uintptr_t*>(p + 6);
+                            ClockHooks.emplace_back(safetyhook::create_mid(p + 4, Table[n++]));
                         }
                     }
                 }
@@ -927,32 +924,28 @@ public:
                 // rage::scrThread::Update, once per script per frame: eax = (int)(xmm0 = time step * 1000), added to the
                 // timers; the same carry for every script of a frame
                 pattern = hook::pattern("F3 0F 2C C0 01 41 1C 01 41 20 01 41 24");
-                if (!pattern.empty())
+                static auto scrThread__Update_Timers = safetyhook::create_mid(pattern.get_first(4), [](SafetyHookContext& regs)
                 {
-                    static auto scrThread__Update_Timers = safetyhook::create_mid(pattern.get_first(4), [](SafetyHookContext& regs)
+                    if (MillisecondClocks::nScriptFrame != *CTimer::m_frameCount)
                     {
-                        if (MillisecondClocks::nScriptFrame != *CTimer::m_frameCount)
-                        {
-                            MillisecondClocks::nScriptFrame = *CTimer::m_frameCount;
-                            MillisecondClocks::nScriptCarry = MillisecondClocks::Carry(MillisecondClocks::fScriptRemainder, regs.xmm0.f32[0], int32_t(regs.eax));
-                        }
-                        regs.eax += MillisecondClocks::nScriptCarry;
-                    });
-                }
+                        MillisecondClocks::nScriptFrame = *CTimer::m_frameCount;
+                        MillisecondClocks::nScriptCarry = MillisecondClocks::Carry(MillisecondClocks::fScriptRemainder, regs.xmm0.f32[0], int32_t(regs.eax));
+                    }
+                    regs.eax += MillisecondClocks::nScriptCarry;
+                });
             }
 
             // Fix peds staying pinned down (cops stuck in cover)
             {
                 auto pattern = hook::pattern("F3 0F 2C 44 24 04 0F BE 91 ? ? ? ? 0F BE C0 2B D0");
-                if (!pattern.empty())
-                    CPedIntelligence::shDecreaseAmountPinnedDown = safetyhook::create_inline(pattern.get_first(0), CPedIntelligence::DecreaseAmountPinnedDown);
+                CPedIntelligence::shDecreaseAmountPinnedDown = safetyhook::create_inline(pattern.get_first(0), CPedIntelligence::DecreaseAmountPinnedDown);
             }
 
             // Fix stalls when trying to climb ladders
             // Change the heading angle threshold in CTaskComplexClimbLadder passed to CTaskSimpleMoveAchieveHeading to match the threshold checked by CTaskSimpleSlideToCoord. Fixes the wrong order of tasks being completed at high FPS, causing said stalls.
             {
                 auto pattern = hook::pattern("F3 0F 10 05 ? ? ? ? 83 EC ? 8B C8 F3 0F 11 44 24 ? F3 0F 10 44 24 ? C7 44 24 ? ? ? ? ? F3 0F 11 04 24 E8 ? ? ? ? EB");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     injector::MakeNOP(pattern.get_first(0), 8, true);
                     static auto CTaskComplexClimbLadder__CreateSubTask_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
@@ -960,7 +953,7 @@ public:
                         regs.xmm0.f32[0] = 0.1f; // 0.02f --> 0.1f to match CTaskSimpleSlideToCoord
                     });
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     static float flt_DD5CFC = 0.1f;
                     pattern = hook::pattern("D9 05 ? ? ? ? 83 EC ? D9 5C 24 ? 8B C8 D9 05 ? ? ? ? D9 5C 24 ? D9 44 24 ? D9 1C 24 E8 ? ? ? ? EB ? 33 C0 D9 EE 51 D9 1C 24 8B CE");
@@ -972,7 +965,7 @@ public:
             {
                 // Automobiles
                 auto pattern = hook::pattern("F3 0F 58 8F ? ? ? ? 0F 2F C8");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     injector::MakeNOP(pattern.get_first(0), 8, true);
                     static auto CAutomobile__ProcessControlInputs_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
@@ -980,7 +973,7 @@ public:
                         regs.xmm1.f32[0] += *(float*)(regs.edi + 0x1084) * *CTimer::fTimeStep / (1.0f / 30.0f);
                     });
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("F3 0F 58 86 ? ? ? ? F3 0F 58 C1 F3 0F 10 0D");
                     injector::MakeNOP(pattern.get_first(0), 8, true);
@@ -992,7 +985,7 @@ public:
 
                 // Bikes
                 pattern = hook::pattern("F3 0F 59 15 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 58 96");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     static auto dword_FE8830 = *pattern.get_first<float*>(4);
                     injector::MakeNOP(pattern.get_first(0), 8, true);
@@ -1001,7 +994,7 @@ public:
                         regs.xmm2.f32[0] *= *dword_FE8830 * *CTimer::fTimeStep / (1.0f / 30.0f);
                     });
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 58 86 ? ? ? ? F3 0F 10 0D ? ? ? ? 0F 2F C1 F3 0F 11 86 ? ? ? ? 77");
                     static auto dword_D95B68 = *pattern.get_first<float*>(4);
@@ -1038,16 +1031,10 @@ public:
                 // Skips some clamps set in the vehicle camera code that prevent auto centering from scaling properly with the frame rate (These also seem to be done on Xbox, maybe this is just north vision?)
                 {
                     auto pattern = find_pattern("77 ? 0F 28 C2 F3 0F 5C 8F", "77 ? 0F 28 D3 F3 0F 10 8E");
-                    if (!pattern.empty())
-                    {
-                        injector::MakeNOP(pattern.get_first(0), 2, true);
-                    }
+                    injector::MakeNOP(pattern.get_first(0), 2, true);
 
                     pattern = find_pattern("76 ? 0F 28 C8 EB ? F3 0F 10 4C 24 ? 80 7C 24", "76 ? 0F 28 CE EB ? 0F 28 CF 84 D2");
-                    if (!pattern.empty())
-                    {
-                        injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
-                    }
+                    injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
                 }
 
                 // Aim zooming
@@ -1063,7 +1050,7 @@ public:
 
                     // Melee
                     pattern = hook::pattern("F3 0F 59 0D ? ? ? ? F3 0F 58 4C 24 ? F3 0F 11 49");
-                    if (!pattern.empty())
+                    if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                     {
                         static auto dword_FE8830 = *pattern.get_first<float*>(4);
                         injector::MakeNOP(pattern.get_first(0), 8, true);
@@ -1072,7 +1059,7 @@ public:
                             regs.xmm1.f32[0] *= 1.0f - powf(1.0f - *dword_FE8830, *CTimer::fTimeStep / (1.0f / 30.0f));
                         });
                     }
-                    else
+                    else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                     {
                         pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 58 C1 F3 0F 11 41");
                         static auto dword_DB6F80 = *pattern.get_first<float*>(4);
@@ -1091,7 +1078,7 @@ public:
                 {
                     // Main rotors
                     auto pattern = hook::pattern("F3 0F 59 15 ? ? ? ? F3 0F 58 D0 F3 0F 10 87");
-                    if (!pattern.empty())
+                    if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                     {
                         static auto dword_FE8830 = *pattern.get_first<float*>(4);
                         injector::MakeNOP(pattern.get_first(0), 8, true);
@@ -1100,7 +1087,7 @@ public:
                             regs.xmm2.f32[0] *= *dword_FE8830 * *CTimer::fTimeStep / (1.0f / 30.0f);
                         });
                     }
-                    else
+                    else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                     {
                         pattern = hook::pattern("D8 0D ? ? ? ? D9 44 24 ? D8 0D");
                         static auto dword_D95B68 = *pattern.get_first<float*>(2);
@@ -1117,7 +1104,7 @@ public:
 
                     // Rear rotors
                     pattern = hook::pattern("F3 0F 59 D0 F3 0F 10 44 24 ? F3 0F 59 05 ? ? ? ? F3 0F 58 D0");
-                    if (!pattern.empty())
+                    if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                     {
                         injector::MakeNOP(pattern.get_first(0), 4, true);
                         static auto CHeli__ApplyCollisionInternal_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
@@ -1125,7 +1112,7 @@ public:
                             regs.xmm2.f32[0] *= regs.xmm0.f32[0] * *CTimer::fTimeStep / (1.0f / 30.0f);
                         });
                     }
-                    else
+                    else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                     {
                         pattern = hook::pattern("DE C9 D9 44 24 ? D8 0D");
                         struct CHeli__ApplyCollisionInternal_Hook2
@@ -1149,7 +1136,7 @@ public:
 
                     // Tails ???
                     pattern = hook::pattern("F3 0F 59 0D ? ? ? ? F3 0F 59 4C 24 ? F3 0F 5C C1");
-                    if (!pattern.empty())
+                    if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                     {
                         static auto dword_FE8AE0 = *pattern.get_first<float*>(4);
                         injector::MakeNOP(pattern.get_first(0), 8, true);
@@ -1158,7 +1145,7 @@ public:
                             regs.xmm1.f32[0] *= *dword_FE8AE0 * *CTimer::fTimeStep / (1.0f / 30.0f);
                         });
                     }
-                    else
+                    else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                     {
                         pattern = hook::pattern("D8 0D ? ? ? ? D8 4C 24 ? D9 5C 24 ? F3 0F 5C 44 24");
                         static auto flt_D7A9C8 = *pattern.get_first<float*>(2);
@@ -1177,7 +1164,7 @@ public:
                 // Helicopter rotor speeds
                 {
                     auto pattern = hook::pattern("F3 0F 59 05 ? ? ? ? F3 0F 59 C4 F3 0F 5C C8");
-                    if (!pattern.empty())
+                    if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                     {
                         static auto dword_1046AF0 = *pattern.get_first<float*>(4);
                         injector::MakeNOP(pattern.get_first(0), 8, true);
@@ -1186,7 +1173,7 @@ public:
                             regs.xmm0.f32[0] *= *dword_1046AF0 * *CTimer::fTimeStep / (1.0f / 30.0f);
                         });
                     }
-                    else
+                    else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                     {
                         pattern = hook::pattern("F3 0F 59 15 ? ? ? ? F3 0F 59 D4");
                         static auto dword_F46598 = *pattern.get_first<float*>(4);
@@ -1198,7 +1185,7 @@ public:
                     }
 
                     pattern = hook::pattern("F3 0F 59 1D ? ? ? ? F3 0F 10 87 ? ? ? ? F3 0F 59 DC");
-                    if (!pattern.empty())
+                    if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                     {
                         static auto dword_1046AF4 = *pattern.get_first<float*>(4);
                         injector::MakeNOP(pattern.get_first(0), 8, true);
@@ -1207,7 +1194,7 @@ public:
                             regs.xmm3.f32[0] *= *dword_1046AF4 * *CTimer::fTimeStep / (1.0f / 30.0f);
                         });
                     }
-                    else
+                    else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                     {
                         pattern = hook::pattern("F3 0F 59 0D ? ? ? ? F3 0F 10 86 ? ? ? ? F3 0F 59 CC");
                         static auto dword_F46594 = *pattern.get_first<float*>(4);
@@ -1229,12 +1216,23 @@ public:
                     static auto dword_18B6F30 = *pattern.get_first<float*>(4);
 
                     pattern = hook::pattern("F3 0F 58 EC F3 0F 11 AC 18");
-                    if (!pattern.empty())
+                    if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                     {
                         injector::MakeNOP(pattern.get_first(0), 4, true);
                         static auto CLoadingScreens__RenderSegmentSprites_Hook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                         {
                             regs.xmm5.f32[0] += *dword_18B6F30; // regs.xmm5.f32[0] --> dword_18B6F30
+                        });
+                    }
+                    else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
+                    {
+                        // comiss xmm7, xmm6; jb to addss xmm4, xmm3. Another jump lands right after that add,
+                        // so the step is corrected before the branch instead
+                        pattern = hook::pattern("0F 2F FE 72 48 0F 57 E4 F3 0F 11 20");
+                        static auto CLoadingScreens__RenderSegmentSprites_Hook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            if (regs.xmm7.f32[0] < regs.xmm6.f32[0])
+                                regs.xmm4.f32[0] += *dword_18B6F30 - regs.xmm3.f32[0]; // xmm4 += xmm3 --> dword_18B6F30
                         });
                     }
 
@@ -1249,7 +1247,7 @@ public:
                     // The PS3 version, being capped at 30fps, behaves correctly here. So we change these clocks to be 33.3f so that it matches the 30fps speed.
                     // As a side effect however, this significantly slows down PC loading screens, so these should probably have their speed values doubled in the .dat files instead.
                     pattern = hook::pattern("F3 0F 59 0D ? ? ? ? C7 84 18");
-                    if (!pattern.empty())
+                    if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                     {
                         injector::MakeNOP(pattern.get_first(0), 8, true);
                         static auto CLoadingScreens__RenderSegmentSprites_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
@@ -1264,7 +1262,7 @@ public:
                             regs.xmm4.f32[0] *= 33.3f; // 66.6f --> 33.3f
                         });
                     }
-                    else
+                    else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                     {
                         pattern = hook::pattern("F3 0F 10 15 ? ? ? ? F3 0F 59 E3 F3 0F 59 E2");
                         injector::MakeNOP(pattern.get_first(0), 8, true);
@@ -1289,11 +1287,11 @@ public:
                     // The speed was previously fixed to work correctly at variable frame rates on patches 1050 and lower,
                     // but this check added in patch 1060 along with TBoGT's sparks prevents it from working properly.
                     auto pattern = hook::pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 C1 F3 0F 11 05 ? ? ? ? EB");
-                    if (!pattern.empty())
+                    if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                     {
                         injector::MakeNOP(pattern.get_first(0), 20, true);
                     }
-                    else
+                    else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                     {
                         pattern = hook::pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 05 ? ? ? ? F3 0F 11 05 ? ? ? ? EB");
                         injector::MakeNOP(pattern.get_first(0), 24, true);
@@ -1301,7 +1299,7 @@ public:
 
                     // This just slightly corrects the devs' old fix from 1050 and lower to be fully accurate to what we generally do here.
                     pattern = hook::pattern("F3 0F 10 44 24 ? F3 0F 59 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 05");
-                    if (!pattern.empty())
+                    if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                     {
                         injector::MakeNOP(pattern.get_first(0), 22, true);
                         static auto CRenderThreadInterface__LoadingRenderFunction_Hook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
@@ -1311,7 +1309,7 @@ public:
                             regs.xmm0.f32[0] *= (1000.0f / 30.0f);
                         });
                     }
-                    else
+                    else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                     {
                         pattern = hook::pattern("F3 0F 10 44 24 ? F3 0F 59 05 ? ? ? ? F3 0F 59 05 ? ? ? ? F3 0F 58 05");
                         injector::MakeNOP(pattern.get_first(0), 14, true);
@@ -1328,7 +1326,7 @@ public:
                     // Here its similar, however the secondary speed might actually drive everything as the initial one is just * 0.001f while the secondary one is * 0.085f.
                     // So we're just taking the timer variable Toronto used for IV in 1040 and scale the secondary value with that.
                     pattern = hook::pattern("F3 0F 58 0D ? ? ? ? 0F 5B C0 F3 0F 11 0D");
-                    if (!pattern.empty())
+                    if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                     {
                         static auto dword_E81598 = *pattern.get_first<float*>(4);
                         injector::MakeNOP(pattern.get_first(0), 8, true);
@@ -1338,7 +1336,7 @@ public:
                             regs.xmm1.f32[0] += *dword_E81598 * *(float*)(regs.esp + 0x34) * (1000.0f / 30.0f);
                         });
                     }
-                    else
+                    else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                     {
                         pattern = hook::pattern("F3 0F 58 05 ? ? ? ? F3 0F 2A 0D");
                         static auto flt_DEF584 = *pattern.get_first<float*>(4);
@@ -1360,7 +1358,7 @@ public:
 
                     // This makes the radar zoom-in speed fps independent, as we removed the update throttle and thus made this an issue.
                     pattern = hook::pattern("F3 0F 58 15 ? ? ? ? 0F 2F CA EB");
-                    if (!pattern.empty())
+                    if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                     {
                         static auto CRadar__fRange = *pattern.get_first<float*>(4);
                         injector::MakeNOP(pattern.get_first(0), 8, true);
@@ -1369,7 +1367,7 @@ public:
                             regs.xmm2.f32[0] += *CRadar__fRange * *CTimer::fTimeStep / (1.0f / 30.0f);
                         });
                     }
-                    else
+                    else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                     {
                         pattern = hook::pattern("F3 0F 58 0D ? ? ? ? 0F 2F C1 EB");
                         static auto CRadar__fRange = *pattern.get_first<float*>(4);
@@ -1382,7 +1380,7 @@ public:
 
                     // This makes the radar zoom-out speed fps independent, as we removed the update throttle and thus also made this an issue.
                     pattern = hook::pattern("F3 0F 5C 15 ? ? ? ? 0F 2F D1 76 ? 0F 28 CA");
-                    if (!pattern.empty())
+                    if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                     {
                         static auto CRadar__fRange = *pattern.get_first<float*>(4);
                         injector::MakeNOP(pattern.get_first(0), 8, true);
@@ -1391,7 +1389,7 @@ public:
                             regs.xmm2.f32[0] -= *CRadar__fRange * *CTimer::fTimeStep / (1.0f / 30.0f);
                         });
                     }
-                    else
+                    else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                     {
                         pattern = hook::pattern("F3 0F 5C 0D ? ? ? ? 0F 2F C8 76 ? 0F 28 C1");
                         static auto CRadar__fRange = *pattern.get_first<float*>(4);
@@ -1405,8 +1403,9 @@ public:
             }
 
             // Native patches
-            hbSLIDE_OBJECT.fun = NativeOverride::Register(Natives::NativeHashes::SLIDE_OBJECT, NATIVE_SLIDE_OBJECT_1, "E8 ? ? ? ? 0F B6 C8", 107);
-            if (!hbSLIDE_OBJECT.fun)
+            if (!NativeOverride::FindCall(Natives::NativeHashes::SLIDE_OBJECT, "E8 ? ? ? ? 0F B6 C8", 107).empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+                hbSLIDE_OBJECT.fun = NativeOverride::Register(Natives::NativeHashes::SLIDE_OBJECT, NATIVE_SLIDE_OBJECT_1, "E8 ? ? ? ? 0F B6 C8", 107);
+            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0: no such call in the handler
             {
                 auto pattern = hook::pattern("55 8B EC 83 E4 ? 8B 45 ? 8B 0D ? ? ? ? 81 EC ? ? ? ? 56");
                 shNATIVE_SLIDE_OBJECT = safetyhook::create_inline(pattern.get_first(0), NATIVE_SLIDE_OBJECT_2);

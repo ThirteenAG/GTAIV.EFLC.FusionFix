@@ -201,7 +201,7 @@ public:
         FusionFix::onInitEvent() += []()
         {
             auto pattern = hook::pattern("33 FF 85 C0 0F 45 F8");
-            if (!pattern.empty())
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
             {
                 injector::MakeNOP(pattern.get_first(), 2);
                 static auto g_cmdarg_windowed_hook = safetyhook::create_mid(pattern.get_first(),
@@ -217,7 +217,7 @@ public:
                     SetWindowedPref(!ctx.eax);
                 });
             }
-            else
+            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
             {
                 pattern = hook::pattern("33 F6 3B C7 0F 45 F0");
                 injector::MakeNOP(pattern.get_first(), 2);

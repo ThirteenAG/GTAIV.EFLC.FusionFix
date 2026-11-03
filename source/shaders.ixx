@@ -190,7 +190,7 @@ public:
 
             // Redirect path to one unified folder
             auto pattern = hook::pattern("8B 04 8D ? ? ? ? A3 ? ? ? ? 8B 44 24 04");
-            if (!pattern.empty())
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
             {
                 static auto off_1045520 = *pattern.get_first<const char**>(3);
                 struct ShaderPathHook
@@ -202,7 +202,7 @@ public:
                     }
                 }; injector::MakeInline<ShaderPathHook>(pattern.get_first(0), pattern.get_first(7));
             }
-            else
+            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
             {
                 pattern = hook::pattern("8B 14 85 ? ? ? ? A3 ? ? ? ? 8B 44 24 04");
                 static auto off_1045520 = *pattern.get_first<const char**>(3);
@@ -223,30 +223,28 @@ public:
                 {
                     static std::string rage_perlinnoise((std::istreambuf_iterator<char>(is)), std::istreambuf_iterator<char>());
 
+                    // Each embedded shader registers a static { name, data } entry; the entries and their names are
+                    // in the exe's image, other stored values are not
+                    auto image = reinterpret_cast<uintptr_t>(GetModuleHandleW(NULL));
+                    auto imageEnd = image + reinterpret_cast<IMAGE_NT_HEADERS*>(image + reinterpret_cast<IMAGE_DOS_HEADER*>(image)->e_lfanew)->OptionalHeader.SizeOfImage;
+                    auto inImage = [&](const void* p) { return reinterpret_cast<uintptr_t>(p) >= image && reinterpret_cast<uintptr_t>(p) < imageEnd; };
+                    static constexpr char name[] = "win32_30/rage_perlinnoise.fxc";
+                    void** entry = nullptr;
                     auto pattern = hook::pattern("A1 ? ? ? ? A3 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? C3");
-                    for (size_t i = 0; i < pattern.size(); ++i)
+                    for (size_t i = 0; i < pattern.size() && !entry; ++i)
                     {
-                        auto off_110ECB0 = *pattern.get(i).get<void***>(16);
-                        if (!IsBadReadPtr(off_110ECB0, sizeof(uint32_t)))
-                        {
-                            if (!IsBadReadPtr(off_110ECB0[0], strlen("win32_30/rage_perlinnoise.fxc")))
-                            {
-                                auto str = std::string_view((const char*)off_110ECB0[0]);
-                                if (str == "win32_30/rage_perlinnoise.fxc")
-                                {
-                                    injector::WriteMemory(&off_110ECB0[1], rage_perlinnoise.data(), true);
-                                    break;
-                                }
-                            }
-                        }
+                        auto candidate = *pattern.get(i).get<void**>(16);
+                        if (inImage(candidate) && inImage(candidate[0]) && std::strncmp(static_cast<const char*>(candidate[0]), name, sizeof(name)) == 0)
+                            entry = candidate;
                     }
+                    injector::WriteMemory(&entry[1], rage_perlinnoise.data(), true);
                 }
             }
 
             // Actually read the rain lighting settings in the visualsettings.dat
             {
                 auto pattern = hook::pattern("8D 44 24 2C 50 FF 33 F3 0F 11 44 24 ? 56 E8");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     injector::WriteMemory<uint8_t>(pattern.get_first(3), 0x34, true);
                     pattern = hook::pattern("8D 44 24 2C 50 FF 73 04 F3 0F 11 44 24 ? 56 E8");
@@ -256,7 +254,7 @@ public:
                     pattern = hook::pattern("8D 44 24 2C 50 FF 73 0C F3 0F 11 44 24 ? 56 E8");
                     injector::WriteMemory<uint8_t>(pattern.get_first(3), 0x3C, true);
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("F3 0F 10 05 ? ? ? ? 53 56 57 8B 7C 24 10 6A 05");
                     injector::MakeNOP(pattern.get_first(0), 8, true);
@@ -317,16 +315,13 @@ public:
                 static uint32_t dwWaterQuality = 1; // MO_MED?
 
                 auto pattern = find_pattern("8B 0D ? ? ? ? 53 BB ? ? ? ? D3 E3 85 D2 0F 85", "8B 0D ? ? ? ? BF ? ? ? ? D3 E7 85 C0 0F 85");
-                if (!pattern.empty())
-                {
-                    injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true); // MO_LOW?
+                injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true); // MO_LOW?
 
-                    pattern = find_pattern("8B 0D ? ? ? ? F3 0F 10 0D ? ? ? ? B8 ? ? ? ? D3 E0 8B 0D", "8B 0D ? ? ? ? F3 0F 10 05 ? ? ? ? 6A 02 6A 01 BA");
-                    injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true); // MO_HIGH?
+                pattern = find_pattern("8B 0D ? ? ? ? F3 0F 10 0D ? ? ? ? B8 ? ? ? ? D3 E0 8B 0D", "8B 0D ? ? ? ? F3 0F 10 05 ? ? ? ? 6A 02 6A 01 BA");
+                injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true); // MO_HIGH?
 
-                    pattern = find_pattern("8B 0D ? ? ? ? BE ? ? ? ? D3 E6 83 3D", "8B 0D ? ? ? ? F3 0F 11 0D ? ? ? ? F3 0F 10 0D");
-                    injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true); // MO_VHIGH?
-                }
+                pattern = find_pattern("8B 0D ? ? ? ? BE ? ? ? ? D3 E6 83 3D", "8B 0D ? ? ? ? F3 0F 11 0D ? ? ? ? F3 0F 10 0D");
+                injector::WriteMemory(pattern.get_first(2), &dwWaterQuality, true); // MO_VHIGH?
             }
 
             // z-fighting fix helpers

@@ -52,7 +52,7 @@ public:
 
             // Skip CCamInterface::TriggerStuntJump and the slow motion that goes with it
             pattern = hook::pattern("8D 46 ? 50 B9 ? ? ? ? E8 ? ? ? ? E8");
-            if (!pattern.empty())
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
             {
                 static auto loc_CF4008 = resolve_next_displacement(pattern.get_first(21)).value();
                 static auto CStuntJumpManager__Update_Hook = safetyhook::create_mid(pattern.get_first(3), [](SafetyHookContext& regs)
@@ -64,7 +64,7 @@ public:
                     }
                 });
             }
-            else
+            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
             {
                 pattern = hook::pattern("8B 0D ? ? ? ? 83 C1 ? 51 B9");
                 static auto loc_CC3F66 = resolve_next_displacement(pattern.get_first(27)).value();

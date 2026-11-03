@@ -187,19 +187,10 @@ public:
             // before a mission runs its first instruction and are never touched while it runs. CGame::Init stores the
             // game's launcher in that pointer, so take over that store.
             auto pattern = hook::pattern("68 ? ? ? ? 68 B9 60 22 4E"); // push handler, push START_NEW_SCRIPT hash
-            if (pattern.empty())
-                return;
-
             auto handler = *pattern.get_first<uintptr_t>(1);
             auto call = hook::range_pattern(handler, handler + 0x40, "FF 15 ? ? ? ? 8B F8 83 C4 10");
-            if (call.empty())
-                return;
-
             auto launcher = *call.get_first<decltype(hbStartNewScript.fun)*>(2);
             pattern = hook::pattern("C7 05 " + pattern_str(to_bytes(launcher))); // mov launcher, offset GtaLauncher
-            if (pattern.empty())
-                return;
-
             auto store = pattern.get_first<decltype(hbStartNewScript.fun)>(6);
             hbStartNewScript.fun = *store;
             injector::WriteMemory(store, &StartNewScript, true);

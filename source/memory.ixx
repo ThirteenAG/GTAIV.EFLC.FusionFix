@@ -203,21 +203,30 @@ uint64_t GetProcessPreferredGPUMemory()
 
 namespace grcDevice
 {
+    uint64_t GetTotalVideoMemory()
+    {
+        static auto VRAM = GetProcessPreferredGPUMemory();
+        static auto d3d9VRAM = static_cast<uint64_t>(rage::grcDevice::GetD3DDevice()->GetAvailableTextureMem());
+        static auto TotalVRAM = std::max(std::max(VRAM, d3d9VRAM), _2048mb);
+        return TotalVRAM;
+    }
+
     SafetyHookInline shGetAvailableVideoMemory = {};
     uint64_t GetAvailableVideoMemory()
     {
         auto ret = shGetAvailableVideoMemory.call<uint64_t>();
 
         if (ret < _2048mb)
-        {
-            static auto VRAM = GetProcessPreferredGPUMemory();
-            static auto d3d9VRAM = static_cast<uint64_t>(rage::grcDevice::GetD3DDevice()->GetAvailableTextureMem());
-            static auto TotalVRAM = std::max(std::max(VRAM, d3d9VRAM), _2048mb);
-
-            ret = TotalVRAM;
-        }
+            ret = GetTotalVideoMemory();
 
         return ret;
+    }
+
+    // 1.0.7.0, 1.1.2.0: a 32-bit value that some callers convert as signed
+    uint32_t GetAvailableVideoMemory32()
+    {
+        auto ret = std::max<uint64_t>(shGetAvailableVideoMemory.call<uint32_t>(), GetTotalVideoMemory());
+        return static_cast<uint32_t>(std::min<uint64_t>(ret, INT32_MAX));
     }
 }
 
@@ -291,17 +300,25 @@ public:
             bExtraStreamingMemory = reader.ReadInteger("EXPERIMENTAL", "ExtraStreamingMemory", 0) != 0;
 
             auto pattern = hook::pattern("8B 0D ? ? ? ? 83 EC ? 33 C0");
-            grcDevice::shGetAvailableVideoMemory = safetyhook::create_inline(pattern.get_first(0), grcDevice::GetAvailableVideoMemory);
-
-            if (bExtraStreamingMemory)
+            if (!pattern.empty()) // 1.0.8.0, 1.1.3.0, 1.2.0.32, 1.2.0.43, 1.2.0.59
             {
-                pattern = find_pattern("55 8B EC 83 E4 ? F3 0F 10 55 ? 83 EC", "55 8B EC 83 E4 ? D9 45 ? 83 EC ? 53 56 57 51 D9 1C 24 8B D9");
-                grcResourceCache::shGetAvailableFreeMemory = safetyhook::create_inline(pattern.get_first(0), grcResourceCache::GetAvailableFreeMemory);
+                grcDevice::shGetAvailableVideoMemory = safetyhook::create_inline(pattern.get_first(0), grcDevice::GetAvailableVideoMemory);
+
+                if (bExtraStreamingMemory)
+                {
+                    pattern = find_pattern("55 8B EC 83 E4 ? F3 0F 10 55 ? 83 EC", "55 8B EC 83 E4 ? D9 45 ? 83 EC ? 53 56 57 51 D9 1C 24 8B D9");
+                    grcResourceCache::shGetAvailableFreeMemory = safetyhook::create_inline(pattern.get_first(0), grcResourceCache::GetAvailableFreeMemory);
+                }
+            }
+            else // 1.0.7.0, 1.1.2.0: no free memory multiplier, the streaming budget comes from fixed tables (no ExtraStreamingMemory)
+            {
+                pattern = hook::pattern("A1 ? ? ? ? 8B 08 83 EC 1C 56 57 8D 54 24 0C 52 50 8B 41 18 FF D0");
+                grcDevice::shGetAvailableVideoMemory = safetyhook::create_inline(pattern.get_first(0), grcDevice::GetAvailableVideoMemory32);
             }
 
             // Force the -nomemrestrict commandline arg. Fixes delayed streaming in some circumstances although not when Texture Quality is either Medium or Low.
             pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? A1 ? ? ? ? 85 C0 74");
-            if (!pattern.empty())
+            if (!pattern.empty()) // 1.0.8.0, 1.1.3.0, 1.2.0.32, 1.2.0.43, 1.2.0.59
             {
                 //static auto g_cmdarg_nomemrestrict = *pattern.get_first<int32_t*>(2);
                 static auto loc_427FC9 = resolve_next_displacement(pattern.get_first(0)).value();
@@ -327,7 +344,7 @@ public:
                     }
                 }; injector::MakeInline<NoMemRestrictHook>(pattern.get_first(0), pattern.get_first(13));
             }
-            else
+            else // 1.0.7.0, 1.1.2.0
             {
                 pattern = hook::pattern("75 ? A1 ? ? ? ? 85 C0 74 ? 80 38");
                 injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz --> jmp
