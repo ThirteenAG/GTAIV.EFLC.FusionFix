@@ -245,8 +245,8 @@ namespace CWater
             return;
 
         pattern = find_pattern<2>(
-            "51 56 8B F1 80 BE C8 0F 00 00 00 75 0B 8D 8E AC 0F 00 00 E8 ? ? ? ? 80 3D ? ? ? ? 00 57 BF 01 00 00 00",
-            "51 56 8B F1 80 BE C8 0F 00 00 00 75 0F 8B 86 B8 0F 00 00 50 E8 ? ? ? ? 83 C4 04 80 3D ? ? ? ? 00 57 BF 01 00 00 00");
+            "51 56 8B F1 80 BE C8 0F 00 00 00 75 0B 8D 8E AC 0F 00 00 E8 ? ? ? ? ? ? ? ? ? ? ? 57 BF 01 00 00 00",
+            "51 56 8B F1 80 BE C8 0F 00 00 00 75 0F 8B 86 B8 0F 00 00 50 E8 ? ? ? ? 83 C4 04 ? ? ? ? ? ? ? 57 BF 01 00 00 00");
         if (pattern.size() != 1)
             return;
 
@@ -285,8 +285,9 @@ namespace CWater
             RenderBufferIndex = *pSharedBufferIndex;
         }
 
+        // Keep HDR's device-mode comparison separate from the water commit.
         // Install the commit hook before changing any selector access.
-        static auto CommitBufferFlipHook = safetyhook::create_mid(pAfterWait, CommitBufferFlip);
+        static auto CommitBufferFlipHook = safetyhook::create_mid(pAfterWait + 7, CommitBufferFlip);
         if (!CommitBufferFlipHook)
             return;
 
@@ -368,23 +369,23 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            CIniReader iniReader("");
+            SettingsReader reader;
 
             // [MAIN]
-            int nAimingZoomFix = iniReader.ReadInteger("MAIN", "AimingZoomFix", 1);
-            bool bRecoilFix = iniReader.ReadInteger("MAIN", "RecoilFix", 1) != 0;
+            int nAimingZoomFix = reader.ReadInteger("MAIN", "AimingZoomFix", 1);
+            bool bRecoilFix = reader.ReadInteger("MAIN", "RecoilFix", 1) != 0;
 
             // [MISC]
-            bool bDefaultCameraAngleInTLaD = iniReader.ReadInteger("MISC", "DefaultCameraAngleInTLaD", 1) != 0;
-            bool bPedDeathAnimFixFromTBoGT = iniReader.ReadInteger("MISC", "PedDeathAnimFixFromTBoGT", 1) != 0;
-            bool bDisableCameraCenteringInCover = iniReader.ReadInteger("MISC", "DisableCameraCenteringInCover", 1) != 0;
-            bool bAlwaysDisplayHealthOnReticle = iniReader.ReadInteger("MISC", "AlwaysDisplayHealthOnReticle", 1) != 0;
-            int bFixHelicopterSearchlights = iniReader.ReadInteger("MISC", "FixHelicopterSearchlights", 1);
+            bool bDefaultCameraAngleInTLaD = reader.ReadInteger("MISC", "DefaultCameraAngleInTLaD", 1) != 0;
+            bool bPedDeathAnimFixFromTBoGT = reader.ReadInteger("MISC", "PedDeathAnimFixFromTBoGT", 1) != 0;
+            bool bDisableCameraCenteringInCover = reader.ReadInteger("MISC", "DisableCameraCenteringInCover", 1) != 0;
+            bool bAlwaysDisplayHealthOnReticle = reader.ReadInteger("MISC", "AlwaysDisplayHealthOnReticle", 1) != 0;
+            int bFixHelicopterSearchlights = reader.ReadInteger("MISC", "FixHelicopterSearchlights", 1);
 
-            int nMenuEnteringDelay = std::clamp(iniReader.ReadInteger("MISC", "MenuEnteringDelay", 0), 20, 400);
-            int nMenuExitingDelay = std::clamp(iniReader.ReadInteger("MISC", "MenuExitingDelay", 0), 0, 800);
-            int nMenuAccessDelayOnStartup = std::clamp(iniReader.ReadInteger("MISC", "MenuAccessDelayOnStartup", 0), 300, 3000);
-            nRadarZoomDelay = std::clamp(iniReader.ReadInteger("MISC", "RadarZoomDelay", 3000), 0, 60000);
+            int nMenuEnteringDelay = std::clamp(reader.ReadInteger("MISC", "MenuEnteringDelay", 0), 20, 400);
+            int nMenuExitingDelay = std::clamp(reader.ReadInteger("MISC", "MenuExitingDelay", 0), 0, 800);
+            int nMenuAccessDelayOnStartup = std::clamp(reader.ReadInteger("MISC", "MenuAccessDelayOnStartup", 0), 300, 3000);
+            nRadarZoomDelay = std::clamp(reader.ReadInteger("MISC", "RadarZoomDelay", 3000), 0, 60000);
 
             // Fix weapon zoom states in TBoGT
             if (nAimingZoomFix)

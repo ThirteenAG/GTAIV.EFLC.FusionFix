@@ -87,10 +87,10 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            CIniReader iniReader("");
+            SettingsReader reader;
 
             // [NIGHTSHADOWS]
-            bHighResolutionNightShadows = iniReader.ReadInteger("SHADOWS", "HighResolutionNightShadows", 0) != 0;
+            bHighResolutionNightShadows = reader.ReadInteger("SHADOWS", "HighResolutionNightShadows", 0) != 0;
 
             // Make the night shadow options adjust the night shadow resolution
             {

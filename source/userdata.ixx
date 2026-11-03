@@ -63,8 +63,8 @@ public:
 
         FusionFix::onInitEventAsync() += []()
         {
-            CIniReader iniReader("");
-            customUserProfilePath = std::filesystem::path(iniReader.ReadString("USERPROFILE", "CustomUserProfilePath", ""));
+            SettingsReader reader;
+            customUserProfilePath = std::filesystem::path(reader.ReadString("USERPROFILE", "CustomUserProfilePath", ""));
 
             if (customUserProfilePath.empty())
                 return;

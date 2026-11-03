@@ -3,6 +3,7 @@ module;
 #include <common.hxx>
 #include <cmath>
 #include <regex>
+#include "OverlayInput.hpp"
 
 export module rawinput;
 
@@ -127,6 +128,54 @@ inline float GetGamepadAimSensitivity()
     return std::lerp(fGamepadAimSensitivityMin, fGamepadAimSensitivityMax, t);
 }
 
+// Keeps the cursor inside the game window's client area while the game has the focus (MAIN.ConfineCursor)
+class CursorClip
+{
+    static inline bool clipped = false;
+    static inline RECT wanted{};    // the client area in screen coordinates
+    static inline RECT applied{};   // what Windows made of it, clamped to the desktop
+
+public:
+    static void Release()
+    {
+        if (clipped)
+        {
+            ClipCursor(nullptr);
+            clipped = false;
+        }
+    }
+
+    static void Update()
+    {
+        static auto confine = FusionFixSettings.GetRef("PREF_CONFINECURSOR");
+
+        // Free while unfocused or minimized, and while the settings overlay is open
+        if (!confine->get() || !gWnd || GetForegroundWindow() != gWnd || IsIconic(gWnd) || GTAIVOverlay::BlocksInput())
+        {
+            Release();
+            return;
+        }
+
+        RECT rect;
+        if (!GetClientRect(gWnd, &rect) || IsRectEmpty(&rect))
+            return;
+        MapWindowPoints(gWnd, nullptr, (LPPOINT)&rect, 2);
+
+        // Set again when the window moved or was resized, or something else changed the clip
+        RECT current;
+        GetClipCursor(&current);
+        if (clipped && EqualRect(&rect, &wanted) && EqualRect(&current, &applied))
+            return;
+
+        if (ClipCursor(&rect))
+        {
+            wanted = rect;
+            GetClipCursor(&applied);
+            clipped = true;
+        }
+    }
+};
+
 class RawInput
 {
 public:
@@ -134,7 +183,7 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            CIniReader iniReader("");
+            SettingsReader reader;
             auto parseRange = [](const std::string& rangeStr, float defaultMin, float defaultMax) -> std::pair<float, float>
             {
                 std::regex floatRegex(R"(-?\d+(\.\d+)?)");
@@ -160,10 +209,10 @@ public:
                 return { defaultMin, defaultMax };
             };
 
-            std::tie(fMouseLookSensitivityMin, fMouseLookSensitivityMax) = parseRange(iniReader.ReadString("CAMERASENSITIVITY", "MouseLookSensitivityRange", "0.1,2.0"), 0.1f, 2.0f);
-            std::tie(fGamepadLookSensitivityMin, fGamepadLookSensitivityMax) = parseRange(iniReader.ReadString("CAMERASENSITIVITY", "GamepadLookSensitivityRange", "0.1,2.0"), 0.1f, 2.0f);
-            std::tie(fMouseAimSensitivityMin, fMouseAimSensitivityMax) = parseRange(iniReader.ReadString("CAMERASENSITIVITY", "MouseAimSensitivityRange", "0.1,2.0"), 0.1f, 2.0f);
-            std::tie(fGamepadAimSensitivityMin, fGamepadAimSensitivityMax) = parseRange(iniReader.ReadString("CAMERASENSITIVITY", "GamepadAimSensitivityRange", "0.1,2.0"), 0.1f, 2.0f);
+            std::tie(fMouseLookSensitivityMin, fMouseLookSensitivityMax) = parseRange(reader.ReadString("CAMERASENSITIVITY", "MouseLookSensitivityRange", "0.1,2.0"), 0.1f, 2.0f);
+            std::tie(fGamepadLookSensitivityMin, fGamepadLookSensitivityMax) = parseRange(reader.ReadString("CAMERASENSITIVITY", "GamepadLookSensitivityRange", "0.1,2.0"), 0.1f, 2.0f);
+            std::tie(fMouseAimSensitivityMin, fMouseAimSensitivityMax) = parseRange(reader.ReadString("CAMERASENSITIVITY", "MouseAimSensitivityRange", "0.1,2.0"), 0.1f, 2.0f);
+            std::tie(fGamepadAimSensitivityMin, fGamepadAimSensitivityMax) = parseRange(reader.ReadString("CAMERASENSITIVITY", "GamepadAimSensitivityRange", "0.1,2.0"), 0.1f, 2.0f);
 
             // Menu
             auto pattern = hook::pattern("0F 48 C1 A3 ? ? ? ? 5F");
@@ -179,18 +228,8 @@ public:
 
                         if (ri->get())
                         {
+                            // The game keeps the cursor in client space, clamped to 0..width / 0..height
                             POINT pt;
-                            RECT rec;
-
-                            // ClipCursor takes screen coordinates, and the game keeps the cursor
-                            // in client space clamped to 0..width / 0..height, so map both ways.
-                            // The two are identical fullscreen at (0,0), which hid this in windowed mode.
-                            GetClientRect(gWnd, &rec);
-                            MapWindowPoints(gWnd, nullptr, (LPPOINT)&rec, 2);
-
-                            if (gWnd == GetFocus())
-                                ClipCursor(&rec);
-
                             GetCursorPos(&pt);
                             ScreenToClient(gWnd, &pt);
 
@@ -217,18 +256,8 @@ public:
 
                         if (ri->get())
                         {
+                            // The game keeps the cursor in client space, clamped to 0..width / 0..height
                             POINT pt;
-                            RECT rec;
-
-                            // ClipCursor takes screen coordinates, and the game keeps the cursor
-                            // in client space clamped to 0..width / 0..height, so map both ways.
-                            // The two are identical fullscreen at (0,0), which hid this in windowed mode.
-                            GetClientRect(gWnd, &rec);
-                            MapWindowPoints(gWnd, nullptr, (LPPOINT)&rec, 2);
-
-                            if (gWnd == GetFocus())
-                                ClipCursor(&rec);
-
                             GetCursorPos(&pt);
                             ScreenToClient(gWnd, &pt);
 
@@ -863,17 +892,27 @@ public:
             }
         };
 
-        FusionFix::onActivateApp() += [](bool wParam)
+        FusionFix::onInitEvent() += []()
         {
-            if (!wParam)
+            FusionFixSettings.SetCallback("PREF_CONFINECURSOR", [](int32_t value)
             {
-                static auto ri = FusionFixSettings.GetRef("PREF_RAWINPUT");
+                if (!value)
+                    CursorClip::Release();
+            });
+        };
 
-                if (ri->get())
-                {
-                    ClipCursor(NULL);
-                }
-            }
+        // Every frame, menus and loading screens included; the clip is only set again when it changed
+        FusionFix::onEndScene() += []()
+        {
+            CursorClip::Update();
+        };
+
+        FusionFix::onActivateApp() += [](bool active)
+        {
+            if (active)
+                CursorClip::Update();
+            else
+                CursorClip::Release();
         };
     }
 } RawInput;

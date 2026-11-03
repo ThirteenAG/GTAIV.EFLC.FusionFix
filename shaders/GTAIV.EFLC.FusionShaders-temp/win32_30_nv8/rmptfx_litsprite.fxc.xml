@@ -1,0 +1,954 @@
+<?xml version="1.0" encoding="UTF - 8"?>
+<Magic value="1635280754" />
+<Game>GTAIV</Game>
+<Platform>PC</Platform>
+<Effect>
+	<Shaders>
+		<VertexShaders value="2" >
+			<Item>
+				<DataType>asm</DataType>
+				<File>rmptfx_litsprite\rmptfx_litspriteVS0.asm</File>
+				<Variables value="3" >
+					<Item>
+						<Type>float</Type>
+						<Name>Billboard</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>LightDir</Name>
+						<Index value="65" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldView</Name>
+						<Index value="4" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rmptfx_litsprite\rmptfx_litspriteVS1.asm</File>
+				<Variables value="7" >
+					<Item>
+						<Type>float</Type>
+						<Name>Billboard</Name>
+						<Index value="65" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>LightDir</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gAspectRatio</Name>
+						<Index value="48" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gBiasToCamera</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldView</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+				</Variables>
+			</Item>
+		</VertexShaders>
+		<PixelShaders value="3" >
+			<Item>
+				<DataType>asm</DataType>
+				<File>rmptfx_litsprite\rmptfx_litspritePS1.asm</File>
+				<Variables value="11" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>DiffuseTexSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>FrameMapTexSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>HybridAdd</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>LightColor</Name>
+						<Index value="65" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>NormalMapTexSampler</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gIntensity</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gNormalScale</Name>
+						<Index value="70" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gPower</Name>
+						<Index value="69" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gZdampen</Name>
+						<Index value="71" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>ghorizScale</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gvertScale</Name>
+						<Index value="67" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rmptfx_litsprite\rmptfx_litspritePS2.asm</File>
+				<Variables value="6" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>DiffuseTexSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>FrameMapTexSampler</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>HybridAdd</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gHeatHaze</Name>
+						<Index value="65" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gHeatPhase</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rmptfx_litsprite\rmptfx_litspritePS3.asm</File>
+				<Variables value="5" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>DiffuseTexSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>HybridAdd</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float3</Type>
+						<Name>LightColor</Name>
+						<Index value="65" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>NormalMapTexSampler</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+		</PixelShaders>
+	</Shaders>
+	<GlobalVariables value="15" >
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="64" />
+			<Name1>gAllGlobals</Name1>
+			<Name2>AllGlobals</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorld</Name1>
+			<Name2>World</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorldView</Name1>
+			<Name2>WorldView</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorldViewProj</Name1>
+			<Name2>WorldViewProjection</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gViewInverse</Name1>
+			<Name2>ViewInverse</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="4" />
+			<Name1>gLightPosDir</Name1>
+			<Name2>Position</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>Object</Name>
+					<Type>String</Type>
+					<Value>PointDirLight</Value>
+				</Item>
+				<Item>
+					<Name>Space</Name>
+					<Type>String</Type>
+					<Value>World</Value>
+				</Item>
+			</Annotation>
+			<Values value="16" >
+			1403
+			1441
+			1690
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="4" />
+			<Name1>gLightDir</Name1>
+			<Name2>Direction</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>Object</Name>
+					<Type>String</Type>
+					<Value>Light Direction</Value>
+				</Item>
+				<Item>
+					<Name>Space</Name>
+					<Type>String</Type>
+					<Value>World</Value>
+				</Item>
+			</Annotation>
+			<Values value="16" >
+			0
+			0
+			-1
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="4" />
+			<Name1>gLightColor</Name1>
+			<Name2>Diffuse</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Diffuse Light Color</Value>
+				</Item>
+				<Item>
+					<Name>Object</Name>
+					<Type>String</Type>
+					<Value>LightPos</Value>
+				</Item>
+			</Annotation>
+			<Values value="16" >
+			1
+			1
+			1
+			1
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightType</Name1>
+			<Name2>LightType</Name2>
+			<Annotation value="1" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>The type of each light source</Value>
+				</Item>
+			</Annotation>
+			<Values value="4" >
+			0
+			0
+			0
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightAmbient</Name1>
+			<Name2>Ambient</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Ambient Light Color</Value>
+				</Item>
+				<Item>
+					<Name>Space</Name>
+					<Type>String</Type>
+					<Value>material</Value>
+				</Item>
+			</Annotation>
+			<Values value="4" >
+			0
+			0
+			0
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gInvColorExpBias</Name1>
+			<Name2>ColorExpBias</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gForcedColor</Name1>
+			<Name2>ForcedColor</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gAspectRatio</Name1>
+			<Name2>AspectRatio</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>DepthMapTexSampler</Name1>
+			<Name2>DepthMap</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Point
+			MagFilter Point
+			MipFilter None
+			AddressU Clamp
+			AddressV Clamp
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>NearFarPlane</Name1>
+			<Name2>NearFarPlane</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+	</GlobalVariables>
+	<LocalVariables value="18" >
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gBiasToCamera</Name1>
+			<Name2>BiasToCamera</Name2>
+			<Annotation value="4" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Move particle closer to camera</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="1000.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>Billboard</Name1>
+			<Name2>Billboard</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>HybridAdd</Name1>
+			<Name2>HybridAdd</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>DiffuseTexSampler</Name1>
+			<Name2>DiffuseTex2</Name2>
+			<Annotation value="1" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Texture Map</Value>
+				</Item>
+			</Annotation>
+			<Values value="10" >
+			MinFilter Linear
+			MagFilter Linear
+			MipFilter None
+			AddressU Clamp
+			AddressV Clamp
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>HybridAddRatio</Name1>
+			<Name2>HybridAddRatio</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Hybrid Add Ratio</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="1.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+				<Item>
+					<Name>UIHint</Name>
+					<Type>String</Type>
+					<Value>Keyframeable</Value>
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>ScreenRez</Name1>
+			<Name2>ScreenRez</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>NormalMapTexSampler</Name1>
+			<Name2>NormalMapTex</Name2>
+			<Annotation value="1" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Normal Map</Value>
+				</Item>
+			</Annotation>
+			<Values value="10" >
+			MinFilter Linear
+			MagFilter Linear
+			MipFilter None
+			AddressU Clamp
+			AddressV Clamp
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>FrameMapTexSampler</Name1>
+			<Name2>FrameMap</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Linear
+			MagFilter Linear
+			MipFilter None
+			AddressU Clamp
+			AddressV Clamp
+		</Values>
+		</Item>
+		<Item>
+			<Type>float3</Type>
+			<ArrayCount value="0" />
+			<Name1>LightColor</Name1>
+			<Name2>LightColor</Name2>
+			<Annotation value="4" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Light Color</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="1.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+			</Annotation>
+			<Values value="3" >
+			0.782
+			0.7925
+			0.06
+		</Values>
+		</Item>
+		<Item>
+			<Type>float3</Type>
+			<ArrayCount value="0" />
+			<Name1>LightDir</Name1>
+			<Name2>LightDir</Name2>
+			<Annotation value="4" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Light Dir</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="-1.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="1.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+			</Annotation>
+			<Values value="3" >
+			-0.5
+			-0.5
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>ghorizScale</Name1>
+			<Name2>ghorizScale</Name2>
+			<Annotation value="4" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Horizontal Warp Scale</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="2000.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gvertScale</Name1>
+			<Name2>gvertScale</Name2>
+			<Annotation value="4" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Horizontal Warp Scale</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="2000.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			0.22
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gIntensity</Name1>
+			<Name2>gIntensity</Name2>
+			<Annotation value="4" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Horizontal Warp Scale</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="-1000.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="2000.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gPower</Name1>
+			<Name2>gPower</Name2>
+			<Annotation value="4" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Horizontal Warp Scale</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="-1000.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="2000.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gNormalScale</Name1>
+			<Name2>gNormalScale</Name2>
+			<Annotation value="4" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Horizontal Warp Scale</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="-1000.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="2000.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gZdampen</Name1>
+			<Name2>gZdampen</Name2>
+			<Annotation value="4" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Horizontal Warp Scale</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="-1000.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="2000.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gHeatHaze</Name1>
+			<Name2>gHeatHaze</Name2>
+			<Annotation value="4" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>HeatHazeFactor</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="-1000.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="2000.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gHeatPhase</Name1>
+			<Name2>gHeatPhase</Name2>
+			<Annotation value="4" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>HeatPhaseFactor</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="-1000.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="2000.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			0
+		</Values>
+		</Item>
+	</LocalVariables>
+	<Techniques value="4" >
+		<Item>
+			<Name>screenTest</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>1</PixelShader>
+					<Params />
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>heat_haze</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>1</VertexShader>
+					<PixelShader>2</PixelShader>
+					<Params />
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>draw</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>1</VertexShader>
+					<PixelShader>3</PixelShader>
+					<Params />
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>unlit_draw</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>1</VertexShader>
+					<PixelShader>3</PixelShader>
+					<Params />
+				</Item>
+			</Passes>
+		</Item>
+	</Techniques>
+</Effect>

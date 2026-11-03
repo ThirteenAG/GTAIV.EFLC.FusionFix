@@ -1201,8 +1201,8 @@ public:
     {
         FusionFix::onInitEvent() += []()
         {
-            CIniReader iniReader("");
-            bool bLoadRPF = iniReader.ReadInteger("FILELOADER", "LoadRPF", 0) != 0;
+            SettingsReader reader;
+            bool bLoadRPF = reader.ReadInteger("FILELOADER", "LoadRPF", 0) != 0;
 
             if (bLoadRPF && UAL::AddVirtualFileForOverloadW)
             {

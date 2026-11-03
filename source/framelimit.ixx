@@ -15,9 +15,6 @@ import natives;
 int32_t nFrameLimitType;
 float fFpsLimit;
 float fCutsceneFpsLimit;
-float fScriptCutsceneFpsLimit;
-float fScriptCutsceneFovLimit;
-float fLoadingFpsLimit;
 float fMinigamesFpsLimit;
 std::vector<std::string> minigamesNames;
 
@@ -135,9 +132,6 @@ bool __cdecl sub_411F50(uint32_t* a1, uint32_t* a2)
 
 FrameLimiter FpsLimiter;
 FrameLimiter CutsceneFpsLimiter;
-FrameLimiter ScriptCutsceneFpsLimiter;
-FrameLimiter LoadingFpsLimiter;
-FrameLimiter LoadingFpsLimiter2;
 FrameLimiter MinigamesFpsLimiter;
 bool bUnlockFramerateDuringLoadscreens = true;
 bool bNeedsToLimitFpsForThisMinigame = false;
@@ -160,27 +154,12 @@ void __cdecl sub_855640()
         {
             if (fCutsceneFpsLimit)
                 CutsceneFpsLimiter.Sync();
-            else if (fScriptCutsceneFpsLimit)
-                ScriptCutsceneFpsLimiter.Sync();
-
-            // To avoid more softlocks with high fps
-            if (!fCutsceneFpsLimit && CCutsceneManager::ms_State)
-            {
-                if (*CCutsceneManager::ms_State == 9 || *CCutsceneManager::ms_State == 10)
-                    LoadingFpsLimiter2.Sync();
-            }
         }
     }
 
-    if (fMinigamesFpsLimit && Natives::IsMinigameInProgress() && bNeedsToLimitFpsForThisMinigame)
+    // The flag is only set once a script started a minigame, so the native table is ready when the native is called
+    if (fMinigamesFpsLimit && bNeedsToLimitFpsForThisMinigame && Natives::IsMinigameInProgress())
         MinigamesFpsLimiter.Sync();
-}
-
-injector::hook_back<void(__cdecl*)(void*)> hbsub_C64CB0;
-void __cdecl sub_C64CB0(void* a1)
-{
-    LoadingFpsLimiter.Sync();
-    return hbsub_C64CB0.fun(a1);
 }
 
 class Framelimit
@@ -190,17 +169,14 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            CIniReader iniReader("");
+            SettingsReader reader;
 
             //[FRAMELIMIT]
-            nFrameLimitType = iniReader.ReadInteger("FRAMELIMIT", "FrameLimitType", 2);
-            fFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "FpsLimit", -1));
-            fCutsceneFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "CutsceneFpsLimit", 0));
-            fScriptCutsceneFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "ScriptCutsceneFpsLimit", 0));
-            fScriptCutsceneFovLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "ScriptCutsceneFovLimit", 0));
-            fLoadingFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "LoadingFpsLimit", 30));
-            fMinigamesFpsLimit = static_cast<float>(iniReader.ReadInteger("FRAMELIMIT", "MinigamesFpsLimit", 30));
-            std::string minigamesList = iniReader.ReadString("FRAMELIMIT", "MinigamesList", "");
+            nFrameLimitType = reader.ReadInteger("FRAMELIMIT", "FrameLimitType", 2);
+            fFpsLimit = static_cast<float>(reader.ReadInteger("FRAMELIMIT", "FpsLimit", -1));
+            fCutsceneFpsLimit = static_cast<float>(reader.ReadInteger("FRAMELIMIT", "CutsceneFpsLimit", 0));
+            fMinigamesFpsLimit = static_cast<float>(reader.ReadInteger("FRAMELIMIT", "MinigamesFpsLimit", 30));
+            std::string minigamesList = reader.ReadString("FRAMELIMIT", "MinigamesList", "");
             try
             {
                 std::regex re("[^a-zA-Z0-9_]+");
@@ -218,9 +194,9 @@ public:
             {
                 minigamesNames = { "pool_game", "air_hockey", "arm_wrestling", "tenpinbowl", "drinking" };
             }
-            bUnlockFramerateDuringLoadscreens = iniReader.ReadInteger("FRAMELIMIT", "UnlockFramerateDuringLoadscreens", 0) != 0;
+            bUnlockFramerateDuringLoadscreens = reader.ReadInteger("FRAMELIMIT", "UnlockFramerateDuringLoadscreens", 0) != 0;
 
-            //if (fFpsLimit || fCutsceneFpsLimit || fScriptCutsceneFpsLimit)
+            //if (fFpsLimit || fCutsceneFpsLimit)
             {
                 auto mode = (nFrameLimitType == 2) ? FrameLimiter::FPSLimitMode::FPS_ACCURATE : FrameLimiter::FPSLimitMode::FPS_REALTIME;
                 if (mode == FrameLimiter::FPSLimitMode::FPS_ACCURATE)
@@ -230,9 +206,6 @@ public:
                     fMinigamesFpsLimit = std::clamp(fMinigamesFpsLimit, 30.0f, FLT_MAX);
 
                 CutsceneFpsLimiter.Init(mode, fCutsceneFpsLimit);
-                ScriptCutsceneFpsLimiter.Init(mode, fScriptCutsceneFpsLimit);
-                LoadingFpsLimiter.Init(mode, std::clamp(fLoadingFpsLimit, 30.0f, FLT_MAX));
-                LoadingFpsLimiter2.Init(mode, 60.0f);
                 MinigamesFpsLimiter.Init(mode, fMinigamesFpsLimit);
 
                 auto pattern = find_pattern("A3 ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 50 8B 08");
@@ -322,38 +295,13 @@ public:
                         injector::WriteMemory(pattern.get_first(2), &f0, true);
                 }
             }
-
-            if (fScriptCutsceneFovLimit)
-            {
-                auto pattern = find_pattern("8B 4E 0C 89 48 60 5E C3", "D9 46 0C D9 58 60");
-                struct SetFOVHook
-                {
-                    void operator()(injector::reg_pack& regs)
-                    {
-                        float f = *(float*)(regs.esi + 0x0C);
-                        *(float*)(regs.eax + 0x60) = f > fScriptCutsceneFovLimit ? f : fScriptCutsceneFovLimit;
-                    }
-                }; injector::MakeInline<SetFOVHook>(pattern.get_first(0), pattern.get_first(6));
-            }
         };
 
         FusionFix::onInitEventAsync() += []()
         {
-            // Off Route infinite loading (CCutsceneObject method causes CRenderer::removeAllTexturesFromDictionary to softlock for unidentified reason)
-            auto pattern = find_pattern("E8 ? ? ? ? 83 C4 0C C7 04 B5 ? ? ? ? ? ? ? ? 4E", "E8 ? ? ? ? 83 C4 0C 89 3C B5 ? ? ? ? 83 C6 01");
-            if (!pattern.empty())
-                hbsub_C64CB0.fun = injector::MakeCALL(pattern.get_first(0), sub_C64CB0).get();
-
-            pattern = find_pattern("83 EC 28 83 3D ? ? ? ? ? 56 8B F1", "83 EC 28 B8 ? ? ? ? 39 05 ? ? ? ? 56 8B F1");
-            if (!pattern.empty())
-            {
-                static auto InfiniteLoadingWorkaround2 = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
-                {
-                    LoadingFpsLimiter.Sync();
-                });
-            }
-
-            pattern = find_pattern("FF 05 ? ? ? ? C3 E8", "83 05 ? ? ? ? ? C3 E8 ? ? ? ? 8B C8");
+            // The infinite loading before/after some cutscenes (Off Route, Momma's Boy) used to be avoided by limiting the frame
+            // rate around them; the cause (CTimer's millisecond clocks running slow) is fixed in frameratevigilante.ixx
+            auto pattern = find_pattern("FF 05 ? ? ? ? C3 E8", "83 05 ? ? ? ? ? C3 E8 ? ? ? ? 8B C8");
             if (!pattern.empty())
             {
                 static auto SET_MINIGAME_IN_PROGRESS_HOOK = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)

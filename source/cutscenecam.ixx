@@ -1,7 +1,6 @@
 module;
 
 #include <common.hxx>
-#include <chrono>
 
 export module cutscenecam;
 
@@ -13,8 +12,80 @@ import settings;
 uint8_t* g_CutsceneAudioEntity = nullptr;
 int* pGetTimeStepStaticsInitGuard = nullptr;
 
-bool LostFocusResyncTimerActive = false;
-std::chrono::steady_clock::time_point LostFocusResyncTimerStart{};
+// The cutscene's time, smooth and locked to its audio. The audio thread updates the audio position in steps (and
+// stops it when the stream stalls), so the time follows the real frame time between those updates and is pulled
+// toward the audio position, never runs further ahead of it than one update and never goes back, unless the audio
+// jumped (a new section's audio, a skip).
+namespace CutsceneClock
+{
+    constexpr double ResyncMs = 250.0;   // the audio jumped, or the game hitched: take its position as it is
+    constexpr double SlowPullMs = 500.0; // the time it takes to make up a small difference
+    constexpr double FastPullMs = 100.0; // ... a larger one (30 ms or more)
+
+    bool bLocked = false;
+    double fClockMs = 0.0;      // the smooth audio position
+    double fLastNowMs = 0.0;
+    int nLastAudioMs = -1;
+    double fAudioStepMs = 0.0;  // how far the audio position moves when it moves
+
+    double NowMs()
+    {
+        static LARGE_INTEGER Frequency = []() { LARGE_INTEGER f; QueryPerformanceFrequency(&f); return f; }();
+        LARGE_INTEGER Counter;
+        QueryPerformanceCounter(&Counter);
+        return double(Counter.QuadPart) * 1000.0 / double(Frequency.QuadPart);
+    }
+
+    void Unlock()
+    {
+        bLocked = false;
+    }
+
+    double Update(int AudioMs)
+    {
+        auto Now = NowMs();
+        auto FrameMs = Now - fLastNowMs;
+        fLastNowMs = Now;
+
+        if (!bLocked)
+        {
+            bLocked = true;
+            fClockMs = AudioMs;
+            nLastAudioMs = AudioMs;
+            fAudioStepMs = 0.0;
+            return fClockMs;
+        }
+
+        if (AudioMs != nLastAudioMs)
+        {
+            auto Step = double(AudioMs - nLastAudioMs);
+            if (Step > 0.0 && Step < ResyncMs)
+                fAudioStepMs = fAudioStepMs > 0.0 ? fAudioStepMs + (Step - fAudioStepMs) * 0.1 : Step;
+            nLastAudioMs = AudioMs;
+        }
+
+        auto Error = double(AudioMs) - fClockMs;
+        if (FrameMs < 0.0 || FrameMs > ResyncMs || std::abs(Error) > ResyncMs)
+        {
+            // A jump in the audio (take it as it is), or a long frame: loading, a pause, the window in the background
+            // (catch up with the audio, without going back)
+            fClockMs = std::abs(Error) > ResyncMs ? double(AudioMs) : std::max(fClockMs, double(AudioMs));
+            return fClockMs;
+        }
+
+        auto Clock = fClockMs + FrameMs;
+        Error = double(AudioMs) - Clock;
+        Clock += Error * std::min(1.0, FrameMs / (std::abs(Error) < 30.0 ? SlowPullMs : FastPullMs));
+
+        // While the audio doesn't move (it stalled), wait for it
+        auto MaxLead = std::max(fAudioStepMs, 10.0) + 5.0;
+        Clock = std::min(Clock, double(AudioMs) + MaxLead);
+
+        fClockMs = std::max(fClockMs, Clock);
+        return fClockMs;
+    }
+
+}
 
 namespace CCutsceneManager
 {
@@ -124,98 +195,28 @@ namespace CCutsceneManager
                 AudioTimeMs = 0;
         }
 
-        static auto CutsceneAudioSync = FusionFixSettings.GetRef("PREF_CUTSCENEAUDIOSYNC");
-        static auto OldState = IsKeyboardKeyPressed(VK_UP);
-        auto CurrentState = IsKeyboardKeyPressed(VK_UP);
-
-        if (((OldState) == 0 && (CurrentState)) || Natives::IsButtonJustPressed(0, BUTTON_DPAD_UP))
-        {
-            int Mode = (CutsceneAudioSync->get() + 1) % 3;
-            FusionFixSettings.Set("PREF_CUTSCENEAUDIOSYNC", Mode);
-
-            switch (Mode)
-            {
-                case 0: // Off
-                    Natives::PrintBig((char*)"CutscAudioSync0", 1000, 2);
-                    break;
-
-                case 1: // Alternative
-                    Natives::PrintBig((char*)"CutscAudioSync1", 1000, 2);
-                    break;
-
-                case 2: // On
-                    Natives::PrintBig((char*)"CutscAudioSync2", 1000, 2);
-                    break;
-            }
-        }
-        OldState = CurrentState;
-
-        if (LostFocusResyncTimerActive)
-        {
-            auto Elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - LostFocusResyncTimerStart);
-
-            if (Elapsed.count() >= 1000) // One second sync, should be enough
-            {
-                LostFocusResyncTimerActive = false;
-            }
-        }
-
         float OutTimeMs = 0.0f;
 
-        if (CutsceneAudioSync->get() == 2 || LostFocusResyncTimerActive)
+        if (*CCutsceneManager::ms_State != 8)
         {
-            // Vanilla code, only desyncs during section changes and fading
-            if (*CCutsceneManager::ms_State != 8)
-            {
-                OutTimeMs = (*CTimer::m_gameTime * 1000.0f) + InTimeMs;
-            }
-            else if (AudioTimeMs == -1)
-            {
-                OutTimeMs = (*CTimer::m_systemTime * 1000.0f) + InTimeMs;
-            }
-            else
-            {
-                OutTimeMs = (float)AudioTimeMs - *CCutsceneManager::ms_fTimePassedSinceLastAudioStart;
-                if (OutTimeMs < 0.0f)
-                    OutTimeMs = 0.0f;
-            }
+            // Not playing yet or switching sections: the game's time step, as vanilla
+            CutsceneClock::Unlock();
+            OutTimeMs = (*CTimer::m_gameTime * 1000.0f) + InTimeMs;
         }
-        else if (CutsceneAudioSync->get() == 1)
+        else if (AudioTimeMs == -1)
         {
-            // Flipped vanilla code, only syncs during section changes and fading
-            // NOTE: This may cause visible stutter, perhaps even half refresh frame drops (Sometimes) when sections change.
-            if (*CCutsceneManager::ms_State == 8)
-            {
-                OutTimeMs = (*CTimer::m_gameTime * 1000.0f) + InTimeMs;
-            }
-            else if (AudioTimeMs == -1)
-            {
-                OutTimeMs = (*CTimer::m_systemTime * 1000.0f) + InTimeMs;
-            }
-            else
-            {
-                OutTimeMs = (float)AudioTimeMs - *CCutsceneManager::ms_fTimePassedSinceLastAudioStart;
-                if (OutTimeMs < 0.0f)
-                    OutTimeMs = 0.0f;
-            }
+            // No audio: the unscaled frame time, as vanilla
+            CutsceneClock::Unlock();
+            OutTimeMs = (*CTimer::m_systemTime * 1000.0f) + InTimeMs;
         }
-        else if (CutsceneAudioSync->get() == 0)
+        else
         {
-            // Always runs, may inevitably result in desync, which can then be mitigated manually unfortunately
-            if ((AudioTimeMs + PlayTimeMs != 0) || ((AudioTimeMs | PlayTimeMs) != 0))
-            {
-                OutTimeMs = *CTimer::m_gameTime * 1000.0f + InTimeMs;
-            }
-            else if (AudioTimeMs == -1)
-            {
-                OutTimeMs = *CTimer::m_systemTime * 1000.0f + InTimeMs;
-            }
-            else
-            {
-                OutTimeMs = (float)AudioTimeMs - *CCutsceneManager::ms_fTimePassedSinceLastAudioStart;
-                if (OutTimeMs < 0.0f)
-                    OutTimeMs = 0.0f;
-            }
+            // Vanilla takes the audio position as it is. It only moves when the audio thread updates it, in steps that
+            // don't line up with the frames, so the animations jitter at any frame rate. The clock below follows it
+            // smoothly instead.
+            OutTimeMs = float(CutsceneClock::Update(AudioTimeMs) - *CCutsceneManager::ms_fTimePassedSinceLastAudioStart);
+            if (OutTimeMs < 0.0f)
+                OutTimeMs = 0.0f;
         }
 
         *a1 = OutTimeMs;
@@ -306,7 +307,9 @@ public:
                 pattern = find_pattern("E8 ? ? ? ? 8B CD 88 44 24 0F", "E8 ? ? ? ? 8B CF 88 44 24 0F");
                 injector::MakeCALL(pattern.get_first(0), *(void**)&dest, true);
 
-                // ??? kinda affects anims idk ???
+                // Camera cuts: near a cut (flagged in the camera animation, in 30 fps frames) the camera keeps its last
+                // phase and stores the 30 fps frame it held at (+0x1B4), then keeps using that frame. Not storing it keeps
+                // the hold to the frames that are really at the cut, at any frame rate.
                 pattern = find_pattern("F3 0F 11 86 ? ? ? ? 5E 5B 8B 4C 24 30 33 CC E8 ? ? ? ? 83 C4 34 C2 04 00", "F3 0F 11 8F ? ? ? ? 5F 5E B8 ? ? ? ? 5D 83 C4 2C C2 04 00");
                 if (!pattern.empty())
                     injector::MakeNOP(pattern.get_first(0), 8, true);
@@ -334,22 +337,6 @@ public:
 
                 pattern = find_pattern("51 56 8B 74 24 ? 57 F3 0F 10 06", "51 56 57 8B 7C 24 ? F3 0F 10 07");
                 CCutsceneManager::shGetTimeStep = safetyhook::create_inline(pattern.get_first(0), CCutsceneManager::GetTimeStep);
-
-                // Alt-tab handler
-                FusionFix::onActivateApp() += [](bool wParam)
-                {
-                    if (!wParam)
-                    {
-                        // Lost focus
-                        LostFocusResyncTimerActive = false;
-                    }
-                    else
-                    {
-                        // Regained focus
-                        LostFocusResyncTimerActive = true;
-                        LostFocusResyncTimerStart = std::chrono::steady_clock::now();
-                    }
-                };
             }
         };
     }

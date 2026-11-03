@@ -7,6 +7,7 @@ export module loadingdelays;
 import common;
 import comvars;
 import framelimit;
+import settings;
 
 void WINAPI FusionSleep(DWORD dwMilliseconds)
 {
@@ -26,10 +27,10 @@ public:
     {
         FusionFix::onInitEvent() += []()
         {
-            CIniReader iniReader("");
+            SettingsReader reader;
 
             // [MISC]
-            auto bSkipLoadingSpinner = iniReader.ReadInteger("MISC", "SkipLoadingSpinner", 1) != 0;
+            auto bSkipLoadingSpinner = reader.ReadInteger("MISC", "SkipLoadingSpinner", 1) != 0;
 
             auto pattern = find_pattern("68 ? ? ? ? FF 15 ? ? ? ? 83 3D ? ? ? ? ? 75 ? E8 ? ? ? ? 8D 0C 24", "68 ? ? ? ? FF 15 ? ? ? ? 39 1D");
             injector::WriteMemory(pattern.get_first(1), 0, true);

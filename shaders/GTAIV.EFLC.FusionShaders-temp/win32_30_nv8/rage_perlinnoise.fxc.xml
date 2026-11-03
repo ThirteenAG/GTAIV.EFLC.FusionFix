@@ -1,0 +1,779 @@
+<?xml version="1.0" encoding="UTF - 8"?>
+<Magic value="1635280754" />
+<Game>GTAIV</Game>
+<Platform>PC</Platform>
+<Effect>
+	<Shaders>
+		<VertexShaders value="1" >
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_perlinnoise\rage_perlinnoiseVS0.asm</File>
+				<Variables />
+			</Item>
+		</VertexShaders>
+		<PixelShaders value="2" >
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_perlinnoise\rage_perlinnoisePS1.asm</File>
+				<Variables value="11" >
+					<Item>
+						<Type>float</Type>
+						<Name>Brightness</Name>
+						<Index value="69" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>ClumpBump</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>Contrast</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>Frequency1</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>Frequency2</Name>
+						<Index value="67" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>Noise1Sampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>NoiseWarp</Name>
+						<Index value="70" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>Persistance</Name>
+						<Index value="71" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>Phase</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float2</Type>
+						<Name>Velocity1</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float2</Type>
+						<Name>Velocity2</Name>
+						<Index value="65" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_perlinnoise\rage_perlinnoisePS2.asm</File>
+				<Variables value="10" >
+					<Item>
+						<Type>float</Type>
+						<Name>ClumpBump</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>Contrast</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>Frequency1</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>Frequency2</Name>
+						<Index value="67" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>Noise1Sampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>NoiseWarp</Name>
+						<Index value="69" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>Persistance</Name>
+						<Index value="70" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>Phase</Name>
+						<Index value="71" />
+					</Item>
+					<Item>
+						<Type>float2</Type>
+						<Name>Velocity1</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float2</Type>
+						<Name>Velocity2</Name>
+						<Index value="65" />
+					</Item>
+				</Variables>
+			</Item>
+		</PixelShaders>
+	</Shaders>
+	<GlobalVariables value="14" >
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="64" />
+			<Name1>gAllGlobals</Name1>
+			<Name2>AllGlobals</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x3</Type>
+			<ArrayCount value="48" />
+			<Name1>gBoneMtx</Name1>
+			<Name2>WorldMatrixArray</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorld</Name1>
+			<Name2>World</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorldView</Name1>
+			<Name2>WorldView</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorldViewProj</Name1>
+			<Name2>WorldViewProjection</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gViewInverse</Name1>
+			<Name2>ViewInverse</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="4" />
+			<Name1>gLightPosDir</Name1>
+			<Name2>Position</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>Object</Name>
+					<Type>String</Type>
+					<Value>PointDirLight</Value>
+				</Item>
+				<Item>
+					<Name>Space</Name>
+					<Type>String</Type>
+					<Value>World</Value>
+				</Item>
+			</Annotation>
+			<Values value="16" >
+			1403
+			1441
+			1690
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="4" />
+			<Name1>gLightDir</Name1>
+			<Name2>Direction</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>Object</Name>
+					<Type>String</Type>
+					<Value>Light Direction</Value>
+				</Item>
+				<Item>
+					<Name>Space</Name>
+					<Type>String</Type>
+					<Value>World</Value>
+				</Item>
+			</Annotation>
+			<Values value="16" >
+			0
+			0
+			-1
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="4" />
+			<Name1>gLightColor</Name1>
+			<Name2>Diffuse</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Diffuse Light Color</Value>
+				</Item>
+				<Item>
+					<Name>Object</Name>
+					<Type>String</Type>
+					<Value>LightPos</Value>
+				</Item>
+			</Annotation>
+			<Values value="16" >
+			1
+			1
+			1
+			1
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			0
+			</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightType</Name1>
+			<Name2>LightType</Name2>
+			<Annotation value="1" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>The type of each light source</Value>
+				</Item>
+			</Annotation>
+			<Values value="4" >
+			0
+			0
+			0
+			0
+			</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightAmbient</Name1>
+			<Name2>Ambient</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Ambient Light Color</Value>
+				</Item>
+				<Item>
+					<Name>Space</Name>
+					<Type>String</Type>
+					<Value>material</Value>
+				</Item>
+			</Annotation>
+			<Values value="4" >
+			0
+			0
+			0
+			1
+			</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gInvColorExpBias</Name1>
+			<Name2>ColorExpBias</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gForcedColor</Name1>
+			<Name2>ForcedColor</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+			</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gAspectRatio</Name1>
+			<Name2>AspectRatio</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+			</Values>
+		</Item>
+	</GlobalVariables>
+	<LocalVariables value="13" >
+		<Item>
+			<Type>int</Type>
+			<ArrayCount value="0" />
+			<Name1>drawBucket</Name1>
+			<Name2>__rage_drawbucket</Name2>
+			<Annotation value="1" >
+				<Item>
+					<Name>Bucket</Name>
+					<Type>Int</Type>
+					<Value value="1" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			1
+			</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>Noise1Sampler</Name1>
+			<Name2>Noise1Tex</Name2>
+			<Annotation value="1" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>1st Noise Layer Texture</Value>
+				</Item>
+			</Annotation>
+			<Values value="14" >
+			AddressU Wrap
+			AddressV Wrap
+			AddressW Wrap
+			MipFilter Linear
+			MinFilter Linear
+			MagFilter Linear
+			MipMapLodBias 0
+			</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>Noise2Sampler</Name1>
+			<Name2>Noise2Tex</Name2>
+			<Annotation value="1" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>2nd Noise Layer Texture</Value>
+				</Item>
+			</Annotation>
+			<Values value="14" >
+			AddressU Wrap
+			AddressV Wrap
+			AddressW Wrap
+			MipFilter None
+			MinFilter Linear
+			MagFilter Linear
+			MipMapLodBias 0
+			</Values>
+		</Item>
+		<Item>
+			<Type>float2</Type>
+			<ArrayCount value="0" />
+			<Name1>Velocity1</Name1>
+			<Name2>Velocity1</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>1st Noise Layer Velocity</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="0.100000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+			</Annotation>
+			<Values value="2" >
+			-0.01
+			0.01
+			</Values>
+		</Item>
+		<Item>
+			<Type>float2</Type>
+			<ArrayCount value="0" />
+			<Name1>Velocity2</Name1>
+			<Name2>Velocity2</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>2nd Noise Layer Velocity</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="0.100000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+			</Annotation>
+			<Values value="2" >
+			0.005
+			0.02
+			</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>Frequency1</Name1>
+			<Name2>Frequency1</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>1st Noise Layer Frequency</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="10.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.100000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			1.9
+			</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>Frequency2</Name1>
+			<Name2>Frequency2</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>2nd Noise Layer Frequency</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="10.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.100000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			1
+			</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>Contrast</Name1>
+			<Name2>Contrast</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Contrast</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="2.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.100000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			1.1
+			</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>Brightness</Name1>
+			<Name2>Brightness</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Brightness</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="2.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.100000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			0.76
+			</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>NoiseWarp</Name1>
+			<Name2>NoiseWarp</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>NoiseWarp</Value>
+				</Item>
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Numeric</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="64.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.100000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			12
+			</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>Persistance</Name1>
+			<Name2>Persistance</Name2>
+			<Annotation />
+			<Values value="1" >
+			0.769231
+			</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>Phase</Name1>
+			<Name2>Phase</Name2>
+			<Annotation />
+			<Values value="1" >
+			0
+			</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>ClumpBump</Name1>
+			<Name2>ClumpBump</Name2>
+			<Annotation />
+			<Values value="1" >
+			1
+			</Values>
+		</Item>
+	</LocalVariables>
+	<Techniques value="2" >
+		<Item>
+			<Name>draw</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>1</PixelShader>
+					<Params value="5" >
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>draw_improved</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>2</PixelShader>
+					<Params value="5" >
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+	</Techniques>
+</Effect>

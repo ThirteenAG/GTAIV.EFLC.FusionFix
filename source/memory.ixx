@@ -8,6 +8,7 @@ export module memory;
 
 import common;
 import comvars;
+import settings;
 
 constexpr uint64_t _2048mb = 2147483648ull;
 
@@ -284,10 +285,10 @@ public:
     {
         FusionFix::onInitEvent() += []()
         {
-            CIniReader iniReader("");
+            SettingsReader reader;
 
             // [EXPERIMENTAL]
-            bExtraStreamingMemory = iniReader.ReadInteger("EXPERIMENTAL", "ExtraStreamingMemory", 0) != 0;
+            bExtraStreamingMemory = reader.ReadInteger("EXPERIMENTAL", "ExtraStreamingMemory", 0) != 0;
 
             auto pattern = hook::pattern("8B 0D ? ? ? ? 83 EC ? 33 C0");
             grcDevice::shGetAvailableVideoMemory = safetyhook::create_inline(pattern.get_first(0), grcDevice::GetAvailableVideoMemory);

@@ -1,0 +1,4 @@
+// Character tables of the game's fonts, the same ones buildgxt.bat compiles the GXT texts with
+LATIN GAMEFONT "../../tools/GXTCompiler/tables/iv_table.txt"
+RU GAMEFONT "../../tools/GXTCompiler/tables/iv_table_rus_pc.txt"
+JA GAMEFONT "../../tools/GXTCompiler/tables/iv_table_jpn_pc.txt"

@@ -25,16 +25,16 @@ public:
     {
         FusionFix::onInitEvent() += []()
         {
-            CIniReader iniReader("");
+            SettingsReader reader;
 
             //[EPISODICCONTENT]
-            bool bEpisodicVehicles = iniReader.ReadInteger("EPISODICCONTENT", "EpisodicVehicles", 0) != 0;
-            bool bEpisodicWeapons = iniReader.ReadInteger("EPISODICCONTENT", "EpisodicWeapons", 0) != 0;
-            bool bExplosiveAnnihilator = iniReader.ReadInteger("EPISODICCONTENT", "ExplosiveAnnihilator", 0) != 0;
-            bool bTBoGTHelicopterHeightLimit = iniReader.ReadInteger("EPISODICCONTENT", "TBoGTHelicopterHeightLimit", 0) != 0;
-            bool bTBoGTPoliceWeapons = iniReader.ReadInteger("EPISODICCONTENT", "TBoGTPoliceWeapons", 0) != 0;
-            bool bRemoveSCOSignatureCheck = iniReader.ReadInteger("EPISODICCONTENT", "RemoveSCOSignatureCheck", 0) != 0;
-            bool bOtherEpisodicChecks = iniReader.ReadInteger("EPISODICCONTENT", "OtherEpisodicChecks", 0) != 0;
+            bool bEpisodicVehicles = reader.ReadInteger("EPISODICCONTENT", "EpisodicVehicles", 0) != 0;
+            bool bEpisodicWeapons = reader.ReadInteger("EPISODICCONTENT", "EpisodicWeapons", 0) != 0;
+            bool bExplosiveAnnihilator = reader.ReadInteger("EPISODICCONTENT", "ExplosiveAnnihilator", 0) != 0;
+            bool bTBoGTHelicopterHeightLimit = reader.ReadInteger("EPISODICCONTENT", "TBoGTHelicopterHeightLimit", 0) != 0;
+            bool bTBoGTPoliceWeapons = reader.ReadInteger("EPISODICCONTENT", "TBoGTPoliceWeapons", 0) != 0;
+            bool bRemoveSCOSignatureCheck = reader.ReadInteger("EPISODICCONTENT", "RemoveSCOSignatureCheck", 0) != 0;
+            bool bOtherEpisodicChecks = reader.ReadInteger("EPISODICCONTENT", "OtherEpisodicChecks", 0) != 0;
 
             if (bEpisodicVehicles)
             {

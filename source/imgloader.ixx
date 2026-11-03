@@ -1022,8 +1022,8 @@ public:
     {
         FusionFix::onInitEvent() += []()
         {
-            CIniReader iniReader("");
-            static bool bLoadIMG = iniReader.ReadInteger("FILELOADER", "LoadIMG", 0) != 0;
+            SettingsReader reader;
+            static bool bLoadIMG = reader.ReadInteger("FILELOADER", "LoadIMG", 0) != 0;
 
             std::wstring s;
             s.resize(MAX_PATH, L'\0');

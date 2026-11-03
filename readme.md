@@ -1,5 +1,4 @@
 [![Actions Status: Release](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/actions/workflows/msvc_x86.yml/badge.svg)](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/actions)
-[![AppVeyor](https://img.shields.io/appveyor/build/ThirteenAG/GTAIV-EFLC-FusionFix?label=AppVeyor%20Build&logo=Appveyor&logoColor=white)](https://ci.appveyor.com/project/ThirteenAG/gtaiv-eflc-fusionfix)
 
 <p align="center">
   <a href="https://fusionfix.io/iv" target="_blank"><img width="600" src="https://raw.githubusercontent.com/ThirteenAG/GTAIV.EFLC.FusionFix/refs/heads/master/installer/ff_iv_outline2.svg"></a>
@@ -31,7 +30,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 > Install **Grand Theft Auto IV: The Complete Edition** from your library, then:
 >
 > * Download [GTAIV.EFLC.FusionFix.zip](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFix.zip) and unpack its contents to the game's root directory, where the exe is located.
-> * Or alternatively download [GTAIV.EFLC.FusionFixWebInstaller.exe](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFixWebInstaller.exe) or [GTAIV.EFLC.FusionFixOfflineInstaller.exe](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/releases/latest/download/GTAIV.EFLC.FusionFixOfflineInstaller.exe), open it, select the game's directory and wait for it to finish. Note: If you get an error while installing, this is likely due to the installer not having write access. Go into the properties of the games directory and change your system's users to have write permission and hit apply, now installation should work. 
+> * Or get the installer from [fusionfix.io](https://fusionfix.io/iv) (FusionFixHub; it installs and updates the fix, with the settings you choose there).
 >
 
 > [!WARNING]
@@ -92,7 +91,6 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **Tree Alpha**, offers "PC", "PC" with some improvements ("PC+") and "Console" alpha test reference for trees
 - **Bloom**, a global toggle for bloom
 - **Screen Filter**, an option to change color filters in the main game and episodes
-- **Distant Lights**, toggle for integrated [Project2DFX](https://thirteenag.github.io/p2dfx)
 
 #### Graphics
 
@@ -104,7 +102,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **Tone Mapping**, prevents highlights from being blown out, more operators can be found [here](https://github.com/Parallellines0451/GTAIV.EFLC.FusionShaders/tree/main/assets/luts/samples)
 - **Ambient Occlusion**, a toggle for scalable ambient obscurance
 - **Shadow Filter**, toggles between sharp, soft, or contact hardening shadows
-- **Graphics API**, selects between DirectX 9 and Vulkan (through [DXVK](https://github.com/doitsujin/dxvk/releases)), requires a restart 
+- **Graphics API**, selects between DirectX 9, Vulkan (through [DXVK](https://github.com/doitsujin/dxvk/releases)) and DirectX 12 (through D3D9On12, a custom build); FusionFixHub installs DXVK and D3D9On12 on its Graphics enhancements page. The plugin applies it itself (no `d3d9.cfg`); a start that fails on Vulkan or DirectX 12 falls back to DirectX 9. A ReShade, ENB or dxwrapper `d3d9.dll` stays on top of the chosen API. Requires a restart
 
 #### Game
 
@@ -127,7 +125,6 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 
 #### Audio
 
-- **Cutscene Audio Sync**, [see issue 691](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/issues/691), only enables this if you experience audio desynchronization in cutscenes
 - **Alternative Dialogues**, when enabled, forces the game to use alternative dialogues in some missions
 
 #### Controls
@@ -164,6 +161,9 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - [Fixed forced "definition off" setting in cutscenes, now cutscenes will respect the menu setting](https://github.com/GTAmodding/GTAIV-Issues-List/issues/5)
 - [Fixed DLC car lights in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/3)
 - [Fixed various issues related to frame rate](https://github.com/GTAmodding/GTAIV-Issues-List/issues/112)
+- Cutscene animations follow their audio smoothly at any frame rate, without trembling and without drifting out of sync
+- Fixed the game, script and screen fade timers running slow at high frame rates, which caused the infinite loading screen around some cutscenes (Off Route)
+- Fixed cops and other peds staying in cover and doing nothing at frame rates above 30
 - [Fixed aiming zoom in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/19)
 - [Fixed possible crash when manually dialing a phone number using the keypad in TLAD](https://github.com/GTAmodding/GTAIV-Issues-List/issues/232)
 - [Fixed possible crash in TLAD mission "Marta Full of Grace"](https://github.com/GTAmodding/GTAIV-Issues-List/issues/235)
@@ -452,6 +452,32 @@ GTAIV_DIR=C:\Program Files (x86)\Steam\steamapps\common\Grand Theft Auto IV\GTAI
 ```
 
 The build then copies the built `GTAIV.EFLC.FusionFix.asi` into the `plugins` folder of that game folder, replacing the plugin that is already installed there, and debugging launches `GTAIV.exe` from there. The `.env` file is ignored by git. Without it, nothing is copied.
+
+### Release packages and secrets
+
+The release contains only zips: `GTAIV.EFLC.FusionFix.zip` with `FusionFixHub.exe` at the game's root, and
+`GTAIV.EFLC.FusionFixLegacyAddon.zip`. The installer is made on fusionfix.io for each download (the signed hub with a
+tag the site signs), never by this workflow. The zip never contains `vulkan.dll`, `nvngx_dlss.dll`, `amd_fidelityfx_*.dll` or the
+settings file; `release.bat` fails if one gets in. Its `d3d9.dll` is only a pass-through to the system's d3d9.dll
+(`source/d3d9`), so that unpacking a release over an old one replaces the old graphics-API proxy; `release.bat` checks it is
+that file (`tools/check-d3d9.ps1`) and that no `d3d9.cfg` is in the package.
+
+- **Locally**, `release.bat` takes the hub from `HUB_EXE` (default `..\FusionFixHub-App\bin\Release\FusionFixHub.exe`, next to this repository)
+  and stops with a message when it's missing: `set HUB_EXE=D:\path\to\FusionFixHub.exe` before running it.
+- **In the workflow**, the hub comes from the latest release of the private repository `ThirteenAG/FusionFixHub-App`,
+  read with the secret `HUB_RELEASE_TOKEN`; the download is checked for an Authenticode signature (a warning when the
+  signer isn't `CN=FusionFix`). Without the secret (forks, pull requests) the zip is built without the hub, with a warning.
+
+Setting up `HUB_RELEASE_TOKEN` (once):
+
+1. GitHub, Settings > Developer settings > Personal access tokens > **Fine-grained tokens** > Generate new token.
+2. Resource owner: `ThirteenAG`. Repository access: **Only select repositories** > `ThirteenAG/FusionFixHub-App`.
+3. Repository permissions: **Contents: Read-only** (Metadata: Read-only is added automatically). Nothing else.
+4. Pick an expiration (and a reminder to renew it), generate, copy the token.
+5. In this repository: Settings > Secrets and variables > Actions > **New repository secret**, name
+   `HUB_RELEASE_TOKEN`, paste the token.
+6. Check: run the workflow (Actions > GitHub Actions Build > Run workflow); the "Download FusionFixHub" step prints
+   the hub's signature and the zip contains `FusionFixHub.exe`.
 
 # Reporting more issues
 

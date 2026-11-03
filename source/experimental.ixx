@@ -5,6 +5,7 @@ module;
 export module experimental;
 
 import common;
+import settings;
 
 bool bEnableHighDetailReflections = false;
 bool bRemoveBBoxCulling = false;
@@ -35,11 +36,11 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            CIniReader iniReader("");
+            SettingsReader reader;
 
             // [EXPERIMENTAL]
-            bEnableHighDetailReflections = iniReader.ReadInteger("EXPERIMENTAL", "EnableHighDetailReflections", 0) != 0;
-            bRemoveBBoxCulling = iniReader.ReadInteger("EXPERIMENTAL", "RemoveBBoxCulling", 0) != 0;
+            bEnableHighDetailReflections = reader.ReadInteger("EXPERIMENTAL", "EnableHighDetailReflections", 0) != 0;
+            bRemoveBBoxCulling = reader.ReadInteger("EXPERIMENTAL", "RemoveBBoxCulling", 0) != 0;
 
             if (bEnableHighDetailReflections)
             {

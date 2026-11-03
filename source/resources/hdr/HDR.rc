@@ -1,0 +1,8 @@
+#define IDR_HDR_OUTPUT_PS               3101
+#define IDR_HDR_CALIBRATION_PS          3102
+#define IDR_HDR_CALIBRATION_LOGO        3103
+
+IDR_HDR_OUTPUT_PS               RCDATA "HDROutput.pso"
+IDR_HDR_CALIBRATION_PS          RCDATA "HDRCalibration.pso"
+// The Fusion Fix logo of the installer (installer/logo.png), smaller
+IDR_HDR_CALIBRATION_LOGO        RCDATA "CalibrationLogo.png"

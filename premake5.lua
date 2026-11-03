@@ -32,10 +32,24 @@ function envdir(key)
    return path.translate(value)
 end
 
+-- The pre-build step writing BuildTime.h of a project that embeds Versioninfo.rc: a new time only when one of `inputs`
+-- (files or folders, relative to the repository) is newer than the project's target, so a build without changes
+-- doesn't link again
+function buildtime(inputs)
+   local args = '"$(MSBuildProjectFullPath)"'
+   for _, i in ipairs(inputs) do args = args .. ' "../' .. i .. '"' end
+   prebuildcommands { 'powershell -NoProfile -ExecutionPolicy Bypass -File "../tools/buildtime.ps1" -Out "../build/generated/%{prj.name}/%{cfg.buildcfg}/BuildTime.h" -Target "$(TargetPath)" ' .. args }
+end
+
 workspace "GTAIV.EFLC.FusionFix"
    configurations { "Release", "Debug" }
    architecture "x86"
    location "build"
+   -- BuildTimeUtc (Versioninfo.rc): the build's own time in UTC, written by tools/buildtime.ps1 before a build that
+   -- links (see buildtime() below); the in-game update check compares it with the release asset's time (FileVersion is
+   -- only shown)
+   includedirs { "build/generated/%{prj.name}/%{cfg.buildcfg}" }
+   resincludedirs { "build/generated/%{prj.name}/%{cfg.buildcfg}" }
    cppdialect "C++latest"
    kind "SharedLib"
    language "C++"
@@ -94,16 +108,34 @@ workspace "GTAIV.EFLC.FusionFix"
    defines { "_CRT_SECURE_NO_WARNINGS" }
 
    includedirs { "source" }
-   includedirs { "source/includes" }
+   -- Shared headers, ASI Settings, overlay, automation and the upscaler bridge's protocol and client (upscaler/, shared
+   -- with FusionFixHub): FusionFixUtils, a submodule (change them there)
+   includedirs { "external/FusionFixUtils/include", "external/FusionFixUtils" }
    includedirs { "source/ledsdk" }
    includedirs { "source/dxsdk" }
+   -- In-game settings overlay: the overlay of FusionFixUtils; ImGui is the imgui submodule of FusionFixUtils.
+   includedirs { "external/FusionFixUtils/imgui" }
+   files { "external/FusionFixUtils/overlay/*.hpp", "external/FusionFixUtils/imgui/*.h" }
+   files { "external/FusionFixUtils/imgui/imgui.cpp", "external/FusionFixUtils/imgui/imgui_draw.cpp", "external/FusionFixUtils/imgui/imgui_tables.cpp", "external/FusionFixUtils/imgui/imgui_widgets.cpp" }
+   files { "external/FusionFixUtils/imgui/backends/imgui_impl_win32.cpp", "external/FusionFixUtils/imgui/backends/imgui_impl_dx9.cpp" }
+   links { "comctl32", "dxguid" }
    libdirs { "source/ledsdk" }
    libdirs { "source/dxsdk" }
    files { "source/**.h", "source/*.hpp", "source/*.cpp", "source/*.hxx", "source/**.ixx" }
    files { "source/resources/Versioninfo.rc" }
    files { "source/resources/Shaders.rc" }
-   files { "source/resources/LODLights.rc" }
    files { "source/resources/snow/*.rc" }
+   files { "source/resources/temporal/*.rc" }
+   -- Temporal anti-aliasing, DLAA and FSR through FusionFixHub's upscaler bridge (source/aa); the graphics API, DXVK
+   -- and D3D9On12 interop (source/upscaler)
+   files { "source/aa/*.hpp", "source/aa/*.inl" }
+   files { "source/upscaler/*.h", "source/upscaler/*.hpp" }
+   files { "source/resources/hdr/*.rc" }
+   -- ASI Settings: the description and translations of the settings, embedded by source/resources/Settings.rc
+   files { "source/resources/Settings.rc" }
+   files { "settings/*.json" }
+   -- The fonts' character tables, for text of the descriptions shown in the menu
+   files { "source/resources/GameFont.rc" }
    links { "LogitechLEDLib.lib" }
 
    includedirs { "external/injector/safetyhook/include" }
@@ -111,60 +143,40 @@ workspace "GTAIV.EFLC.FusionFix"
    includedirs { "external/hooking" }
    includedirs { "external/injector/include" }
    includedirs { "external/inireader" }
-   includedirs { "external/modupdater/dist" }
+   includedirs { "external/Vulkan-Headers/include" }
    includedirs { "source/gxt/src" }
-   libdirs { "external/modupdater/dist" }
    files { "external/hooking/Hooking.Patterns.h", "external/hooking/Hooking.Patterns.cpp" }
    files { "external/injector/safetyhook/include/**.hpp", "external/injector/safetyhook/src/**.cpp" }
    files { "external/injector/zydis/**.h", "external/injector/zydis/**.c" }
    files { "source/gxt/src/**.h", "source/gxt/src/**.cpp" }
-   files { "data/plugins/*.ini" }
-
-   os.mkdir("shaders/external/gamma/asm")
-   os.mkdir("source/resources/shaders/win32_30")
-
-   -- Compile hlsl shaders to .fxo (Output to "../source/resources/shaders/win32_30"). Assembly variants are still output for convenience to "../shaders/external/%shadername%/asm".
-   prebuildcommands {
-      -- ConsoleGamma
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T fx_2_0 /nologo /Fo \"../source/resources/shaders/win32_30/ConsoleGamma.fxo\" /Fc \"../shaders/external/gamma/asm/ConsoleGamma.asm\" \"../shaders/external/gamma/fx/ConsoleGamma.fx\"",
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T fx_2_0 /nologo /Fo \"../source/resources/shaders/win32_30/ConsoleGamma_Dither.fxo\" /Fc \"../shaders/external/gamma/asm/ConsoleGamma_Dither.asm\" \"../shaders/external/gamma/fx/ConsoleGamma_Dither.fx\"",
-    }
-
-   prebuildcommands {
-      "for /R \"../source/resources/snow/\" %%f in (*.ps) do (\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E main /Fo \"../source/resources/snow/%%~nfps.pso\" %%f)",
-      "for /R \"../source/resources/snow/\" %%f in (*.vs) do (\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E main /Fo \"../source/resources/snow/%%~nfvs.vso\" %%f)",
-
-      -- Compile HLSL shaders to .pso/.vso (output to ../source/resources/)
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E SSDraw /Fo \"../source/resources/SSDraw_PS.pso\" \"../source/resources/SunShafts_PS.hlsl\"",
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E SSPrepass /Fo \"../source/resources/SSPrepass_PS.pso\" \"../source/resources/SunShafts_PS.hlsl\"",
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E SSAdd /Fo \"../source/resources/SSAdd_PS.pso\" \"../source/resources/SunShafts_PS.hlsl\"",
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E ApplyFXAA /Fo \"../source/resources/FxaaPS.pso\" \"../source/resources/FXAA3_11.h\"",
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E DX9_SMAALumaEdgeDetectionPS /Fo \"../source/resources/SMAA_EdgeDetection.pso\" \"../source/resources/SMAA.hlsl\"",
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E DX9_SMAABlendingWeightCalculationPS /Fo \"../source/resources/SMAA_BlendingWeightsCalculation.pso\" \"../source/resources/SMAA.hlsl\"",
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E DX9_SMAANeighborhoodBlendingPS /Fo \"../source/resources/SMAA_NeighborhoodBlending.pso\" \"../source/resources/SMAA.hlsl\"",
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E DX9_SMAAEdgeDetectionVS /Fo \"../source/resources/SMAA_EdgeDetectionVS.vso\" \"../source/resources/SMAA.hlsl\"",
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E DX9_SMAABlendingWeightCalculationVS /Fo \"../source/resources/SMAA_BlendingWeightsCalculationVS.vso\" \"../source/resources/SMAA.hlsl\"",
-      "\"../source/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E DX9_SMAANeighborhoodBlendingVS /Fo \"../source/resources/SMAA_NeighborhoodBlendingVS.vso\" \"../source/resources/SMAA.hlsl\"",
-   }
 
    filter "configurations:Debug"
       defines { "DEBUG" }
       symbols "On"
-      links { "libmodupdater_debug_win32.lib" }
 
    filter "configurations:Release"
       defines { "NDEBUG" }
       optimize "On"
-      links { "libmodupdater_release_win32.lib" }
 
 project "GTAIV.EFLC.FusionFix"
    targetdir "bin"
+
+   -- A broken settings description fails the build, before compiling and in the built plugin
+   dependson { "AsiSettingsValidator" }
+   prebuildcommands { '"../bin/tools/asi-settings-validate.exe" "../settings/GTAIV.EFLC.FusionFix.json" "../settings/GTAIV.EFLC.FusionFix.en.json" "../settings/GTAIV.EFLC.FusionFix.fr.json" "../settings/GTAIV.EFLC.FusionFix.de.json" "../settings/GTAIV.EFLC.FusionFix.it.json" "../settings/GTAIV.EFLC.FusionFix.es.json" "../settings/GTAIV.EFLC.FusionFix.ru.json" "../settings/GTAIV.EFLC.FusionFix.ja.json"' }
+   postbuildcommands { '"../bin/tools/asi-settings-validate.exe" "$(TargetPath)"' }
+
+   -- HLSL shaders compiled with fxc: the table of them is in tools/compileshaders.ps1. The compiled shaders are
+   -- committed with source/resources/shaders.lock; only the ones whose source, includes or fxc arguments changed
+   -- compile, in parallel
+   prebuildcommands { 'powershell -NoProfile -ExecutionPolicy Bypass -File "../tools/compileshaders.ps1"' }
+   buildtime { "source", "external", "settings" }
 
    local gamedir = envdir("GTAIV_DIR")
    if gamedir then
       local plugins = gamedir .. "\\plugins"
       -- Only the built .asi is deployed: the contents of `data` are put in place by the
-      -- installer, and a build copying them over a game folder would overwrite the files
+      -- hub installer, and a build copying them over a game folder would overwrite the files
       -- of an installed mod with the ones of the working tree. A plugin that is already
       -- installed is replaced, a folder that does not have one is left alone.
       postbuildcommands {
@@ -174,18 +186,17 @@ project "GTAIV.EFLC.FusionFix"
       debugcommand (gamedir .. "\\GTAIV.exe")
    end
 
-project "GTAIV.EFLC.FusionFixInstaller"
-   kind "WindowedApp"
-   language "C++"
-   targetdir "bin/%{cfg.buildcfg}"
+-- Checks the ASI Settings description of the plugin (settings/*.json, external/FusionFixUtils/asi_settings)
+project "AsiSettingsValidator"
+   kind "ConsoleApp"
+   targetdir "bin/tools"
+   targetname "asi-settings-validate"
    targetextension ".exe"
-   staticruntime "On"
 
-   files { "installer/*.rc" }
-   files { "installer/main.cpp" }
    removefiles { "source/**" }
    removefiles { "external/**" }
-   files { "source/resources/Versioninfo.rc" }
+   removefiles { "settings/**" }
+   files { "external/FusionFixUtils/asi_settings/tools/validator.cpp" }
 
    filter "configurations:Debug"
       defines { "DEBUG" }
@@ -195,17 +206,23 @@ project "GTAIV.EFLC.FusionFixInstaller"
       defines { "NDEBUG" }
       optimize "On"
 
+
+-- d3d9.dll: a pass-through to the system's d3d9.dll, shipped only so that unpacking a release over an old one replaces
+-- the old graphics-API proxy (the plugin applies the graphics API itself, source/upscaler/graphics_api.h)
 project "d3d9"
    language "C++"
    targetdir "bin"
    targetextension ".dll"
    staticruntime "On"
+   removedefines { 'rsc_FileDescription="GTAIV.EFLC.FusionFix"' }
+   defines { 'rsc_FileDescription="Fusion Fix pass-through d3d9.dll"' }
 
    removefiles { "source/**" }
    removefiles { "external/**" }
    files { "source/d3d9/d3d9.def" }
    files { "source/d3d9/d3d9.cpp" }
    files { "source/resources/Versioninfo.rc" }
+   buildtime { "source/d3d9", "source/resources/Versioninfo.rc", "source/resources/VersionInfo.h" }
 
    filter "configurations:Debug"
       defines { "DEBUG" }
@@ -214,3 +231,6 @@ project "d3d9"
    filter "configurations:Release"
       defines { "NDEBUG" }
       optimize "On"
+
+-- The dev-only automation adapters (zz_Automation.asi) live in FusionFixHelpers, next to this checkout; they use the
+-- frame-stage export of this plugin (asi_automation_frames.h), which is inert without them.
