@@ -371,9 +371,9 @@ public:
 
     static void InstallModeChangeGate()
     {
-        // The update thread's frame start: the render thread has finished the last frame, the mode change is called
-        // if requested
-        auto frameStart = hook::pattern("80 3D ? ? ? ? 00 57 BF 01 00 00 00 74 ? A1 ? ? ? ? 66 39 78 0A 76 04 66 89 78 0A A1 ? ? ? ? 66 39 78 0A 76 04 66 89 78 0A E8");
+        // This frame boundary follows the render wait and precedes any requested mode change.
+        // Ignore the six bytes used by the water commit hook so either hook can install first.
+        auto frameStart = hook::pattern("80 3D ? ? ? ? 00 ? ? ? ? ? ? 74 ? A1 ? ? ? ? 66 39 78 0A 76 04 66 89 78 0A A1 ? ? ? ? 66 39 78 0A 76 04 66 89 78 0A E8");
         auto modeChange = find_pattern("51 80 3D ? ? ? ? 00 56 57 BF 01 00 00 00 0F 84", "53 56 33 DB 38 1D ? ? ? ? 57 BF 01 00 00 00 0F 84");
         if (frameStart.empty() || modeChange.empty())
             return;

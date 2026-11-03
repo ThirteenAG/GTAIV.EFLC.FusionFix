@@ -245,8 +245,8 @@ namespace CWater
             return;
 
         pattern = find_pattern<2>(
-            "51 56 8B F1 80 BE C8 0F 00 00 00 75 0B 8D 8E AC 0F 00 00 E8 ? ? ? ? 80 3D ? ? ? ? 00 57 BF 01 00 00 00",
-            "51 56 8B F1 80 BE C8 0F 00 00 00 75 0F 8B 86 B8 0F 00 00 50 E8 ? ? ? ? 83 C4 04 80 3D ? ? ? ? 00 57 BF 01 00 00 00");
+            "51 56 8B F1 80 BE C8 0F 00 00 00 75 0B 8D 8E AC 0F 00 00 E8 ? ? ? ? ? ? ? ? ? ? ? 57 BF 01 00 00 00",
+            "51 56 8B F1 80 BE C8 0F 00 00 00 75 0F 8B 86 B8 0F 00 00 50 E8 ? ? ? ? 83 C4 04 ? ? ? ? ? ? ? 57 BF 01 00 00 00");
         if (pattern.size() != 1)
             return;
 
@@ -285,8 +285,9 @@ namespace CWater
             RenderBufferIndex = *pSharedBufferIndex;
         }
 
+        // Skip the seven-byte device-mode comparison used by HDR's frame-start hook.
         // Install the commit hook before changing any selector access.
-        static auto CommitBufferFlipHook = safetyhook::create_mid(pAfterWait, CommitBufferFlip);
+        static auto CommitBufferFlipHook = safetyhook::create_mid(pAfterWait + 7, CommitBufferFlip);
         if (!CommitBufferFlipHook)
             return;
 
