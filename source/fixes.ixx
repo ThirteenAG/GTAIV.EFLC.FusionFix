@@ -285,7 +285,7 @@ namespace CWater
             RenderBufferIndex = *pSharedBufferIndex;
         }
 
-        // Keep HDR's device-mode comparison separate from the water commit.
+        // Skip the seven-byte device-mode comparison used by HDR's frame-start hook.
         // Install the commit hook before changing any selector access.
         static auto CommitBufferFlipHook = safetyhook::create_mid(pAfterWait + 7, CommitBufferFlip);
         if (!CommitBufferFlipHook)
