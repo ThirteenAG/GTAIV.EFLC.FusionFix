@@ -150,11 +150,11 @@ public:
             rage::fiAssetManager::FindPath = (decltype(rage::fiAssetManager::FindPath))injector::GetBranchDestination(pattern.get_first(0)).as_int();
 
             pattern = hook::pattern("E8 ? ? ? ? 68 ? ? ? ? 8D 84 24 ? ? ? ? 50 8D 4C 24");
-            if (!pattern.empty())
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
             {
                 rage::grmShaderFxTemplate::shLoadIntoSlot = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first(0)).as_int(), rage::grmShaderFxTemplate::LoadIntoSlot);
             }
-            else
+            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
             {
                 pattern = find_pattern("E8 ? ? ? ? 83 C4 ? 68 ? ? ? ? 8D 84 24 ? ? ? ? 50 8D 4C 24 ? E8", "E8 ? ? ? ? 83 C4 ? 68 ? ? ? ? 8D 44 24 ? 50 8D 8C 24");
                 rage::grmShaderFxTemplate::shLoadIntoSlot_2 = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first(0)).as_int(), rage::grmShaderFxTemplate::LoadIntoSlot_2);

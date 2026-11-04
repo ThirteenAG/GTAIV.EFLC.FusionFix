@@ -49,8 +49,22 @@ namespace Antialiasing::detail
         uint32_t vendorId = 0;
         uint32_t width = 0;
         uint32_t height = 0;
+        // Why the last submission failed, for the log
+        std::string error;
 
         virtual ~Bridge() = default;
+
+        bool Error(const char* format, ...)
+        {
+            char text[256];
+            va_list args;
+            va_start(args, format);
+            vsnprintf(text, sizeof(text), format, args);
+            va_end(args);
+            error = text;
+            return false;
+        }
+
         // Opens the shared textures and the fence of a configuration, and closes their handles
         virtual bool Import(Protocol::Shared& shared, uint32_t w, uint32_t h) = 0;
         virtual void ReleaseImports() = 0;
@@ -464,8 +478,11 @@ namespace Antialiasing::detail
             {
                 if (!inputs[i])
                     continue;
-                if (!GetGameImage(inputs[i], sources[i]) || sources[i].format != Formats[i] || sources[i].extent.width != width || sources[i].extent.height != height)
-                    return false;
+                if (!GetGameImage(inputs[i], sources[i]))
+                    return Error("input %zu has no Vulkan image", i);
+                if (sources[i].format != Formats[i] || sources[i].extent.width != width || sources[i].extent.height != height)
+                    return Error("input %zu is format %d %ux%u, the shared image format %d %ux%u", i, sources[i].format,
+                        sources[i].extent.width, sources[i].extent.height, Formats[i], width, height);
             }
 
             auto& s = NextSlot();
@@ -503,15 +520,17 @@ namespace Antialiasing::detail
 
             // Everything the game rendered so far must reach the queue first
             interop->FlushRenderingCommands();
-            return Submit(cmd, VK_NULL_HANDLE, 0, signalValue, VK_NULL_HANDLE);
+            return Submit(cmd, VK_NULL_HANDLE, 0, signalValue, VK_NULL_HANDLE) || Error("the input copies could not be submitted");
         }
 
         bool SubmitOutput(IDirect3DTexture9* target, uint64_t waitValue) override
         {
             GameImage destination;
-            if (!GetGameImage(target, destination) || destination.format != Formats[OutputIndex] ||
-                destination.extent.width != width || destination.extent.height != height)
-                return false;
+            if (!GetGameImage(target, destination))
+                return Error("the output has no Vulkan image");
+            if (destination.format != Formats[OutputIndex] || destination.extent.width != width || destination.extent.height != height)
+                return Error("the output is format %d %ux%u, the shared image format %d %ux%u", destination.format,
+                    destination.extent.width, destination.extent.height, Formats[OutputIndex], width, height);
 
             auto& s = slots[slot];
             auto output = images[OutputIndex].image;
@@ -539,7 +558,7 @@ namespace Antialiasing::detail
             vk.vkEndCommandBuffer(cmd);
 
             if (!Submit(cmd, semaphore, waitValue, 0, s.fence))
-                return false;
+                return Error("the output copy could not be submitted");
             s.submitted = true;
             return true;
         }
@@ -577,6 +596,77 @@ namespace Antialiasing::detail
         barrier.Transition.StateBefore = before;
         barrier.Transition.StateAfter = after;
         return barrier;
+    }
+
+    // The vendor of the GPU at the adapter's LUID, as DXGI reports it
+    inline uint32_t DxgiVendor(LUID luid)
+    {
+        uint32_t vendor = 0;
+        auto dxgi = LoadLibraryExW(L"dxgi.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
+        using CreateFactoryFn = HRESULT(WINAPI*)(REFIID, void**);
+        auto createFactory = dxgi ? reinterpret_cast<CreateFactoryFn>(GetProcAddress(dxgi, "CreateDXGIFactory1")) : nullptr;
+        IDXGIFactory4* factory = nullptr;
+        if (createFactory && SUCCEEDED(createFactory(__uuidof(IDXGIFactory4), reinterpret_cast<void**>(&factory))) && factory)
+        {
+            IDXGIAdapter1* adapter = nullptr;
+            DXGI_ADAPTER_DESC1 desc{};
+            if (SUCCEEDED(factory->EnumAdapterByLuid(luid, IID_PPV_ARGS(&adapter))) && adapter)
+            {
+                if (SUCCEEDED(adapter->GetDesc1(&desc)))
+                    vendor = desc.VendorId;
+                adapter->Release();
+            }
+            factory->Release();
+        }
+        if (dxgi)
+            FreeLibrary(dxgi);
+        return vendor;
+    }
+
+    // The GPU's vendor from the API the game renders through: DXVK's Vulkan device, D3D9on12's D3D12 device, else the
+    // D3D9 adapter. DXVK's D3D9 adapter may report another vendor than the GPU's, so it can't tell whether DLSS can run.
+    inline uint32_t GpuVendor(IDirect3DDevice9* device)
+    {
+        if (!device)
+            return 0;
+        ID3D9VkInteropDevice* interop = nullptr;
+        if (SUCCEEDED(device->QueryInterface(__uuidof(ID3D9VkInteropDevice), reinterpret_cast<void**>(&interop))) && interop)
+        {
+            VkInstance instance = VK_NULL_HANDLE;
+            VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+            VkDevice vkDevice = VK_NULL_HANDLE;
+            interop->GetVulkanHandles(&instance, &physicalDevice, &vkDevice);
+            interop->Release();
+            HMODULE loader = GetModuleHandleW(L"vulkan-1.dll");
+            if (!loader)
+                loader = GetModuleHandleW(L"winevulkan.dll");
+            auto getInstanceProcAddr = loader ? reinterpret_cast<PFN_vkGetInstanceProcAddr>(GetProcAddress(loader, "vkGetInstanceProcAddr")) : nullptr;
+            auto getProperties2 = getInstanceProcAddr && instance ?
+                reinterpret_cast<PFN_vkGetPhysicalDeviceProperties2>(getInstanceProcAddr(instance, "vkGetPhysicalDeviceProperties2")) : nullptr;
+            if (!getProperties2 || !physicalDevice)
+                return 0;
+            VkPhysicalDeviceProperties2 properties{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2 };
+            getProperties2(physicalDevice, &properties);
+            // VkPhysicalDeviceProperties::vendorID (the minimal Vulkan header keeps the properties opaque)
+            uint32_t vendor = 0;
+            std::memcpy(&vendor, properties.properties + 8, sizeof(vendor));
+            return vendor;
+        }
+        IDirect3DDevice9On12* on12 = nullptr;
+        if (SUCCEEDED(device->QueryInterface(__uuidof(IDirect3DDevice9On12), reinterpret_cast<void**>(&on12))) && on12)
+        {
+            ID3D12Device* d3d12 = nullptr;
+            uint32_t vendor = 0;
+            if (SUCCEEDED(on12->GetD3D12Device(IID_PPV_ARGS(&d3d12))) && d3d12)
+            {
+                vendor = DxgiVendor(d3d12->GetAdapterLuid());
+                d3d12->Release();
+            }
+            on12->Release();
+            if (vendor)
+                return vendor;
+        }
+        return AdapterVendor(device);
     }
 
     class D3D12Bridge : public Bridge
@@ -773,12 +863,15 @@ namespace Antialiasing::detail
                     if (!textures[i] || !foreign[i])
                         continue;
                     auto resource = Registered(textures[i]);
-                    if (!resource || !Matches(resource, foreign[i]))
-                        return false;
+                    if (!resource)
+                        return Error("texture %u could not be unwrapped", i);
+                    if (!Matches(resource, foreign[i]))
+                        return Error("texture %u (format %d %llux%u) doesn't match the shared image", i, static_cast<int>(resource->GetDesc().Format),
+                            resource->GetDesc().Width, resource->GetDesc().Height);
                     game[pairs] = resource;
                     shared[pairs++] = foreign[i];
                 }
-                return pairs > 0;
+                return pairs > 0 || Error("no textures to copy");
             };
             if (!collect())
                 return false;
@@ -796,10 +889,12 @@ namespace Antialiasing::detail
                 hr = queueInterop(&request, &token);
             }
             if (FAILED(hr))
-                return false;
+                return Error("the driver refused the %s request (0x%08X)", operation == D3D9ON12_INTEROP_EXPORT_COPY ? "input" : "output",
+                    static_cast<unsigned>(hr));
             queuedWork = true;
             queuedFenceValue = (std::max)(queuedFenceValue, fenceValue);
-            return SUCCEEDED(device9->SetRenderState(static_cast<D3DRENDERSTATETYPE>(D3D9ON12_INTEROP_MARKER_RENDERSTATE), token));
+            hr = device9->SetRenderState(static_cast<D3DRENDERSTATETYPE>(D3D9ON12_INTEROP_MARKER_RENDERSTATE), token);
+            return SUCCEEDED(hr) || Error("the request marker failed (0x%08X)", static_cast<unsigned>(hr));
         }
 
         bool Init(IDirect3DDevice9* realDevice)
@@ -812,7 +907,9 @@ namespace Antialiasing::detail
 
             device9 = realDevice;
             luid = device->GetAdapterLuid();
-            vendorId = AdapterVendor(realDevice);
+            vendorId = DxgiVendor(luid);
+            if (!vendorId)
+                vendorId = AdapterVendor(realDevice);
 
             D3D12_COMMAND_QUEUE_DESC queueDesc{};
             queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
@@ -1008,7 +1105,7 @@ namespace Antialiasing::detail
             for (size_t i = 0; i < InputCount; ++i)
                 if (sources[i])
                     Return(inputs[i], sources[i]);
-            return ok;
+            return ok || Error("the input copies on the plugin's queue failed (unwrap, size or format)");
         }
 
         bool SubmitOutput(IDirect3DTexture9* target, uint64_t waitValue) override
@@ -1025,7 +1122,7 @@ namespace Antialiasing::detail
 
             ID3D12Resource* destination = nullptr;
             if (FAILED(on12->UnwrapUnderlyingResource(target, queue, IID_PPV_ARGS(&destination))) || !destination)
-                return false;
+                return Error("the output could not be unwrapped");
 
             bool ok = Matches(destination, images[OutputIndex]);
             if (ok)
@@ -1060,7 +1157,7 @@ namespace Antialiasing::detail
             }
 
             Return(target, destination);
-            return ok;
+            return ok || Error("the output copy on the plugin's queue failed (size or format)");
         }
     };
 
@@ -1115,6 +1212,66 @@ namespace Antialiasing::detail
         bool pendingEvaluate = false;           // an Evaluate was posted, its answer is collected the frame after
         uint64_t pendingOutputValue = 0;        // the fence value that frame's output copy waits for
 
+        // A failed frame (the copies, the hub's answer, a configuration) leaves that frame to TAA; the bridge is set up
+        // anew and tried again after RetryFrames, at most MaxRetries times in a row, then TAA stays until the mode or
+        // the size changes
+        static constexpr uint64_t RetryFrames = 60;
+        static constexpr uint32_t MaxRetries = 5;
+        uint64_t evaluations = 0;               // Evaluate calls, the frame number in the log
+        uint32_t failures = 0;                  // failed attempts in a row
+        uint64_t retryAt = 0;
+        bool retrying = false;
+        bool gaveUp = false;
+
+        std::mutex vendorMutex;
+        IDirect3DDevice9* vendorDevice = nullptr;
+        uint32_t vendor = 0;
+
+        static const char* ApiName()
+        {
+            return FusionFixGraphicsApi::Name(FusionFixGraphicsApi::Running());
+        }
+
+        bool Failed(const char* reason)
+        {
+            configureFailed = true;
+            retrying = false;
+            if (++failures > MaxRetries)
+            {
+                if (!gaveUp)
+                    Log("Upscaler: %s at frame %llu on %s; %u attempts in a row failed, TAA is used until the anti-aliasing mode or the size changes",
+                        reason, evaluations, ApiName(), MaxRetries + 1);
+                gaveUp = true;
+            }
+            else
+            {
+                retryAt = evaluations + RetryFrames;
+                Log("Upscaler: %s at frame %llu on %s; TAA until attempt %u of %u in %llu frames", reason, evaluations, ApiName(),
+                    failures + 1, MaxRetries + 1, RetryFrames);
+            }
+            return false;
+        }
+
+        void Succeeded()
+        {
+            if (failures)
+                Log("Upscaler: working again at frame %llu on %s after %u failed attempt%s", evaluations, ApiName(), failures, failures == 1 ? "" : "s");
+            failures = 0;
+            gaveUp = false;
+        }
+
+        // The GPU's vendor (GpuVendor), once per device: the menu asks for it too
+        uint32_t Vendor(IDirect3DDevice9* device)
+        {
+            std::lock_guard lock(vendorMutex);
+            if (vendorDevice != device)
+            {
+                vendorDevice = device;
+                vendor = GpuVendor(device);
+            }
+            return vendor;
+        }
+
         // D3D9on12 as the interop path, when the game runs on DirectX 12 (Fusion Fix's driver): with the driver's queued
         // interop always, without it only when asked for (Options::D3D9On12Interop)
         bool D3D9On12Usable()
@@ -1163,7 +1320,7 @@ namespace Antialiasing::detail
                 if (answered)
                     Log("Upscaler: slow answers from the hub: %u since the last line, the slowest %.0f ms", slowAnswers, slowestAnswerMs);
                 else
-                    Log("Upscaler: no answer from the hub in %.0f ms; anti-aliasing is off until the mode or size changes", ms);
+                    Log("Upscaler: no answer from the hub in %.0f ms", ms);
                 lastSlowAnswerLog = now;
                 slowAnswers = 0;
                 slowestAnswerMs = 0.0;
@@ -1176,7 +1333,7 @@ namespace Antialiasing::detail
         bool BridgeAvailable(IDirect3DDevice9* device)
         {
             bool dxvk = FusionFixGraphicsApi::Running() == FusionFixGraphicsApi::Api::Vulkan;
-            return (dxvk || D3D9On12Usable()) && Protocol::Present(Protocol::GameRoot(), !device || AdapterVendor(device) == 0x10DE);
+            return (dxvk || D3D9On12Usable()) && Protocol::Present(Protocol::GameRoot(), !device || Vendor(device) == 0x10DE);
         }
 
         bool IsAvailable(Backend backend)
@@ -1255,6 +1412,7 @@ namespace Antialiasing::detail
         {
             if (state != State::Ready || !IsAvailable(backend) || !frame.Color || !frame.Depth || !frame.Motion || !frame.Output)
                 return false;
+            ++evaluations;
 
             // An asynchronous bridge: the answer to the frame before comes first (normally long in). A missing or failed
             // answer leaves the GPU waiting on the hub's fence for that frame's output: the wait is let through.
@@ -1267,22 +1425,35 @@ namespace Antialiasing::detail
                 pendingEvaluate = false;
                 if (!answered || !ok)
                 {
-                    if (answered)
-                        Log("Upscaler: the hub failed the frame (fence value %llu); anti-aliasing is off until the mode or size changes",
-                            pendingOutputValue);
                     bridge->ReleaseWait(pendingOutputValue);
                     if (hub.Exited())
+                    {
+                        Log("Upscaler: the hub exited at frame %llu on %s", evaluations, ApiName());
                         Fail();
-                    else
-                        configureFailed = true;
-                    return false;
+                        return false;
+                    }
+                    return Failed(answered ? "the hub failed the frame before" : "no answer from the hub for the frame before");
                 }
             }
 
             auto backendId = static_cast<uint32_t>(backend);
             auto flags = frame.Reactive ? Protocol::ConfigureFlags::ReactiveMask : 0u;
-            bool reconfigure = configuredBackend != backendId || configuredWidth != frame.Width || configuredHeight != frame.Height ||
+            bool changed = configuredBackend != backendId || configuredWidth != frame.Width || configuredHeight != frame.Height ||
                 configuredPreset != frame.DLSSPreset || configuredFlags != flags;
+            if (changed)
+            {
+                failures = 0;
+                gaveUp = false;
+            }
+            else if (configureFailed)
+            {
+                // A failed frame is tried again later, everything set up anew
+                if (gaveUp || evaluations < retryAt)
+                    return false;
+                retrying = true;
+            }
+
+            bool reconfigure = changed || retrying;
             if (reconfigure)
             {
                 bridge->ReleaseImports();
@@ -1305,36 +1476,39 @@ namespace Antialiasing::detail
                 auto start = NowMs();
                 if (!hub.Request(Protocol::Command::Configure, 15000))
                 {
-                    Log("Upscaler: configuration at %ux%u failed after %.0f ms", frame.Width, frame.Height, NowMs() - start);
                     if (hub.Exited())
+                    {
+                        Log("Upscaler: the hub exited during the configuration at frame %llu on %s", evaluations, ApiName());
                         Fail();
-                    return false;
+                        return false;
+                    }
+                    char reason[96];
+                    sprintf_s(reason, "the configuration at %ux%u failed after %.0f ms", frame.Width, frame.Height, NowMs() - start);
+                    return Failed(reason);
                 }
                 if (!bridge->Import(shared, frame.Width, frame.Height))
                 {
-                    Log("Upscaler: the shared images at %ux%u could not be opened", frame.Width, frame.Height);
-                    return false;
+                    char reason[96];
+                    sprintf_s(reason, "the shared images at %ux%u could not be opened", frame.Width, frame.Height);
+                    return Failed(reason);
                 }
-                Log("Upscaler: configured at %ux%u in %.0f ms", frame.Width, frame.Height, NowMs() - start);
+                Log("Upscaler: configured at %ux%u in %.0f ms on %s", frame.Width, frame.Height, NowMs() - start, ApiName());
 
                 configureFailed = false;
+                retrying = false;
                 fenceValue = 0;
-            }
-            else if (configureFailed)
-            {
-                // A failed configuration is not retried every frame, only when something changes
-                return false;
             }
 
             auto inputValue = ++fenceValue;
             auto outputValue = ++fenceValue;
 
             IDirect3DTexture9* const inputs[InputCount] = { frame.Color, frame.Depth, frame.Motion, frame.Reactive };
+            bridge->error.clear();
             if (!bridge->SubmitInputs(inputs, inputValue))
             {
-                // Nothing was submitted, the hub was not asked for this frame. Retried when the mode or size changes.
-                configureFailed = true;
-                return false;
+                // Nothing was submitted, the hub was not asked for this frame
+                auto reason = "the copy of the frame to the hub failed: " + (bridge->error.empty() ? std::string("unknown") : bridge->error);
+                return Failed(reason.c_str());
             }
 
             auto& shared = *hub.shared;
@@ -1358,20 +1532,26 @@ namespace Antialiasing::detail
                 hub.Post(Protocol::Command::Evaluate);
                 pendingEvaluate = true;
                 pendingOutputValue = outputValue;
-                return bridge->SubmitOutput(frame.Output, outputValue);
             }
-
             // The hub answers once its GPU work, which signals outputValue, has been submitted
-            if (!hub.Request(Protocol::Command::Evaluate, 500))
+            else if (!hub.Request(Protocol::Command::Evaluate, 500))
             {
                 if (hub.Exited())
+                {
+                    Log("Upscaler: the hub exited at frame %llu on %s", evaluations, ApiName());
                     Fail();
-                else
-                    configureFailed = true;
-                return false;
+                    return false;
+                }
+                return Failed("no answer from the hub");
             }
 
-            return bridge->SubmitOutput(frame.Output, outputValue);
+            if (!bridge->SubmitOutput(frame.Output, outputValue))
+            {
+                auto reason = "the copy of the result back failed: " + (bridge->error.empty() ? std::string("unknown") : bridge->error);
+                return Failed(reason.c_str());
+            }
+            Succeeded();
+            return true;
         }
 
         // Before the game resets its device (a mode change): what the bridge queued has been executed

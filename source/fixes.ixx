@@ -165,6 +165,27 @@ namespace CHeli
     }
 }
 
+namespace CStoredCar
+{
+    void** ms_modelInfoPtrs = nullptr;
+    uint32_t nModelInfoCount = 0;
+    bool(__fastcall* IsOccupied)(uint8_t* car, void* edx) = nullptr;
+
+    // A garage keeps its cars' raw model index. A save made with other mods can hold an index that isn't
+    // a vehicle in this session (a ped, for example), and restoring that car crashes: drop it instead.
+    bool __fastcall IsOccupiedByVehicle(uint8_t* car, void* edx)
+    {
+        auto model = *reinterpret_cast<uint16_t*>(car + 0x10);
+        auto modelInfo = model < nModelInfoCount ? ms_modelInfoPtrs[model] : nullptr;
+        if (!modelInfo || (*reinterpret_cast<uint8_t(__thiscall***)(void*)>(modelInfo))[3](modelInfo) != 5) // GetModelType: vehicle
+        {
+            car[0x30] &= ~1;
+            return false;
+        }
+        return IsOccupied(car, edx);
+    }
+}
+
 injector::hook_back<decltype(&Natives::CompareString)> hbCOMPARE_STRING;
 bool __cdecl NATIVE_COMPARE_STRING_1(const char* a1, const char* a2)
 {
@@ -216,51 +237,38 @@ namespace CWater
 
     void FixBufferFlip()
     {
-        // Look for a second match so ambiguous signatures are rejected.
-        auto pattern = find_pattern<2>(
-            "2B 0D ? ? ? ? FF 05 ? ? ? ? 89 0D ? ? ? ? 5E C3",
-            "BA 01 00 00 00 2B 15 ? ? ? ? 89 15 ? ? ? ? 83 05 ? ? ? ? 01 C3",
-            "B8 01 00 00 00 2B 05 ? ? ? ? 83 05 ? ? ? ? 01 A3 ? ? ? ? C3");
-        if (pattern.size() != 1)
-            return;
+        auto pattern = find_pattern(
+            "2B 0D ? ? ? ? FF 05 ? ? ? ? 89 0D ? ? ? ? 5E C3",                    // 1.2.0.32, 1.2.0.43, 1.2.0.59
+            "BA 01 00 00 00 2B 15 ? ? ? ? 89 15 ? ? ? ? 83 05 ? ? ? ? 01 C3",     // 1.0.7.0, 1.1.2.0
+            "B8 01 00 00 00 2B 05 ? ? ? ? 83 05 ? ? ? ? 01 A3 ? ? ? ? C3");       // 1.0.8.0, 1.1.3.0
 
         auto pFlip = pattern.get_first<uint8_t>();
         uint8_t* pStore = nullptr;
-        uint32_t* pReadIndex = nullptr;
-        if (*pFlip == 0x2B) // Complete Edition
+        if (*pFlip == 0x2B) // 1.2.0.32, 1.2.0.43, 1.2.0.59
         {
             pStore = pFlip + 12;
-            pReadIndex = *(uint32_t**)(pFlip + 2);
             pFlipRegister = &SafetyHookContext::ecx;
         }
-        else // 1.0.7.0 / 1.0.8.0
+        else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
         {
             pStore = pFlip + (*pFlip == 0xBA ? 11 : 18);
-            pReadIndex = *(uint32_t**)(pFlip + 7);
             pFlipRegister = *pFlip == 0xBA ? &SafetyHookContext::edx : &SafetyHookContext::eax;
         }
         pBufferIndex = *(uint32_t**)(pStore + (*pStore == 0xA3 ? 1 : 2));
         FlipResume = (uintptr_t)pStore + (*pStore == 0xA3 ? 5 : 6);
-        if (pBufferIndex != pReadIndex)
-            return;
 
-        pattern = find_pattern<2>(
-            "51 56 8B F1 80 BE C8 0F 00 00 00 75 0B 8D 8E AC 0F 00 00 E8 ? ? ? ? 80 3D ? ? ? ? 00 57 BF 01 00 00 00",
-            "51 56 8B F1 80 BE C8 0F 00 00 00 75 0F 8B 86 B8 0F 00 00 50 E8 ? ? ? ? 83 C4 04 80 3D ? ? ? ? 00 57 BF 01 00 00 00");
-        if (pattern.size() != 1)
-            return;
+        pattern = find_pattern(
+            "51 56 8B F1 80 BE C8 0F 00 00 00 75 0B 8D 8E AC 0F 00 00 E8 ? ? ? ? ? ? ? ? ? ? ? 57 BF 01 00 00 00",
+            "51 56 8B F1 80 BE C8 0F 00 00 00 75 0F 8B 86 B8 0F 00 00 50 E8 ? ? ? ? 83 C4 04 ? ? ? ? ? ? ? 57 BF 01 00 00 00");
 
         auto pSynchronise = pattern.get_first<uint8_t>();
         // The mode check branches to the first instruction after the wait.
         auto pAfterWait = pSynchronise + 13 + pSynchronise[12];
         pattern = hook::pattern("B9 ? ? ? ? E8 ? ? ? ? 83 3F 00 76 ? FF");
-        if (pattern.size() != 1 || injector::GetBranchDestination(pattern.get_first(5)).get<void>() != pSynchronise)
-            return;
-
         pSyncMode = *pattern.get_first<uint8_t*>(1) + 0xFC8;
 
         std::vector<uint32_t**> RenderBufferReads;
-        if (*pFlip == 0xBA)
+        if (*pFlip == 0xBA) // 1.0.7.0, 1.1.2.0
         {
             // Patch 7 shares its selector with surface textures; redirect only geometry reads.
             for (auto signature : {
@@ -270,23 +278,17 @@ namespace CWater
                 "8B 0D ? ? ? ? 8B 7D 08 8B D1 69 D2 31 04 00 00 8B C7 2B C2 03 C0 8B 94",
                 "8B 0D ? ? ? ? F3 0F 10 0D ? ? ? ? 83 C4 20 8B D1 69 D2 31 04 00 00" })
             {
-                auto readPattern = find_pattern<2>(signature);
-                if (readPattern.size() != 1)
-                    return;
-
-                auto pRead = readPattern.get_first<uint8_t>();
+                auto pRead = hook::pattern(signature).get_first<uint8_t>();
                 auto pOperand = (uint32_t**)(pRead + (*pRead == 0xA1 ? 1 : 2));
-                if (*pOperand != pBufferIndex)
-                    return;
-
                 RenderBufferReads.push_back(pOperand);
             }
             pSharedBufferIndex = pBufferIndex;
             RenderBufferIndex = *pSharedBufferIndex;
         }
 
+        // Skip the seven-byte device-mode comparison used by HDR's frame-start hook.
         // Install the commit hook before changing any selector access.
-        static auto CommitBufferFlipHook = safetyhook::create_mid(pAfterWait, CommitBufferFlip);
+        static auto CommitBufferFlipHook = safetyhook::create_mid(pAfterWait + 7, CommitBufferFlip);
         if (!CommitBufferFlipHook)
             return;
 
@@ -405,18 +407,18 @@ public:
 
                 // Default the weapon zoom state to 0, used to be always forced to 1 (In TBoGT only)
                 pattern = hook::pattern("C6 05 ? ? ? ? ? 74 ? 83 3D ? ? ? ? ? 75 ? 80 3D");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     injector::WriteMemory<uint8_t>(pattern.get_first(6), 0, true);
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("88 1D ? ? ? ? 74 ? 39 1D");
                     injector::WriteMemory<uint8_t>(pattern.get_first(1), 0x25, true);
                 }
 
                 pattern = hook::pattern("80 8E ? ? ? ? ? EB ? 84 D2 74 ? 8A 81");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     injector::MakeNOP(pattern.get_first(0), 7, true);
                     static auto AimZoomHook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
@@ -425,7 +427,7 @@ public:
                         *byte_103C111 = 1;
                     });
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("08 9E ? ? ? ? E9");
                     injector::MakeNOP(pattern.get_first(0), 6, true);
@@ -469,11 +471,11 @@ public:
             if (bDefaultCameraAngleInTLaD)
             {
                 auto pattern = hook::pattern("0F 44 C2 89 01 B0 ? C2 ? ? 8B 4C 24");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     injector::MakeNOP(pattern.get_first(0), 5, true);
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("C7 00 ? ? ? ? B0 ? C2 ? ? 8B 44 24 ? C7 00 ? ? ? ? 83 3D");
                     injector::MakeNOP(pattern.get_first(0), 6, true);
@@ -484,11 +486,11 @@ public:
             if (bPedDeathAnimFixFromTBoGT)
             {
                 auto pattern = hook::pattern("75 ? 80 7B ? ? 75 ? 51");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     injector::MakeNOP(pattern.get_first(0), 2, true); // jnz --> nop
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("75 ? 80 7F ? ? 75 ? D9 EE");
                     injector::MakeNOP(pattern.get_first(0), 2, true); // jnz --> nop
@@ -548,11 +550,11 @@ public:
 
                 // Remove the episode ID check that resulted in flickering LOD lights at certain camera angles in TBoGT
                 pattern = hook::pattern("0F 85 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 10 8C 24");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jnz --> jmp
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("75 ? F3 0F 10 05 ? ? ? ? F3 0F 10 4C 24 ? F3 0F 59 C8");
                     injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz --> jmp
@@ -562,11 +564,11 @@ public:
             // Enable LOD lights/vehicle impostors during cutscenes, like on the console versions
             {
                 auto pattern = hook::pattern("E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? A1 ? ? ? ? 83 F8 ? 0F 84");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     injector::MakeNOP(pattern.get_first(0), 13, true);
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("E8 ? ? ? ? 84 C0 75 ? A1 ? ? ? ? 83 F8 ? 74 ? 83 F8 ? 74 ? 83 F8");
                     injector::MakeNOP(pattern.get_first(0), 9, true);
@@ -665,7 +667,7 @@ public:
                 // CCamFollowVehicle Y axis
                 {
                     auto pattern = hook::pattern("F3 0F 5E C8 F3 0F 10 04 85");
-                    if (!pattern.empty())
+                    if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                     {
                         static auto dword_E9AA1C = *pattern.get_first<float*>(9);
                         injector::MakeNOP(pattern.get_first(0), 22, true);
@@ -686,7 +688,7 @@ public:
                                 AutoCenterValue = 0.0f;
                         });
                     }
-                    else
+                    else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                     {
                         pattern = hook::pattern("F3 0F 5E C2 F3 0F 11 84 24 ? ? ? ? F3 0F 10 43");
                         injector::MakeNOP(pattern.get_first(0), 13, true);
@@ -730,7 +732,7 @@ public:
             // Fix mouse cursor scaling
             {
                 auto pattern = hook::pattern("F3 0F 11 44 24 ? E8 ? ? ? ? D9 5C 24 ? 80 3D ? ? ? ? ? 74 ? F3 0F 10 05 ? ? ? ? EB ? F3 0F 10 44 24 ? F3 0F 59 05");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     injector::MakeNOP(pattern.get_first(0), 6, true);
                     static auto MouseHeightHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
@@ -738,7 +740,7 @@ public:
                         *(float*)(regs.esp + 0x40 - 0x24) = 30.0f * (1.0f / 768.0f);
                     });
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("F3 0F 11 44 24 ? E8 ? ? ? ? D9 5C 24 ? 80 3D ? ? ? ? ? 74 ? F3 0F 10 05 ? ? ? ? EB ? F3 0F 10 44 24 ? F3 0F 10 4C 24");
                     injector::MakeNOP(pattern.get_first(0), 6, true);
@@ -749,7 +751,7 @@ public:
                 }
 
                 pattern = hook::pattern("F3 0F 11 44 24 ? FF 50 ? 66 0F 6E C0 0F 5B C0 6A");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     injector::MakeNOP(pattern.get_first(0), 6, true);
                     static auto MouseWidthHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
@@ -757,7 +759,7 @@ public:
                         *(float*)(regs.esp + 0x3C - 0x2C) = 30.0f * (1.0f / 1024.0f);
                     });
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("F3 0F 11 44 24 ? FF D2 F3 0F 2A C0 F3 0F 59 05");
                     injector::MakeNOP(pattern.get_first(0), 6, true);
@@ -781,7 +783,7 @@ public:
             // Pause menu map crosshair aspect ratio scaling
             {
                 auto pattern = hook::pattern("8B 44 24 ? 56 8B 35 ? ? ? ? 85 F6");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     static auto CFrontEnd__GetWidgetValue = (rage::Vector2 * (__cdecl*)(rage::Vector2*, int))pattern.get_first(0);
 
@@ -807,7 +809,7 @@ public:
                         *(float*)(regs.esp + 0x64 - 0x30) /= ((float)*rage::grcDevice::ms_nActiveWidth / (float)*rage::grcDevice::ms_nActiveHeight) * 0.75f; // 0x4C (76); MAP_CURSOR_FADE
                     });
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("8B 0D ? ? ? ? 85 C9 8B 44 24 ? 74");
                     static auto CFrontEnd__GetWidgetValue = (rage::Vector2 * (__cdecl*)(rage::Vector2*, int))pattern.get_first(0);
@@ -846,38 +848,35 @@ public:
             // Remove free camera boundary limits in the video editor
             {
                 auto pattern = hook::pattern("39 77 14 73 ? 56 6A 00 6A 01 E8");
-                if (!pattern.empty())
+                injector::WriteMemory<uint8_t>(pattern.get_first(3), 0xEB, true); // jnb --> jmp
+
+                pattern = hook::pattern("0F 86 ? ? ? ? 0F 2E FA");
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
-                    injector::WriteMemory<uint8_t>(pattern.get_first(3), 0xEB, true); // jnb --> jmp
+                    injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jbe --> jmp
 
-                    pattern = hook::pattern("0F 86 ? ? ? ? 0F 2E FA");
-                    if (!pattern.empty())
-                    {
-                        injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jbe --> jmp
+                    pattern = hook::pattern("0F 82 ? ? ? ? 80 8F");
+                    injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jb --> jmp
 
-                        pattern = hook::pattern("0F 82 ? ? ? ? 80 8F");
-                        injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jb --> jmp
+                    pattern = hook::pattern("72 ? 0F 2F 44 24 ? 72 ? 0F 28 C3");
+                    injector::WriteMemory(pattern.get_first(0), 0x12EB, true); // jb --> jmp
 
-                        pattern = hook::pattern("72 ? 0F 2F 44 24 ? 72 ? 0F 28 C3");
-                        injector::WriteMemory(pattern.get_first(0), 0x12EB, true); // jb --> jmp
+                    pattern = hook::pattern("0F 2F 05 ? ? ? ? 72 ? 83 3D ? ? ? ? 01 74 ? A1");
+                    injector::WriteMemory<uint8_t>(pattern.get_first(7), 0xEB, true); // jb --> jmp
+                }
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
+                {
+                    pattern = hook::pattern("0F 86 ? ? ? ? F3 0F 10 54 24 ? 0F 2E D4");
+                    injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jbe --> jmp
 
-                        pattern = hook::pattern("0F 2F 05 ? ? ? ? 72 ? 83 3D ? ? ? ? 01 74 ? A1");
-                        injector::WriteMemory<uint8_t>(pattern.get_first(7), 0xEB, true); // jb --> jmp
-                    }
-                    else
-                    {
-                        pattern = hook::pattern("0F 86 ? ? ? ? F3 0F 10 54 24 ? 0F 2E D4");
-                        injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jbe --> jmp
+                    pattern = hook::pattern("0F 82 ? ? ? ? 80 8E");
+                    injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jb --> jmp
 
-                        pattern = hook::pattern("0F 82 ? ? ? ? 80 8E");
-                        injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jb --> jmp
+                    pattern = hook::pattern("72 ? 0F 2F C5 72 ? 0F 2F FA");
+                    injector::WriteMemory(pattern.get_first(0), 0x20EB, true); // jb --> jmp
 
-                        pattern = hook::pattern("72 ? 0F 2F C5 72 ? 0F 2F FA");
-                        injector::WriteMemory(pattern.get_first(0), 0x20EB, true); // jb --> jmp
-
-                        pattern = hook::pattern("0F 82 ? ? ? ? 83 3D ? ? ? ? ? 74 ? A1");
-                        injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jb --> jmp
-                    }
+                    pattern = hook::pattern("0F 82 ? ? ? ? 83 3D ? ? ? ? ? 74 ? A1");
+                    injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jb --> jmp
                 }
             }
 
@@ -944,14 +943,14 @@ public:
             if (bAlwaysDisplayHealthOnReticle)
             {
                 auto pattern = hook::pattern("74 ? 56 57 E8 ? ? ? ? 83 C4 ? 84 C0 75 ? 8B 46");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
 
                     pattern = hook::pattern("75 ? 38 83 ? ? ? ? 0F 84");
                     injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("74 ? 56 57 E8 ? ? ? ? 83 C4 ? 84 C0 75 ? 8B 56");
                     injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
@@ -978,7 +977,7 @@ public:
             // Fix missing background radio in Roman's cab depot during cutscenes (CE only)
             {
                 auto pattern = hook::pattern("75 ? 80 3D ? ? ? ? ? 74 ? F3 0F 10 05 ? ? ? ? F3 0F 11 44 24 ? EB ? F3 0F 10 44 24");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz --> jmp
                 }
@@ -1008,11 +1007,11 @@ public:
                 if (bFixHelicopterSearchlights == 1)
                 {
                     auto pattern = hook::pattern("8B 0D ? ? ? ? 84 C0 8B 47");
-                    if (!pattern.empty())
+                    if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                     {
                         CHeli::dword_1670CD0 = *pattern.get_first<uint32_t*>(2);
                     }
-                    else
+                    else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                     {
                         pattern = hook::pattern("A3 ? ? ? ? F3 0F 10 86 ? ? ? ? 0F BF 4E");
                         CHeli::dword_1670CD0 = *pattern.get_first<uint32_t*>(1);
@@ -1024,11 +1023,11 @@ public:
                 else if (bFixHelicopterSearchlights == 2)
                 {
                     auto pattern = hook::pattern("A1 ? ? ? ? 3B 05 ? ? ? ? 0F 84 ? ? ? ? E8 ? ? ? ? F3 0F 10 87");
-                    if (!pattern.empty())
+                    if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                     {
                         injector::MakeNOP(pattern.get_first(0), 17, true);
                     }
-                    else
+                    else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                     {
                         pattern = hook::pattern("8B 15 ? ? ? ? 3B 15 ? ? ? ? 0F 84 ? ? ? ? E8");
                         injector::MakeNOP(pattern.get_first(0), 18, true);
@@ -1051,7 +1050,7 @@ public:
             // Bullet traces
             {
                 auto pattern = hook::pattern("0F 2F C8 72 ? FF 76");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     static auto loc_B5D8D8 = resolve_next_displacement(pattern.get_first(0)).value();
                     injector::MakeNOP(pattern.get_first(0), 5, true);
@@ -1067,7 +1066,7 @@ public:
                             return_to(loc_B5D8D8);
                     });
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("DF F1 DD D8 72 ? 8B 56 ? 52");
                     static auto loc_9D2329 = resolve_displacement(pattern.get_first(4)).value();
@@ -1091,9 +1090,14 @@ public:
                     });
                 }
 
-                // Force IV/TLAD bullet trace particles, TBoGT trace particles have weird/wrong positioning
+                // Trace particles: the game picks TBoGT's (E2) in TBoGT, IV/TLAD's otherwise. Force IV/TLAD's, TBoGT's have
+                // weird/wrong positioning; with Episodic Weapons (episodiccontent.ixx, read once at start) force E2's in all
+                // episodes instead. Both choices live here, so only one thread writes this branch.
                 pattern = find_pattern("75 ? 68 ? ? ? ? EB ? 68 ? ? ? ? E8 ? ? ? ? 83 C4 ? 8B F8", "75 ? 68 ? ? ? ? EB ? 68 ? ? ? ? E8 ? ? ? ? 83 C4 ? 6A");
-                injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz --> jmp
+                if (reader.ReadInteger("EPISODICCONTENT", "EpisodicWeapons", 0) != 0)
+                    injector::MakeNOP(pattern.get_first(0), 2, true); // jnz --> nop: E2 traces
+                else
+                    injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz --> jmp: IV/TLAD traces
             }
 
             // Fix TLAD Marta Full of Grace crash (https://github.com/GTAmodding/GTAIV-Issues-List/issues/235)
@@ -1210,7 +1214,7 @@ public:
             // Fix NPC vehicles swerving lanes due to trains running above/below them, kind of hacky probably but it works (Clippy95)
             {
                 auto pattern = hook::pattern("F3 0F 10 0D ? ? ? ? 0F 2F C8 76 ? 3B F1");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     static auto dword_FE8AFC = *pattern.get_first<float*>(4);
                     injector::MakeNOP(pattern.get_first(0), 8, true);
@@ -1228,7 +1232,7 @@ public:
                         }
                     });
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("F3 0F 10 0D ? ? ? ? 0F 2F C8 76 ? 3B F7");
                     static auto flt_D6E58C = *pattern.get_first<float*>(4);
@@ -1252,7 +1256,7 @@ public:
             // Fix the date going backwards when dying or getting busted between 12pm and 11pm, and respraying between 9pm and 11:59pm (https://github.com/GTAmodding/GTAIV-Issues-List/issues/164)
             {
                 auto pattern = hook::pattern("6A ? 53 55 56 E8 ? ? ? ? 69 FF 88 13");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     uint8_t* ptr = (uint8_t*)pattern.get_first(0);
 
@@ -1262,7 +1266,7 @@ public:
                     ptr[1] = 0x6A;
                     ptr[2] = 0xFF;
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("6A ? 56 53 55 E8 ? ? ? ? 69 FF");
 
@@ -1276,12 +1280,33 @@ public:
                 }
             }
 
+            // Garage cars whose model isn't a vehicle in this session (CGarage::RestoreCarsForThisHideOut)
+            {
+                // The model info table and its size, from a loop over all model infos
+                auto pattern = find_pattern(
+                    "8B 3C B5 ? ? ? ? 85 FF 74 ? 8B 07 8B CF FF 50 ? 8B D8 85 DB 74 ? 39 6F ? 74 ? 46 81 FE",                   // 1.2.0.32, 1.2.0.43, 1.2.0.59
+                    "8B 34 BD ? ? ? ? 85 F6 74 ? 8B 06 8B 50 14 8B CE FF D2 8B D8 85 DB 74 ? 39 6E ? 74 ? 83 C7 01 81 FF");    // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
+                bool legacy = *pattern.get_first<uint8_t>(1) == 0x34;
+                CStoredCar::ms_modelInfoPtrs = *pattern.get_first<void**>(3);
+                CStoredCar::nModelInfoCount = *pattern.get_first<uint32_t>(legacy ? 36 : 32);
+
+                // The check before the model request
+                pattern = find_pattern("8D 4F F0 E8 ? ? ? ? 84 C0 74 ? 0F B7 07", "8D 4E F0 E8 ? ? ? ? 84 C0 74 ? A1");
+                CStoredCar::IsOccupied = injector::GetBranchDestination(pattern.get_first(3)).get<std::remove_pointer_t<decltype(CStoredCar::IsOccupied)>>();
+                injector::MakeCALL(pattern.get_first(3), CStoredCar::IsOccupiedByVehicle, true);
+
+                // The check before CStoredCar::RestoreVehicle
+                pattern = find_pattern("8D 7B 02 8B CE E8 ? ? ? ? 84 C0 74 ? 8B CE E8", "02 00 00 00 8B FF 8B CE E8 ? ? ? ? 84 C0 74 ? 8B CE E8");
+                injector::MakeCALL(pattern.get_first(legacy ? 8 : 5), CStoredCar::IsOccupiedByVehicle, true);
+            }
+
             // Native patches
             {
                 // Fix TLAD phone calls crash (https://github.com/GTAmodding/GTAIV-Issues-List/issues/232)
                 {
-                    hbCOMPARE_STRING.fun = NativeOverride::Register(Natives::NativeHashes::COMPARE_STRING, NATIVE_COMPARE_STRING_1, "E8 ? ? ? ? ? ? ? ? ? 83 C4 ? 89 ? 5E C3", 30);
-                    if (!hbCOMPARE_STRING.fun)
+                    if (!NativeOverride::FindCall(Natives::NativeHashes::COMPARE_STRING, "E8 ? ? ? ? ? ? ? ? ? 83 C4 ? 89 ? 5E C3", 30).empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+                        hbCOMPARE_STRING.fun = NativeOverride::Register(Natives::NativeHashes::COMPARE_STRING, NATIVE_COMPARE_STRING_1, "E8 ? ? ? ? ? ? ? ? ? 83 C4 ? 89 ? 5E C3", 30);
+                    else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0: no such call in the handler
                     {
                         auto pattern = hook::pattern("8B 44 24 ? 85 C0 75 ? 32 C0 C3 8B 4C 24 ? 85 C9");
                         shNATIVE_COMPARE_STRING = safetyhook::create_inline(pattern.get_first(0), NATIVE_COMPARE_STRING_2);

@@ -311,12 +311,10 @@ public:
                 // phase and stores the 30 fps frame it held at (+0x1B4), then keeps using that frame. Not storing it keeps
                 // the hold to the frames that are really at the cut, at any frame rate.
                 pattern = find_pattern("F3 0F 11 86 ? ? ? ? 5E 5B 8B 4C 24 30 33 CC E8 ? ? ? ? 83 C4 34 C2 04 00", "F3 0F 11 8F ? ? ? ? 5F 5E B8 ? ? ? ? 5D 83 C4 2C C2 04 00");
-                if (!pattern.empty())
-                    injector::MakeNOP(pattern.get_first(0), 8, true);
+                injector::MakeNOP(pattern.get_first(0), 8, true);
 
                 pattern = find_pattern("F3 0F 11 86 ? ? ? ? 5F 5E B8 ? ? ? ? 5B 8B 4C 24 30 33 CC E8 ? ? ? ? 83 C4 34 C2 04 00", "F3 0F 11 8F ? ? ? ? C6 87 ? ? ? ? ? 5F 5E B8 ? ? ? ? 5D 83 C4 2C C2 04 00");
-                if (!pattern.empty())
-                    injector::MakeNOP(pattern.get_first(0), 8, true);
+                injector::MakeNOP(pattern.get_first(0), 8, true);
             }
 
             // Cutscene animation-audio sync adjustments
@@ -325,11 +323,11 @@ public:
                 g_CutsceneAudioEntity = *pattern.get_first<uint8_t*>(1);
 
                 pattern = hook::pattern("8B 0D ? ? ? ? F6 C1 ? 75 ? 83 C9 ? 89 0D ? ? ? ? C7 05");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     pGetTimeStepStaticsInitGuard = *pattern.get_first<int*>(2);
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("A1 ? ? ? ? A8 ? F3 0F 10 05");
                     pGetTimeStepStaticsInitGuard = *pattern.get_first<int*>(1);

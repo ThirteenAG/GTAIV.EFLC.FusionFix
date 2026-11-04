@@ -17,6 +17,20 @@ export namespace TemporalAA
     Mode GetMode();
 }
 
+// 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0: grcViewport::RegenerateMatrices takes the viewport in ESI
+void* RegenerateMatricesESI = nullptr;
+__declspec(naked) void __fastcall RegenerateMatricesLegacy(rage::grcViewport* viewport, void*)
+{
+    __asm
+    {
+        push esi
+        mov esi, ecx
+        call dword ptr [RegenerateMatricesESI]
+        pop esi
+        ret
+    }
+}
+
 class Temporal
 {
 public:
@@ -529,8 +543,12 @@ public:
             DepthFrame = Frame;
     }
 
-    static bool Resolve(IDirect3DDevice9* device, IDirect3DTexture9* scene, IDirect3DSurface9* output)
+    // Works on the real device: the game's device wrapper skips state changes that match its own cache, so states
+    // set through the wrapper and then restored by the state block would leave that cache wrong for later passes
+    // (the motion blur samplers stayed on wrap and pulled in the opposite screen edge).
+    static bool Resolve(IDirect3DTexture9* scene, IDirect3DSurface9* output)
     {
+        auto device = RealDevice();
         if (!device || !scene || !output || LastMode == Mode::Off || DepthFrame != Frame || ResolvedFrame == Frame ||
             !Ready || !StencilRT || !StencilRT->mD3DTexture || !HistoryRT[0] || !HistoryRT[1] || !ResolvePS || !CopyPS || !StateBlock)
             return false;
@@ -621,7 +639,7 @@ public:
 
     static void RemoveJitterAfterResolve()
     {
-        if (!RegenerateMatrices || ResolvedFrame != Frame)
+        if (ResolvedFrame != Frame)
             return;
         auto viewport = rage::GetCurrentViewport();
         if (!viewport || !viewport->mIsPerspective || viewport->mWidth != Current.Width || viewport->mHeight != Current.Height)
@@ -675,10 +693,17 @@ public:
         }
 
         if (!viewport || viewport != SceneViewport || TemporalAA::GetMode() == TemporalAA::Mode::Off || viewport->mWidth <= 0 || viewport->mHeight <= 0)
+        {
+            if (viewport && viewport == ScreenMatrix.Viewport)
+                ScreenMatrix.Viewport = nullptr;
             return hbSetCameraPerspective.fun(_this, edx, viewport, fov, aspect, nearClip, farClip);
+        }
 
         auto frame = CTimer::m_frameCount ? *CTimer::m_frameCount : JitterCounter++;
         auto jitter = JitterOf(frame);
+
+        hbSetCameraPerspective.fun(_this, edx, viewport, fov, aspect, nearClip, farClip);
+        std::memcpy(ScreenMatrix.Unjittered, viewport->mMatrix_200, sizeof(ScreenMatrix.Unjittered));
 
         auto shiftX = viewport->field_2D8;
         auto shiftY = viewport->field_2DC;
@@ -687,6 +712,33 @@ public:
         hbSetCameraPerspective.fun(_this, edx, viewport, fov, aspect, nearClip, farClip);
         viewport->field_2D8 = shiftX;
         viewport->field_2DC = shiftY;
+
+        std::memcpy(ScreenMatrix.Jittered, viewport->mMatrix_200, sizeof(ScreenMatrix.Jittered));
+        ScreenMatrix.Viewport = viewport;
+    }
+
+    // World to screen projection of the HUD (lock-on reticle) and of scripts. The game viewport holds the
+    // jittered matrices for the whole frame, which would make everything placed with them shake.
+    struct UnjitteredScreenMatrix
+    {
+        rage::grcViewport* Viewport{};
+        float Jittered[4][4]{};
+        float Unjittered[4][4]{};
+    };
+
+    static inline UnjitteredScreenMatrix ScreenMatrix;
+    static inline SafetyHookInline shTransformToScreen{};
+
+    static float* __fastcall TransformToScreen(rage::grcViewport* viewport, void* edx, const float* position, float* x, float* y)
+    {
+        if (viewport != ScreenMatrix.Viewport || std::memcmp(viewport->mMatrix_200, ScreenMatrix.Jittered, sizeof(ScreenMatrix.Jittered)) != 0)
+            return shTransformToScreen.unsafe_thiscall<float*>(viewport, position, x, y);
+
+        const auto& m = ScreenMatrix.Unjittered;
+        auto w = 1.0f / (position[0] * m[0][3] + position[1] * m[1][3] + position[2] * m[2][3] + m[3][3]);
+        *x = (position[0] * m[0][0] + position[1] * m[1][0] + position[2] * m[2][0] + m[3][0]) * w;
+        *y = (position[0] * m[0][1] + position[1] * m[1][1] + position[2] * m[2][1] + m[3][1]) * w;
+        return y;
     }
 
 
@@ -775,39 +827,42 @@ public:
             TrackObjects = reader.ReadInteger("TEMPORAL", "ObjectMotionVectors", 1) != 0;
             TrackBones = reader.ReadInteger("TEMPORAL", "SkinnedMotionVectors", 1) != 0;
             auto pattern = hook::pattern("F3 0F 11 04 24 53 E8 ? ? ? ? 5F 5E 5B 8B E5");
-            if (!pattern.empty())
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 hbSetCameraPerspective.fun = injector::MakeCALL(pattern.get_first(6), SetCameraPerspective, true).get();
-            else
+            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
             {
                 pattern = hook::pattern("B9 ? ? ? ? D9 47 54 D9 5C 24 08 D9 44 24 ? D9 5C 24 04 D9 47 50 D9 1C 24 56 E8");
-                if (!pattern.empty())
-                    hbSetCameraPerspective.fun = injector::MakeCALL(pattern.get_first(27), SetCameraPerspective, true).get();
+                hbSetCameraPerspective.fun = injector::MakeCALL(pattern.get_first(27), SetCameraPerspective, true).get();
             }
 
             pattern = find_pattern("55 8B EC 83 E4 F8 51 56 8B F1 8D 86 80 00 00 00 50 8D 86 80 01 00 00 50 8D 8E C0 00 00 00 E8",
                 "56 8B F1 8D 86 80 00 00 00 50 8D 86 80 01 00 00 50 8D 8E C0 00 00 00 E8");
-            if (!pattern.empty())
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 RegenerateMatrices = reinterpret_cast<decltype(RegenerateMatrices)>(pattern.get_first(0));
+            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
+            {
+                RegenerateMatricesESI = hook::get_pattern("55 8B EC 83 E4 F8 8D 86 80 00 00 00 50 8D 8E 80 01 00 00 51 8D 8E C0 00 00 00 E8");
+                RegenerateMatrices = RegenerateMatricesLegacy;
+            }
+
+            pattern = find_pattern("55 8B EC 83 E4 F8 8B 45 08 F3 0F 10 B1 10 02 00 00 F3 0F 10 28 F3 0F 10 50 04",
+                "55 8B EC 83 E4 F0 8B 45 08 F3 0F 10 58 04 F3 0F 10 60 08 F3 0F 10 10 F3 0F 10 81 20 02 00 00 F3 0F 10 89 10 02 00 00");
+            shTransformToScreen = safetyhook::create_inline(pattern.get_first(0), TransformToScreen);
 
             pattern = find_pattern("83 EC 14 53 55 8B 6C 24 20 8B D9", "83 EC 14 55 8B 6C 24 1C 83 FD 01");
-            if (!pattern.empty())
-                AddToDrawListHook<0>::hook = safetyhook::create_inline(pattern.get_first(0), AddToDrawListHook<0>::AddToDrawList);
+            AddToDrawListHook<0>::hook = safetyhook::create_inline(pattern.get_first(0), AddToDrawListHook<0>::AddToDrawList);
 
             pattern = find_pattern("83 EC 44 A1 ? ? ? ? 33 C4 89 44 24 40 8A 44 24 50", "83 EC 30 53 8B 5C 24 3C 56 8B F1");
-            if (!pattern.empty())
-                AddToDrawListHook<1>::hook = safetyhook::create_inline(pattern.get_first(0), AddToDrawListHook<1>::AddToDrawList);
+            AddToDrawListHook<1>::hook = safetyhook::create_inline(pattern.get_first(0), AddToDrawListHook<1>::AddToDrawList);
 
             pattern = find_pattern("83 EC 08 56 8B F1 F7 86 10 02 00 00 00 00 10 00", "51 56 8B F1 F7 86 10 02 00 00 00 00 10 00");
-            if (!pattern.empty())
-                AddToDrawListHook<2>::hook = safetyhook::create_inline(pattern.get_first(0), AddToDrawListHook<2>::AddToDrawList);
+            AddToDrawListHook<2>::hook = safetyhook::create_inline(pattern.get_first(0), AddToDrawListHook<2>::AddToDrawList);
 
             pattern = find_pattern("53 8B D9 8B 83 14 03 00 00", "56 8B F1 8B 86 14 03 00 00");
-            if (!pattern.empty())
-                AddToDrawListHook<3>::hook = safetyhook::create_inline(pattern.get_first(0), AddToDrawListHook<3>::AddToDrawList);
+            AddToDrawListHook<3>::hook = safetyhook::create_inline(pattern.get_first(0), AddToDrawListHook<3>::AddToDrawList);
 
             pattern = hook::pattern("51 56 8B F1 83 7E 34 00");
-            if (!pattern.empty())
-                AddToDrawListHook<4>::hook = safetyhook::create_inline(pattern.get_first(0), AddToDrawListHook<4>::AddToDrawList);
+            AddToDrawListHook<4>::hook = safetyhook::create_inline(pattern.get_first(0), AddToDrawListHook<4>::AddToDrawList);
 
 
             FusionFixSettings.SetAvailability("PREF_ANTIALIASING", [](int32_t value)
@@ -892,9 +947,9 @@ export namespace TemporalAA
         Temporal::ReleaseResources();
     }
 
-    bool Resolve(IDirect3DDevice9* device, IDirect3DTexture9* scene, IDirect3DTexture9*, IDirect3DSurface9* output)
+    bool Resolve(IDirect3DTexture9* scene, IDirect3DSurface9* output)
     {
-        return Temporal::Resolve(device, scene, output);
+        return Temporal::Resolve(scene, output);
     }
 
     bool IsSceneResolved()

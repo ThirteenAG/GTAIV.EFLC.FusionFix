@@ -57,7 +57,7 @@ void Init()
     hbCGameProcess.fun = injector::MakeCALL(pattern.get_first(0), CGameProcessHook, true).get();
 
     pattern = find_pattern("A1 ? ? ? ? 50 8B 08 FF 51 40", "A1 ? ? ? ? 68 ? ? ? ? 8B 08 50 FF 51 40 8B F8");
-    if (!pattern.empty())
+    if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
     {
         static auto Direct3DDevice = *pattern.get_first<LPDIRECT3DDEVICE9*>(1);
         struct AuxBeforeResetHook
@@ -90,7 +90,7 @@ void Init()
             }
         }; injector::MakeInline<AuxEndSceneHook>(pattern.get_first(0));
     }
-    else
+    else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
     {
         pattern = hook::pattern("8B 08 8B 51 40 68 ? ? ? ? 50 FF D2 8B");
         struct AuxBeforeResetHook

@@ -1262,7 +1262,7 @@ private:
                     // it before the game computed bloom and exposure.
                     if (TemporalAA::GetMode() != TemporalAA::Mode::Off && !TemporalAA::IsSceneResolved())
                     {
-                        if (TemporalAA::Resolve(pDevice, PostFxResources.textureRead, PostFxResources.renderTargetTex, PostFxResources.renderTargetSurf))
+                        if (TemporalAA::Resolve(PostFxResources.textureRead, PostFxResources.renderTargetSurf))
                         {
                             PostFxResources.swapbuffers();
                             pDevice->SetPixelShader(pShader);
@@ -1570,6 +1570,59 @@ private:
         return S_FALSE;
     }
 
+    // The render states, samplers and shaders the ambient occlusion passes set (AO.fx), put back on destruction
+    struct AOSavedState
+    {
+        static constexpr D3DRENDERSTATETYPE RenderStates[]
+        {
+            D3DRS_ALPHABLENDENABLE, D3DRS_SRCBLEND, D3DRS_DESTBLEND, D3DRS_ALPHATESTENABLE, D3DRS_ZENABLE, D3DRS_ZWRITEENABLE,
+            D3DRS_STENCILENABLE, D3DRS_CULLMODE, D3DRS_FOGENABLE, D3DRS_CLIPPING
+        };
+        static constexpr D3DSAMPLERSTATETYPE SamplerStates[]
+        {
+            D3DSAMP_ADDRESSU, D3DSAMP_ADDRESSV, D3DSAMP_MAGFILTER, D3DSAMP_MINFILTER, D3DSAMP_MIPFILTER
+        };
+        static constexpr DWORD Stages = 8;
+
+        IDirect3DDevice9* device;
+        DWORD renderStates[std::size(RenderStates)]{};
+        DWORD samplerStates[Stages][std::size(SamplerStates)]{};
+        IDirect3DBaseTexture9* textures[Stages]{};
+        IDirect3DVertexShader9* vertexShader{};
+        IDirect3DPixelShader9* pixelShader{};
+
+        explicit AOSavedState(IDirect3DDevice9* d) : device(d)
+        {
+            for (size_t i = 0; i < std::size(RenderStates); ++i)
+                device->GetRenderState(RenderStates[i], &renderStates[i]);
+            for (DWORD stage = 0; stage < Stages; ++stage)
+            {
+                for (size_t i = 0; i < std::size(SamplerStates); ++i)
+                    device->GetSamplerState(stage, SamplerStates[i], &samplerStates[stage][i]);
+                device->GetTexture(stage, &textures[stage]);
+            }
+            device->GetVertexShader(&vertexShader);
+            device->GetPixelShader(&pixelShader);
+        }
+
+        ~AOSavedState()
+        {
+            for (size_t i = 0; i < std::size(RenderStates); ++i)
+                device->SetRenderState(RenderStates[i], renderStates[i]);
+            for (DWORD stage = 0; stage < Stages; ++stage)
+            {
+                for (size_t i = 0; i < std::size(SamplerStates); ++i)
+                    device->SetSamplerState(stage, SamplerStates[i], samplerStates[stage][i]);
+                device->SetTexture(stage, textures[stage]);
+                SAFE_RELEASE(textures[stage]);
+            }
+            device->SetVertexShader(vertexShader);
+            device->SetPixelShader(pixelShader);
+            SAFE_RELEASE(vertexShader);
+            SAFE_RELEASE(pixelShader);
+        }
+    };
+
     static void RenderAmbientOcclusion()
     {
         static auto AO = FusionFixSettings.GetRef("PREF_SAO");
@@ -1605,9 +1658,14 @@ private:
             IDirect3DSurface9* SpecularRT;
             PostFxResources.SpecularTex->GetSurfaceLevel(0, &SpecularRT);
 
+            // The states the passes change are put back here through the game's device, not by the effect: the effect's
+            // own state block restores the real device behind the game's state cache, and the motion vectors written
+            // to _STENCIL_BUFFER_ in the next frame's G-buffer came out wrong (TAA and DLAA smeared the whole image).
+            AOSavedState saved(pDevice);
+
             UINT passes = 0;
             ID3DXEffect* effect = PostFxResources.AOEffect;
-            effect->Begin(&passes, 0); assert(passes == 5);
+            effect->Begin(&passes, D3DXFX_DONOTSAVESTATE); assert(passes == 5);
             {
                 rage::grcViewport* currGrcViewport = rage::GetCurrentViewport();
 
@@ -1794,7 +1852,7 @@ private:
         IDirect3DSurface9* resolvedSurface = nullptr;
         scene->GetSurfaceLevel(0, &sceneSurface);
         resolved->GetSurfaceLevel(0, &resolvedSurface);
-        if (sceneSurface && resolvedSurface && TemporalAA::Resolve(pDevice, scene, resolved, resolvedSurface))
+        if (sceneSurface && resolvedSurface && TemporalAA::Resolve(scene, resolvedSurface))
             pDevice->StretchRect(resolvedSurface, nullptr, sceneSurface, nullptr, D3DTEXF_POINT);
         SAFE_RELEASE(resolvedSurface);
         SAFE_RELEASE(sceneSurface);
@@ -1896,22 +1954,21 @@ public:
 
                 // Downsampling of the scene for bloom and exposure, the first pass of the game's post processing
                 pattern = hook::pattern("6A 00 FF B7 ? ? ? ? FF 77 18 E8 ? ? ? ? FF 77 18 8B 4F 60");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                     hbDrawCallDownsample.fun = injector::MakeCALL(pattern.get_first(11), DrawCallDownsample).get();
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("8B 46 18 6A 00 52 50 8B CE E8 ? ? ? ? 8B 4E 18 8B 46 60");
-                    if (!pattern.empty())
-                        hbDrawCallDownsample.fun = injector::MakeCALL(pattern.get_first(9), DrawCallDownsample).get();
+                    hbDrawCallDownsample.fun = injector::MakeCALL(pattern.get_first(9), DrawCallDownsample).get();
                 }
 
                 // Fog pass: pre-alpha depth and the copy of the scene for raindrops, and the reactive mask of temporal AA
                 pattern = hook::pattern("FF B6 ? ? ? ? 6A ? E8 ? ? ? ? 5E 8B E5 5D C3");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     hbDrawCallFog.fun = injector::MakeCALL(pattern.get_first(8), DrawCallFog).get();
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("6A ? 8B CE E8 ? ? ? ? 5E 8B E5");
                     hbDrawCallFog.fun = injector::MakeCALL(pattern.get_first(4), DrawCallFog).get();

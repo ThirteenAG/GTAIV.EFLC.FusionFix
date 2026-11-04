@@ -146,9 +146,9 @@ public:
         FusionFix::onInitEventAsync() += []()
         {
             auto pattern = hook::pattern("83 C4 14 B9 ? ? ? ? 68 ? ? ? ? E8");
-            if (!pattern.empty())
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 gameButtonPtrs = *pattern.get_first<void**>(4);
-            else
+            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
             {
                 pattern = hook::pattern("83 C4 14 68 ? ? ? ? B9");
                 gameButtonPtrs = *pattern.get_first<void**>(9);

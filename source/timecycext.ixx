@@ -455,7 +455,7 @@ public:
             });
 
             pattern = hook::pattern("F3 0F 11 15 ? ? ? ? 76 ? F3 0F 10 44 24 ? 0F 2F 47 ? 76 ? F3 0F 5C 15 ? ? ? ? 0F 57 C0 F3 0F 59 15 ? ? ? ? 0F 2F C2 77");
-            if (!pattern.empty())
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
             {
                 static auto OverwriteCurBlendHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                 {
@@ -468,7 +468,7 @@ public:
                     }
                 });
             }
-            else
+            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
             {
                 pattern = hook::pattern("F3 0F 11 05 ? ? ? ? 76 ? F3 0F 10 53");
                 static auto OverwriteCurBlendHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)

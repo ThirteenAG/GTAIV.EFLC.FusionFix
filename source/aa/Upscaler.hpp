@@ -147,8 +147,10 @@ namespace Antialiasing
             return options;
         }
 
-        inline void Log(const char* format, ...)
+        // Debug builds only
+        inline void Log([[maybe_unused]] const char* format, ...)
         {
+#ifdef _DEBUG
             static std::mutex mutex;
             static FILE* file = nullptr;
             static bool opened = false;
@@ -170,6 +172,7 @@ namespace Antialiasing
             va_end(args);
             fputc('\n', file);
             fflush(file);
+#endif
         }
 
         template <typename T>

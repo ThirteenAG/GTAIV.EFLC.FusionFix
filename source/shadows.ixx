@@ -230,7 +230,7 @@ public:
                 if (bHighResolutionShadows)
                 {
                     pattern = hook::pattern("8D 7D 40 8B 01 57 FF 75 10 FF 75 24 FF 75 0C FF 75 20 FF 75 18");
-                    if (!pattern.empty())
+                    if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                     {
                         static auto FixCascadedShadowMapResolution = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                         {
@@ -246,22 +246,42 @@ public:
                             }
                         });
                     }
-                    else
+                    else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                     {
                         pattern = hook::pattern("8D 4F 40 51 89 4C 24 24 8B 4F 10 51 8B 4F 24 51 8B 4F 0C 51 8B 4F 20 E9");
-                        static auto FixCascadedShadowMapResolution = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        if (!pattern.empty()) // 1.0.8.0, 1.1.3.0
                         {
-                            auto& Width  = *(uint32_t*)(regs.edi + 0x14);
-                            auto& Height = *(uint32_t*)(regs.edi + 0x18);
-                            auto& Levels = *(uint32_t*)(regs.edi + 0x20);
-                            auto& Format = *(uint32_t*)(regs.edi + 0x24);
-
-                            if (D3DFORMAT(Format) == NewCascadeAtlasFormat && Height >= 256 && Width == Height * 4 && Levels == 1)
+                            static auto FixCascadedShadowMapResolution = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                             {
-                                Width  *= 2;
-                                Height *= 2;
-                            }
-                        });
+                                auto& Width  = *(uint32_t*)(regs.edi + 0x14);
+                                auto& Height = *(uint32_t*)(regs.edi + 0x18);
+                                auto& Levels = *(uint32_t*)(regs.edi + 0x20);
+                                auto& Format = *(uint32_t*)(regs.edi + 0x24);
+
+                                if (D3DFORMAT(Format) == NewCascadeAtlasFormat && Height >= 256 && Width == Height * 4 && Levels == 1)
+                                {
+                                    Width  *= 2;
+                                    Height *= 2;
+                                }
+                            });
+                        }
+                        else // 1.0.7.0, 1.1.2.0: grcRenderTargetPC::initialize creates the texture itself
+                        {
+                            pattern = hook::pattern("8B 52 5C 6A 00 8D 5E 34 53 6A 00 57 51 8B 4E 48 51 0F B7 4E 3E 51 0F B7 4E 3C 51 50 FF D2");
+                            static auto FixCascadedShadowMapResolution = safetyhook::create_mid(pattern.get_first(3), [](SafetyHookContext& regs)
+                            {
+                                auto& Width  = *(uint16_t*)(regs.esi + 0x3C);
+                                auto& Height = *(uint16_t*)(regs.esi + 0x3E);
+                                auto Levels = *(uint32_t*)(regs.esi + 0x48);
+                                auto Format = regs.edi;
+
+                                if (D3DFORMAT(Format) == NewCascadeAtlasFormat && Height >= 256 && Width == Height * 4 && Levels == 1)
+                                {
+                                    Width  *= 2;
+                                    Height *= 2;
+                                }
+                            });
+                        }
                     }
                 }
                 else

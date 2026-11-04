@@ -221,13 +221,13 @@ public:
         FusionFix::onInitEventAsync() += []()
         {
             auto pattern = hook::pattern("81 FE ? ? ? ? 0F 8D ? ? ? ? 8B 44 24 08 8B 4C 24 1C F3 0F 10 44 24 ? C1 E2 06");
-            if (!pattern.empty())
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
             {
                 auto i = injector::ReadMemory<uint32_t>(pattern.get(0).get<uintptr_t>(2), true);
                 if (i == 768)
                     IncreaseCoronaLimit();
             }
-            else
+            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
             {
                 pattern = hook::pattern("81 FE ? ? ? ? 0F 8D ? ? ? ? 8B 4C 24 08 8A 54 24 0C");
                 auto i = injector::ReadMemory<uint32_t>(pattern.get(0).get<uintptr_t>(2), true);
