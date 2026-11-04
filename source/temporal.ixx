@@ -812,8 +812,10 @@ public:
             Antialiasing::Options options;
             options.BridgeName = L"Local\\GTAIV.EFLC.FusionFix.Upscaler";
             options.ClientName = "GTAIV.EFLC.FusionFix";
+#ifdef _DEBUG
             options.Log = GetThisModulePath() / L"GTAIV.EFLC.FusionFix.AntiAliasing.log";
             options.HubLog = GetThisModulePath() / L"GTAIV.EFLC.FusionFix.Upscaler.log";
+#endif
             options.DLSSPreset = std::clamp(reader.ReadInteger("TEMPORAL", "DLSSPreset", 0), 0, 15);
             options.D3D9On12Interop = reader.ReadInteger("TEMPORAL", "D3D9on12Interop", 0) != 0;
             Antialiasing::detail::Config() = options;
