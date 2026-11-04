@@ -809,6 +809,16 @@
       "page": "advanced", "group": "@group.turn indicators", "visibility": "editor", "apply": "restart"
     },
     {
+      "id": "HEADLIGHTS.CycleHeadlights", "type": "bool", "default": 0,
+      "label": "@HEADLIGHTS.CycleHeadlights", "description": "@HEADLIGHTS.CycleHeadlights.description",
+      "page": "advanced", "group": "@group.headlights", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
+      "id": "HEADLIGHTS.ShowNotice", "type": "bool", "default": 1,
+      "label": "@HEADLIGHTS.ShowNotice", "description": "@HEADLIGHTS.ShowNotice.description",
+      "page": "advanced", "group": "@group.headlights", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
       "id": "EXPERIMENTAL.DisplayMemoryStats", "type": "bool", "default": 0,
       "label": "@EXPERIMENTAL.DisplayMemoryStats", "description": "@EXPERIMENTAL.DisplayMemoryStats.description",
       "page": "advanced", "group": "@group.experimental", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
