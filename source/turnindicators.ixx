@@ -268,7 +268,6 @@ public:
             static bool bManualTurnIndicators = reader.ReadInteger("TURNINDICATORS", "ManualTurnIndicators", 0);
             static uint32_t nLeftIndicatorKey = reader.ReadInteger("TURNINDICATORS", "LeftIndicatorKey", VK_OEM_4);
             static uint32_t nRightIndicatorKey = reader.ReadInteger("TURNINDICATORS", "RightIndicatorKey", VK_OEM_6);
-            static bool bGpsBlinkers = reader.ReadInteger("TURNINDICATORS", "GpsTurnIndicators", 1) != 0;
             GpsBlinkers::Init();
             BumperGate::Install();
 
@@ -730,13 +729,20 @@ public:
                             // Process player vehicle with turn indicators
                             auto m_fSteerAngle = *reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(vehicleStruct) + SteerAngleOffset);
 
+                            // What the automatic indicators follow (Auto Indicators): 0 steering + GPS, 1 steering, 2 GPS
+                            static auto autoSource = FusionFixSettings.GetRef("PREF_AUTOTURNINDICATORS");
+                            const int source = autoSource ? autoSource->get() : 0;
+                            const bool bFollowSteering = source != 2;
+                            const bool bFollowGps = source != 1;
+
                             // Determine current turn direction
                             int current_turn_direction = 0;
-                            if (m_fSteerAngle > STEER_THRESHOLD)
+                            if (bFollowSteering && m_fSteerAngle > STEER_THRESHOLD)
                                 current_turn_direction = 1; // Left
-                            else if (m_fSteerAngle < -STEER_THRESHOLD)
+                            else if (bFollowSteering && m_fSteerAngle < -STEER_THRESHOLD)
                                 current_turn_direction = 2; // Right
-                            if (current_turn_direction == 0 && bGpsBlinkers)
+                            // Not steering (or steering ignored): follow the GPS route, if there is one
+                            if (current_turn_direction == 0 && bFollowGps)
                                 current_turn_direction = GpsBlinkers::Direction();
 
                             bool currently_turning = (current_turn_direction != 0);

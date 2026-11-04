@@ -260,6 +260,12 @@
       "page": "controls", "group": "@group.gameplay", "control": [ "cycler", "dropdown" ]
     },
     {
+      "id": "MISC.AutoTurnIndicators", "type": "choice", "default": 0,
+      "choices": [ { "value": 0, "label": "@autoturnindicators.steeringgps" }, { "value": 1, "label": "@autoturnindicators.steering" }, { "value": 2, "label": "@autoturnindicators.gps" } ],
+      "label": "@Auto Indicators", "description": "@MISC.AutoTurnIndicators.description",
+      "page": "controls", "group": "@group.gameplay", "control": [ "cycler", "dropdown" ]
+    },
+    {
       "id": "MISC.AlwaysShowBulletTraces", "type": "bool", "default": 0,
       "label": "@Bullet Traces", "description": "@MISC.AlwaysShowBulletTraces.description",
       "page": "controls", "group": "@group.gameplay", "control": [ "switch", "cycler" ]
@@ -808,11 +814,6 @@
       "id": "TURNINDICATORS.RightIndicatorKey", "type": "key", "default": "0xDD",
       "label": "@TURNINDICATORS.RightIndicatorKey", "description": "@TURNINDICATORS.RightIndicatorKey.description",
       "page": "advanced", "group": "@group.turn indicators", "visibility": "editor", "apply": "restart"
-    },
-    {
-      "id": "TURNINDICATORS.GpsTurnIndicators", "type": "bool", "default": 1,
-      "label": "@TURNINDICATORS.GpsTurnIndicators", "description": "@TURNINDICATORS.GpsTurnIndicators.description",
-      "page": "advanced", "group": "@group.turn indicators", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
     },
     {
       "id": "EXPERIMENTAL.DisplayMemoryStats", "type": "bool", "default": 0,
