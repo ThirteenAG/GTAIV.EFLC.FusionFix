@@ -9,7 +9,27 @@ import comvars;
 import natives;
 import settings;
 
-bool bHighResolutionNightShadows = false;
+namespace CWarpShadow
+{
+    static SafetyHookInline shGetSize = {};
+    static int GetSize()
+    {
+        int Size = 0;
+
+        if (*CSettings::ms_NightShadows > 0)
+        {
+            Size = 128 << *CSettings::ms_NightShadows;
+
+            if (Size > 1024)
+                Size = 1024;
+
+            if (bHighResolutionNightShadows)
+                Size *= 2;
+        }
+
+        return Size;
+    }
+}
 
 namespace CShadows
 {
@@ -66,20 +86,6 @@ static void __fastcall sub_D77A00(void* _this, void* edx)
     return shsub_D77A00.unsafe_fastcall(_this, edx);
 }
 
-int GetNightShadowQuality()
-{
-    static auto NightShadows = FusionFixSettings.GetRef("PREF_SHADOW_DENSITY");
-    switch (NightShadows->get())
-    {
-        // MO_OFF / MO_MED / MO_HIGH / MO_VHIGH
-        case 0: return 0;
-        case 1: return 256  * (bHighResolutionNightShadows ? 2 : 1);
-        case 2: return 512  * (bHighResolutionNightShadows ? 2 : 1);
-        case 3: return 1024 * (bHighResolutionNightShadows ? 2 : 1);
-        default: return 0;
-    }
-}
-
 class NightShadows
 {
 public:
@@ -92,10 +98,21 @@ public:
             // [NIGHTSHADOWS]
             bHighResolutionNightShadows = reader.ReadInteger("SHADOWS", "HighResolutionNightShadows", 0) != 0;
 
-            // Make the night shadow options adjust the night shadow resolution
+            // Make 'Night Shadows' adjust warped shadow resolution instead of doing nothing
+            // Normally warped shadow resolution is half the resolution of cascaded shadow resolution.
             {
-                auto pattern = find_pattern("8B 0D ? ? ? ? 85 C9 7E 1B", "8B 0D ? ? ? ? 33 C0 85 C9 7E 1B");
-                static auto shsub_925E70 = safetyhook::create_inline(pattern.get_first(0), GetNightShadowQuality);
+                auto pattern = hook::pattern("8B 0D ? ? ? ? 85 C9 7E ? 83 3D");
+                if (!pattern.empty())
+                {
+                    CSettings::ms_NightShadows = *pattern.get_first<int32_t*>(12);
+                    CWarpShadow::shGetSize = safetyhook::create_inline(pattern.get_first(0), CWarpShadow::GetSize);
+                }
+                else
+                {
+                    pattern = hook::pattern("8B 0D ? ? ? ? 33 C0 85 C9 7E ? 39 05");
+                    CSettings::ms_NightShadows = *pattern.get_first<int32_t*>(14);
+                    CWarpShadow::shGetSize = safetyhook::create_inline(pattern.get_first(0), CWarpShadow::GetSize);
+                }
             }
 
             // Vehicle night shadows
