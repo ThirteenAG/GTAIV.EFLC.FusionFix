@@ -338,6 +338,8 @@
   "Tree Alpha": "木の透過",
   "TreeFX": "木のライティング",
   "Turn Indicators": "ウィンカー",
+  "TURNINDICATORS.ControllerModifier": "コントローラー修飾キー",
+  "TURNINDICATORS.ControllerModifier.description": "手動ウィンカー使用時：Xを押しながら十字キーの左右でウィンカー、下でハザード。Xを押している間は十字キーがゲームに送られません。X単独では従来どおりヘッドライトを操作します。",
   "TURNINDICATORS.LeftIndicatorKey": "左ウィンカーのキー",
   "TURNINDICATORS.LeftIndicatorKey.description": "左ウィンカーのキーです。仮想キーコードで指定します（0xDBは[）。",
   "TURNINDICATORS.ManualTurnIndicators": "手動ウィンカー",

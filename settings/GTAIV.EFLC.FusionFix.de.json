@@ -338,6 +338,8 @@
   "Tree Alpha": "Baumtransparenz",
   "TreeFX": "Baumbeleuchtung",
   "Turn Indicators": "Blinker",
+  "TURNINDICATORS.ControllerModifier": "Controller-Modifikator",
+  "TURNINDICATORS.ControllerModifier.description": "Mit manuellen Blinkern: X halten und das Steuerkreuz drücken, links oder rechts für die Blinker, unten für die Warnblinkanlage. Solange X gehalten wird, geht das Steuerkreuz nicht an das Spiel; X allein bedient weiter die Scheinwerfer.",
   "TURNINDICATORS.LeftIndicatorKey": "Taste für linken Blinker",
   "TURNINDICATORS.LeftIndicatorKey.description": "Die Taste für den linken Blinker, ein Virtual-Key-Code (0xDB ist [).",
   "TURNINDICATORS.ManualTurnIndicators": "Manuelle Blinker",

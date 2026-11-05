@@ -816,6 +816,11 @@
       "page": "advanced", "group": "@group.turn indicators", "visibility": "editor", "apply": "restart"
     },
     {
+      "id": "TURNINDICATORS.ControllerModifier", "type": "bool", "default": 0,
+      "label": "@TURNINDICATORS.ControllerModifier", "description": "@TURNINDICATORS.ControllerModifier.description",
+      "page": "advanced", "group": "@group.turn indicators", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
       "id": "EXPERIMENTAL.DisplayMemoryStats", "type": "bool", "default": 0,
       "label": "@EXPERIMENTAL.DisplayMemoryStats", "description": "@EXPERIMENTAL.DisplayMemoryStats.description",
       "page": "advanced", "group": "@group.experimental", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"

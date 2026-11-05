@@ -20,13 +20,50 @@ constexpr float TAP_THRESHOLD = 300.0f;     // ms threshold for tap detection
 // Controller bumpers with manual turn indicators: LB/RB also fire/aim and pull the handbrake in vehicles. While the
 // player drives with manual indicators, the game only gets a bumper once it has been held longer than a tap
 // (TAP_THRESHOLD), so a tap only works the turn indicator. The raw state is kept for the indicator logic.
+// Optional modifier ([TURNINDICATORS] ControllerModifier): while X is held, the D-pad works the indicators instead of
+// the game (left/right: indicators, down: hazards). X reaches the game only when held longer than a tap and not
+// used for a combination, so holding X alone still works the game's headlight control.
 namespace BumperGate
 {
     constexpr uint16_t LB = 0x0100, RB = 0x0200; // XINPUT_GAMEPAD_LEFT_SHOULDER / RIGHT_SHOULDER
+    constexpr uint16_t kDpadDown = 0x0002, kDpadLeft = 0x0004, kDpadRight = 0x0008, kButtonX = 0x4000;
+    constexpr uint16_t kDpadMod = kDpadDown | kDpadLeft | kDpadRight;
+    enum ModEvent : uint32_t { ModLeft = 1, ModRight = 2, ModHazard = 4 };
     std::atomic<bool> active{ false };
+    std::atomic<bool> modifier{ false };
+    std::atomic<uint32_t> modEvents{ 0 }; // combinations pressed since the game last read them
     std::atomic<uint16_t> raw{ 0 };
     SafetyHookInline shXInputGetState{};
-    DWORD lbStart = 0, rbStart = 0;
+    DWORD lbStart = 0, rbStart = 0, xStart = 0;
+    bool xCombo = false;
+    uint16_t prevDpad = 0;
+
+    void Modifier(uint16_t& buttons, DWORD now)
+    {
+        uint16_t dpad = buttons & kDpadMod;
+        uint16_t pressed = dpad & ~prevDpad;
+        prevDpad = dpad;
+        if (!(buttons & kButtonX))
+        {
+            xStart = 0;
+            xCombo = false;
+            return;
+        }
+        if (!xStart)
+            xStart = now ? now : 1;
+        if (pressed)
+        {
+            uint32_t ev = 0;
+            if (pressed & kDpadLeft) ev |= ModLeft;
+            if (pressed & kDpadRight) ev |= ModRight;
+            if (pressed & kDpadDown) ev |= ModHazard;
+            modEvents |= ev;
+            xCombo = true;
+        }
+        buttons &= ~kDpadMod;
+        if (xCombo || now - xStart < (DWORD)TAP_THRESHOLD)
+            buttons &= ~kButtonX;
+    }
 
     void Gate(uint16_t& buttons, uint16_t mask, DWORD& start, DWORD now)
     {
@@ -53,9 +90,15 @@ namespace BumperGate
                 DWORD now = GetTickCount();
                 Gate(buttons, LB, lbStart, now);
                 Gate(buttons, RB, rbStart, now);
+                if (modifier)
+                    Modifier(buttons, now);
             }
             else
-                lbStart = rbStart = 0;
+            {
+                lbStart = rbStart = xStart = 0;
+                xCombo = false;
+                prevDpad = buttons & kDpadMod;
+            }
         }
         return res;
     }
@@ -269,6 +312,7 @@ public:
             static uint32_t nLeftIndicatorKey = reader.ReadInteger("TURNINDICATORS", "LeftIndicatorKey", VK_OEM_4);
             static uint32_t nRightIndicatorKey = reader.ReadInteger("TURNINDICATORS", "RightIndicatorKey", VK_OEM_6);
             GpsBlinkers::Init();
+            BumperGate::modifier = reader.ReadInteger("TURNINDICATORS", "ControllerModifier", 0) != 0;
             BumperGate::Install();
 
             struct VehicleFlags
@@ -629,9 +673,10 @@ public:
                             {
                                 rb_press_time += 1000.0f * Natives::Timestep();
                             }
-                            bool lb_tapped = !lb_pressed && prev_lb_pressed && lb_press_time <= TAP_THRESHOLD;
-                            bool rb_tapped = !rb_pressed && prev_rb_pressed && rb_press_time <= TAP_THRESHOLD;
-                            if (lb_tapped && rb_tapped)
+                            const uint32_t mod = BumperGate::modEvents.exchange(0);
+                            bool lb_tapped = (!lb_pressed && prev_lb_pressed && lb_press_time <= TAP_THRESHOLD) || (mod & BumperGate::ModLeft);
+                            bool rb_tapped = (!rb_pressed && prev_rb_pressed && rb_press_time <= TAP_THRESHOLD) || (mod & BumperGate::ModRight);
+                            if ((lb_tapped && rb_tapped) || (mod & BumperGate::ModHazard))
                             {
                                 state.manual_hazard = !state.manual_hazard;
                                 Natives::SetVehHazardlights(veh, state.manual_hazard);
