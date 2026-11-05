@@ -486,3 +486,5 @@ We're making a list of **GTA IV** issues that weren't addressed in official patc
 If you can think of one, submit it [here](https://github.com/GTAmodding/GTAIV-Issues-List/issues).
 
 If you've encountered an issue, caused by this fix, report it [here](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/issues).
+
+Distant Lights offers Default and Console rendering on the Game tab; see [the feature guide](docs/distant-lights.md).
