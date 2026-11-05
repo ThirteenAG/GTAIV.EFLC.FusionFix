@@ -24,6 +24,7 @@ namespace DistantLights
         // Normalize the intercepted native basis; never modify its shared vectors.
         auto roadRight = *right * (1.0f / nativeScale);
         auto roadUp = *up * (1.0f / nativeScale);
+        // Private Console batch; CE's native StoreSpriteInBuffer holds 1,820 sprites.
         std::array<Vector, 64> positions;
         std::array<uint32_t, 64> colors;
         int count = 0;

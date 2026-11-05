@@ -12,15 +12,16 @@ import settings;
 
 namespace DistantLights
 {
-    using SpriteFlush = void(__cdecl*)(Vector*, uint32_t*, int*, Vector*, Vector*);
-    static void(__cdecl* originalDay)(float);
-    static void(__cdecl* originalNightSprites)(float);
+    using RenderOutSpriteBufferFn = void(__cdecl*)(Vector*, uint32_t*, int*, Vector*, Vector*);
+    // CE splits road models from CDistantLights::Render (streetlights and aircraft).
+    static void(__cdecl* originalDayModels)(float);
+    static void(__cdecl* originalRender)(float);
     static void(__cdecl* originalNightModels)();
-    static SpriteFlush flushSprites;
-    static void(__cdecl* beginSprites)(int, int);
-    static void(__cdecl* spriteVertex)(float, float, float, float, float, float, uint32_t, float, float);
-    static void(__stdcall* endSprites)();
-    static int(__thiscall* sphereVisible)(rage::grcViewport*, float, float, float, float, float*);
+    static RenderOutSpriteBufferFn nativeRenderOutSpriteBuffer;
+    static void(__cdecl* nativeGrcBegin)(int, int);
+    static void(__cdecl* nativeGrcVertex)(float, float, float, float, float, float, uint32_t, float, float);
+    static void(__stdcall* nativeGrcEnd)();
+    static int(__thiscall* isSphereVisible)(rage::grcViewport*, float, float, float, float, float*);
     static uint32_t* milliseconds;
     static const uint8_t* aircraftSizeBranch;
     static int32_t *coastalCount, *interiorCount;
@@ -83,10 +84,10 @@ namespace DistantLights
         return Mode::Default;
     }
 
-    static void RenderSprites(Vector* positions, uint32_t* colors, int* count, Vector* right, Vector* up)
+    static void RenderSpriteBatch(Vector* positions, uint32_t* colors, int* count, Vector* right, Vector* up)
     {
         FlushCoronaBatch(consolePass, positions, colors, count, right, up,
-            flushSprites, beginSprites, spriteVertex, endSprites);
+            nativeRenderOutSpriteBuffer, nativeGrcBegin, nativeGrcVertex, nativeGrcEnd);
     }
 
     template<class Append>
@@ -110,7 +111,7 @@ namespace DistantLights
             // Native 8x8 block coordinates and conservative visibility sphere.
             const float x = (float(block / 8) + 0.5f) * 750.0f - 3000.0f;
             const float y = (float(block % 8) + 0.5f) * 750.0f - 3000.0f;
-            if (!sphereVisible(viewport, x, y, 20.0f, 525.0f, nullptr))
+            if (!isSphereVisible(viewport, x, y, 20.0f, 525.0f, nullptr))
                 continue;
             for (size_t interior = 0; interior < 2; ++interior)
             {
@@ -120,7 +121,7 @@ namespace DistantLights
                 {
                     const auto& line = xbox.strings[i];
                     const auto& road = roads[i];
-                    if (road.Length() <= 0.0f || !sphereVisible(viewport, float(line.x), float(line.y),
+                    if (road.Length() <= 0.0f || !isSphereVisible(viewport, float(line.x), float(line.y),
                         float(line.z), float(line.radius), nullptr))
                         continue;
                     ForEachVehicle(road, time, [&](Vector light, bool red, uint32_t)
@@ -145,7 +146,7 @@ namespace DistantLights
     {
         if (!consolePass || nightFade <= 0.0f || !rage::pCurrentViewport || !*rage::pCurrentViewport)
         {
-            RenderSprites(positions, colors, count, right, up);
+            RenderSpriteBatch(positions, colors, count, right, up);
             return;
         }
         auto viewport = rage::GetCurrentViewport();
@@ -156,13 +157,13 @@ namespace DistantLights
         SubmitConsoleCoronas(tbogt, nativeScale, positions, colors, count, right, up, [&](auto append)
         {
             RenderConsoleRoads(viewport, camera, time, append);
-        }, RenderSprites);
+        }, RenderSpriteBatch);
     }
 
-    static void __cdecl Day(float value)
+    static void __cdecl RenderDayModels(float value)
     {
         if (GetMode() != Mode::Console)
-            originalDay(value);
+            originalDayModels(value);
     }
 
     // Suppress native road sprites during Console submission, retaining the
@@ -188,19 +189,19 @@ namespace DistantLights
         }
     };
 
-    static void __cdecl NightSprites(float fade)
+    static void __cdecl Render(float fade)
     {
         nightFade = std::clamp(fade, 0.0f, 1.0f);
         if (GetMode() == Mode::Console)
         {
             ScopedPcRoadSuppression scoped;
-            originalNightSprites(fade);
+            originalRender(fade);
         }
         else
-            originalNightSprites(fade);
+            originalRender(fade);
     }
 
-    static void __cdecl NightModels()
+    static void __cdecl RenderNightModels()
     {
         if (GetMode() != Mode::Console)
             originalNightModels();
@@ -219,7 +220,8 @@ namespace DistantLights
 
     static void Init()
     {
-        // Require all CE bindings before installing the hooks.
+        // Resolve __vehicleImpostersCallback dispatch and CDistantLights::Load
+        // before installing any hooks.
         const auto night = Unique("F3 0F 11 14 24 E8 ? ? ? ? 83 C4 04 E9");
         const auto day = Unique("F3 0F 11 04 24 E8 ? ? ? ? 83 C4 04 C6 05 ? ? ? ? 01 C3");
         const auto data = Unique("6A 04 68 ? ? ? ? 56 E8 ? ? ? ? 6A 04 68 ? ? ? ? 56 E8 ? ? ? ? 68 00 01 00 00");
@@ -228,7 +230,7 @@ namespace DistantLights
             OutputDebugStringA("FusionFix: Distant Lights bindings unavailable; retaining PC rendering.\n");
             return;
         }
-        const auto spritePass = Target(night + 5);
+        const auto spritePass = Target(night + 5); // CDistantLights::Render
         const auto modelPass = Target(night + 13);
         const auto dayPass = Target(day + 5);
         const auto epilogue = "E8 ? ? ? ? 83 C4 10 C7 04 24 00 00 80 3F E8 ? ? ? ? 6A 00 6A 02";
@@ -269,7 +271,7 @@ namespace DistantLights
             OutputDebugStringA("FusionFix: Distant Lights pass bindings unavailable; retaining PC rendering.\n");
             return;
         }
-        const auto nativeFlush = Target(spriteFinal);
+        const auto nativeFlush = Target(spriteFinal); // CDistantLights::RenderOutSpriteBuffer
         const auto begin = Unique("8D 04 40 03 C0 50 6A 03 E8 ? ? ? ? 33 C9", nativeFlush, nativeFlush + 0x400);
         const auto vertex = Unique("F3 0F 11 14 24 E8 ? ? ? ? F3 0F 10 44 24 54", nativeFlush, nativeFlush + 0x400);
         const auto end = Unique("E8 ? ? ? ? C7 07 00 00 00 00 5F 5E 8B E5 5D C3", nativeFlush, nativeFlush + 0x400);
@@ -279,21 +281,21 @@ namespace DistantLights
             return;
         }
         aircraftSizeBranch = reinterpret_cast<const uint8_t*>(aircraftSize + 7);
-        beginSprites = reinterpret_cast<decltype(beginSprites)>(Target(begin + 8));
-        spriteVertex = reinterpret_cast<decltype(spriteVertex)>(Target(vertex + 5));
-        endSprites = reinterpret_cast<decltype(endSprites)>(Target(end));
+        nativeGrcBegin = reinterpret_cast<decltype(nativeGrcBegin)>(Target(begin + 8));
+        nativeGrcVertex = reinterpret_cast<decltype(nativeGrcVertex)>(Target(vertex + 5));
+        nativeGrcEnd = reinterpret_cast<decltype(nativeGrcEnd)>(Target(end));
         coastalCount = *reinterpret_cast<int32_t**>(data + 48);
         interiorCount = *reinterpret_cast<int32_t**>(data + 64);
         milliseconds = *reinterpret_cast<uint32_t**>(timer + 1);
-        originalDay = reinterpret_cast<decltype(originalDay)>(dayPass);
-        originalNightSprites = reinterpret_cast<decltype(originalNightSprites)>(spritePass);
+        originalDayModels = reinterpret_cast<decltype(originalDayModels)>(dayPass);
+        originalRender = reinterpret_cast<decltype(originalRender)>(spritePass);
         originalNightModels = reinterpret_cast<decltype(originalNightModels)>(modelPass);
-        flushSprites = reinterpret_cast<SpriteFlush>(nativeFlush);
-        sphereVisible = reinterpret_cast<decltype(sphereVisible)>(Target(visibility + 5));
+        nativeRenderOutSpriteBuffer = reinterpret_cast<RenderOutSpriteBufferFn>(nativeFlush);
+        isSphereVisible = reinterpret_cast<decltype(isSphereVisible)>(Target(visibility + 5));
 
-        // CE, immediately before PUSH ECX at the road-only attenuation call:
+        // CE, before PUSH ECX at the road-only CDistantLights::ModifyColourForDist call:
         // ESP+4C is the group; ESP+C8 is camera Z; ESP+168 is sprite Z (+12).
-        // Cap XMM0's distance before the native random/colour function. This
+        // Cap XMM0's distance before ModifyColourForDist. This
         // preserves its rounding and random draw, with no second attenuation.
         pcStreetlightFade = safetyhook::create_mid(streetlightFade, [](SafetyHookContext& regs)
         {
@@ -338,9 +340,9 @@ namespace DistantLights
         injector::WriteMemory<uint8_t>(streetlightIndex + 4, 0x00, true);
 
         injector::MakeCALL(spriteFinal, FinalSpriteFlush, true);
-        injector::MakeCALL(day + 5, Day, true);
-        injector::MakeCALL(night + 5, NightSprites, true);
-        injector::MakeJMP(night + 13, NightModels, true);
+        injector::MakeCALL(day + 5, RenderDayModels, true);
+        injector::MakeCALL(night + 5, Render, true);
+        injector::MakeJMP(night + 13, RenderNightModels, true);
         ready = true;
     }
 

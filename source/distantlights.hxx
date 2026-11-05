@@ -54,6 +54,7 @@ namespace DistantLights
         return 170u + ((sample * 85u) >> 15);
     }
 
+    // Xbox ModifyColourForDist arithmetic, with traffic intensity applied first.
     inline uint32_t XboxSpriteColor(uint32_t rgb, float intensity, float distance, uint32_t brightness)
     {
         // Xbox quantizes traffic's input channels before distance attenuation.
