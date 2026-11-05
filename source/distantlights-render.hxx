@@ -1,7 +1,6 @@
 #pragma once
 
 #include "distantlights.hxx"
-#include <d3d9.h>
 
 namespace DistantLights
 {
@@ -42,55 +41,11 @@ namespace DistantLights
         flush(aircraft, aircraftColors, aircraftCount, &aircraftRight, &aircraftUp);
     }
 
-    // Override the sampler only around the draw, after grcBegin binds it.
-    // Restore the device state to keep it consistent with RAGE's cache.
-    template<class Device>
-    class XboxCoronaSampler
-    {
-        static constexpr std::array<D3DSAMPLERSTATETYPE, 4> states = {
-            D3DSAMP_MINFILTER, D3DSAMP_MAGFILTER, D3DSAMP_MIPFILTER, D3DSAMP_MAXMIPLEVEL };
-        static constexpr std::array<DWORD, 4> values = {
-            D3DTEXF_LINEAR, D3DTEXF_LINEAR, D3DTEXF_NONE, 0 };
-        Device* device;
-        std::array<DWORD, 4> saved{};
-        size_t changed{};
-
-        void Restore()
-        {
-            while (changed)
-            {
-                --changed;
-                device->SetSamplerState(0, states[changed], saved[changed]);
-            }
-        }
-
-    public:
-        explicit XboxCoronaSampler(Device* device) : device(device)
-        {
-            // Do not change anything unless every original value is known.
-            for (size_t i = 0; i < states.size(); ++i)
-                if (FAILED(device->GetSamplerState(0, states[i], &saved[i])))
-                    return;
-            for (size_t i = 0; i < states.size(); ++i)
-            {
-                ++changed;
-                if (FAILED(device->SetSamplerState(0, states[i], values[i])))
-                {
-                    Restore();
-                    return;
-                }
-            }
-        }
-        ~XboxCoronaSampler() { Restore(); }
-        XboxCoronaSampler(const XboxCoronaSampler&) = delete;
-        XboxCoronaSampler& operator=(const XboxCoronaSampler&) = delete;
-    };
-
-    template<class Device, class NativeFlush, class Begin, class Vertex, class End>
-    void FlushCoronaBatch(bool console, Device* device, Vector* positions, uint32_t* colors,
+    template<class NativeFlush, class Begin, class Vertex, class End>
+    void FlushCoronaBatch(bool console, Vector* positions, uint32_t* colors,
         int* count, Vector* right, Vector* up, NativeFlush nativeFlush, Begin begin, Vertex vertex, End end)
     {
-        if (!console || !device)
+        if (!console)
         {
             nativeFlush(positions, colors, count, right, up);
             return;
@@ -119,9 +74,6 @@ namespace DistantLights
                 emit(d, 1.0f, 0.0f);
                 emit(a, 0.0f, 0.0f);
             }
-            // Xbox's corona has only the 128x128 base image. Disable mip
-            // selection and force level zero of the installed PC texture.
-            XboxCoronaSampler scoped(device);
             end();
         }
         *count = 0;

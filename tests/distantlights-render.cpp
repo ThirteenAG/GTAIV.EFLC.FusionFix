@@ -1,38 +1,8 @@
-#define NOMINMAX
 #include "../source/distantlights-render.hxx"
 #include <cassert>
 #include <iostream>
 
 using namespace DistantLights;
-
-struct FakeDevice
-{
-    // Deliberately non-default states: restoration must preserve these too.
-    std::array<DWORD, 14> state = {0, 1, 2, 3, 4, D3DTEXF_POINT,
-        D3DTEXF_ANISOTROPIC, D3DTEXF_LINEAR, 9, 2, 16, 1, 12, 13};
-    int gets{}, sets{}, failGet{-1}, failSet{-1};
-    HRESULT GetSamplerState(DWORD sampler, D3DSAMPLERSTATETYPE type, DWORD* value)
-    {
-        assert(sampler == 0);
-        if (gets++ == failGet) return E_FAIL;
-        *value = state[type];
-        return S_OK;
-    }
-    HRESULT SetSamplerState(DWORD sampler, D3DSAMPLERSTATETYPE type, DWORD value)
-    {
-        assert(sampler == 0);
-        if (sets++ == failSet) return E_FAIL;
-        state[type] = value;
-        return S_OK;
-    }
-    void CheckXbox() const
-    {
-        assert(state[D3DSAMP_MINFILTER] == D3DTEXF_LINEAR);
-        assert(state[D3DSAMP_MAGFILTER] == D3DTEXF_LINEAR);
-        assert(state[D3DSAMP_MIPFILTER] == D3DTEXF_NONE);
-        assert(state[D3DSAMP_MAXMIPLEVEL] == 0);
-    }
-};
 
 static void CheckEpisodeSubmission()
 {
@@ -93,32 +63,6 @@ static void CheckEpisodeSubmission()
 int main()
 {
     CheckEpisodeSubmission();
-    FakeDevice device;
-    const auto initial = device.state;
-    for (int fail = -1; fail < 4; ++fail)
-    {
-        device = {};
-        device.failGet = fail;
-        {
-            XboxCoronaSampler scoped(&device);
-            if (fail == -1) device.CheckXbox();
-            else assert(device.sets == 0 && device.state == initial);
-        }
-        assert(device.state == initial);
-        device = {};
-        device.failSet = fail;
-        {
-            XboxCoronaSampler scoped(&device);
-            if (fail == -1) device.CheckXbox();
-            else assert(device.state == initial);
-        }
-        assert(device.state == initial);
-    }
-    device = {};
-    try { XboxCoronaSampler scoped(&device); throw 1; }
-    catch (int) {}
-    assert(device.state == initial);
-
     // Oblique, non-unit basis checks orientation in world space, not just UV
     // numbers; the Xbox four-corner mapping is independent of PC triangulation.
     std::array<Vector, 64> positions;
@@ -133,14 +77,12 @@ int main()
     auto native = [&](Vector* p, uint32_t* c, int* n, Vector* r, Vector* u)
     {
         assert(p == positions.data() && c == colors.data() && n == &count && r == &right && u == &up);
-        assert(device.gets == 0 && device.sets == 0);
         ++nativeCalls;
         *n = 0;
     };
     auto begin = [&](int mode, int vertices)
     {
         assert(mode == 3 && vertices == 6*count);
-        assert(device.state == initial);
         ++begins;
     };
     auto vertex = [&](float x, float y, float z, float nx, float ny, float nz, uint32_t color, float u, float v)
@@ -152,30 +94,24 @@ int main()
         const auto expected = positions[sprite] + right*(2*u-1) + up*(1-2*v);
         assert(x == expected.x && y == expected.y && z == expected.z);
         assert(nx == 0 && ny == 0 && nz == -1 && color == colors[sprite]);
-        assert(device.state == initial);
         ++emitted;
     };
-    auto end = [&] { device.CheckXbox(); ++ends; };
-    auto flush = [&](bool console, FakeDevice* d = nullptr)
+    auto end = [&] { ++ends; };
+    auto flush = [&](bool console)
     {
-        FlushCoronaBatch(console, d, positions.data(), colors.data(), &count, &right, &up, native, begin, vertex, end);
+        FlushCoronaBatch(console, positions.data(), colors.data(), &count, &right, &up, native, begin, vertex, end);
     };
-    device = {};
-    // Default delegates without touching the device or generating vertices.
-    flush(false, &device);
+    // Default delegates without generating vertices.
+    flush(false);
     assert(nativeCalls == 1 && begins == 0 && ends == 0 && count == 0);
-    count = 64;
-    flush(true); // Missing device retains native fallback.
-    assert(nativeCalls == 2 && begins == 0 && ends == 0 && count == 0);
     for (int batch : {64, 1})
     {
         emitted = 0;
         count = batch;
-        flush(true, &device);
-        assert(emitted == batch*6 && count == 0 && device.state == initial);
+        flush(true);
+        assert(emitted == batch*6 && count == 0);
     }
-    const int getsBeforeEmpty = device.gets;
-    flush(true, &device);
-    assert(begins == 2 && ends == 2 && device.gets == getsBeforeEmpty && nativeCalls == 2);
-    std::cout << "Independent road/aircraft sizing across native and FusionFix branch states, IV/TLAD submission, Console geometry/sampling and Default bypass passed.\n";
+    flush(true);
+    assert(begins == 2 && ends == 2 && nativeCalls == 1);
+    std::cout << "Independent road/aircraft sizing across native and FusionFix branch states, IV/TLAD submission, Console geometry/UVs and Default bypass passed.\n";
 }

@@ -85,8 +85,7 @@ namespace DistantLights
 
     static void RenderSprites(Vector* positions, uint32_t* colors, int* count, Vector* right, Vector* up)
     {
-        auto device = rage::grcDevice::ms_pD3DDevice ? *rage::grcDevice::ms_pD3DDevice : nullptr;
-        FlushCoronaBatch(consolePass, device, positions, colors, count, right, up,
+        FlushCoronaBatch(consolePass, positions, colors, count, right, up,
             flushSprites, beginSprites, spriteVertex, endSprites);
     }
 
