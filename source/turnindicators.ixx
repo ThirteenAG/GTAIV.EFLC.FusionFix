@@ -557,6 +557,20 @@ public:
                         {
                             last_state->crash_state = VehicleState::CRASHED_AND_EXITED;
                         }
+                        // The turn indicators go off when the player leaves the vehicle; otherwise a manual indicator
+                        // kept blinking on the parked car forever (#1438). Hazards switched on by hand stay on, as in a real car.
+                        if (last_state && (last_state->current_blinker != 0 || last_state->blinkers_active || last_state->pending_blinker != 0))
+                        {
+                            Natives::SetVehIndicatorlights(last_player_car, false);
+                            last_state->current_blinker = 0;
+                            last_state->blinkers_active = false;
+                            last_state->should_stop_blinking = false;
+                            last_state->blink_state = false;
+                            last_state->blink_timer = 0.0f;
+                            last_state->final_blink_timer = 0.0f;
+                            last_state->pending_blinker = 0;
+                            last_state->manual_active = false;
+                        }
                     }
 
                     last_player_car = PlayerCar;
