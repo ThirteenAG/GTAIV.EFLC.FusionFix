@@ -55,6 +55,9 @@ public:
                 if (car)
                     Natives::GetDriverOfCar(car, &driver);
                 auto veh = (car && driver == player) ? (uint8_t*)FindPlayerVehicle(0) : nullptr;
+                // Nothing while the player has no control (mission starts, cutscenes)
+                if (veh && !Natives::IsPlayerControlOn(Natives::ConvertIntToPlayerIndex(Natives::GetPlayerId())))
+                    veh = nullptr;
                 if (!veh)
                 {
                     lastCar = 0;
