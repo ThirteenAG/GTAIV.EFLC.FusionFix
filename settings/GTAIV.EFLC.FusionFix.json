@@ -816,6 +816,11 @@
       "page": "advanced", "group": "@group.turn indicators", "visibility": "editor", "apply": "restart"
     },
     {
+      "id": "TURNINDICATORS.HazardKey", "type": "key", "default": "0x50",
+      "label": "@TURNINDICATORS.HazardKey", "description": "@TURNINDICATORS.HazardKey.description",
+      "page": "advanced", "group": "@group.turn indicators", "visibility": "editor", "apply": "restart"
+    },
+    {
       "id": "TURNINDICATORS.ControllerModifier", "type": "bool", "default": 0,
       "label": "@TURNINDICATORS.ControllerModifier", "description": "@TURNINDICATORS.ControllerModifier.description",
       "page": "advanced", "group": "@group.turn indicators", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"

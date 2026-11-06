@@ -340,6 +340,8 @@
   "Turn Indicators": "Indicadores de giro",
   "TURNINDICATORS.ControllerModifier": "Modificador del mando",
   "TURNINDICATORS.ControllerModifier.description": "Con intermitentes manuales: mantén X y pulsa la cruceta, izquierda o derecha para los intermitentes y abajo para las luces de emergencia. Mientras X está pulsado, la cruceta no llega al juego; X solo sigue controlando los faros.",
+  "TURNINDICATORS.HazardKey": "Tecla de emergencia",
+  "TURNINDICATORS.HazardKey.description": "Tecla que enciende y apaga las luces de emergencia con intermitentes manuales. Pulsar las dos teclas de intermitente a la vez también funciona.",
   "TURNINDICATORS.LeftIndicatorKey": "Tecla del intermitente izquierdo",
   "TURNINDICATORS.LeftIndicatorKey.description": "La tecla del intermitente izquierdo, un código de tecla virtual (0xDB es [).",
   "TURNINDICATORS.ManualTurnIndicators": "Intermitentes manuales",

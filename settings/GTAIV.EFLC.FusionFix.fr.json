@@ -340,6 +340,8 @@
   "Turn Indicators": "Clignotants",
   "TURNINDICATORS.ControllerModifier": "Modificateur manette",
   "TURNINDICATORS.ControllerModifier.description": "Avec les clignotants manuels : maintenez X et appuyez sur la croix directionnelle, gauche ou droite pour les clignotants et bas pour les feux de détresse. Tant que X est maintenu, la croix n'est pas transmise au jeu ; X seul commande toujours les phares.",
+  "TURNINDICATORS.HazardKey": "Touche feux de détresse",
+  "TURNINDICATORS.HazardKey.description": "Touche qui allume et éteint les feux de détresse avec les clignotants manuels. Appuyer sur les deux touches de clignotant en même temps fonctionne aussi.",
   "TURNINDICATORS.LeftIndicatorKey": "Touche du clignotant gauche",
   "TURNINDICATORS.LeftIndicatorKey.description": "La touche du clignotant gauche, un code de touche virtuelle (0xDB est [).",
   "TURNINDICATORS.ManualTurnIndicators": "Clignotants manuels",

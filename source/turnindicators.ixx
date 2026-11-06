@@ -149,7 +149,7 @@ namespace GpsBlinkers
     // 0 none, 1 left, 2 right (the turn indicator directions)
     int Direction()
     {
-        static float timer = 0.0f;
+        static float timer = 250.0f; // the first call reads the route straight away
         static int last = 0;
         timer += 1000.0f * Natives::Timestep();
         if (timer < 250.0f)
@@ -157,6 +157,9 @@ namespace GpsBlinkers
         timer = 0.0f;
         last = 0;
         if (!blips)
+            return 0;
+        // Nothing while the player has no control or the screen fades (mission starts, cutscenes, loading)
+        if (!Natives::IsPlayerControlOn(Natives::ConvertIntToPlayerIndex(Natives::GetPlayerId())) || Natives::IsScreenFading() || Natives::IsScreenFadedOut())
             return 0;
 
         Blip waypoint = 0, route = 0;
@@ -207,6 +210,7 @@ struct VehicleState
     float final_blink_timer = 0.0f;
     bool manual_hazard = false;
     bool manual_active = false; // a blinker the player switched on by hand (automatic blinkers stay out until it is switched off)
+    bool auto_suspended = false; // a manual blinker or hazard was on last frame
     int pending_blinker = 0;
 };
 
@@ -311,6 +315,7 @@ public:
             static bool bManualTurnIndicators = reader.ReadInteger("TURNINDICATORS", "ManualTurnIndicators", 0);
             static uint32_t nLeftIndicatorKey = reader.ReadInteger("TURNINDICATORS", "LeftIndicatorKey", VK_OEM_4);
             static uint32_t nRightIndicatorKey = reader.ReadInteger("TURNINDICATORS", "RightIndicatorKey", VK_OEM_6);
+            static uint32_t nHazardKey = reader.ReadInteger("TURNINDICATORS", "HazardKey", 0x50);
             GpsBlinkers::Init();
             BumperGate::modifier = reader.ReadInteger("TURNINDICATORS", "ControllerModifier", 0) != 0;
             BumperGate::Install();
@@ -676,7 +681,26 @@ public:
                             const uint32_t mod = BumperGate::modEvents.exchange(0);
                             bool lb_tapped = (!lb_pressed && prev_lb_pressed && lb_press_time <= TAP_THRESHOLD) || (mod & BumperGate::ModLeft);
                             bool rb_tapped = (!rb_pressed && prev_rb_pressed && rb_press_time <= TAP_THRESHOLD) || (mod & BumperGate::ModRight);
-                            if ((lb_tapped && rb_tapped) || (mod & BumperGate::ModHazard))
+                            // Hazards: left + right pressed together (they don't have to be released in the same frame,
+                            // which made it near impossible on a keyboard), or the hazard key
+                            static bool both_held = false;
+                            static bool prev_hazard_key = false;
+                            bool hazard_tapped = (mod & BumperGate::ModHazard) != 0;
+                            if (lb_pressed && rb_pressed)
+                                both_held = true;
+                            if (both_held)
+                            {
+                                lb_tapped = rb_tapped = false;
+                                if (!lb_pressed && !rb_pressed)
+                                {
+                                    both_held = false;
+                                    hazard_tapped |= lb_press_time <= TAP_THRESHOLD * 2 && rb_press_time <= TAP_THRESHOLD * 2;
+                                }
+                            }
+                            bool hazard_key = nHazardKey && IsKeyboardKeyPressed(nHazardKey);
+                            hazard_tapped |= hazard_key && !prev_hazard_key;
+                            prev_hazard_key = hazard_key;
+                            if (hazard_tapped)
                             {
                                 state.manual_hazard = !state.manual_hazard;
                                 Natives::SetVehHazardlights(veh, state.manual_hazard);
@@ -783,8 +807,22 @@ public:
                         else
                             state.manual_active = false;
                         // Automatic blinkers (in Automatic + manual only while no blinker or hazard was switched on by hand)
+                        // When a manual blinker or the hazards are switched off, the automatic indicators start afresh:
+                        // the turn they were tracking may be over, and a stale state kept them from coming back.
+                        const bool manual_now = state.manual_active || state.manual_hazard;
+                        if (state.auto_suspended && !manual_now)
+                        {
+                            state.is_turning = false;
+                            state.last_turn_direction = 0;
+                            state.turn_start_timer = 0.0f;
+                            state.turn_stop_timer = 0.0f;
+                        }
+                        state.auto_suspended = manual_now;
+
                         if (bAutoMode && !state.manual_active && !state.manual_hazard)
                         {
+                            if (!state.blinkers_active)
+                                state.should_stop_blinking = false; // nothing left to stop
                             // Process player vehicle with turn indicators
                             auto m_fSteerAngle = *reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(vehicleStruct) + SteerAngleOffset);
 
@@ -801,8 +839,15 @@ public:
                             else if (bFollowSteering && m_fSteerAngle < -STEER_THRESHOLD)
                                 current_turn_direction = 2; // Right
                             // Not steering (or steering ignored): follow the GPS route, if there is one
+                            bool from_gps = false;
                             if (current_turn_direction == 0 && bFollowGps)
+                            {
                                 current_turn_direction = GpsBlinkers::Direction();
+                                from_gps = current_turn_direction != 0;
+                            }
+                            // The GPS instruction is already settled (read every 250 ms), so it needs no activation delay;
+                            // the delay only filters out short steering corrections
+                            const float activation_delay = from_gps ? 0.0f : ACTIVATION_DELAY;
 
                             bool currently_turning = (current_turn_direction != 0);
                             bool direction_changed = (current_turn_direction != state.last_turn_direction &&
@@ -847,7 +892,7 @@ public:
                             {
                                 state.turn_start_timer += 1000.0f * Natives::Timestep();
 
-                                if (state.turn_start_timer >= ACTIVATION_DELAY && !state.blinkers_active)
+                                if (state.turn_start_timer >= activation_delay && !state.blinkers_active)
                                 {
                                     state.current_blinker = current_turn_direction;
                                     state.blinkers_active = true;

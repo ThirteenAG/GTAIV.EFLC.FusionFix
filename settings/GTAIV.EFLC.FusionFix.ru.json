@@ -340,6 +340,8 @@
   "Turn Indicators": "Указатели поворота",
   "TURNINDICATORS.ControllerModifier": "Модификатор геймпада",
   "TURNINDICATORS.ControllerModifier.description": "С ручными указателями: удерживайте X и нажимайте крестовину — влево или вправо для поворотников, вниз для аварийки. Пока X удерживается, крестовина не передаётся игре; одна кнопка X по-прежнему управляет фарами.",
+  "TURNINDICATORS.HazardKey": "Клавиша аварийки",
+  "TURNINDICATORS.HazardKey.description": "Клавиша, включающая и выключающая аварийную сигнализацию при ручных указателях. Нажатие обеих клавиш поворотников вместе тоже работает.",
   "TURNINDICATORS.LeftIndicatorKey": "Клавиша левого поворотника",
   "TURNINDICATORS.LeftIndicatorKey.description": "Клавиша левого указателя поворота, код виртуальной клавиши (0xDB — это [).",
   "TURNINDICATORS.ManualTurnIndicators": "Ручные указатели поворота",

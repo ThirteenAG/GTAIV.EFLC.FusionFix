@@ -340,6 +340,8 @@
   "Turn Indicators": "Indicatori di direzione",
   "TURNINDICATORS.ControllerModifier": "Modificatore controller",
   "TURNINDICATORS.ControllerModifier.description": "Con gli indicatori manuali: tieni premuto X e premi la croce direzionale, sinistra o destra per gli indicatori e giù per le luci di emergenza. Mentre X è premuto, la croce non arriva al gioco; X da solo comanda ancora i fari.",
+  "TURNINDICATORS.HazardKey": "Tasto luci di emergenza",
+  "TURNINDICATORS.HazardKey.description": "Tasto che accende e spegne le luci di emergenza con gli indicatori manuali. Premere insieme i due tasti degli indicatori funziona ugualmente.",
   "TURNINDICATORS.LeftIndicatorKey": "Tasto indicatore sinistro",
   "TURNINDICATORS.LeftIndicatorKey.description": "Il tasto dell'indicatore di direzione sinistro, un codice virtual-key (0xDB è [).",
   "TURNINDICATORS.ManualTurnIndicators": "Indicatori di direzione manuali",

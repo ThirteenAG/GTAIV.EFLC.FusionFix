@@ -340,6 +340,8 @@
   "Turn Indicators": "Turn Indicators",
   "TURNINDICATORS.ControllerModifier": "Controller Modifier",
   "TURNINDICATORS.ControllerModifier.description": "With manual indicators: hold X and press the D-pad, left or right for the indicators and down for the hazards. While X is held the D-pad does not reach the game; X alone still works the headlights.",
+  "TURNINDICATORS.HazardKey": "Hazard Lights Key",
+  "TURNINDICATORS.HazardKey.description": "Keyboard key that toggles the hazard lights with manual indicators. Pressing both indicator keys together works too.",
   "TURNINDICATORS.LeftIndicatorKey": "Left Indicator Key",
   "TURNINDICATORS.LeftIndicatorKey.description": "The key of the left turn indicator, a virtual-key code (0xDB is [).",
   "TURNINDICATORS.ManualTurnIndicators": "Manual Turn Indicators",
