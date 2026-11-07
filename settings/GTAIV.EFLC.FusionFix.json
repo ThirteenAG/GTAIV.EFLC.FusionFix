@@ -416,12 +416,6 @@
       "page": "advanced", "group": "@group.shadows", "control": [ "switch", "cycler" ], "visibility": "file", "apply": "restart"
     },
     {
-      "id": "FRAMELIMIT.FrameLimitType", "type": "choice", "default": 2,
-      "choices": [ { "value": 1, "label": "Realtime (thread lock)" }, { "value": 2, "label": "Accurate (sleep and yield)" } ],
-      "label": "@FRAMELIMIT.FrameLimitType", "description": "@FRAMELIMIT.FrameLimitType.description",
-      "page": "advanced", "group": "@group.frame limit", "control": [ "cycler", "dropdown" ], "visibility": "editor", "apply": "restart"
-    },
-    {
       "id": "FRAMELIMIT.FpsLimit", "type": "int", "default": -2, "min": -60, "max": 1000, "step": 1,
       "label": "@FRAMELIMIT.FpsLimit", "description": "@FRAMELIMIT.FpsLimit.description",
       "page": "advanced", "group": "@group.frame limit", "visibility": "editor", "apply": "restart"

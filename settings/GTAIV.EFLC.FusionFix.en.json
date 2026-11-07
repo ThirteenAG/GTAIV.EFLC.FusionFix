@@ -82,8 +82,6 @@
   "FRAMELIMIT.FpsLimit": "Custom FPS Limit",
   "FRAMELIMIT.FpsLimit.description": "Used when the FPS Limiter is Custom; negative values are relative to the refresh rate.",
   "FRAMELIMIT.FpsLimitPreset.description": "Limits the frame rate. Custom uses FpsLimit.",
-  "FRAMELIMIT.FrameLimitType": "Frame Limit Type",
-  "FRAMELIMIT.FrameLimitType.description": "How the frame limiter waits.",
   "FRAMELIMIT.MinigamesFpsLimit": "Minigames FPS Limit",
   "FRAMELIMIT.MinigamesFpsLimit.description": "Frame rate limit in the minigames of the list.",
   "FRAMELIMIT.MinigamesList": "Minigames List",

@@ -82,8 +82,6 @@
   "FRAMELIMIT.FpsLimit": "カスタムFPS制限",
   "FRAMELIMIT.FpsLimit.description": "FPSリミッターがカスタムのときに使われます。負の値はリフレッシュレートに対する相対値です。",
   "FRAMELIMIT.FpsLimitPreset.description": "フレームレートを制限します。カスタムではFpsLimitを使います。",
-  "FRAMELIMIT.FrameLimitType": "フレーム制限の方式",
-  "FRAMELIMIT.FrameLimitType.description": "フレームリミッターの待機方法です。",
   "FRAMELIMIT.MinigamesFpsLimit": "ミニゲームのFPS制限",
   "FRAMELIMIT.MinigamesFpsLimit.description": "リストにあるミニゲーム中のフレームレート制限です。",
   "FRAMELIMIT.MinigamesList": "ミニゲームのリスト",
