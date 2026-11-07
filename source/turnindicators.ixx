@@ -2,6 +2,7 @@ module;
 
 #include <common.hxx>
 #include <deque>
+#include <atomic>
 
 export module turnindicators;
 
@@ -15,6 +16,176 @@ constexpr float STEER_THRESHOLD = 0.50f;    // Minimum steering to trigger blink
 constexpr float ACTIVATION_DELAY = 400.0f;  // ms delay before activation
 constexpr float BLINK_INTERVAL = 400.0f;    // ms blink interval (on/off cycle)
 constexpr float TAP_THRESHOLD = 300.0f;     // ms threshold for tap detection
+
+// Controller bumpers with manual turn indicators: LB/RB also fire/aim and pull the handbrake in vehicles. While the
+// player drives with manual indicators, the game only gets a bumper once it has been held longer than a tap
+// (TAP_THRESHOLD), so a tap only works the turn indicator. The raw state is kept for the indicator logic.
+// Optional modifier ([TURNINDICATORS] ControllerModifier): while X is held, the D-pad works the indicators instead of
+// the game (left/right: indicators, down: hazards). X reaches the game only when held longer than a tap and not
+// used for a combination, so holding X alone still works the game's headlight control.
+namespace BumperGate
+{
+    constexpr uint16_t LB = 0x0100, RB = 0x0200; // XINPUT_GAMEPAD_LEFT_SHOULDER / RIGHT_SHOULDER
+    constexpr uint16_t kDpadDown = 0x0002, kDpadLeft = 0x0004, kDpadRight = 0x0008, kButtonX = 0x4000;
+    constexpr uint16_t kDpadMod = kDpadDown | kDpadLeft | kDpadRight;
+    enum ModEvent : uint32_t { ModLeft = 1, ModRight = 2, ModHazard = 4 };
+    std::atomic<bool> active{ false };
+    std::atomic<bool> modifier{ false };
+    std::atomic<uint32_t> modEvents{ 0 }; // combinations pressed since the game last read them
+    std::atomic<uint16_t> raw{ 0 };
+    SafetyHookInline shXInputGetState{};
+    DWORD lbStart = 0, rbStart = 0, xStart = 0;
+    bool xCombo = false;
+    uint16_t prevDpad = 0;
+
+    void Modifier(uint16_t& buttons, DWORD now)
+    {
+        uint16_t dpad = buttons & kDpadMod;
+        uint16_t pressed = dpad & ~prevDpad;
+        prevDpad = dpad;
+        if (!(buttons & kButtonX))
+        {
+            xStart = 0;
+            xCombo = false;
+            return;
+        }
+        if (!xStart)
+            xStart = now ? now : 1;
+        if (pressed)
+        {
+            uint32_t ev = 0;
+            if (pressed & kDpadLeft) ev |= ModLeft;
+            if (pressed & kDpadRight) ev |= ModRight;
+            if (pressed & kDpadDown) ev |= ModHazard;
+            modEvents |= ev;
+            xCombo = true;
+        }
+        buttons &= ~kDpadMod;
+        if (xCombo || now - xStart < (DWORD)TAP_THRESHOLD)
+            buttons &= ~kButtonX;
+    }
+
+    void Gate(uint16_t& buttons, uint16_t mask, DWORD& start, DWORD now)
+    {
+        if (buttons & mask)
+        {
+            if (!start)
+                start = now ? now : 1;
+            if (now - start < (DWORD)TAP_THRESHOLD)
+                buttons &= ~mask;
+        }
+        else
+            start = 0;
+    }
+
+    DWORD WINAPI XInputGetStateHook(DWORD userIndex, void* state)
+    {
+        DWORD res = shXInputGetState.unsafe_stdcall<DWORD>(userIndex, state);
+        if (res == ERROR_SUCCESS && userIndex == 0 && state)
+        {
+            auto& buttons = *reinterpret_cast<uint16_t*>(reinterpret_cast<uint8_t*>(state) + 4); // XINPUT_STATE::Gamepad.wButtons
+            raw = buttons;
+            if (active)
+            {
+                DWORD now = GetTickCount();
+                Gate(buttons, LB, lbStart, now);
+                Gate(buttons, RB, rbStart, now);
+                if (modifier)
+                    Modifier(buttons, now);
+            }
+            else
+            {
+                lbStart = rbStart = xStart = 0;
+                xCombo = false;
+                prevDpad = buttons & kDpadMod;
+            }
+        }
+        return res;
+    }
+
+    void Install()
+    {
+        auto xinput = LoadLibraryW(L"xinput9_1_0.dll");
+        auto fn = xinput ? GetProcAddress(xinput, "XInputGetState") : nullptr;
+        if (fn)
+            shXInputGetState = safetyhook::create_inline(fn, XInputGetStateHook);
+    }
+}
+
+// GPS-driven blinkers: with a GPS route (a waypoint set on the map, or a mission destination), the automatic
+// blinkers also follow the route, the way the GPS voice does. GENERATE_DIRECTIONS (the call behind the GPS voice)
+// gives the next instruction towards a point: 0 none, 1 turn right, 2 turn left, 3 straight on, 4 turn around
+// (found by driving logged routes). It reports a turn from shortly before the junction until the turn is made.
+// The route target is the waypoint if one is set, otherwise the blip with the route flag (SET_ROUTE).
+namespace GpsBlinkers
+{
+    // FusionFix's NativeInvoke only copies Vector3 out-parameters back for natives with a return value, and these two
+    // are void: call them through a context and copy the vectors back explicitly.
+    template<typename... Args>
+    void InvokeWithVectors(uint32_t hash, Args... args)
+    {
+        NativeContext cxt;
+        (cxt.Push(args), ...);
+        if (auto fn = NativeInvoke::GetNativeHandler(hash))
+        {
+            fn(&cxt);
+            static_cast<scrNativeCallContext&>(cxt).GetResult<int32_t>(0);
+        }
+    }
+
+    constexpr uint32_t SPRITE_WAYPOINT = 8;
+    constexpr int32_t MaxBlips = 1500;      // CRadar's blip array (index <= 0x5DB)
+    constexpr uint16_t BLIP_FLAG_ROUTE = 0x10;
+    uint8_t** blips = nullptr;              // array of blip pointers; a blip starts with its 16-bit generation
+
+    void Init()
+    {
+        // mov eax, [eax*4+blips]; cmp byte ptr [eax+8], 0; jnz; mov eax, ... (the blip flag readers)
+        auto pattern = hook::pattern("8B 04 85 ? ? ? ? 80 78 08 00 75 0C A1");
+        if (!pattern.empty())
+            blips = *pattern.get_first<uint8_t**>(3);
+    }
+
+    // 0 none, 1 left, 2 right (the turn indicator directions)
+    int Direction()
+    {
+        static float timer = 250.0f; // the first call reads the route straight away
+        static int last = 0;
+        timer += 1000.0f * Natives::Timestep();
+        if (timer < 250.0f)
+            return last;
+        timer = 0.0f;
+        last = 0;
+        if (!blips)
+            return 0;
+        // Nothing while the player has no control or the screen fades (mission starts, cutscenes, loading)
+        if (!Natives::IsPlayerControlOn(Natives::ConvertIntToPlayerIndex(Natives::GetPlayerId())) || Natives::IsScreenFading() || Natives::IsScreenFadedOut())
+            return 0;
+
+        Blip waypoint = 0, route = 0;
+        for (int32_t i = 0; i < MaxBlips && !waypoint; i++)
+        {
+            uint8_t* b = blips[i];
+            if (!b)
+                continue;
+            Blip handle = (Blip)((uint32_t)*(uint16_t*)b << 16 | (uint32_t)i);
+            if (Natives::GetBlipSprite(handle) == SPRITE_WAYPOINT)
+                waypoint = handle;
+            else if (!route && b[8] && (*(uint16_t*)(b + 0x20) & BLIP_FLAG_ROUTE))
+                route = handle;
+        }
+        Blip target = waypoint ? waypoint : route;
+        if (!target)
+            return 0;
+        Vector3 pos{};
+        InvokeWithVectors(std::to_underlying(Natives::NativeHashes::GET_BLIP_COORDS), target, &pos);
+        int32_t instruction = 0;
+        Vector3 unused{};
+        InvokeWithVectors(std::to_underlying(Natives::NativeHashes::GENERATE_DIRECTIONS), pos.fX, pos.fY, pos.fZ, &instruction, &unused);
+        last = (instruction == 2) ? 1 : (instruction == 1) ? 2 : 0;
+        return last;
+    }
+}
 
 // Struct to hold all vehicle state data
 struct VehicleState
@@ -38,6 +209,8 @@ struct VehicleState
     float blink_timer = 0.0f;
     float final_blink_timer = 0.0f;
     bool manual_hazard = false;
+    bool manual_active = false; // a blinker the player switched on by hand (automatic blinkers stay out until it is switched off)
+    bool auto_suspended = false; // a manual blinker or hazard was on last frame
     int pending_blinker = 0;
 };
 
@@ -142,6 +315,10 @@ public:
             static bool bManualTurnIndicators = reader.ReadInteger("TURNINDICATORS", "ManualTurnIndicators", 0);
             static uint32_t nLeftIndicatorKey = reader.ReadInteger("TURNINDICATORS", "LeftIndicatorKey", VK_OEM_4);
             static uint32_t nRightIndicatorKey = reader.ReadInteger("TURNINDICATORS", "RightIndicatorKey", VK_OEM_6);
+            static uint32_t nHazardKey = reader.ReadInteger("TURNINDICATORS", "HazardKey", 0x50);
+            GpsBlinkers::Init();
+            BumperGate::modifier = reader.ReadInteger("TURNINDICATORS", "ControllerModifier", 0) != 0;
+            BumperGate::Install();
 
             struct VehicleFlags
             {
@@ -346,6 +523,11 @@ public:
             FusionFix::onGameProcessEvent() += [&]()
             {
                 static auto ti = FusionFixSettings.GetRef("PREF_TURNINDICATORS");
+                // Turn Indicators: 0 Off, 1 Automatic, 2 On (manual), 3 Automatic + manual (changes apply live).
+                // [TURNINDICATORS] ManualTurnIndicators = 1 keeps its old meaning: Automatic becomes Manual.
+                const int tiMode = ti->get();
+                const bool bManualMode = tiMode == 2 || tiMode == 3 || (tiMode == 1 && bManualTurnIndicators);
+                const bool bAutoMode = tiMode == 3 || (tiMode == 1 && !bManualTurnIndicators);
                 static Vehicle last_player_car = 0;
                 static bool prev_lb_pressed = false;
                 static bool prev_rb_pressed = false;
@@ -360,6 +542,8 @@ public:
                     Natives::GetCarCharIsUsing(PlayerPed, &PlayerCar);
                 }
 
+                if (!PlayerCar)
+                    BumperGate::active = false;
                 // Check if player has fully entered the vehicle (can actually drive)
                 auto pVehicleStruct = FindPlayerVehicle(0);
                 bool player_fully_in_vehicle = (PlayerCar != 0 && pVehicleStruct != nullptr);
@@ -381,6 +565,20 @@ public:
                         if (last_state && last_state->crash_state == VehicleState::JUST_CRASHED_STILL_IN_CAR)
                         {
                             last_state->crash_state = VehicleState::CRASHED_AND_EXITED;
+                        }
+                        // The turn indicators go off when the player leaves the vehicle; otherwise a manual indicator
+                        // kept blinking on the parked car forever (#1438). Hazards switched on by hand stay on, as in a real car.
+                        if (last_state && (last_state->current_blinker != 0 || last_state->blinkers_active || last_state->pending_blinker != 0))
+                        {
+                            Natives::SetVehIndicatorlights(last_player_car, false);
+                            last_state->current_blinker = 0;
+                            last_state->blinkers_active = false;
+                            last_state->should_stop_blinking = false;
+                            last_state->blink_state = false;
+                            last_state->blink_timer = 0.0f;
+                            last_state->final_blink_timer = 0.0f;
+                            last_state->pending_blinker = 0;
+                            last_state->manual_active = false;
                         }
                     }
 
@@ -406,6 +604,8 @@ public:
 
                     bool is_player_vehicle = (veh == PlayerCar);
                     bool player_in_vehicle = is_player_vehicle && player_fully_in_vehicle;
+                    if (is_player_vehicle)
+                        BumperGate::active = player_in_vehicle && bManualMode;
 
                     // Skip processing if feature is disabled and no active blinkers
                     if (!ti->get() && state.current_blinker == 0)
@@ -418,10 +618,10 @@ public:
 
                     if (player_in_vehicle && vehicleStruct)
                     {
-                        if (bManualTurnIndicators)
+                        if (bManualMode)
                         {
-                            bool lb_pressed = Natives::IsButtonPressed(0, BUTTON_BUMPER_LEFT) || IsKeyboardKeyPressed(nLeftIndicatorKey);
-                            bool rb_pressed = Natives::IsButtonPressed(0, BUTTON_BUMPER_RIGHT) || IsKeyboardKeyPressed(nRightIndicatorKey);
+                            bool lb_pressed = (BumperGate::raw & BumperGate::LB) || Natives::IsButtonPressed(0, BUTTON_BUMPER_LEFT) || IsKeyboardKeyPressed(nLeftIndicatorKey);
+                            bool rb_pressed = (BumperGate::raw & BumperGate::RB) || Natives::IsButtonPressed(0, BUTTON_BUMPER_RIGHT) || IsKeyboardKeyPressed(nRightIndicatorKey);
                             if (lb_pressed && !prev_lb_pressed)
                             {
                                 lb_press_time = 0.0f;
@@ -438,9 +638,29 @@ public:
                             {
                                 rb_press_time += 1000.0f * Natives::Timestep();
                             }
-                            bool lb_tapped = !lb_pressed && prev_lb_pressed && lb_press_time <= TAP_THRESHOLD;
-                            bool rb_tapped = !rb_pressed && prev_rb_pressed && rb_press_time <= TAP_THRESHOLD;
-                            if (lb_tapped && rb_tapped)
+                            const uint32_t mod = BumperGate::modEvents.exchange(0);
+                            bool lb_tapped = (!lb_pressed && prev_lb_pressed && lb_press_time <= TAP_THRESHOLD) || (mod & BumperGate::ModLeft);
+                            bool rb_tapped = (!rb_pressed && prev_rb_pressed && rb_press_time <= TAP_THRESHOLD) || (mod & BumperGate::ModRight);
+                            // Hazards: left + right pressed together (they don't have to be released in the same frame,
+                            // which made it near impossible on a keyboard), or the hazard key
+                            static bool both_held = false;
+                            static bool prev_hazard_key = false;
+                            bool hazard_tapped = (mod & BumperGate::ModHazard) != 0;
+                            if (lb_pressed && rb_pressed)
+                                both_held = true;
+                            if (both_held)
+                            {
+                                lb_tapped = rb_tapped = false;
+                                if (!lb_pressed && !rb_pressed)
+                                {
+                                    both_held = false;
+                                    hazard_tapped |= lb_press_time <= TAP_THRESHOLD * 2 && rb_press_time <= TAP_THRESHOLD * 2;
+                                }
+                            }
+                            bool hazard_key = nHazardKey && IsKeyboardKeyPressed(nHazardKey);
+                            hazard_tapped |= hazard_key && !prev_hazard_key;
+                            prev_hazard_key = hazard_key;
+                            if (hazard_tapped)
                             {
                                 state.manual_hazard = !state.manual_hazard;
                                 Natives::SetVehHazardlights(veh, state.manual_hazard);
@@ -454,6 +674,7 @@ public:
                                     state.blink_timer = 0.0f;
                                     state.final_blink_timer = 0.0f;
                                     state.pending_blinker = 0;
+                                    state.manual_active = false;
                                 }
                             }
                             else if (lb_tapped)
@@ -473,6 +694,7 @@ public:
                                     state.blink_timer = 0.0f;
                                     state.final_blink_timer = 0.0f;
                                     state.pending_blinker = 0;
+                                    state.manual_active = false;
                                 }
                                 else
                                 {
@@ -482,6 +704,7 @@ public:
                                         state.should_stop_blinking = true;
                                         state.final_blink_timer = 0.0f;
                                         state.pending_blinker = 1;
+                                        state.manual_active = true;
                                     }
                                     else
                                     {
@@ -492,6 +715,7 @@ public:
                                         state.blink_state = true;
                                         Natives::SetVehIndicatorlights(veh, true);
                                         state.pending_blinker = 0;
+                                        state.manual_active = true;
                                     }
                                 }
                             }
@@ -512,6 +736,7 @@ public:
                                     state.blink_timer = 0.0f;
                                     state.final_blink_timer = 0.0f;
                                     state.pending_blinker = 0;
+                                    state.manual_active = false;
                                 }
                                 else
                                 {
@@ -521,6 +746,7 @@ public:
                                         state.should_stop_blinking = true;
                                         state.final_blink_timer = 0.0f;
                                         state.pending_blinker = 2;
+                                        state.manual_active = true;
                                     }
                                     else
                                     {
@@ -531,6 +757,7 @@ public:
                                         state.blink_state = true;
                                         Natives::SetVehIndicatorlights(veh, true);
                                         state.pending_blinker = 0;
+                                        state.manual_active = true;
                                     }
                                 }
                             }
@@ -538,16 +765,49 @@ public:
                             prev_rb_pressed = rb_pressed;
                         }
                         else
+                            state.manual_active = false;
+                        // Automatic blinkers (in Automatic + manual only while no blinker or hazard was switched on by hand)
+                        // When a manual blinker or the hazards are switched off, the automatic indicators start afresh:
+                        // the turn they were tracking may be over, and a stale state kept them from coming back.
+                        const bool manual_now = state.manual_active || state.manual_hazard;
+                        if (state.auto_suspended && !manual_now)
                         {
+                            state.is_turning = false;
+                            state.last_turn_direction = 0;
+                            state.turn_start_timer = 0.0f;
+                            state.turn_stop_timer = 0.0f;
+                        }
+                        state.auto_suspended = manual_now;
+
+                        if (bAutoMode && !state.manual_active && !state.manual_hazard)
+                        {
+                            if (!state.blinkers_active)
+                                state.should_stop_blinking = false; // nothing left to stop
                             // Process player vehicle with turn indicators
                             auto m_fSteerAngle = *reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(vehicleStruct) + SteerAngleOffset);
 
+                            // What the automatic indicators follow (Auto Indicators): 0 steering + GPS, 1 steering, 2 GPS
+                            static auto autoSource = FusionFixSettings.GetRef("PREF_AUTOTURNINDICATORS");
+                            const int source = autoSource ? autoSource->get() : 0;
+                            const bool bFollowSteering = source != 2;
+                            const bool bFollowGps = source != 1;
+
                             // Determine current turn direction
                             int current_turn_direction = 0;
-                            if (m_fSteerAngle > STEER_THRESHOLD)
+                            if (bFollowSteering && m_fSteerAngle > STEER_THRESHOLD)
                                 current_turn_direction = 1; // Left
-                            else if (m_fSteerAngle < -STEER_THRESHOLD)
+                            else if (bFollowSteering && m_fSteerAngle < -STEER_THRESHOLD)
                                 current_turn_direction = 2; // Right
+                            // Not steering (or steering ignored): follow the GPS route, if there is one
+                            bool from_gps = false;
+                            if (current_turn_direction == 0 && bFollowGps)
+                            {
+                                current_turn_direction = GpsBlinkers::Direction();
+                                from_gps = current_turn_direction != 0;
+                            }
+                            // The GPS instruction is already settled (read every 250 ms), so it needs no activation delay;
+                            // the delay only filters out short steering corrections
+                            const float activation_delay = from_gps ? 0.0f : ACTIVATION_DELAY;
 
                             bool currently_turning = (current_turn_direction != 0);
                             bool direction_changed = (current_turn_direction != state.last_turn_direction &&
@@ -592,7 +852,7 @@ public:
                             {
                                 state.turn_start_timer += 1000.0f * Natives::Timestep();
 
-                                if (state.turn_start_timer >= ACTIVATION_DELAY && !state.blinkers_active)
+                                if (state.turn_start_timer >= activation_delay && !state.blinkers_active)
                                 {
                                     state.current_blinker = current_turn_direction;
                                     state.blinkers_active = true;

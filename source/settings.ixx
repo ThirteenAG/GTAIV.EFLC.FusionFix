@@ -2442,6 +2442,7 @@ public:
             { "PREF_CENTEREDCAMERAFOOT",     "MISC.CenteredFootCam" },
             { "PREF_CAMERASHAKE",            "MAIN.CameraShake" },
             { "PREF_TURNINDICATORS",         "MISC.TurnIndicators" },
+            { "PREF_AUTOTURNINDICATORS",     "MISC.AutoTurnIndicators" },
             { "PREF_EXTRANIGHTSHADOWS",      "SHADOWS.ExtraNightShadows" },
             { "PREF_GRAPHICSAPI",            "MAIN.GraphicsAPI" },
             { "PREF_BULLETTRACES",           "MISC.AlwaysShowBulletTraces" },
@@ -2544,6 +2545,7 @@ public:
             AddSetting(screen, "MISC.ActionCamera");
             AddEmptyLine(screen);
             AddSetting(screen, "MISC.TurnIndicators");
+            AddSetting(screen, "MISC.AutoTurnIndicators");
             AddSetting(screen, "MISC.AlwaysShowBulletTraces");
             AddSetting(screen, "MISC.DisableWardrobeTransition", {}, NotTLAD);
             AddSetting(screen, "MISC.InstantStopTaxi");
