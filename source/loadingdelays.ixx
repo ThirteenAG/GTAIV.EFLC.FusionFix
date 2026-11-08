@@ -11,10 +11,10 @@ import settings;
 
 void FixRepeatedLoadingSynchronization()
 {
-    // Patch 8 (1.0.8.0): verify the entire selector because the hooks reuse a dead
+    // Verify the entire selector because the hooks reuse a dead
     // stack local. Only relocated addresses are wildcarded; other builds and
     // altered control flow must not inherit these stack offsets.
-    auto pattern = hook::pattern(
+    auto pattern = hook::pattern( // Patch 8 (1.0.8.0)
         "83 EC 28 B8 34 00 00 00 39 05 ? ? ? ? 56 8B F1 0F 84 E2 00 00 00 39 05 ? ? ? ? 0F 84 D6 00 00 00 "
         "6A 04 8D 44 24 08 50 6A 00 68 ? ? ? ? 8D 4C 24 2C C7 44 24 14 ? ? ? ? E8 1E 27 BC FF "
         "8D 4C 24 1C 51 8D 96 E0 0F 00 00 52 C7 44 24 30 ? ? ? ? E8 65 27 BC FF 83 C4 08 84 C0 75 37 "
@@ -23,13 +23,32 @@ void FixRepeatedLoadingSynchronization()
         "6A 04 8D 44 24 0C 50 6A 00 68 ? ? ? ? 8D 4C 24 1C C7 44 24 18 ? ? ? ? E8 9C 26 BC FF "
         "F3 0F 7E 44 24 0C 83 EC 10 8B C4 66 0F D6 00 C7 44 24 28 ? ? ? ? F3 0F 7E 44 24 24 "
         "8B CE 66 0F D6 40 08 E8 A3 FD FF FF 6A 00 B9 ? ? ? ? E8 D7 E7 FF FF 5E 83 C4 28 C3");
+    auto comparisonOffset = 0x5B;
+    auto firstSyncOffset = 0x99;
+    auto secondSyncOffset = 0xED;
+    if (pattern.empty())
+    {
+        pattern = hook::pattern( // Complete Edition (1.2.0.59)
+            "83 EC 28 83 3D ? ? ? ? 34 56 8B F1 0F 84 E2 00 00 00 83 3D ? ? ? ? 34 0F 84 D5 00 00 00 "
+            "6A 04 8D 44 24 08 50 6A 00 68 ? ? ? ? 8D 4C 24 2C C7 44 24 14 ? ? ? ? E8 B1 7A B3 FF "
+            "8D 44 24 1C 50 8D 86 E0 0F 00 00 50 C7 44 24 30 ? ? ? ? E8 F8 7A B3 FF 83 C4 08 84 C0 75 36 "
+            "E8 BC 9D B2 FF 80 3D ? ? ? ? 00 A3 ? ? ? ? 89 15 ? ? ? ? C7 05 ? ? ? ? 00 00 00 00 74 13 "
+            "6A 00 B9 ? ? ? ? E8 62 B1 00 00 C6 05 ? ? ? ? 00 6A 00 B9 ? ? ? ? E8 4F E8 FF FF "
+            "6A 04 8D 44 24 0C 50 6A 00 68 ? ? ? ? 8D 4C 24 1C C7 44 24 18 ? ? ? ? E8 30 7A B3 FF "
+            "F3 0F 7E 44 24 0C 83 EC 10 8B C4 C7 44 24 28 ? ? ? ? 66 0F D6 00 F3 0F 7E 44 24 24 "
+            "8B CE 66 0F D6 40 08 E8 A7 00 00 00 6A 00 B9 ? ? ? ? E8 FB E7 FF FF 5E 83 C4 28 C3");
+        comparisonOffset = 0x58;
+        firstSyncOffset = 0x95;
+        secondSyncOffset = 0xE9;
+    }
     if (pattern.size() != 1)
         return;
 
-    static const auto afterFirstSync = reinterpret_cast<uintptr_t>(pattern.get_first(0xA5));
-    static const auto afterSecondSync = reinterpret_cast<uintptr_t>(pattern.get_first(0xF9));
+    // Both builds use the same stack slots and 12-byte push/setup/call sequences.
+    static const auto afterFirstSync = reinterpret_cast<uintptr_t>(pattern.get_first(firstSyncOffset + 12));
+    static const auto afterSecondSync = reinterpret_cast<uintptr_t>(pattern.get_first(secondSyncOffset + 12));
     static std::array hooks{
-        safetyhook::create_mid(pattern.get_first(0x5B), [](SafetyHookContext& regs)
+        safetyhook::create_mid(pattern.get_first(comparisonOffset), [](SafetyHookContext& regs)
         {
             // Keep the existing comparison (including framelimit's hook). Its AL
             // result belongs to this invocation, not a shared loading-state flag.
@@ -37,14 +56,14 @@ void FixRepeatedLoadingSynchronization()
             // arguments are still on the stack here, making that slot ESP+0xC.
             *reinterpret_cast<uint8_t*>(regs.esp + 0xC) = static_cast<uint8_t>(regs.eax);
         }, SafetyHookMid::StartDisabled),
-        safetyhook::create_mid(pattern.get_first(0x99), [](SafetyHookContext& regs)
+        safetyhook::create_mid(pattern.get_first(firstSyncOffset), [](SafetyHookContext& regs)
         {
             // Skip the argument push, ECX setup and call together, so no stack
             // adjustment is needed. Callback changes still execute both waits.
             if (*reinterpret_cast<uint8_t*>(regs.esp + 4))
                 regs.eip = afterFirstSync;
         }, SafetyHookMid::StartDisabled),
-        safetyhook::create_mid(pattern.get_first(0xED), [](SafetyHookContext& regs)
+        safetyhook::create_mid(pattern.get_first(secondSyncOffset), [](SafetyHookContext& regs)
         {
             // The callback setter still runs and uses different stack locals.
             if (*reinterpret_cast<uint8_t*>(regs.esp + 4))
