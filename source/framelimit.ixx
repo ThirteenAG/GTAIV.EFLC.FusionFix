@@ -10,6 +10,7 @@ import common;
 import comvars;
 import settings;
 import natives;
+import loadingdelays;
 
 float fFpsLimit;
 float fCutsceneFpsLimit;
@@ -243,9 +244,12 @@ public:
                     }
                 });
 
-                // Unlimit in-game loading screens' FPS
-                pattern = find_pattern("8B 4C 24 04 8B 54 24 08 8B 41 08", "8B 54 24 04 8B 42 08 85 C0 8B 4C 24 08 75 12");
-                injector::MakeJMP(pattern.get_first(0), sub_411F50, true);
+                if (!FixLoadingSynchronization())
+                {
+                    // Keep legacy loading detection on unverified builds.
+                    pattern = find_pattern("8B 4C 24 04 8B 54 24 08 8B 41 08", "8B 54 24 04 8B 42 08 85 C0 8B 4C 24 08 75 12");
+                    injector::MakeJMP(pattern.get_first(0), sub_411F50, true);
+                }
 
                 // Unlimit initial loading screens' FPS
                 static float f0 = 0.0f;

@@ -2,6 +2,7 @@ module;
 
 #include <common.hxx>
 #include <D3D9Types.h>
+#include <atomic>
 
 export module comvars;
 
@@ -2567,7 +2568,7 @@ export const char* pszCurrentCutsceneName = nullptr;
 export HWND gWnd;
 export RECT gRect;
 export bool bDynamicShadowsForTrees = true;
-export bool bLoadingShown = false;
+export std::atomic<bool> bLoadingShown{ false };
 export int nTimecycleUnpauseTimer = 0;
 export int nCameraUnpauseTimer1 = 0;
 export int nCameraUnpauseTimer2 = 0;
