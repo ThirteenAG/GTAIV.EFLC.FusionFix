@@ -15,9 +15,9 @@ export bool FixLoadingSynchronization()
     {
         struct LoadingPatterns
         {
-            const char* renderThread;
+            const char* renderLoop; // MainLoop block within RenderThreadEntryPoint.
             const char* loadingQuery;
-            const char* streamingFlush;
+            const char* loaderFlush;
             int nPollOffset;
             int nCompletionOffset;
             int nSleepOffset;
@@ -75,61 +75,62 @@ export bool FixLoadingSynchronization()
         };
 
         const LoadingPatterns* matched = nullptr;
-        uint8_t* renderThread = nullptr;
+        uint8_t* renderLoop = nullptr;
         for (const auto& build : builds)
         {
-            auto pattern = hook::pattern(build.renderThread);
+            auto pattern = hook::pattern(build.renderLoop);
             if (pattern.empty())
                 continue;
             if (pattern.size() != 1 || matched)
                 return false;
             matched = &build;
-            renderThread = pattern.get_first<uint8_t>();
+            renderLoop = pattern.get_first<uint8_t>();
         }
         if (!matched)
             return false;
 
         auto loadingQuery = hook::pattern(matched->loadingQuery);
-        auto streamingFlush = hook::pattern(matched->streamingFlush);
-        if (loadingQuery.size() != 1 || streamingFlush.size() != 1)
+        auto loaderFlush = hook::pattern(matched->loaderFlush);
+        if (loadingQuery.size() != 1 || loaderFlush.size() != 1)
             return false;
 
         static const auto LoadingRenderFunction = *loadingQuery.get_first<uintptr_t>(0x1C);
         static const auto RenderThreadInterface = *loadingQuery.get_first<uintptr_t>(0x10);
-        static const auto PollSemaphore = reinterpret_cast<bool(__cdecl*)(HANDLE)>(
-            injector::GetBranchDestination(renderThread + matched->nPollOffset).as_int());
+        static const auto rage__sysIpcPollSema = reinterpret_cast<bool(__cdecl*)(HANDLE)>(
+            injector::GetBranchDestination(renderLoop + matched->nPollOffset).as_int());
 
-        static std::array CRenderThreadInterface_Hooks{
-            safetyhook::create_mid(renderThread + 0x41, [](SafetyHookContext& regs)
+        static std::array RenderThreadEntryPoint_Hooks{
+            safetyhook::create_mid(renderLoop + 0x41, [](SafetyHookContext& regs)
             {
-                // The render thread owns the active functor after adopting the pending callback.
+                // Read the adopted active functor on its owning render thread.
                 auto active = reinterpret_cast<const uintptr_t*>(regs.esi);
                 bLoadingShown.store(active[0] == LoadingRenderFunction && active[1] == 0 &&
                     active[2] == RenderThreadInterface, std::memory_order_relaxed);
             }, SafetyHookMid::StartDisabled),
-            safetyhook::create_mid(renderThread + matched->nCompletionOffset, [](SafetyHookContext& regs)
+            safetyhook::create_mid(renderLoop + matched->nCompletionOffset, [](SafetyHookContext& regs)
             {
-                // Catch a request posted during loading rendering without consuming a second token.
+                // A successful sysIpcPollSema consumes one token.
+                // Keep native RemoveAll and index updates before the completion signal.
                 if (!(regs.ebx & 0xFF) && bLoadingShown.load(std::memory_order_relaxed))
                 {
-                    auto request = *reinterpret_cast<HANDLE*>(regs.edi + 0xFB4);
-                    if (PollSemaphore(request))
+                    auto requestSemaphore = *reinterpret_cast<HANDLE*>(regs.edi + 0xFB4);
+                    if (rage__sysIpcPollSema(requestSemaphore))
                         regs.ebx |= 1;
                 }
             }, SafetyHookMid::StartDisabled)
         };
-        for (auto& hook : CRenderThreadInterface_Hooks)
+        for (auto& hook : RenderThreadEntryPoint_Hooks)
         {
             if (!hook || !hook.enable())
             {
-                for (auto& installed : CRenderThreadInterface_Hooks)
+                for (auto& installed : RenderThreadEntryPoint_Hooks)
                     installed.reset();
                 return false;
             }
         }
 
-        // Yield while CLoaderDirect waits for I/O completion.
-        injector::WriteMemory<uint8_t>(streamingFlush.get_first(matched->nSleepOffset + 1), 0, true);
+        // CLoaderDirect::Flush: yield while waiting for I/O completion.
+        injector::WriteMemory<uint8_t>(loaderFlush.get_first(matched->nSleepOffset + 1), 0, true);
         return true;
     }();
     return bInstalled;
