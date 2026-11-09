@@ -1,0 +1,1648 @@
+<?xml version="1.0" encoding="UTF - 8"?>
+<Magic value="1635280754" />
+<Game>GTAIV</Game>
+<Platform>PC</Platform>
+<Effect>
+	<Shaders>
+		<VertexShaders value="3" >
+			<Item>
+				<DataType>asm</DataType>
+				<File>gta_rmptfx_gpurender\gta_rmptfx_gpurenderVS0.asm</File>
+				<Variables value="28" >
+					<Item>
+						<Type>float</Type>
+						<Name>gAmbientAmount</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gColorTint</Name>
+						<Index value="67" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gColorTintPhase2</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDiffuse</Name>
+						<Index value="71" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDirectionalColour</Name>
+						<Index value="18" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDirectionalLight</Name>
+						<Index value="17" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightAmbient0</Name>
+						<Index value="37" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightAmbient1</Name>
+						<Index value="38" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightColB</Name>
+						<Index value="31" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightColG</Name>
+						<Index value="30" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightColR</Name>
+						<Index value="29" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightConeOffset</Name>
+						<Index value="27" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightConeScale</Name>
+						<Index value="26" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightDirX</Name>
+						<Index value="22" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightDirY</Name>
+						<Index value="23" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightDirZ</Name>
+						<Index value="24" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightFallOff</Name>
+						<Index value="25" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPosX</Name>
+						<Index value="19" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPosY</Name>
+						<Index value="20" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPosZ</Name>
+						<Index value="21" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gMotionBlur</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gRadius</Name>
+						<Index value="65" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gTextureAnimation</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldView</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gWrapBias</Name>
+						<Index value="70" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gWrapScale</Name>
+						<Index value="69" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>gta_rmptfx_gpurender\gta_rmptfx_gpurenderVS1.asm</File>
+				<Variables value="39" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>PositionTexSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>VelocityTexSampler</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDiffuse</Name>
+						<Index value="81" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gAmbientAmount</Name>
+						<Index value="80" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gColorTint</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gColorTintPhase2</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDirectionalColour</Name>
+						<Index value="18" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDirectionalLight</Name>
+						<Index value="17" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightAmbient0</Name>
+						<Index value="37" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightAmbient1</Name>
+						<Index value="38" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightColB</Name>
+						<Index value="31" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightColG</Name>
+						<Index value="30" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightColR</Name>
+						<Index value="29" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightConeOffset</Name>
+						<Index value="27" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightConeOffset2</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightConeScale</Name>
+						<Index value="26" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightConeScale2</Name>
+						<Index value="71" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightDir2X</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightDir2Y</Name>
+						<Index value="69" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightDir2Z</Name>
+						<Index value="70" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightDirX</Name>
+						<Index value="22" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightDirY</Name>
+						<Index value="23" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightDirZ</Name>
+						<Index value="24" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightFallOff</Name>
+						<Index value="25" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPointFallOff</Name>
+						<Index value="67" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPointPosX</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPointPosY</Name>
+						<Index value="65" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPointPosZ</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPosX</Name>
+						<Index value="19" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPosY</Name>
+						<Index value="20" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPosZ</Name>
+						<Index value="21" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gMotionBlur</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gRadius</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gTextureAnimation</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldView</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gWrapBias</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gWrapScale</Name>
+						<Index value="78" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>gta_rmptfx_gpurender\gta_rmptfx_gpurenderVS2.asm</File>
+				<Variables value="36" >
+					<Item>
+						<Type>float</Type>
+						<Name>gAmbientAmount</Name>
+						<Index value="80" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gColorTint</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gColorTintPhase2</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDirectionalColour</Name>
+						<Index value="18" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDirectionalLight</Name>
+						<Index value="17" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightAmbient0</Name>
+						<Index value="37" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightAmbient1</Name>
+						<Index value="38" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightColB</Name>
+						<Index value="31" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightColG</Name>
+						<Index value="30" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightColR</Name>
+						<Index value="29" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightConeOffset</Name>
+						<Index value="27" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightConeOffset2</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightConeScale</Name>
+						<Index value="26" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightConeScale2</Name>
+						<Index value="71" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightDir2X</Name>
+						<Index value="68" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightDir2Y</Name>
+						<Index value="69" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightDir2Z</Name>
+						<Index value="70" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightDirX</Name>
+						<Index value="22" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightDirY</Name>
+						<Index value="23" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightDirZ</Name>
+						<Index value="24" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightFallOff</Name>
+						<Index value="25" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPointFallOff</Name>
+						<Index value="67" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPointPosX</Name>
+						<Index value="64" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPointPosY</Name>
+						<Index value="65" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPointPosZ</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPosX</Name>
+						<Index value="19" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPosY</Name>
+						<Index value="20" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gLightPosZ</Name>
+						<Index value="21" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gMotionBlur</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gRadius</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gTextureAnimation</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldView</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gWorldViewProj</Name>
+						<Index value="8" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gWrapBias</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gWrapScale</Name>
+						<Index value="78" />
+					</Item>
+				</Variables>
+			</Item>
+		</VertexShaders>
+		<PixelShaders value="1" >
+			<Item>
+				<DataType>asm</DataType>
+				<File>gta_rmptfx_gpurender\gta_rmptfx_gpurenderPS1.asm</File>
+				<Variables value="4" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>DiffuseTexSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>TextureSampler</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gInvColorExpBias</Name>
+						<Index value="46" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+		</PixelShaders>
+	</Shaders>
+	<GlobalVariables value="61" >
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="64" />
+			<Name1>gAllGlobals</Name1>
+			<Name2>AllGlobals</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorld</Name1>
+			<Name2>World</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorldView</Name1>
+			<Name2>WorldView</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorldViewProj</Name1>
+			<Name2>WorldViewProjection</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gViewInverse</Name1>
+			<Name2>ViewInverse</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>StippleTexture</Name1>
+			<Name2>stippletexture</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Point
+			MagFilter Point
+			MipFilter Point
+			AddressU Wrap
+			AddressV Wrap
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gDepthFxParams</Name1>
+			<Name2>DepthFxParams</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gDirectionalLight</Name1>
+			<Name2>DirectionalLight</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gDirectionalColour</Name1>
+			<Name2>DirectionalColour</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPosX</Name1>
+			<Name2>LightPositionX</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPosY</Name1>
+			<Name2>LightPositionY</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPosZ</Name1>
+			<Name2>LightPositionZ</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightDirX</Name1>
+			<Name2>LightDirX</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightDirY</Name1>
+			<Name2>LightDirY</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightDirZ</Name1>
+			<Name2>LightDirZ</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightFallOff</Name1>
+			<Name2>LightFallOff</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightConeScale</Name1>
+			<Name2>LightConeScale</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightConeOffset</Name1>
+			<Name2>LightConeOffset</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightColR</Name1>
+			<Name2>LightColR</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightColG</Name1>
+			<Name2>LightColG</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightColB</Name1>
+			<Name2>LightColB</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointPosX</Name1>
+			<Name2>LightPointPositionX</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointPosY</Name1>
+			<Name2>LightPointPositionY</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointPosZ</Name1>
+			<Name2>LightPointPositionZ</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointColR</Name1>
+			<Name2>LightPointColR</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointColG</Name1>
+			<Name2>LightPointColG</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointColB</Name1>
+			<Name2>LightPointColB</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointFallOff</Name1>
+			<Name2>LightPointFallOff</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightDir2X</Name1>
+			<Name2>LightDir2X</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightDir2Y</Name1>
+			<Name2>LightDir2Y</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightDir2Z</Name1>
+			<Name2>LightDir2Z</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightConeScale2</Name1>
+			<Name2>LightConeScale2</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightConeOffset2</Name1>
+			<Name2>LightConeOffset2</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightAmbient0</Name1>
+			<Name2>LightAmbientColor0</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Ambient Light Color 0</Value>
+				</Item>
+				<Item>
+					<Name>Space</Name>
+					<Type>String</Type>
+					<Value>material</Value>
+				</Item>
+			</Annotation>
+			<Values value="4" >
+			0
+			0
+			0
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightAmbient1</Name1>
+			<Name2>LightAmbientColor1</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Ambient Light Color 1</Value>
+				</Item>
+				<Item>
+					<Name>Space</Name>
+					<Type>String</Type>
+					<Value>material</Value>
+				</Item>
+			</Annotation>
+			<Values value="4" >
+			0
+			0
+			0
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>globalScalars</Name1>
+			<Name2>globalScalars</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>globalScalars2</Name1>
+			<Name2>globalScalars2</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gAspectRatio</Name1>
+			<Name2>gAspectRatio</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>globalScreenSize</Name1>
+			<Name2>globalScreenSize</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>globalFogParams</Name1>
+			<Name2>globalFogParams</Name2>
+			<Annotation />
+			<Values value="4" >
+			1600
+			9e+06
+			0.01
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>globalFogColor</Name1>
+			<Name2>globalFogColor</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>globalFogColorN</Name1>
+			<Name2>globalFogColorN</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gDayNightEffects</Name1>
+			<Name2>globalDayNightEffects</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			0
+			1
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gInvColorExpBias</Name1>
+			<Name2>ColorExpBias</Name2>
+			<Annotation />
+			<Values value="1" >
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>colorize</Name1>
+			<Name2>Colorize</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>stencil</Name1>
+			<Name2>Stencil</Name2>
+			<Annotation />
+			<Values value="4" >
+			0
+			255
+			0
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gFacetCentre</Name1>
+			<Name2>FacetCentre</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowCommonParam0123</Name1>
+			<Name2>ShadowCommonParam0123</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowParam14151617</Name1>
+			<Name2>ShadowParam14151617</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowParam18192021</Name1>
+			<Name2>ShadowParam18192021</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowParam0123</Name1>
+			<Name2>ShadowParam0123</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowParam4567</Name1>
+			<Name2>ShadowParam4567</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowParam891113</Name1>
+			<Name2>ShadowParam891113</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowMatrix</Name1>
+			<Name2>ShadowMatrix</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowZSamplerDir</Name1>
+			<Name2>ShadowZTextureDir</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Clamp
+			AddressV Clamp
+			MipFilter Point
+			MinFilter Point
+			MagFilter Point
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowZSamplerDirVS</Name1>
+			<Name2>ShadowZTextureDirVS</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Clamp
+			AddressV Clamp
+			MipFilter Point
+			MinFilter Point
+			MagFilter Point
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowZSamplerCache</Name1>
+			<Name2>ShadowZTextureCache</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Clamp
+			AddressV Clamp
+			MipFilter Point
+			MinFilter Point
+			MagFilter Point
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowSamplerLUT</Name1>
+			<Name2>ShadowTextureLUT</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Wrap
+			AddressV Wrap
+			MipFilter Point
+			MinFilter Linear
+			MagFilter Linear
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>NearFarPlane</Name1>
+			<Name2>NearFarPlane</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gInvScreenSize</Name1>
+			<Name2>InvScreenSize</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>DepthMapTexSampler</Name1>
+			<Name2>DepthMap</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Point
+			MagFilter Point
+			MipFilter None
+			AddressU Clamp
+			AddressV Clamp
+		</Values>
+		</Item>
+	</GlobalVariables>
+	<LocalVariables value="23" >
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>shadowmap_res</Name1>
+			<Name2>ShadowMapResolution</Name2>
+			<Annotation />
+			<Values value="1" >
+			1280
+		</Values>
+		</Item>
+		<Item>
+			<Type>float2</Type>
+			<ArrayCount value="4" />
+			<Name1>facetMask</Name1>
+			<Name2>facetMask</Name2>
+			<Annotation />
+			<Values value="8" >
+			-1
+			0
+			1
+			0
+			0
+			-1
+			0
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gSoftness</Name1>
+			<Name2>gSoftness</Name2>
+			<Annotation value="4" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Softness Fade : Controls how much soft particles fade out as objects become close to them ;</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="1000.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			2
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>HybridAdd</Name1>
+			<Name2>HybridAdd</Name2>
+			<Annotation />
+			<Values value="1" >
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>DiffuseTexSampler</Name1>
+			<Name2>DiffuseTex2</Name2>
+			<Annotation value="1" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Texture Map</Value>
+				</Item>
+			</Annotation>
+			<Values value="10" >
+			MinFilter Linear
+			MagFilter Linear
+			MipFilter Linear
+			AddressU Clamp
+			AddressV Clamp
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>HybridAddRatio</Name1>
+			<Name2>HybridAddRatio</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Hybrid Add Ratio</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="1.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+				<Item>
+					<Name>UIHint</Name>
+					<Type>String</Type>
+					<Value>Keyframeable</Value>
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>HDRIntensityMultiplier</Name1>
+			<Name2>HDRIntensityMultiplier</Name2>
+			<Annotation value="5" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>HDR Intensity Multiplier</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="255.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+				<Item>
+					<Name>UIHint</Name>
+					<Type>String</Type>
+					<Value>Keyframeable</Value>
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gMotionBlur</Name1>
+			<Name2>MotionBlur</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gRadius</Name1>
+			<Name2>Radius</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float2</Type>
+			<ArrayCount value="0" />
+			<Name1>gLifeFade</Name1>
+			<Name2>LifeFade</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>bool</Type>
+			<ArrayCount value="0" />
+			<Name1>gUseDirectional</Name1>
+			<Name2>UseDirectional</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gTextureAnimation</Name1>
+			<Name2>TextureAnimation</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gColorTint</Name1>
+			<Name2>ColorTint</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gColorTintPhase2</Name1>
+			<Name2>ColorTintPhase2</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>TextureSampler</Name1>
+			<Name2>DiffuseTex</Name2>
+			<Annotation value="1" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Diffuse Texture</Value>
+				</Item>
+			</Annotation>
+			<Values value="14" >
+			AddressU Wrap
+			AddressV Wrap
+			AddressW Wrap
+			AddressW Wrap
+			MipFilter Linear
+			MinFilter Linear
+			MagFilter Linear
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>PositionTexSampler</Name1>
+			<Name2>PositionTex</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Point
+			MagFilter Point
+			MipFilter None
+			AddressU Clamp
+			AddressV Clamp
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>VelocityTexSampler</Name1>
+			<Name2>VelocityTex</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Point
+			MagFilter Point
+			MipFilter None
+			AddressU Clamp
+			AddressV Clamp
+		</Values>
+		</Item>
+		<Item>
+			<Type>int</Type>
+			<ArrayCount value="0" />
+			<Name1>gControlLight</Name1>
+			<Name2>ControlLight</Name2>
+			<Annotation />
+			<Values value="1" >
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gRainDebug</Name1>
+			<Name2>RainDebug</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gWrapScale</Name1>
+			<Name2>WrapScale</Name2>
+			<Annotation value="4" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Wrap Scale : Controls how strong sun light hits particle ( 0 - no direct light , 1 - all direct light)</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="1.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			0.7
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gWrapBias</Name1>
+			<Name2>WrapBias</Name2>
+			<Annotation value="4" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Wrap Bias : Controls how sun light spreads over surface ( 0 - no extra spread, 1- spreads all over surface)</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="1.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			0.3
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gDiffuse</Name1>
+			<Name2>Diffuse</Name2>
+			<Annotation value="4" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Diffuse : Controls the amount of lighting on surface, color also controls this ( 0 - no light, 1- light)</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="2.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gAmbientAmount</Name1>
+			<Name2>AmbientAmount</Name2>
+			<Annotation value="4" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Ambient Scale : Controls how much double ambient lighting	to alpy to surface</Value>
+				</Item>
+				<Item>
+					<Name>UIMin</Name>
+					<Type>Float</Type>
+					<Value value="0.000000" />
+				</Item>
+				<Item>
+					<Name>UIMax</Name>
+					<Type>Float</Type>
+					<Value value="2.000000" />
+				</Item>
+				<Item>
+					<Name>UIStep</Name>
+					<Type>Float</Type>
+					<Value value="0.010000" />
+				</Item>
+			</Annotation>
+			<Values value="1" >
+			0.3
+		</Values>
+		</Item>
+	</LocalVariables>
+	<Techniques value="3" >
+		<Item>
+			<Name>draw_Rain</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>1</PixelShader>
+					<Params value="1" >
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>draw_Rain_VERTEXTEX</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>1</VertexShader>
+					<PixelShader>1</PixelShader>
+					<Params value="1" >
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>draw_Rain_R2VB</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>2</VertexShader>
+					<PixelShader>1</PixelShader>
+					<Params value="1" >
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+	</Techniques>
+</Effect>

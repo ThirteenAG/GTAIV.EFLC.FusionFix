@@ -82,14 +82,14 @@ public:
                 #ifdef _DEBUG
                 // don't load loadscreens at the start
                 pattern = hook::pattern("E8 ? ? ? ? 83 C4 04 E8 ? ? ? ? 6A 00 E8 ? ? ? ? 83 C4 04 C7 06");
-                if (!pattern.count_hint(1).empty()) {
+                if (!pattern.count_hint(1).empty()) { // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                     CGame::hbshowLoadscreen.fun = injector::MakeCALL(pattern.get_first(), CGame::showLoadscreen, true).get();
                     injector::MakeNOP(pattern.get_first(5), 3, true); // nop add esp, 4 since it's not fastcall
                 }
                 
                 // don't wait for loadscreens at the start
                 pattern = hook::pattern("80 3D ? ? ? ? 00 B9 01 00 00 00 0F 45 C1 80 3D");
-                if (!pattern.count_hint(1).empty())
+                if (!pattern.count_hint(1).empty()) // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                     injector::WriteMemory<uint8_t>(pattern.get_first(-23), 0xEB, true);
                 #endif
             }
@@ -97,9 +97,9 @@ public:
             //if (bSkipMenu)
             {
                 auto pattern = hook::pattern("E8 ? ? ? ? 83 C4 04 8B 8C 24 ? ? ? ? 5F 5E 5D 5B 33 CC E8 ? ? ? ? 81 C4 ? ? ? ? C3");
-                if (pattern.size() == 5)
+                if (pattern.size() == 5) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                     hbsub_7870A0.fun = injector::MakeCALL(pattern.count(5).get(1).get<void*>(0), sub_7870A0).get();
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     hbsub_7870A0.fun = injector::MakeCALL(hook::get_pattern("E8 ? ? ? ? 83 C4 04 5F 5E 5B 8B 8C 24 ? ? ? ? 33 CC E8 ? ? ? ? 8B E5 5D C3 83 F8 30", 0), sub_7870A0).get();
                 }

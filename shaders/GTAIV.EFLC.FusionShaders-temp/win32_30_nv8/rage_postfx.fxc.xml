@@ -1,0 +1,3030 @@
+<?xml version="1.0" encoding="UTF - 8"?>
+<Magic value="1635280754" />
+<Game>GTAIV</Game>
+<Platform>PC</Platform>
+<Effect>
+	<Shaders>
+		<VertexShaders value="2" >
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxVS0.asm</File>
+				<Variables value="2" >
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofProj</Name>
+						<Index value="77" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxVS1.asm</File>
+				<Variables />
+			</Item>
+		</VertexShaders>
+		<PixelShaders value="28" >
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS1.asm</File>
+				<Variables value="1" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>HDRSampler</Name>
+						<Index value="0" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS2.asm</File>
+				<Variables value="2" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>HDRSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="66" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS3.asm</File>
+				<Variables value="2" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>HDRSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="66" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS4.asm</File>
+				<Variables value="3" >
+					<Item>
+						<Type>float</Type>
+						<Name>Exposure</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>HDRSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="72" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS5.asm</File>
+				<Variables value="6" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>AdapLumSampler</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>AdaptTime</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>AdaptedLumMax</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>AdaptedLumMin</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>CurLumSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>ElapsedTime</Name>
+						<Index value="66" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS6.asm</File>
+				<Variables value="2" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>HDRSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="66" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS7.asm</File>
+				<Variables value="3" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>HDRSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalScreenSize</Name>
+						<Index value="44" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="66" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS8.asm</File>
+				<Variables value="3" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>HDRSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalScreenSize</Name>
+						<Index value="44" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="66" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS9.asm</File>
+				<Variables value="3" >
+					<Item>
+						<Type>float4</Type>
+						<Name>DofBlurWeight</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>HDRSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="66" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS10.asm</File>
+				<Variables value="3" >
+					<Item>
+						<Type>float4</Type>
+						<Name>DofBlurWeight</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>HDRSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="66" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS11.asm</File>
+				<Variables value="24" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>StippleTexture</Name>
+						<Index value="10" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>AdapLumSampler</Name>
+						<Index value="5" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>BloomSampler</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>BlurSampler</Name>
+						<Index value="3" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorCorrect</Name>
+						<Index value="83" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorShift</Name>
+						<Index value="84" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>Exposure</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler2</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>HDRSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>JitterSampler</Name>
+						<Index value="6" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NoiseParams</Name>
+						<Index value="85" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>PLAYER_MASK</Name>
+						<Index value="86" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>StencilCopySampler</Name>
+						<Index value="7" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ToneMapParams</Name>
+						<Index value="81" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>deSatContrastGamma</Name>
+						<Index value="82" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofBlur</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofDist</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofProj</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDirectionalMotionBlurLength</Name>
+						<Index value="80" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalScreenSize</Name>
+						<Index value="44" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>motionBlurMatrix</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS12.asm</File>
+				<Variables value="24" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>StippleTexture</Name>
+						<Index value="10" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>AdapLumSampler</Name>
+						<Index value="5" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>BloomSampler</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>BlurSampler</Name>
+						<Index value="3" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorCorrect</Name>
+						<Index value="83" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorShift</Name>
+						<Index value="84" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>Exposure</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler2</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>HDRSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>JitterSampler</Name>
+						<Index value="6" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NoiseParams</Name>
+						<Index value="85" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>PLAYER_MASK</Name>
+						<Index value="86" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>StencilCopySampler</Name>
+						<Index value="7" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ToneMapParams</Name>
+						<Index value="81" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>deSatContrastGamma</Name>
+						<Index value="82" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofBlur</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofDist</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofProj</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDirectionalMotionBlurLength</Name>
+						<Index value="80" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalScreenSize</Name>
+						<Index value="44" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>motionBlurMatrix</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS13.asm</File>
+				<Variables value="15" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>AdapLumSampler</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>BloomSampler</Name>
+						<Index value="3" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorCorrect</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorShift</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>Exposure</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler2</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>HDRSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ToneMapParams</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>deSatContrastGamma</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofBlur</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofDist</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofProj</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS14.asm</File>
+				<Variables value="24" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>StippleTexture</Name>
+						<Index value="10" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>AdapLumSampler</Name>
+						<Index value="5" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>BloomSampler</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>BlurSampler</Name>
+						<Index value="3" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorCorrect</Name>
+						<Index value="83" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorShift</Name>
+						<Index value="84" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>Exposure</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler2</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>HDRSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>JitterSampler</Name>
+						<Index value="6" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NoiseParams</Name>
+						<Index value="85" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>PLAYER_MASK</Name>
+						<Index value="86" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>StencilCopySampler</Name>
+						<Index value="7" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ToneMapParams</Name>
+						<Index value="81" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>deSatContrastGamma</Name>
+						<Index value="82" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofBlur</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofDist</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofProj</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDirectionalMotionBlurLength</Name>
+						<Index value="80" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalScreenSize</Name>
+						<Index value="44" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>motionBlurMatrix</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS15.asm</File>
+				<Variables value="14" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>AdapLumSampler</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>BloomSampler</Name>
+						<Index value="3" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorCorrect</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorShift</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>Exposure</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler2</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>HDRSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ToneMapParams</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>deSatContrastGamma</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofBlur</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofDist</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofProj</Name>
+						<Index value="73" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS16.asm</File>
+				<Variables value="20" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>AdapLumSampler</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>BloomSampler</Name>
+						<Index value="3" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorCorrect</Name>
+						<Index value="83" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorShift</Name>
+						<Index value="84" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>Exposure</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler2</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>HDRSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>JitterSampler</Name>
+						<Index value="5" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>PLAYER_MASK</Name>
+						<Index value="85" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>StencilCopySampler</Name>
+						<Index value="6" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ToneMapParams</Name>
+						<Index value="81" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>deSatContrastGamma</Name>
+						<Index value="82" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofBlur</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofDist</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofProj</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDirectionalMotionBlurLength</Name>
+						<Index value="80" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalScreenSize</Name>
+						<Index value="44" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>motionBlurMatrix</Name>
+						<Index value="72" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS17.asm</File>
+				<Variables value="14" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>AdapLumSampler</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>BloomSampler</Name>
+						<Index value="3" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorCorrect</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorShift</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>Exposure</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler2</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>HDRSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ToneMapParams</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>deSatContrastGamma</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofBlur</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofDist</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofProj</Name>
+						<Index value="73" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS18.asm</File>
+				<Variables value="20" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>AdapLumSampler</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>BloomSampler</Name>
+						<Index value="3" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorCorrect</Name>
+						<Index value="83" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorShift</Name>
+						<Index value="84" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>Exposure</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler2</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>HDRSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>JitterSampler</Name>
+						<Index value="5" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>PLAYER_MASK</Name>
+						<Index value="85" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>StencilCopySampler</Name>
+						<Index value="6" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ToneMapParams</Name>
+						<Index value="81" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>deSatContrastGamma</Name>
+						<Index value="82" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofBlur</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofDist</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofProj</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDirectionalMotionBlurLength</Name>
+						<Index value="80" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalScreenSize</Name>
+						<Index value="44" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>motionBlurMatrix</Name>
+						<Index value="72" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS19.asm</File>
+				<Variables value="11" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferStencilTextureSampler</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>HDRSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>SmokeParams</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>SmokeSampler</Name>
+						<Index value="3" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofProj</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDepthFxParams</Name>
+						<Index value="16" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalFogColor</Name>
+						<Index value="42" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalFogColorN</Name>
+						<Index value="43" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalFogParams</Name>
+						<Index value="41" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS20.asm</File>
+				<Variables value="9" >
+					<Item>
+						<Type>float4x4</Type>
+						<Name>gViewInverse</Name>
+						<Index value="12" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>HDRSampler</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofProj</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>gDepthFxParams</Name>
+						<Index value="16" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalFogColor</Name>
+						<Index value="42" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalFogColorN</Name>
+						<Index value="43" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalFogParams</Name>
+						<Index value="41" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS21.asm</File>
+				<Variables value="4" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>AdapLumSampler</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>Exposure</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>HDRSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ToneMapParams</Name>
+						<Index value="72" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS22.asm</File>
+				<Variables value="1" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>StencilCopySampler</Name>
+						<Index value="0" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS23.asm</File>
+				<Variables value="17" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>AdapLumSampler</Name>
+						<Index value="5" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>BloomSampler</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>BlurSampler</Name>
+						<Index value="3" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorCorrect</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorShift</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>Exposure</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler2</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>HDRSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NoiseParams</Name>
+						<Index value="80" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ToneMapParams</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>deSatContrastGamma</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofBlur</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofDist</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofProj</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS24.asm</File>
+				<Variables value="24" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>StippleTexture</Name>
+						<Index value="10" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>AdapLumSampler</Name>
+						<Index value="5" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>BloomSampler</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>BlurSampler</Name>
+						<Index value="3" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorCorrect</Name>
+						<Index value="83" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorShift</Name>
+						<Index value="84" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>Exposure</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler2</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>HDRSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>JitterSampler</Name>
+						<Index value="6" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NoiseParams</Name>
+						<Index value="85" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>PLAYER_MASK</Name>
+						<Index value="86" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>StencilCopySampler</Name>
+						<Index value="7" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ToneMapParams</Name>
+						<Index value="81" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>deSatContrastGamma</Name>
+						<Index value="82" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofBlur</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofDist</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofProj</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDirectionalMotionBlurLength</Name>
+						<Index value="80" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalScreenSize</Name>
+						<Index value="44" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>motionBlurMatrix</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS25.asm</File>
+				<Variables value="17" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>AdapLumSampler</Name>
+						<Index value="5" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>BloomSampler</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>BlurSampler</Name>
+						<Index value="3" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorCorrect</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorShift</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>Exposure</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler2</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>HDRSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NoiseParams</Name>
+						<Index value="80" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ToneMapParams</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>deSatContrastGamma</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofBlur</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofDist</Name>
+						<Index value="74" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofProj</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS26.asm</File>
+				<Variables value="24" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>StippleTexture</Name>
+						<Index value="10" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>AdapLumSampler</Name>
+						<Index value="5" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>BloomSampler</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>BlurSampler</Name>
+						<Index value="3" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorCorrect</Name>
+						<Index value="83" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorShift</Name>
+						<Index value="84" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>Exposure</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler2</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>HDRSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>JitterSampler</Name>
+						<Index value="6" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NoiseParams</Name>
+						<Index value="85" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>PLAYER_MASK</Name>
+						<Index value="86" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>StencilCopySampler</Name>
+						<Index value="7" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ToneMapParams</Name>
+						<Index value="81" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>deSatContrastGamma</Name>
+						<Index value="82" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofBlur</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofDist</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofProj</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDirectionalMotionBlurLength</Name>
+						<Index value="80" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalScreenSize</Name>
+						<Index value="44" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>motionBlurMatrix</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS27.asm</File>
+				<Variables value="9" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>AdapLumSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorCorrect</Name>
+						<Index value="75" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorShift</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>Exposure</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler2</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>HDRSampler</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ToneMapParams</Name>
+						<Index value="73" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>deSatContrastGamma</Name>
+						<Index value="74" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_postfx\rage_postfxPS28.asm</File>
+				<Variables value="24" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>StippleTexture</Name>
+						<Index value="10" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>AdapLumSampler</Name>
+						<Index value="5" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>BloomSampler</Name>
+						<Index value="4" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>BlurSampler</Name>
+						<Index value="3" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorCorrect</Name>
+						<Index value="83" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ColorShift</Name>
+						<Index value="84" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>Exposure</Name>
+						<Index value="66" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler2</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>GBufferTextureSampler3</Name>
+						<Index value="1" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>HDRSampler</Name>
+						<Index value="2" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>JitterSampler</Name>
+						<Index value="6" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NoiseParams</Name>
+						<Index value="85" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>PLAYER_MASK</Name>
+						<Index value="86" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>StencilCopySampler</Name>
+						<Index value="7" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="76" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>ToneMapParams</Name>
+						<Index value="81" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>deSatContrastGamma</Name>
+						<Index value="82" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofBlur</Name>
+						<Index value="79" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofDist</Name>
+						<Index value="78" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>dofProj</Name>
+						<Index value="77" />
+					</Item>
+					<Item>
+						<Type>float</Type>
+						<Name>gDirectionalMotionBlurLength</Name>
+						<Index value="80" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>globalScreenSize</Name>
+						<Index value="44" />
+					</Item>
+					<Item>
+						<Type>float4x4</Type>
+						<Name>motionBlurMatrix</Name>
+						<Index value="72" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>NearFarPlane</Name>
+						<Index value="128" />
+					</Item>
+				</Variables>
+			</Item>
+		</PixelShaders>
+	</Shaders>
+	<GlobalVariables value="48" >
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="64" />
+			<Name1>gAllGlobals</Name1>
+			<Name2>AllGlobals</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x3</Type>
+			<ArrayCount value="48" />
+			<Name1>gBoneMtx</Name1>
+			<Name2>WorldMatrixArray</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorld</Name1>
+			<Name2>World</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorldView</Name1>
+			<Name2>WorldView</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorldViewProj</Name1>
+			<Name2>WorldViewProjection</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gViewInverse</Name1>
+			<Name2>ViewInverse</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>StippleTexture</Name1>
+			<Name2>stippletexture</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Point
+			MagFilter Point
+			MipFilter Point
+			AddressU Wrap
+			AddressV Wrap
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gDepthFxParams</Name1>
+			<Name2>DepthFxParams</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gDirectionalLight</Name1>
+			<Name2>DirectionalLight</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gDirectionalColour</Name1>
+			<Name2>DirectionalColour</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPosX</Name1>
+			<Name2>LightPositionX</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPosY</Name1>
+			<Name2>LightPositionY</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPosZ</Name1>
+			<Name2>LightPositionZ</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightDirX</Name1>
+			<Name2>LightDirX</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightDirY</Name1>
+			<Name2>LightDirY</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightDirZ</Name1>
+			<Name2>LightDirZ</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightFallOff</Name1>
+			<Name2>LightFallOff</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightConeScale</Name1>
+			<Name2>LightConeScale</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightConeOffset</Name1>
+			<Name2>LightConeOffset</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightColR</Name1>
+			<Name2>LightColR</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightColG</Name1>
+			<Name2>LightColG</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightColB</Name1>
+			<Name2>LightColB</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointPosX</Name1>
+			<Name2>LightPointPositionX</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointPosY</Name1>
+			<Name2>LightPointPositionY</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointPosZ</Name1>
+			<Name2>LightPointPositionZ</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointColR</Name1>
+			<Name2>LightPointColR</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointColG</Name1>
+			<Name2>LightPointColG</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointColB</Name1>
+			<Name2>LightPointColB</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightPointFallOff</Name1>
+			<Name2>LightPointFallOff</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightDir2X</Name1>
+			<Name2>LightDir2X</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightDir2Y</Name1>
+			<Name2>LightDir2Y</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightDir2Z</Name1>
+			<Name2>LightDir2Z</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightConeScale2</Name1>
+			<Name2>LightConeScale2</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightConeOffset2</Name1>
+			<Name2>LightConeOffset2</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightAmbient0</Name1>
+			<Name2>LightAmbientColor0</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Ambient Light Color 0</Value>
+				</Item>
+				<Item>
+					<Name>Space</Name>
+					<Type>String</Type>
+					<Value>material</Value>
+				</Item>
+			</Annotation>
+			<Values value="4" >
+			0
+			0
+			0
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightAmbient1</Name1>
+			<Name2>LightAmbientColor1</Name2>
+			<Annotation value="2" >
+				<Item>
+					<Name>UIWidget</Name>
+					<Type>String</Type>
+					<Value>Ambient Light Color 1</Value>
+				</Item>
+				<Item>
+					<Name>Space</Name>
+					<Type>String</Type>
+					<Value>material</Value>
+				</Item>
+			</Annotation>
+			<Values value="4" >
+			0
+			0
+			0
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>globalScalars</Name1>
+			<Name2>globalScalars</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>globalScalars2</Name1>
+			<Name2>globalScalars2</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gAspectRatio</Name1>
+			<Name2>gAspectRatio</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>globalScreenSize</Name1>
+			<Name2>globalScreenSize</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>globalFogParams</Name1>
+			<Name2>globalFogParams</Name2>
+			<Annotation />
+			<Values value="4" >
+			1600
+			9e+06
+			0.01
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>globalFogColor</Name1>
+			<Name2>globalFogColor</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>globalFogColorN</Name1>
+			<Name2>globalFogColorN</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gDayNightEffects</Name1>
+			<Name2>globalDayNightEffects</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			0
+			1
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gInvColorExpBias</Name1>
+			<Name2>ColorExpBias</Name2>
+			<Annotation />
+			<Values value="1" >
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>colorize</Name1>
+			<Name2>Colorize</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>stencil</Name1>
+			<Name2>Stencil</Name2>
+			<Annotation />
+			<Values value="4" >
+			0
+			255
+			0
+			0
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>NearFarPlane</Name1>
+			<Name2>NearFarPlane</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+	</GlobalVariables>
+	<LocalVariables value="32" >
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>GBufferTextureSampler1</Name1>
+			<Name2>gbufferTexture1</Name2>
+			<Annotation />
+			<Values value="8" >
+			AddressU Clamp
+			AddressV Clamp
+			MinFilter Point
+			MagFilter Point
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>GBufferTextureSampler2</Name1>
+			<Name2>gbufferTexture2</Name2>
+			<Annotation />
+			<Values value="8" >
+			AddressU Clamp
+			AddressV Clamp
+			MinFilter Point
+			MagFilter Point
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>GBufferTextureSampler3</Name1>
+			<Name2>gbufferTexture3</Name2>
+			<Annotation />
+			<Values value="8" >
+			AddressU Clamp
+			AddressV Clamp
+			MinFilter Point
+			MagFilter Point
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>GBufferStencilTextureSampler</Name1>
+			<Name2>gbufferStencilTexture</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Clamp
+			AddressV Clamp
+			MinFilter Point
+			MagFilter Point
+			MipFilter Point
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>HDRSampler</Name1>
+			<Name2>PostFxTexture0</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Linear
+			MagFilter Linear
+			MipFilter Linear
+			AddressU Clamp
+			AddressV Clamp
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>BlurSampler</Name1>
+			<Name2>PostFxTexture1</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Linear
+			MagFilter Linear
+			MipFilter None
+			AddressU Wrap
+			AddressV Wrap
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>BloomSampler</Name1>
+			<Name2>PostFxTexture2</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Linear
+			MagFilter Linear
+			MipFilter None
+			AddressU Clamp
+			AddressV Clamp
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>CurLumSampler</Name1>
+			<Name2>PostFxTextureV0</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Point
+			MagFilter Point
+			MipFilter None
+			AddressU Clamp
+			AddressV Clamp
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>AdapLumSampler</Name1>
+			<Name2>PostFxTextureV1</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Point
+			MagFilter Point
+			MipFilter None
+			AddressU Clamp
+			AddressV Clamp
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>SmokeSampler</Name1>
+			<Name2>SmokeFxTexture</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Linear
+			MagFilter Linear
+			MipFilter None
+			AddressU Clamp
+			AddressV Clamp
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>Exposure</Name1>
+			<Name2>Exposure</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>ElapsedTime</Name1>
+			<Name2>ElapsedTime</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>AdaptTime</Name1>
+			<Name2>AdaptTime</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>AdaptedLumMin</Name1>
+			<Name2>AdaptedLumMin</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>AdaptedLumMax</Name1>
+			<Name2>AdaptedLumMax</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>TexelSize</Name1>
+			<Name2>TexelSize</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>DofBlurWeight</Name1>
+			<Name2>DofBlurWeight</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>dofProj</Name1>
+			<Name2>DOF_PROJ</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>dofDist</Name1>
+			<Name2>DOF_PARAMS</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>dofBlur</Name1>
+			<Name2>DOF_BLUR</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>eaaParams2</Name1>
+			<Name2>EAA_PARAMS2</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gDirectionalMotionBlurLength</Name1>
+			<Name2>PPPDirectionalMotionBlurLength</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>JitterSampler</Name1>
+			<Name2>JitterTexture</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Point
+			MagFilter Point
+			MipFilter None
+			AddressU Wrap
+			AddressV Wrap
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>StencilCopySampler</Name1>
+			<Name2>StencilCopyTexture</Name2>
+			<Annotation />
+			<Values value="10" >
+			MinFilter Point
+			MagFilter Point
+			MipFilter None
+			AddressU Clamp
+			AddressV Clamp
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>motionBlurMatrix</Name1>
+			<Name2>MB_MATRIX</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>ToneMapParams</Name1>
+			<Name2>ToneMapParams</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>SmokeParams</Name1>
+			<Name2>SmokeParams</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>deSatContrastGamma</Name1>
+			<Name2>deSatContrastGamma</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>ColorCorrect</Name1>
+			<Name2>ColorCorrect</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>ColorShift</Name1>
+			<Name2>ColorShift</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>NoiseParams</Name1>
+			<Name2>NoiseParams</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>PLAYER_MASK</Name1>
+			<Name2>PLAYER_MASK</Name2>
+			<Annotation />
+			<Values value="1" >
+			0.501961
+		</Values>
+		</Item>
+	</LocalVariables>
+	<Techniques value="1" >
+		<Item>
+			<Name>GTACompositePostFx</Name>
+			<Passes value="28" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>1</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>2</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>3</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>4</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>1</VertexShader>
+					<PixelShader>5</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>6</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>7</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>8</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>9</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>10</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>11</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>12</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>13</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>14</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>15</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>16</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>17</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>18</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>19</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>20</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>21</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>22</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>23</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>24</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>25</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>26</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>27</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>28</PixelShader>
+					<Params value="2" >
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+	</Techniques>
+</Effect>

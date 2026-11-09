@@ -1,0 +1,2158 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ShaderManager version="1" class="ShaderManagerIV">
+	<!--  gta_trees_extended  -->
+	<shader key="gta_trees_extended.sps">
+		<index>110</index>
+		<name>gta_trees_extended</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>3</drawBucket>
+		<effectSize>1200</effectSize>
+		<skinned>False</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="False">1280</item>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spArray6OfVector4" name="imposterdir" custom="False">1.00000000;0.00000000;0.00000000;0.00000000;0.57735030;0.57735030;-0.57735030;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;-0.57735030;0.57735030;-0.57735030;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;-0.57735030;-0.57735030;-0.57735030;0.00000000</item>
+			<item type="spArray16OfVector4" name="normtable" custom="False">0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.50000000;-0.86602540;0.00000000;0.43301270;-0.25000000;-0.86602540;0.00000000;-0.43301270;-0.25000000;-0.86602540;0.00000000;0.00000000;0.93969260;0.34202020;0.00000000;0.81379760;0.46984630;-0.34202020;0.00000000;0.81379760;-0.46984630;0.34202020;0.00000000;0.00000000;-0.93969260;-0.34202020;0.00000000;-0.81379760;-0.46984630;0.34202020;0.00000000;-0.81379760;0.46984630;-0.34202020;0.00000000;-0.43301270;0.25000000;0.86602540;0.00000000;0.43301270;0.25000000;0.86602540;0.00000000;0.00000000;-0.50000000;-0.86602540;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spArray16OfVector4" name="altremap" custom="False">0.00000000;0.00000000;0.00000000;0.00000000;2.00000000;0.00000000;0.00000000;0.00000000;6.00000000;0.00000000;0.00000000;0.00000000;8.00000000;0.00000000;0.00000000;0.00000000;10.00000000;0.00000000;0.00000000;0.00000000;11.00000000;0.00000000;0.00000000;0.00000000;7.00000000;0.00000000;0.00000000;0.00000000;12.00000000;0.00000000;0.00000000;0.00000000;9.00000000;0.00000000;0.00000000;0.00000000;13.00000000;0.00000000;0.00000000;0.00000000;5.00000000;0.00000000;0.00000000;0.00000000;14.00000000;0.00000000;0.00000000;0.00000000;14.00000000;0.00000000;0.00000000;0.00000000;14.00000000;0.00000000;0.00000000;0.00000000;13.00000000;0.00000000;0.00000000;0.00000000;15.00000000;0.00000000;0.00000000;0.00000000;</item>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  gta_default  -->
+	<shader key="gta_default.sps">
+		<index>1</index>
+		<name>gta_default</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>208</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+		</params>
+	</shader>
+	<shader key="gta_alpha.sps">
+		<index>1</index>
+		<name>gta_default</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>1</drawBucket>
+		<effectSize>208</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+		</params>
+	</shader>
+	<shader key="gta_decal.sps">
+		<index>1</index>
+		<name>gta_default</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>2</drawBucket>
+		<effectSize>208</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+		</params>
+	</shader>
+	<shader key="gta_cutout.sps">
+		<index>1</index>
+		<name>gta_default</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>3</drawBucket>
+		<effectSize>208</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+		</params>
+	</shader>
+	<!--  gta_normal  -->
+	<shader key="gta_normal.sps">
+		<index>2</index>
+		<name>gta_normal</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>224</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+		</params>
+	</shader>
+	<shader key="gta_normal_alpha.sps">
+		<index>2</index>
+		<name>gta_normal</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>1</drawBucket>
+		<effectSize>224</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+		</params>
+	</shader>
+	<shader key="gta_normal_cutout.sps">
+		<index>2</index>
+		<name>gta_normal</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>3</drawBucket>
+		<effectSize>224</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  gta_normal_spec  -->
+	<shader key="gta_normal_spec.sps">
+		<index>3</index>
+		<name>gta_normal_spec</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>272</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+		</params>
+	</shader>
+	<shader key="gta_normal_spec_alpha.sps">
+		<index>3</index>
+		<name>gta_normal_spec</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>1</drawBucket>
+		<effectSize>272</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  gta_normal_spec_reflect  -->
+	<shader key="gta_normal_spec_reflect.sps">
+		<index>4</index>
+		<name>gta_normal_spec_reflect</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>352</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+		</params>
+	</shader>
+	<shader key="gta_normal_spec_reflect_alpha.sps">
+		<index>4</index>
+		<name>gta_normal_spec_reflect</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>1</drawBucket>
+		<effectSize>352</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  gta_normal_spec_reflect_emissive  -->
+	<shader key="gta_normal_spec_reflect_emissive.sps">
+		<index>5</index>
+		<name>gta_normal_spec_reflect_emissive</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>4</drawBucket>
+		<effectSize>464</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="zshiftscale" custom="False">0.00200000</item>
+			<item type="spFloat" name="zshift" custom="True"/>
+			<item type="spFloat" name="emissivemultiplier" custom="True"/>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+		</params>
+	</shader>
+	<shader key="gta_normal_spec_reflect_emissive_alpha.sps">
+		<index>5</index>
+		<name>gta_normal_spec_reflect_emissive</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>5</drawBucket>
+		<effectSize>464</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="zshiftscale" custom="False">0.00200000</item>
+			<item type="spFloat" name="zshift" custom="True"/>
+			<item type="spFloat" name="emissivemultiplier" custom="True"/>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  gta_normal_spec_reflect_emissivenight  -->
+	<shader key="gta_normal_spec_reflect_emissivenight.sps">
+		<index>6</index>
+		<name>gta_normal_spec_reflect_emissivenight</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>4</drawBucket>
+		<effectSize>464</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="zshiftscale" custom="False">0.00200000</item>
+			<item type="spFloat" name="zshift" custom="True"/>
+			<item type="spFloat" name="emissivemultiplier" custom="True"/>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+		</params>
+	</shader>
+	<shader key="gta_normal_spec_reflect_emissivenight_alpha.sps">
+		<index>6</index>
+		<name>gta_normal_spec_reflect_emissivenight</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>5</drawBucket>
+		<effectSize>464</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="zshiftscale" custom="False">0.00200000</item>
+			<item type="spFloat" name="zshift" custom="True"/>
+			<item type="spFloat" name="emissivemultiplier" custom="True"/>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  gta_normal_spec_cubemap_reflect  -->
+	<shader key="gta_normal_spec_cubemap_reflect.sps">
+		<index>7</index>
+		<name>gta_normal_spec_cubemap_reflect</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>288</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  gta_normal_reflect  -->
+	<shader key="gta_normal_reflect.sps">
+		<index>8</index>
+		<name>gta_normal_reflect</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>208</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+		</params>
+	</shader>
+	<shader key="gta_normal_reflect_alpha.sps">
+		<index>8</index>
+		<name>gta_normal_reflect</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>1</drawBucket>
+		<effectSize>208</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  gta_normal_cubemap_reflect  -->
+	<shader key="gta_normal_cubemap_reflect.sps">
+		<index>9</index>
+		<name>gta_normal_cubemap_reflect</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>208</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  gta_spec  -->
+	<shader key="gta_spec.sps">
+		<index>10</index>
+		<name>gta_spec</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>288</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="specsampler" custom="True"/>
+		</params>
+	</shader>
+	<shader key="gta_spec_alpha.sps">
+		<index>10</index>
+		<name>gta_spec</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>1</drawBucket>
+		<effectSize>288</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="specsampler" custom="True"/>
+		</params>
+	</shader>
+	<shader key="gta_spec_decal.sps">
+		<index>10</index>
+		<name>gta_spec</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>2</drawBucket>
+		<effectSize>288</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="specsampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  gta_spec_reflect  -->
+	<shader key="gta_spec_reflect.sps">
+		<index>11</index>
+		<name>gta_spec_reflect</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>272</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+		</params>
+	</shader>
+	<shader key="gta_spec_reflect_alpha.sps">
+		<index>11</index>
+		<name>gta_spec_reflect</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>1</drawBucket>
+		<effectSize>272</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+		</params>
+	</shader>
+	<shader key="gta_spec_reflect_decal.sps">
+		<index>11</index>
+		<name>gta_spec_reflect</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>2</drawBucket>
+		<effectSize>272</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  gta_reflect  -->
+	<shader key="gta_reflect.sps">
+		<index>12</index>
+		<name>gta_reflect</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>192</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+		</params>
+	</shader>
+	<shader key="gta_mirror.sps">
+		<index>12</index>
+		<name>gta_reflect</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>192</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+		</params>
+	</shader>
+	<shader key="gta_reflect_alpha.sps">
+		<index>12</index>
+		<name>gta_reflect</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>1</drawBucket>
+		<effectSize>192</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+		</params>
+	</shader>
+	<shader key="gta_reflect_decal.sps">
+		<index>12</index>
+		<name>gta_reflect</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>2</drawBucket>
+		<effectSize>192</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  gta_cubemap_reflect  -->
+	<shader key="gta_cubemap_reflect.sps">
+		<index>13</index>
+		<name>gta_cubemap_reflect</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>192</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  gta_glass  -->
+	<shader key="gta_glass.sps">
+		<index>14</index>
+		<name>gta_glass</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>1</drawBucket>
+		<effectSize>288</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  gta_glass_spec  -->
+	<shader key="gta_glass_spec.sps">
+		<index>15</index>
+		<name>gta_glass_spec</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>1</drawBucket>
+		<effectSize>272</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="specsampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  gta_glass_normal_spec_reflect  -->
+	<shader key="gta_glass_normal_spec_reflect.sps">
+		<index>16</index>
+		<name>gta_glass_normal_spec_reflect</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>1</drawBucket>
+		<effectSize>336</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  gta_glass_reflect  -->
+	<shader key="gta_glass_reflect.sps">
+		<index>17</index>
+		<name>gta_glass_reflect</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>1</drawBucket>
+		<effectSize>272</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  gta_glass_emissive  -->
+	<shader key="gta_glass_emissive.sps">
+		<index>18</index>
+		<name>gta_glass_emissive</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>4</drawBucket>
+		<effectSize>400</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="zshiftscale" custom="False">0.00200000</item>
+			<item type="spFloat" name="zshift" custom="True"/>
+			<item type="spFloat" name="emissivemultiplier" custom="True"/>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+		</params>
+	</shader>
+	<shader key="gta_glass_emissive_alpha.sps">
+		<index>18</index>
+		<name>gta_glass_emissive</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>5</drawBucket>
+		<effectSize>400</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="zshiftscale" custom="False">0.00200000</item>
+			<item type="spFloat" name="zshift" custom="True"/>
+			<item type="spFloat" name="emissivemultiplier" custom="True"/>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  gta_glass_emissivenight  -->
+	<shader key="gta_glass_emissivenight.sps">
+		<index>19</index>
+		<name>gta_glass_emissivenight</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>4</drawBucket>
+		<effectSize>400</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="zshiftscale" custom="False">0.00200000</item>
+			<item type="spFloat" name="zshift" custom="True"/>
+			<item type="spFloat" name="emissivemultiplier" custom="True"/>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+		</params>
+	</shader>
+	<shader key="gta_glass_emissivenight_alpha.sps">
+		<index>19</index>
+		<name>gta_glass_emissivenight</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>5</drawBucket>
+		<effectSize>400</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="zshiftscale" custom="False">0.00200000</item>
+			<item type="spFloat" name="zshift" custom="True"/>
+			<item type="spFloat" name="emissivemultiplier" custom="True"/>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  gta_parallax  -->
+	<shader key="gta_parallax.sps">
+		<index>22</index>
+		<name>gta_parallax</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>272</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="parallaxscalebias" custom="True"/>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  gta_parallax_specmap  -->
+	<shader key="gta_parallax_specmap.sps">
+		<index>23</index>
+		<name>gta_parallax_specmap</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>288</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="parallaxscalebias" custom="True"/>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  gta_emissive  -->
+	<shader key="gta_emissive.sps">
+		<index>25</index>
+		<name>gta_emissive</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>4</drawBucket>
+		<effectSize>288</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="zshiftscale" custom="False">0.00200000</item>
+			<item type="spFloat" name="zshift" custom="True"/>
+			<item type="spFloat" name="emissivemultiplier" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+		</params>
+	</shader>
+	<shader key="gta_emissive_alpha.sps">
+		<index>25</index>
+		<name>gta_emissive</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>5</drawBucket>
+		<effectSize>288</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="zshiftscale" custom="False">0.00200000</item>
+			<item type="spFloat" name="zshift" custom="True"/>
+			<item type="spFloat" name="emissivemultiplier" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+		</params>
+	</shader>
+	<!--  gta_emissivestrong  -->
+	<shader key="gta_emissivestrong.sps">
+		<index>26</index>
+		<name>gta_emissivestrong</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>4</drawBucket>
+		<effectSize>288</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="zshiftscale" custom="False">0.00200000</item>
+			<item type="spFloat" name="zshift" custom="True"/>
+			<item type="spFloat" name="emissivemultiplier" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+		</params>
+	</shader>
+	<shader key="gta_emissivestrong_alpha.sps">
+		<index>26</index>
+		<name>gta_emissivestrong</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>5</drawBucket>
+		<effectSize>288</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="zshiftscale" custom="False">0.00200000</item>
+			<item type="spFloat" name="zshift" custom="True"/>
+			<item type="spFloat" name="emissivemultiplier" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+		</params>
+	</shader>
+	<!--  gta_emissivenight  -->
+	<shader key="gta_emissivenight.sps">
+		<index>27</index>
+		<name>gta_emissivenight</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>4</drawBucket>
+		<effectSize>288</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="zshiftscale" custom="False">0.00200000</item>
+			<item type="spFloat" name="zshift" custom="True"/>
+			<item type="spFloat" name="emissivemultiplier" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+		</params>
+	</shader>
+	<shader key="gta_emissivenight_alpha.sps">
+		<index>27</index>
+		<name>gta_emissivenight</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>5</drawBucket>
+		<effectSize>288</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="zshiftscale" custom="False">0.00200000</item>
+			<item type="spFloat" name="zshift" custom="True"/>
+			<item type="spFloat" name="emissivemultiplier" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+		</params>
+	</shader>
+	<!--  gta_wire  -->
+	<shader key="gta_wire.sps">
+		<index>28</index>
+		<name>gta_wire</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>1</drawBucket>
+		<effectSize>240</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="fade_thickness" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+		</params>
+	</shader>
+	<!--  gta_trees  -->
+	<shader key="gta_grass.sps">
+		<index>29</index>
+		<name>gta_grass</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>320</effectSize>
+		<skinned>False</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spMatrix" name="matGrassTransform" custom="True"/>
+			<item type="spVector4" name="plantColor" custom="True"/>
+			<item type="spVector4" name="vecCameraPos" custom="True"/>
+			<item type="spVector4" name="fadeAlphaDist" custom="True"/>
+			<item type="spTexture" name="TextureGrassSampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  gta_trees  -->
+	<shader key="gta_trees.sps">
+		<index>30</index>
+		<name>gta_trees</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>3</drawBucket>
+		<effectSize>816</effectSize>
+		<skinned>False</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spArray6OfVector4" name="imposterdir" custom="False">1.00000000;0.00000000;0.00000000;0.00000000;0.57735030;0.57735030;-0.57735030;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;-0.57735030;0.57735030;-0.57735030;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;-0.57735030;-0.57735030;-0.57735030;0.00000000</item>
+			<item type="spArray16OfVector4" name="normtable" custom="False">0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.50000000;-0.86602540;0.00000000;0.43301270;-0.25000000;-0.86602540;0.00000000;-0.43301270;-0.25000000;-0.86602540;0.00000000;0.00000000;0.93969260;0.34202020;0.00000000;0.81379760;0.46984630;-0.34202020;0.00000000;0.81379760;-0.46984630;0.34202020;0.00000000;0.00000000;-0.93969260;-0.34202020;0.00000000;-0.81379760;-0.46984630;0.34202020;0.00000000;-0.81379760;0.46984630;-0.34202020;0.00000000;-0.43301270;0.25000000;0.86602540;0.00000000;0.43301270;0.25000000;0.86602540;0.00000000;0.00000000;-0.50000000;-0.86602540;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spArray16OfVector4" name="altremap" custom="False">0.00000000;0.00000000;0.00000000;0.00000000;2.00000000;0.00000000;0.00000000;0.00000000;6.00000000;0.00000000;0.00000000;0.00000000;8.00000000;0.00000000;0.00000000;0.00000000;10.00000000;0.00000000;0.00000000;0.00000000;11.00000000;0.00000000;0.00000000;0.00000000;7.00000000;0.00000000;0.00000000;0.00000000;12.00000000;0.00000000;0.00000000;0.00000000;9.00000000;0.00000000;0.00000000;0.00000000;13.00000000;0.00000000;0.00000000;0.00000000;5.00000000;0.00000000;0.00000000;0.00000000;14.00000000;0.00000000;0.00000000;0.00000000;14.00000000;0.00000000;0.00000000;0.00000000;14.00000000;0.00000000;0.00000000;0.00000000;13.00000000;0.00000000;0.00000000;0.00000000;15.00000000;0.00000000;0.00000000;0.00000000;</item>
+		</params>
+	</shader>
+	<!--  gta_radar  -->
+	<shader key="gta_radar.sps">
+		<index>31</index>
+		<name>gta_radar</name>
+		<vertexFormat>0x51</vertexFormat>
+		<drawBucket>1</drawBucket>
+		<effectSize>176</effectSize>
+		<skinned>False</skinned>
+		<params>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spVector4" name="diffusecol" custom="False">1.00000000;1.00000000;1.00000000;1.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  rage_default  -->
+	<shader key="null.sps">
+		<index>32</index>
+		<name>rage_default</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>208</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+		</params>
+	</shader>
+	<shader key="gta_spec_const.sps">
+		<index>32</index>
+		<name>rage_default</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>208</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+		</params>
+	</shader>
+	<!--  gta_cutout_fence  -->
+	<shader key="gta_cutout_fence.sps">
+		<index>33</index>
+		<name>gta_cutout_fence</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>3</drawBucket>
+		<effectSize>208</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+		</params>
+	</shader>
+	<!-- gta_diffuse_instance -->
+	<shader key="gta_diffuse_instance.sps">
+		<index>35</index>
+		<name>gta_diffuse_instance</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>304</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spVector4" name="gWorldInstanceMatrix" custom="True">0.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="gWorldInstanceInverseTranspose" custom="True">0.00000000;0.00000000;0.00000000;0.00000000</item>
+		</params>
+	</shader>
+	<!--  gta_terrain_va_4lyr  -->
+	<shader key="gta_terrain_va_4lyr.sps">
+		<index>36</index>
+		<name>gta_terrain_va_4lyr</name>
+		<vertexFormat>0xFD9</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>112</effectSize>
+		<skinned>False</skinned>
+		<params>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="texturesampler_layer0" custom="True"/>
+			<item type="spTexture" name="texturesampler_layer1" custom="True"/>
+			<item type="spTexture" name="texturesampler_layer2" custom="True"/>
+			<item type="spTexture" name="texturesampler_layer3" custom="True"/>
+			<item type="spVector4" name="materialdiffuse" custom="False">1.00000000;1.00000000;1.00000000;1.00000000</item>
+		</params>
+	</shader>
+
+	<!--  gta_terrain_va_3lyr  -->
+	<shader key="gta_terrain_va_3lyr.sps">
+		<index>37</index>
+		<name>gta_terrain_va_3lyr</name>
+		<vertexFormat>0x7D9</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>112</effectSize>
+		<skinned>False</skinned>
+		<params>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="texturesampler_layer0" custom="True"/>
+			<item type="spTexture" name="texturesampler_layer1" custom="True"/>
+			<item type="spTexture" name="texturesampler_layer2" custom="True"/>
+			<item type="spVector4" name="materialdiffuse" custom="False">1.00000000;1.00000000;1.00000000;1.00000000</item>
+		</params>
+	</shader>
+	<!--  gta_terrain_va_2lyr  -->
+	<shader key="gta_terrain_va_2lyr.sps">
+		<index>38</index>
+		<name>gta_terrain_va_2lyr</name>
+		<vertexFormat>0x1D9</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>80</effectSize>
+		<skinned>False</skinned>
+		<params>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="texturesampler_layer0" custom="True"/>
+			<item type="spTexture" name="texturesampler_layer1" custom="True"/>
+			<item type="spVector4" name="materialdiffuse" custom="False">1.00000000;1.00000000;1.00000000;1.00000000</item>
+		</params>
+	</shader>
+	<!--  gta_decal_glue  -->
+	<shader key="gta_decal_glue.sps">
+		<index>40</index>
+		<name>gta_decal_glue</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>2</drawBucket>
+		<effectSize>224</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+		</params>
+	</shader>
+	<!--  gta_decal_dirt  -->
+	<shader key="gta_decal_dirt.sps">
+		<index>41</index>
+		<name>gta_decal_dirt</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>2</drawBucket>
+		<effectSize>240</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="dirtdecalmask" custom="True"/>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+		</params>
+	</shader>
+	<!--  gta_decal_amb_only  -->
+	<shader key="gta_decal_amb_only.sps">
+		<index>42</index>
+		<name>gta_decal_amb_only</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>2</drawBucket>
+		<effectSize>240</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="ambientdecalmask" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+		</params>
+	</shader>
+	<!--  gta_decal_normal_only  -->
+	<shader key="gta_decal_normal_only.sps">
+		<index>43</index>
+		<name>gta_decal_normal_only</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>2</drawBucket>
+		<effectSize>272</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  gta_normal_decal  -->
+	<shader key="gta_normal_decal.sps">
+		<index>44</index>
+		<name>gta_normal_decal</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>2</drawBucket>
+		<effectSize>272</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  gta_normal_spec_decal  -->
+	<shader key="gta_normal_spec_decal.sps">
+		<index>45</index>
+		<name>gta_normal_spec_decal</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>2</drawBucket>
+		<effectSize>288</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  gta_normal_spec_reflect_decal  -->
+	<shader key="gta_normal_spec_reflect_decal.sps">
+		<index>46</index>
+		<name>gta_normal_spec_reflect_decal</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>2</drawBucket>
+		<effectSize>368</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  gta_normal_reflect_decal  -->
+	<shader key="gta_normal_reflect_decal.sps">
+		<index>47</index>
+		<name>gta_normal_reflect_decal</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>2</drawBucket>
+		<effectSize>256</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+		</params>
+	</shader>
+	<!--  gta_vehicle_badges  -->
+	<shader key="gta_vehicle_badges.sps">
+		<index>52</index>
+		<name>gta_vehicle_badges</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>1</drawBucket>
+		<effectSize>384</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spTexture" name="damagesampler" custom="False">null</item>
+			<item type="spFloat" name="switchon" custom="False">0</item>
+			<item type="spFloat" name="boundradius" custom="False">0.0</item>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spVector4" name="matdiffusecolor" custom="True"/>
+			<item type="spVector4" name="matdiffusecolor2" custom="False">1.0;1.0;1.0;1.0</item>
+			<item type="spFloat" name="specularfactored" custom="True"/>
+			<item type="spFloat" name="specularcolorfactored" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spVector4" name="bumpiness" custom="True"/>
+			<item type="spFloat" name="reflectivepowered" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="environmentsampler" custom="False">null</item>
+			<item type="spTexture" name="damagevertbuffer" custom="False">null</item>
+		</params>
+	</shader>
+	<!--  gta_vehicle_chrome  -->
+	<shader key="gta_vehicle_chrome.sps">
+		<index>53</index>
+		<name>gta_vehicle_chrome</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>528</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spTexture" name="damagesampler" custom="False">null</item>
+			<item type="spFloat" name="switchon" custom="False">0</item>
+			<item type="spFloat" name="boundradius" custom="False">0.0</item>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="matdiffusecolor" custom="True"/>
+			<item type="spVector4" name="matdiffusecolor2" custom="False">1.0;1.0;1.0;1.0</item>
+			<item type="spFloat" name="dirtlevel" custom="False">1.0</item>
+			<item type="spVector4" name="dirtcolor" custom="False">0.23137200;0.22352900;0.20392100;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="False">180.0</item>
+			<item type="spFloat" name="specularfactored" custom="True"/>
+			<item type="spVector4" name="specularcolorfactor" custom="False">0.15000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularcolorfactored" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="False">0.45</item>
+			<item type="spFloat" name="reflectivepowered" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="dirtsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="damagevertbuffer" custom="False">null</item>
+		</params>
+	</shader>
+	<!--  gta_vehicle_generic  -->
+	<shader key="gta_vehicle_generic.sps">
+		<index>55</index>
+		<name>gta_vehicle_generic</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>480</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spTexture" name="damagesampler" custom="False">null</item>
+			<item type="spFloat" name="switchon" custom="False">0</item>
+			<item type="spFloat" name="boundradius" custom="False">0.0</item>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="matdiffusecolor" custom="True"/>
+			<item type="spVector4" name="matdiffusecolor2" custom="False">1.0;1.0;1.0;1.0</item>
+			<item type="spFloat" name="specularfactor" custom="False">180.0</item>
+			<item type="spFloat" name="specularfactored" custom="True"/>
+			<item type="spVector4" name="specularcolorfactor" custom="False">0.15000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularcolorfactored" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spVector4" name="bumpiness" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="False">0.45</item>
+			<item type="spFloat" name="reflectivepowered" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="damagevertbuffer" custom="False">null</item>
+		</params>
+	</shader>
+	<!--  gta_vehicle_interior  -->
+	<shader key="gta_vehicle_interior.sps">
+		<index>56</index>
+		<name>gta_vehicle_interior</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>432</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spTexture" name="damagesampler" custom="False">null</item>
+			<item type="spFloat" name="switchon" custom="False">0</item>
+			<item type="spFloat" name="boundradius" custom="False">0.0</item>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="matdiffusecolor" custom="True"/>
+			<item type="spVector4" name="matdiffusecolor2" custom="False">1.0;1.0;1.0;1.0</item>
+			<item type="spFloat" name="specularfactored" custom="True"/>
+			<item type="spFloat" name="specularcolorfactored" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="False">0.45</item>
+			<item type="spFloat" name="reflectivepowered" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="damagevertbuffer" custom="False">null</item>		
+		</params>
+	</shader>
+	<!--  gta_vehicle_interior2  -->
+	<shader key="gta_vehicle_interior2.sps">
+		<index>57</index>
+		<name>gta_vehicle_interior2</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>384</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spTexture" name="damagesampler" custom="False">null</item>
+			<item type="spFloat" name="switchon" custom="False">0</item>
+			<item type="spFloat" name="boundradius" custom="False">0.0</item>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="matdiffusecolor" custom="True"/>
+			<item type="spVector4" name="matdiffusecolor2" custom="False">1.0;1.0;1.0;1.0</item>
+			<item type="spFloat" name="specularfactored" custom="True"/>
+			<item type="spFloat" name="specularcolorfactored" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="False">0.45</item>
+			<item type="spFloat" name="reflectivepowered" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="damagevertbuffer" custom="False">null</item>		
+		</params>
+	</shader>
+	<!--  gta_vehicle_lightsemissive  -->
+	<shader key="gta_vehicle_lightsemissive.sps">
+		<index>58</index>
+		<name>gta_vehicle_lightsemissive</name>
+		<vertexFormat>0xD9</vertexFormat>
+		<drawBucket>1</drawBucket>
+		<effectSize>752</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spTexture" name="damagesampler" custom="False">null</item>
+			<item type="spFloat" name="switchon" custom="False">0</item>
+			<item type="spFloat" name="boundradius" custom="False">0.0</item>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="matdiffusecolor" custom="True"/>
+			<item type="spVector4" name="matdiffusecolor2" custom="False">1.0;1.0;1.0;1.0</item>
+			<item type="spFloat" name="emissivemultiplier" custom="True"/>
+			<item type="spArray15OfVector4" name="dimmerset" custom="True"/>
+			<item type="spFloat" name="dirtlevel" custom="False">1.0</item>
+			<item type="spVector4" name="dirtcolor" custom="False">0.23137200;0.22352900;0.20392100;0.00000000</item>
+			<item type="spFloat" name="specularfactored" custom="True"/>
+			<item type="spFloat" name="specularcolorfactored" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spFloat" name="reflectivepowered" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="dirtsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="environmentsampler" custom="False">null</item>
+			<item type="spTexture" name="damagevertbuffer" custom="False">null</item>		
+		</params>
+	</shader>
+	<!--  gta_vehicle_mesh  -->
+	<shader key="gta_vehicle_mesh.sps">
+		<index>59</index>
+		<name>gta_vehicle_mesh</name>
+		<vertexFormat>0x40D9</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>464</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spTexture" name="damagesampler" custom="False">null</item>
+			<item type="spFloat" name="switchon" custom="False">0</item>
+			<item type="spFloat" name="boundradius" custom="False">0.0</item>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="matdiffusecolor" custom="True"/>
+			<item type="spVector4" name="matdiffusecolor2" custom="False">1.0;1.0;1.0;1.0</item>
+			<item type="spFloat" name="dirtlevel" custom="False">1.0</item>
+			<item type="spVector4" name="dirtcolor" custom="False">0.23137200;0.22352900;0.20392100;0.00000000</item>
+			<item type="spFloat" name="specularfactored" custom="True"/>
+			<item type="spFloat" name="specularcolorfactored" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="False">0.45</item>
+			<item type="spFloat" name="reflectivepowered" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="dirtsampler" custom="True"/>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="damagevertbuffer" custom="False">null</item>		
+		</params>
+	</shader>
+	<!--  gta_vehicle_paint1  -->
+	<shader key="gta_vehicle_paint1.sps">
+		<index>60</index>
+		<name>gta_vehicle_paint1</name>
+		<vertexFormat>0xD9</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>544</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spTexture" name="damagesampler" custom="False">null</item>
+			<item type="spFloat" name="switchon" custom="False">0</item>
+			<item type="spFloat" name="boundradius" custom="False">0.0</item>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="matdiffusecolor" custom="True"/>
+			<item type="spVector4" name="matdiffusecolor2" custom="False">1.0;1.0;1.0;1.0</item>
+			<item type="spFloat" name="dirtlevel" custom="False">1.0</item>
+			<item type="spVector4" name="dirtcolor" custom="False">0.23137200;0.22352900;0.20392100;0.00000000</item>
+			<item type="spFloat" name="specularfactored" custom="True"/>
+			<item type="spFloat" name="specularcolorfactored" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spVector4" name="specular2factored" custom="True"/>
+			<item type="spVector4" name="specular2colorintensityed" custom="True"/>
+			<item type="spVector4" name="specular2color" custom="False">0.00000000;0.50000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="reflectivepower" custom="False">0.45</item>
+			<item type="spFloat" name="reflectivepowered" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="dirtsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="damagevertbuffer" custom="False">null</item>		
+		</params>
+	</shader>
+	<shader key="gta_vehicle_nosplash.sps">
+		<index>60</index>
+		<name>gta_vehicle_paint1</name>
+		<vertexFormat>0xD9</vertexFormat>
+		<drawBucket>29</drawBucket>
+		<effectSize>544</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spTexture" name="damagesampler" custom="False">null</item>
+			<item type="spFloat" name="switchon" custom="False">0</item>
+			<item type="spFloat" name="boundradius" custom="False">0.0</item>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="matdiffusecolor" custom="True"/>
+			<item type="spVector4" name="matdiffusecolor2" custom="False">1.0;1.0;1.0;1.0</item>
+			<item type="spFloat" name="dirtlevel" custom="False">1.0</item>
+			<item type="spVector4" name="dirtcolor" custom="False">0.23137200;0.22352900;0.20392100;0.00000000</item>
+			<item type="spFloat" name="specularfactored" custom="True"/>
+			<item type="spFloat" name="specularcolorfactored" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spVector4" name="specular2factored" custom="True"/>
+			<item type="spVector4" name="specular2colorintensityed" custom="True"/>
+			<item type="spVector4" name="specular2color" custom="False">0.00000000;0.50000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="reflectivepower" custom="False">0.45</item>
+			<item type="spFloat" name="reflectivepowered" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="dirtsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="damagevertbuffer" custom="False">null</item>		
+		</params>
+	</shader>
+	<shader key="gta_vehicle_nowater.sps">
+		<index>60</index>
+		<name>gta_vehicle_paint1</name>
+		<vertexFormat>0xD9</vertexFormat>
+		<drawBucket>30</drawBucket>
+		<effectSize>544</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spTexture" name="damagesampler" custom="False">null</item>
+			<item type="spFloat" name="switchon" custom="False">0</item>
+			<item type="spFloat" name="boundradius" custom="False">0.0</item>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="matdiffusecolor" custom="True"/>
+			<item type="spVector4" name="matdiffusecolor2" custom="False">1.0;1.0;1.0;1.0</item>
+			<item type="spFloat" name="dirtlevel" custom="False">1.0</item>
+			<item type="spVector4" name="dirtcolor" custom="False">0.23137200;0.22352900;0.20392100;0.00000000</item>
+			<item type="spFloat" name="specularfactored" custom="True"/>
+			<item type="spFloat" name="specularcolorfactored" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spVector4" name="specular2factored" custom="True"/>
+			<item type="spVector4" name="specular2colorintensityed" custom="True"/>
+			<item type="spVector4" name="specular2color" custom="False">0.00000000;0.50000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="reflectivepower" custom="False">0.45</item>
+			<item type="spFloat" name="reflectivepowered" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="dirtsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="damagevertbuffer" custom="False">null</item>		
+		</params>
+	</shader>
+	<!--  gta_vehicle_paint2  -->
+	<shader key="gta_vehicle_paint2.sps">
+		<index>61</index>
+		<name>gta_vehicle_paint2</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>544</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spTexture" name="damagesampler" custom="False">null</item>
+			<item type="spFloat" name="switchon" custom="False">0</item>
+			<item type="spFloat" name="boundradius" custom="False">0.0</item>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="matdiffusecolor" custom="True"/>
+			<item type="spVector4" name="matdiffusecolor2" custom="False">1.0;1.0;1.0;1.0</item>
+			<item type="spFloat" name="dirtlevel" custom="False">1.0</item>
+			<item type="spVector4" name="dirtcolor" custom="False">0.23137200;0.22352900;0.20392100;0.00000000</item>
+			<item type="spFloat" name="specularfactored" custom="True"/>
+			<item type="spFloat" name="specularcolorfactored" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spVector4" name="specular2factored" custom="True"/>
+			<item type="spVector4" name="specular2colorintensityed" custom="True"/>
+			<item type="spVector4" name="specular2color" custom="False">0.00000000;0.50000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="reflectivepower" custom="False">0.45</item>
+			<item type="spFloat" name="reflectivepowered" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="dirtsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="damagevertbuffer" custom="False">null</item>		
+		</params>
+	</shader>
+	<!--  gta_vehicle_paint3  -->
+	<shader key="gta_vehicle_paint3.sps">
+		<index>62</index>
+		<name>gta_vehicle_paint3</name>
+		<vertexFormat>0xD9</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>560</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spTexture" name="damagesampler" custom="False">null</item>
+			<item type="spFloat" name="switchon" custom="False">0</item>
+			<item type="spFloat" name="boundradius" custom="False">0.0</item>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="matdiffusecolor" custom="True"/>
+			<item type="spVector4" name="matdiffusecolor2" custom="False">1.0;1.0;1.0;1.0</item>
+			<item type="spFloat" name="dirtlevel" custom="False">1.0</item>
+			<item type="spVector4" name="dirtcolor" custom="False">0.23137200;0.22352900;0.20392100;0.00000000</item>
+			<item type="spFloat" name="specularfactored" custom="True"/>
+			<item type="spFloat" name="specularcolorfactored" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spVector4" name="specular2factored" custom="True"/>
+			<item type="spVector4" name="specular2colorintensityed" custom="True"/>
+			<item type="spVector4" name="specular2color" custom="False">0.00000000;0.50000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="reflectivepower" custom="False">0.45</item>
+			<item type="spFloat" name="reflectivepowered" custom="True"/>
+			<item type="spVector4" name="diffuse2specmod" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="texturesampler2" custom="True"/>
+			<item type="spTexture" name="dirtsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="damagevertbuffer" custom="False">null</item>		
+		</params>
+	</shader>
+	<!--  gta_vehicle_rims2  -->
+	<shader key="gta_vehicle_rims2.sps">
+		<index>64</index>
+		<name>gta_vehicle_rims2</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>576</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="matdiffusecolor" custom="True"/>
+			<item type="spVector4" name="matdiffusecolor2" custom="False">1.0;1.0;1.0;1.0</item>
+			<item type="spFloat" name="dirtlevel" custom="False">1.0</item>
+			<item type="spVector4" name="dirtcolor" custom="False">0.23137200;0.22352900;0.20392100;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="False">180.0</item>
+			<item type="spFloat" name="specularfactored" custom="True"/>
+			<item type="spVector4" name="specularcolorfactor" custom="False">0.15000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularcolorfactored" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spVector4" name="specular2factor" custom="False">100.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="specular2factored" custom="True"/>
+			<item type="spVector4" name="specular2colorintensityre" custom="False">1.70000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="specular2colorintensityed" custom="True"/>
+			<item type="spVector4" name="specular2color" custom="False">0.00000000;0.50000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="reflectivepower" custom="False">0.45</item>
+			<item type="spFloat" name="reflectivepowered" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="dirtsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="damagevertbuffer" custom="False">null</item>		
+		</params>
+	</shader>
+	<!--  gta_vehicle_rubber  -->
+	<shader key="gta_vehicle_rubber.sps">
+		<index>65</index>
+		<name>gta_vehicle_rubber</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>432</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spTexture" name="damagesampler" custom="False">null</item>
+			<item type="spFloat" name="switchon" custom="False">0</item>
+			<item type="spFloat" name="boundradius" custom="False">0.0</item>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spVector4" name="matdiffusecolor" custom="True"/>
+			<item type="spVector4" name="matdiffusecolor2" custom="False">1.0;1.0;1.0;1.0</item>
+			<item type="spFloat" name="dirtlevel" custom="False">1.0</item>
+			<item type="spVector4" name="dirtcolor" custom="False">0.23137200;0.22352900;0.20392100;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="False">180.0</item>
+			<item type="spFloat" name="specularfactored" custom="True"/>
+			<item type="spVector4" name="specularcolorfactor" custom="False">0.15000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularcolorfactored" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="False">0.45</item>
+			<item type="spFloat" name="reflectivepowered" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="dirtsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="damagevertbuffer" custom="False">null</item>		
+		</params>
+	</shader>
+	<!--  gta_vehicle_shuts  -->
+	<shader key="gta_vehicle_shuts.sps">
+		<index>66</index>
+		<name>gta_vehicle_shuts</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>320</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spTexture" name="damagesampler" custom="False">null</item>
+			<item type="spFloat" name="switchon" custom="False">0</item>
+			<item type="spFloat" name="boundradius" custom="False">0.0</item>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spVector4" name="matdiffusecolor" custom="True"/>
+			<item type="spVector4" name="matdiffusecolor2" custom="False">1.0;1.0;1.0;1.0</item>
+			<item type="spFloat" name="specularfactored" custom="True"/>
+			<item type="spFloat" name="specularcolorfactored" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="False">0.45</item>
+			<item type="spFloat" name="reflectivepowered" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="damagevertbuffer" custom="False">null</item>		
+		</params>
+	</shader>
+	<!--  gta_vehicle_tire  -->
+	<shader key="gta_vehicle_tire.sps">
+		<index>67</index>
+		<name>gta_vehicle_tire</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>576</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spVector4" name="tyredeformswitchon" custom="False">0.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="tyredeformparams" custom="False">0.00000000;0.00000000;0.00000000;1.00000000</item>
+			<item type="spVector4" name="tyredeformparams2" custom="False">0.26200000;1495.05000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="matwheeltransform" custom="False">0.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="matdiffusecolor" custom="True"/>
+			<item type="spVector4" name="matdiffusecolor2" custom="False">1.0;1.0;1.0;1.0</item>
+			<item type="spFloat" name="dirtlevel" custom="False">1.0</item>
+			<item type="spVector4" name="dirtcolor" custom="False">0.23137200;0.22352900;0.20392100;0.00000000</item>
+			<item type="spFloat" name="specularfactored" custom="True"/>
+			<item type="spFloat" name="specularcolorfactored" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spFloat" name="reflectivepower" custom="False">0.45</item>
+			<item type="spFloat" name="reflectivepowered" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="dirtsampler" custom="True"/>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="damagevertbuffer" custom="False">null</item>		
+		</params>
+	</shader>
+	<!--  gta_vehicle_vehglass  -->
+	<shader key="gta_vehicle_lights.sps">
+		<index>68</index>
+		<name>gta_vehicle_vehglass</name>
+		<vertexFormat>0xD9</vertexFormat>
+		<drawBucket>1</drawBucket>
+		<effectSize>400</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spTexture" name="damagesampler" custom="False">null</item>
+			<item type="spFloat" name="switchon" custom="False">0</item>
+			<item type="spFloat" name="boundradius" custom="False">0.0</item>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spVector4" name="matdiffusecolor" custom="True"/>
+			<item type="spVector4" name="matdiffusecolor2" custom="False">1.0;1.0;1.0;1.0</item>
+			<item type="spFloat" name="dirtlevel" custom="False">1.0</item>
+			<item type="spVector4" name="dirtcolor" custom="False">0.23137200;0.22352900;0.20392100;0.00000000</item>
+			<item type="spFloat" name="specularfactored" custom="True"/>
+			<item type="spFloat" name="specularcolorfactored" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spFloat" name="reflectivepowered" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="dirtsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="environmentsampler" custom="False">null</item>
+			<item type="spTexture" name="damagevertbuffer" custom="False">null</item>		
+		</params>
+	</shader>
+	<shader key="gta_vehicle_vehglass.sps">
+		<index>68</index>
+		<name>gta_vehicle_vehglass</name>
+		<vertexFormat>0xD9</vertexFormat>
+		<drawBucket>1</drawBucket>
+		<effectSize>400</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spTexture" name="damagesampler" custom="False">null</item>
+			<item type="spFloat" name="switchon" custom="False">0</item>
+			<item type="spFloat" name="boundradius" custom="False">0.0</item>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spVector4" name="matdiffusecolor" custom="True"/>
+			<item type="spVector4" name="matdiffusecolor2" custom="False">1.0;1.0;1.0;1.0</item>
+			<item type="spFloat" name="dirtlevel" custom="False">1.0</item>
+			<item type="spVector4" name="dirtcolor" custom="False">0.23137200;0.22352900;0.20392100;0.00000000</item>
+			<item type="spFloat" name="specularfactored" custom="True"/>
+			<item type="spFloat" name="specularcolorfactored" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spFloat" name="reflectivepowered" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="dirtsampler" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spTexture" name="environmentsampler" custom="False">null</item>
+			<item type="spTexture" name="damagevertbuffer" custom="False">null</item>		
+		</params>
+	</shader>
+	<!--  gta_ped  -->
+	<shader key="gta_ped.sps">
+		<index>69</index>
+		<name>gta_ped</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>560</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="matmaterialcolorscale" custom="False">1.00000000;1.00000000;1.00000000;1.00000000</item>
+			<item type="spArray14OfVector4" name="gbonedamage0" custom="False">0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="gbonedamageenabled" custom="False">0</item>
+			<item type="spTexture" name="damagetexturesampler" custom="False">null</item>
+			<item type="spTexture" name="damagespectexturesampler" custom="False">null</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+		</params>
+	</shader>
+	<shader key="gta_ped_alpha.sps">
+		<index>69</index>
+		<name>gta_ped</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>1</drawBucket>
+		<effectSize>560</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="matmaterialcolorscale" custom="False">1.00000000;1.00000000;1.00000000;1.00000000</item>
+			<item type="spArray14OfVector4" name="gbonedamage0" custom="False">0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="gbonedamageenabled" custom="False">0</item>
+			<item type="spTexture" name="damagetexturesampler" custom="False">null</item>
+			<item type="spTexture" name="damagespectexturesampler" custom="False">null</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+		</params>
+	</shader>
+	<!--  gta_ped_reflect  -->
+	<shader key="gta_ped_reflect.sps">
+		<index>71</index>
+		<name>gta_ped_reflect</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>624</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="matmaterialcolorscale" custom="False">1.00000000;1.00000000;1.00000000;1.00000000</item>
+			<item type="spArray14OfVector4" name="gbonedamage0" custom="False">0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="gbonedamageenabled" custom="False">0</item>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+			<item type="spTexture" name="damagetexturesampler" custom="False">null</item>
+			<item type="spTexture" name="damagespectexturesampler" custom="False">null</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+		</params>
+	</shader>
+	<shader key="gta_ped_reflect_alpha.sps">
+		<index>71</index>
+		<name>gta_ped_reflect</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>1</drawBucket>
+		<effectSize>624</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="matmaterialcolorscale" custom="False">1.00000000;1.00000000;1.00000000;1.00000000</item>
+			<item type="spArray14OfVector4" name="gbonedamage0" custom="False">0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="gbonedamageenabled" custom="False">0</item>
+			<item type="spFloat" name="reflectivepower" custom="True"/>
+			<item type="spTexture" name="environmentsampler" custom="True"/>
+			<item type="spTexture" name="damagetexturesampler" custom="False">null</item>
+			<item type="spTexture" name="damagespectexturesampler" custom="False">null</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+		</params>
+	</shader>
+	<!--  gta_hair_sorted_alpha  -->
+	<shader key="gta_hair_sorted_alpha.sps">
+		<index>72</index>
+		<name>gta_hair_sorted_alpha</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>3</drawBucket>
+		<effectSize>576</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="matmaterialcolorscale" custom="False">1.00000000;1.00000000;1.00000000;1.00000000</item>
+			<item type="spArray14OfVector4" name="gbonedamage0" custom="False">0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="gbonedamageenabled" custom="False">0</item>
+			<item type="spTexture" name="damagetexturesampler" custom="False">null</item>
+			<item type="spTexture" name="damagespectexturesampler" custom="False">null</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+		</params>
+	</shader>
+	<!--  gta_hair_sorted_alpha_exp  -->
+	<shader key="gta_hair_sorted_alpha_expensive.sps">
+		<index>73</index>
+		<name>gta_hair_sorted_alpha_exp</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>3</drawBucket>
+		<effectSize>576</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spFloat" name="ordernumber" custom="False">0</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="matmaterialcolorscale" custom="False">1.00000000;1.00000000;1.00000000;1.00000000</item>
+			<item type="spArray14OfVector4" name="gbonedamage0" custom="False">0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="gbonedamageenabled" custom="False">0</item>
+			<item type="spTexture" name="damagetexturesampler" custom="False">null</item>
+			<item type="spTexture" name="damagespectexturesampler" custom="False">null</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+		</params>
+	</shader>
+	<!--  gta_ped_skin  -->
+	<shader key="gta_ped_skin.sps">
+		<index>74</index>
+		<name>gta_ped_skin</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>656</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="matmaterialcolorscale" custom="False">1.00000000;1.00000000;1.00000000;1.00000000</item>
+			<item type="spArray14OfVector4" name="gbonedamage0" custom="False">0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="gbonedamageenabled" custom="False">0</item>
+			<item type="spVector4" name="subcolor" custom="True"/>
+			<item type="spFloat" name="subscatwrap" custom="False">0.40000000</item>
+			<item type="spFloat" name="subscatwidth" custom="False">0.15000000</item>
+			<item type="spTexture" name="damagetexturesampler" custom="False">null</item>
+			<item type="spTexture" name="damagespectexturesampler" custom="False">null</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+		</params>
+	</shader>
+	<!--  gta_ped_skin_blendshape  -->
+	<shader key="gta_ped_skin_blendshape.sps">
+		<index>75</index>
+		<name>gta_ped_skin_blendshape</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>656</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="matmaterialcolorscale" custom="False">1.00000000;1.00000000;1.00000000;1.00000000</item>
+			<item type="spArray14OfVector4" name="gbonedamage0" custom="False">0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="gbonedamageenabled" custom="False">0</item>
+			<item type="spVector4" name="subcolor" custom="True"/>
+			<item type="spFloat" name="subscatwrap" custom="False">0.40000000</item>
+			<item type="spFloat" name="subscatwidth" custom="False">0.15000000</item>
+			<item type="spTexture" name="damagetexturesampler" custom="False">null</item>
+			<item type="spTexture" name="damagespectexturesampler" custom="False">null</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="specmapintmask" custom="True"/>
+			<item type="spTexture" name="specsampler" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+		</params>
+	</shader>
+	<!-- gta_rmptfx_mesh -->
+	<shader key="gta_rmptfx_mesh.sps">
+		<index>78</index>
+		<name>gta_rmptfx_mesh</name>
+		<vertexFormat>0x59</vertexFormat>
+		<drawBucket>1</drawBucket>
+		<effectSize>288</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spVector4" name="globalanimuv0" custom="False">1.00000000;0.00000000;0.00000000;0.00000000</item>
+			<item type="spVector4" name="globalanimuv1" custom="False">0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="drawbucket" custom="False">0</item>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+		</params>
+	</shader>
+	<!--  gta_parallax_steep  -->
+	<shader key="gta_parallax_steep.sps">
+		<index>24</index>
+		<name>gta_parallax_steep</name>
+		<vertexFormat>0x4059</vertexFormat>
+		<drawBucket>0</drawBucket>
+		<effectSize>272</effectSize>
+		<skinned>True</skinned>
+		<params>
+			<item type="spTexture" name="texturesampler" custom="True"/>
+			<item type="spFloat" name="shadowmap_res" custom="True"/>
+			<item type="spMatrix" name="facetmask" custom="False">-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000;0.00000000;0.00000000;-1.00000000;0.00000000;0.00000000;0.00000000;1.00000000;0.00000000;0.00000000</item>
+			<item type="spFloat" name="parallaxscalebias" custom="True"/>
+			<item type="spFloat" name="specularfactor" custom="True"/>
+			<item type="spFloat" name="specularcolorfactor" custom="True"/>
+			<item type="spFloat" name="bumpiness" custom="True"/>
+			<item type="spVector4" name="luminanceconstants" custom="False">0.21250000;0.71540000;0.07210000;0.00000000</item>
+			<item type="spTexture" name="bumpsampler" custom="True"/>
+		</params>
+	</shader>
+</ShaderManager>

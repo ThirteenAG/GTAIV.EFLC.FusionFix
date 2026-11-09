@@ -35,7 +35,7 @@ public:
 
             pattern = hook::pattern("D9 44 24 18 5F 5B 5D");
             static uint32_t nRetValOffset = 0x18;
-            if (pattern.empty())
+            if (pattern.empty()) // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
             {
                 pattern = hook::pattern("D9 44 24 1C 5E 5B 5D");
                 nRetValOffset = 0x1C;

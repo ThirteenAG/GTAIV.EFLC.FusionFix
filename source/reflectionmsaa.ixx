@@ -368,10 +368,10 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            CIniReader iniReader("");
+            SettingsReader reader;
 
             // [EXPERIMENTAL]
-            static int nReflectionMSAAQuality = std::clamp(iniReader.ReadInteger("EXPERIMENTAL", "ReflectionMSAAQuality", 0), 0, 8);
+            static int nReflectionMSAAQuality = std::clamp(reader.ReadInteger("EXPERIMENTAL", "ReflectionMSAAQuality", 0), 0, 8);
 
             if (nReflectionMSAAQuality > 0 && nReflectionMSAAQuality != 6 && nReflectionMSAAQuality % 2 == 0)
             {
@@ -379,12 +379,12 @@ public:
                 {
                     // Mirrors
                     auto pattern = hook::pattern("C7 44 24 ? ? ? ? ? BF ? ? ? ? C7 44 24 ? ? ? ? ? E8 ? ? ? ? 8B 4C 24");
-                    if (!pattern.empty())
+                    if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                     {
                         injector::WriteMemory(pattern.count(2).get(0).get<void*>(4), nReflectionMSAAQuality, true);
                         injector::WriteMemory(pattern.count(2).get(1).get<void*>(4), nReflectionMSAAQuality, true);
                     }
-                    else
+                    else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                     {
                         pattern = hook::pattern("C7 44 24 ? ? ? ? ? BF ? ? ? ? C7 44 24 ? ? ? ? ? E8 ? ? ? ? 83 C4 ? 84 C0 74");
                         injector::WriteMemory(pattern.get_first(4), nReflectionMSAAQuality, true);
@@ -399,11 +399,11 @@ public:
 
                     // Water
                     pattern = hook::pattern("C7 44 24 ? ? ? ? ? C7 44 24 ? ? ? ? ? 8B 01 6A ? 68 ? ? ? ? FF 50 ? 8B 0D ? ? ? ? 89 44 24");
-                    if (!pattern.empty())
+                    if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                     {
                         injector::WriteMemory(pattern.get_first(4), nReflectionMSAAQuality, true);
                     }
-                    else
+                    else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                     {
                         pattern = hook::pattern("89 5C 24 ? C7 44 24 ? ? ? ? ? 8B 11 8B 52 ? 6A ? 68 ? ? ? ? FF D2 8B 0D ? ? ? ? 8D 54 24");
                         injector::MakeNOP(pattern.get_first(0), 4, true);
@@ -414,12 +414,12 @@ public:
                     }
 
                     // Paraboloid
-                    pattern = hook::pattern("C7 44 24 ? ? ? ? ? 78");
-                    if (!pattern.empty())
+                    pattern = hook::pattern("C7 44 24 ? ? ? ? ? 78 ? D3 E6 EB ? BE");
+                    if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                     {
                         injector::WriteMemory(pattern.get_first(4), nReflectionMSAAQuality, true);
                     }
-                    else
+                    else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                     {
                         pattern = hook::pattern("89 5C 24 ? 7C ? BE");
                         injector::MakeNOP(pattern.get_first(0), 4, true);

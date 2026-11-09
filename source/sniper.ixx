@@ -152,22 +152,21 @@ public:
             };
 
             pattern = hook::pattern("8B 40 ? C1 E8 ? A8 ? 8B 44 24 ? 74");
-            if (!pattern.empty())
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 static auto SniperAimHook1 = safetyhook::create_mid(pattern.get_first(3), [](SafetyHookContext& regs) { OverrideSniperFlags(regs.eax); });
-            else
+            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
             {
                 pattern = hook::pattern("8B 42 20 8B 6C 24 20 C1 E8 03 A8 01 74 10 85 ED 74 0C 80 7C 24");
                 static auto SniperAimHook1 = safetyhook::create_mid(pattern.get_first(7), [](SafetyHookContext& regs) { OverrideSniperFlags(regs.eax); });
             }
 
             pattern = find_pattern("8B 40 ? C1 E8 ? A8 ? 75 ? F6 85", "8B 40 20 C1 E8 03 A8 01 75 08 84 97 ? ? ? ? 74");
-            if (!pattern.empty())
-                static auto SniperAimHook2 = safetyhook::create_mid(pattern.get_first(3), [](SafetyHookContext& regs) { OverrideSniperFlags(regs.eax); });
+            static auto SniperAimHook2 = safetyhook::create_mid(pattern.get_first(3), [](SafetyHookContext& regs) { OverrideSniperFlags(regs.eax); });
 
             pattern = hook::pattern("8B 43 ? C1 E8 ? A8 ? 74 ? 80 7C 24");
-            if (!pattern.empty())
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 static auto CrosshairHook = safetyhook::create_mid(pattern.get_first(3), [](SafetyHookContext& regs) { OverrideSniperFlags(regs.eax); });
-            else
+            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
             {
                 pattern = hook::pattern("8B 4B 20 C1 E9 03 F6 C1 01 74 07 80 7C 24 ? ? 74 08");
                 static auto CrosshairHook = safetyhook::create_mid(pattern.get_first(3), [](SafetyHookContext& regs) { OverrideSniperFlags(regs.ecx); });
@@ -175,36 +174,31 @@ public:
 
             // Toggle
             pattern = hook::pattern("E8 ? ? ? ? 83 C4 ? 84 C0 75 ? 38 05 ? ? ? ? 0F 84");
-            if (!pattern.empty())
-                hbsub_A72820.fun = injector::MakeCALL(pattern.get_first(), sub_A72820).get();
+            hbsub_A72820.fun = injector::MakeCALL(pattern.get_first(), sub_A72820).get();
 
             pattern = find_pattern("E8 ? ? ? ? 83 C4 ? 84 C0 75 ? 8A 87", "E8 ? ? ? ? 83 C4 04 84 C0 75 17 8A 8E ? ? ? ? 80 E1 0F 80 F9 02");
-            if (!pattern.empty())
-                hbsub_A72820.fun = injector::MakeCALL(pattern.get_first(), sub_A72820).get();
+            hbsub_A72820.fun = injector::MakeCALL(pattern.get_first(), sub_A72820).get();
 
             // Recoil
             pattern = find_pattern("F3 0F 59 05 ? ? ? ? F3 0F 10 64 24 ? F3 0F 10 54 24", "D8 0D ? ? ? ? F3 0F 10 5C 24 ? F3 0F 10 64 24 ? F3 0F 10 6C 24");
-            if (!pattern.empty())
+            static auto RecoilHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
             {
-                static auto RecoilHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                static auto esc = FusionFixSettings.GetRef("PREF_EXTENDEDSNIPERCONTROLS");
+                if (esc->get())
                 {
-                    static auto esc = FusionFixSettings.GetRef("PREF_EXTENDEDSNIPERCONTROLS");
-                    if (esc->get())
+                    auto pPed = CPlayer::getLocalPlayerPed();
+                    if (pPed)
                     {
-                        auto pPed = CPlayer::getLocalPlayerPed();
-                        if (pPed)
-                        {
-                            auto m_WeaponData = CWeaponData::getWeaponData(pPed + 0x2B0, 0);
-                            auto weaponType = CWeapon::getWeaponByType(m_WeaponData ? *(int*)(m_WeaponData + 0x18) : 0);
+                        auto m_WeaponData = CWeaponData::getWeaponData(pPed + 0x2B0, 0);
+                        auto weaponType = CWeapon::getWeaponByType(m_WeaponData ? *(int*)(m_WeaponData + 0x18) : 0);
 
-                            if ((*(uint32_t*)(weaponType + 0x20) & 8) != 0)
-                            {
-                                regs.xmm1.f32[0] = 0.1f;
-                            }
+                        if ((*(uint32_t*)(weaponType + 0x20) & 8) != 0)
+                        {
+                            regs.xmm1.f32[0] = 0.1f;
                         }
                     }
-                });
-            }
+                }
+            });
         };
     }
 } Sniper;

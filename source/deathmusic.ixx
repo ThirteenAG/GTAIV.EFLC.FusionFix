@@ -32,13 +32,13 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            CIniReader iniReader("");
+            SettingsReader reader;
 
             // [MISC]
-            auto bDeathMusic = iniReader.ReadInteger("MISC", "DeathMusic", 0) != 0;
+            auto bDeathMusic = reader.ReadInteger("MISC", "DeathMusic", 0) != 0;
 
             // [EPISODICCONTENT]
-            bEpisodicDeathMusic = iniReader.ReadInteger("EPISODICCONTENT", "EpisodicDeathMusic", 0) != 0;
+            bEpisodicDeathMusic = reader.ReadInteger("EPISODICCONTENT", "EpisodicDeathMusic", 0) != 0;
 
             // By Clippy95
             if (bDeathMusic)

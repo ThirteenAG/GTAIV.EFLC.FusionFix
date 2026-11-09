@@ -1,0 +1,28 @@
+Version 1 10
+{
+	Attribute 0
+	{
+		Position 0.00126266 -0.14578100 -0.01414200
+		Direction 0.00000000 -0.93969202 -0.34202000
+		Origin 0.00000000 0.34202000 -0.93969202
+		Color 255 144 46 0
+		_f28 100.00000000
+		_f2C 0.00000000
+		_f30 0.00000000
+		Distance 8.00000000
+		Range 8.00000000
+		CoronaSize 0.80000000
+		HotSpot 0.00000000
+		Falloff 0.00000000
+		Flags 655456
+		CoronaHash 3191162493
+		LuminescenceHash 0
+		TypeFlags
+		Type Omni
+		_f58 1.00000000
+		_f5C 75.00000000
+		_f60 15.00000000
+		BoneID 0
+		_f66 0
+	}
+}

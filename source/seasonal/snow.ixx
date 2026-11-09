@@ -26,7 +26,7 @@ public:
 
         // Disables rain-related audio (e.g. Surface impacts)
         auto pattern = hook::pattern("F3 0F 10 05 ? ? ? ? F3 0F 11 04 24 E8 ? ? ? ? 51");
-        if (!pattern.empty())
+        if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
         {
             static auto SetRainAudioHook = safetyhook::create_mid(pattern.get_first(8), [](SafetyHookContext& regs)
             {
@@ -36,7 +36,7 @@ public:
                 }
             });
         }
-        else
+        else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
         {
             pattern = hook::pattern("D9 1C 24 E8 ? ? ? ? 51 D9 1C 24 E8 ? ? ? ? D8 44 24 08 83 C4 04 5E 59 C3 CC");
             static auto SetRainAudioHook = safetyhook::create_mid(pattern.get_first(3), [](SafetyHookContext& regs)
@@ -50,7 +50,7 @@ public:
 
         // Disables wetness-related effects (e.g. Reflections, footstep/vehicle interaction sounds, particles)
         pattern = hook::pattern("C7 05 ? ? ? ? 00 00 80 3F F3 0F 10 25 ? ? ? ? F3 0F 10 04");
-        if (!pattern.empty())
+        if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
         {
             pWetness = *pattern.get_first<float*>(2);
             static auto SetRainWetnessHook = safetyhook::create_mid(pattern.get_first(10), [](SafetyHookContext& regs)
@@ -61,7 +61,7 @@ public:
                 }
             });
         }
-        else
+        else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
         {
             pattern = hook::pattern("F3 0F 11 05 ? ? ? ? EB 67");
             pWetness = *pattern.get_first<float*>(4);

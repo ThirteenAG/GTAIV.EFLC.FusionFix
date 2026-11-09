@@ -1703,6 +1703,13 @@ export namespace rage
                 height /= 2;
             }
 
+            else if (std::string_view(name) == "_STENCIL_BUFFER_" && desc)
+            {
+                // The fourth G-buffer target: the stencil stays in r, the motion vectors of temporal AA go to g and b
+                desc->mFormat = GRCFMT_A16B16G16R16F;
+                bitsPerPixel = 64;
+            }
+
             auto ret = shCreateRT.stdcall<grcRenderTargetPC*>(name, a2, width, height, bitsPerPixel, desc);
 
             RTCache[name] = ret;
@@ -2182,6 +2189,119 @@ export namespace CPlayerPed
     uintptr_t (__thiscall* GetControlFromPlayer)(uintptr_t playerPed) = nullptr;
 }
 
+export enum class eRagdollTriggerTypes : uint32_t
+{
+    RAGDOLL_TRIGGER_SCRIPT = 0x12,
+};
+
+export namespace CTaskSimpleNM
+{
+    bool (__cdecl* CanUseRagdoll)(uintptr_t ped, eRagdollTriggerTypes trigger, uintptr_t entity, float force) = nullptr;
+}
+
+export namespace CTaskSimpleNMHighFall
+{
+    struct Parameters
+    {
+        float pdStrengthPlayer;
+        float pdStrengthAI;
+        float hfBodyStiffness;
+        float hfBodyDamping;
+        float hfCutOffVelocity;
+        float hfCatchFallTime;
+        float hfArmsUp;
+        float hfLegRadius;
+        float hfLegAngularSpeed;
+        float hfArmPeriod;
+        float hfArmAmplitude;
+        float hfAimAngle;
+        float hfLegSideDistance;
+        float hfFowardIKOffset;
+        float hfFowardVelCompOnAngle;
+        bool hfForwardRoll;
+        bool hfOrientateBodyToFallDirection;
+        bool hfUseZeroPose;
+        uint8_t padding;
+    };
+    static_assert(sizeof(Parameters) == 0x40);
+
+    enum class eHighFallType : int32_t
+    {
+        STANDARD = 0,
+    };
+
+    void* (__thiscall* Constructor)(void* storage, uint32_t minTime, uint32_t maxTime, const void* grabHelper, eHighFallType type) = nullptr;
+    Parameters* ms_Parameters = nullptr;
+}
+
+export namespace ART::MessageParams
+{
+    constexpr size_t Size = 0xCC4;
+    void (__thiscall* Constructor)(void* params) = nullptr;
+    void (__thiscall* addBool)(void* params, const char* name, bool value) = nullptr;
+    void (__thiscall* addFloat)(void* params, const char* name, float value) = nullptr;
+    void (__thiscall* Destructor)(void* params) = nullptr;
+}
+
+export namespace rage::fragInstNM
+{
+    void (__thiscall* PostARTMessage)(void* fragInstNM, const char* messageName, const void* params) = nullptr;
+}
+
+export namespace NaturalMotion
+{
+    constexpr ptrdiff_t PedIntelligenceOffset = 0x224;
+    ptrdiff_t FragInstNMOffset = 0;
+
+    struct alignas(16) RagdollComponentMatrix
+    {
+        float values[16];
+    };
+    static_assert(sizeof(RagdollComponentMatrix) == 0x40);
+
+    enum class RagdollComponent : int32_t
+    {
+        Buttocks = 0,
+        Spine3 = 10,
+        Neck = 11,
+    };
+
+    namespace armsWindmillAdaptive
+    {
+        struct Parameters
+        {
+            float armStiffness;
+            float bodyStiffness;
+            float period;
+            float amplitude;
+            float phase;
+            bool disableOnImpact;
+        };
+    }
+
+    namespace pedalLegs
+    {
+        struct Parameters
+        {
+            bool backPedal;
+            float legStiffness;
+            bool pedalLeftLeg;
+            bool pedalRightLeg;
+            float radius;
+            float angularSpeed;
+            float pedalOffset;
+            float speedAsymmetry;
+            bool adaptivePedal4Dragging;
+            float radiusVariance;
+            float legAngleVariance;
+        };
+    }
+
+    void* (__thiscall* AllocateFromPoolInternal)(void* pool) = nullptr;
+    bool (__cdecl* PostNMTaskInternal)(uintptr_t ped, uint32_t time, bool setPedFlag, void* task) = nullptr;
+    bool (__thiscall* GetRagdollComponentMatrixInternal)(uintptr_t ped, RagdollComponentMatrix* matrix, int32_t component) = nullptr;
+}
+
 export namespace CWeaponData
 {
     uintptr_t (__fastcall* getWeaponData)(uintptr_t weaponData, int edx) = nullptr;
@@ -2221,12 +2341,18 @@ public:
         static FusionFix::Event<> BuildRenderListEvent;
         return BuildRenderListEvent;
     }
+    static FusionFix::Event<>& OnAfterBuildRenderList()
+    {
+        static FusionFix::Event<> AfterBuildRenderListEvent;
+        return AfterBuildRenderListEvent;
+    }
 
     static inline SafetyHookInline shBuildRenderList{};
     static void __fastcall BuildRenderList(CBaseDC* _this, void* edx)
     {
         OnBuildRenderList().executeAll();
         shBuildRenderList.fastcall<void*>(_this, edx);
+        OnAfterBuildRenderList().executeAll();
     }
 };
 
@@ -2880,12 +3006,12 @@ public:
         CTimer::m_systemTime = *pattern.get_first<float*>(4);
 
         pattern = hook::pattern("0F B6 0D ? ? ? ? 0F B6 C0 0B C1");
-        if (!pattern.empty())
+        if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
         {
             CTimer::ms_bUserPause = *pattern.get_first<bool*>(3);
             CTimer::ms_bScriptPause = *pattern.get_first<bool*>(15);
         }
-        else
+        else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
         {
             pattern = hook::pattern("0F B6 0D ? ? ? ? 0F B6 15 ? ? ? ? 33 C0 0B C1");
             CTimer::ms_bUserPause = *pattern.get_first<bool*>(3);
@@ -2921,7 +3047,7 @@ public:
         CMenuManager::bLoadscreenShown = *pattern.get_first<uint8_t*>(2);
 
         pattern = hook::pattern("56 8B 35 ? ? ? ? 85 F6 75 06");
-        if (!pattern.empty())
+        if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
             getNativeAddress = pattern.count(2).get(1).get<void* (__stdcall)(uint32_t)>(0);
 
         pattern = find_pattern("8B 0D ? ? ? ? 53 56 33 F6", "53 56 8B 35 ? ? ? ? 33 D2");
@@ -2982,10 +3108,11 @@ public:
         pattern = find_pattern("8B 54 24 08 85 D2 74 62", "56 8B 74 24 0C 85 F6 74 62");
         rage::grmShaderInfo::shsub_436D70 = safetyhook::create_inline(pattern.get_first(0), rage::grmShaderInfo::setShaderParam);
 
-        pattern = find_pattern("F3 0F 11 44 24 ? E8 ? ? ? ? 83 C6 ? 3B F3");
-        if (!pattern.empty())
+        // Workaround for car reflections. 1.2.0.x: this loop sets its parameters through another function,
+        // which the hook above doesn't touch
+        pattern = hook::pattern("F3 0F 11 44 24 ? E8 ? ? ? ? 83 C6 ? 3B F3");
+        if (!pattern.empty()) // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
         {
-            // workaround for car reflections
             injector::MakeCALL(pattern.get_first(6), rage::grmShaderInfo::setShaderParamOriginal, true);
         }
 
@@ -3005,7 +3132,7 @@ public:
         CRenderPhaseDrawScene::shBuildRenderList = safetyhook::create_inline(pattern.get_first(0), CRenderPhaseDrawScene::BuildRenderList);
 
         pattern = hook::pattern("F3 0F 11 05 ? ? ? ? A3 ? ? ? ? A3 ? ? ? ? A3 ? ? ? ? F3 0F 11 0D");
-        if (pattern.empty())
+        if (pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
             pattern = hook::pattern("F3 0F 11 05 ? ? ? ? E8 ? ? ? ? 84 C0 74 15 E8 ? ? ? ? 84 C0");
         CWeather::Rain = *pattern.get_first<float*>(4);
 
@@ -3039,20 +3166,22 @@ public:
         pattern = find_pattern("A3 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? E8 ? ? ? ? A1", "A3 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? E8 ? ? ? ? 8B 0D");
         RageDirect3DDevice9::m_pRealDevice = *pattern.get_first<IDirect3DDevice9**>(1);
 
-        pattern = find_pattern("A1 ? ? ? ? 83 F8 08 74 17", "A1 ? ? ? ? 83 F8 08 74 0C");
+        // CFrontEnd::CheckForBackInput, same in all versions. The menu API hooks the other reads of the menu screen
+        // that could be used here, possibly before this runs.
+        pattern = hook::pattern("A1 ? ? ? ? 83 F8 31 74 05 83 F8 3E 75 1A");
         pMenuTab = *pattern.get_first<int32_t*>(1);
 
         pattern = find_pattern("E8 ? ? ? ? 84 C0 75 44 38 05 ? ? ? ? 74 26", "E8 ? ? ? ? 84 C0 75 42 38 05");
         CCamera::isWidescreenBordersActive = (bool(*)())injector::GetBranchDestination(pattern.get_first(0)).get();
 
         pattern = hook::pattern("A3 ? ? ? ? 8B 44 24 ? A3 ? ? ? ? 8B 44 24 ? A3 ? ? ? ? A1");
-        if (!pattern.empty())
+        if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
         {
             CClock::ms_nGameClockHours = *pattern.get_first<uint8_t*>(1);
             CClock::ms_nGameClockMinutes = *pattern.get_first<uint8_t*>(10);
             CClock::ms_nGameClockSeconds = *pattern.get_first<uint16_t*>(19);
         }
-        else
+        else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
         {
             pattern = hook::pattern("A3 ? ? ? ? 8B 44 24 ? 89 0D ? ? ? ? 8B 0D");
             CClock::ms_nGameClockHours = *pattern.get_first<uint8_t*>(11);
@@ -3097,12 +3226,12 @@ public:
         GTAIV_ENCRYPTION_KEY = reinterpret_cast<uint8_t(*)[32]>(*pattern.get_first<void*>(1));
 
         pattern = hook::pattern("E8 ? ? ? ? 85 C0 74 29 6A 00");
-        if (!pattern.empty())
+        if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
         {
             CPlayer::getLocalPlayerPed = (uintptr_t(*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
             CPlayer::findPlayerCar = (uintptr_t(*)())injector::GetBranchDestination(pattern.get_first(11)).as_int();
         }
-        else
+        else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
         {
             pattern = hook::pattern("E8 ? ? ? ? 85 C0 74 2A 53 E8");
             CPlayer::getLocalPlayerPed = (uintptr_t(*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
@@ -3110,14 +3239,65 @@ public:
         }
 
         pattern = hook::pattern("E8 ? ? ? ? 8A 88 6E 28 00 00 32 88 6C 28 00 00 80 F9 7F");
-        if (!pattern.empty())
+        if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
             CPlayerPed::GetControlFromPlayer = reinterpret_cast<decltype(CPlayerPed::GetControlFromPlayer)>(
                 injector::GetBranchDestination(pattern.get_first(0)).as_int());
-        else
+        else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
         {
             pattern = hook::pattern("80 B9 18 02 00 00 00 75 0E 80 B9 19 02 00 00 00 74 05 E9 ? ? ? ? 33 C0 C3");
-            CPlayerPed::GetControlFromPlayer = (decltype(CPlayerPed::GetControlFromPlayer))pattern.get_first(0);
+            CPlayerPed::GetControlFromPlayer = reinterpret_cast<decltype(CPlayerPed::GetControlFromPlayer)>(pattern.get_first(0));
         }
+
+        pattern = find_pattern("55 8B EC 83 E4 F0 83 EC 48 56 57 E8 ? ? ? ? 84 C0 74 31 8B 7D 08 8B 75 0C", "55 8B EC 83 E4 F0 83 EC 34 53 56 57 E8 ? ? ? ? 84 C0 74 31");
+        CTaskSimpleNM::CanUseRagdoll = reinterpret_cast<decltype(CTaskSimpleNM::CanUseRagdoll)>(pattern.get_first(0));
+
+        pattern = hook::pattern("8B 0D ? ? ? ? E8 ? ? ? ? 85 C0 74 ? 6A 00 6A 00 68 10 27 00 00 68 E8 03 00 00 8B C8 E8 ? ? ? ? C2 04 00");
+        NaturalMotion::AllocateFromPoolInternal = reinterpret_cast<decltype(NaturalMotion::AllocateFromPoolInternal)>(
+            injector::GetBranchDestination(pattern.get_first(6)).as_int());
+
+        pattern = find_pattern("56 FF 74 24 0C 8B F1 FF 74 24 0C E8 ? ? ? ? FF 74 24 10 8D 4E 60 C7 06 ? ? ? ? 66 C7 46 40 00 00 E8 ? ? ? ? 8B 44 24 14 89 86 E0 00 00 00",
+            "8B 44 24 08 56 8B F1 8B 4C 24 08 50 51 8B CE E8 ? ? ? ? 8B 54 24 10 32 C0 52 8D 4E 60");
+        CTaskSimpleNMHighFall::Constructor = reinterpret_cast<decltype(CTaskSimpleNMHighFall::Constructor)>(pattern.get_first(0));
+
+        // CTaskSimpleNMHighFall::StartBehaviour
+        pattern = hook::pattern("81 EC C8 0C 00 00 A1 ? ? ? ? 33 C4 89 84 24 C4 0C 00 00 56 8B F1 57 8B 86 E0 00 00 00");
+        if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+        {
+            CTaskSimpleNMHighFall::ms_Parameters = *pattern.get_first<CTaskSimpleNMHighFall::Parameters*>(0x92);
+            ART::MessageParams::Constructor = reinterpret_cast<decltype(ART::MessageParams::Constructor)>(
+                injector::GetBranchDestination(pattern.get_first(0x61)).as_int());
+            ART::MessageParams::addBool = reinterpret_cast<decltype(ART::MessageParams::addBool)>(
+                injector::GetBranchDestination(pattern.get_first(0x72)).as_int());
+            ART::MessageParams::addFloat = reinterpret_cast<decltype(ART::MessageParams::addFloat)>(
+                injector::GetBranchDestination(pattern.get_first(0xAB)).as_int());
+            rage::fragInstNM::PostARTMessage = reinterpret_cast<decltype(rage::fragInstNM::PostARTMessage)>(
+                injector::GetBranchDestination(pattern.get_first(0x30F)).as_int());
+            ART::MessageParams::Destructor = reinterpret_cast<decltype(ART::MessageParams::Destructor)>(
+                injector::GetBranchDestination(pattern.get_first(0x318)).as_int());
+        }
+        else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
+        {
+            pattern = hook::pattern("8B 86 E0 00 00 00 8B 0D ? ? ? ? C1 E0 06 D9 80 ? ? ? ?");
+            CTaskSimpleNMHighFall::ms_Parameters = *pattern.get_first<CTaskSimpleNMHighFall::Parameters*>(17);
+            pattern = hook::pattern("56 68 C0 0C 00 00 8B F1 6A 00 56 C7 86 C0 0C 00 00 00 00 00 00");
+            ART::MessageParams::Constructor = reinterpret_cast<decltype(ART::MessageParams::Constructor)>(pattern.get_first(0));
+            pattern = hook::pattern("56 8B F1 8B 96 C0 0C 00 00 83 FA 30 7D 7A");
+            ART::MessageParams::addBool = reinterpret_cast<decltype(ART::MessageParams::addBool)>(pattern.get_first(0));
+            pattern = hook::pattern("56 8B F1 8B 96 C0 0C 00 00 83 FA 30 7D 7E");
+            ART::MessageParams::addFloat = reinterpret_cast<decltype(ART::MessageParams::addFloat)>(pattern.get_first(0));
+            pattern = hook::pattern("A1 ? ? ? ? 53 8B 5C 24 0C 55 8B 6C 24 0C 57 8B F9 8B 08 8B 41 0C");
+            rage::fragInstNM::PostARTMessage = reinterpret_cast<decltype(rage::fragInstNM::PostARTMessage)>(pattern.get_first(0));
+            pattern = hook::pattern("C7 81 C0 0C 00 00 00 00 00 00 C3");
+            ART::MessageParams::Destructor = reinterpret_cast<decltype(ART::MessageParams::Destructor)>(pattern.get_first(0));
+        }
+
+        pattern = find_pattern("81 EC E4 0C 00 00 A1 ? ? ? ? 33 C4 89 84 24 E0 0C 00 00 53 8B 9C 24 F0 0C 00 00 56 8B B4 24 F0 0C 00 00 32 C0 57 8B BC 24 00 0D 00 00",
+            "81 EC E0 0C 00 00 A1 ? ? ? ? 33 C4 89 84 24 DC 0C 00 00 53 56 8B B4 24 EC 0C 00 00");
+        NaturalMotion::PostNMTaskInternal = reinterpret_cast<decltype(NaturalMotion::PostNMTaskInternal)>(pattern.get_first(0));
+
+        pattern = find_pattern("57 8B F9 8B 87 B4 07 00 00 85 C0 74 ? 83 78 64 00 74 ? F3 0F 10 48 44", "56 8B F1 8B 86 C4 07 00 00 85 C0 74 ? 83 78 64 00");
+        NaturalMotion::GetRagdollComponentMatrixInternal = reinterpret_cast<decltype(NaturalMotion::GetRagdollComponentMatrixInternal)>(pattern.get_first(0));
+        NaturalMotion::FragInstNMOffset = *pattern.get_first<int32_t>(5);
 
         pattern = find_pattern("8B C1 56 8B 70 ? 85 F6", "8B 41 ? 85 C0 74 ? 8B 80 ? ? ? ? 85 C0 74 ? 8B 51");
         CWeaponData::getWeaponData = (decltype(CWeaponData::getWeaponData))pattern.get_first(0);
@@ -3198,11 +3378,11 @@ public:
         CCamera::isScreenFadedOut = (decltype(CCamera::isScreenFadedOut))injector::GetBranchDestination(pattern.get_first()).as_int();
 
         pattern = hook::pattern("C7 05 ? ? ? ? ? ? ? ? 0F 85 ? ? ? ? 6A ? 6A");
-        if (!pattern.empty())
+        if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
         {
             CTreeImposters::ms_windAng = *pattern.get_first<float*>(2);
         }
-        else
+        else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
         {
             pattern = hook::pattern("F3 0F 11 05 ? ? ? ? 0F 85");
             CTreeImposters::ms_windAng = *pattern.get_first<float*>(4);
@@ -3224,11 +3404,11 @@ public:
         CReplayMgr::dword_1037720 = *pattern.get_first<uint32_t*>(2);
 
         pattern = hook::pattern("A1 ? ? ? ? 66 0F 6E C0 F3 0F E6 C0 C1 E8 ? F2 0F 58 04 C5 ? ? ? ? 66 0F 5A C0 F3 0F 59 05 ? ? ? ? F3 0F 59 C1");
-        if (!pattern.empty())
+        if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
         {
             CReplayMgr::dword_11F704C = *pattern.get_first<uint32_t*>(1);
         }
-        else
+        else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
         {
             pattern = hook::pattern("8B 0D ? ? ? ? DB 05 ? ? ? ? 85 C9 7D ? D8 05 ? ? ? ? D8 0D");
             CReplayMgr::dword_11F704C = *pattern.get_first<uint32_t*>(2);

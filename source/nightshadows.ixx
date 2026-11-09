@@ -87,10 +87,10 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
-            CIniReader iniReader("");
+            SettingsReader reader;
 
             // [NIGHTSHADOWS]
-            bHighResolutionNightShadows = iniReader.ReadInteger("SHADOWS", "HighResolutionNightShadows", 0) != 0;
+            bHighResolutionNightShadows = reader.ReadInteger("SHADOWS", "HighResolutionNightShadows", 0) != 0;
 
             // Make the night shadow options adjust the night shadow resolution
             {
@@ -137,21 +137,15 @@ public:
             // Headlight shadows
             {
                 auto pattern = hook::pattern("68 04 05 00 00 6A 02 6A 00");
-                if (!pattern.count(2).empty())
-                {
-                    CShadows::hbStoreStaticShadow.fun = injector::MakeCALL(pattern.count(2).get(0).get<void*>(9), CShadows::StoreStaticShadowPlayerDriving).get();
-                    CShadows::hbStoreStaticShadow.fun = injector::MakeCALL(pattern.count(2).get(1).get<void*>(9), CShadows::StoreStaticShadowPlayerDriving).get();
-                }
+                CShadows::hbStoreStaticShadow.fun = injector::MakeCALL(pattern.count(2).get(0).get<void*>(9), CShadows::StoreStaticShadowPlayerDriving).get();
+                CShadows::hbStoreStaticShadow.fun = injector::MakeCALL(pattern.count(2).get(1).get<void*>(9), CShadows::StoreStaticShadowPlayerDriving).get();
 
                 pattern = hook::pattern("68 04 01 00 00 6A 02 6A 00");
-                if (!pattern.count(2).empty())
-                {
-                    CShadows::hbStoreStaticShadow.fun = injector::MakeCALL(pattern.count(2).get(0).get<void*>(9), CShadows::StoreStaticShadowNPC).get();
-                    CShadows::hbStoreStaticShadow.fun = injector::MakeCALL(pattern.count(2).get(1).get<void*>(9), CShadows::StoreStaticShadowNPC).get();
-                }
+                CShadows::hbStoreStaticShadow.fun = injector::MakeCALL(pattern.count(2).get(0).get<void*>(9), CShadows::StoreStaticShadowNPC).get();
+                CShadows::hbStoreStaticShadow.fun = injector::MakeCALL(pattern.count(2).get(1).get<void*>(9), CShadows::StoreStaticShadowNPC).get();
 
                 pattern = hook::pattern("83 F8 03 75 14 F6 86");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     static auto loc_AE3867 = resolve_next_displacement(pattern.get_first(14)).value();
                     static auto loc_AE374F = resolve_next_displacement(pattern.get_first(3)).value();
@@ -218,7 +212,7 @@ public:
                         }
                     }; injector::MakeInline<ShadowsHook>(pattern.get_first(0), pattern.get_first(25));
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("83 F8 03 75 17 F6 86");
                     static auto loc_AE3867 = resolve_next_displacement(pattern.get_first(14)).value();
@@ -305,7 +299,7 @@ public:
                 // Currently, this code's effects are overridden by a workaround for an ugly bug,
                 // which forces us to disable all exterior/outdoors night shadows. Because of that, this hook does not currently produce visible changes.
                 pattern = hook::pattern("8B 55 20 F6 C1 06");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     static auto FlagsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
@@ -320,7 +314,7 @@ public:
                         }
                     });
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("E8 ? ? ? ? 0F B6 46 ? F3 0F 10 44 24");
                     static auto FlagsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
@@ -340,7 +334,7 @@ public:
             // Multiply the car/bike bottom static shadow texture intensity while headlight shadows and vehicle night shadows are active (To compensate for the player's car lacking a shadow)
             {
                 auto pattern = hook::pattern("C7 44 24 ? ? ? ? ? F3 0F 11 14 24 50");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     static auto CarStaticShadowIntensityHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
@@ -350,7 +344,7 @@ public:
                         }
                     });
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("D9 1C 24 8D 4C 24 34 51 8B 4D 0C 52 51 50 6A 00 6A 03 6A 00 E8 ? ? ? ? 83 C4 40 8B E5 5D C3 CC");
                     static auto CarStaticShadowIntensityHook = safetyhook::create_mid(pattern.count(2).get(0).get<void*>(7), [](SafetyHookContext& regs)

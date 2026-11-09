@@ -1,0 +1,11 @@
+// ASI Settings (see external/FusionFixUtils/asi_settings): the description of Fusion Fix's settings and one translation per
+// BCP 47 language tag, read by menu hosts and editors
+SETTINGS ASISETTINGS "../../settings/GTAIV.EFLC.FusionFix.json"
+
+en ASISETTINGS_TEXT "../../settings/GTAIV.EFLC.FusionFix.en.json"
+fr ASISETTINGS_TEXT "../../settings/GTAIV.EFLC.FusionFix.fr.json"
+de ASISETTINGS_TEXT "../../settings/GTAIV.EFLC.FusionFix.de.json"
+it ASISETTINGS_TEXT "../../settings/GTAIV.EFLC.FusionFix.it.json"
+es ASISETTINGS_TEXT "../../settings/GTAIV.EFLC.FusionFix.es.json"
+ru ASISETTINGS_TEXT "../../settings/GTAIV.EFLC.FusionFix.ru.json"
+ja ASISETTINGS_TEXT "../../settings/GTAIV.EFLC.FusionFix.ja.json"

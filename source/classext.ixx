@@ -15,6 +15,7 @@ export class CPedIntelligenceExt
 {
 public:
     float m_fTimeStepAccumulator = 0.0f;
+    float m_fPinnedDownDecay = 0.0f; // the part of a point not taken off the pinned-down amount yet
 };
 
 export class CCamFollowVehicleExt
@@ -68,14 +69,14 @@ public:
             pedIntelligenceExtensions.reserve(256);
 
             auto pattern = hook::pattern("C7 03 ? ? ? ? E8 ? ? ? ? 8B 7C 24");
-            if (!pattern.empty())
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
             {
                 static auto CPedIntelligence__ctor_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                 {
                     pedIntelligenceExtensions[regs.ebx] = CPedIntelligenceExt{};
                 });
             }
-            else
+            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
             {
                 pattern = hook::pattern("C7 06 ? ? ? ? E8 ? ? ? ? 8B 7C 24");
                 static auto CPedIntelligence__ctor_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
@@ -85,14 +86,14 @@ public:
             }
 
             pattern = hook::pattern("C7 07 ? ? ? ? 85 C9 74 ? 8B 01");
-            if (!pattern.empty())
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
             {
                 static auto CPedIntelligence__dtor_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                 {
                     pedIntelligenceExtensions.erase(regs.edi);
                 });
             }
-            else
+            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
             {
                 pattern = hook::pattern("C7 06 ? ? ? ? 74 ? 8B 01 8B 10 6A ? FF D2 C7 86 ? ? ? ? ? ? ? ? 8D 8E");
                 static auto CPedIntelligence__dtor_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)

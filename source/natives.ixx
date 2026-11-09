@@ -96,7 +96,8 @@ public:
         return m_nArgCount;
     }
 
-    inline void CopyVectorResults()
+    template<typename T>
+    inline T GetResult(int idx)
     {
         while (m_nDataCount > 0)
         {
@@ -107,12 +108,6 @@ public:
             pVec3->fY = pVec4->fY;
             pVec3->fZ = pVec4->fZ;
         }
-    }
-
-    template<typename T>
-    inline T GetResult(int idx)
-    {
-        CopyVectorResults();
         auto returnValues = (intptr_t*)m_pReturn;
         return *reinterpret_cast<T*>(&returnValues[idx]);
     }
@@ -227,8 +222,6 @@ public:
             }
         }
 
-        // Native handlers defer vector output writes, including those of void natives.
-        cxt.CopyVectorResults();
         if constexpr (!std::is_void_v<R>)
         {
             return cxt.GetResult<R>();
@@ -6383,20 +6376,21 @@ public:
 export class NativeOverride
 {
 public:
-    static auto Register(auto hash, auto fn, std::string_view dest_pattern_str, size_t fn_size)
+    // The call or jump inside the native's handler, the first fn_size bytes
+    static auto FindCall(auto hash, std::string_view dest_pattern_str, size_t fn_size)
     {
         auto nativeHash = std::to_underlying(hash);
         auto pattern = hook::pattern(pattern_str(0x68, to_bytes(nativeHash))); // push 0x...
         auto addr = *pattern.get_first<uintptr_t>(-4);
-        auto range = hook::range_pattern(addr, addr + fn_size, dest_pattern_str);
-        if (!range.empty())
-        {
-            if (dest_pattern_str.starts_with("E8"))
-                return injector::MakeCALL(range.get_first(0), fn, true).get();
-            else if (dest_pattern_str.starts_with("E9"))
-                return injector::MakeJMP(range.get_first(0), fn, true).get();
-        }
-        return injector::auto_pointer(nullptr);
+        return hook::range_pattern(addr, addr + fn_size, dest_pattern_str);
+    }
+
+    static auto Register(auto hash, auto fn, std::string_view dest_pattern_str, size_t fn_size)
+    {
+        auto call = FindCall(hash, dest_pattern_str, fn_size).get_first(0);
+        if (dest_pattern_str.starts_with("E9"))
+            return injector::MakeJMP(call, fn, true).get();
+        return injector::MakeCALL(call, fn, true).get();
     }
 
     static inline std::unordered_map<std::string_view, std::pair<std::function<void()>, int>> customCheatHandlers;

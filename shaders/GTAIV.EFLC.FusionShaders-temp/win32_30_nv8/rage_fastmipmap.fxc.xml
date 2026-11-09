@@ -1,0 +1,573 @@
+<?xml version="1.0" encoding="UTF - 8"?>
+<Magic value="1635280754" />
+<Game>GTAIV</Game>
+<Platform>PC</Platform>
+<Effect>
+	<Shaders>
+		<VertexShaders value="2" >
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_fastmipmap\rage_fastmipmapVS0.asm</File>
+				<Variables />
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_fastmipmap\rage_fastmipmapVS1.asm</File>
+				<Variables />
+			</Item>
+		</VertexShaders>
+		<PixelShaders value="5" >
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_fastmipmap\rage_fastmipmapPS1.asm</File>
+				<Variables value="2" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>BaseSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="64" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_fastmipmap\rage_fastmipmapPS2.asm</File>
+				<Variables value="2" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>BaseSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="64" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_fastmipmap\rage_fastmipmapPS3.asm</File>
+				<Variables value="2" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>BaseSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="64" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_fastmipmap\rage_fastmipmapPS4.asm</File>
+				<Variables value="1" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>DepthTextureSampler0</Name>
+						<Index value="15" />
+					</Item>
+				</Variables>
+			</Item>
+			<Item>
+				<DataType>asm</DataType>
+				<File>rage_fastmipmap\rage_fastmipmapPS5.asm</File>
+				<Variables value="2" >
+					<Item>
+						<Type>sampler</Type>
+						<Name>BaseSampler</Name>
+						<Index value="0" />
+					</Item>
+					<Item>
+						<Type>float4</Type>
+						<Name>TexelSize</Name>
+						<Index value="64" />
+					</Item>
+				</Variables>
+			</Item>
+		</PixelShaders>
+	</Shaders>
+	<GlobalVariables value="19" >
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="64" />
+			<Name1>gAllGlobals</Name1>
+			<Name2>AllGlobals</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorld</Name1>
+			<Name2>World</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorldView</Name1>
+			<Name2>WorldView</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gWorldViewProj</Name1>
+			<Name2>WorldViewProjection</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gViewInverse</Name1>
+			<Name2>ViewInverse</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gInvColorExpBias</Name1>
+			<Name2>ColorExpBias</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gForcedColor</Name1>
+			<Name2>ForcedColor</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gAspectRatio</Name1>
+			<Name2>AspectRatio</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			1
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4x4</Type>
+			<ArrayCount value="0" />
+			<Name1>gCameraMatrix</Name1>
+			<Name2>CameraMatrix</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowmap_ShadowColor0</Name1>
+			<Name2>Shadowmap_ShadowColor0</Name2>
+			<Annotation />
+			<Values value="4" >
+			1
+			1
+			1
+			0.723
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowmap_PixelSize0</Name1>
+			<Name2>Shadowmap_PixelSize0</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gGeometryScale</Name1>
+			<Name2>GeometryScale</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float2</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowCollectorTexelSize</Name1>
+			<Name2>ShadowCollectorTexelSize</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float3</Type>
+			<ArrayCount value="0" />
+			<Name1>gPointLightPosition</Name1>
+			<Name2>PointLightPosition</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gPointLightAttenuation</Name1>
+			<Name2>PointLightAttenuation</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>gLightAttenuationEnd</Name1>
+			<Name2>LightAttenuationEnd</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>DepthTextureSampler0</Name1>
+			<Name2>DepthTexture0</Name2>
+			<Annotation />
+			<Values value="14" >
+			AddressU Clamp
+			AddressV Clamp
+			AddressW Clamp
+			MipFilter None
+			MinFilter Anisotropic
+			MagFilter Anisotropic
+			MipMapLodBias 16
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>CubeShadowMapSampler</Name1>
+			<Name2>CubeShadowMap</Name2>
+			<Annotation />
+			<Values value="12" >
+			AddressU Clamp
+			AddressV Clamp
+			AddressW Clamp
+			MipFilter None
+			MinFilter Point
+			MagFilter Point
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>ShadowCollectorSampler</Name1>
+			<Name2>ShadowCollectorTex</Name2>
+			<Annotation />
+			<Values value="12" >
+			AddressU Wrap
+			AddressV Wrap
+			AddressW Wrap
+			MipFilter None
+			MinFilter Linear
+			MagFilter Linear
+		</Values>
+		</Item>
+	</GlobalVariables>
+	<LocalVariables value="7" >
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>AmbientOccSampler</Name1>
+			<Name2>AmbientOccTex</Name2>
+			<Annotation />
+			<Values value="14" >
+			AddressU Wrap
+			AddressV Wrap
+			AddressW Wrap
+			MipFilter Linear
+			MinFilter Linear
+			MagFilter Linear
+			MipMapLodBias 0
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>LightOcclusionSampler</Name1>
+			<Name2>LightOcclusionTex</Name2>
+			<Annotation />
+			<Values value="14" >
+			AddressU Wrap
+			AddressV Wrap
+			AddressW Wrap
+			MipFilter Linear
+			MinFilter Linear
+			MagFilter Linear
+			MipMapLodBias 0
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>PRTOccSampler</Name1>
+			<Name2>PRTOccTex</Name2>
+			<Annotation />
+			<Values value="14" >
+			AddressU Wrap
+			AddressV Wrap
+			AddressW Wrap
+			MipFilter Linear
+			MinFilter Linear
+			MagFilter Linear
+			MipMapLodBias 0
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>BaseSampler</Name1>
+			<Name2>BaseTex</Name2>
+			<Annotation value="1" >
+				<Item>
+					<Name>UIName</Name>
+					<Type>String</Type>
+					<Value>Base Texture</Value>
+				</Item>
+			</Annotation>
+			<Values value="12" >
+			AddressU Clamp
+			AddressV Clamp
+			AddressW Clamp
+			MipFilter Linear
+			MinFilter Linear
+			MagFilter Linear
+		</Values>
+		</Item>
+		<Item>
+			<Type>float4</Type>
+			<ArrayCount value="0" />
+			<Name1>TexelSize</Name1>
+			<Name2>TexelSize</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>AlphaRange</Name1>
+			<Name2>AlphaRange</Name2>
+			<Annotation />
+			<Values value="1" >
+			3.03571
+		</Values>
+		</Item>
+		<Item>
+			<Type>float</Type>
+			<ArrayCount value="0" />
+			<Name1>MipMapLod</Name1>
+			<Name2>MipMapLod</Name2>
+			<Annotation />
+			<Values />
+		</Item>
+	</LocalVariables>
+	<Techniques value="6" >
+		<Item>
+			<Name>draw</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>1</PixelShader>
+					<Params value="5" >
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>drawBlit</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>1</PixelShader>
+					<Params value="5" >
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>drawBlur</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>1</VertexShader>
+					<PixelShader>2</PixelShader>
+					<Params value="5" >
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>drawBlitX2</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>1</VertexShader>
+					<PixelShader>3</PixelShader>
+					<Params value="5" >
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>drawDepth</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>1</VertexShader>
+					<PixelShader>4</PixelShader>
+					<Params value="5" >
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+		<Item>
+			<Name>drawCutOut</Name>
+			<Passes value="1" >
+				<Item>
+					<VertexShader>0</VertexShader>
+					<PixelShader>5</PixelShader>
+					<Params value="5" >
+						<Item>
+							<Type value="6" />
+							<Value value="1" />
+						</Item>
+						<Item>
+							<Type value="0" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="2" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="10" />
+							<Value value="0" />
+						</Item>
+						<Item>
+							<Type value="3" />
+							<Value value="0" />
+						</Item>
+					</Params>
+				</Item>
+			</Passes>
+		</Item>
+	</Techniques>
+</Effect>

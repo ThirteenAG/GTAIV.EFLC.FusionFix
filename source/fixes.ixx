@@ -1,7 +1,6 @@
 module;
 
 #include <common.hxx>
-#include <utility>
 
 export module fixes;
 
@@ -166,6 +165,27 @@ namespace CHeli
     }
 }
 
+namespace CStoredCar
+{
+    void** ms_modelInfoPtrs = nullptr;
+    uint32_t nModelInfoCount = 0;
+    bool(__fastcall* IsOccupied)(uint8_t* car, void* edx) = nullptr;
+
+    // A garage keeps its cars' raw model index. A save made with other mods can hold an index that isn't
+    // a vehicle in this session (a ped, for example), and restoring that car crashes: drop it instead.
+    bool __fastcall IsOccupiedByVehicle(uint8_t* car, void* edx)
+    {
+        auto model = *reinterpret_cast<uint16_t*>(car + 0x10);
+        auto modelInfo = model < nModelInfoCount ? ms_modelInfoPtrs[model] : nullptr;
+        if (!modelInfo || (*reinterpret_cast<uint8_t(__thiscall***)(void*)>(modelInfo))[3](modelInfo) != 5) // GetModelType: vehicle
+        {
+            car[0x30] &= ~1;
+            return false;
+        }
+        return IsOccupied(car, edx);
+    }
+}
+
 injector::hook_back<decltype(&Natives::CompareString)> hbCOMPARE_STRING;
 bool __cdecl NATIVE_COMPARE_STRING_1(const char* a1, const char* a2)
 {
@@ -178,175 +198,346 @@ bool __cdecl NATIVE_COMPARE_STRING_2(const char* a1, const char* a2)
     return a1 && a2 && IsBadReadPtr(a1, 1) == 0 && IsBadReadPtr(a2, 1) == 0 && strcmp(a1, a2) == 0;
 }
 
-// Top-mount visibility repair
-namespace LadderVisibilityRepair
+namespace CWater
 {
-    static uintptr_t (__thiscall* FindActiveTaskByType)(uintptr_t, int);
-    static ptrdiff_t instanceOffset = 0x7B4;
+    static uint32_t* pBufferIndex = nullptr;
+    static uint32_t* pSharedBufferIndex = nullptr;
+    static uint32_t RenderBufferIndex = 0;
+    static uint8_t* pSyncMode = nullptr;
+    static uintptr_t FlipResume = 0;
+    static uintptr_t SafetyHookContext::*pFlipRegister = nullptr;
+    // Both callbacks access this state on the producer thread.
+    static uint32_t PendingBufferIndex = 0;
+    static bool bFlipPending = false;
 
-    namespace TopMountBounds
+    void DeferBufferFlip(SafetyHookContext& regs)
     {
-        static void (__thiscall* SetInstanceMatrix)(uintptr_t, const void*);
-        static void (__thiscall* UpdateSkeleton)(uintptr_t);
-        static void (__thiscall* CalculateCompositeExtents)(uintptr_t, bool);
-        static void (__thiscall* UpdateObjectLocation)(uintptr_t, int, const void*);
-        static void (__thiscall* UpdateObjectLocationAndRadius)(uintptr_t, int, float, const void*);
-        static uintptr_t* physicsLevel = nullptr;
-        static bool ready = false;
+        // Mode 1 already waits at the end of the previous Synchronise.
+        if (*pSyncMode != 0)
+            return;
 
-        static void Refresh(uintptr_t ped, uintptr_t instanceBefore, uintptr_t root, bool rebased)
+        if (!bFlipPending)
         {
-            if (!ready)
-                return;
-            if (!rebased || !root)
-                return;
-            const auto instance = *reinterpret_cast<const uintptr_t*>(ped + instanceOffset);
-            if (!instance || instance != instanceBefore)
-                return;
-            if (*reinterpret_cast<const int*>(ped + instanceOffset + 4) != 2 || !(*reinterpret_cast<const uint8_t*>(ped + 244) & 2))
-                return;
-            const auto* pedVtable = *reinterpret_cast<const uintptr_t**>(ped);
-            const auto getInstance = reinterpret_cast<uintptr_t(__thiscall*)(uintptr_t)>(pedVtable[0xA0 / 4]);
-            if (getInstance(ped) != instance)
-                return;
-            const auto* instanceVtable = *reinterpret_cast<const uintptr_t**>(instance);
-            const auto getSkeleton = reinterpret_cast<uintptr_t(__thiscall*)(uintptr_t)>(instanceVtable[0xE0 / 4]);
-            const auto matrix = *reinterpret_cast<const uintptr_t*>(ped + 32);
-            const auto archetype = *reinterpret_cast<const uintptr_t*>(instance + 4);
-            const auto bound = archetype ? *reinterpret_cast<const uintptr_t*>(archetype + 12) : 0;
-            if (!matrix || !bound || !getSkeleton(instance)
-                || !*reinterpret_cast<const uintptr_t*>(bound + 132) || !*reinterpret_cast<const uintptr_t*>(bound + 136)
-                || !*reinterpret_cast<const uint16_t*>(bound + 146))
-                return;
-            const auto level = *physicsLevel;
-            const auto index = *reinterpret_cast<const uint16_t*>(instance + 8);
-            if (!level || index == 0xFFFF || index >= *reinterpret_cast<const uint16_t*>(level + 38))
-                return;
-            const auto entries = *reinterpret_cast<const uintptr_t*>(level + 112);
-            if (!entries || (*reinterpret_cast<const uintptr_t*>(entries + index * 8 + 4) & ~uintptr_t{ 0xF }) != instance)
-                return;
-
-            const auto copyMatrixHistory = reinterpret_cast<void(__thiscall*)(uintptr_t, const void*)>(instanceVtable[0x10 / 4]);
-            copyMatrixHistory(instance, reinterpret_cast<const void*>(instance + 16));
-            SetInstanceMatrix(instance, reinterpret_cast<const void*>(matrix));
-            copyMatrixHistory(instance, reinterpret_cast<const void*>(instance + 16));
-            UpdateSkeleton(ped);
-            const auto poseBounds = reinterpret_cast<void(__thiscall*)(uintptr_t)>(instanceVtable[0xBC / 4]);
-            poseBounds(instance);
-            poseBounds(instance);
-            const float oldRadius = *reinterpret_cast<const float*>(bound + 8);
-            CalculateCompositeExtents(bound, true);
-            if (oldRadius == *reinterpret_cast<const float*>(bound + 8))
-                UpdateObjectLocation(level, index, nullptr);
-            else
-                UpdateObjectLocationAndRadius(level, index, oldRadius, nullptr);
+            PendingBufferIndex = regs.*pFlipRegister;
+            bFlipPending = true;
         }
+        regs.eip = FlipResume;
+    }
 
-        static void Resolve()
+    void CommitBufferFlip(SafetyHookContext&)
+    {
+        if (pSharedBufferIndex)
+            RenderBufferIndex = *pSharedBufferIndex;
+        else if (bFlipPending)
         {
-            auto matrix = hook::pattern("FF 52 10 FF 77 20 8B 8F B4 07 00 00 E8 ? ? ? ?");
-            if (!matrix.empty())
-            {
-                auto skeleton = hook::pattern("FF 50 04 8B CE E8 ? ? ? ? 81 8E 9C 02 00 00");
-                auto extents = hook::pattern("55 8B EC 83 E4 F8 83 EC 08 80 7D 08 00 56 8B D1");
-                auto radius = hook::pattern("55 8B EC 83 E4 F8 83 EC 18 83 3D ? ? ? ? 00 56 8B D1");
-                auto location = hook::pattern("8B 0D ? ? ? ? 50 E8 ? ? ? ? 81 A7 18 01 00 00");
-                SetInstanceMatrix = (decltype(SetInstanceMatrix))injector::GetBranchDestination(matrix.get_first(12)).as_int();
-                UpdateSkeleton = (decltype(UpdateSkeleton))injector::GetBranchDestination(skeleton.get_first(5)).as_int();
-                CalculateCompositeExtents = (decltype(CalculateCompositeExtents))extents.get_first(0);
-                UpdateObjectLocationAndRadius = (decltype(UpdateObjectLocationAndRadius))radius.get_first(0);
-                UpdateObjectLocation = (decltype(UpdateObjectLocation))injector::GetBranchDestination(location.get_first(7)).as_int();
-                physicsLevel = *location.get_first<uintptr_t*>(2);
-            }
-            else
-            {
-                instanceOffset = 0x7C4;
-                matrix = hook::pattern("8B 44 24 04 D9 00 D9 59 10 D9 40 04 D9 59 14 D9 40 08 D9 59 18 D9 40 10 D9 59 20");
-                auto skeleton = hook::pattern("E8 ? ? ? ? 8B 8E C4 07 00 00 8B 51 04 8B 42 0C F3 0F 10 40 08 8B 11 8B 82 BC 00 00 00 F3 0F 11 44 24 08 FF D0");
-                auto extents = hook::pattern("55 8B EC 83 E4 F0 83 EC 08 80 7D 08 00 56 57 8B F1 0F 85");
-                auto radius = hook::pattern("55 8B EC 83 E4 F0 83 EC 14 83 3D ? ? ? ? 00 53 56 8B F1 57 89 74 24 10");
-                auto location = hook::pattern("55 8B EC 83 E4 F0 81 EC 24 01 00 00 83 3D ? ? ? ? 00 53 56 57 8B F9");
-                auto probe = hook::pattern("6A 07 6A FF 53 50 52 8D 44 24 2C 50 E8");
-                SetInstanceMatrix = (decltype(SetInstanceMatrix))matrix.get_first(0);
-                UpdateSkeleton = (decltype(UpdateSkeleton))injector::GetBranchDestination(skeleton.get_first(0)).as_int();
-                CalculateCompositeExtents = (decltype(CalculateCompositeExtents))extents.get_first(0);
-                UpdateObjectLocationAndRadius = (decltype(UpdateObjectLocationAndRadius))radius.get_first(0);
-                UpdateObjectLocation = (decltype(UpdateObjectLocation))location.get_first(0);
-                physicsLevel = *probe.get_first<uintptr_t*>(-4);
-            }
-            ready = true;
+            *pBufferIndex = PendingBufferIndex;
+            bFlipPending = false;
         }
     }
 
-    namespace TopMountHandoff
+    void FixBufferFlip()
     {
-        static SafetyHookInline shOffsetPedPosition;
-        static SafetyHookMid shLocalRoot;
-        static uintptr_t preRenderAddress = 0;
-        struct OffsetContext
-        {
-            uintptr_t ped = 0, root = 0;
-        };
-        static thread_local OffsetContext offsetContext;
+        auto pattern = find_pattern(
+            "2B 0D ? ? ? ? FF 05 ? ? ? ? 89 0D ? ? ? ? 5E C3",                    // 1.2.0.32, 1.2.0.43, 1.2.0.59
+            "BA 01 00 00 00 2B 15 ? ? ? ? 89 15 ? ? ? ? 83 05 ? ? ? ? 01 C3",     // 1.0.7.0, 1.1.2.0
+            "B8 01 00 00 00 2B 05 ? ? ? ? 83 05 ? ? ? ? 01 A3 ? ? ? ? C3");       // 1.0.8.0, 1.1.3.0
 
-        static void __fastcall OffsetPedPosition(uintptr_t task, void* edx, uintptr_t ped)
+        auto pFlip = pattern.get_first<uint8_t>();
+        uint8_t* pStore = nullptr;
+        if (*pFlip == 0x2B) // 1.2.0.32, 1.2.0.43, 1.2.0.59
         {
-            bool topMount = false;
-            if (FindActiveTaskByType
-                && CPlayer::getLocalPlayerPed && ped && ped == CPlayer::getLocalPlayerPed())
+            pStore = pFlip + 12;
+            pFlipRegister = &SafetyHookContext::ecx;
+        }
+        else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
+        {
+            pStore = pFlip + (*pFlip == 0xBA ? 11 : 18);
+            pFlipRegister = *pFlip == 0xBA ? &SafetyHookContext::edx : &SafetyHookContext::eax;
+        }
+        pBufferIndex = *(uint32_t**)(pStore + (*pStore == 0xA3 ? 1 : 2));
+        FlipResume = (uintptr_t)pStore + (*pStore == 0xA3 ? 5 : 6);
+
+        pattern = find_pattern(
+            "51 56 8B F1 80 BE C8 0F 00 00 00 75 0B 8D 8E AC 0F 00 00 E8 ? ? ? ? ? ? ? ? ? ? ? 57 BF 01 00 00 00",
+            "51 56 8B F1 80 BE C8 0F 00 00 00 75 0F 8B 86 B8 0F 00 00 50 E8 ? ? ? ? 83 C4 04 ? ? ? ? ? ? ? 57 BF 01 00 00 00");
+
+        auto pSynchronise = pattern.get_first<uint8_t>();
+        // The mode check branches to the first instruction after the wait.
+        auto pAfterWait = pSynchronise + 13 + pSynchronise[12];
+        pattern = hook::pattern("B9 ? ? ? ? E8 ? ? ? ? 83 3F 00 76 ? FF");
+        pSyncMode = *pattern.get_first<uint8_t*>(1) + 0xFC8;
+
+        std::vector<uint32_t**> RenderBufferReads;
+        if (*pFlip == 0xBA) // 1.0.7.0, 1.1.2.0
+        {
+            // Patch 7 shares its selector with surface textures; redirect only geometry reads.
+            for (auto signature : {
+                "A1 ? ? ? ? 69 C0 C4 10 00 00 89 0D ? ? ? ? 89 15",
+                "8B 0D ? ? ? ? 8B 7D 08 8B D1 69 D2 31 04 00 00 8B C7 2B C2 03 C0 8B B4",
+                "8B 0D ? ? ? ? 8B D1 69 D2 31 04 00 00 8B C7 2B C2 03 C0 8B 94",
+                "8B 0D ? ? ? ? 8B 7D 08 8B D1 69 D2 31 04 00 00 8B C7 2B C2 03 C0 8B 94",
+                "8B 0D ? ? ? ? F3 0F 10 0D ? ? ? ? 83 C4 20 8B D1 69 D2 31 04 00 00" })
             {
-                const auto intelligence = *reinterpret_cast<const uintptr_t*>(ped + 548);
-                const auto complex = intelligence ? FindActiveTaskByType(intelligence + 68, std::to_underlying(TaskID::TaskComplexClimbLadder)) : 0;
-                const auto* vtable = *reinterpret_cast<const uintptr_t**>(ped);
-                if (complex && *reinterpret_cast<const int*>(complex + 20) == 4 && vtable[0xCC / 4] == preRenderAddress)
-                    topMount = true;
+                auto pRead = hook::pattern(signature).get_first<uint8_t>();
+                auto pOperand = (uint32_t**)(pRead + (*pRead == 0xA1 ? 1 : 2));
+                RenderBufferReads.push_back(pOperand);
             }
-            const auto previous = offsetContext;
-            offsetContext = topMount ? OffsetContext{ ped, 0 } : OffsetContext{};
-            const auto instanceBefore = topMount ? *reinterpret_cast<const uintptr_t*>(ped + instanceOffset) : 0;
-            const bool pendingRebase = topMount && (*reinterpret_cast<const uint8_t*>(task + 25) & 1);
-            shOffsetPedPosition.unsafe_fastcall<void>(task, edx, ped);
-            if (topMount)
-            {
-                const bool rebased = pendingRebase && !(*reinterpret_cast<const uint8_t*>(task + 25) & 1);
-                TopMountBounds::Refresh(ped, instanceBefore, offsetContext.root, rebased);
-            }
-            offsetContext = previous;
+            pSharedBufferIndex = pBufferIndex;
+            RenderBufferIndex = *pSharedBufferIndex;
         }
 
-        static void LocalRoot(SafetyHookContext& regs)
+        // Skip the seven-byte device-mode comparison used by HDR's frame-start hook.
+        // Install the commit hook before changing any selector access.
+        static auto CommitBufferFlipHook = safetyhook::create_mid(pAfterWait + 7, CommitBufferFlip);
+        if (!CommitBufferFlipHook)
+            return;
+
+        if (pSharedBufferIndex)
         {
-            if (offsetContext.ped && offsetContext.ped == regs.edi)
-                offsetContext.root = regs.eax;
+            for (auto pOperand : RenderBufferReads)
+                injector::WriteMemory(pOperand, &RenderBufferIndex, true);
+            return;
         }
 
-        static void Install()
+        static auto DeferBufferFlipHook = safetyhook::create_mid(pStore, DeferBufferFlip);
+        if (!DeferBufferFlipHook)
+            (void)CommitBufferFlipHook.disable();
+    }
+}
+
+namespace CTaskManager
+{
+    uintptr_t (__thiscall* FindActiveTaskByType)(uintptr_t taskManager, int type);
+
+    void Init()
+    {
+        auto pattern = hook::pattern("68 19 04 00 00 83 C1 44 E8 ? ? ? ? 80");
+        if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+            FindActiveTaskByType = (decltype(FindActiveTaskByType))injector::GetBranchDestination(pattern.get_first(8)).as_int();
+        else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
         {
-            auto activeTask = hook::pattern("68 19 04 00 00 83 C1 44 E8 ? ? ? ? 80");
-            if (!activeTask.empty())
-                FindActiveTaskByType = (decltype(FindActiveTaskByType))injector::GetBranchDestination(activeTask.get_first(8)).as_int();
-            else
-            {
-                activeTask = hook::pattern("55 56 57 33 FF 8B E9 33 C0 8D A4 24 00 00 00 00 39 7C 85 00");
-                FindActiveTaskByType = (decltype(FindActiveTaskByType))activeTask.get_first(0);
-            }
-            auto offset = hook::pattern("55 8B EC 83 E4 F0 81 EC 78 01 00 00 56 57 8B F1");
-            auto render = find_pattern("55 8B EC 83 E4 F0 81 EC E4 00 00 00 53 56 57 8B F9 E8 ? ? ? ? 80 3D",
-                "55 8B EC 83 E4 F0 81 EC D8 00 00 00 56 57 8B F1 E8 ? ? ? ? 80 3D");
-            auto root = find_pattern("8B F0 8B 44 24 3C F6 40 19 02 0F 84",
-                "F6 43 19 02 8B F0 0F 84");
-            preRenderAddress = reinterpret_cast<uintptr_t>(render.get_first(0));
-            TopMountBounds::Resolve();
-            shLocalRoot = safetyhook::create_mid(root.get_first(0), LocalRoot);
-            if (!offset.empty())
-                shOffsetPedPosition = safetyhook::create_inline(offset.get_first(0), OffsetPedPosition);
-            else
-            {
-                offset = hook::pattern("F6 46 19 01 74 ? 57 8B CE E8");
-                shOffsetPedPosition = safetyhook::create_inline(
-                    injector::GetBranchDestination(offset.get_first(9)).as_int(), OffsetPedPosition);
-            }
+            pattern = hook::pattern("55 56 57 33 FF 8B E9 33 C0 8D A4 24 00 00 00 00 39 7C 85 00");
+            FindActiveTaskByType = (decltype(FindActiveTaskByType))pattern.get_first(0);
         }
+    }
+}
+
+// Mounting a ladder from the top moves the player with the animation's mover. The physics instance and its bounds
+// stay at the old place until the next physics update, and the player isn't drawn for a moment: update them right away.
+namespace LadderTopMount
+{
+    ptrdiff_t nPedFragInst = 0;
+    void (__thiscall* SetInstanceMatrix)(uintptr_t instance, const void* matrix);
+    void (__thiscall* UpdateSkeleton)(uintptr_t ped);
+    void (__thiscall* CalculateCompositeExtents)(uintptr_t bound, bool onlyAdjustForInternalMotion);
+    void (__thiscall* UpdateObjectLocation)(uintptr_t level, int index, const void* lastMatrix);
+    void (__thiscall* UpdateObjectLocationAndRadius)(uintptr_t level, int index, float oldRadius, const void* lastMatrix);
+    uintptr_t* pPhysicsLevel = nullptr;
+
+    template <typename R, typename... Args>
+    R CallVirtual(uintptr_t object, ptrdiff_t offset, Args... args)
+    {
+        return reinterpret_cast<R(__thiscall*)(uintptr_t, Args...)>((*reinterpret_cast<uintptr_t**>(object))[offset / 4])(object, args...);
+    }
+
+    void UpdatePhysicsInstance(uintptr_t ped, uintptr_t instance)
+    {
+        // An animated (not ragdoll) instance in the physics level
+        if (*reinterpret_cast<const int*>(ped + nPedFragInst + 4) != 2 || !(*reinterpret_cast<const uint8_t*>(ped + 0xF4) & 2)
+            || CallVirtual<uintptr_t>(ped, 0xA0) != instance || !CallVirtual<uintptr_t>(instance, 0xE0))
+            return;
+        const auto matrix = *reinterpret_cast<const uintptr_t*>(ped + 0x20);
+        const auto archetype = *reinterpret_cast<const uintptr_t*>(instance + 4);
+        const auto bound = archetype ? *reinterpret_cast<const uintptr_t*>(archetype + 12) : 0;
+        const auto level = *pPhysicsLevel;
+        const auto index = *reinterpret_cast<const uint16_t*>(instance + 8);
+        if (!matrix || !bound || !level || index == 0xFFFF)
+            return;
+
+        // The previous matrix too, so no motion is seen
+        CallVirtual<void>(instance, 0x10, reinterpret_cast<const void*>(instance + 16));
+        SetInstanceMatrix(instance, reinterpret_cast<const void*>(matrix));
+        CallVirtual<void>(instance, 0x10, reinterpret_cast<const void*>(instance + 16));
+        UpdateSkeleton(ped);
+        // PoseBoundsFromSkeleton
+        CallVirtual<void>(instance, 0xBC);
+        CallVirtual<void>(instance, 0xBC);
+        const float oldRadius = *reinterpret_cast<const float*>(bound + 8);
+        CalculateCompositeExtents(bound, true);
+        if (oldRadius == *reinterpret_cast<const float*>(bound + 8))
+            UpdateObjectLocation(level, index, nullptr);
+        else
+            UpdateObjectLocationAndRadius(level, index, oldRadius, nullptr);
+    }
+
+    SafetyHookInline shOffsetPedPosition;
+    void __fastcall OffsetPedPosition(uintptr_t task, void* edx, uintptr_t ped)
+    {
+        bool topMount = false;
+        if (ped && ped == CPlayer::getLocalPlayerPed())
+        {
+            const auto intelligence = *reinterpret_cast<const uintptr_t*>(ped + 0x224);
+            const auto climbLadder = intelligence ? CTaskManager::FindActiveTaskByType(intelligence + 0x44, std::to_underlying(TaskID::TaskComplexClimbLadder)) : 0;
+            // CTaskComplexClimbLadder entry mode: from the top
+            topMount = climbLadder && *reinterpret_cast<const int*>(climbLadder + 20) == 4;
+        }
+        // The mover offset waiting to be applied
+        const bool pending = topMount && (*reinterpret_cast<const uint8_t*>(task + 25) & 1);
+        const auto instance = topMount ? *reinterpret_cast<const uintptr_t*>(ped + nPedFragInst) : 0;
+        shOffsetPedPosition.unsafe_fastcall(task, edx, ped);
+        if (pending && instance && !(*reinterpret_cast<const uint8_t*>(task + 25) & 1) && instance == *reinterpret_cast<const uintptr_t*>(ped + nPedFragInst))
+            UpdatePhysicsInstance(ped, instance);
+    }
+
+    void Init()
+    {
+        auto pattern = hook::pattern("FF 52 10 FF 77 20 8B 8F B4 07 00 00 E8 ? ? ? ?");
+        if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+        {
+            nPedFragInst = *pattern.get_first<int32_t>(8);
+            SetInstanceMatrix = (decltype(SetInstanceMatrix))injector::GetBranchDestination(pattern.get_first(12)).as_int();
+            pattern = hook::pattern("FF 50 04 8B CE E8 ? ? ? ? 81 8E 9C 02 00 00");
+            UpdateSkeleton = (decltype(UpdateSkeleton))injector::GetBranchDestination(pattern.get_first(5)).as_int();
+            pattern = hook::pattern("55 8B EC 83 E4 F8 83 EC 08 80 7D 08 00 56 8B D1");
+            CalculateCompositeExtents = (decltype(CalculateCompositeExtents))pattern.get_first(0);
+            pattern = hook::pattern("55 8B EC 83 E4 F8 83 EC 18 83 3D ? ? ? ? 00 56 8B D1");
+            UpdateObjectLocationAndRadius = (decltype(UpdateObjectLocationAndRadius))pattern.get_first(0);
+            pattern = hook::pattern("8B 0D ? ? ? ? 50 E8 ? ? ? ? 81 A7 18 01 00 00");
+            UpdateObjectLocation = (decltype(UpdateObjectLocation))injector::GetBranchDestination(pattern.get_first(7)).as_int();
+            pPhysicsLevel = *pattern.get_first<uintptr_t*>(2);
+        }
+        else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
+        {
+            pattern = hook::pattern("E8 ? ? ? ? 8B 8E C4 07 00 00 8B 51 04 8B 42 0C F3 0F 10 40 08 8B 11 8B 82 BC 00 00 00 F3 0F 11 44 24 08 FF D0");
+            nPedFragInst = *pattern.get_first<int32_t>(7);
+            UpdateSkeleton = (decltype(UpdateSkeleton))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+            pattern = hook::pattern("8B 44 24 04 D9 00 D9 59 10 D9 40 04 D9 59 14 D9 40 08 D9 59 18 D9 40 10 D9 59 20");
+            SetInstanceMatrix = (decltype(SetInstanceMatrix))pattern.get_first(0);
+            pattern = hook::pattern("55 8B EC 83 E4 F0 83 EC 08 80 7D 08 00 56 57 8B F1 0F 85");
+            CalculateCompositeExtents = (decltype(CalculateCompositeExtents))pattern.get_first(0);
+            pattern = hook::pattern("55 8B EC 83 E4 F0 83 EC 14 83 3D ? ? ? ? 00 53 56 8B F1 57 89 74 24 10");
+            UpdateObjectLocationAndRadius = (decltype(UpdateObjectLocationAndRadius))pattern.get_first(0);
+            pattern = hook::pattern("55 8B EC 83 E4 F0 81 EC 24 01 00 00 83 3D ? ? ? ? 00 53 56 57 8B F9");
+            UpdateObjectLocation = (decltype(UpdateObjectLocation))pattern.get_first(0);
+            pattern = hook::pattern("6A 07 6A FF 53 50 52 8D 44 24 2C 50 E8");
+            pPhysicsLevel = *pattern.get_first<uintptr_t*>(-4);
+        }
+
+        pattern = hook::pattern("F6 46 19 01 74 ? 57 8B CE E8");
+        shOffsetPedPosition = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first(9)).as_int(), OffsetPedPosition);
+    }
+}
+
+// Automatic Camera Centering off: with a pad, the camera doesn't level itself on foot (it still turns behind the
+// player) and doesn't center at all in vehicles
+namespace CameraAutoCenter
+{
+    uintptr_t (__thiscall* GetSimplestActiveMovementTask)(uintptr_t taskManager);
+    ptrdiff_t nPedIntelligence = 0;
+    ptrdiff_t nTaskManager = 0;
+    ptrdiff_t nPedVehicle = 0;
+    // The stack frame of 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0 in the camera hooks
+    bool legacyFrame = false;
+
+    // The player's task manager while this applies, else 0
+    uintptr_t GetPlayerTaskManager()
+    {
+        static auto AutoCenterCamera = FusionFixSettings.GetRef("PREF_AUTOCENTERCAMERA");
+        if (AutoCenterCamera->get() || !Natives::IsUsingController())
+            return 0;
+        const auto ped = CPlayer::getLocalPlayerPed();
+        if (!ped || !Natives::IsPlayerControlOn(Natives::GetPlayerId()) || Natives::IsHintRunning())
+            return 0;
+        const auto intelligence = *reinterpret_cast<const uintptr_t*>(ped + nPedIntelligence);
+        return intelligence ? intelligence + nTaskManager : 0;
+    }
+
+    bool HasTask(uintptr_t manager, TaskID type)
+    {
+        return CTaskManager::FindActiveTaskByType(manager, std::to_underlying(type)) != 0;
+    }
+
+    int GetTaskType(uintptr_t task)
+    {
+        return reinterpret_cast<int (__thiscall*)(uintptr_t)>((*reinterpret_cast<uintptr_t**>(task))[3])(task);
+    }
+
+    // The gameplay camera follows, not a script camera
+    bool IsGameplayFollow(uintptr_t camera)
+    {
+        const auto parent = *reinterpret_cast<const uintptr_t*>(camera + 0x118);
+        if (!parent || *reinterpret_cast<const uint32_t*>(camera + 0x130) == 0)
+            return false;
+        // CCam::GetType of CCamGame
+        return reinterpret_cast<int (__thiscall*)(uintptr_t)>((*reinterpret_cast<uintptr_t**>(parent))[10])(parent) == 7;
+    }
+
+    bool HoldPedPitch(uintptr_t camera, uintptr_t ped, uintptr_t control)
+    {
+        const auto manager = GetPlayerTaskManager();
+        // Not while the camera is reset or forced
+        if (!manager || !control || ped != CPlayer::getLocalPlayerPed() || !IsGameplayFollow(camera)
+            || (*reinterpret_cast<const uint8_t*>(camera + 0x38C) & 0x88) || (*reinterpret_cast<const uint8_t*>(camera + 0x38D) & 0x1C))
+            return false;
+        if (HasTask(manager, TaskID::TaskComplexPlayerInCover) || HasTask(manager, TaskID::TaskSimpleAimGun)
+            || HasTask(manager, TaskID::TaskSimplePlayerAimProjectile))
+            return false;
+        if (HasTask(manager, TaskID::TaskComplexClimbLadder))
+            return true;
+        // Only the player's own walking, not scripted movement
+        const auto movement = GetSimplestActiveMovementTask(manager);
+        return movement && GetTaskType(movement) == std::to_underlying(TaskID::TaskSimpleMovePlayer)
+            && HasTask(manager, TaskID::TaskComplexPlayerOnFoot);
+    }
+
+    bool HoldVehicle(uintptr_t camera, uintptr_t control)
+    {
+        const auto manager = GetPlayerTaskManager();
+        if (!manager || !control || !IsGameplayFollow(camera) || (*reinterpret_cast<const uint8_t*>(camera + 0x18C) & 0x60))
+            return false;
+        // The camera follows the player's vehicle
+        const auto ped = CPlayer::getLocalPlayerPed();
+        if (!(*reinterpret_cast<const uint8_t*>(ped + 0x26C) & 4)
+            || *reinterpret_cast<const uintptr_t*>(ped + nPedVehicle) != *reinterpret_cast<const uintptr_t*>(camera + 0x170))
+            return false;
+        // Not while getting in or out, or during drive-bys
+        return HasTask(manager, TaskID::TaskComplexPlayerDrive) && !HasTask(manager, TaskID::TaskSimpleNewGangDriveBy)
+            && !HasTask(manager, TaskID::TaskComplexNewGetInVehicle) && !HasTask(manager, TaskID::TaskComplexNewExitVehicle);
+    }
+
+    // CCamFollowPed::Process: the pad's look input moves a pitch target the camera then follows. Applying the input to
+    // the pitch directly keeps vertical look working without the follow.
+    void PedPitch(SafetyHookContext& regs)
+    {
+        if (!HoldPedPitch(regs.esi, regs.edi, regs.ebx))
+            return;
+        const float pitch = *reinterpret_cast<const float*>(regs.esi + 0x304);
+        const float speed = *reinterpret_cast<const float*>(regs.esi + 0x310);
+        const float timeStep = *reinterpret_cast<const float*>(regs.esp + (legacyFrame ? 0x20 : 0x2C));
+        *reinterpret_cast<float*>(regs.esp + (legacyFrame ? 0x10 : 0x1C)) = pitch;
+        *reinterpret_cast<float*>(regs.esp + (legacyFrame ? 0x1C : 0x24)) = speed * timeStep;
+    }
+
+    void Init()
+    {
+        auto pattern = find_pattern("56 8B F1 33 C9 8D 46 2C 8B 10 85 D2 74 ? F6 42 0C 01",
+            "33 C0 8D 51 2C 56 8B 32 85 F6 74 ? F6 46 0C 01 74 ? 83 C0 01 83 C2 04 83 F8 03 7C ? 33 C0 5E C3 8B 44 81 2C 85 C0 74 ? 8B C8");
+        GetSimplestActiveMovementTask = (decltype(GetSimplestActiveMovementTask))pattern.get_first(0);
+
+        pattern = find_pattern("8B 88 ? ? ? ? 8D 49 ? E8 ? ? ? ? 8B 4E 04 89 44 24 0C", "8B 80 24 02 00 00 8D 48 44 E8 ? ? ? ? 8B 4E 04 89 44 24");
+        nPedIntelligence = *pattern.get_first<int32_t>(2);
+        nTaskManager = *pattern.get_first<uint8_t>(8);
+
+        pattern = hook::pattern("85 DB 74 ? 80 BB 8D 32 00 00 00 74 ? F3 0F 10 86 10 03 00 00");
+        if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+            nPedVehicle = 0xB30;
+        else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
+        {
+            pattern = hook::pattern("85 DB 74 ? 80 BB 8D 32 00 00 00 74 ? D9 86 10 03 00 00");
+            nPedVehicle = 0xB40;
+            legacyFrame = true;
+        }
+        static auto CCamFollowPed__Process_PitchHook = safetyhook::create_mid(pattern.get_first(0), PedPitch);
     }
 }
 
@@ -413,25 +604,25 @@ public:
 
     Fixes()
     {
-        FusionFix::onInitEvent() += LadderVisibilityRepair::TopMountHandoff::Install;
-
         FusionFix::onInitEventAsync() += []()
         {
-            CIniReader iniReader("");
+            SettingsReader reader;
 
             // [MAIN]
-            int nAimingZoomFix = iniReader.ReadInteger("MAIN", "AimingZoomFix", 1);
-            bool bRecoilFix = iniReader.ReadInteger("MAIN", "RecoilFix", 1) != 0;
+            int nAimingZoomFix = reader.ReadInteger("MAIN", "AimingZoomFix", 1);
+            bool bRecoilFix = reader.ReadInteger("MAIN", "RecoilFix", 1) != 0;
 
             // [MISC]
-            bool bPedDeathAnimFixFromTBoGT = iniReader.ReadInteger("MISC", "PedDeathAnimFixFromTBoGT", 1) != 0;
-            bool bAlwaysDisplayHealthOnReticle = iniReader.ReadInteger("MISC", "AlwaysDisplayHealthOnReticle", 1) != 0;
-            int bFixHelicopterSearchlights = iniReader.ReadInteger("MISC", "FixHelicopterSearchlights", 1);
+            bool bDefaultCameraAngleInTLaD = reader.ReadInteger("MISC", "DefaultCameraAngleInTLaD", 1) != 0;
+            bool bPedDeathAnimFixFromTBoGT = reader.ReadInteger("MISC", "PedDeathAnimFixFromTBoGT", 1) != 0;
+            bool bDisableCameraCenteringInCover = reader.ReadInteger("MISC", "DisableCameraCenteringInCover", 1) != 0;
+            bool bAlwaysDisplayHealthOnReticle = reader.ReadInteger("MISC", "AlwaysDisplayHealthOnReticle", 1) != 0;
+            int bFixHelicopterSearchlights = reader.ReadInteger("MISC", "FixHelicopterSearchlights", 1);
 
-            int nMenuEnteringDelay = std::clamp(iniReader.ReadInteger("MISC", "MenuEnteringDelay", 0), 20, 400);
-            int nMenuExitingDelay = std::clamp(iniReader.ReadInteger("MISC", "MenuExitingDelay", 0), 0, 800);
-            int nMenuAccessDelayOnStartup = std::clamp(iniReader.ReadInteger("MISC", "MenuAccessDelayOnStartup", 0), 300, 3000);
-            nRadarZoomDelay = std::clamp(iniReader.ReadInteger("MISC", "RadarZoomDelay", 3000), 0, 60000);
+            int nMenuEnteringDelay = std::clamp(reader.ReadInteger("MISC", "MenuEnteringDelay", 0), 20, 400);
+            int nMenuExitingDelay = std::clamp(reader.ReadInteger("MISC", "MenuExitingDelay", 0), 0, 800);
+            int nMenuAccessDelayOnStartup = std::clamp(reader.ReadInteger("MISC", "MenuAccessDelayOnStartup", 0), 300, 3000);
+            nRadarZoomDelay = std::clamp(reader.ReadInteger("MISC", "RadarZoomDelay", 3000), 0, 60000);
 
             // Fix weapon zoom states in TBoGT
             if (nAimingZoomFix)
@@ -452,18 +643,18 @@ public:
 
                 // Default the weapon zoom state to 0, used to be always forced to 1 (In TBoGT only)
                 pattern = hook::pattern("C6 05 ? ? ? ? ? 74 ? 83 3D ? ? ? ? ? 75 ? 80 3D");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     injector::WriteMemory<uint8_t>(pattern.get_first(6), 0, true);
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("88 1D ? ? ? ? 74 ? 39 1D");
                     injector::WriteMemory<uint8_t>(pattern.get_first(1), 0x25, true);
                 }
 
                 pattern = hook::pattern("80 8E ? ? ? ? ? EB ? 84 D2 74 ? 8A 81");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     injector::MakeNOP(pattern.get_first(0), 7, true);
                     static auto AimZoomHook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
@@ -472,7 +663,7 @@ public:
                         *byte_103C111 = 1;
                     });
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("08 9E ? ? ? ? E9");
                     injector::MakeNOP(pattern.get_first(0), 6, true);
@@ -512,19 +703,46 @@ public:
                 });
             }
 
+            // Disable the different camera offset on bikes in TLAD
+            if (bDefaultCameraAngleInTLaD)
+            {
+                auto pattern = hook::pattern("0F 44 C2 89 01 B0 ? C2 ? ? 8B 4C 24");
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+                {
+                    injector::MakeNOP(pattern.get_first(0), 5, true);
+                }
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
+                {
+                    pattern = hook::pattern("C7 00 ? ? ? ? B0 ? C2 ? ? 8B 44 24 ? C7 00 ? ? ? ? 83 3D");
+                    injector::MakeNOP(pattern.get_first(0), 6, true);
+                }
+            }
+
             // Disable the legacy 3D-era death animation played after an enemy falls and dies from a melee counter attack (TBoGT exclusive fix enabled for all episodes)
             if (bPedDeathAnimFixFromTBoGT)
             {
                 auto pattern = hook::pattern("75 ? 80 7B ? ? 75 ? 51");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     injector::MakeNOP(pattern.get_first(0), 2, true); // jnz --> nop
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("75 ? 80 7F ? ? 75 ? D9 EE");
                     injector::MakeNOP(pattern.get_first(0), 2, true); // jnz --> nop
                 }
+            }
+
+            // Disable the forced camera auto centering when getting to corners in cover
+            if (bDisableCameraCenteringInCover)
+            {
+                auto pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 47 ? F3 0F 11 47 ? 8B D1", "F3 0F 10 05 ? ? ? ? F3 0F 58 46 ? 89 8C 24");
+                injector::MakeNOP(pattern.get_first(0), 8, true);
+                static auto CTaskComplexNewUseCover__UpdateCoverStatus_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                {
+                    // This operates on or replaces CTimer::fTimeStep. Is this safe? At least for other related aspects; It works just fine to disable the centering for instance.
+                    regs.xmm0.f32[0] = FLT_MAX / 2.0f;
+                });
             }
 
             // Fix centered/twin reversing lights being attached to the headlights bone instead of the taillights bone
@@ -568,11 +786,11 @@ public:
 
                 // Remove the episode ID check that resulted in flickering LOD lights at certain camera angles in TBoGT
                 pattern = hook::pattern("0F 85 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 10 8C 24");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jnz --> jmp
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("75 ? F3 0F 10 05 ? ? ? ? F3 0F 10 4C 24 ? F3 0F 59 C8");
                     injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz --> jmp
@@ -582,14 +800,169 @@ public:
             // Enable LOD lights/vehicle impostors during cutscenes, like on the console versions
             {
                 auto pattern = hook::pattern("E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? A1 ? ? ? ? 83 F8 ? 0F 84");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     injector::MakeNOP(pattern.get_first(0), 13, true);
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("E8 ? ? ? ? 84 C0 75 ? A1 ? ? ? ? 83 F8 ? 74 ? 83 F8 ? 74 ? 83 F8");
                     injector::MakeNOP(pattern.get_first(0), 9, true);
+                }
+            }
+
+            CTaskManager::Init();
+            LadderTopMount::Init();
+
+            // Camera centering delay/turn speed
+            {
+                CameraAutoCenter::Init();
+
+                // Timers
+                static uint32_t nTimeToPassBeforeCenteringCameraFollowPed = 0;
+                static uint32_t nTimeToPassBeforeCenteringCameraFollowVehicle = 0;
+
+                // Settings
+                static auto nTimeToWaitBeforeCenteringCameraFollowPed_KB = FusionFixSettings.GetRef("PREF_KBCAMCENTERDELAY");
+                static auto nTimeToWaitBeforeCenteringCameraFollowPed_Pad = FusionFixSettings.GetRef("PREF_PADCAMCENTERDELAY");
+
+                static auto nTimeToWaitBeforeCenteringCameraFollowVehicle_KB = FusionFixSettings.GetRef("PREF_KBCAMCENTERDELAYVEH");
+                static auto nTimeToWaitBeforeCenteringCameraFollowVehicle_Pad = FusionFixSettings.GetRef("PREF_PADCAMCENTERDELAYVEH");
+
+                static auto nCameraTurnSpeedFollowVehicle_KB = FusionFixSettings.GetRef("PREF_KBCAMTURNSPEEDVEH");
+                static auto nCameraTurnSpeedFollowVehicle_Pad = FusionFixSettings.GetRef("PREF_PADCAMTURNSPEEDVEH");
+
+                static auto ShouldCenter = [&](uint32_t& DelayTime, int DelaySetting, bool IsUsingPad) -> bool
+                {
+                    static uint32_t LastTime = 0;
+                    uint32_t CurrentTime = *CTimer::m_snTimeInMilliseconds;
+
+                    if (CurrentTime < LastTime)
+                        DelayTime = 0;
+
+                    LastTime = CurrentTime;
+
+                    int32_t X = 0, Y = 0;
+
+                    if (IsUsingPad)
+                    {
+                        Natives::GetPadState(0, 2, &X);
+                        Natives::GetPadState(0, 3, &Y);
+                    }
+                    else
+                        Natives::GetMouseInput(&X, &Y);
+
+                    if (X || Y)
+                    {
+                        DelayTime = CurrentTime + (DelaySetting * 500);
+                    }
+
+                    if (IsUsingPad && DelaySetting == 0)
+                        DelayTime = 0;
+
+                    return DelayTime < CurrentTime;
+                };
+
+                // CCamFollowPed
+                {
+                    auto pattern = find_pattern("F3 0F 11 4C 24 ? 85 DB 74", "F3 0F 11 44 24 ? 74 ? F6 86 ? ? ? ? ? 74");
+                    static auto reg = *pattern.get_first<uint8_t>(5);
+                    injector::MakeNOP(pattern.get_first(0), 6, true);
+                    static auto CCamFollowPed__Process_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        bool IsUsingPad = Natives::IsUsingController();
+                        int DelaySetting = IsUsingPad ? nTimeToWaitBeforeCenteringCameraFollowPed_Pad->get() : nTimeToWaitBeforeCenteringCameraFollowPed_KB->get();
+
+                        float f = (reg != 0x48) ? regs.xmm1.f32[0] : regs.xmm0.f32[0];
+                        float& AutoCenterValue = *(float*)(regs.esp + reg);
+
+                        if (ShouldCenter(nTimeToPassBeforeCenteringCameraFollowPed, DelaySetting, IsUsingPad))
+                            AutoCenterValue = f;
+                        else
+                            AutoCenterValue = 0.0f;
+                    });
+                }
+
+                // CCamFollowVehicle X axis
+                {
+                    auto pattern = hook::pattern("F3 0F 5E C1 F3 0F 11 44 24 ? 0F 84");
+                    static auto reg = *pattern.get_first<uint8_t>(9);
+                    injector::MakeNOP(pattern.get_first(0), 10, true);
+                    static auto CCamFollowVehicle__Process_Hook1 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        bool IsUsingPad = Natives::IsUsingController();
+                        int DelaySetting = IsUsingPad ? nTimeToWaitBeforeCenteringCameraFollowVehicle_Pad->get() : nTimeToWaitBeforeCenteringCameraFollowVehicle_KB->get();
+
+                        int TurnSpeed = IsUsingPad ? nCameraTurnSpeedFollowVehicle_Pad->get() : nCameraTurnSpeedFollowVehicle_KB->get();
+                        float f = regs.xmm0.f32[0] / (regs.xmm1.f32[0] * (1.0f - TurnSpeed * 0.1f));
+                        if (CameraAutoCenter::legacyFrame ? CameraAutoCenter::HoldVehicle(regs.esi, *(uintptr_t*)(regs.esp + 0x24)) : CameraAutoCenter::HoldVehicle(regs.edi, regs.esi))
+                            f = 0.0f;
+
+                        float& AutoCenterValue = *(float*)(regs.esp + reg);
+
+                        if (ShouldCenter(nTimeToPassBeforeCenteringCameraFollowVehicle, DelaySetting, IsUsingPad))
+                            AutoCenterValue = f;
+                        else
+                            AutoCenterValue = 0.0f;
+                    });
+                }
+
+                // CCamFollowVehicle Y axis
+                {
+                    auto pattern = hook::pattern("F3 0F 5E C8 F3 0F 10 04 85");
+                    if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+                    {
+                        static auto dword_E9AA1C = *pattern.get_first<float*>(9);
+                        injector::MakeNOP(pattern.get_first(0), 22, true);
+                        static auto CCamFollowVehicle__Process_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            bool IsUsingPad = Natives::IsUsingController();
+                            int DelaySetting = IsUsingPad ? nTimeToWaitBeforeCenteringCameraFollowVehicle_Pad->get() : nTimeToWaitBeforeCenteringCameraFollowVehicle_KB->get();
+
+                            int TurnSpeed = IsUsingPad ? nCameraTurnSpeedFollowVehicle_Pad->get() : nCameraTurnSpeedFollowVehicle_KB->get();
+                            float f = regs.xmm1.f32[0] / (regs.xmm0.f32[0] * (1.0f - TurnSpeed * 0.1f));
+                            if (CameraAutoCenter::HoldVehicle(regs.edi, regs.esi))
+                            {
+                                f = 0.0f;
+                                // The pitch target, also used to follow the ground
+                                *(float*)(regs.esp + 0x20) = *(float*)(regs.edi + 0x190);
+                            }
+                            regs.xmm0.f32[0] = dword_E9AA1C[regs.eax];
+
+                            float& AutoCenterValue = *(float*)(regs.esp + 0x110 - 0x90);
+
+                            if (ShouldCenter(nTimeToPassBeforeCenteringCameraFollowVehicle, DelaySetting, IsUsingPad))
+                                AutoCenterValue = f;
+                            else
+                                AutoCenterValue = 0.0f;
+                        });
+                    }
+                    else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
+                    {
+                        pattern = hook::pattern("F3 0F 5E C2 F3 0F 11 84 24 ? ? ? ? F3 0F 10 43");
+                        injector::MakeNOP(pattern.get_first(0), 13, true);
+                        static auto CCamFollowVehicle__Process_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                        {
+                            bool IsUsingPad = Natives::IsUsingController();
+                            int DelaySetting = IsUsingPad ? nTimeToWaitBeforeCenteringCameraFollowVehicle_Pad->get() : nTimeToWaitBeforeCenteringCameraFollowVehicle_KB->get();
+
+                            int TurnSpeed = IsUsingPad ? nCameraTurnSpeedFollowVehicle_Pad->get() : nCameraTurnSpeedFollowVehicle_KB->get();
+                            float f = regs.xmm0.f32[0] / (regs.xmm2.f32[0] * (1.0f - TurnSpeed * 0.1f));
+                            if (CameraAutoCenter::HoldVehicle(regs.esi, *(uintptr_t*)(regs.esp + 0x24)))
+                            {
+                                f = 0.0f;
+                                // The pitch target, also used to follow the ground
+                                *(float*)(regs.esp + 0x18) = *(float*)(regs.esi + 0x190);
+                            }
+
+                            float& AutoCenterValue = *(float*)(regs.esp + 0x100 - 0x44);
+
+                            if (ShouldCenter(nTimeToPassBeforeCenteringCameraFollowVehicle, DelaySetting, IsUsingPad))
+                                AutoCenterValue = f;
+                            else
+                                AutoCenterValue = 0.0f;
+                        });
+                    }
                 }
             }
 
@@ -614,7 +987,7 @@ public:
             // Fix mouse cursor scaling
             {
                 auto pattern = hook::pattern("F3 0F 11 44 24 ? E8 ? ? ? ? D9 5C 24 ? 80 3D ? ? ? ? ? 74 ? F3 0F 10 05 ? ? ? ? EB ? F3 0F 10 44 24 ? F3 0F 59 05");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     injector::MakeNOP(pattern.get_first(0), 6, true);
                     static auto MouseHeightHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
@@ -622,7 +995,7 @@ public:
                         *(float*)(regs.esp + 0x40 - 0x24) = 30.0f * (1.0f / 768.0f);
                     });
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("F3 0F 11 44 24 ? E8 ? ? ? ? D9 5C 24 ? 80 3D ? ? ? ? ? 74 ? F3 0F 10 05 ? ? ? ? EB ? F3 0F 10 44 24 ? F3 0F 10 4C 24");
                     injector::MakeNOP(pattern.get_first(0), 6, true);
@@ -633,7 +1006,7 @@ public:
                 }
 
                 pattern = hook::pattern("F3 0F 11 44 24 ? FF 50 ? 66 0F 6E C0 0F 5B C0 6A");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     injector::MakeNOP(pattern.get_first(0), 6, true);
                     static auto MouseWidthHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
@@ -641,7 +1014,7 @@ public:
                         *(float*)(regs.esp + 0x3C - 0x2C) = 30.0f * (1.0f / 1024.0f);
                     });
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("F3 0F 11 44 24 ? FF D2 F3 0F 2A C0 F3 0F 59 05");
                     injector::MakeNOP(pattern.get_first(0), 6, true);
@@ -665,7 +1038,7 @@ public:
             // Pause menu map crosshair aspect ratio scaling
             {
                 auto pattern = hook::pattern("8B 44 24 ? 56 8B 35 ? ? ? ? 85 F6");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     static auto CFrontEnd__GetWidgetValue = (rage::Vector2 * (__cdecl*)(rage::Vector2*, int))pattern.get_first(0);
 
@@ -691,7 +1064,7 @@ public:
                         *(float*)(regs.esp + 0x64 - 0x30) /= ((float)*rage::grcDevice::ms_nActiveWidth / (float)*rage::grcDevice::ms_nActiveHeight) * 0.75f; // 0x4C (76); MAP_CURSOR_FADE
                     });
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("8B 0D ? ? ? ? 85 C9 8B 44 24 ? 74");
                     static auto CFrontEnd__GetWidgetValue = (rage::Vector2 * (__cdecl*)(rage::Vector2*, int))pattern.get_first(0);
@@ -730,38 +1103,35 @@ public:
             // Remove free camera boundary limits in the video editor
             {
                 auto pattern = hook::pattern("39 77 14 73 ? 56 6A 00 6A 01 E8");
-                if (!pattern.empty())
+                injector::WriteMemory<uint8_t>(pattern.get_first(3), 0xEB, true); // jnb --> jmp
+
+                pattern = hook::pattern("0F 86 ? ? ? ? 0F 2E FA");
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
-                    injector::WriteMemory<uint8_t>(pattern.get_first(3), 0xEB, true); // jnb --> jmp
+                    injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jbe --> jmp
 
-                    pattern = hook::pattern("0F 86 ? ? ? ? 0F 2E FA");
-                    if (!pattern.empty())
-                    {
-                        injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jbe --> jmp
+                    pattern = hook::pattern("0F 82 ? ? ? ? 80 8F");
+                    injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jb --> jmp
 
-                        pattern = hook::pattern("0F 82 ? ? ? ? 80 8F");
-                        injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jb --> jmp
+                    pattern = hook::pattern("72 ? 0F 2F 44 24 ? 72 ? 0F 28 C3");
+                    injector::WriteMemory(pattern.get_first(0), 0x12EB, true); // jb --> jmp
 
-                        pattern = hook::pattern("72 ? 0F 2F 44 24 ? 72 ? 0F 28 C3");
-                        injector::WriteMemory(pattern.get_first(0), 0x12EB, true); // jb --> jmp
+                    pattern = hook::pattern("0F 2F 05 ? ? ? ? 72 ? 83 3D ? ? ? ? 01 74 ? A1");
+                    injector::WriteMemory<uint8_t>(pattern.get_first(7), 0xEB, true); // jb --> jmp
+                }
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
+                {
+                    pattern = hook::pattern("0F 86 ? ? ? ? F3 0F 10 54 24 ? 0F 2E D4");
+                    injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jbe --> jmp
 
-                        pattern = hook::pattern("0F 2F 05 ? ? ? ? 72 ? 83 3D ? ? ? ? 01 74 ? A1");
-                        injector::WriteMemory<uint8_t>(pattern.get_first(7), 0xEB, true); // jb --> jmp
-                    }
-                    else
-                    {
-                        pattern = hook::pattern("0F 86 ? ? ? ? F3 0F 10 54 24 ? 0F 2E D4");
-                        injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jbe --> jmp
+                    pattern = hook::pattern("0F 82 ? ? ? ? 80 8E");
+                    injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jb --> jmp
 
-                        pattern = hook::pattern("0F 82 ? ? ? ? 80 8E");
-                        injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jb --> jmp
+                    pattern = hook::pattern("72 ? 0F 2F C5 72 ? 0F 2F FA");
+                    injector::WriteMemory(pattern.get_first(0), 0x20EB, true); // jb --> jmp
 
-                        pattern = hook::pattern("72 ? 0F 2F C5 72 ? 0F 2F FA");
-                        injector::WriteMemory(pattern.get_first(0), 0x20EB, true); // jb --> jmp
-
-                        pattern = hook::pattern("0F 82 ? ? ? ? 83 3D ? ? ? ? ? 74 ? A1");
-                        injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jb --> jmp
-                    }
+                    pattern = hook::pattern("0F 82 ? ? ? ? 83 3D ? ? ? ? ? 74 ? A1");
+                    injector::WriteMemory<uint16_t>(pattern.get_first(0), 0xE990, true); // jb --> jmp
                 }
             }
 
@@ -828,14 +1198,14 @@ public:
             if (bAlwaysDisplayHealthOnReticle)
             {
                 auto pattern = hook::pattern("74 ? 56 57 E8 ? ? ? ? 83 C4 ? 84 C0 75 ? 8B 46");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
 
                     pattern = hook::pattern("75 ? 38 83 ? ? ? ? 0F 84");
                     injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("74 ? 56 57 E8 ? ? ? ? 83 C4 ? 84 C0 75 ? 8B 56");
                     injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
@@ -862,7 +1232,7 @@ public:
             // Fix missing background radio in Roman's cab depot during cutscenes (CE only)
             {
                 auto pattern = hook::pattern("75 ? 80 3D ? ? ? ? ? 74 ? F3 0F 10 05 ? ? ? ? F3 0F 11 44 24 ? EB ? F3 0F 10 44 24");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz --> jmp
                 }
@@ -892,11 +1262,11 @@ public:
                 if (bFixHelicopterSearchlights == 1)
                 {
                     auto pattern = hook::pattern("8B 0D ? ? ? ? 84 C0 8B 47");
-                    if (!pattern.empty())
+                    if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                     {
                         CHeli::dword_1670CD0 = *pattern.get_first<uint32_t*>(2);
                     }
-                    else
+                    else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                     {
                         pattern = hook::pattern("A3 ? ? ? ? F3 0F 10 86 ? ? ? ? 0F BF 4E");
                         CHeli::dword_1670CD0 = *pattern.get_first<uint32_t*>(1);
@@ -908,11 +1278,11 @@ public:
                 else if (bFixHelicopterSearchlights == 2)
                 {
                     auto pattern = hook::pattern("A1 ? ? ? ? 3B 05 ? ? ? ? 0F 84 ? ? ? ? E8 ? ? ? ? F3 0F 10 87");
-                    if (!pattern.empty())
+                    if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                     {
                         injector::MakeNOP(pattern.get_first(0), 17, true);
                     }
-                    else
+                    else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                     {
                         pattern = hook::pattern("8B 15 ? ? ? ? 3B 15 ? ? ? ? 0F 84 ? ? ? ? E8");
                         injector::MakeNOP(pattern.get_first(0), 18, true);
@@ -935,7 +1305,7 @@ public:
             // Bullet traces
             {
                 auto pattern = hook::pattern("0F 2F C8 72 ? FF 76");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     static auto loc_B5D8D8 = resolve_next_displacement(pattern.get_first(0)).value();
                     injector::MakeNOP(pattern.get_first(0), 5, true);
@@ -951,7 +1321,7 @@ public:
                             return_to(loc_B5D8D8);
                     });
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("DF F1 DD D8 72 ? 8B 56 ? 52");
                     static auto loc_9D2329 = resolve_displacement(pattern.get_first(4)).value();
@@ -975,9 +1345,14 @@ public:
                     });
                 }
 
-                // Force IV/TLAD bullet trace particles, TBoGT trace particles have weird/wrong positioning
+                // Trace particles: the game picks TBoGT's (E2) in TBoGT, IV/TLAD's otherwise. Force IV/TLAD's, TBoGT's have
+                // weird/wrong positioning; with Episodic Weapons (episodiccontent.ixx, read once at start) force E2's in all
+                // episodes instead. Both choices live here, so only one thread writes this branch.
                 pattern = find_pattern("75 ? 68 ? ? ? ? EB ? 68 ? ? ? ? E8 ? ? ? ? 83 C4 ? 8B F8", "75 ? 68 ? ? ? ? EB ? 68 ? ? ? ? E8 ? ? ? ? 83 C4 ? 6A");
-                injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz --> jmp
+                if (reader.ReadInteger("EPISODICCONTENT", "EpisodicWeapons", 0) != 0)
+                    injector::MakeNOP(pattern.get_first(0), 2, true); // jnz --> nop: E2 traces
+                else
+                    injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true); // jnz --> jmp: IV/TLAD traces
             }
 
             // Fix TLAD Marta Full of Grace crash (https://github.com/GTAmodding/GTAIV-Issues-List/issues/235)
@@ -991,6 +1366,9 @@ public:
                         return_to(loc_BA91F2);
                 });
             }
+
+            // Keep the water render buffer stable until the render thread finishes.
+            CWater::FixBufferFlip();
 
             // Water flicker mitigation experiment
             {
@@ -1091,7 +1469,7 @@ public:
             // Fix NPC vehicles swerving lanes due to trains running above/below them, kind of hacky probably but it works (Clippy95)
             {
                 auto pattern = hook::pattern("F3 0F 10 0D ? ? ? ? 0F 2F C8 76 ? 3B F1");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     static auto dword_FE8AFC = *pattern.get_first<float*>(4);
                     injector::MakeNOP(pattern.get_first(0), 8, true);
@@ -1109,7 +1487,7 @@ public:
                         }
                     });
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("F3 0F 10 0D ? ? ? ? 0F 2F C8 76 ? 3B F7");
                     static auto flt_D6E58C = *pattern.get_first<float*>(4);
@@ -1133,7 +1511,7 @@ public:
             // Fix the date going backwards when dying or getting busted between 12pm and 11pm, and respraying between 9pm and 11:59pm (https://github.com/GTAmodding/GTAIV-Issues-List/issues/164)
             {
                 auto pattern = hook::pattern("6A ? 53 55 56 E8 ? ? ? ? 69 FF 88 13");
-                if (!pattern.empty())
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     uint8_t* ptr = (uint8_t*)pattern.get_first(0);
 
@@ -1143,7 +1521,7 @@ public:
                     ptr[1] = 0x6A;
                     ptr[2] = 0xFF;
                 }
-                else
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("6A ? 56 53 55 E8 ? ? ? ? 69 FF");
 
@@ -1157,12 +1535,33 @@ public:
                 }
             }
 
+            // Garage cars whose model isn't a vehicle in this session (CGarage::RestoreCarsForThisHideOut)
+            {
+                // The model info table and its size, from a loop over all model infos
+                auto pattern = find_pattern(
+                    "8B 3C B5 ? ? ? ? 85 FF 74 ? 8B 07 8B CF FF 50 ? 8B D8 85 DB 74 ? 39 6F ? 74 ? 46 81 FE",                   // 1.2.0.32, 1.2.0.43, 1.2.0.59
+                    "8B 34 BD ? ? ? ? 85 F6 74 ? 8B 06 8B 50 14 8B CE FF D2 8B D8 85 DB 74 ? 39 6E ? 74 ? 83 C7 01 81 FF");    // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
+                bool legacy = *pattern.get_first<uint8_t>(1) == 0x34;
+                CStoredCar::ms_modelInfoPtrs = *pattern.get_first<void**>(3);
+                CStoredCar::nModelInfoCount = *pattern.get_first<uint32_t>(legacy ? 36 : 32);
+
+                // The check before the model request
+                pattern = find_pattern("8D 4F F0 E8 ? ? ? ? 84 C0 74 ? 0F B7 07", "8D 4E F0 E8 ? ? ? ? 84 C0 74 ? A1");
+                CStoredCar::IsOccupied = injector::GetBranchDestination(pattern.get_first(3)).get<std::remove_pointer_t<decltype(CStoredCar::IsOccupied)>>();
+                injector::MakeCALL(pattern.get_first(3), CStoredCar::IsOccupiedByVehicle, true);
+
+                // The check before CStoredCar::RestoreVehicle
+                pattern = find_pattern("8D 7B 02 8B CE E8 ? ? ? ? 84 C0 74 ? 8B CE E8", "02 00 00 00 8B FF 8B CE E8 ? ? ? ? 84 C0 74 ? 8B CE E8");
+                injector::MakeCALL(pattern.get_first(legacy ? 8 : 5), CStoredCar::IsOccupiedByVehicle, true);
+            }
+
             // Native patches
             {
                 // Fix TLAD phone calls crash (https://github.com/GTAmodding/GTAIV-Issues-List/issues/232)
                 {
-                    hbCOMPARE_STRING.fun = NativeOverride::Register(Natives::NativeHashes::COMPARE_STRING, NATIVE_COMPARE_STRING_1, "E8 ? ? ? ? ? ? ? ? ? 83 C4 ? 89 ? 5E C3", 30);
-                    if (!hbCOMPARE_STRING.fun)
+                    if (!NativeOverride::FindCall(Natives::NativeHashes::COMPARE_STRING, "E8 ? ? ? ? ? ? ? ? ? 83 C4 ? 89 ? 5E C3", 30).empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+                        hbCOMPARE_STRING.fun = NativeOverride::Register(Natives::NativeHashes::COMPARE_STRING, NATIVE_COMPARE_STRING_1, "E8 ? ? ? ? ? ? ? ? ? 83 C4 ? 89 ? 5E C3", 30);
+                    else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0: no such call in the handler
                     {
                         auto pattern = hook::pattern("8B 44 24 ? 85 C0 75 ? 32 C0 C3 8B 4C 24 ? 85 C9");
                         shNATIVE_COMPARE_STRING = safetyhook::create_inline(pattern.get_first(0), NATIVE_COMPARE_STRING_2);
