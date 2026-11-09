@@ -4,8 +4,7 @@
 
 namespace DistantLights
 {
-    // Read the live TBoGT branch: original JNE halves the basis; FusionFix's
-    // NOP/JMP bypasses it. Zero denotes an unsupported patch.
+    // TBoGT: JNE halves the basis; FusionFix's NOP/JMP bypasses it. Zero means unknown.
     inline float NativeAircraftScale(bool tbogt, std::span<const uint8_t, 2> branch)
     {
         if (!tbogt)
@@ -24,7 +23,7 @@ namespace DistantLights
         // Normalize the intercepted native basis; never modify its shared vectors.
         auto roadRight = *right * (1.0f / nativeScale);
         auto roadUp = *up * (1.0f / nativeScale);
-        // Private Console batch; CE's native StoreSpriteInBuffer holds 1,820 sprites.
+        // Match Xbox's 64-sprite batches; CE StoreSpriteInBuffer uses 1,820.
         std::array<Vector, 64> positions;
         std::array<uint32_t, 64> colors;
         int count = 0;
@@ -35,7 +34,7 @@ namespace DistantLights
             if (count == int(positions.size()))
                 flush(positions.data(), colors.data(), &count, &roadRight, &roadUp);
         });
-        // Finish every road batch before applying the aircraft-only size change.
+        // Keep TBoGT's half-size aircraft separate from the road batches.
         flush(positions.data(), colors.data(), &count, &roadRight, &roadUp);
         auto aircraftRight = roadRight * (tbogt ? 0.5f : 1.0f);
         auto aircraftUp = roadUp * (tbogt ? 0.5f : 1.0f);
@@ -53,8 +52,7 @@ namespace DistantLights
         }
         if (*count > 0)
         {
-            // PC's original two triangles, corner arithmetic and winding;
-            // retail Xbox maps V oppositely at each corresponding corner.
+            // Retain PC triangulation with Xbox's vertically flipped UVs.
             const auto difference = *right - *up;
             const auto sum = *right + *up;
             begin(3, 6 * *count);

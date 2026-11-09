@@ -19,6 +19,8 @@ The separate loader validates file size, counts, block partitions, bounds and po
 
 ## Rendering
 
+Both modes inherit FusionFix's clock correction in `fixes.ixx`: the night fade rises from 19:00 to 20:00 and falls from 06:00 to 07:00, matching Xbox. Streetlight strings switch at their individual thresholds within those intervals.
+
 Inland streetlights and traffic in both modes fade smoothly with the camera's height above each light or imposter car. They are invisible when the camera is level with or below them, half faded in 50 metres above them and fully faded in 100 metres above them before other rendering effects. The reference includes path elevation and the placement offset (+12 for streetlights, +2 for Console traffic, +0.6 for PC imposter cars). This height fade and the native near-distance fade use whichever is dimmer, without multiplying them together. The native distance transition remains 150-300 metres for PC streetlights, 150-250 metres for Console sprites and 250-325 metres for PC imposter traffic. Coastal paths and aircraft have no added height fade.
 
 The `distantlights.ixx` module bypasses the PC streetlight world-height cutoff and adjusts the distance passed to `CDistantLights::ModifyColourForDist` for inland paths. Native placement, random sampling and colour rounding are retained. The separate override in `lodlights.ixx` remains commented out.
@@ -43,12 +45,14 @@ These names were matched against bankrelease symbols in IDA. Addresses identify 
 | --- | --- | --- |
 | `0xD646A0` | `CDistantLights::Load` | Locate the native block tables. `LoadConsoleData` is a separate loader. |
 | `0xD64820` | `__vehicleImpostersCallback` | Locate the day/night dispatch sites. |
-| `0xD64970` / `0xD66070` | PC day/night traffic-model passes | `originalDayModels` / `originalNightModels`; descriptive names for PC-only routines. |
+| `0xD64970` / `0xD66070` | PC day/night traffic-model passes | `originalRenderDayModels` / `originalRenderNightModels`; descriptive names for PC-only routines. |
 | `0xD65650` | `CDistantLights::Render` | `originalRender`; retain native aircraft and render setup. |
 | `0xD64760` | `CDistantLights::ModifyColourForDist` | Limit the input distance for the inland streetlight height fade. |
-| `0xD670B0` | `CDistantLights::RenderOutSpriteBuffer` | `nativeRenderOutSpriteBuffer`; native sprite-batch rendering. |
-| `0x431E40` | `rage::grcViewport::IsSphereVisible` | `isSphereVisible`; block and path culling. |
+| `0xD670B0` | `CDistantLights::RenderOutSpriteBuffer` | `nativeRenderOutSpriteBuffer`; `RenderOutSpriteBuffer` selects native or Console submission. |
+| `0x431E40` | `rage::grcViewport::IsSphereVisible` | `nativeIsSphereVisible`; block and path culling. |
 | `0x446280` / `0x4462E0` / `0x437950` | `rage::grcBegin` / `rage::grcVertex` / `rage::grcEnd` | Immediate triangle submission for Console batches. |
+
+`RenderOutFinalSpriteBuffer` intercepts the final flush inside `CDistantLights::Render`, before the native HDR and render-state reset, to submit Console roads and the retained aircraft.
 
 CE `CDistantLights::StoreSpriteInBuffer` (`0xD677F0`) flushes at 1,820 sprites. Our private Console road buffer holds 64; Default retains the native queue. CE and our Console renderer submit six triangle vertices per sprite, while bankrelease submits four quad vertices. `grcEnd` completes immediate submission; the lower-level draw at `0x4237A0` is a different function.
 

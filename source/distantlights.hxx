@@ -35,8 +35,7 @@ namespace DistantLights
         return std::clamp((distance - start) / (end - start), 0.0f, 1.0f);
     }
 
-    // Reuse distance attenuation once, capped by the camera's height above
-    // this sprite (0..100 m). PC's distance fade spans 150 m; Xbox's 100 m.
+    // Express the 0..100 m height fade as a cap on the native distance fade.
     inline float HeightLimitedDistance(float distance, float cameraZ, float spriteZ, float distanceSpan)
     {
         return std::min(distance, 150.0f + distanceSpan * Ramp(0.0f, 100.0f, cameraZ - spriteZ));
@@ -47,17 +46,15 @@ namespace DistantLights
         return std::min(distanceFade, Ramp(0.0f, 100.0f, cameraZ - modelZ));
     }
 
-    // Map the game's 15-bit rand() output to the retail Xbox range [170,255).
+    // Map game_rand() to Xbox's [170,255) range with the same truncation.
     inline uint32_t XboxBrightness(uint32_t sample)
     {
-        // Exact equivalent of trunc((sample / 32768.0f) * 85.0f) + 170.
         return 170u + ((sample * 85u) >> 15);
     }
 
-    // Xbox ModifyColourForDist arithmetic, with traffic intensity applied first.
+    // Xbox CDistantLights::ModifyColourForDist, with traffic input quantized first.
     inline uint32_t XboxSpriteColor(uint32_t rgb, float intensity, float distance, uint32_t brightness)
     {
-        // Xbox quantizes traffic's input channels before distance attenuation.
         intensity = std::clamp(intensity, 0.0f, 1.0f);
         if (distance < 250.0f)
             brightness = uint32_t(std::max(0.0f, (distance - 150.0f) * 0.01f) * float(brightness));
@@ -112,8 +109,7 @@ namespace DistantLights
         }
     };
 
-    // Xbox roads are centerlines: both streams belong on each road. Never use
-    // this enumerator on the native PC's directed carriageway strings.
+    // Xbox centerlines carry both streams; PC strings represent directed carriageways.
     template<typename Callback>
     void ForEachVehicle(const Road& road, uint32_t milliseconds, Callback&& visit)
     {
@@ -130,8 +126,7 @@ namespace DistantLights
         }
     }
 
-    // Wrap negative coordinate hashes into the 16 dusk/dawn thresholds.
-    // The original signed remainder reads before the table in parts of Alderney.
+    // Wrap negative indices to avoid reading before the 16-entry threshold table.
     inline float StreetlightThreshold(const Point& first)
     {
         constexpr std::array<float, 16> table{
