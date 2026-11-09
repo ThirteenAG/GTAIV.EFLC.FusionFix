@@ -371,7 +371,7 @@ public:
 
     static void InstallModeChangeGate()
     {
-        // CRenderThreadInterface::Synchronise, after the render wait and before device changes.
+        // This frame boundary follows the render wait and precedes any requested mode change.
         // Ignore the six bytes used by the water commit hook so either hook can install first.
         auto frameStart = hook::pattern("80 3D ? ? ? ? 00 ? ? ? ? ? ? 74 ? A1 ? ? ? ? 66 39 78 0A 76 04 66 89 78 0A A1 ? ? ? ? 66 39 78 0A 76 04 66 89 78 0A E8");
         // The function the frame start calls, its device-lost flag at +3, +6 or +7

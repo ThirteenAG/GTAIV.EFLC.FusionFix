@@ -212,7 +212,7 @@ namespace CWater
 
     void DeferBufferFlip(SafetyHookContext& regs)
     {
-        // Mode 1 already waits at the end of the previous CRenderThreadInterface::Synchronise.
+        // Mode 1 already waits at the end of the previous Synchronise.
         if (*pSyncMode != 0)
             return;
 
@@ -261,9 +261,9 @@ namespace CWater
             "51 56 8B F1 80 BE C8 0F 00 00 00 75 0B 8D 8E AC 0F 00 00 E8 ? ? ? ? ? ? ? ? ? ? ? 57 BF 01 00 00 00",
             "51 56 8B F1 80 BE C8 0F 00 00 00 75 0F 8B 86 B8 0F 00 00 50 E8 ? ? ? ? 83 C4 04 ? ? ? ? ? ? ? 57 BF 01 00 00 00");
 
-        auto pRenderThreadSynchronise = pattern.get_first<uint8_t>();
+        auto pSynchronise = pattern.get_first<uint8_t>();
         // The mode check branches to the first instruction after the wait.
-        auto pAfterRenderWait = pRenderThreadSynchronise + 13 + pRenderThreadSynchronise[12];
+        auto pAfterWait = pSynchronise + 13 + pSynchronise[12];
         pattern = hook::pattern("B9 ? ? ? ? E8 ? ? ? ? 83 3F 00 76 ? FF");
         pSyncMode = *pattern.get_first<uint8_t*>(1) + 0xFC8;
 
@@ -288,7 +288,7 @@ namespace CWater
 
         // Skip the seven-byte device-mode comparison used by HDR's frame-start hook.
         // Install the commit hook before changing any selector access.
-        static auto CommitBufferFlipHook = safetyhook::create_mid(pAfterRenderWait + 7, CommitBufferFlip);
+        static auto CommitBufferFlipHook = safetyhook::create_mid(pAfterWait + 7, CommitBufferFlip);
         if (!CommitBufferFlipHook)
             return;
 
