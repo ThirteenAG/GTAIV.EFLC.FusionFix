@@ -82,8 +82,6 @@
   "FRAMELIMIT.FpsLimit": "Limite FPS personalizzato",
   "FRAMELIMIT.FpsLimit.description": "Usato quando il limitatore degli FPS è Personalizzato; i valori negativi sono relativi alla frequenza di aggiornamento.",
   "FRAMELIMIT.FpsLimitPreset.description": "Limita il frame rate. Personalizzato usa FpsLimit.",
-  "FRAMELIMIT.FrameLimitType": "Tipo di limite frame",
-  "FRAMELIMIT.FrameLimitType.description": "Come attende il limitatore dei frame.",
   "FRAMELIMIT.MinigamesFpsLimit": "Limite FPS nei minigiochi",
   "FRAMELIMIT.MinigamesFpsLimit.description": "Limite del frame rate nei minigiochi dell'elenco.",
   "FRAMELIMIT.MinigamesList": "Elenco minigiochi",

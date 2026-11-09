@@ -82,8 +82,6 @@
   "FRAMELIMIT.FpsLimit": "Свой лимит FPS",
   "FRAMELIMIT.FpsLimit.description": "Используется, когда в ограничителе кадров выбрано «Свой»; отрицательные значения задаются относительно частоты обновления.",
   "FRAMELIMIT.FpsLimitPreset.description": "Ограничивает частоту кадров. «Свой» использует FpsLimit.",
-  "FRAMELIMIT.FrameLimitType": "Тип ограничения кадров",
-  "FRAMELIMIT.FrameLimitType.description": "Способ ожидания ограничителя кадров.",
   "FRAMELIMIT.MinigamesFpsLimit": "Лимит FPS в мини-играх",
   "FRAMELIMIT.MinigamesFpsLimit.description": "Ограничение частоты кадров в мини-играх из списка.",
   "FRAMELIMIT.MinigamesList": "Список мини-игр",

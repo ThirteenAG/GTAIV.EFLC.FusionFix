@@ -82,8 +82,6 @@
   "FRAMELIMIT.FpsLimit": "Benutzerdefiniertes FPS-Limit",
   "FRAMELIMIT.FpsLimit.description": "Wird verwendet, wenn die FPS-Begrenzung auf Benutzerdefiniert steht; negative Werte sind relativ zur Bildwiederholrate.",
   "FRAMELIMIT.FpsLimitPreset.description": "Begrenzt die Bildrate. Benutzerdefiniert verwendet FpsLimit.",
-  "FRAMELIMIT.FrameLimitType": "Art der Bildratenbegrenzung",
-  "FRAMELIMIT.FrameLimitType.description": "Wie die Bildratenbegrenzung wartet.",
   "FRAMELIMIT.MinigamesFpsLimit": "FPS-Limit in Minispielen",
   "FRAMELIMIT.MinigamesFpsLimit.description": "Bildratenlimit in den Minispielen der Liste.",
   "FRAMELIMIT.MinigamesList": "Minispiel-Liste",
