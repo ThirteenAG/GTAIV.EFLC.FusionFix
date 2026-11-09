@@ -809,7 +809,22 @@ public:
                         *(float*)(regs.esp + 0x64 - 0x30) /= ((float)*rage::grcDevice::ms_nActiveWidth / (float)*rage::grcDevice::ms_nActiveHeight) * 0.75f; // 0x4C (76); MAP_CURSOR_FADE
                     });
                 }
-                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
+                else if (auto pattern = hook::pattern("F3 0F 10 1D ? ? ? ? F3 0F 10 54 24 28 0F B6 D0"); !pattern.empty()) // 1.0.7.0, 1.1.2.0
+                {
+                    static auto CFrontEnd__GetWidgetValue = (rage::Vector2 * (__cdecl*)(rage::Vector2*, int))hook::get_pattern("8B 0D ? ? ? ? 85 C9 8B 44 24 ? 74");
+
+                    // Both aspect-ratio paths join here; these builds use different stack locals from 1.0.8.0/1.1.3.0.
+                    static auto CCustomMenu__RenderMapCrosshairHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        rage::Vector2 mapCursorThickness{};
+                        CFrontEnd__GetWidgetValue(&mapCursorThickness, 166); // 0xA6 (166); FE_MAP_CURSOR_THICKNESS
+                        const float aspect = ((float)*rage::grcDevice::ms_nActiveWidth / (float)*rage::grcDevice::ms_nActiveHeight) * 0.75f;
+                        *(float*)(regs.esp + 0x28) = mapCursorThickness.x / aspect;
+                        *(float*)(regs.esp + 0x2C) = mapCursorThickness.y;
+                        *(float*)(regs.esp + 0x20) /= aspect; // 0x4C (76); MAP_CURSOR_FADE
+                    });
+                }
+                else // 1.0.8.0, 1.1.3.0
                 {
                     pattern = hook::pattern("8B 0D ? ? ? ? 85 C9 8B 44 24 ? 74");
                     static auto CFrontEnd__GetWidgetValue = (rage::Vector2 * (__cdecl*)(rage::Vector2*, int))pattern.get_first(0);
