@@ -2,7 +2,7 @@ module;
 
 #include <common.hxx>
 #include <fstream>
-#include "distantlights-render.hxx"
+#include <span>
 
 export module distantlights;
 
@@ -10,344 +10,419 @@ import common;
 import comvars;
 import settings;
 
+// Distant lights: the streetlight sprites along the roads of distantlights.dat, the traffic on them and the aircraft.
+// PC draws streetlights every 60 units and imposter car models as traffic; the Xbox 360 has its own road data
+// (shipped as distantlights_360.dat), streetlights every 30 units and moving white/red sprites as traffic. The Console
+// setting draws the Xbox ones. In both, inland lights and cars fade in with the camera's height above them instead of
+// the game's fixed 75 m camera height.
 namespace DistantLights
 {
-    using RenderOutSpriteBufferFn = void(__cdecl*)(Vector*, uint32_t*, int*, Vector*, Vector*);
-    // CE splits road models from CDistantLights::Render (streetlights and aircraft).
-    static void(__cdecl* originalDayModels)(float);
-    static void(__cdecl* originalRender)(float);
-    static void(__cdecl* originalNightModels)();
-    static RenderOutSpriteBufferFn nativeRenderOutSpriteBuffer;
-    static void(__cdecl* nativeGrcBegin)(int, int);
-    static void(__cdecl* nativeGrcVertex)(float, float, float, float, float, float, uint32_t, float, float);
-    static void(__stdcall* nativeGrcEnd)();
-    static int(__thiscall* isSphereVisible)(rage::grcViewport*, float, float, float, float, float*);
-    static uint32_t* milliseconds;
-    static const uint8_t* aircraftSizeBranch;
-    static int32_t *coastalCount, *interiorCount;
-    static bool ready{}, loadAttempted{}, consolePass{};
-    static float nightFade{};
-    static Dataset xbox;
-    static std::vector<Road> roads;
-    static SafetyHookMid pcStreetlightFade, pcDayTrafficFade, pcNightTrafficFade;
-
-    static bool LoadConsoleData()
+    // The layout of the game's sprite buffer
+    struct alignas(16) Vector
     {
-        if (loadAttempted)
-            return !roads.empty();
-        loadAttempted = true;
-        try
+        float x{}, y{}, z{}, w{};
+        Vector operator+(const Vector& b) const { return { x + b.x, y + b.y, z + b.z }; }
+        Vector operator-(const Vector& b) const { return { x - b.x, y - b.y, z - b.z }; }
+        Vector operator*(float s) const { return { x * s, y * s, z * s }; }
+        float Length() const { return std::sqrt(x * x + y * y + z * z); }
+    };
+
+    // distantlights.dat: point and string counts, three tables of the 8x8 map blocks (first string, coastal strings,
+    // inland strings), then the points and the strings. The Xbox file is big-endian.
+    struct PathPoint
+    {
+        int16_t x, y, z;
+    };
+
+    struct PathString
+    {
+        int16_t x, y, z, radius;
+        uint16_t firstPoint, pointCount;
+    };
+
+    constexpr size_t BlockCount = 64;
+
+    // A road as straight pieces, each with its distance from the start; repeated points are skipped
+    class Road
+    {
+        struct Piece
         {
-            // Load the Xbox dataset separately from the native PC paths.
-            std::array<wchar_t, 32768> root{};
-            std::filesystem::path folder;
-            if (UAL::GetOverloadPathW && UAL::GetOverloadPathW(root.data(), root.size()) && root[0])
-                folder = root.data();
-            else
-                folder = GetExeModulePath() / L"update";
-            if (folder.is_relative())
-                folder = GetExeModulePath() / folder;
-            std::ifstream file(folder / L"pc/data/paths/distantlights_360.dat", std::ios::binary | std::ios::ate);
-            if (file)
-            {
-                const auto size = file.tellg();
-                if (size >= 776 && size <= 86000)
-                {
-                    std::vector<uint8_t> bytes(static_cast<size_t>(size));
-                    file.seekg(0);
-                    if (file.read(reinterpret_cast<char*>(bytes.data()), std::streamsize(bytes.size())) && xbox.Decode(bytes))
-                    {
-                        std::vector<Road> decodedRoads(xbox.strings.size());
-                        for (size_t i = 0; i < decodedRoads.size(); ++i)
-                        {
-                            const auto& line = xbox.strings[i];
-                            decodedRoads[i].Assign(std::span(xbox.points.data() + line.firstPoint, line.pointCount));
-                        }
-                        roads = std::move(decodedRoads);
-                        OutputDebugStringA("FusionFix: loaded separate Xbox distant-light data.\n");
-                        return true;
-                    }
-                }
-            }
-        }
-        catch (const std::exception&) {}
-        OutputDebugStringA("FusionFix: distantlights_360.dat missing or invalid; Distant Lights retains native PC rendering. Restart after replacing the file.\n");
-        return false;
-    }
-
-    static Mode GetMode()
-    {
-        if (ready && FusionFixSettings.Get("PREF_DISTANTLIGHTS") == int(Mode::Console)
-            && NativeAircraftScale(*_dwCurrentEpisode == 2, std::span<const uint8_t, 2>(aircraftSizeBranch, 2)) > 0.0f
-            && LoadConsoleData())
-            return Mode::Console;
-        return Mode::Default;
-    }
-
-    static void RenderSpriteBatch(Vector* positions, uint32_t* colors, int* count, Vector* right, Vector* up)
-    {
-        FlushCoronaBatch(consolePass, positions, colors, count, right, up,
-            nativeRenderOutSpriteBuffer, nativeGrcBegin, nativeGrcVertex, nativeGrcEnd);
-    }
-
-    template<class Append>
-    static void RenderConsoleRoads(rage::grcViewport* viewport, const Vector& camera, uint32_t time, Append append)
-    {
-        auto emit = [&](Vector light, float intensity, uint32_t rgb, bool interior)
-        {
-            if (interior && camera.z <= light.z)
-                return;
-            const float distance = (light - camera).Length();
-            // Xbox uses block/path culling and near-distance rejection;
-            // the per-light height fade is applied separately.
-            if (distance <= 150.0f)
-                return;
-            // One native random sample per emitted sprite, with Xbox rounding.
-            const float fadeDistance = interior ? HeightLimitedDistance(distance, camera.z, light.z, 100.0f) : distance;
-            append(light, XboxSpriteColor(rgb, intensity, fadeDistance, XboxBrightness(uint32_t(game_rand()))));
+            Vector start, direction;
+            float length, distance;
         };
-        for (size_t block = 0; block < 64; ++block)
+        std::vector<Piece> pieces;
+        float length = 0.0f;
+
+    public:
+        Road(std::span<const PathPoint> points)
         {
-            // Native 8x8 block coordinates and conservative visibility sphere.
-            const float x = (float(block / 8) + 0.5f) * 750.0f - 3000.0f;
-            const float y = (float(block % 8) + 0.5f) * 750.0f - 3000.0f;
-            if (!isSphereVisible(viewport, x, y, 20.0f, 525.0f, nullptr))
-                continue;
-            for (size_t interior = 0; interior < 2; ++interior)
+            for (size_t i = 1; i < points.size(); ++i)
             {
-                const uint32_t begin = xbox.firstString[block] + (interior ? xbox.coastalCount[block] : 0);
-                const uint32_t size = interior ? xbox.interiorCount[block] : xbox.coastalCount[block];
-                for (uint32_t i = begin; i < begin + size; ++i)
-                {
-                    const auto& line = xbox.strings[i];
-                    const auto& road = roads[i];
-                    if (road.Length() <= 0.0f || !isSphereVisible(viewport, float(line.x), float(line.y),
-                        float(line.z), float(line.radius), nullptr))
-                        continue;
-                    ForEachVehicle(road, time, [&](Vector light, bool red, uint32_t)
-                    {
-                        emit(light, nightFade, red ? 0xFF0000u : 0xFFFFFFu, interior != 0);
-                    });
-                    if (nightFade < StreetlightThreshold(xbox.points[line.firstPoint]))
-                        continue;
-                    for (float s = 0; s < road.Length(); s += 30.0f)
-                    {
-                        auto light = road.At(s).position;
-                        light.z += 12.0f;
-                        // Dusk/dawn switches whole strings at their thresholds.
-                        emit(light, 1.0f, 0xFFDC80u, interior != 0);
-                    }
-                }
+                Vector a{ float(points[i - 1].x), float(points[i - 1].y), float(points[i - 1].z) };
+                Vector b{ float(points[i].x), float(points[i].y), float(points[i].z) };
+                auto delta = b - a;
+                float pieceLength = delta.Length();
+                if (pieceLength <= 0.0001f)
+                    continue;
+                pieces.push_back({ a, delta * (1.0f / pieceLength), pieceLength, length });
+                length += pieceLength;
             }
         }
-    }
 
-    static void __cdecl FinalSpriteFlush(Vector* positions, uint32_t* colors, int* count, Vector* right, Vector* up)
-    {
-        if (!consolePass || nightFade <= 0.0f || !rage::pCurrentViewport || !*rage::pCurrentViewport)
-        {
-            RenderSpriteBatch(positions, colors, count, right, up);
-            return;
-        }
-        auto viewport = rage::GetCurrentViewport();
-        const Vector camera{ viewport->mCameraMatrix[3][0], viewport->mCameraMatrix[3][1], viewport->mCameraMatrix[3][2] };
-        const uint32_t time = *milliseconds;
-        const bool tbogt = *_dwCurrentEpisode == 2;
-        const float nativeScale = NativeAircraftScale(tbogt, std::span<const uint8_t, 2>(aircraftSizeBranch, 2));
-        SubmitConsoleCoronas(tbogt, nativeScale, positions, colors, count, right, up, [&](auto append)
-        {
-            RenderConsoleRoads(viewport, camera, time, append);
-        }, RenderSpriteBatch);
-    }
+        float Length() const { return length; }
 
-    static void __cdecl RenderDayModels(float value)
-    {
-        if (GetMode() != Mode::Console)
-            originalDayModels(value);
-    }
-
-    // Suppress native road sprites during Console submission, retaining the
-    // native aircraft and render setup. Restore the PC counts on scope exit.
-    struct ScopedPcRoadSuppression
-    {
-        std::array<int32_t, 64> coastal, interior;
-        ScopedPcRoadSuppression()
+        Vector At(float distance) const
         {
-            std::copy_n(coastalCount, 64, coastal.begin());
-            std::copy_n(interiorCount, 64, interior.begin());
-            std::fill_n(coastalCount, 64, 0);
-            std::fill_n(interiorCount, 64, 0);
-            consolePass = true;
-        }
-        ScopedPcRoadSuppression(const ScopedPcRoadSuppression&) = delete;
-        ScopedPcRoadSuppression& operator=(const ScopedPcRoadSuppression&) = delete;
-        ~ScopedPcRoadSuppression()
-        {
-            consolePass = false;
-            std::copy(coastal.begin(), coastal.end(), coastalCount);
-            std::copy(interior.begin(), interior.end(), interiorCount);
+            auto it = std::lower_bound(pieces.begin(), pieces.end(), distance, [](const Piece& p, float d) { return p.distance + p.length < d; });
+            if (it == pieces.end())
+                --it;
+            return it->start + it->direction * (distance - it->distance);
         }
     };
 
-    static void __cdecl Render(float fade)
+    std::array<uint32_t, BlockCount> firstString, coastalStrings, inlandStrings;
+    std::vector<PathPoint> points;
+    std::vector<PathString> strings;
+    std::vector<Road> roads;
+
+    void LoadConsolePaths()
+    {
+        std::wstring root(MAX_PATH, L'\0');
+        std::filesystem::path folder;
+        if (UAL::GetOverloadPathW && UAL::GetOverloadPathW(root.data(), root.size()))
+            folder = root.c_str();
+        else
+            folder = GetExeModulePath() / L"update";
+
+        std::ifstream file(folder / L"pc/data/paths/distantlights_360.dat", std::ios::binary);
+        std::vector<uint8_t> bytes((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+        constexpr size_t header = 8 + 3 * BlockCount * 4;
+        auto u16 = [&](size_t at) { return uint16_t((bytes[at] << 8) | bytes[at + 1]); };
+        auto u32 = [&](size_t at) { return (uint32_t(u16(at)) << 16) | u16(at + 2); };
+        if (bytes.size() < header)
+            return;
+        uint32_t pointCount = u32(0);
+        uint32_t stringCount = u32(4);
+        if (bytes.size() != header + uint64_t(pointCount) * 6 + uint64_t(stringCount) * 12)
+            return;
+
+        for (size_t b = 0; b < BlockCount; ++b)
+        {
+            firstString[b] = u32(8 + b * 4);
+            coastalStrings[b] = u32(8 + BlockCount * 4 + b * 4);
+            inlandStrings[b] = u32(8 + BlockCount * 8 + b * 4);
+            if (uint64_t(firstString[b]) + coastalStrings[b] + inlandStrings[b] > stringCount)
+                return;
+        }
+
+        for (size_t i = 0, at = header; i < pointCount; ++i, at += 6)
+            points.push_back({ int16_t(u16(at)), int16_t(u16(at + 2)), int16_t(u16(at + 4)) });
+
+        for (size_t i = 0, at = header + pointCount * 6; i < stringCount; ++i, at += 12)
+        {
+            PathString s{ int16_t(u16(at)), int16_t(u16(at + 2)), int16_t(u16(at + 4)), int16_t(u16(at + 6)), u16(at + 8), u16(at + 10) };
+            if (uint32_t(s.firstPoint) + s.pointCount > pointCount)
+            {
+                points.clear();
+                strings.clear();
+                return;
+            }
+            strings.push_back(s);
+        }
+
+        for (auto& s : strings)
+            roads.emplace_back(std::span(points.data() + s.firstPoint, s.pointCount));
+    }
+
+    float Ramp(float start, float end, float value)
+    {
+        return std::clamp((value - start) / (end - start), 0.0f, 1.0f);
+    }
+
+    // The game fades distant sprites in from 150 m over distanceSpan. Limiting the distance it sees makes the light
+    // just as faded as the camera is low above it: invisible at its height, fully faded in 100 m above it.
+    float HeightLimitedDistance(float distance, float cameraZ, float lightZ, float distanceSpan)
+    {
+        return std::min(distance, 150.0f + distanceSpan * Ramp(0.0f, 100.0f, cameraZ - lightZ));
+    }
+
+    float HeightLimitedOpacity(float opacity, float cameraZ, float carZ)
+    {
+        return std::min(opacity, Ramp(0.0f, 100.0f, cameraZ - carZ));
+    }
+
+    // Xbox sprite colour: the colour times the intensity, then a random brightness of 170-254 that fades in from
+    // 150 to 250 m
+    uint32_t XboxSpriteColor(uint32_t rgb, float intensity, float distance)
+    {
+        uint32_t brightness = 170 + ((uint32_t(game_rand()) * 85) >> 15);
+        if (distance < 250.0f)
+            brightness = uint32_t(std::max(0.0f, (distance - 150.0f) * 0.01f) * float(brightness));
+        auto channel = [&](uint32_t shift)
+        {
+            auto input = uint32_t(float((rgb >> shift) & 0xFF) * std::clamp(intensity, 0.0f, 1.0f));
+            return ((input * brightness) >> 8) << shift;
+        };
+        return 0xFF000000 | channel(16) | channel(8) | channel(0);
+    }
+
+    // Each road switches all its streetlights on at its own point of dusk, picked by where it starts
+    float StreetlightThreshold(const PathPoint& first)
+    {
+        static constexpr std::array<float, 16> thresholds{ 0.1f, 0.7f, 0.5f, 0.96f, 0.34f, 0.75f, 0.2f, 0.4f, 0.65f, 0.05f, 0.76f, 0.83f, 0.59f, 0.34f, 0.66f, 0.43f };
+        int index = (first.x / 300 + first.y / 500) % 16;
+        return thresholds[index < 0 ? index + 16 : index];
+    }
+
+    void(__cdecl* CDistantLights__Render)(float);
+    void(__cdecl* RenderDayTrafficModels)(float);
+    void(__cdecl* RenderNightTrafficModels)();
+    void(__cdecl* CDistantLights__RenderOutSpriteBuffer)(Vector* positions, uint32_t* colors, int* count, Vector* right, Vector* up);
+    void(__cdecl* rage__grcBegin)(int primitive, int vertexCount);
+    void(__cdecl* rage__grcVertex)(float x, float y, float z, float nx, float ny, float nz, uint32_t color, float u, float v);
+    void(__stdcall* rage__grcEnd)();
+    int(__thiscall* rage__grcViewport__IsSphereVisible)(rage::grcViewport*, float x, float y, float z, float radius, float* distance);
+    int32_t* nCoastalStrings;
+    int32_t* nInlandStrings;
+
+    bool consolePass = false;
+    float nightFade = 0.0f;
+
+    bool IsConsole()
+    {
+        static auto distantLights = FusionFixSettings.GetRef("PREF_DISTANTLIGHTS");
+        return distantLights->get() == 1 && !roads.empty();
+    }
+
+    // The game's sprite batch drawing, with the texture flipped vertically in Console like on the Xbox
+    void DrawSprites(Vector* positions, uint32_t* colors, int* count, Vector* right, Vector* up)
+    {
+        if (!consolePass)
+            return CDistantLights__RenderOutSpriteBuffer(positions, colors, count, right, up);
+
+        if (*count > 0)
+        {
+            auto difference = *right - *up;
+            auto sum = *right + *up;
+            rage__grcBegin(3, 6 * *count); // triangle list
+            for (int i = 0; i < *count; ++i)
+            {
+                auto vertex = [&](const Vector& p, float u, float v)
+                {
+                    rage__grcVertex(p.x, p.y, p.z, 0.0f, 0.0f, -1.0f, colors[i], u, v);
+                };
+                auto a = positions[i] - difference;
+                auto b = positions[i] + difference;
+                auto c = positions[i] - sum;
+                auto d = positions[i] + sum;
+                vertex(a, 0.0f, 0.0f);
+                vertex(b, 1.0f, 1.0f);
+                vertex(c, 0.0f, 1.0f);
+                vertex(b, 1.0f, 1.0f);
+                vertex(d, 1.0f, 0.0f);
+                vertex(a, 0.0f, 0.0f);
+            }
+            rage__grcEnd();
+        }
+        *count = 0;
+    }
+
+    template<class Append>
+    void AddConsoleRoadSprites(rage::grcViewport* viewport, const Vector& camera, Append append)
+    {
+        auto add = [&](const Vector& light, float intensity, uint32_t rgb, bool inland)
+        {
+            if (inland && camera.z <= light.z)
+                return;
+            float distance = (light - camera).Length();
+            if (distance <= 150.0f)
+                return;
+            append(light, XboxSpriteColor(rgb, intensity, inland ? HeightLimitedDistance(distance, camera.z, light.z, 100.0f) : distance));
+        };
+
+        // Traffic moves along each road both ways: white lights every 33 units, red every 45.5, timed by the clock
+        uint32_t time = *CTimer::m_snTimeInMilliseconds;
+        float whiteStart = float((time / 43) & 0xFF) * (33.0f / 256.0f);
+        float redStart = 45.5f - float((time / 57) & 0xFF) * (45.5f / 256.0f);
+
+        for (size_t block = 0; block < BlockCount; ++block)
+        {
+            // 8x8 blocks of 750 units
+            float x = (float(block / 8) + 0.5f) * 750.0f - 3000.0f;
+            float y = (float(block % 8) + 0.5f) * 750.0f - 3000.0f;
+            if (!rage__grcViewport__IsSphereVisible(viewport, x, y, 20.0f, 525.0f, nullptr))
+                continue;
+
+            for (bool inland : { false, true })
+            {
+                uint32_t begin = firstString[block] + (inland ? coastalStrings[block] : 0);
+                uint32_t end = begin + (inland ? inlandStrings[block] : coastalStrings[block]);
+                for (uint32_t i = begin; i < end; ++i)
+                {
+                    auto& s = strings[i];
+                    auto& road = roads[i];
+                    if (road.Length() <= 0.0f || !rage__grcViewport__IsSphereVisible(viewport, s.x, s.y, s.z, s.radius, nullptr))
+                        continue;
+
+                    for (float d = whiteStart; d < road.Length(); d += 33.0f)
+                        add(road.At(d) + Vector{ 0.0f, 0.0f, 2.0f }, nightFade, 0xFFFFFF, inland);
+                    for (float d = redStart; d < road.Length(); d += 45.5f)
+                        add(road.At(d) + Vector{ 0.0f, 0.0f, 2.0f }, nightFade, 0xFF0000, inland);
+
+                    if (nightFade < StreetlightThreshold(points[s.firstPoint]))
+                        continue;
+                    for (float d = 0.0f; d < road.Length(); d += 30.0f)
+                        add(road.At(d) + Vector{ 0.0f, 0.0f, 12.0f }, 1.0f, 0xFFDC80, inland);
+                }
+            }
+        }
+    }
+
+    // The last sprite batch of CDistantLights::Render, the aircraft. In Console the roads are drawn first, then the
+    // aircraft, at half size in TBoGT like on the Xbox (Fusion Fix keeps them full size on PC).
+    void __cdecl RenderOutLastSprites(Vector* positions, uint32_t* colors, int* count, Vector* right, Vector* up)
+    {
+        if (!consolePass || nightFade <= 0.0f || !*rage::pCurrentViewport)
+            return DrawSprites(positions, colors, count, right, up);
+
+        auto viewport = rage::GetCurrentViewport();
+        Vector camera{ viewport->mCameraMatrix[3][0], viewport->mCameraMatrix[3][1], viewport->mCameraMatrix[3][2] };
+
+        std::array<Vector, 64> roadPositions;
+        std::array<uint32_t, 64> roadColors;
+        int roadCount = 0;
+        AddConsoleRoadSprites(viewport, camera, [&](const Vector& light, uint32_t color)
+        {
+            roadPositions[roadCount] = light;
+            roadColors[roadCount++] = color;
+            if (roadCount == int(roadPositions.size()))
+                DrawSprites(roadPositions.data(), roadColors.data(), &roadCount, right, up);
+        });
+        DrawSprites(roadPositions.data(), roadColors.data(), &roadCount, right, up);
+
+        float aircraftSize = *_dwCurrentEpisode == 2 ? 0.5f : 1.0f;
+        auto aircraftRight = *right * aircraftSize;
+        auto aircraftUp = *up * aircraftSize;
+        DrawSprites(positions, colors, count, &aircraftRight, &aircraftUp);
+    }
+
+    // Console: no PC streetlights (their road counts are zero while the aircraft are drawn) and no PC traffic models
+    void __cdecl Render(float fade)
     {
         nightFade = std::clamp(fade, 0.0f, 1.0f);
-        if (GetMode() == Mode::Console)
-        {
-            ScopedPcRoadSuppression scoped;
-            originalRender(fade);
-        }
-        else
-            originalRender(fade);
+        if (!IsConsole())
+            return CDistantLights__Render(fade);
+
+        std::array<int32_t, BlockCount> coastal, inland;
+        std::copy_n(nCoastalStrings, BlockCount, coastal.begin());
+        std::copy_n(nInlandStrings, BlockCount, inland.begin());
+        std::fill_n(nCoastalStrings, BlockCount, 0);
+        std::fill_n(nInlandStrings, BlockCount, 0);
+        consolePass = true;
+        CDistantLights__Render(fade);
+        consolePass = false;
+        std::copy_n(coastal.begin(), BlockCount, nCoastalStrings);
+        std::copy_n(inland.begin(), BlockCount, nInlandStrings);
     }
 
-    static void __cdecl RenderNightModels()
+    void __cdecl RenderDayTraffic(float fade)
     {
-        if (GetMode() != Mode::Console)
-            originalNightModels();
+        if (!IsConsole())
+            RenderDayTrafficModels(fade);
     }
 
-    static uintptr_t Unique(std::string_view signature, uintptr_t begin = 0, uintptr_t end = 0)
+    void __cdecl RenderNightTraffic()
     {
-        auto pattern = begin ? hook::range_pattern(begin, end, signature) : hook::pattern(signature);
-        return pattern.size() == 1 ? reinterpret_cast<uintptr_t>(pattern.get_first()) : 0;
+        if (!IsConsole())
+            RenderNightTrafficModels();
     }
-
-    static uintptr_t Target(uintptr_t instruction)
-    {
-        return instruction + 5 + *reinterpret_cast<int32_t*>(instruction + 1);
-    }
-
-    static void Init()
-    {
-        // Resolve __vehicleImpostersCallback dispatch and CDistantLights::Load
-        // before installing any hooks.
-        const auto night = Unique("F3 0F 11 14 24 E8 ? ? ? ? 83 C4 04 E9");
-        const auto day = Unique("F3 0F 11 04 24 E8 ? ? ? ? 83 C4 04 C6 05 ? ? ? ? 01 C3");
-        const auto data = Unique("6A 04 68 ? ? ? ? 56 E8 ? ? ? ? 6A 04 68 ? ? ? ? 56 E8 ? ? ? ? 68 00 01 00 00");
-        if (!night || !day || !data || !game_rand)
-        {
-            OutputDebugStringA("FusionFix: Distant Lights bindings unavailable; retaining PC rendering.\n");
-            return;
-        }
-        const auto spritePass = Target(night + 5); // CDistantLights::Render
-        const auto modelPass = Target(night + 13);
-        const auto dayPass = Target(day + 5);
-        const auto epilogue = "E8 ? ? ? ? 83 C4 10 C7 04 24 00 00 80 3F E8 ? ? ? ? 6A 00 6A 02";
-        const auto spriteFinal = Unique(epilogue, spritePass, spritePass + 0x1000);
-        const auto timer = Unique("A1 ? ? ? ? 33 D2 F7 F1 F3 0F 10 15", modelPass, modelPass + 0x700);
-        const auto visibility = Unique("F3 0F 11 04 24 E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 33 FF", spritePass, spritePass + 0x500);
-        const auto streetlightIndex = Unique("25 0F 00 00 80 79 05 48 83 C8 F0 40 F3 0F 10 45 08 0F 2F 04 85 ? ? ? ? 0F 82",
-            spritePass, spritePass + 0x1000);
-        // Original JNE and FusionFix's NOP/JMP both occupy six bytes.
-        const auto aircraftSize = Unique("83 3D ? ? ? ? 02 ? ? ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 10 8C 24",
-            spritePass, spritePass + 0x1000);
-        const auto heightGate = Unique("83 FF 01 0F 85 ? ? ? ? F3 0F 10 44 24 58 0F 2F 05 ? ? ? ? 0F 86 ? ? ? ?",
-            spritePass, spritePass + 0x500);
-        const auto spriteHeight = Unique("F3 0F 11 84 24 68 01 00 00 F3 0F 5C 84 24 C8 00 00 00 F3 0F 59 E4",
-            spritePass, spritePass + 0x1000);
-        const auto streetlightFade = Unique("51 8D 84 24 80 00 00 00 F3 0F 11 04 24 50 E8 ? ? ? ?",
-            spritePass, spritePass + 0x1000);
-        const auto roadGroup = Unique("8B 74 24 1C 8B 7C 24 4C 47 89 7C 24 4C 83 FF 02",
-            spritePass, spritePass + 0x1000);
-        const auto dayHeightGate = Unique("83 F9 01 0F 85 ? ? ? ? F3 0F 10 84 24 DC 00 00 00 0F 2F 05 ? ? ? ? 0F 86 ? ? ? ?",
-            dayPass, dayPass + 0x500);
-        const auto nightHeightGate = Unique("83 F9 01 0F 85 ? ? ? ? F3 0F 10 84 24 08 01 00 00 0F 2F 05 ? ? ? ? 0F 86 ? ? ? ?",
-            modelPass, modelPass + 0x500);
-        const auto dayTrafficFade = Unique("8B 0C CD ? ? ? ? 51 8D 84 24 94 01 00 00 50 8D 84 24 88 01 00 00",
-            dayPass, dayPass + 0xCE0);
-        const auto nightTrafficFade = Unique("6A 00 8D 84 24 A4 01 00 00 50 8D 84 24 98 01 00 00 50 8D 84 24 E8 00 00 00 50 68 ? ? ? ? 8D 84 24 94 01 00 00",
-            modelPass, modelPass + 0xC70);
-        // Verify the stack slots used below against their native stores.
-        const auto dayTrafficGroup = Unique("89 8C 24 E4 00 00 00 85 C9 75 0E", dayPass, dayPass + 0x500);
-        const auto nightTrafficGroup = Unique("89 8C 24 C8 00 00 00 85 C9 75 0E", modelPass, modelPass + 0x500);
-        const auto dayTrafficHeight = Unique("F3 0F 11 94 24 08 01 00 00 F3 0F 5C 94 24 38 01 00 00", dayPass, dayPass + 0xCE0);
-        const auto nightTrafficHeight = Unique("F3 0F 11 B4 24 18 01 00 00 F3 0F 5C B4 24 38 01 00 00", modelPass, modelPass + 0xC70);
-        if (!spriteFinal || !timer || !visibility || !streetlightIndex || !aircraftSize ||
-            !heightGate || !spriteHeight || !streetlightFade || !roadGroup ||
-            !dayHeightGate || !nightHeightGate || !dayTrafficFade || !nightTrafficFade ||
-            !dayTrafficGroup || !nightTrafficGroup || !dayTrafficHeight || !nightTrafficHeight)
-        {
-            OutputDebugStringA("FusionFix: Distant Lights pass bindings unavailable; retaining PC rendering.\n");
-            return;
-        }
-        const auto nativeFlush = Target(spriteFinal); // CDistantLights::RenderOutSpriteBuffer
-        const auto begin = Unique("8D 04 40 03 C0 50 6A 03 E8 ? ? ? ? 33 C9", nativeFlush, nativeFlush + 0x400);
-        const auto vertex = Unique("F3 0F 11 14 24 E8 ? ? ? ? F3 0F 10 44 24 54", nativeFlush, nativeFlush + 0x400);
-        const auto end = Unique("E8 ? ? ? ? C7 07 00 00 00 00 5F 5E 8B E5 5D C3", nativeFlush, nativeFlush + 0x400);
-        if (!begin || !vertex || !end)
-        {
-            OutputDebugStringA("FusionFix: Distant Lights sprite bindings unavailable; retaining PC rendering.\n");
-            return;
-        }
-        aircraftSizeBranch = reinterpret_cast<const uint8_t*>(aircraftSize + 7);
-        nativeGrcBegin = reinterpret_cast<decltype(nativeGrcBegin)>(Target(begin + 8));
-        nativeGrcVertex = reinterpret_cast<decltype(nativeGrcVertex)>(Target(vertex + 5));
-        nativeGrcEnd = reinterpret_cast<decltype(nativeGrcEnd)>(Target(end));
-        coastalCount = *reinterpret_cast<int32_t**>(data + 48);
-        interiorCount = *reinterpret_cast<int32_t**>(data + 64);
-        milliseconds = *reinterpret_cast<uint32_t**>(timer + 1);
-        originalDayModels = reinterpret_cast<decltype(originalDayModels)>(dayPass);
-        originalRender = reinterpret_cast<decltype(originalRender)>(spritePass);
-        originalNightModels = reinterpret_cast<decltype(originalNightModels)>(modelPass);
-        nativeRenderOutSpriteBuffer = reinterpret_cast<RenderOutSpriteBufferFn>(nativeFlush);
-        isSphereVisible = reinterpret_cast<decltype(isSphereVisible)>(Target(visibility + 5));
-
-        // CE, before PUSH ECX at the road-only CDistantLights::ModifyColourForDist call:
-        // ESP+4C is the group; ESP+C8 is camera Z; ESP+168 is sprite Z (+12).
-        // Cap XMM0's distance before ModifyColourForDist. This
-        // preserves its rounding and random draw, with no second attenuation.
-        pcStreetlightFade = safetyhook::create_mid(streetlightFade, [](SafetyHookContext& regs)
-        {
-            if (*reinterpret_cast<const int*>(regs.esp + 0x4C) == 1)
-                regs.xmm0.f32[0] = HeightLimitedDistance(regs.xmm0.f32[0],
-                    *reinterpret_cast<const float*>(regs.esp + 0xC8),
-                    *reinterpret_cast<const float*>(regs.esp + 0x168), 150.0f);
-        });
-        // Before model submission pushes its arguments, the native distance
-        // opacity is in XMM1 (day) / XMM0 (night). Camera Z is ESP+138 in both;
-        // model Z includes the native +0.6 placement offset. Coastal is untouched.
-        pcDayTrafficFade = safetyhook::create_mid(dayTrafficFade, [](SafetyHookContext& regs)
-        {
-            if (*reinterpret_cast<const int*>(regs.esp + 0xE4) == 1)
-                regs.xmm1.f32[0] = HeightLimitedOpacity(regs.xmm1.f32[0],
-                    *reinterpret_cast<const float*>(regs.esp + 0x138),
-                    *reinterpret_cast<const float*>(regs.esp + 0x108));
-        });
-        pcNightTrafficFade = safetyhook::create_mid(nightTrafficFade, [](SafetyHookContext& regs)
-        {
-            if (*reinterpret_cast<const int*>(regs.esp + 0xC8) == 1)
-                regs.xmm0.f32[0] = HeightLimitedOpacity(regs.xmm0.f32[0],
-                    *reinterpret_cast<const float*>(regs.esp + 0x138),
-                    *reinterpret_cast<const float*>(regs.esp + 0x118));
-        });
-        if (!pcStreetlightFade || !pcDayTrafficFade || !pcNightTrafficFade)
-        {
-            pcStreetlightFade.reset();
-            pcDayTrafficFade.reset();
-            pcNightTrafficFade.reset();
-            OutputDebugStringA("FusionFix: Distant Lights height fade unavailable; retaining PC rendering.\n");
-            return;
-        }
-        // Remove only the inland world-height JBEs. Eligibility now depends on
-        // each light/car's Z, including paths below sea level; keep group guards.
-        injector::MakeNOP(heightGate + 22, 6, true);
-        injector::MakeNOP(dayHeightGate + 25, 6, true);
-        injector::MakeNOP(nightHeightGate + 25, 6, true);
-
-        // AND EAX,8000000Fh implements signed remainder. Clear the sign mask
-        // to wrap indices into 0..15; JNS skips the negative-remainder repair.
-        injector::WriteMemory<uint8_t>(streetlightIndex + 4, 0x00, true);
-
-        injector::MakeCALL(spriteFinal, FinalSpriteFlush, true);
-        injector::MakeCALL(day + 5, RenderDayModels, true);
-        injector::MakeCALL(night + 5, Render, true);
-        injector::MakeJMP(night + 13, RenderNightModels, true);
-        ready = true;
-    }
-
-    static struct Registration
-    {
-        Registration() { FusionFix::onInitEvent() += Init; }
-    } registration;
 }
+
+class DistantLightsModule
+{
+public:
+    DistantLightsModule()
+    {
+        FusionFix::onInitEvent() += []()
+        {
+            using namespace DistantLights;
+
+            auto pattern = hook::pattern("F3 0F 11 14 24 E8 ? ? ? ? 83 C4 04 E9");
+            if (pattern.empty()) // only 1.2.0.32, 1.2.0.43, 1.2.0.59
+                return;
+
+            LoadConsolePaths();
+
+            // Vehicle imposter callback, night: CDistantLights::Render (streetlights, aircraft), then the traffic models
+            CDistantLights__Render = injector::GetBranchDestination(pattern.get_first(5)).get();
+            RenderNightTrafficModels = injector::GetBranchDestination(pattern.get_first(13)).get();
+            injector::MakeCALL(pattern.get_first(5), Render, true);
+            injector::MakeJMP(pattern.get_first(13), RenderNightTraffic, true);
+
+            // Day: the traffic models
+            pattern = hook::pattern("F3 0F 11 04 24 E8 ? ? ? ? 83 C4 04 C6 05 ? ? ? ? 01 C3");
+            RenderDayTrafficModels = injector::GetBranchDestination(pattern.get_first(5)).get();
+            injector::MakeCALL(pattern.get_first(5), RenderDayTraffic, true);
+
+            // CDistantLights::Load: the coastal and inland string counts of each block
+            pattern = hook::pattern("6A 04 68 ? ? ? ? 56 E8 ? ? ? ? 6A 04 68 ? ? ? ? 56 E8 ? ? ? ? 68 00 01 00 00");
+            nCoastalStrings = *pattern.get_first<int32_t*>(48);
+            nInlandStrings = *pattern.get_first<int32_t*>(64);
+
+            pattern = hook::pattern("F3 0F 11 04 24 E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 33 FF");
+            rage__grcViewport__IsSphereVisible = injector::GetBranchDestination(pattern.get_first(5)).get();
+
+            pattern = hook::pattern("50 68 ? ? ? ? 68 ? ? ? ? E8 ? ? ? ? 83 C4 10 C7 04 24 00 00 80 3F");
+            CDistantLights__RenderOutSpriteBuffer = injector::GetBranchDestination(pattern.get_first(11)).get();
+            injector::MakeCALL(pattern.get_first(11), RenderOutLastSprites, true);
+
+            // In CDistantLights::RenderOutSpriteBuffer
+            pattern = hook::pattern("8D 04 40 03 C0 50 6A 03 E8 ? ? ? ? 33 C9");
+            rage__grcBegin = injector::GetBranchDestination(pattern.get_first(8)).get();
+            pattern = hook::pattern("F3 0F 11 14 24 E8 ? ? ? ? F3 0F 10 44 24 54");
+            rage__grcVertex = injector::GetBranchDestination(pattern.get_first(5)).get();
+            pattern = hook::pattern("E8 ? ? ? ? C7 07 00 00 00 00 5F 5E 8B E5 5D C3");
+            rage__grcEnd = injector::GetBranchDestination(pattern.get_first(0)).get();
+
+            // The streetlight's dusk threshold index is a signed remainder, negative in parts of Alderney, which reads
+            // before the table: and eax, 8000000Fh -> and eax, 0Fh
+            pattern = hook::pattern("25 0F 00 00 80 79 05 48 83 C8 F0 40 F3 0F 10 45 08 0F 2F 04 85");
+            injector::WriteMemory<uint32_t>(pattern.get_first(1), 0x0F, true);
+
+            // Inland streetlights and cars are drawn only once the camera is above 75 m; the height fades below
+            // replace that.
+            pattern = hook::pattern("83 FF 01 0F 85 ? ? ? ? F3 0F 10 44 24 58 0F 2F 05 ? ? ? ? 0F 86");
+            injector::MakeNOP(pattern.get_first(22), 6, true);
+            pattern = hook::pattern("83 F9 01 0F 85 ? ? ? ? F3 0F 10 84 24 DC 00 00 00 0F 2F 05 ? ? ? ? 0F 86");
+            injector::MakeNOP(pattern.get_first(25), 6, true);
+            pattern = hook::pattern("83 F9 01 0F 85 ? ? ? ? F3 0F 10 84 24 08 01 00 00 0F 2F 05 ? ? ? ? 0F 86");
+            injector::MakeNOP(pattern.get_first(25), 6, true);
+
+            // PC streetlights: the distance passed to CDistantLights::ModifyColourForDist. [esp+4C] is 1 for inland
+            // roads, [esp+C8] the camera height, [esp+168] the light's height.
+            pattern = hook::pattern("51 8D 84 24 80 00 00 00 F3 0F 11 04 24 50 E8");
+            static auto StreetlightFadeHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+            {
+                if (*(int32_t*)(regs.esp + 0x4C) == 1)
+                    regs.xmm0.f32[0] = HeightLimitedDistance(regs.xmm0.f32[0], *(float*)(regs.esp + 0xC8), *(float*)(regs.esp + 0x168), 150.0f);
+            });
+
+            // PC traffic models: their distance opacity, in xmm1 by day and xmm0 at night. [esp+E4] / [esp+C8] is 1 for
+            // inland roads, [esp+138] the camera height, [esp+108] / [esp+118] the car's height.
+            pattern = hook::pattern("8B 0C CD ? ? ? ? 51 8D 84 24 94 01 00 00 50 8D 84 24 88 01 00 00");
+            static auto DayTrafficFadeHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+            {
+                if (*(int32_t*)(regs.esp + 0xE4) == 1)
+                    regs.xmm1.f32[0] = HeightLimitedOpacity(regs.xmm1.f32[0], *(float*)(regs.esp + 0x138), *(float*)(regs.esp + 0x108));
+            });
+
+            pattern = hook::pattern("6A 00 8D 84 24 A4 01 00 00 50 8D 84 24 98 01 00 00 50 8D 84 24 E8 00 00 00 50 68 ? ? ? ? 8D 84 24 94 01 00 00");
+            static auto NightTrafficFadeHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+            {
+                if (*(int32_t*)(regs.esp + 0xC8) == 1)
+                    regs.xmm0.f32[0] = HeightLimitedOpacity(regs.xmm0.f32[0], *(float*)(regs.esp + 0x138), *(float*)(regs.esp + 0x118));
+            });
+        };
+    }
+} DistantLightsModule;
