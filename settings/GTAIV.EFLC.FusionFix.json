@@ -251,6 +251,11 @@
       "page": "controls", "group": "@group.camera", "control": [ "switch", "cycler" ]
     },
     {
+      "id": "MISC.LadderCameraTilt", "type": "bool", "default": 1,
+      "label": "@Ladder Cam Tilt", "description": "@MISC.LadderCameraTilt.description",
+      "page": "controls", "group": "@group.camera", "control": [ "switch", "cycler" ]
+    },
+    {
       "id": "MISC.StuntJumpCamera", "type": "bool", "default": 1,
       "label": "@Stunt Jump Cam", "description": "@MISC.StuntJumpCamera.description",
       "page": "controls", "group": "@group.camera", "control": [ "switch", "cycler" ]
@@ -284,6 +289,13 @@
       "id": "MISC.AutoClimbLadders", "type": "bool", "default": 0,
       "label": "@Ladders Climb", "description": "@MISC.AutoClimbLadders.description",
       "page": "controls", "group": "@group.gameplay", "control": [ "switch", "cycler" ]
+    },
+    {
+      "id": "MISC.PlayerJumpRagdollControl", "type": "choice", "default": 0,
+      "choices": [ { "value": 0, "label": "@MO_OFF" }, { "value": 1, "label": "@MO_ON" }, { "value": 2, "label": "@ragdoll.climb" } ],
+      "label": "@Jump Ragdoll", "description": "@MISC.PlayerJumpRagdollControl.description",
+      "page": "controls", "group": "@group.gameplay", "control": [ "cycler", "dropdown" ],
+      "presets": { "vanilla": 0, "recommended": 0, "enhanced": 1 }
     },
     {
       "id": "MISC.MouseAimSensitivity", "type": "int", "default": 10, "min": 0, "max": 20, "step": 1,
@@ -326,6 +338,11 @@
       "id": "MISC.PadAimSensitivity", "type": "int", "default": 10, "min": 0, "max": 20, "step": 1,
       "label": "@PadAimSens", "description": "@MISC.PadAimSensitivity.description",
       "page": "gamepad", "control": [ "slider" ]
+    },
+    {
+      "id": "MISC.AutoCenterCamera", "type": "bool", "default": 1,
+      "label": "@Auto Center Cam", "description": "@MISC.AutoCenterCamera.description",
+      "page": "gamepad", "group": "@group.camera", "control": [ "switch", "cycler" ]
     },
     {
       "id": "MISC.DelayBeforeCenteringCameraPad", "type": "int", "default": 0, "min": 0, "max": 9, "step": 1,
@@ -534,19 +551,9 @@
       "page": "advanced", "group": "@group.misc", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
     },
     {
-      "id": "MISC.AutoClimbLaddersRange", "type": "float", "default": 1.5, "step": 0.1, "min": 0, "max": 4,
+      "id": "MISC.AutoClimbLaddersRange", "type": "float", "default": 4.0, "step": 0.1, "min": 0, "max": 4,
       "label": "@MISC.AutoClimbLaddersRange", "description": "@MISC.AutoClimbLaddersRange.description",
       "page": "advanced", "group": "@group.misc", "control": [ "slider" ], "visibility": "editor", "apply": "restart"
-    },
-    {
-      "id": "MISC.PlayerJumpRagdollControl", "type": "bool", "default": 0,
-      "label": "@MISC.PlayerJumpRagdollControl", "description": "@MISC.PlayerJumpRagdollControl.description",
-      "page": "advanced", "group": "@group.misc", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
-    },
-    {
-      "id": "MISC.PlayerClimbRagdollControl", "type": "bool", "default": 0,
-      "label": "@MISC.PlayerClimbRagdollControl", "description": "@MISC.PlayerClimbRagdollControl.description",
-      "page": "advanced", "group": "@group.misc", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
     },
     {
       "id": "MISC.SkipLoadingSpinner", "type": "bool", "default": 1,

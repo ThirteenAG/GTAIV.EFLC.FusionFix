@@ -140,6 +140,13 @@ public:
         static Event<> BeforeReset;
         return BeforeReset;
     }
+    // Early legacy builds leave stale texture pointers after the native render-target lost-device pass.
+    // Owners must destroy their targets before that pass; later reset callbacks may repeat cleanup.
+    static Event<>& onBeforeRenderTargetReset()
+    {
+        static Event<> BeforeRenderTargetReset;
+        return BeforeRenderTargetReset;
+    }
     static Event<>& onEndScene()
     {
         static Event<> EndScene;

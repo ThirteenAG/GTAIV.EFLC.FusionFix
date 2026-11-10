@@ -92,6 +92,17 @@ void Init()
     }
     else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
     {
+        auto renderTargetReset = hook::pattern("51 8B 0D ? ? ? ? 8B 01 8B 50 4C 56 57 FF D2 33 FF 39 3D");
+        if (!renderTargetReset.empty()) // 1.0.7.0, 1.1.2.0
+        {
+            // The factory has unbound its targets but has not started iterating them yet.
+            // Destroy owned targets now: onBeforeReset runs after native texture release on these builds.
+            static auto BeforeRenderTargetResetHook = safetyhook::create_mid(renderTargetReset.get_first(16), [](SafetyHookContext&)
+            {
+                FusionFix::onBeforeRenderTargetReset().executeAll();
+            });
+        }
+
         pattern = hook::pattern("8B 08 8B 51 40 68 ? ? ? ? 50 FF D2 8B");
         struct AuxBeforeResetHook
         {
