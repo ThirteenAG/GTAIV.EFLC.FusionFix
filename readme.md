@@ -116,6 +116,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **Windowed Borderless**, toggle borderless mode
 - **Pause Game On Focus Loss**, pauses the game when it's minimized
 - **Extra Night Shadows**, forces every lamppost and player headlights to cast shadows (*original PC-only "feature"; extremely broken, not recommended*)
+- **Distant Lights**, offers "PC" and "Console" distant streetlights and traffic, the console ones with denser streetlights and moving traffic lights
 - **LightSyncRGB**, custom ambient lighting for IV, TLAD and TBOGT, health indication on G-Keys, police lights, ammo counter, only Logitech hardware is supported, requires Logitech G HUB app, [**watch full clip on YouTube**](https://www.youtube.com/watch?v=oLxn3q-NnZ0&hd=1)
 
 ![LightSyncRGB](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/assets/4904157/f925ad27-19ce-4dde-8801-0cec1578ade7)

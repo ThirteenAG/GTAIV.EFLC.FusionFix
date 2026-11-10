@@ -382,5 +382,7 @@
   "window.windowed": "Ventana",
   "window.borderless": "Sin bordes",
   "MAIN.WindowMode.description": "Pantalla completa, una ventana con bordes o una ventana sin bordes que cubre la pantalla. Alt+Intro cambia entre pantalla completa y el último modo de ventana.",
-  "ff.note.d3d9on12": "Instala D3D9On12 en la página de mejoras gráficas de FusionFixHub para activar DirectX 12."
+  "ff.note.d3d9on12": "Instala D3D9On12 en la página de mejoras gráficas de FusionFixHub para activar DirectX 12.",
+  "Distant Lights": "Luces lejanas",
+  "MISC.DistantLights.description": "Farolas y tráfico vistos a lo lejos. PC: las farolas y los modelos de tráfico de la versión de PC. Consola: las farolas más densas y las luces de tráfico en movimiento de la versión de Xbox 360."
 }
