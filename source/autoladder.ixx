@@ -11,10 +11,10 @@ import common;
 import comvars;
 import settings;
 
-// The ladder search radius of the game, also used by the button
+// Manual searches keep the native radius; automatic searches may use a smaller limit.
 static constexpr float fButtonScanRadius = 4.0f;
 static float fLadderScanRadius = fButtonScanRadius;
-static float fAutoClimbRadius = 1.5f;
+static float fAutoClimbRadius = 4.0f;
 
 // No automatic grab right after leaving a ladder, longer in water
 static constexpr uint32_t nOnFootRegrabCooldownMs = 350;
@@ -413,6 +413,15 @@ namespace CTaskComplexClimbLadder
             return intended;
         }
 
+        // Top entry must be close to the mount position, closer still when facing away.
+        float limit = 0.6f + GetDesiredMoveBlendRatio(ped) * 0.1f;
+        Direction towardBottom{ bottom.x - matrix->pos.x, bottom.y - matrix->pos.y };
+        if (Normalize(towardBottom) && Dot(facing, towardBottom) < -0.25f)
+            limit -= 0.2f;
+        const float x = position.x - matrix->pos.x, y = position.y - matrix->pos.y;
+        if (x * x + y * y >= limit * limit)
+            return false;
+
         if (matrix->pos.z - top.z > 1.5f || top.z > matrix->pos.z
             || Dot(ladderNormal, toward) < -0.15f || Dot(movement, toward) < fMinTopApproachDot)
             return false;
@@ -539,7 +548,7 @@ public:
             SettingsReader reader;
 
             // [MISC]
-            fAutoClimbRadius = reader.ReadFloat("MISC", "AutoClimbLaddersRange", 1.5f);
+            fAutoClimbRadius = reader.ReadFloat("MISC", "AutoClimbLaddersRange", 4.0f);
 
             auto pattern = find_pattern("56 57 8B F9 8D B7 58 27 00 00 56 E8", "56 8B F1 57 8D BE 58 27 00 00 57 E8");
             CControl::GetPedWalkLeftRight = (decltype(CControl::GetPedWalkLeftRight))pattern.get_first(0);
