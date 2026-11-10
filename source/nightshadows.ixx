@@ -135,7 +135,7 @@ public:
                     nRenderListID = *(int32_t*)(regs.esp + 0x04);
                 });
 
-                // Allows vehicles to receive shadows from artificial light sources, this was disabled and in later patches entirely removed on PC to "make room" for headlight shadows
+                // Allow vehicles to receive shadows from artificial light sources, this was disabled and in later patches entirely removed on PC to "make room" for headlight shadows
                 pattern = find_pattern("74 ? 53 6A ? 6A ? 6A ? 55 E8 ? ? ? ? 53", "74 ? 56 53 53 53");
                 static auto CRenderer__AddToDrawListShadowMapEntities_Hook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                 {

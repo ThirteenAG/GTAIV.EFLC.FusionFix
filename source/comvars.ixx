@@ -3284,11 +3284,11 @@ public:
         pattern = find_pattern("56 6A 00 FF 74 24 0C E8 ? ? ? ? 8B 35", "8B 44 24 04 56 6A 00 50 E8 ? ? ? ? 8B 35");
         rage::grmShaderInfo::getGlobalParameterIndexByName = pattern.get_first<int(__cdecl)(const char*)>(0);
 
-        pattern = find_pattern("A1 ? ? ? ? 83 EC ? 56 85 C0 74 ? FF 74 24", "A1 ? ? ? ? 83 EC ? 85 C0 53 74");
-        rage::grmShaderFx::RegisterTechniqueGroup = (decltype(rage::grmShaderFx::RegisterTechniqueGroup))pattern.get_first(0);
-
         pattern = find_pattern("8B 54 24 08 85 D2 74 62", "56 8B 74 24 0C 85 F6 74 62");
         rage::grmShaderInfo::shsub_436D70 = safetyhook::create_inline(pattern.get_first(0), rage::grmShaderInfo::setShaderParam);
+
+        pattern = find_pattern("A1 ? ? ? ? 83 EC ? 56 85 C0 74 ? FF 74 24", "A1 ? ? ? ? 83 EC ? 85 C0 53 74");
+        rage::grmShaderFx::RegisterTechniqueGroup = (decltype(rage::grmShaderFx::RegisterTechniqueGroup))pattern.get_first(0);
 
         // Workaround for car reflections. 1.2.0.x: this loop sets its parameters through another function,
         // which the hook above doesn't touch
