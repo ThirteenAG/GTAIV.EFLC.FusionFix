@@ -181,6 +181,15 @@ private:
 
     static inline float* dwViewDistance = nullptr;
 
+    static void ReleaseRenderTarget()
+    {
+        if (mNormalRtCopy)
+        {
+            mNormalRtCopy->Destroy();
+            mNormalRtCopy = nullptr;
+        }
+    }
+
     static auto __fastcall OnDeviceLost() -> void
     {
         mDiffuseRT = nullptr;
@@ -207,11 +216,7 @@ private:
             mSnowTexture = nullptr;
         }
 
-        if (mNormalRtCopy)
-        {
-            mNormalRtCopy->Destroy();
-            mNormalRtCopy = nullptr;
-        }
+        ReleaseRenderTarget();
     }
 
     static auto __fastcall OnDeviceReset() -> void
@@ -310,6 +315,11 @@ private:
         auto onLostCB = rage::grcDevice::Functor0(NULL, OnDeviceLost, NULL, 0);
         auto onResetCB = rage::grcDevice::Functor0(NULL, OnDeviceReset, NULL, 0);
         rage::grcDevice::RegisterDeviceCallbacks(onLostCB, onResetCB);
+
+        FusionFix::onBeforeRenderTargetReset() += []()
+        {
+            ReleaseRenderTarget();
+        };
 
         HMODULE hm = NULL;
         GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)&OnBuildRenderListInit, &hm);
