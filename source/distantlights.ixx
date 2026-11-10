@@ -87,52 +87,64 @@ namespace DistantLights
 
     void LoadConsolePaths()
     {
-        std::wstring root(MAX_PATH, L'\0');
-        std::filesystem::path folder;
-        if (UAL::GetOverloadPathW && UAL::GetOverloadPathW(root.data(), root.size()))
-            folder = root.c_str();
-        else
-            folder = GetExeModulePath() / L"update";
-
-        std::ifstream file(folder / L"pc/data/paths/distantlights_360.dat", std::ios::binary);
-        std::vector<uint8_t> bytes((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-
-        constexpr size_t header = 8 + 3 * BlockCount * 4;
-        auto u16 = [&](size_t at) { return uint16_t((bytes[at] << 8) | bytes[at + 1]); };
-        auto u32 = [&](size_t at) { return (uint32_t(u16(at)) << 16) | u16(at + 2); };
-        if (bytes.size() < header)
-            return;
-        uint32_t pointCount = u32(0);
-        uint32_t stringCount = u32(4);
-        if (bytes.size() != header + uint64_t(pointCount) * 6 + uint64_t(stringCount) * 12)
-            return;
-
-        for (size_t b = 0; b < BlockCount; ++b)
+        try
         {
-            firstString[b] = u32(8 + b * 4);
-            coastalStrings[b] = u32(8 + BlockCount * 4 + b * 4);
-            inlandStrings[b] = u32(8 + BlockCount * 8 + b * 4);
-            if (uint64_t(firstString[b]) + coastalStrings[b] + inlandStrings[b] > stringCount)
+            std::wstring root(MAX_PATH, L'\0');
+            std::filesystem::path folder;
+            if (UAL::GetOverloadPathW && UAL::GetOverloadPathW(root.data(), root.size()))
+                folder = root.c_str();
+            else
+                folder = GetExeModulePath() / L"update";
+
+            constexpr size_t header = 8 + 3 * BlockCount * 4;
+            std::ifstream file(folder / L"pc/data/paths/distantlights_360.dat", std::ios::binary | std::ios::ate);
+            const auto size = file.tellg();
+            if (size < std::streamoff(header) || size > 86000)
                 return;
-        }
+            std::vector<uint8_t> bytes(static_cast<size_t>(size));
+            file.seekg(0);
+            if (!file.read(reinterpret_cast<char*>(bytes.data()), std::streamsize(bytes.size())))
+                return;
+            auto u16 = [&](size_t at) { return uint16_t((bytes[at] << 8) | bytes[at + 1]); };
+            auto u32 = [&](size_t at) { return (uint32_t(u16(at)) << 16) | u16(at + 2); };
+            uint32_t pointCount = u32(0);
+            uint32_t stringCount = u32(4);
+            if (bytes.size() != header + uint64_t(pointCount) * 6 + uint64_t(stringCount) * 12)
+                return;
 
-        for (size_t i = 0, at = header; i < pointCount; ++i, at += 6)
-            points.push_back({ int16_t(u16(at)), int16_t(u16(at + 2)), int16_t(u16(at + 4)) });
-
-        for (size_t i = 0, at = header + pointCount * 6; i < stringCount; ++i, at += 12)
-        {
-            PathString s{ int16_t(u16(at)), int16_t(u16(at + 2)), int16_t(u16(at + 4)), int16_t(u16(at + 6)), u16(at + 8), u16(at + 10) };
-            if (uint32_t(s.firstPoint) + s.pointCount > pointCount)
+            for (size_t b = 0; b < BlockCount; ++b)
             {
-                points.clear();
-                strings.clear();
-                return;
+                firstString[b] = u32(8 + b * 4);
+                coastalStrings[b] = u32(8 + BlockCount * 4 + b * 4);
+                inlandStrings[b] = u32(8 + BlockCount * 8 + b * 4);
+                if (uint64_t(firstString[b]) + coastalStrings[b] + inlandStrings[b] > stringCount)
+                    return;
             }
-            strings.push_back(s);
-        }
 
-        for (auto& s : strings)
-            roads.emplace_back(std::span(points.data() + s.firstPoint, s.pointCount));
+            for (size_t i = 0, at = header; i < pointCount; ++i, at += 6)
+                points.push_back({ int16_t(u16(at)), int16_t(u16(at + 2)), int16_t(u16(at + 4)) });
+
+            for (size_t i = 0, at = header + pointCount * 6; i < stringCount; ++i, at += 12)
+            {
+                PathString s{ int16_t(u16(at)), int16_t(u16(at + 2)), int16_t(u16(at + 4)), int16_t(u16(at + 6)), u16(at + 8), u16(at + 10) };
+                if (uint32_t(s.firstPoint) + s.pointCount > pointCount)
+                {
+                    points.clear();
+                    strings.clear();
+                    return;
+                }
+                strings.push_back(s);
+            }
+
+            for (auto& s : strings)
+                roads.emplace_back(std::span(points.data() + s.firstPoint, s.pointCount));
+        }
+        catch (const std::exception&)
+        {
+            roads.clear();
+            strings.clear();
+            points.clear();
+        }
     }
 
     float Ramp(float start, float end, float value)
@@ -348,61 +360,54 @@ public:
         {
             using namespace DistantLights;
 
-            auto pattern = hook::pattern("F3 0F 11 14 24 E8 ? ? ? ? 83 C4 04 E9");
-            if (pattern.empty()) // only 1.2.0.32, 1.2.0.43, 1.2.0.59
-                return;
+            // Resolve every binding before changing game code. Complete Edition only.
+            auto night = hook::pattern("F3 0F 11 14 24 E8 ? ? ? ? 83 C4 04 E9");
+            auto day = hook::pattern("F3 0F 11 04 24 E8 ? ? ? ? 83 C4 04 C6 05 ? ? ? ? 01 C3");
+            auto data = hook::pattern("6A 04 68 ? ? ? ? 56 E8 ? ? ? ? 6A 04 68 ? ? ? ? 56 E8 ? ? ? ? 68 00 01 00 00");
+            auto visibility = hook::pattern("F3 0F 11 04 24 E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 33 FF");
+            auto lastSprites = hook::pattern("50 68 ? ? ? ? 68 ? ? ? ? E8 ? ? ? ? 83 C4 10 C7 04 24 00 00 80 3F");
+            auto begin = hook::pattern("8D 04 40 03 C0 50 6A 03 E8 ? ? ? ? 33 C9");
+            auto vertex = hook::pattern("F3 0F 11 14 24 E8 ? ? ? ? F3 0F 10 44 24 54");
+            auto end = hook::pattern("E8 ? ? ? ? C7 07 00 00 00 00 5F 5E 8B E5 5D C3");
+            auto streetlightIndex = hook::pattern("25 0F 00 00 80 79 05 48 83 C8 F0 40 F3 0F 10 45 08 0F 2F 04 85");
+            auto streetlightHeight = hook::pattern("83 FF 01 0F 85 ? ? ? ? F3 0F 10 44 24 58 0F 2F 05 ? ? ? ? 0F 86");
+            auto dayHeight = hook::pattern("83 F9 01 0F 85 ? ? ? ? F3 0F 10 84 24 DC 00 00 00 0F 2F 05 ? ? ? ? 0F 86");
+            auto nightHeight = hook::pattern("83 F9 01 0F 85 ? ? ? ? F3 0F 10 84 24 08 01 00 00 0F 2F 05 ? ? ? ? 0F 86");
+            auto streetlightFade = hook::pattern("51 8D 84 24 80 00 00 00 F3 0F 11 04 24 50 E8");
+            auto dayTrafficFade = hook::pattern("8B 0C CD ? ? ? ? 51 8D 84 24 94 01 00 00 50 8D 84 24 88 01 00 00");
+            auto nightTrafficFade = hook::pattern("6A 00 8D 84 24 A4 01 00 00 50 8D 84 24 98 01 00 00 50 8D 84 24 E8 00 00 00 50 68 ? ? ? ? 8D 84 24 94 01 00 00");
+            for (auto* pattern : { &night, &day, &data, &visibility, &lastSprites, &begin, &vertex, &end,
+                &streetlightIndex, &streetlightHeight, &dayHeight, &nightHeight, &streetlightFade, &dayTrafficFade, &nightTrafficFade })
+            {
+                if (pattern->size() != 1)
+                    return;
+            }
 
             LoadConsolePaths();
 
             // Vehicle imposter callback, night: CDistantLights::Render (streetlights, aircraft), then the traffic models
-            CDistantLights__Render = injector::GetBranchDestination(pattern.get_first(5)).get();
-            RenderNightTrafficModels = injector::GetBranchDestination(pattern.get_first(13)).get();
-            injector::MakeCALL(pattern.get_first(5), Render, true);
-            injector::MakeJMP(pattern.get_first(13), RenderNightTraffic, true);
+            CDistantLights__Render = injector::GetBranchDestination(night.get_first(5)).get();
+            RenderNightTrafficModels = injector::GetBranchDestination(night.get_first(13)).get();
 
             // Day: the traffic models
-            pattern = hook::pattern("F3 0F 11 04 24 E8 ? ? ? ? 83 C4 04 C6 05 ? ? ? ? 01 C3");
-            RenderDayTrafficModels = injector::GetBranchDestination(pattern.get_first(5)).get();
-            injector::MakeCALL(pattern.get_first(5), RenderDayTraffic, true);
+            RenderDayTrafficModels = injector::GetBranchDestination(day.get_first(5)).get();
 
             // CDistantLights::Load: the coastal and inland string counts of each block
-            pattern = hook::pattern("6A 04 68 ? ? ? ? 56 E8 ? ? ? ? 6A 04 68 ? ? ? ? 56 E8 ? ? ? ? 68 00 01 00 00");
-            nCoastalStrings = *pattern.get_first<int32_t*>(48);
-            nInlandStrings = *pattern.get_first<int32_t*>(64);
+            nCoastalStrings = *data.get_first<int32_t*>(48);
+            nInlandStrings = *data.get_first<int32_t*>(64);
 
-            pattern = hook::pattern("F3 0F 11 04 24 E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 33 FF");
-            rage__grcViewport__IsSphereVisible = injector::GetBranchDestination(pattern.get_first(5)).get();
+            rage__grcViewport__IsSphereVisible = injector::GetBranchDestination(visibility.get_first(5)).get();
 
-            pattern = hook::pattern("50 68 ? ? ? ? 68 ? ? ? ? E8 ? ? ? ? 83 C4 10 C7 04 24 00 00 80 3F");
-            CDistantLights__RenderOutSpriteBuffer = injector::GetBranchDestination(pattern.get_first(11)).get();
-            injector::MakeCALL(pattern.get_first(11), RenderOutLastSprites, true);
+            CDistantLights__RenderOutSpriteBuffer = injector::GetBranchDestination(lastSprites.get_first(11)).get();
 
             // In CDistantLights::RenderOutSpriteBuffer
-            pattern = hook::pattern("8D 04 40 03 C0 50 6A 03 E8 ? ? ? ? 33 C9");
-            rage__grcBegin = injector::GetBranchDestination(pattern.get_first(8)).get();
-            pattern = hook::pattern("F3 0F 11 14 24 E8 ? ? ? ? F3 0F 10 44 24 54");
-            rage__grcVertex = injector::GetBranchDestination(pattern.get_first(5)).get();
-            pattern = hook::pattern("E8 ? ? ? ? C7 07 00 00 00 00 5F 5E 8B E5 5D C3");
-            rage__grcEnd = injector::GetBranchDestination(pattern.get_first(0)).get();
-
-            // The streetlight's dusk threshold index is a signed remainder, negative in parts of Alderney, which reads
-            // before the table: and eax, 8000000Fh -> and eax, 0Fh
-            pattern = hook::pattern("25 0F 00 00 80 79 05 48 83 C8 F0 40 F3 0F 10 45 08 0F 2F 04 85");
-            injector::WriteMemory<uint32_t>(pattern.get_first(1), 0x0F, true);
-
-            // Inland streetlights and cars are drawn only once the camera is above 75 m; the height fades below
-            // replace that.
-            pattern = hook::pattern("83 FF 01 0F 85 ? ? ? ? F3 0F 10 44 24 58 0F 2F 05 ? ? ? ? 0F 86");
-            injector::MakeNOP(pattern.get_first(22), 6, true);
-            pattern = hook::pattern("83 F9 01 0F 85 ? ? ? ? F3 0F 10 84 24 DC 00 00 00 0F 2F 05 ? ? ? ? 0F 86");
-            injector::MakeNOP(pattern.get_first(25), 6, true);
-            pattern = hook::pattern("83 F9 01 0F 85 ? ? ? ? F3 0F 10 84 24 08 01 00 00 0F 2F 05 ? ? ? ? 0F 86");
-            injector::MakeNOP(pattern.get_first(25), 6, true);
+            rage__grcBegin = injector::GetBranchDestination(begin.get_first(8)).get();
+            rage__grcVertex = injector::GetBranchDestination(vertex.get_first(5)).get();
+            rage__grcEnd = injector::GetBranchDestination(end.get_first(0)).get();
 
             // PC streetlights: the distance passed to CDistantLights::ModifyColourForDist. [esp+4C] is 1 for inland
             // roads, [esp+C8] the camera height, [esp+168] the light's height.
-            pattern = hook::pattern("51 8D 84 24 80 00 00 00 F3 0F 11 04 24 50 E8");
-            static auto StreetlightFadeHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+            static auto StreetlightFadeHook = safetyhook::create_mid(streetlightFade.get_first(), [](SafetyHookContext& regs)
             {
                 if (*(int32_t*)(regs.esp + 0x4C) == 1)
                     regs.xmm0.f32[0] = HeightLimitedDistance(regs.xmm0.f32[0], *(float*)(regs.esp + 0xC8), *(float*)(regs.esp + 0x168), 150.0f);
@@ -410,19 +415,37 @@ public:
 
             // PC traffic models: their distance opacity, in xmm1 by day and xmm0 at night. [esp+E4] / [esp+C8] is 1 for
             // inland roads, [esp+138] the camera height, [esp+108] / [esp+118] the car's height.
-            pattern = hook::pattern("8B 0C CD ? ? ? ? 51 8D 84 24 94 01 00 00 50 8D 84 24 88 01 00 00");
-            static auto DayTrafficFadeHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+            static auto DayTrafficFadeHook = safetyhook::create_mid(dayTrafficFade.get_first(), [](SafetyHookContext& regs)
             {
                 if (*(int32_t*)(regs.esp + 0xE4) == 1)
                     regs.xmm1.f32[0] = HeightLimitedOpacity(regs.xmm1.f32[0], *(float*)(regs.esp + 0x138), *(float*)(regs.esp + 0x108));
             });
 
-            pattern = hook::pattern("6A 00 8D 84 24 A4 01 00 00 50 8D 84 24 98 01 00 00 50 8D 84 24 E8 00 00 00 50 68 ? ? ? ? 8D 84 24 94 01 00 00");
-            static auto NightTrafficFadeHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+            static auto NightTrafficFadeHook = safetyhook::create_mid(nightTrafficFade.get_first(), [](SafetyHookContext& regs)
             {
                 if (*(int32_t*)(regs.esp + 0xC8) == 1)
                     regs.xmm0.f32[0] = HeightLimitedOpacity(regs.xmm0.f32[0], *(float*)(regs.esp + 0x138), *(float*)(regs.esp + 0x118));
             });
+            if (!StreetlightFadeHook || !DayTrafficFadeHook || !NightTrafficFadeHook)
+            {
+                StreetlightFadeHook.reset();
+                DayTrafficFadeHook.reset();
+                NightTrafficFadeHook.reset();
+                return;
+            }
+
+            // Remove the inland cutoffs only once all replacement fades are installed.
+            injector::MakeNOP(streetlightHeight.get_first(22), 6, true);
+            injector::MakeNOP(dayHeight.get_first(25), 6, true);
+            injector::MakeNOP(nightHeight.get_first(25), 6, true);
+
+            // Wrap the signed streetlight lookup into its 16-entry table.
+            injector::WriteMemory<uint32_t>(streetlightIndex.get_first(1), 0x0F, true);
+
+            injector::MakeCALL(night.get_first(5), Render, true);
+            injector::MakeJMP(night.get_first(13), RenderNightTraffic, true);
+            injector::MakeCALL(day.get_first(5), RenderDayTraffic, true);
+            injector::MakeCALL(lastSprites.get_first(11), RenderOutLastSprites, true);
         };
     }
 } DistantLightsModule;
