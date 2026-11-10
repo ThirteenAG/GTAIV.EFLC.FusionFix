@@ -305,6 +305,242 @@ namespace CWater
     }
 }
 
+namespace CTaskManager
+{
+    uintptr_t (__thiscall* FindActiveTaskByType)(uintptr_t taskManager, int type);
+
+    void Init()
+    {
+        auto pattern = hook::pattern("68 19 04 00 00 83 C1 44 E8 ? ? ? ? 80");
+        if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+            FindActiveTaskByType = (decltype(FindActiveTaskByType))injector::GetBranchDestination(pattern.get_first(8)).as_int();
+        else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
+        {
+            pattern = hook::pattern("55 56 57 33 FF 8B E9 33 C0 8D A4 24 00 00 00 00 39 7C 85 00");
+            FindActiveTaskByType = (decltype(FindActiveTaskByType))pattern.get_first(0);
+        }
+    }
+}
+
+// Mounting a ladder from the top moves the player with the animation's mover. The physics instance and its bounds
+// stay at the old place until the next physics update, and the player isn't drawn for a moment: update them right away.
+namespace LadderTopMount
+{
+    ptrdiff_t nPedFragInst = 0;
+    void (__thiscall* SetInstanceMatrix)(uintptr_t instance, const void* matrix);
+    void (__thiscall* UpdateSkeleton)(uintptr_t ped);
+    void (__thiscall* CalculateCompositeExtents)(uintptr_t bound, bool onlyAdjustForInternalMotion);
+    void (__thiscall* UpdateObjectLocation)(uintptr_t level, int index, const void* lastMatrix);
+    void (__thiscall* UpdateObjectLocationAndRadius)(uintptr_t level, int index, float oldRadius, const void* lastMatrix);
+    uintptr_t* pPhysicsLevel = nullptr;
+
+    template <typename R, typename... Args>
+    R CallVirtual(uintptr_t object, ptrdiff_t offset, Args... args)
+    {
+        return reinterpret_cast<R(__thiscall*)(uintptr_t, Args...)>((*reinterpret_cast<uintptr_t**>(object))[offset / 4])(object, args...);
+    }
+
+    void UpdatePhysicsInstance(uintptr_t ped, uintptr_t instance)
+    {
+        // An animated (not ragdoll) instance in the physics level
+        if (*reinterpret_cast<const int*>(ped + nPedFragInst + 4) != 2 || !(*reinterpret_cast<const uint8_t*>(ped + 0xF4) & 2)
+            || CallVirtual<uintptr_t>(ped, 0xA0) != instance || !CallVirtual<uintptr_t>(instance, 0xE0))
+            return;
+        const auto matrix = *reinterpret_cast<const uintptr_t*>(ped + 0x20);
+        const auto archetype = *reinterpret_cast<const uintptr_t*>(instance + 4);
+        const auto bound = archetype ? *reinterpret_cast<const uintptr_t*>(archetype + 12) : 0;
+        const auto level = *pPhysicsLevel;
+        const auto index = *reinterpret_cast<const uint16_t*>(instance + 8);
+        if (!matrix || !bound || !level || index == 0xFFFF)
+            return;
+
+        // The previous matrix too, so no motion is seen
+        CallVirtual<void>(instance, 0x10, reinterpret_cast<const void*>(instance + 16));
+        SetInstanceMatrix(instance, reinterpret_cast<const void*>(matrix));
+        CallVirtual<void>(instance, 0x10, reinterpret_cast<const void*>(instance + 16));
+        UpdateSkeleton(ped);
+        // PoseBoundsFromSkeleton
+        CallVirtual<void>(instance, 0xBC);
+        CallVirtual<void>(instance, 0xBC);
+        const float oldRadius = *reinterpret_cast<const float*>(bound + 8);
+        CalculateCompositeExtents(bound, true);
+        if (oldRadius == *reinterpret_cast<const float*>(bound + 8))
+            UpdateObjectLocation(level, index, nullptr);
+        else
+            UpdateObjectLocationAndRadius(level, index, oldRadius, nullptr);
+    }
+
+    SafetyHookInline shOffsetPedPosition;
+    void __fastcall OffsetPedPosition(uintptr_t task, void* edx, uintptr_t ped)
+    {
+        bool topMount = false;
+        if (ped && ped == CPlayer::getLocalPlayerPed())
+        {
+            const auto intelligence = *reinterpret_cast<const uintptr_t*>(ped + 0x224);
+            const auto climbLadder = intelligence ? CTaskManager::FindActiveTaskByType(intelligence + 0x44, std::to_underlying(TaskID::TaskComplexClimbLadder)) : 0;
+            // CTaskComplexClimbLadder entry mode: from the top
+            topMount = climbLadder && *reinterpret_cast<const int*>(climbLadder + 20) == 4;
+        }
+        // The mover offset waiting to be applied
+        const bool pending = topMount && (*reinterpret_cast<const uint8_t*>(task + 25) & 1);
+        const auto instance = topMount ? *reinterpret_cast<const uintptr_t*>(ped + nPedFragInst) : 0;
+        shOffsetPedPosition.unsafe_fastcall(task, edx, ped);
+        if (pending && instance && !(*reinterpret_cast<const uint8_t*>(task + 25) & 1) && instance == *reinterpret_cast<const uintptr_t*>(ped + nPedFragInst))
+            UpdatePhysicsInstance(ped, instance);
+    }
+
+    void Init()
+    {
+        auto pattern = hook::pattern("FF 52 10 FF 77 20 8B 8F B4 07 00 00 E8 ? ? ? ?");
+        if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+        {
+            nPedFragInst = *pattern.get_first<int32_t>(8);
+            SetInstanceMatrix = (decltype(SetInstanceMatrix))injector::GetBranchDestination(pattern.get_first(12)).as_int();
+            pattern = hook::pattern("FF 50 04 8B CE E8 ? ? ? ? 81 8E 9C 02 00 00");
+            UpdateSkeleton = (decltype(UpdateSkeleton))injector::GetBranchDestination(pattern.get_first(5)).as_int();
+            pattern = hook::pattern("55 8B EC 83 E4 F8 83 EC 08 80 7D 08 00 56 8B D1");
+            CalculateCompositeExtents = (decltype(CalculateCompositeExtents))pattern.get_first(0);
+            pattern = hook::pattern("55 8B EC 83 E4 F8 83 EC 18 83 3D ? ? ? ? 00 56 8B D1");
+            UpdateObjectLocationAndRadius = (decltype(UpdateObjectLocationAndRadius))pattern.get_first(0);
+            pattern = hook::pattern("8B 0D ? ? ? ? 50 E8 ? ? ? ? 81 A7 18 01 00 00");
+            UpdateObjectLocation = (decltype(UpdateObjectLocation))injector::GetBranchDestination(pattern.get_first(7)).as_int();
+            pPhysicsLevel = *pattern.get_first<uintptr_t*>(2);
+        }
+        else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
+        {
+            pattern = hook::pattern("E8 ? ? ? ? 8B 8E C4 07 00 00 8B 51 04 8B 42 0C F3 0F 10 40 08 8B 11 8B 82 BC 00 00 00 F3 0F 11 44 24 08 FF D0");
+            nPedFragInst = *pattern.get_first<int32_t>(7);
+            UpdateSkeleton = (decltype(UpdateSkeleton))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+            pattern = hook::pattern("8B 44 24 04 D9 00 D9 59 10 D9 40 04 D9 59 14 D9 40 08 D9 59 18 D9 40 10 D9 59 20");
+            SetInstanceMatrix = (decltype(SetInstanceMatrix))pattern.get_first(0);
+            pattern = hook::pattern("55 8B EC 83 E4 F0 83 EC 08 80 7D 08 00 56 57 8B F1 0F 85");
+            CalculateCompositeExtents = (decltype(CalculateCompositeExtents))pattern.get_first(0);
+            pattern = hook::pattern("55 8B EC 83 E4 F0 83 EC 14 83 3D ? ? ? ? 00 53 56 8B F1 57 89 74 24 10");
+            UpdateObjectLocationAndRadius = (decltype(UpdateObjectLocationAndRadius))pattern.get_first(0);
+            pattern = hook::pattern("55 8B EC 83 E4 F0 81 EC 24 01 00 00 83 3D ? ? ? ? 00 53 56 57 8B F9");
+            UpdateObjectLocation = (decltype(UpdateObjectLocation))pattern.get_first(0);
+            pattern = hook::pattern("6A 07 6A FF 53 50 52 8D 44 24 2C 50 E8");
+            pPhysicsLevel = *pattern.get_first<uintptr_t*>(-4);
+        }
+
+        pattern = hook::pattern("F6 46 19 01 74 ? 57 8B CE E8");
+        shOffsetPedPosition = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first(9)).as_int(), OffsetPedPosition);
+    }
+}
+
+// Automatic Camera Centering off: with a pad, the camera doesn't level itself on foot (it still turns behind the
+// player) and doesn't center at all in vehicles
+namespace CameraAutoCenter
+{
+    uintptr_t (__thiscall* GetSimplestActiveMovementTask)(uintptr_t taskManager);
+    ptrdiff_t nPedIntelligence = 0;
+    ptrdiff_t nTaskManager = 0;
+    ptrdiff_t nPedVehicle = 0;
+    // The stack frame of 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0 in the camera hooks
+    bool legacyFrame = false;
+
+    // The player's task manager while this applies, else 0
+    uintptr_t GetPlayerTaskManager()
+    {
+        static auto AutoCenterCamera = FusionFixSettings.GetRef("PREF_AUTOCENTERCAMERA");
+        if (AutoCenterCamera->get() || !Natives::IsUsingController())
+            return 0;
+        const auto ped = CPlayer::getLocalPlayerPed();
+        if (!ped || !Natives::IsPlayerControlOn(Natives::GetPlayerId()) || Natives::IsHintRunning())
+            return 0;
+        const auto intelligence = *reinterpret_cast<const uintptr_t*>(ped + nPedIntelligence);
+        return intelligence ? intelligence + nTaskManager : 0;
+    }
+
+    bool HasTask(uintptr_t manager, TaskID type)
+    {
+        return CTaskManager::FindActiveTaskByType(manager, std::to_underlying(type)) != 0;
+    }
+
+    int GetTaskType(uintptr_t task)
+    {
+        return reinterpret_cast<int (__thiscall*)(uintptr_t)>((*reinterpret_cast<uintptr_t**>(task))[3])(task);
+    }
+
+    // The gameplay camera follows, not a script camera
+    bool IsGameplayFollow(uintptr_t camera)
+    {
+        const auto parent = *reinterpret_cast<const uintptr_t*>(camera + 0x118);
+        if (!parent || *reinterpret_cast<const uint32_t*>(camera + 0x130) == 0)
+            return false;
+        // CCam::GetType of CCamGame
+        return reinterpret_cast<int (__thiscall*)(uintptr_t)>((*reinterpret_cast<uintptr_t**>(parent))[10])(parent) == 7;
+    }
+
+    bool HoldPedPitch(uintptr_t camera, uintptr_t ped, uintptr_t control)
+    {
+        const auto manager = GetPlayerTaskManager();
+        // Not while the camera is reset or forced
+        if (!manager || !control || ped != CPlayer::getLocalPlayerPed() || !IsGameplayFollow(camera)
+            || (*reinterpret_cast<const uint8_t*>(camera + 0x38C) & 0x88) || (*reinterpret_cast<const uint8_t*>(camera + 0x38D) & 0x1C))
+            return false;
+        if (HasTask(manager, TaskID::TaskComplexPlayerInCover) || HasTask(manager, TaskID::TaskSimpleAimGun)
+            || HasTask(manager, TaskID::TaskSimplePlayerAimProjectile))
+            return false;
+        if (HasTask(manager, TaskID::TaskComplexClimbLadder))
+            return true;
+        // Only the player's own walking, not scripted movement
+        const auto movement = GetSimplestActiveMovementTask(manager);
+        return movement && GetTaskType(movement) == std::to_underlying(TaskID::TaskSimpleMovePlayer)
+            && HasTask(manager, TaskID::TaskComplexPlayerOnFoot);
+    }
+
+    bool HoldVehicle(uintptr_t camera, uintptr_t control)
+    {
+        const auto manager = GetPlayerTaskManager();
+        if (!manager || !control || !IsGameplayFollow(camera) || (*reinterpret_cast<const uint8_t*>(camera + 0x18C) & 0x60))
+            return false;
+        // The camera follows the player's vehicle
+        const auto ped = CPlayer::getLocalPlayerPed();
+        if (!(*reinterpret_cast<const uint8_t*>(ped + 0x26C) & 4)
+            || *reinterpret_cast<const uintptr_t*>(ped + nPedVehicle) != *reinterpret_cast<const uintptr_t*>(camera + 0x170))
+            return false;
+        // Not while getting in or out, or during drive-bys
+        return HasTask(manager, TaskID::TaskComplexPlayerDrive) && !HasTask(manager, TaskID::TaskSimpleNewGangDriveBy)
+            && !HasTask(manager, TaskID::TaskComplexNewGetInVehicle) && !HasTask(manager, TaskID::TaskComplexNewExitVehicle);
+    }
+
+    // CCamFollowPed::Process: the pad's look input moves a pitch target the camera then follows. Applying the input to
+    // the pitch directly keeps vertical look working without the follow.
+    void PedPitch(SafetyHookContext& regs)
+    {
+        if (!HoldPedPitch(regs.esi, regs.edi, regs.ebx))
+            return;
+        const float pitch = *reinterpret_cast<const float*>(regs.esi + 0x304);
+        const float speed = *reinterpret_cast<const float*>(regs.esi + 0x310);
+        const float timeStep = *reinterpret_cast<const float*>(regs.esp + (legacyFrame ? 0x20 : 0x2C));
+        *reinterpret_cast<float*>(regs.esp + (legacyFrame ? 0x10 : 0x1C)) = pitch;
+        *reinterpret_cast<float*>(regs.esp + (legacyFrame ? 0x1C : 0x24)) = speed * timeStep;
+    }
+
+    void Init()
+    {
+        auto pattern = find_pattern("56 8B F1 33 C9 8D 46 2C 8B 10 85 D2 74 ? F6 42 0C 01",
+            "33 C0 8D 51 2C 56 8B 32 85 F6 74 ? F6 46 0C 01 74 ? 83 C0 01 83 C2 04 83 F8 03 7C ? 33 C0 5E C3 8B 44 81 2C 85 C0 74 ? 8B C8");
+        GetSimplestActiveMovementTask = (decltype(GetSimplestActiveMovementTask))pattern.get_first(0);
+
+        pattern = find_pattern("8B 88 ? ? ? ? 8D 49 ? E8 ? ? ? ? 8B 4E 04 89 44 24 0C", "8B 80 24 02 00 00 8D 48 44 E8 ? ? ? ? 8B 4E 04 89 44 24");
+        nPedIntelligence = *pattern.get_first<int32_t>(2);
+        nTaskManager = *pattern.get_first<uint8_t>(8);
+
+        pattern = hook::pattern("85 DB 74 ? 80 BB 8D 32 00 00 00 74 ? F3 0F 10 86 10 03 00 00");
+        if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+            nPedVehicle = 0xB30;
+        else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
+        {
+            pattern = hook::pattern("85 DB 74 ? 80 BB 8D 32 00 00 00 74 ? D9 86 10 03 00 00");
+            nPedVehicle = 0xB40;
+            legacyFrame = true;
+        }
+        static auto CCamFollowPed__Process_PitchHook = safetyhook::create_mid(pattern.get_first(0), PedPitch);
+    }
+}
+
 class Fixes
 {
 public:
@@ -575,8 +811,13 @@ public:
                 }
             }
 
+            CTaskManager::Init();
+            LadderTopMount::Init();
+
             // Camera centering delay/turn speed
             {
+                CameraAutoCenter::Init();
+
                 // Timers
                 static uint32_t nTimeToPassBeforeCenteringCameraFollowPed = 0;
                 static uint32_t nTimeToPassBeforeCenteringCameraFollowVehicle = 0;
@@ -654,6 +895,8 @@ public:
 
                         int TurnSpeed = IsUsingPad ? nCameraTurnSpeedFollowVehicle_Pad->get() : nCameraTurnSpeedFollowVehicle_KB->get();
                         float f = regs.xmm0.f32[0] / (regs.xmm1.f32[0] * (1.0f - TurnSpeed * 0.1f));
+                        if (CameraAutoCenter::legacyFrame ? CameraAutoCenter::HoldVehicle(regs.esi, *(uintptr_t*)(regs.esp + 0x24)) : CameraAutoCenter::HoldVehicle(regs.edi, regs.esi))
+                            f = 0.0f;
 
                         float& AutoCenterValue = *(float*)(regs.esp + reg);
 
@@ -678,6 +921,12 @@ public:
 
                             int TurnSpeed = IsUsingPad ? nCameraTurnSpeedFollowVehicle_Pad->get() : nCameraTurnSpeedFollowVehicle_KB->get();
                             float f = regs.xmm1.f32[0] / (regs.xmm0.f32[0] * (1.0f - TurnSpeed * 0.1f));
+                            if (CameraAutoCenter::HoldVehicle(regs.edi, regs.esi))
+                            {
+                                f = 0.0f;
+                                // The pitch target, also used to follow the ground
+                                *(float*)(regs.esp + 0x20) = *(float*)(regs.edi + 0x190);
+                            }
                             regs.xmm0.f32[0] = dword_E9AA1C[regs.eax];
 
                             float& AutoCenterValue = *(float*)(regs.esp + 0x110 - 0x90);
@@ -699,6 +948,12 @@ public:
 
                             int TurnSpeed = IsUsingPad ? nCameraTurnSpeedFollowVehicle_Pad->get() : nCameraTurnSpeedFollowVehicle_KB->get();
                             float f = regs.xmm0.f32[0] / (regs.xmm2.f32[0] * (1.0f - TurnSpeed * 0.1f));
+                            if (CameraAutoCenter::HoldVehicle(regs.esi, *(uintptr_t*)(regs.esp + 0x24)))
+                            {
+                                f = 0.0f;
+                                // The pitch target, also used to follow the ground
+                                *(float*)(regs.esp + 0x18) = *(float*)(regs.esi + 0x190);
+                            }
 
                             float& AutoCenterValue = *(float*)(regs.esp + 0x100 - 0x44);
 
