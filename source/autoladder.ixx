@@ -10,6 +10,7 @@ export module autoladder;
 import common;
 import comvars;
 import settings;
+import laddercam;
 
 // The ladder search radius of the game, also used by the button
 static constexpr float fButtonScanRadius = 4.0f;
@@ -339,10 +340,43 @@ namespace CTaskComplexClimbLadder
     constexpr float fBottomExitHeight = 1.5f;
     constexpr uint32_t nShortLadderTimeoutMs = 4000;
 
+    // The last ladder found by an automatic scan on foot
+    struct AutomaticEntry
+    {
+        uintptr_t ped = 0, ladder = 0;
+        int index = -1;
+        uint32_t time = 0;
+    } automaticEntry;
+    constexpr uint32_t nAutomaticEntryTimeoutMs = 1000;
+
+    // After an automatic entry from the top the camera would face the player: turn it behind him, toward the ladder
+    void TurnCameraForTopEntry(uintptr_t task, uintptr_t ped)
+    {
+        const auto ladder = *reinterpret_cast<const uintptr_t*>(task + nLadder);
+        const int index = *reinterpret_cast<const int*>(task + nLadderIndex);
+        if (automaticEntry.ped != ped || automaticEntry.ladder != ladder || automaticEntry.index != index
+            || *CTimer::m_snTimeInMilliseconds - automaticEntry.time > nAutomaticEntryTimeoutMs)
+            return;
+        automaticEntry = {};
+        alignas(16) rage::Vector4 top{}, bottom{}, position{}, normal{};
+        bool isMetal = false;
+        float heading = 0.0f;
+        if (FindTopAndBottomOfAllLadderSections(ladder, index, &top, &bottom, &isMetal)
+            && CalculatePositionsForThisLadder(ped, ladder, index, &top, &bottom, &position, &heading, TopEntry, &normal, false))
+            LadderCamera::TurnTo(std::atan2(normal.x, -normal.y));
+    }
+
     uintptr_t __fastcall CreateSubTask(uintptr_t task, void* edx, int type, uintptr_t ped)
     {
         type = RearApproach::FilterSubTask(task, ped, type);
         const auto result = shCreateSubTask.unsafe_fastcall<uintptr_t>(task, edx, type, ped);
+        if (result && *reinterpret_cast<const int*>(task + nEntryMode) == TopEntry)
+        {
+            TurnCameraForTopEntry(task, ped);
+            // The camera stays put while the player turns to the ladder; the climb itself lets it follow again
+            if (type == std::to_underlying(TaskID::TaskSimpleClimbLadder))
+                LadderCamera::Release();
+        }
         if (result && ped == CPlayer::getLocalPlayerPed() && IsAutoClimbEnabled() && type == std::to_underlying(TaskID::TaskSimpleClimbLadder))
         {
             const int entryMode = *reinterpret_cast<const int*>(task + nEntryMode);
@@ -435,7 +469,11 @@ namespace CTaskComplexClimbLadder
     {
         const bool automatic = std::exchange(bAutomaticScan<InWater>, false);
         if constexpr (!InWater)
+        {
             RearApproach::pending = {};
+            if (!automatic)
+                automaticEntry = {};
+        }
         if (!automatic)
             return hbScanForLadderToClimb<InWater>.fun(ped, index, ignoreHeading);
 
@@ -477,6 +515,8 @@ namespace CTaskComplexClimbLadder
             }
             RearApproach::pending = { static_cast<uintptr_t>(ped), static_cast<uintptr_t>(ladder), static_cast<int>(*index), *CTimer::m_snTimeInMilliseconds, movement };
         }
+        if constexpr (!InWater)
+            automaticEntry = { static_cast<uintptr_t>(ped), static_cast<uintptr_t>(ladder), static_cast<int>(*index), *CTimer::m_snTimeInMilliseconds };
         return ladder;
     }
 }
