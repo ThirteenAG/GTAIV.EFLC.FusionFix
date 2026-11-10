@@ -81,10 +81,10 @@
     },
     {
       "id": "MISC.DistantLights", "type": "choice", "default": 0,
-      "choices": [ { "value": 0, "label": "@MO_DEF" }, { "value": 1, "label": "@DL_CONSOLE" } ],
+      "choices": [ { "value": 0, "label": "PC" }, { "value": 1, "label": "Console" } ],
       "label": "@Distant Lights", "description": "@MISC.DistantLights.description",
       "page": "game", "group": "@group.lighting", "control": [ "cycler", "dropdown" ],
-      "presets": { "vanilla": 0, "recommended": 0, "enhanced": 0 }
+      "presets": { "vanilla": 0, "recommended": 0, "enhanced": 1 }
     },
     {
       "id": "MISC.FieldOfView", "type": "int", "default": 0, "min": 0, "max": 9, "step": 1,
