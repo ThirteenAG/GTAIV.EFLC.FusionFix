@@ -354,6 +354,11 @@ public:
                 ConsoleGamma::Render(rage::grcDevice::GetD3DDevice());
             };
 
+            FusionFix::onBeforeRenderTargetReset() += []()
+            {
+                ConsoleGamma::Shutdown();
+            };
+
             FusionFix::onBeforeReset() += []()
             {
                 ConsoleGamma::Shutdown();

@@ -913,6 +913,11 @@ public:
                 });
             }
 
+            FusionFix::onBeforeRenderTargetReset() += []()
+            {
+                ReleaseResources();
+            };
+
             FusionFix::onBeforeReset() += []()
             {
                 ReleaseResources();
