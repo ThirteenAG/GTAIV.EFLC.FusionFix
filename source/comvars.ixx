@@ -1169,31 +1169,31 @@ export namespace rage
         return Vector3(v4.x + v3.x, v4.y + v3.y, v4.z + v3.z);
     }
 
-    class Matrix44
-    {
-    public:
-        Matrix44() {}
-        Matrix44(const Vector4& a, const Vector4& b, const Vector4& c, const Vector4& d) : a(a), b(b), c(c), d(d) {}
-
-        Vector4 a;
-        Vector4 b;
-        Vector4 c;
-        Vector4 d;
-    };
-
     class Matrix34
     {
     public:
         Matrix34() {}
-        Matrix34(const Vector4& a, const Vector4& b, const Vector4& c, const Vector4& d) : a(a), b(b), c(c), d(d) {}
+        Matrix34(const Vector4& right, const Vector4& up, const Vector4& at, const Vector4& pos) : right(right), up(up), at(at), pos(pos) {}
 
-        Vector4 a;
-        Vector4 b;
-        Vector4 c;
-        Vector4 d;
+        Vector4 right;
+        Vector4 up;
+        Vector4 at;
+        Vector4 pos; // Should this be Vector3?
 
     public:
-        static inline void (__fastcall* FromEulersXYZ)(float* _this, void* edx, float* a2) = nullptr;
+        static inline void(__fastcall* FromEulersXYZ)(float* _this, void* edx, float* a2) = nullptr;
+    };
+
+    class Matrix44
+    {
+    public:
+        Matrix44() {}
+        Matrix44(const Vector4& right, const Vector4& up, const Vector4& at, const Vector4& pos) : right(right), up(up), at(at), pos(pos) {}
+
+        Vector4 right;
+        Vector4 up;
+        Vector4 at;
+        Vector4 pos;
     };
 
     enum grcTextureFormat : uint8_t

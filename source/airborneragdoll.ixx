@@ -310,7 +310,7 @@ namespace AirborneRagdoll
     bool __fastcall WaterPriority(void* waterEvent, void* edx, void* otherEvent)
     {
         auto entry = otherEvent ? FindEvent(otherEvent) : nullptr;
-        if (entry && entry->second == CPlayer::getLocalPlayerPed() && !Natives::IsNetworkGameRunning()
+        if (entry && entry->second == CWorld::FindLocalPlayer() && !Natives::IsNetworkGameRunning()
             && (*reinterpret_cast<const uint8_t*>(entry->second + 0x29C) & 4) != 0
             && CPed::ComparePedTasks(entry->second, TaskID::TaskSimpleNMHighFall))
         {

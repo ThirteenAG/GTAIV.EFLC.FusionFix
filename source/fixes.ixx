@@ -374,7 +374,7 @@ namespace LadderTopMount
     void __fastcall OffsetPedPosition(uintptr_t task, void* edx, uintptr_t ped)
     {
         bool topMount = false;
-        if (ped && ped == CPlayer::getLocalPlayerPed())
+        if (ped && ped == CWorld::FindLocalPlayer())
         {
             const auto intelligence = *reinterpret_cast<const uintptr_t*>(ped + 0x224);
             const auto climbLadder = intelligence ? CTaskManager::FindActiveTaskByType(intelligence + 0x44, std::to_underlying(TaskID::TaskComplexClimbLadder)) : 0;
@@ -445,7 +445,7 @@ namespace CameraAutoCenter
         static auto AutoCenterCamera = FusionFixSettings.GetRef("PREF_AUTOCENTERCAMERA");
         if (AutoCenterCamera->get() || !Natives::IsUsingController())
             return 0;
-        const auto ped = CPlayer::getLocalPlayerPed();
+        const auto ped = CWorld::FindLocalPlayer();
         if (!ped || !Natives::IsPlayerControlOn(Natives::GetPlayerId()) || Natives::IsHintRunning())
             return 0;
         const auto intelligence = *reinterpret_cast<const uintptr_t*>(ped + nPedIntelligence);
@@ -476,7 +476,7 @@ namespace CameraAutoCenter
     {
         const auto manager = GetPlayerTaskManager();
         // Not while the camera is reset or forced
-        if (!manager || !control || ped != CPlayer::getLocalPlayerPed() || !IsGameplayFollow(camera)
+        if (!manager || !control || ped != CWorld::FindLocalPlayer() || !IsGameplayFollow(camera)
             || (*reinterpret_cast<const uint8_t*>(camera + 0x38C) & 0x88) || (*reinterpret_cast<const uint8_t*>(camera + 0x38D) & 0x1C))
             return false;
         if (HasTask(manager, TaskID::TaskComplexPlayerInCover) || HasTask(manager, TaskID::TaskSimpleAimGun)
@@ -496,7 +496,7 @@ namespace CameraAutoCenter
         if (!manager || !control || !IsGameplayFollow(camera) || (*reinterpret_cast<const uint8_t*>(camera + 0x18C) & 0x60))
             return false;
         // The camera follows the player's vehicle
-        const auto ped = CPlayer::getLocalPlayerPed();
+        const auto ped = CWorld::FindLocalPlayer();
         if (!(*reinterpret_cast<const uint8_t*>(ped + 0x26C) & 4)
             || *reinterpret_cast<const uintptr_t*>(ped + nPedVehicle) != *reinterpret_cast<const uintptr_t*>(camera + 0x170))
             return false;
