@@ -188,6 +188,7 @@ namespace DistantLights
     }
 
     void(__cdecl* CDistantLights__Render)(float);
+    // Descriptive names for PC-only model passes; no direct bankrelease counterparts.
     void(__cdecl* RenderDayTrafficModels)(float);
     void(__cdecl* RenderNightTrafficModels)();
     void(__cdecl* CDistantLights__RenderOutSpriteBuffer)(Vector* positions, uint32_t* colors, int* count, Vector* right, Vector* up);
@@ -253,7 +254,7 @@ namespace DistantLights
             append(light, XboxSpriteColor(rgb, intensity, inland ? HeightLimitedDistance(distance, camera.z, light.z, 100.0f) : distance));
         };
 
-        // Traffic moves along each road both ways: white lights every 33 units, red every 45.5, timed by the clock
+        // Traffic moves along each road both ways: white lights every 33 units, red every 45.5, timed by the game millisecond timer
         uint32_t time = *CTimer::m_snTimeInMilliseconds;
         float whiteStart = float((time / 43) & 0xFF) * (33.0f / 256.0f);
         float redStart = 45.5f - float((time / 57) & 0xFF) * (45.5f / 256.0f);
