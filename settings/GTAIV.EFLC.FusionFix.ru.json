@@ -385,5 +385,7 @@
   "window.windowed": "Окно",
   "window.borderless": "Без рамки",
   "MAIN.WindowMode.description": "Полный экран, окно с рамкой или окно без рамки на весь экран. Alt+Enter переключает между полным экраном и последним оконным режимом.",
-  "ff.note.d3d9on12": "Установите D3D9On12 на странице «Graphics enhancements» в FusionFixHub, чтобы включить DirectX 12."
+  "ff.note.d3d9on12": "Установите D3D9On12 на странице «Graphics enhancements» в FusionFixHub, чтобы включить DirectX 12.",
+  "Distant Lights": "Дальние огни",
+  "MISC.DistantLights.description": "Фонари и машины вдали. ПК: фонари и модели машин версии для ПК. Консоль: более частые фонари и движущиеся огни машин версии для Xbox 360."
 }

@@ -2443,6 +2443,7 @@ public:
             { "PREF_CAMERASHAKE",            "MAIN.CameraShake" },
             { "PREF_TURNINDICATORS",         "MISC.TurnIndicators" },
             { "PREF_EXTRANIGHTSHADOWS",      "SHADOWS.ExtraNightShadows" },
+            { "PREF_DISTANTLIGHTS",          "MISC.DistantLights" },
             { "PREF_GRAPHICSAPI",            "MAIN.GraphicsAPI" },
             { "PREF_BULLETTRACES",           "MISC.AlwaysShowBulletTraces" },
             { "PREF_AUTOEXPOSURE",           "MISC.ConsoleAutoExposure" },
@@ -2518,6 +2519,7 @@ public:
             AddSetting(screen, "MAIN.BlockOnLostFocus", before);
             // Shown on the game, with a warning in the help line while it's on
             AddSetting(screen, "SHADOWS.ExtraNightShadows", before);
+            AddSetting(screen, "MISC.DistantLights", before);
             AddEmptyLine(screen, before);
             AddSetting(screen, "MISC.LightSyncRGB", before);
             AddSetting(screen, "MISC.TimedEvents", before);

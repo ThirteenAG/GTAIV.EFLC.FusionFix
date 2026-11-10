@@ -385,5 +385,7 @@
   "window.windowed": "Windowed",
   "window.borderless": "Borderless",
   "MAIN.WindowMode.description": "Fullscreen, a window with borders, or a borderless window that covers the screen. Alt+Enter switches between fullscreen and the last window mode.",
-  "ff.note.d3d9on12": "Install D3D9On12 on FusionFixHub's Graphics enhancements page to enable DirectX 12."
+  "ff.note.d3d9on12": "Install D3D9On12 on FusionFixHub's Graphics enhancements page to enable DirectX 12.",
+  "Distant Lights": "Distant Lights",
+  "MISC.DistantLights.description": "Streetlights and traffic seen from afar. PC: the streetlights and traffic car models of the PC version. Console: the denser streetlights and moving traffic lights of the Xbox 360 version."
 }
