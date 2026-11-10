@@ -181,7 +181,7 @@ public:
                 if (ti->get())
                 {
                     auto Driver = *(uintptr_t*)(pEntity + pDriverOffset);
-                    if (!Driver || Driver == CPlayer::getLocalPlayerPed())
+                    if (!Driver || Driver == CWorld::FindLocalPlayer())
                     {
                         VehicleFlags* flags = reinterpret_cast<VehicleFlags*>(pEntity + VehicleFlagsOffset);
                         if (flags->hasBeenOwnedByPlayer)
@@ -211,7 +211,7 @@ public:
                 if (ti->get() && prev_player_car == pEntity)
                 {
                     auto Driver = *(uintptr_t*)(pEntity + pDriverOffset);
-                    if (!Driver || Driver == CPlayer::getLocalPlayerPed())
+                    if (!Driver || Driver == CWorld::FindLocalPlayer())
                     {
                         VehicleFlags* flags = reinterpret_cast<VehicleFlags*>(pEntity + VehicleFlagsOffset);
                         if (flags->hasBeenOwnedByPlayer)
@@ -240,7 +240,7 @@ public:
                 if (ti->get())
                 {
                     auto Driver = *(uintptr_t*)(pEntity + pDriverOffset);
-                    if (!Driver || Driver == CPlayer::getLocalPlayerPed())
+                    if (!Driver || Driver == CWorld::FindLocalPlayer())
                     {
                         VehicleFlags* flags = reinterpret_cast<VehicleFlags*>(pEntity + VehicleFlagsOffset);
                         if (flags->hasBeenOwnedByPlayer)
@@ -273,7 +273,7 @@ public:
                 if (ti->get())
                 {
                     auto Driver = *(uintptr_t*)(pEntity + pDriverOffset);
-                    if (!Driver || Driver == CPlayer::getLocalPlayerPed())
+                    if (!Driver || Driver == CWorld::FindLocalPlayer())
                     {
                         VehicleFlags* flags = reinterpret_cast<VehicleFlags*>(pEntity + VehicleFlagsOffset);
                         if (flags->hasBeenOwnedByPlayer)
@@ -295,7 +295,7 @@ public:
                 if (ti->get())
                 {
                     auto Driver = *(uintptr_t*)(pEntity + pDriverOffset);
-                    if (!Driver || Driver == CPlayer::getLocalPlayerPed())
+                    if (!Driver || Driver == CWorld::FindLocalPlayer())
                     {
                         VehicleFlags* flags = reinterpret_cast<VehicleFlags*>(pEntity + VehicleFlagsOffset);
                         if (flags->hasBeenOwnedByPlayer)

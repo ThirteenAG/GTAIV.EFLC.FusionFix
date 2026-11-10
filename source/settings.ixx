@@ -341,6 +341,9 @@ public:
 
 export class CSettings
 {
+public:
+    static inline int32_t* ms_NightShadows;
+
 private:
     struct CSetting
     {

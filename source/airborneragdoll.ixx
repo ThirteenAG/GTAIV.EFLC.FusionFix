@@ -309,7 +309,7 @@ namespace AirborneRagdoll
             return;
         }
 
-        const uintptr_t ped = CPlayer::getLocalPlayerPed ? CPlayer::getLocalPlayerPed() : 0;
+        const uintptr_t ped = CWorld::FindLocalPlayer() ? CWorld::FindLocalPlayer() : 0;
         if (!ped || !NaturalMotion::NMHighFallBindingsAvailable())
         {
             ResetPostActivationEffects();

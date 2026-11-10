@@ -480,15 +480,16 @@ public:
     int32_t m_nTechId;
 
 public:
-    CShaderFx_PushForcedTechnique(int32_t techID) : CBaseDC()
+    CShaderFx_PushForcedTechnique(int32_t TechID) : CBaseDC()
     {
-        m_nTechId = techID;
+        m_nTechId = TechID;
     }
 
-    static inline void* DrawCommandAddr;
+    static inline void(__thiscall* ExecuteCommand)(CShaderFx_PushForcedTechnique*) = nullptr;
+
     void DrawCommand() override
     {
-        reinterpret_cast<void (__thiscall*)(CShaderFx_PushForcedTechnique*)>(DrawCommandAddr)(this);
+        ExecuteCommand(this);
     }
 
     int32_t GetSize() override
@@ -504,10 +505,11 @@ public:
     {
     }
 
-    static inline void* DrawCommandAddr;
+    static inline void(__thiscall* ExecuteCommand)(CShaderFx_PopForcedTechnique*) = nullptr;
+
     void DrawCommand() override
     {
-        reinterpret_cast<void (__thiscall*)(CShaderFx_PopForcedTechnique*)>(DrawCommandAddr)(this);
+        ExecuteCommand(this);
     }
 
     int32_t GetSize() override
@@ -740,7 +742,7 @@ namespace CPed
     }
 
     export template <typename... Args, typename = std::enable_if_t<(std::is_convertible_v<Args, TaskID> && ...)>>
-        bool ComparePedTasks(uintptr_t pPed, Args... args)
+    bool ComparePedTasks(uintptr_t pPed, Args... args)
     {
         auto condition = [](TaskID val, TaskID param) -> bool
         {
@@ -1170,10 +1172,28 @@ export namespace rage
     class Matrix44
     {
     public:
-        Vector4 right;
-        Vector4 up;
-        Vector4 at;
-        Vector4 pos;
+        Matrix44() {}
+        Matrix44(const Vector4& a, const Vector4& b, const Vector4& c, const Vector4& d) : a(a), b(b), c(c), d(d) {}
+
+        Vector4 a;
+        Vector4 b;
+        Vector4 c;
+        Vector4 d;
+    };
+
+    class Matrix34
+    {
+    public:
+        Matrix34() {}
+        Matrix34(const Vector4& a, const Vector4& b, const Vector4& c, const Vector4& d) : a(a), b(b), c(c), d(d) {}
+
+        Vector4 a;
+        Vector4 b;
+        Vector4 c;
+        Vector4 d;
+
+    public:
+        static inline void (__fastcall* FromEulersXYZ)(float* _this, void* edx, float* a2) = nullptr;
     };
 
     enum grcTextureFormat : uint8_t
@@ -1753,45 +1773,6 @@ export namespace rage
 
     VALIDATE_SIZE(grcTextureFactoryPC, 0x74);
 
-    enum eLightType
-    {
-        LT_POINT = 0x0,
-        LT_DIR = 0x1,
-        LT_SPOT = 0x2,
-        LT_AMBOCC = 0x3,
-        LT_CLAMPED = 0x4,
-    };
-
-    class CLightSource
-    {
-    public:
-        Vector3 mDirection;
-        float field_C;
-        Vector3 mTangent;
-        float field_1C;
-        Vector3 mPosition;
-        float field_2C;
-        Vector4 mColor;
-        float mIntensity;
-        eLightType mType;
-        uint32_t mFlags;
-        int32_t mCoronaTexHash;
-        int32_t mProjTexHash;
-        float mRadius;
-        float mInnerConeAngle;
-        float mOuterConeAngle;
-        int32_t mCastShadows;
-        int32_t mShadowCacheIndex;
-        int32_t mInteriorIndex;
-        int32_t mRoomIndex;
-        float mVolumeIntensity;
-        float mVolumeScale;
-        int8_t field_78[7];
-        char field_7F;
-    };
-
-    VALIDATE_SIZE(CLightSource, 0x80);
-
     namespace scrEngine
     {
         uint32_t* ms_dwNativeTableSize;
@@ -1927,10 +1908,10 @@ export namespace rage
         }
     };
 
-    namespace Matrix34
+    namespace grmShaderFx
     {
-        void (__fastcall* FromEulersXYZ)(float* _this, void* edx, float* a2) = nullptr;
-    };
+        int (__cdecl* RegisterTechniqueGroup)(const char*) = nullptr;
+    }
 }
 
 export namespace rage
@@ -2176,12 +2157,6 @@ export namespace CClock
     uint8_t GetHours() { return *ms_nGameClockHours; }
     uint8_t GetMinutes() { return *ms_nGameClockMinutes; }
     int16_t GetSeconds() { return *ms_nGameClockSeconds; }
-}
-
-export namespace CPlayer
-{
-    uintptr_t (*getLocalPlayerPed)() = nullptr;
-    uintptr_t (*findPlayerCar)() = nullptr;
 }
 
 export namespace CPlayerPed
@@ -2490,37 +2465,6 @@ public:
     }
 };
 
-export class CRenderPhaseDeferredLighting_LightsToScreen
-{
-public:
-    static FusionFix::Event<>& OnBuildRenderList()
-    {
-        static FusionFix::Event<> BuildRenderListEvent;
-        return BuildRenderListEvent;
-    }
-    static FusionFix::Event<rage::CLightSource*>& OnAfterCopyLight()
-    {
-        static FusionFix::Event<rage::CLightSource*> AfterCopyLightEvent;
-        return AfterCopyLightEvent;
-    }
-
-    static inline SafetyHookInline shBuildRenderList{};
-    static inline SafetyHookInline shCopyLight{};
-
-    static void __fastcall BuildRenderList(CBaseDC* _this, void* edx)
-    {
-        OnBuildRenderList().executeAll();
-        return shBuildRenderList.unsafe_fastcall(_this, edx);
-    }
-
-    static rage::CLightSource* __fastcall CopyLight(void* _this, void* edx, void* a2)
-    {
-        auto ret = shCopyLight.fastcall<rage::CLightSource*>(_this, edx, a2);
-        OnAfterCopyLight().executeAll(ret);
-        return ret;
-    }
-};
-
 export class CRenderPhaseDrawScene
 {
 public:
@@ -2575,6 +2519,7 @@ export bool bExtraNightShadows = false;
 export bool bHeadlightShadows = false;
 export bool bVehicleNightShadows = true;
 export bool bHighResolutionShadows = false;
+export bool bHighResolutionNightShadows = false;
 export bool bIsQUB3D = false;
 export float fMenuBlur = 0.0f;
 export bool bInSniperScope = false;
@@ -2893,12 +2838,6 @@ export bool IsKeyboardKeyPressed(int vkeycode, int type = 1, const char* hint = 
     }
 }
 
-export namespace CPhysical
-{
-    void (__fastcall* GetLocalSpeed)(void*, void*, float*, float*, char, int) = nullptr;
-    float* (__fastcall* GetTurnSpeed)(void*, void*, float*);
-}
-
 export namespace CPhysics
 {
     void (__stdcall* ScanForBuildings)() = nullptr;
@@ -2994,6 +2933,11 @@ export namespace CStreamingEngine
     CStreamingInfoManager* ms_info = nullptr;
 }
 
+export namespace CRenderer
+{
+   void (__cdecl* AddToDrawListEntityListShadow)(int, int, int, int, int) = nullptr;
+}
+
 export class CTimer
 {
 public:
@@ -3063,6 +3007,107 @@ public:
     }
 };
 
+export enum eLightType
+{
+    LT_POINT,
+    LT_DIR,
+    LT_SPOT,
+    LT_AMBOCC,
+    LT_CLAMPED
+};
+
+export enum eLightFlags
+{
+    LIGHTFLAG_CAST_STATIC_GEOM_SHADOWS = (1 << 1),
+    LIGHTFLAG_CAST_DYNAMIC_GEOM_SHADOWS = (1 << 2),
+    LIGHTFLAG_DRAW_VOLUME = (1 << 3),
+    LIGHTFLAG_NO_SPECULAR = (1 << 4),
+    LIGHTFLAG_INTERIOR_ONLY = (1 << 5),             // Probably
+    LIGHTFLAG_EXTERIOR_ONLY = (1 << 6),             // Probably
+    LIGHTFLAG_CUTSCENE = (1 << 7),                  // CutsceneObject lights
+    LIGHTFLAG_VEHICLE = (1 << 8),
+    LIGHTFLAG_TRAFFIC_LIGHT = (1 << 9),
+    LIGHTFLAG_USE_VEHICLE_TWIN = (1 << 10)          // PC exclusive, used for that headlight shadow madness
+};
+
+export class CLightSource
+{
+public:
+    rage::Vector3 m_Direction;
+    float m_Padding1;
+    rage::Vector3 m_Tangent;
+    float m_Padding2;
+    rage::Vector3 m_Position;
+    float m_Padding3;
+    rage::Vector4 m_Color;
+    float m_Intensity;
+    eLightType m_LightType;
+    uint32_t m_Flags;
+    uint32_t m_LightsOccludersTxdID; // Likely
+    uint32_t m_ProjectedTextureNameKey;
+    float m_Radius;
+    float m_InnerConeAngle;
+    float m_OuterConeAngle;
+    int32_t m_CastShadows;
+    int32_t m_ShadowTrackingID; // Maybe
+    int32_t m_InteriorID;
+    int32_t m_RoomID;
+    float m_VolumeIntensity;
+    float m_VolumeScale;
+    int8_t field_78[7];
+    char field_7F;
+};
+
+VALIDATE_SIZE(CLightSource, 0x80);
+
+export class CRenderPhaseDeferredLighting_LightsToScreen
+{
+public:
+    static FusionFix::Event<>& OnBuildRenderList()
+    {
+        static FusionFix::Event<> BuildRenderListEvent;
+
+        return BuildRenderListEvent;
+    }
+    static FusionFix::Event<CLightSource*>& OnAfterCopyLight()
+    {
+        static FusionFix::Event<CLightSource*> AfterCopyLightEvent;
+
+        return AfterCopyLightEvent;
+    }
+
+    static inline SafetyHookInline shBuildRenderList = {};
+    static void __fastcall BuildRenderList(CBaseDC* _this, void* edx)
+    {
+        OnBuildRenderList().executeAll();
+
+        return shBuildRenderList.unsafe_fastcall(_this, edx);
+    }
+
+    static inline SafetyHookInline shCopyLight = {};
+    static CLightSource* __fastcall CopyLight(void* _this, void* edx, void* a2)
+    {
+        auto ret = shCopyLight.fastcall<CLightSource*>(_this, edx, a2);
+
+        OnAfterCopyLight().executeAll(ret);
+
+        return ret;
+    }
+};
+
+export class CPhysical
+{
+public:
+    static inline void (__fastcall* GetLocalSpeed)(void*, void*, float*, float*, char, int) = nullptr;
+    static inline float* (__fastcall* GetTurnSpeed)(void*, void*, float*) = nullptr;
+};
+
+export namespace CWorld
+{
+    uintptr_t (*FindLocalPlayer)() = nullptr; // CPlayerPed*
+    uintptr_t (*FindLocalPlayerVehicle)() = nullptr; // CVehicle*
+}
+
 export enum eControllerButtons
 {
     BUTTON_BUMPER_LEFT = 4,
@@ -3114,10 +3159,10 @@ public:
         CBaseDC::operator_newAddr = pattern.get_first(0);
 
         pattern = find_pattern("56 57 8B F9 E8 ? ? ? ? 8B 35 ? ? ? ? FF 04 B5", "56 8B F1 E8 ? ? ? ? 8B 0D ? ? ? ? 83 04 8D");
-        CShaderFx_PushForcedTechnique::DrawCommandAddr = pattern.get_first();
+        CShaderFx_PushForcedTechnique::ExecuteCommand = (decltype(CShaderFx_PushForcedTechnique::ExecuteCommand))pattern.get_first(0);
 
         pattern = find_pattern("56 8B 35 ? ? ? ? 8B 0C B5", "A1 ? ? ? ? 8B 0C 85 ? ? ? ? 8D 14 41");
-        CShaderFx_PopForcedTechnique::DrawCommandAddr = pattern.get_first();
+        CShaderFx_PopForcedTechnique::ExecuteCommand = (decltype(CShaderFx_PopForcedTechnique::ExecuteCommand))pattern.get_first(0);
 
         _dwCurrentEpisode = *find_pattern("83 3D ? ? ? ? ? 75 0F 6A 02", "89 35 ? ? ? ? 89 35 ? ? ? ? 6A 00 6A 01").get_first<int32_t*>(2);
 
@@ -3239,6 +3284,9 @@ public:
         pattern = find_pattern("56 6A 00 FF 74 24 0C E8 ? ? ? ? 8B 35", "8B 44 24 04 56 6A 00 50 E8 ? ? ? ? 8B 35");
         rage::grmShaderInfo::getGlobalParameterIndexByName = pattern.get_first<int(__cdecl)(const char*)>(0);
 
+        pattern = find_pattern("A1 ? ? ? ? 83 EC ? 56 85 C0 74 ? FF 74 24", "A1 ? ? ? ? 83 EC ? 85 C0 53 74");
+        rage::grmShaderFx::RegisterTechniqueGroup = (decltype(rage::grmShaderFx::RegisterTechniqueGroup))pattern.get_first(0);
+
         pattern = find_pattern("8B 54 24 08 85 D2 74 62", "56 8B 74 24 0C 85 F6 74 62");
         rage::grmShaderInfo::shsub_436D70 = safetyhook::create_inline(pattern.get_first(0), rage::grmShaderInfo::setShaderParam);
 
@@ -3359,17 +3407,17 @@ public:
         pattern = find_pattern("B9 ? ? ? ? E8 ? ? ? ? 83 C4 ? 83 BC 24", "25 ? ? ? ? 53 55 56 0B C1");
         GTAIV_ENCRYPTION_KEY = reinterpret_cast<uint8_t(*)[32]>(*pattern.get_first<void*>(1));
 
-        pattern = hook::pattern("E8 ? ? ? ? 85 C0 74 29 6A 00");
+        pattern = hook::pattern("E8 ? ? ? ? 85 C0 74 ? 6A ? E8 ? ? ? ? 83 C4 ? F7 D8");
         if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
         {
-            CPlayer::getLocalPlayerPed = (uintptr_t(*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
-            CPlayer::findPlayerCar = (uintptr_t(*)())injector::GetBranchDestination(pattern.get_first(11)).as_int();
+            CWorld::FindLocalPlayer = (decltype(CWorld::FindLocalPlayer))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+            CWorld::FindLocalPlayerVehicle = (decltype(CWorld::FindLocalPlayerVehicle))injector::GetBranchDestination(pattern.get_first(11)).as_int();
         }
         else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
         {
-            pattern = hook::pattern("E8 ? ? ? ? 85 C0 74 2A 53 E8");
-            CPlayer::getLocalPlayerPed = (uintptr_t(*)())injector::GetBranchDestination(pattern.get_first(0)).as_int();
-            CPlayer::findPlayerCar = (uintptr_t(*)())injector::GetBranchDestination(pattern.get_first(10)).as_int();
+            pattern = hook::pattern("E8 ? ? ? ? 85 C0 74 ? 53 E8");
+            CWorld::FindLocalPlayer = (decltype(CWorld::FindLocalPlayer))injector::GetBranchDestination(pattern.get_first(0)).as_int();
+            CWorld::FindLocalPlayerVehicle = (decltype(CWorld::FindLocalPlayerVehicle))injector::GetBranchDestination(pattern.get_first(10)).as_int();
         }
 
         pattern = hook::pattern("E8 ? ? ? ? 8A 88 6E 28 00 00 32 88 6C 28 00 00 80 F9 7F");
@@ -3555,5 +3603,8 @@ public:
 
         pattern = find_pattern("B9 ? ? ? ? A3 ? ? ? ? C6 05 ? ? ? ? ? C6 05", "B9 ? ? ? ? A3 ? ? ? ? 88 1D");
         CStreamingEngine::ms_info = *pattern.get_first<CStreamingInfoManager*>(1);
+
+        pattern = find_pattern("55 8B EC 83 E4 ? 83 EC ? 80 3D ? ? ? ? ? 56 57 74 ? 8D 45 ? 50 8D 45 ? 50 8D 45 ? 50 8D 45 ? 50 8D 45", "55 8B EC 83 E4 ? 83 EC ? 53 56 57 33 FF 80 3D");
+        CRenderer::AddToDrawListEntityListShadow = (decltype(CRenderer::AddToDrawListEntityListShadow))pattern.get_first(0);
     }
 } Common;
