@@ -972,6 +972,13 @@ private:
         auto onResetCB = rage::grcDevice::Functor0(NULL, OnDeviceReset, NULL, 0);
         rage::grcDevice::RegisterDeviceCallbacks(onLostCB, onResetCB);
 
+        FusionFix::onBeforeRenderTargetReset() += []()
+        {
+            PostFxResources.ReleaseTextures();
+            TemporalAA::ReleaseResources();
+            PostFxResources.ReleaseAOTargets();
+        };
+
         GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)&Init, &hm);
 
         PostFxResources.loadShaders(rage::grcDevice::GetD3DDevice(), hm);
