@@ -1762,6 +1762,18 @@ export namespace rage
         LT_CLAMPED = 0x4,
     };
 
+    enum eLightFlags
+    {
+        LIGHTFLAG_CAST_STATIC_GEOM_SHADOWS = (1 << 1),
+        LIGHTFLAG_CAST_DYNAMIC_GEOM_SHADOWS = (1 << 2),
+        LIGHTFLAG_DRAW_VOLUME = (1 << 3),
+        LIGHTFLAG_NO_SPECULAR = (1 << 4),
+        LIGHTFLAG_CUTSCENE = (1 << 7),
+        LIGHTFLAG_VEHICLE = (1 << 8),
+        LIGHTFLAG_TRAFFIC_LIGHT = (1 << 9),
+        LIGHTFLAG_USE_VEHICLE_TWIN = (1 << 10), // PC only, set on the player's headlights
+    };
+
     class CLightSource
     {
     public:
@@ -1931,6 +1943,11 @@ export namespace rage
     {
         void (__fastcall* FromEulersXYZ)(float* _this, void* edx, float* a2) = nullptr;
     };
+
+    namespace grmShaderFx
+    {
+        int32_t (__cdecl* RegisterTechniqueGroup)(const char*) = nullptr;
+    }
 }
 
 export namespace rage
@@ -2860,6 +2877,11 @@ export namespace CStreamingEngine
     CStreamingInfoManager* ms_info = nullptr;
 }
 
+export namespace CRenderer
+{
+    void (__cdecl* AddToDrawListEntityListShadow)(int32_t, int32_t, int32_t, int32_t, int32_t) = nullptr;
+}
+
 export class CTimer
 {
 public:
@@ -3107,6 +3129,9 @@ public:
 
         pattern = find_pattern("8B 54 24 08 85 D2 74 62", "56 8B 74 24 0C 85 F6 74 62");
         rage::grmShaderInfo::shsub_436D70 = safetyhook::create_inline(pattern.get_first(0), rage::grmShaderInfo::setShaderParam);
+
+        pattern = find_pattern("A1 ? ? ? ? 83 EC ? 56 85 C0 74 ? FF 74 24", "A1 ? ? ? ? 83 EC ? 85 C0 53 74");
+        rage::grmShaderFx::RegisterTechniqueGroup = (decltype(rage::grmShaderFx::RegisterTechniqueGroup))pattern.get_first(0);
 
         // Workaround for car reflections. 1.2.0.x: this loop sets its parameters through another function,
         // which the hook above doesn't touch
@@ -3434,5 +3459,8 @@ public:
 
         pattern = find_pattern("B9 ? ? ? ? A3 ? ? ? ? C6 05 ? ? ? ? ? C6 05", "B9 ? ? ? ? A3 ? ? ? ? 88 1D");
         CStreamingEngine::ms_info = *pattern.get_first<CStreamingInfoManager*>(1);
+
+        pattern = find_pattern("55 8B EC 83 E4 ? 83 EC ? 80 3D ? ? ? ? ? 56 57 74 ? 8D 45 ? 50 8D 45 ? 50 8D 45 ? 50 8D 45 ? 50 8D 45", "55 8B EC 83 E4 ? 83 EC ? 53 56 57 33 FF 80 3D");
+        CRenderer::AddToDrawListEntityListShadow = (decltype(CRenderer::AddToDrawListEntityListShadow))pattern.get_first(0);
     }
 } Common;
