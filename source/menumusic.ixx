@@ -908,7 +908,7 @@ namespace MenuMusic
 
     int __cdecl ShutdownClass()
     {
-        if (console)
+        if (console && !engineStopped)
         {
             Stop();
             UpdateSession(false, false, 0.0f, false);
