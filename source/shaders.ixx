@@ -363,15 +363,25 @@ public:
             }
         };
 
+        // Installed before the render thread starts (it runs BeginDraw), active once the game has initialized
+        static std::atomic<bool> bGameInitialized{ false };
         FusionFix::onGameInitEvent() += []()
         {
+            bGameInitialized = true;
+        };
+
+        FusionFix::onInitEvent() += []()
+        {
+            static auto dw103E49C = *find_pattern("8B 0D ? ? ? ? 8B 01 FF 50 ? B9 ? ? ? ? E9", "8B 0D ? ? ? ? 8B 11 8B 42 ? FF D0 B9").get_first<void**>(2);
             auto pattern = find_pattern("80 7C 24 ? ? 74 ? 80 BE ? ? ? ? ? 74 ? 8B 0D", "80 7C 24 ? ? 74 ? 80 BE ? ? ? ? ? 74 ? A1");
             static auto grcSetup_BeginDraw_Hook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
             {
+                if (!bGameInitialized)
+                    return;
+
                 auto pDevice = rage::grcDevice::GetD3DDevice();
 
                 // Setup variables for shaders
-                static auto dw103E49C = *find_pattern("8B 0D ? ? ? ? 8B 01 FF 50 ? B9 ? ? ? ? E9", "8B 0D ? ? ? ? 8B 11 8B 42 ? FF D0 B9").get_first<void**>(2);
                 auto bLoadscreenActive = (CMenuManager::bLoadscreenShown && *CMenuManager::bLoadscreenShown) || bLoadingShown;
 
                 if (*dw103E49C && !bLoadscreenActive)
