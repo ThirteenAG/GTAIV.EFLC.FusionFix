@@ -187,7 +187,7 @@
   "MISC.DisableCameraCenteringInCover.description": "カバー中に壁の端でカメラが強制的にセンタリングされなくなります。",
   "MISC.DisableWardrobeTransition.description": "着替え時に暗転しなくなります。",
   "MISC.ExtendedSniperControls.description": "スナイパーライフルで狙っている間の操作が増えます。",
-  "MISC.ExtraInfo": "追加情報",
+  "MISC.ExtraInfo": "ポーズメニューの追加情報",
   "MISC.ExtraInfo.description": "読み込まれたIMGファイルの数など、ポーズメニューに追加の情報を表示します。",
   "MISC.FieldOfView.description": "追加の視野角です（段階）。",
   "MISC.FixHelicopterSearchlights": "ヘリコプターのサーチライトの修正",
@@ -351,7 +351,7 @@
   "ff.recommended": "推奨",
   "ff.enhanced": "強化",
   "ff.custom": "カスタム",
-  "ff.page.hdr": "HDR",
+  "ff.page.hdr": "HDR設定",
   "ff.page.contains": "内容: {}。",
   "ff.plugins": "プラグイン",
   "ff.plugins.description": "プラグインごとにプリセットと設定のページがあります: {}。",
@@ -387,5 +387,10 @@
   "MAIN.WindowMode.description": "フルスクリーン、枠付きウィンドウ、または画面を覆うフチなしウィンドウ。Alt+Enterでフルスクリーンと前回のウィンドウモードを切り替えます。",
   "ff.note.d3d9on12": "DirectX 12を有効にするには、FusionFixHubの「グラフィック強化」ページでD3D9On12をインストールしてください。",
   "Distant Lights": "遠景ライト",
-  "MISC.DistantLights.description": "遠くに見える街灯と交通。PC: PC版の街灯と車両モデル。コンソール: Xbox 360版のより密な街灯と動く車のライト。"
+  "MISC.DistantLights.description": "遠くに見える街灯と交通。PC: PC版の街灯と車両モデル。コンソール: Xbox 360版のより密な街灯と動く車のライト。",
+  "ff.page.advanced": "詳細オプション",
+  "ff.page.camera": "カメラ設定",
+  "ff.page.tweaks": "高度な調整",
+  "ff.keyboard_mouse": "キーボードとマウスの設定",
+  "ff.launcher": "Rockstar Games Launcher"
 }

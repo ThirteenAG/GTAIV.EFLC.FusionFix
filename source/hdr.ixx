@@ -281,11 +281,15 @@ public:
             return CheckDisplay();
 
         // Vulkan: DXVK's instance of this run must have been made for HDR output (graphics_api.h SetVulkanHdr)
-        if (!FusionFixGraphicsApi::VulkanHdrPresentable())
+        if (!FusionFixGraphicsApi::VulkanHdrPresentable() || !bFormatsUnlocked)
             return false;
-        auto device = bFormatsUnlocked ? rage::grcDevice::GetD3DDevice() : nullptr;
+        // Before the game's device exists (OnDirect3DCreated) that's all there is to ask: the choice has to be in
+        // effect at CreateDevice for the float back buffer
+        auto device = rage::grcDevice::GetD3DDevice();
+        if (!device)
+            return true;
         IDirect3DSwapChain9* swapChain = nullptr;
-        if (!device || FAILED(device->GetSwapChain(0, &swapChain)) || !swapChain)
+        if (FAILED(device->GetSwapChain(0, &swapChain)) || !swapChain)
             return false;
 
         bool supported = false;
@@ -461,6 +465,8 @@ public:
             ext->UnlockAdditionalFormats();
             ext->Release();
             bFormatsUnlocked = true;
+            // DXVK's instance exists now: the saved choice is in effect before the device is created with it
+            FusionFixSettings.RefreshAvailability(PreferenceName);
         }
 
         auto vtable = *reinterpret_cast<void***>(d3d);
@@ -866,7 +872,8 @@ public:
                 auto resetCall = find_pattern("A1 ? ? ? ? 68 ? ? ? ? 8B 08 50 FF 51 40 85 C0", "8B 08 8B 51 40 68 ? ? ? ? 50 FF D2 3B C3");
                 pResetParams = *resetCall.get_first<D3DPRESENT_PARAMETERS*>(6);
             }
-            // The saved choice comes back once it's available, checked when the menu opens.
+            // The saved choice comes back once it's available, checked when the game has its Direct3D object and when
+            // the menu opens.
             FusionFixSettings.SetAvailability(PreferenceName, [](int32_t value) -> bool
             {
                 return value == 0 || IsSupported();

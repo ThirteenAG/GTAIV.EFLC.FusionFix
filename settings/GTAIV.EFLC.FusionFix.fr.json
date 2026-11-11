@@ -187,7 +187,7 @@
   "MISC.DisableCameraCenteringInCover.description": "Pas de centrage forcé de la caméra au bord d'un mur à couvert.",
   "MISC.DisableWardrobeTransition.description": "Pas de fondu au noir lors du changement de vêtements.",
   "MISC.ExtendedSniperControls.description": "Plus de commandes en visant avec un fusil de sniper.",
-  "MISC.ExtraInfo": "Infos supplémentaires",
+  "MISC.ExtraInfo": "Détails supplémentaires du menu pause",
   "MISC.ExtraInfo.description": "Informations supplémentaires dans le menu pause, comme le nombre de fichiers IMG chargés.",
   "MISC.FieldOfView.description": "Champ de vision supplémentaire, par paliers.",
   "MISC.FixHelicopterSearchlights": "Corriger les projecteurs des hélicoptères",
@@ -351,7 +351,7 @@
   "ff.recommended": "Recommandé",
   "ff.enhanced": "Amélioré",
   "ff.custom": "Personnalisé",
-  "ff.page.hdr": "HDR",
+  "ff.page.hdr": "Paramètres HDR",
   "ff.page.contains": "Contient : {}.",
   "ff.plugins": "Plugins",
   "ff.plugins.description": "Une page par plugin avec son préréglage et ses paramètres : {}.",
@@ -387,5 +387,10 @@
   "MAIN.WindowMode.description": "Plein écran, une fenêtre avec bordures ou une fenêtre sans bordures qui couvre l'écran. Alt+Entrée bascule entre le plein écran et le dernier mode fenêtré.",
   "ff.note.d3d9on12": "Installez D3D9On12 depuis la page Améliorations graphiques de FusionFixHub pour activer DirectX 12.",
   "Distant Lights": "Lumières lointaines",
-  "MISC.DistantLights.description": "Lampadaires et circulation vus de loin. PC : les lampadaires et les modèles de véhicules de la version PC. Console : les lampadaires plus denses et les feux de circulation en mouvement de la version Xbox 360."
+  "MISC.DistantLights.description": "Lampadaires et circulation vus de loin. PC : les lampadaires et les modèles de véhicules de la version PC. Console : les lampadaires plus denses et les feux de circulation en mouvement de la version Xbox 360.",
+  "ff.page.advanced": "Options avancées",
+  "ff.page.camera": "Options de caméra",
+  "ff.page.tweaks": "Réglages avancés",
+  "ff.keyboard_mouse": "Options clavier et souris",
+  "ff.launcher": "Rockstar Games Launcher"
 }

@@ -187,7 +187,7 @@
   "MISC.DisableCameraCenteringInCover.description": "Keine erzwungene Kamerazentrierung an der Kante einer Wand in Deckung.",
   "MISC.DisableWardrobeTransition.description": "Kein Abblenden auf Schwarz beim Umziehen.",
   "MISC.ExtendedSniperControls.description": "Mehr Steuerungsmöglichkeiten beim Zielen mit einem Scharfschützengewehr.",
-  "MISC.ExtraInfo": "Zusätzliche Infos",
+  "MISC.ExtraInfo": "Zusätzliche Pausenmenüdetails",
   "MISC.ExtraInfo.description": "Zusätzliche Informationen im Pausenmenü, etwa die Anzahl geladener IMG-Dateien.",
   "MISC.FieldOfView.description": "Zusätzliches Sichtfeld, in Stufen.",
   "MISC.FixHelicopterSearchlights": "Hubschrauber-Suchscheinwerfer korrigieren",
@@ -351,7 +351,7 @@
   "ff.recommended": "Empfohlen",
   "ff.enhanced": "Erweitert",
   "ff.custom": "Benutzerdefiniert",
-  "ff.page.hdr": "HDR",
+  "ff.page.hdr": "HDR-Einstellungen",
   "ff.page.contains": "Enthält: {}.",
   "ff.plugins": "Plugins",
   "ff.plugins.description": "Eine Seite pro Plugin mit seinem Preset und seinen Einstellungen: {}.",
@@ -387,5 +387,10 @@
   "MAIN.WindowMode.description": "Vollbild, ein Fenster mit Rahmen oder ein rahmenloses Fenster, das den Bildschirm füllt. Alt+Enter wechselt zwischen Vollbild und dem letzten Fenstermodus.",
   "ff.note.d3d9on12": "Installiere D3D9On12 auf der Seite Grafikverbesserungen in FusionFixHub, um DirectX 12 zu aktivieren.",
   "Distant Lights": "Entfernte Lichter",
-  "MISC.DistantLights.description": "Straßenlaternen und Verkehr in der Ferne. PC: Straßenlaternen und Verkehrsmodelle der PC-Version. Konsole: die dichteren Straßenlaternen und fahrenden Verkehrslichter der Xbox-360-Version."
+  "MISC.DistantLights.description": "Straßenlaternen und Verkehr in der Ferne. PC: Straßenlaternen und Verkehrsmodelle der PC-Version. Konsole: die dichteren Straßenlaternen und fahrenden Verkehrslichter der Xbox-360-Version.",
+  "ff.page.advanced": "Erweiterte Optionen",
+  "ff.page.camera": "Kameraoptionen",
+  "ff.page.tweaks": "Erweiterte Einstellungen",
+  "ff.keyboard_mouse": "Tastatur- & Mausoptionen",
+  "ff.launcher": "Rockstar Games Launcher"
 }

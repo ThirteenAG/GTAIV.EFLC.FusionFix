@@ -545,8 +545,8 @@
       <options action="MENUOPT_ADJUST" label="MO_BRI" value="PREF_BRIGHTNESS" scaler="11" displayValue="MENU_DISPLAY_SLIDERBAR" />
       <options action="MENUOPT_ADJUST" label="MO_CON" value="PREF_CONTRAST" scaler="11" displayValue="MENU_DISPLAY_SLIDERBAR" />
       <options action="MENUOPT_ADJUST" label="MO_SAT" value="PREF_SATURATION" scaler="11" displayValue="MENU_DISPLAY_SLIDERBAR" />
-      <options action="MENUOPT_ADJUST" label="MO_NOISE" value="PREF_EPISODIC_NOISE_FILTER" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_ADJUST" label="MO_SUB" value="PREF_SUBTITLES" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
+      <options action="MENUOPT_ADJUST" label="MO_NOISE" value="PREF_EPISODIC_NOISE_FILTER" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_ADJUST" label="MO_RAD" value="PREF_RADAR_MODE" scaler="3" displayValue="MENU_DISPLAY_RADAR_MODE" />
       <options action="MENUOPT_ADJUST" label="MO_HUD" value="PREF_DISPLAY_HUD" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
       <options action="MENUOPT_ADJUST" label="MO_HUD_TARG" value="PREF_RETICULE" scaler="2" displayValue="MENU_DISPLAY_RETICULE_MODE" />

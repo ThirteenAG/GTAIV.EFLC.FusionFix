@@ -61,7 +61,7 @@ body:
     attributes:
       label: Checklist
       options:
-        - label: "Test in the [latest git build](https://ci.appveyor.com/api/projects/ThirteenAG/gtaiv-eflc-fusionfix/artifacts/GTAIV.EFLC.FusionFix.zip) in case it's already fixed."
+        - label: "Test in the [latest git build](https://fusionfix.io/dev/GTAIV.EFLC.FusionFix/GTAIV.EFLC.FusionFix) in case it's already fixed."
           required: true
         - label: "[Search for other reports](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/search?q=my+issue&type=issues) of the same issue."
           required: true

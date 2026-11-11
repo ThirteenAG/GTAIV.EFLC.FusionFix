@@ -16,7 +16,7 @@ body:
     attributes:
       label: Checklist
       options:
-        - label: "Check the [latest git build](https://ci.appveyor.com/api/projects/ThirteenAG/gtaiv-eflc-fusionfix/artifacts/GTAIV.EFLC.FusionFix.zip) in case it's already implemented."
+        - label: "Check the [latest git build](https://fusionfix.io/dev/GTAIV.EFLC.FusionFix/GTAIV.EFLC.FusionFix) in case it's already implemented."
           required: true
         - label: "[Search for other requests](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/search?q=my+issue&type=issues) of the same feature."
           required: true

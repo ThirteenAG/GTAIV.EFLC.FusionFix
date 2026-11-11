@@ -2491,6 +2491,8 @@ public:
     void RegisterMenuRows()
     {
         constexpr uint8_t NotTLAD = 1 | 4;
+        AddMenuText("MO_KBOPT", [] { return OwnText("@ff.keyboard_mouse"); });
+        AddMenuText("MO_GUIDE", [] { return OwnText("@ff.launcher"); });
 
         // CE hides these rows every time the menu is filled, after the menu has shown them: they flicker. Marketplace
         // (TLAD, TBoGT) and voice output.
@@ -2501,60 +2503,31 @@ public:
                 RemoveOption(screen, "MO_VOUT", "PREF_VOICE_OUTPUT");
         }
 
-        // Game: the pause menu before Exit Game, the title menu at the end. The Plugins page follows them: one entry per
-        // plugin, Fusion Fix first with its Preset row (its settings are on the game's tabs), then the other plugins
-        // (FindOtherPlugins). A preset of all plugins is FusionFixHub's.
+        // Keep the game's own rows on the tab; group Fusion Fix settings on pages.
         for (auto [screen, before] : { std::pair{ MenuScreen::Game, "MO_EXITGAM" }, std::pair{ MenuScreen::TitleGame, "" } })
         {
-            if (screen == MenuScreen::TitleGame)
-                AddEmptyLine(screen, before);
-            AddSetting(screen, "MAIN.SkipIntro", before);
-            AddSetting(screen, "MAIN.SkipMenu", before);
-            AddEmptyLine(screen, before);
-            AddSetting(screen, "MISC.CutsceneBorders", before);
-            AddSetting(screen, "MISC.TransparentMapMenu", before);
-            AddSetting(screen, "FRAMELIMIT.DisplayFpsCounter", before);
-            AddEmptyLine(screen, before);
-            AddSetting(screen, "MAIN.WindowMode", before);
-            AddSetting(screen, "MAIN.BlockOnLostFocus", before);
-            // Shown on the game, with a warning in the help line while it's on
-            AddSetting(screen, "SHADOWS.ExtraNightShadows", before);
-            AddSetting(screen, "MISC.DistantLights", before);
-            AddEmptyLine(screen, before);
-            AddSetting(screen, "MISC.LightSyncRGB", before);
-            AddSetting(screen, "MISC.TimedEvents", before);
-            AddEmptyLine(screen, before);
-            AddSetting(screen, "UPDATE.CheckForUpdates", before);
-            AddEmptyLine(screen, before);
+            auto advanced = AddPage(screen, "@ff.page.advanced", before);
+            for (auto id : { "MAIN.SkipIntro", "MAIN.SkipMenu", "MAIN.BlockOnLostFocus", "MISC.TimedEvents", "UPDATE.CheckForUpdates" })
+                AddSetting(advanced, id);
+            auto tweaks = AddPage(screen, "@ff.page.tweaks", before);
+            AddSetting(tweaks, "FRAMELIMIT.DisplayFpsCounter");
+            AddSetting(tweaks, "MISC.ExtraInfo");
             pluginsBefore[static_cast<int32_t>(screen)] = before;
             if (auto own = AddCategory(PluginsPage(screen), MenuKey(ownPlugin, ownPlugin.file.description.name)); own != MenuScreen::Invalid)
                 AddPresetRow(own, ownPlugin);
-            // Exit Game apart from the Plugins row, like the groups above
-            if (screen == MenuScreen::Game)
-                AddEmptyLine(screen, before);
         }
 
-        // Controls, at the end. TLAD has no wardrobe.
         for (auto screen : { MenuScreen::Controls, MenuScreen::TitleControls })
         {
-            AddEmptyLine(screen);
-            AddSetting(screen, "MISC.AlwaysRun");
-            AddSetting(screen, "MISC.ZoomedMovement");
-            AddSetting(screen, "MISC.ExtendedSniperControls");
-            AddEmptyLine(screen);
-            AddSetting(screen, "MAIN.CameraShake");
-            AddSetting(screen, "MISC.CenteredVehCam");
-            AddSetting(screen, "MISC.CenteredFootCam");
-            AddSetting(screen, "MISC.LadderCameraTilt");
-            AddSetting(screen, "MISC.StuntJumpCamera");
-            AddSetting(screen, "MISC.ActionCamera");
-            AddEmptyLine(screen);
-            AddSetting(screen, "MISC.TurnIndicators");
-            AddSetting(screen, "MISC.AlwaysShowBulletTraces");
-            AddSetting(screen, "MISC.DisableWardrobeTransition", {}, NotTLAD);
-            AddSetting(screen, "MISC.InstantStopTaxi");
-            AddSetting(screen, "MISC.AutoClimbLadders");
-            AddSetting(screen, "MISC.PlayerJumpRagdollControl");
+            auto advanced = AddPage(screen, "@ff.page.advanced");
+            for (auto id : { "MISC.AlwaysRun", "MISC.ZoomedMovement", "MISC.ExtendedSniperControls" }) AddSetting(advanced, id);
+            AddEmptyLine(advanced);
+            for (auto id : { "MISC.TurnIndicators", "MISC.AutoClimbLadders", "MISC.PlayerJumpRagdollControl", "MISC.AlwaysShowBulletTraces" }) AddSetting(advanced, id);
+            AddEmptyLine(advanced);
+            AddSetting(advanced, "MISC.DisableWardrobeTransition", {}, NotTLAD);
+            AddSetting(advanced, "MISC.InstantStopTaxi");
+            AddEmptyLine(advanced);
+            AddSetting(advanced, "MISC.LightSyncRGB");
         }
 
         // Keyboard options: 21 steps of mouse sensitivity, the camera settings before Remap Keyboard
@@ -2585,49 +2558,40 @@ public:
             RemoveOption(screen, "MO_SENS", sensitivity);
         }
 
-        // Audio: no microphone, the options at the end
         for (auto screen : { MenuScreen::Audio, MenuScreen::TitleAudio })
         {
             RemoveOption(screen, "MO_VMIC");
-            AddEmptyLine(screen);
-            AddSetting(screen, "MISC.AltDialogue");
+            AddEmptyLine(screen, "ME_IND_FM_17");
+            auto advanced = AddPage(screen, "@ff.page.advanced");
+            AddSetting(advanced, "MISC.AltDialogue");
+            AddSetting(advanced, "MISC.DeathMusic");
         }
 
-        // Display: Field of View after Saturation, the image and lighting options before Restore Defaults, then the HDR
-        // page, whose rows HDR adds (GetHdrScreens)
         for (auto screen : { MenuScreen::Display, MenuScreen::TitleDisplay })
         {
             AddSetting(screen, "MISC.FieldOfView", "MO_SUB");
-            AddSetting(screen, "MAIN.Definition", "MO_DEF");
-            AddSetting(screen, "MISC.ConsoleGamma", "MO_DEF");
-            AddSetting(screen, "MISC.ConsoleAutoExposure", "MO_DEF");
-            AddSetting(screen, "MAIN.MotionBlur", "MO_DEF");
-            AddSetting(screen, "MISC.DepthOfField", "MO_DEF");
-            AddSetting(screen, "MISC.TreeLighting", "MO_DEF");
-            AddSetting(screen, "MISC.TreeAlpha", "MO_DEF");
-            AddEmptyLine(screen, "MO_DEF");
-            AddSetting(screen, "MAIN.Bloom", "MO_DEF");
-            AddSetting(screen, "MISC.ScreenFilter", "MO_DEF");
-            AddEmptyLine(screen, "MO_DEF");
+            auto camera = AddPage(screen, "@ff.page.camera", "MO_DEF", true);
+            for (auto id : { "MAIN.CameraShake", "MISC.CenteredVehCam", "MISC.CenteredFootCam", "MISC.StuntJumpCamera", "MISC.ActionCamera", "MISC.LadderCameraTilt" }) AddSetting(camera, id);
+            auto advanced = AddPage(screen, "@ff.page.advanced", "MO_DEF", true);
+            for (auto id : { "MISC.ConsoleGamma", "MISC.ToneMapping", "MISC.ScreenFilter", "MISC.ConsoleAutoExposure", "MISC.TreeLighting", "MISC.TreeAlpha" }) AddSetting(advanced, id);
+            AddEmptyLine(advanced);
+            AddSetting(advanced, "MISC.CutsceneBorders");
+            AddSetting(advanced, "MISC.TransparentMapMenu");
             hdrScreens.push_back(AddPage(screen, "@ff.page.hdr", "MO_DEF", true, [] { return SettingValueText(ownPlugin, "HDR.HDR"); }));
-            AddEmptyLine(screen, "MO_DEF");
         }
 
-        // Graphics: after VSync, before Graphics Analyzer
         for (auto screen : { MenuScreen::Graphics, MenuScreen::TitleGraphics })
         {
-            // Definition is in Display
             RemoveOption(screen, "MO_DOF", "PREF_DOF");
+            AddSetting(screen, "MAIN.WindowMode", "MO_ASPRAT");
+            AddSetting(screen, "MAIN.Definition", "MO_VSYNC");
             AddSetting(screen, "FRAMELIMIT.FpsLimitPreset", "MO_ANALYZER");
             AddSetting(screen, "MISC.Antialiasing", "MO_ANALYZER");
-            AddEmptyLine(screen, "MO_ANALYZER");
-            AddSetting(screen, "FOG.VolumetricFog", "MO_ANALYZER");
-            AddSetting(screen, "MISC.SunShafts", "MO_ANALYZER");
-            AddSetting(screen, "MISC.UnclampLighting", "MO_ANALYZER");
-            AddSetting(screen, "MISC.ToneMapping", "MO_ANALYZER");
-            AddSetting(screen, "MISC.AmbientOcclusion", "MO_ANALYZER");
-            AddSetting(screen, "SHADOWS.ShadowFilter", "MO_ANALYZER");
             AddSetting(screen, "MAIN.GraphicsAPI", "MO_ANALYZER");
+            auto advanced = AddPage(screen, "@ff.page.advanced", "MO_ANALYZER");
+            for (auto id : { "MAIN.Bloom", "MAIN.MotionBlur", "MISC.DepthOfField" }) AddSetting(advanced, id);
+            AddEmptyLine(advanced);
+            for (auto id : { "FOG.VolumetricFog", "MISC.SunShafts", "MISC.UnclampLighting", "MISC.ConsoleCarReflectionsAndDirt", "EXPERIMENTAL.EnableHighDetailReflections", "EXPERIMENTAL.ReflectionMSAAQuality", "MISC.AmbientOcclusion", "SHADOWS.ShadowFilter", "SHADOWS.ExtraNightShadows", "MISC.DistantLights" }) AddSetting(advanced, id);
         }
     }
 

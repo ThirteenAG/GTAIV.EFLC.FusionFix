@@ -1,4 +1,4 @@
-// Changes summary: scaled text to fit more options; added faster fade time from consoles.
+// Changes summary: added faster fade time from consoles.
 
 [HD]
 
@@ -10,15 +10,15 @@ TOP_logo_pos 1.00000 0.08100
 TOP_logo_size 0.06800 0.08900
 SAV_COL_SIZE_SAVEGAME 0.71200 0.48100
 MID_middle_text_position 0.08800 0.17300
-MID_middle_text_size 0.21500 0.33250
+MID_middle_text_size 0.29000 0.48000
 MID_2nd_menu_middle_text_size 0.23660 0.35980
 MID_column_size_of_middle_text 0.28900 0.92400
-MID_spacing_between_middle_text 0.02150 0.02150
+MID_spacing_between_middle_text 0.03250 0.03225
 MID_background_opacity 160.00000 0.00000
 MID_background_position 1.00000 1.00000
 MID_background_size 0.95600 0.61500
-MID_slider_bar_offset 0.00000 0.02475
-MID_slider_bar_size 0.15900 0.01050
+MID_slider_bar_offset 0.00000 0.01700
+MID_slider_bar_size 0.15900 0.01500
 HLP_helper_text_position 0.91000 0.83600
 HLP_help_text_size 0.19800 0.30000
 HLP_help_text_spacing 0.01875 0.03650
@@ -292,15 +292,15 @@ TOP_logo_pos 1.00000 0.08100
 TOP_logo_size 0.06800 0.08900
 SAV_COL_SIZE_SAVEGAME 0.75400 0.33900
 MID_middle_text_position 0.09600 0.17000
-MID_middle_text_size 0.21500 0.33250
+MID_middle_text_size 0.25000 0.42980
 MID_2nd_menu_middle_text_size 0.27440 0.43260
 MID_column_size_of_middle_text 0.27100 0.90400
-MID_spacing_between_middle_text 0.02150 0.02150
+MID_spacing_between_middle_text 0.02870 0.02870
 MID_background_opacity 160.00000 0.00000
 MID_background_position 1.00000 1.00000
 MID_background_size 0.95600 0.61500
-MID_slider_bar_offset 0.00000 0.02475
-MID_slider_bar_size 0.15700 0.01050
+MID_slider_bar_offset 0.00000 0.02150
+MID_slider_bar_size 0.15700 0.01200
 HLP_helper_text_position 0.90100 0.83700
 HLP_help_text_size 0.21400 0.29200
 HLP_help_text_spacing 0.01875 0.03650

@@ -166,13 +166,17 @@ public:
             dc->Append();
     }
 
+    // Set while the game sizes the loading screen objects by their height (the intro logos)
+    static inline bool* bLoadingScreenKeepsAspect = nullptr;
+
     static void DrawLoadingScreen(Vector4 rect, float z, float min1, float max1, float min2, float max2, Color32 const& col) 
     {
         // Wide screens use the 16:9 set of loadingscreens*.dat, laid out on the whole screen, so every object (the
         // art and the black fill) goes into a centred 16:9 frame: pillarboxed on wider screens, cropped on 16:10.
-        // All of them: telling them apart by their pixel height made the art stretch below 720 lines.
+        // All of them: telling them apart by their pixel height made the art stretch below 720 lines. Not the
+        // intro logos: the game keeps their aspect on every screen itself.
         float aspectRatio = SCREEN_ASPECT_RATIO;
-        bool isWide = (aspectRatio > 1.5f);
+        bool isWide = (aspectRatio > 1.5f) && !*bLoadingScreenKeepsAspect;
 
         if (isWide)
         {
@@ -277,6 +281,9 @@ public:
             injector::MakeJMP(pattern.get_first(0), DrawCutsceneBorders, true);
 
             // Loadingscreens
+            pattern = find_pattern("0F 2F CB 76 ? 80 3D ? ? ? ? 00 0F 84", "0F 2F DC 76 ? 80 3D ? ? ? ? 00 0F 84");
+            bLoadingScreenKeepsAspect = *pattern.get_first<bool*>(7);
+
             pattern = find_pattern("E8 ? ? ? ? 83 C4 2C E8 ? ? ? ? E9", "E8 ? ? ? ? 83 C4 2C E8 ? ? ? ? EB 73");
             injector::MakeCALL(pattern.get_first(0), DrawLoadingScreen, true);
 

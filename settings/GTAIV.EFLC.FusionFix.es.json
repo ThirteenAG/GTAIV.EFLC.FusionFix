@@ -187,7 +187,7 @@
   "MISC.DisableCameraCenteringInCover.description": "Sin centrado forzado de la cámara en el borde de una pared al cubrirse.",
   "MISC.DisableWardrobeTransition.description": "Sin fundido a negro al cambiarse de ropa.",
   "MISC.ExtendedSniperControls.description": "Más controles al apuntar con un rifle de francotirador.",
-  "MISC.ExtraInfo": "Información adicional",
+  "MISC.ExtraInfo": "Detalles adicionales del menú de pausa",
   "MISC.ExtraInfo.description": "Información adicional en el menú de pausa, como el número de archivos IMG cargados.",
   "MISC.FieldOfView.description": "Campo de visión adicional, en pasos.",
   "MISC.FixHelicopterSearchlights": "Corregir focos de helicópteros",
@@ -351,7 +351,7 @@
   "ff.recommended": "Recomendado",
   "ff.enhanced": "Mejorado",
   "ff.custom": "Personalizado",
-  "ff.page.hdr": "HDR",
+  "ff.page.hdr": "Ajustes HDR",
   "ff.page.contains": "Contiene: {}.",
   "ff.plugins": "Plugins",
   "ff.plugins.description": "Una página por plugin con su preajuste y sus ajustes: {}.",
@@ -387,5 +387,10 @@
   "MAIN.WindowMode.description": "Pantalla completa, una ventana con bordes o una ventana sin bordes que cubre la pantalla. Alt+Intro cambia entre pantalla completa y el último modo de ventana.",
   "ff.note.d3d9on12": "Instala D3D9On12 en la página de mejoras gráficas de FusionFixHub para activar DirectX 12.",
   "Distant Lights": "Luces lejanas",
-  "MISC.DistantLights.description": "Farolas y tráfico vistos a lo lejos. PC: las farolas y los modelos de tráfico de la versión de PC. Consola: las farolas más densas y las luces de tráfico en movimiento de la versión de Xbox 360."
+  "MISC.DistantLights.description": "Farolas y tráfico vistos a lo lejos. PC: las farolas y los modelos de tráfico de la versión de PC. Consola: las farolas más densas y las luces de tráfico en movimiento de la versión de Xbox 360.",
+  "ff.page.advanced": "Opciones avanzadas",
+  "ff.page.camera": "Opciones de cámara",
+  "ff.page.tweaks": "Ajustes avanzados",
+  "ff.keyboard_mouse": "Opciones de teclado y ratón",
+  "ff.launcher": "Rockstar Games Launcher"
 }

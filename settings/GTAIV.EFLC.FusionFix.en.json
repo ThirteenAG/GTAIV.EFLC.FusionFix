@@ -187,7 +187,7 @@
   "MISC.DisableCameraCenteringInCover.description": "No forced camera centering at the edge of a wall in cover.",
   "MISC.DisableWardrobeTransition.description": "No fade to black when changing clothes.",
   "MISC.ExtendedSniperControls.description": "More controls while aiming with a sniper rifle.",
-  "MISC.ExtraInfo": "Extra Info",
+  "MISC.ExtraInfo": "Extra Pause Menu Details",
   "MISC.ExtraInfo.description": "Extra information in the pause menu, like the number of loaded IMG files.",
   "MISC.FieldOfView.description": "Extra field of view, in steps.",
   "MISC.FixHelicopterSearchlights": "Fix Helicopter Searchlights",
@@ -351,7 +351,7 @@
   "ff.recommended": "Recommended",
   "ff.enhanced": "Enhanced",
   "ff.custom": "Custom",
-  "ff.page.hdr": "HDR",
+  "ff.page.hdr": "HDR Settings",
   "ff.page.contains": "Contains: {}.",
   "ff.plugins": "Plugins",
   "ff.plugins.description": "A page per plugin with its preset and settings: {}.",
@@ -387,5 +387,10 @@
   "MAIN.WindowMode.description": "Fullscreen, a window with borders, or a borderless window that covers the screen. Alt+Enter switches between fullscreen and the last window mode.",
   "ff.note.d3d9on12": "Install D3D9On12 on FusionFixHub's Graphics enhancements page to enable DirectX 12.",
   "Distant Lights": "Distant Lights",
-  "MISC.DistantLights.description": "Streetlights and traffic seen from afar. PC: the streetlights and traffic car models of the PC version. Console: the denser streetlights and moving traffic lights of the Xbox 360 version."
+  "MISC.DistantLights.description": "Streetlights and traffic seen from afar. PC: the streetlights and traffic car models of the PC version. Console: the denser streetlights and moving traffic lights of the Xbox 360 version.",
+  "ff.page.advanced": "Advanced Options",
+  "ff.page.camera": "Camera Options",
+  "ff.page.tweaks": "Advanced Tweaks",
+  "ff.keyboard_mouse": "Keyboard & Mouse Options",
+  "ff.launcher": "Rockstar Games Launcher"
 }

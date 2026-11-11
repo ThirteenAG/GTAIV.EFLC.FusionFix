@@ -187,7 +187,7 @@
   "MISC.DisableCameraCenteringInCover.description": "Nessun centramento forzato della telecamera sul bordo di un muro quando si è al riparo.",
   "MISC.DisableWardrobeTransition.description": "Nessuna dissolvenza al nero quando ci si cambia d'abito.",
   "MISC.ExtendedSniperControls.description": "Più comandi quando si mira con un fucile di precisione.",
-  "MISC.ExtraInfo": "Informazioni extra",
+  "MISC.ExtraInfo": "Dettagli aggiuntivi del menu di pausa",
   "MISC.ExtraInfo.description": "Informazioni extra nel menu di pausa, come il numero di file IMG caricati.",
   "MISC.FieldOfView.description": "Campo visivo aggiuntivo, a scatti.",
   "MISC.FixHelicopterSearchlights": "Correggi riflettori degli elicotteri",
@@ -351,7 +351,7 @@
   "ff.recommended": "Consigliato",
   "ff.enhanced": "Migliorato",
   "ff.custom": "Personalizzato",
-  "ff.page.hdr": "HDR",
+  "ff.page.hdr": "Impostazioni HDR",
   "ff.page.contains": "Contiene: {}.",
   "ff.plugins": "Plugin",
   "ff.plugins.description": "Una pagina per ogni plugin con il suo preset e le sue impostazioni: {}.",
@@ -387,5 +387,10 @@
   "MAIN.WindowMode.description": "Schermo intero, una finestra con bordi o una finestra senza bordi che copre lo schermo. Alt+Invio passa dallo schermo intero all'ultima modalità finestra.",
   "ff.note.d3d9on12": "Installa D3D9On12 dalla pagina Miglioramenti grafici di FusionFixHub per attivare DirectX 12.",
   "Distant Lights": "Luci distanti",
-  "MISC.DistantLights.description": "Lampioni e traffico visti da lontano. PC: i lampioni e i modelli del traffico della versione PC. Console: i lampioni più fitti e le luci del traffico in movimento della versione Xbox 360."
+  "MISC.DistantLights.description": "Lampioni e traffico visti da lontano. PC: i lampioni e i modelli del traffico della versione PC. Console: i lampioni più fitti e le luci del traffico in movimento della versione Xbox 360.",
+  "ff.page.advanced": "Opzioni avanzate",
+  "ff.page.camera": "Opzioni telecamera",
+  "ff.page.tweaks": "Impostazioni avanzate",
+  "ff.keyboard_mouse": "Opzioni tastiera e mouse",
+  "ff.launcher": "Rockstar Games Launcher"
 }

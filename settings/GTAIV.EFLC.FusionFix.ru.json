@@ -187,7 +187,7 @@
   "MISC.DisableCameraCenteringInCover.description": "Без принудительной центровки камеры у края стены в укрытии.",
   "MISC.DisableWardrobeTransition.description": "Без затемнения при смене одежды.",
   "MISC.ExtendedSniperControls.description": "Больше управления при прицеливании из снайперской винтовки.",
-  "MISC.ExtraInfo": "Дополнительная информация",
+  "MISC.ExtraInfo": "Дополнительные сведения в меню паузы",
   "MISC.ExtraInfo.description": "Дополнительная информация в меню паузы, например число загруженных файлов IMG.",
   "MISC.FieldOfView.description": "Дополнительное поле зрения, в шагах.",
   "MISC.FixHelicopterSearchlights": "Исправление прожекторов вертолетов",
@@ -351,7 +351,7 @@
   "ff.recommended": "Рекомендуемый",
   "ff.enhanced": "Улучшенный",
   "ff.custom": "Свой",
-  "ff.page.hdr": "HDR",
+  "ff.page.hdr": "Настройки HDR",
   "ff.page.contains": "Содержит: {}.",
   "ff.plugins": "Плагины",
   "ff.plugins.description": "Страница для каждого плагина с его пресетом и настройками: {}.",
@@ -387,5 +387,10 @@
   "MAIN.WindowMode.description": "Полный экран, окно с рамкой или окно без рамки на весь экран. Alt+Enter переключает между полным экраном и последним оконным режимом.",
   "ff.note.d3d9on12": "Установите D3D9On12 на странице «Graphics enhancements» в FusionFixHub, чтобы включить DirectX 12.",
   "Distant Lights": "Дальние огни",
-  "MISC.DistantLights.description": "Фонари и машины вдали. ПК: фонари и модели машин версии для ПК. Консоль: более частые фонари и движущиеся огни машин версии для Xbox 360."
+  "MISC.DistantLights.description": "Фонари и машины вдали. ПК: фонари и модели машин версии для ПК. Консоль: более частые фонари и движущиеся огни машин версии для Xbox 360.",
+  "ff.page.advanced": "Дополнительные настройки",
+  "ff.page.camera": "Настройки камеры",
+  "ff.page.tweaks": "Расширенные настройки",
+  "ff.keyboard_mouse": "Настройки клавиатуры и мыши",
+  "ff.launcher": "Rockstar Games Launcher"
 }

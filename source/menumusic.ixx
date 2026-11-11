@@ -850,36 +850,34 @@ namespace MenuMusic
     void UpdateMusic(SafetyHookContext& regs, uint32_t time)
     {
         entity = reinterpret_cast<void*>(regs.esi);
+        engineStopped = false;
         if (!category)
             category = rage__audCategoryManager__GetCategoryPtr(pCategoryManager, 0xB65AE241); // FRONTEND_MENU_MUSIC
 
-        if (!engineStopped)
+        bool lobby = CNetwork__IsOnLobbyScreen();
+        // +0x43D: the game is ready for menu music; the game asks for a stop with its state 4
+        bool shouldPlay = Field<bool>(entity, 0x43D) && audFrontendAudioEntity__ShouldFEMusicBePlaying(entity);
+        bool stopRequested = Field<int>(entity, 0x200) == 4 && state != State::Stopping;
+        UpdateCategoryVolume();
+
+        // Nothing moves in a repeated update or when the clock steps back
+        uint32_t delta = time - lastTime;
+        bool advance = delta != 0 && delta < 0x80000000;
+        lastTime = time;
+        if (stopRequested)
+            Stop();
+        UpdateSession(shouldPlay && !stopRequested, lobby, advance ? delta * 0.001f : 0.0f, advance);
+
+        Field<int>(entity, 0x200) = state == State::Failed ? 0 : int(state);
+        if (state == State::WaitingForStream || state == State::Preparing)
         {
-            bool lobby = CNetwork__IsOnLobbyScreen();
-            // +0x43D: the game is ready for menu music; the game asks for a stop with its state 4
-            bool shouldPlay = Field<bool>(entity, 0x43D) && audFrontendAudioEntity__ShouldFEMusicBePlaying(entity);
-            bool stopRequested = Field<int>(entity, 0x200) == 4 && state != State::Stopping;
-            UpdateCategoryVolume();
-
-            // Nothing moves in a repeated update or when the clock steps back
-            uint32_t delta = time - lastTime;
-            bool advance = delta != 0 && delta < 0x80000000;
-            lastTime = time;
-            if (stopRequested)
-                Stop();
-            UpdateSession(shouldPlay && !stopRequested, lobby, advance ? delta * 0.001f : 0.0f, advance);
-
-            Field<int>(entity, 0x200) = state == State::Failed ? 0 : int(state);
-            if (state == State::WaitingForStream || state == State::Preparing)
+            // Like the game in these states: stop the sounds at +0x34C and +0x228 (with its state at +0x234)
+            if (auto sound = Field<audSound*>(entity, 0x34C))
+                rage__audSound__StopAndForget(sound, false);
+            if (auto sound = Field<audSound*>(entity, 0x228))
             {
-                // Like the game in these states: stop the sounds at +0x34C and +0x228 (with its state at +0x234)
-                if (auto sound = Field<audSound*>(entity, 0x34C))
-                    rage__audSound__StopAndForget(sound, false);
-                if (auto sound = Field<audSound*>(entity, 0x228))
-                {
-                    rage__audSound__StopAndForget(sound, false);
-                    Field<int>(entity, 0x234) = 0;
-                }
+                rage__audSound__StopAndForget(sound, false);
+                Field<int>(entity, 0x234) = 0;
             }
         }
         regs.eip = updateMusicEnd;
@@ -887,8 +885,7 @@ namespace MenuMusic
 
     void __fastcall NotifyFrontendInput(void* _this, void* edx)
     {
-        if (!engineStopped)
-            NotifyInput(CNetwork__IsOnLobbyScreen());
+        NotifyInput(CNetwork__IsOnLobbyScreen());
     }
 
     int __cdecl ShutdownClass()
@@ -901,8 +898,16 @@ namespace MenuMusic
             RestoreCategoryVolume();
         }
         auto result = shShutdownClass.unsafe_ccall<int>();
+
+        // The engine is gone with its sounds, stream slots and categories. It starts again when the episode changes.
         engineStopped = true;
         loopingWaveSlot = nullptr;
+        state = State::Idle;
+        failed = created = effectsApplied = categoryVolumeOwned = false;
+        parent = nullptr;
+        voices = {};
+        stream = nullptr;
+        category = nullptr;
         return result;
     }
 

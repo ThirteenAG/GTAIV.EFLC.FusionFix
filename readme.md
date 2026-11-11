@@ -22,7 +22,7 @@
 
 This projects aims to fix some issues in Grand Theft Auto IV: The Complete Edition, as well as add various new features for modern systems.
 
-Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionFix#readme) and [other games](https://thirteenag.github.io/wfp).
+Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionFix#readme) and [other games](https://fusionfix.io).
 
 ## Installation:
 
@@ -457,32 +457,6 @@ GTAIV_DIR=C:\Program Files (x86)\Steam\steamapps\common\Grand Theft Auto IV\GTAI
 ```
 
 The build then copies the built `GTAIV.EFLC.FusionFix.asi` into the `plugins` folder of that game folder, replacing the plugin that is already installed there, and debugging launches `GTAIV.exe` from there. The `.env` file is ignored by git. Without it, nothing is copied.
-
-### Release packages and secrets
-
-The release contains only zips: `GTAIV.EFLC.FusionFix.zip` with `FusionFixHub.exe` at the game's root, and
-`GTAIV.EFLC.FusionFixLegacyAddon.zip`. The installer is made on fusionfix.io for each download (the signed hub with a
-tag the site signs), never by this workflow. The zip never contains `vulkan.dll`, `nvngx_dlss.dll`, `amd_fidelityfx_*.dll` or the
-settings file; `release.bat` fails if one gets in. Its `d3d9.dll` is only a pass-through to the system's d3d9.dll
-(`source/d3d9`), so that unpacking a release over an old one replaces the old graphics-API proxy; `release.bat` checks it is
-that file (`tools/check-d3d9.ps1`) and that no `d3d9.cfg` is in the package.
-
-- **Locally**, `release.bat` takes the hub from `HUB_EXE` (default `..\FusionFixHub-App\bin\Release\FusionFixHub.exe`, next to this repository)
-  and stops with a message when it's missing: `set HUB_EXE=D:\path\to\FusionFixHub.exe` before running it.
-- **In the workflow**, the hub comes from the latest release of the private repository `ThirteenAG/FusionFixHub-App`,
-  read with the secret `HUB_RELEASE_TOKEN`; the download is checked for an Authenticode signature (a warning when the
-  signer isn't `CN=FusionFix`). Without the secret (forks, pull requests) the zip is built without the hub, with a warning.
-
-Setting up `HUB_RELEASE_TOKEN` (once):
-
-1. GitHub, Settings > Developer settings > Personal access tokens > **Fine-grained tokens** > Generate new token.
-2. Resource owner: `ThirteenAG`. Repository access: **Only select repositories** > `ThirteenAG/FusionFixHub-App`.
-3. Repository permissions: **Contents: Read-only** (Metadata: Read-only is added automatically). Nothing else.
-4. Pick an expiration (and a reminder to renew it), generate, copy the token.
-5. In this repository: Settings > Secrets and variables > Actions > **New repository secret**, name
-   `HUB_RELEASE_TOKEN`, paste the token.
-6. Check: run the workflow (Actions > GitHub Actions Build > Run workflow); the "Download FusionFixHub" step prints
-   the hub's signature and the zip contains `FusionFixHub.exe`.
 
 # Reporting more issues
 

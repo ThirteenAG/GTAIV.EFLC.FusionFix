@@ -482,7 +482,7 @@
     {
       "id": "MISC.ExtraInfo", "type": "bool", "default": 1,
       "label": "@MISC.ExtraInfo", "description": "@MISC.ExtraInfo.description",
-      "page": "advanced", "group": "@group.misc", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+      "page": "advanced", "group": "@group.misc", "control": [ "switch", "cycler" ], "visibility": "menu", "apply": "restart"
     },
     {
       "id": "MISC.OverrideTreeAlpha", "type": "float", "default": 0.0, "step": 0.125, "min": 0, "max": 255,
@@ -492,7 +492,7 @@
     {
       "id": "MISC.ConsoleCarReflectionsAndDirt", "type": "bool", "default": 1,
       "label": "@MISC.ConsoleCarReflectionsAndDirt", "description": "@MISC.ConsoleCarReflectionsAndDirt.description",
-      "page": "advanced", "group": "@group.misc", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+      "page": "advanced", "group": "@group.misc", "control": [ "switch", "cycler" ], "visibility": "menu", "apply": "restart"
     },
     {
       "id": "MISC.BrakeLightsWhenStopped", "type": "bool", "default": 0,
@@ -548,7 +548,7 @@
     {
       "id": "MISC.DeathMusic", "type": "bool", "default": 0,
       "label": "@MISC.DeathMusic", "description": "@MISC.DeathMusic.description",
-      "page": "advanced", "group": "@group.misc", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+      "page": "advanced", "group": "@group.misc", "control": [ "switch", "cycler" ], "visibility": "menu", "apply": "restart"
     },
     {
       "id": "MISC.AutoClimbLaddersRange", "type": "float", "default": 4.0, "step": 0.1, "min": 0, "max": 4,
@@ -825,12 +825,12 @@
       "id": "EXPERIMENTAL.ReflectionMSAAQuality", "type": "choice", "default": 0,
       "choices": [ { "value": 0, "label": "Off" }, { "value": 2, "label": "2x" }, { "value": 4, "label": "4x" }, { "value": 8, "label": "8x" } ],
       "label": "@EXPERIMENTAL.ReflectionMSAAQuality", "description": "@EXPERIMENTAL.ReflectionMSAAQuality.description",
-      "page": "advanced", "group": "@group.experimental", "control": [ "cycler", "dropdown" ], "visibility": "editor", "apply": "restart"
+      "page": "advanced", "group": "@group.experimental", "control": [ "cycler", "dropdown" ], "visibility": "menu", "apply": "restart"
     },
     {
       "id": "EXPERIMENTAL.EnableHighDetailReflections", "type": "bool", "default": 0,
       "label": "@EXPERIMENTAL.EnableHighDetailReflections",
-      "page": "advanced", "group": "@group.experimental", "control": [ "switch", "cycler" ], "visibility": "file", "apply": "restart"
+      "page": "advanced", "group": "@group.experimental", "control": [ "switch", "cycler" ], "visibility": "menu", "apply": "restart"
     },
     {
       "id": "EXPERIMENTAL.RemoveBBoxCulling", "type": "bool", "default": 0,
