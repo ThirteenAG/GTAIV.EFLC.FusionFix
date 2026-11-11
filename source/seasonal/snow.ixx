@@ -482,7 +482,7 @@ private:
         }
     }
 
-    static auto OnAfterCopyLight(CLightSource* light) -> void
+    static auto OnAfterCopyLight(rage::CLightSource* light) -> void
     {
         const CWeather::eWeatherType CurrentWeather = CWeather::GetOldWeatherType();
         const CWeather::eWeatherType NextWeather = CWeather::GetNewWeatherType();
@@ -502,19 +502,18 @@ private:
 
         if (HasVolumes(CurrentWeather) || HasVolumes(NextWeather))
         {
-            // Exclude lights previously volumetric, specular lights, cutscene lights, vehicle lights and traffic lights
-            uint32_t FlagMask = LIGHTFLAG_DRAW_VOLUME | LIGHTFLAG_NO_SPECULAR | LIGHTFLAG_CUTSCENE | LIGHTFLAG_VEHICLE | LIGHTFLAG_TRAFFIC_LIGHT;
-
             // Include spotlights with a radius between 8 and 20 (Most light models in lamppost.img are within that range)
-            if (light->m_LightType == LT_SPOT && light->m_Radius >= 8.0f && light->m_Radius <= 20.0f && !(light->m_Flags & FlagMask))
+            // and exclude lights previously volumetric, vehicle lights, traffic lights, fill lights and cutscene lights
+            constexpr uint32_t ExcludedFlags = rage::LIGHTFLAG_DRAW_VOLUME | rage::LIGHTFLAG_NO_SPECULAR | rage::LIGHTFLAG_CUTSCENE | rage::LIGHTFLAG_VEHICLE | rage::LIGHTFLAG_TRAFFIC_LIGHT;
+            if (light->mType == rage::LT_SPOT && light->mRadius >= 8.0f && light->mRadius <= 20.0f && !(light->mFlags & ExcludedFlags))
             {
                 // Append the light shaft flag
-                light->m_Flags |= LIGHTFLAG_DRAW_VOLUME;
+                light->mFlags |= rage::LIGHTFLAG_DRAW_VOLUME;
 
                 // Distance fading setup
-                float DeltaX = CameraPosition.x - light->m_Position.x;
-                float DeltaY = CameraPosition.y - light->m_Position.y;
-                float DeltaZ = CameraPosition.z - light->m_Position.z;
+                float DeltaX = CameraPosition.x - light->mPosition.x;
+                float DeltaY = CameraPosition.y - light->mPosition.y;
+                float DeltaZ = CameraPosition.z - light->mPosition.z;
 
                 float Distance = std::sqrt(DeltaX * DeltaX + DeltaY * DeltaY + DeltaZ * DeltaZ);
 
@@ -526,8 +525,8 @@ private:
                 // Transition from no volumes to volumes
                 if (!HasVolumes(CurrentWeather) && HasVolumes(NextWeather))
                 {
-                    light->m_VolumeIntensity = 4.0f * LightVolumeIntensities(NextWeather) * InterpolationValue * DistanceFade;
-                    light->m_VolumeScale = LightVolumeScales(NextWeather) * InterpolationValue;
+                    light->mVolumeIntensity = 4.0f * LightVolumeIntensities(NextWeather) * InterpolationValue * DistanceFade;
+                    light->mVolumeScale = LightVolumeScales(NextWeather) * InterpolationValue;
                 }
                 // Transition between volumes
                 else if (HasVolumes(CurrentWeather) && HasVolumes(NextWeather))
@@ -538,14 +537,14 @@ private:
                     float CurrentVolumeScale = LightVolumeScales(CurrentWeather);
                     float NextVolumeScale = LightVolumeScales(NextWeather);
 
-                    light->m_VolumeIntensity = 4.0f * (CurrentVolumeIntensity + (NextVolumeIntensity - CurrentVolumeIntensity) * InterpolationValue) * DistanceFade;
-                    light->m_VolumeScale = (CurrentVolumeScale + (NextVolumeScale - CurrentVolumeScale) * InterpolationValue);
+                    light->mVolumeIntensity = 4.0f * (CurrentVolumeIntensity + (NextVolumeIntensity - CurrentVolumeIntensity) * InterpolationValue) * DistanceFade;
+                    light->mVolumeScale = (CurrentVolumeScale + (NextVolumeScale - CurrentVolumeScale) * InterpolationValue);
                 }
                 // Transition from volumes to no volumes
                 else if (HasVolumes(CurrentWeather) && !HasVolumes(NextWeather))
                 {
-                    light->m_VolumeIntensity = 4.0f * LightVolumeIntensities(CurrentWeather) * (1.0f - InterpolationValue) * DistanceFade;
-                    light->m_VolumeScale = LightVolumeScales(CurrentWeather) * (1.0f - InterpolationValue);
+                    light->mVolumeIntensity = 4.0f * LightVolumeIntensities(CurrentWeather) * (1.0f - InterpolationValue) * DistanceFade;
+                    light->mVolumeScale = LightVolumeScales(CurrentWeather) * (1.0f - InterpolationValue);
                 }
             }
         }

@@ -377,7 +377,7 @@ namespace CTaskComplexClimbLadder
             if (type == std::to_underlying(TaskID::TaskSimpleClimbLadder))
                 LadderCamera::Release();
         }
-        if (result && ped == CWorld::FindLocalPlayer() && IsAutoClimbEnabled() && type == std::to_underlying(TaskID::TaskSimpleClimbLadder))
+        if (result && ped == CPlayer::getLocalPlayerPed() && IsAutoClimbEnabled() && type == std::to_underlying(TaskID::TaskSimpleClimbLadder))
         {
             const int entryMode = *reinterpret_cast<const int*>(task + nEntryMode);
             if (entryMode == BottomEntry || entryMode == TopEntry)

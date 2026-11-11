@@ -68,7 +68,7 @@ public:
                     auto pDriver = *(uintptr_t*)(pVehicle + nDriver);
 
                     // AI vehicles already light theirs correctly
-                    if (!pDriver || pDriver != CWorld::FindLocalPlayer())
+                    if (!pDriver || pDriver != CPlayer::getLocalPlayerPed())
                         return;
 
                     // Pulling away

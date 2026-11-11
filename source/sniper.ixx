@@ -75,7 +75,7 @@ char __cdecl sub_A72820(char a1)
         constexpr auto INPUT_JUMP = 2;
         if (Natives::IsControlJustPressed(0, INPUT_JUMP))
         {
-            auto pPed = CWorld::FindLocalPlayer();
+            auto pPed = CPlayer::getLocalPlayerPed();
             if (pPed)
             {
                 auto m_WeaponData = CWeaponData::getWeaponData(pPed + 0x2B0, 0);
@@ -186,7 +186,7 @@ public:
                 static auto esc = FusionFixSettings.GetRef("PREF_EXTENDEDSNIPERCONTROLS");
                 if (esc->get())
                 {
-                    auto pPed = CWorld::FindLocalPlayer();
+                    auto pPed = CPlayer::getLocalPlayerPed();
                     if (pPed)
                     {
                         auto m_WeaponData = CWeaponData::getWeaponData(pPed + 0x2B0, 0);
