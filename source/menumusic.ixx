@@ -6,12 +6,11 @@ export module menumusic;
 
 import common;
 import comvars;
-import settings;
 
-// Pause menu music. PC plays the menu music stream as it is. Consoles mix it while it plays: the seven stems of the
-// stream fade in and out on their own and move around the listener, shadow sounds send them to the reverb, one-shots
-// play on top (IV, TBoGT) and the first menu input brings waiting stems in sooner. The Console setting mixes it that
-// way with the sounds the PC version has, and keeps the stream playing through its loop point.
+// Pause menu music. The game plays the menu music stream as it is. Consoles mix it while it plays: the seven stems of
+// the stream fade in and out on their own and move around the listener, shadow sounds send them to the reverb,
+// one-shots play on top (IV, TBoGT) and the first menu input brings waiting stems in sooner. This mixes it that way
+// again with the sounds the PC version has, and keeps the stream playing through its loop point.
 namespace MenuMusic
 {
     struct audSound;
@@ -213,7 +212,6 @@ namespace MenuMusic
 
     void* entity; // the audFrontendAudioEntity
     void* category;
-    bool console = false;
     bool engineStopped = false;
     State state = State::Idle;
     int episode = 0;
@@ -851,20 +849,9 @@ namespace MenuMusic
     // Replaces the menu music states of audFrontendAudioEntity::UpdateMusic; 'time' is the function's millisecond clock
     void UpdateMusic(SafetyHookContext& regs, uint32_t time)
     {
-        static auto menuMusic = FusionFixSettings.GetRef("PREF_MENUMUSIC");
         entity = reinterpret_cast<void*>(regs.esi);
         if (!category)
             category = rage__audCategoryManager__GetCategoryPtr(pCategoryManager, 0xB65AE241); // FRONTEND_MENU_MUSIC
-
-        // The setting switches while no menu music is playing
-        if (state == State::Idle && Field<int>(entity, 0x200) == 0 && console != (menuMusic->get() == 1))
-        {
-            console = !console;
-            if (!console)
-                RestoreCategoryVolume();
-        }
-        if (!console)
-            return;
 
         if (!engineStopped)
         {
@@ -900,15 +887,13 @@ namespace MenuMusic
 
     void __fastcall NotifyFrontendInput(void* _this, void* edx)
     {
-        if (!console)
-            return shNotifyFrontendInput.unsafe_fastcall(_this, edx);
         if (!engineStopped)
             NotifyInput(CNetwork__IsOnLobbyScreen());
     }
 
     int __cdecl ShutdownClass()
     {
-        if (console && !engineStopped)
+        if (!engineStopped)
         {
             Stop();
             UpdateSession(false, false, 0.0f, false);

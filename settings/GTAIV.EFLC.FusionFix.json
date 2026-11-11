@@ -371,13 +371,6 @@
       "page": "audio", "control": [ "switch", "cycler" ]
     },
     {
-      "id": "MISC.MenuMusic", "type": "choice", "default": 1,
-      "choices": [ { "value": 0, "label": "PC" }, { "value": 1, "label": "Console" } ],
-      "label": "@Menu Music", "description": "@MISC.MenuMusic.description",
-      "page": "audio", "control": [ "cycler", "dropdown" ],
-      "presets": { "vanilla": 0, "recommended": 1, "enhanced": 1 }
-    },
-    {
       "id": "MAIN.OverlayHotkey", "type": "choice", "default": 121,
       "choices": [ { "value": 112, "label": "Ctrl+F1" }, { "value": 113, "label": "Ctrl+F2" }, { "value": 114, "label": "Ctrl+F3" }, { "value": 115, "label": "Ctrl+F4" }, { "value": 116, "label": "Ctrl+F5" }, { "value": 117, "label": "Ctrl+F6" }, { "value": 118, "label": "Ctrl+F7" }, { "value": 119, "label": "Ctrl+F8" }, { "value": 120, "label": "Ctrl+F9" }, { "value": 121, "label": "Ctrl+F10" }, { "value": 122, "label": "Ctrl+F11" }, { "value": 123, "label": "Ctrl+F12" }, { "value": 45, "label": "Ctrl+Insert" }, { "value": 36, "label": "Ctrl+Home" }, { "value": 33, "label": "Ctrl+Page Up" }, { "value": 34, "label": "Ctrl+Page Down" }, { "value": 35, "label": "Ctrl+End" }, { "value": 46, "label": "Ctrl+Delete" }, { "value": 19, "label": "Ctrl+Pause" }, { "value": 145, "label": "Ctrl+Scroll Lock" }, { "value": 192, "label": "Ctrl+` (grave)" } ],
       "label": "Overlay hotkey", "description": "Opens the in-game settings overlay (Ctrl held with the key). Back + Start on a controller also opens it.",

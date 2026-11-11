@@ -2422,7 +2422,6 @@ public:
             { "PREF_FPSCOUNTER",             "FRAMELIMIT.DisplayFpsCounter" },
             { "PREF_ALWAYSRUN",              "MISC.AlwaysRun" },
             { "PREF_ALTDIALOGUE",            "MISC.AltDialogue" },
-            { "PREF_MENUMUSIC",              "MISC.MenuMusic" },
             { "PREF_KBCAMCENTERDELAY",       "MISC.DelayBeforeCenteringCameraKB" },
             { "PREF_PADCAMCENTERDELAY",      "MISC.DelayBeforeCenteringCameraPad" },
             { "PREF_CUSTOMFOV",              "MISC.FieldOfView" },
@@ -2592,7 +2591,6 @@ public:
             RemoveOption(screen, "MO_VMIC");
             AddEmptyLine(screen);
             AddSetting(screen, "MISC.AltDialogue");
-            AddSetting(screen, "MISC.MenuMusic");
         }
 
         // Display: Field of View after Saturation, the image and lighting options before Restore Defaults, then the HDR

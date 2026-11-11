@@ -387,7 +387,5 @@
   "MAIN.WindowMode.description": "フルスクリーン、枠付きウィンドウ、または画面を覆うフチなしウィンドウ。Alt+Enterでフルスクリーンと前回のウィンドウモードを切り替えます。",
   "ff.note.d3d9on12": "DirectX 12を有効にするには、FusionFixHubの「グラフィック強化」ページでD3D9On12をインストールしてください。",
   "Distant Lights": "遠景ライト",
-  "MISC.DistantLights.description": "遠くに見える街灯と交通。PC: PC版の街灯と車両モデル。コンソール: Xbox 360版のより密な街灯と動く車のライト。",
-  "Menu Music": "メニュー音楽",
-  "MISC.MenuMusic.description": "ポーズメニューの音楽。PC: 音楽は固定のミックスで再生されます。コンソール: コンソール版のように、音楽の各レイヤーが個別にフェードイン・フェードアウトし、メニュー操作に反応します。次にメニューを開いたときに適用されます。"
+  "MISC.DistantLights.description": "遠くに見える街灯と交通。PC: PC版の街灯と車両モデル。コンソール: Xbox 360版のより密な街灯と動く車のライト。"
 }
