@@ -122,6 +122,7 @@ workspace "GTAIV.EFLC.FusionFix"
    libdirs { "source/ledsdk" }
    libdirs { "source/dxsdk" }
    files { "source/**.h", "source/*.hpp", "source/*.cpp", "source/*.hxx", "source/**.ixx" }
+   files { "source/menu_music/*.hpp", "source/menu_music/*.cpp", "source/menu_music/*.inl" }
    files { "source/resources/Versioninfo.rc" }
    files { "source/resources/Shaders.rc" }
    files { "source/resources/snow/*.rc" }

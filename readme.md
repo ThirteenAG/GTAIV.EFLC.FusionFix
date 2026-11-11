@@ -320,6 +320,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Pressed radar zoom out button now will make it stay zoomed out for a few seconds
 - Fixed date won't advance after dying, being busted or respraying at certain time
 - Fixed helicopter searchlights flickering violently when more than one helicopter is present
+- Restored dynamic console pause-menu music in IV, TLAD and TBoGT
 - Fixed radio reset after cutscene
 - Fixed incorrect TBoGT bullet tracer position
 - Fixed NPC lanes swerving suddenly on the Algonquin Bridge when there is a train under it
