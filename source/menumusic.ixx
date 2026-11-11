@@ -308,8 +308,8 @@ namespace MenuMusic
         return false;
     }
 
-    // The engine still has sounds of the last session: in the list of the frontend entity (id 0xFFFF once it's shut
-    // down) or of entity 0
+    // The engine has no sound of the last session left: neither in the list of the frontend entity (id 0xFFFF once
+    // it's shut down) nor in that of entity 0
     bool SoundsReleased()
     {
         if (engineStopped)
