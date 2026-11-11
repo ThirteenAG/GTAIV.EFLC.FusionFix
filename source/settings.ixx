@@ -2461,6 +2461,9 @@ public:
             { "PREF_STUNTJUMPCAM",           "MISC.StuntJumpCamera" },
             { "PREF_ACTIONCAM",              "MISC.ActionCamera" },
             { "PREF_CONFINECURSOR",          "MAIN.ConfineCursor" },
+            { "PREF_JUMPRAGDOLL",            "MISC.PlayerJumpRagdollControl" },
+            { "PREF_LADDERCAMTILT",          "MISC.LadderCameraTilt" },
+            { "PREF_AUTOCENTERCAMERA",       "MISC.AutoCenterCamera" },
         };
 
         for (auto& [name, id] : arr)
@@ -2542,6 +2545,7 @@ public:
             AddSetting(screen, "MAIN.CameraShake");
             AddSetting(screen, "MISC.CenteredVehCam");
             AddSetting(screen, "MISC.CenteredFootCam");
+            AddSetting(screen, "MISC.LadderCameraTilt");
             AddSetting(screen, "MISC.StuntJumpCamera");
             AddSetting(screen, "MISC.ActionCamera");
             AddEmptyLine(screen);
@@ -2550,6 +2554,7 @@ public:
             AddSetting(screen, "MISC.DisableWardrobeTransition", {}, NotTLAD);
             AddSetting(screen, "MISC.InstantStopTaxi");
             AddSetting(screen, "MISC.AutoClimbLadders");
+            AddSetting(screen, "MISC.PlayerJumpRagdollControl");
         }
 
         // Keyboard options: 21 steps of mouse sensitivity, the camera settings before Remap Keyboard
@@ -2571,6 +2576,7 @@ public:
             if (screen == MenuScreen::ControllerOptions)
             {
                 AddEmptyLine(screen, sensitivity);
+                AddSetting(screen, "MISC.AutoCenterCamera", sensitivity);
                 AddSetting(screen, "MISC.DelayBeforeCenteringCameraPad", sensitivity);
                 AddSetting(screen, "MISC.DelayBeforeCenteringCameraPadInCar", sensitivity);
                 AddSetting(screen, "MISC.CameraTurnSpeedPadInCar", sensitivity);
