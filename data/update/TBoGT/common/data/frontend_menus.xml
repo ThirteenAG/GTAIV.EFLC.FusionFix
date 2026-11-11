@@ -988,8 +988,6 @@
       <optionspc action="MENUOPT_ADJUST" label="MO_VM"
         value="PREF_VIDEO_MODE" scaler="11"
         displayValue="MENU_DISPLAY_RESOLUTION_SLIDERBAR" />
-      <options action="MENUOPT_NONE" label="" value="PREF_NULL"
-        scaler="0" displayValue="MENU_DISPLAY_NONE" />
       <optionspc action="MENUOPT_ADJUST" label="MO_ASPRAT"
       value="PREF_ASPECT" scaler="6"
       displayValue="MENU_DISPLAY_ASPECT" />
@@ -1039,8 +1037,6 @@
       <optionspc action="MENUOPT_ADJUST" label="MO_VM"
         value="PREF_VIDEO_MODE" scaler="11"
         displayValue="MENU_DISPLAY_RESOLUTION_SLIDERBAR" />
-      <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL"
-        scaler="0" displayValue="MENU_DISPLAY_NONE" />
       <optionspc action="MENUOPT_ADJUST" label="MO_ASPRAT"
       value="PREF_ASPECT" scaler="6"
       displayValue="MENU_DISPLAY_ASPECT" />

@@ -667,7 +667,6 @@
         </menupldebug>
         <menupc HeaderText="MH_GFX" enum="SCR_ADVANCED">
             <optionspc action="MENUOPT_ADJUST" label="MO_VM" value="PREF_VIDEO_MODE" scaler="11" displayValue="MENU_DISPLAY_RESOLUTION_SLIDERBAR" />
-            <options action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="MO_ASPRAT" value="PREF_ASPECT" scaler="6" displayValue="MENU_DISPLAY_ASPECT" />
             <optionspc action="MENUOPT_ADJUST" label="MO_TEX" value="PREF_TEXTURE_QUALITY" scaler="3" displayValue="MENU_DISPLAY_QUALITY_SETTINGS" />
             <optionspc action="MENUOPT_ADJUST" label="MO_RFLTRESO" value="PREF_REFLECTION_RESOLUTION" scaler="5" displayValue="MENU_DISPLAY_REFLECTION_QUALITY" />
@@ -687,7 +686,6 @@
         </menupc>
         <menupc HeaderText="MH_GFX" enum="SCR_TGRAPHICS">
             <optionspc action="MENUOPT_ADJUST" label="MO_VM" value="PREF_VIDEO_MODE" scaler="11" displayValue="MENU_DISPLAY_RESOLUTION_SLIDERBAR" />
-            <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
             <optionspc action="MENUOPT_ADJUST" label="MO_ASPRAT" value="PREF_ASPECT" scaler="6" displayValue="MENU_DISPLAY_ASPECT" />
             <optionspc action="MENUOPT_ADJUST" label="MO_TEX" value="PREF_TEXTURE_QUALITY" scaler="3" displayValue="MENU_DISPLAY_QUALITY_SETTINGS" />
             <optionspc action="MENUOPT_ADJUST" label="MO_RFLTRESO" value="PREF_REFLECTION_RESOLUTION" scaler="5" displayValue="MENU_DISPLAY_REFLECTION_QUALITY" />

@@ -748,6 +748,22 @@ private:
     static inline float* rowHeight = nullptr;
     static inline SafetyHookMid sliderDrawRow;
     static inline SafetyHookMid sliderMouseRow;
+    static inline SafetyHookMid resolutionTextPosition;
+
+    // The resolution slider's own text is normally printed on a second line. Match the position used by
+    // numeric slider values, immediately after the bar, while retaining the game's selected mode and color.
+    static void PositionResolutionText(SafetyHookContext& regs, bool legacy)
+    {
+        auto stack = reinterpret_cast<uint8_t*>(regs.esp);
+        auto read = [stack](size_t offset) { float value; std::memcpy(&value, stack + offset, sizeof(value)); return value; };
+        const size_t x = legacy ? 0x2C : 0x28, y = legacy ? 0x30 : 0x2C;
+        const size_t width = legacy ? 0x40 : 0x38, height = legacy ? 0x44 : 0x3C, padding = legacy ? 0x54 : 0x50;
+        float positionX = read(x) + read(width) + 3.0f * read(padding);
+        float positionY = read(y) - 0.5f * read(height);
+        std::memcpy(stack, &positionX, sizeof(positionX));
+        std::memcpy(stack + sizeof(float), &positionY, sizeof(positionY));
+    }
+
 
     static SettingsTables::Option* AppendOption(SettingsTables::Array<SettingsTables::Option>* array)
     {
@@ -2117,6 +2133,7 @@ private:
             menuHandles = *reinterpret_cast<int32_t**>(process + 0x21);
             menuInstances = *hook::pattern("8B 80 1C 36 00 00 C3 33 C0").get_first<uint8_t**>(-0x11);
             rowHeight = *hook::pattern("F3 0F 10 15 ? ? ? ? 0F 2F 4C 24 18").get_first<float*>(4);
+            resolutionTextPosition = safetyhook::create_mid(hook::pattern("8D 94 24 F8 00 00 00 52 83 EC 08 F3 0F 11 44 24 04 D9 1C 24 E8 ? ? ? ? E9").get_first(20), [](SafetyHookContext& regs) { PositionResolutionText(regs, true); });
             sliderDrawRow = safetyhook::create_mid(hook::pattern("6A 00 E8 ? ? ? ? 83 C4 04 84 C0 53 6A 3D").get_first(), [](SafetyHookContext& regs) { AdjustSliderRow(regs, true); });
             sliderMouseRow = safetyhook::create_mid(hook::pattern("8D 54 24 30 6A 0F 52 E8").get_first(), [](SafetyHookContext& regs) { AdjustSliderRow(regs, false); });
             fillMenu = safetyhook::create_inline(hook::pattern("83 EC 40 A1 ? ? ? ? 53 8D 04 40 55 0F B7 2C C5").get_first(), FillMenu);
@@ -2141,6 +2158,7 @@ private:
         menuHandles = *hook::pattern("C7 05 ? ? ? ? FF FF FF 7F FF 34 BD").get_first<int32_t*>(0x0D);
         menuInstances = *hook::pattern("8B 81 1C 36 00 00 C3 33 C0").get_first<uint8_t**>(-0x11);
         rowHeight = *hook::pattern("F3 0F 10 1D ? ? ? ? 0F 2F C2").get_first<float*>(4);
+        resolutionTextPosition = safetyhook::create_mid(hook::pattern("F3 0F 10 44 24 1C 50 83 EC 08 F3 0F 11 4C 24 04 F3 0F 11 04 24 E9 ? ? ? ?").get_first(21), [](SafetyHookContext& regs) { PositionResolutionText(regs, false); });
         sliderDrawRow = safetyhook::create_mid(hook::pattern("84 C0 57 6A 3D 8D").get_first(-0x0C), [](SafetyHookContext& regs) { AdjustSliderRow(regs, true); });
         sliderMouseRow = safetyhook::create_mid(hook::pattern("8D 44 24 24 6A 0F 50").get_first(), [](SafetyHookContext& regs) { AdjustSliderRow(regs, false); });
         fillMenu = safetyhook::create_inline(hook::pattern("8D 04 40 BA 84 00 00 00").get_first(-0x10), FillMenu);
@@ -2506,10 +2524,11 @@ public:
         // Keep the game's own rows on the tab; group Fusion Fix settings on pages.
         for (auto [screen, before] : { std::pair{ MenuScreen::Game, "MO_EXITGAM" }, std::pair{ MenuScreen::TitleGame, "" } })
         {
-            auto advanced = AddPage(screen, "@ff.page.advanced", before);
+            AddSetting(screen, "MAIN.WindowMode", before);
+            auto advanced = AddPage(screen, "@ff.page.advanced", before, true);
             for (auto id : { "MAIN.SkipIntro", "MAIN.SkipMenu", "MAIN.BlockOnLostFocus", "MISC.TimedEvents", "UPDATE.CheckForUpdates" })
                 AddSetting(advanced, id);
-            auto tweaks = AddPage(screen, "@ff.page.tweaks", before);
+            auto tweaks = AddPage(screen, "@ff.page.tweaks", before, true);
             AddSetting(tweaks, "FRAMELIMIT.DisplayFpsCounter");
             AddSetting(tweaks, "MISC.ExtraInfo");
             pluginsBefore[static_cast<int32_t>(screen)] = before;
@@ -2519,7 +2538,7 @@ public:
 
         for (auto screen : { MenuScreen::Controls, MenuScreen::TitleControls })
         {
-            auto advanced = AddPage(screen, "@ff.page.advanced");
+            auto advanced = AddPage(screen, "@ff.page.advanced", {}, true);
             for (auto id : { "MISC.AlwaysRun", "MISC.ZoomedMovement", "MISC.ExtendedSniperControls" }) AddSetting(advanced, id);
             AddEmptyLine(advanced);
             for (auto id : { "MISC.TurnIndicators", "MISC.AutoClimbLadders", "MISC.PlayerJumpRagdollControl", "MISC.AlwaysShowBulletTraces" }) AddSetting(advanced, id);
@@ -2583,15 +2602,14 @@ public:
         for (auto screen : { MenuScreen::Graphics, MenuScreen::TitleGraphics })
         {
             RemoveOption(screen, "MO_DOF", "PREF_DOF");
-            AddSetting(screen, "MAIN.WindowMode", "MO_ASPRAT");
-            AddSetting(screen, "MAIN.Definition", "MO_VSYNC");
             AddSetting(screen, "FRAMELIMIT.FpsLimitPreset", "MO_ANALYZER");
-            AddSetting(screen, "MISC.Antialiasing", "MO_ANALYZER");
             AddSetting(screen, "MAIN.GraphicsAPI", "MO_ANALYZER");
-            auto advanced = AddPage(screen, "@ff.page.advanced", "MO_ANALYZER");
+            auto advanced = AddPage(screen, "@ff.page.advanced", "MO_ANALYZER", true);
+            AddSetting(advanced, "MAIN.Definition");
+            AddSetting(advanced, "MISC.Antialiasing");
             for (auto id : { "MAIN.Bloom", "MAIN.MotionBlur", "MISC.DepthOfField" }) AddSetting(advanced, id);
             AddEmptyLine(advanced);
-            for (auto id : { "FOG.VolumetricFog", "MISC.SunShafts", "MISC.UnclampLighting", "MISC.ConsoleCarReflectionsAndDirt", "EXPERIMENTAL.EnableHighDetailReflections", "EXPERIMENTAL.ReflectionMSAAQuality", "MISC.AmbientOcclusion", "SHADOWS.ShadowFilter", "SHADOWS.ExtraNightShadows", "MISC.DistantLights" }) AddSetting(advanced, id);
+            for (auto id : { "FOG.VolumetricFog", "MISC.SunShafts", "MISC.UnclampLighting", "MISC.ConsoleCarReflectionsAndDirt", "EXPERIMENTAL.ReflectionMSAAQuality", "MISC.AmbientOcclusion", "SHADOWS.ShadowFilter", "SHADOWS.ExtraNightShadows", "MISC.DistantLights" }) AddSetting(advanced, id);
         }
     }
 
@@ -3805,7 +3823,7 @@ private:
         if (auto it = pluginsPages.find(static_cast<int32_t>(screen)); it != pluginsPages.end())
             return it->second;
         auto& before = pluginsBefore[static_cast<int32_t>(screen)];
-        auto page = AddPage(screen, "@ff.plugins", before);
+        auto page = AddPage(screen, "@ff.plugins", before, true);
         pluginsPages[static_cast<int32_t>(screen)] = page;
         return page;
     }
@@ -4045,6 +4063,16 @@ private:
         return FormatText("@ff.page.contains", labels);
     }
 
+    // Video Mode's one-line resolution text occupies part of the normal graphics-help area.
+    static bool IsVideoModeSelected()
+    {
+        if (!currentScreen || (*currentScreen != 49 && *currentScreen != 62) || activePage != -1)
+            return false;
+        auto& options = screens[*currentScreen].options;
+        auto row = CMenu::getSelectedItem();
+        return options.data && row >= 0 && row < options.count && std::strcmp(options.data[row].label, "MO_VM") == 0;
+    }
+
     // The info text of the selected row of Fusion Fix or another plugin: its description and at most one note below
     // it. Empty for rows of the game.
     static std::wstring DescriptionText()
@@ -4056,6 +4084,8 @@ private:
         if (!options.data || row < 0 || row >= options.count)
             return {};
         auto& option = options.data[row];
+        if (getInfoPosition && IsVideoModeSelected())
+            return CText::getText("GRPH_VID_MODE");
         std::string description, note;
         if (auto button = FindButton(row); button >= 0 && dynamicOptions[button].submenu != -1)
             description = PageHelp(dynamicOptions[button].submenu);
@@ -4186,7 +4216,7 @@ private:
         setFontWrap(left, right[0]);
         uint32_t colour = 0;
         setTabColor(*getHudColour(&colour, 59));
-        printTab.ccall<void>(left, position[1] + 0.04f, text.c_str(), -1, -1);
+        printTab.ccall<void>(left, position[1] + 0.04f + (IsVideoModeSelected() && rowHeight ? *rowHeight : 0.0f), text.c_str(), -1, -1);
         std::memcpy(font, saved.data(), saved.size());
     }
 
@@ -4204,7 +4234,12 @@ private:
             if (options.data[row].action == 127 || options.data[row].preference >= firstCustomID)
                 return;
         for (int32_t row = 0; row < options.count; ++row)
+        {
             graphicsLabels[slot].emplace_back(options.data[row].label, strnlen(options.data[row].label, sizeof(options.data[row].label)));
+            // The native help switch uses the original XML indices, including the removed Video Mode spacer.
+            if (std::strcmp(options.data[row].label, "MO_VM") == 0)
+                graphicsLabels[slot].emplace_back();
+        }
     }
 
     static void InfoTextRow(SafetyHookContext& regs)
@@ -4222,6 +4257,12 @@ private:
             return;
         }
         auto& option = options.data[row];
+        // Draw this help below the resolution text, using the game's translated string.
+        if (getInfoPosition && std::strcmp(option.label, "MO_VM") == 0)
+        {
+            regs.eax = None;
+            return;
+        }
         auto& labels = graphicsLabels[slot];
         auto found = std::find(labels.begin(), labels.end(), std::string(option.label, strnlen(option.label, sizeof(option.label))));
         regs.eax = option.action == 127 || option.preference >= firstCustomID || found == labels.end() ? None :
