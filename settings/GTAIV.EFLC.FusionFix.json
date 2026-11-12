@@ -209,10 +209,22 @@
       "page": "graphics", "group": "@group.effects", "control": [ "cycler", "dropdown" ]
     },
     {
-      "id": "SHADOWS.ExtraNightShadows", "type": "choice", "default": 0,
-      "choices": [ { "value": 0, "label": "@MO_OFF" }, { "value": 1, "label": "@Lampposts" }, { "value": 2, "label": "@LampostsHeadl" }, { "value": 3, "label": "@LampHeadlVNS" } ],
-      "label": "@ExtraNightShad", "description": "@SHADOWS.ExtraNightShadows.description",
-      "page": "graphics", "group": "@group.effects", "control": [ "cycler", "dropdown" ]
+      "id": "SHADOWS.StreetlightShadows", "type": "choice", "default": 3,
+      "choices": [ { "value": 0, "label": "@MO_OFF" }, { "value": 1, "label": "@ff.nightshadows.scenery" }, { "value": 2, "label": "@ff.nightshadows.people" }, { "value": 3, "label": "@ff.nightshadows.vehicles" } ],
+      "label": "@SHADOWS.StreetlightShadows", "description": "@SHADOWS.StreetlightShadows.description",
+      "page": "graphics", "group": "@group.effects", "control": [ "cycler", "dropdown" ],
+      "presets": { "vanilla": 0, "recommended": 3, "enhanced": 3 }
+    },
+    {
+      "id": "SHADOWS.HeadlightShadows", "type": "bool", "default": 1,
+      "label": "@SHADOWS.HeadlightShadows", "description": "@SHADOWS.HeadlightShadows.description",
+      "page": "graphics", "group": "@group.effects", "control": [ "switch", "cycler" ],
+      "presets": { "vanilla": 0, "recommended": 1, "enhanced": 1 }
+    },
+    {
+      "id": "SHADOWS.VehicleNightShadows", "type": "bool", "default": 1,
+      "label": "@SHADOWS.VehicleNightShadows", "description": "@SHADOWS.VehicleNightShadows.description",
+      "page": "graphics", "group": "@group.effects", "control": [ "switch", "cycler" ]
     },
     {
       "id": "MAIN.GraphicsAPI", "type": "choice", "default": 0,
@@ -435,11 +447,6 @@
       "page": "advanced", "group": "@group.shadows", "control": [ "switch", "cycler" ], "visibility": "file", "apply": "restart"
     },
     {
-      "id": "SHADOWS.HighResolutionNightShadows", "type": "bool", "default": 0,
-      "label": "@SHADOWS.HighResolutionNightShadows",
-      "page": "advanced", "group": "@group.shadows", "control": [ "switch", "cycler" ], "visibility": "file", "apply": "restart"
-    },
-    {
       "id": "FRAMELIMIT.FpsLimit", "type": "int", "default": -2, "min": -60, "max": 1000, "step": 1,
       "label": "@FRAMELIMIT.FpsLimit", "description": "@FRAMELIMIT.FpsLimit.description",
       "page": "advanced", "group": "@group.frame limit", "visibility": "editor", "apply": "restart"
@@ -574,16 +581,6 @@
       "id": "FOG.ExtendedTimecycEditing", "type": "bool", "default": 0,
       "label": "@FOG.ExtendedTimecycEditing", "description": "@FOG.ExtendedTimecycEditing.description",
       "page": "advanced", "group": "@group.fog", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
-    },
-    {
-      "id": "BudgetedIV.VehicleBudget", "type": "int", "default": 0, "min": 0, "max": 2000000000, "step": 1000000,
-      "label": "@BudgetedIV.VehicleBudget", "description": "@BudgetedIV.VehicleBudget.description",
-      "page": "advanced", "group": "@group.budgeted iv", "visibility": "editor", "apply": "restart"
-    },
-    {
-      "id": "BudgetedIV.PedBudget", "type": "int", "default": 0, "min": 0, "max": 2000000000, "step": 1000000,
-      "label": "@BudgetedIV.PedBudget", "description": "@BudgetedIV.PedBudget.description",
-      "page": "advanced", "group": "@group.budgeted iv", "visibility": "editor", "apply": "restart"
     },
     {
       "id": "BudgetedIV.ExtendedLimits", "type": "bool", "default": 0,
@@ -835,11 +832,6 @@
     {
       "id": "EXPERIMENTAL.RemoveBBoxCulling", "type": "bool", "default": 0,
       "label": "@EXPERIMENTAL.RemoveBBoxCulling",
-      "page": "advanced", "group": "@group.experimental", "control": [ "switch", "cycler" ], "visibility": "file", "apply": "restart"
-    },
-    {
-      "id": "EXPERIMENTAL.ExtraStreamingMemory", "type": "bool", "default": 0,
-      "label": "@EXPERIMENTAL.ExtraStreamingMemory",
       "page": "advanced", "group": "@group.experimental", "control": [ "switch", "cycler" ], "visibility": "file", "apply": "restart"
     },
     {

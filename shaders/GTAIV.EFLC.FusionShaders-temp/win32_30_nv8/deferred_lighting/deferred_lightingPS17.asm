@@ -64,6 +64,7 @@
     def c8, 17.0666666, 1.3333333, 0, 0
     // ------------------------------------------------------ Improved Shadow Filter Constants ------------------------------------------------------
     def c110, -0.25, 1, -1, 0
+    def c202, 5, -4, 0, 0 // Perspective spotlight shadows fade over the last fifth of their range
     def c111, 0.159154937, 0.5, 6.28318548, -3.14159274
     def c112, 3, 4.27199984, 0, 0
     def c113, 0.75, -0.5, 0.5, 0
@@ -162,6 +163,7 @@
     mad r2.xyw, r2.x, c72.xyzz, r4.xyzz
     mad r2.xyz, r2.z, c74, r2.xyww
     add r2.xyz, r2, c75
+    mov r26.xyz, r2.xyz // Shadow space position, for perspective spotlight shadows
     add r1.x, r2.z, c76.z
     cmp r4.xy, -r1.x, c1.xzzw, c1.zxzw
     mov r2.w, -r1_abs.x
@@ -172,6 +174,19 @@
     rcp r1.x, r1.x
     mul r2.xy, r2, r1.x
     mad r2.xy, r2, c3, c3.x
+    // Spotlight shadows rendered with a perspective projection (c205.y): the position projected onto the map, its depth along the beam
+    mov r27.z, c110.w
+    mov r27.y, c205.y
+    if_lt c110.w, r27.y
+      rcp r27.x, -r26.z
+      mul r2.xy, r26.xy, r27.x
+      mad r2.xy, r2, c3, c3.x
+      mov r4.xy, c1.xz
+      mov r1.y, -r26.z
+      mul r27.z, r26.z, c66.w
+      mul r27.z, r27.z, c202.x
+      add_sat r27.z, r27.z, c202.y
+    endif
     // ----------------------------------------------------------- Improved Shadow Filter -----------------------------------------------------------
     if_eq -c221_abs.x, c221_abs.x
       dp2add r1.x, vPos, c4, c4.z
@@ -310,6 +325,10 @@
       dp4 r1.x, r25, -c110.x
     endif
     // ----------------------------------------------------------------------------------------------------------------------------------------------
+    // Night shadow fade: c205.x and the end of a perspective shadow's range move the shadow towards fully lit
+    add r19.w, c110.y, -r1.x
+    max r27.w, r27.z, c205.x
+    mad r1.x, r19.w, r27.w, r1.x
     mul r0.xyz, r0, r1.x
     cmp r0.xyz, r0.w, r0, c1.z
     dp3 r0.w, r7, r5

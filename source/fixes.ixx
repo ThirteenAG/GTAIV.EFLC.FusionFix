@@ -49,28 +49,13 @@ namespace CPedWeaponMgr
     }
 }
 
-namespace CDeferredLightingHelper
+namespace CCamSys
 {
-    injector::hook_back<void(*)()> hbBeginMotionBlurMask;
-    void BeginMotionBlurMask()
-    {
-        Cam rootCam = 0;
-        Natives::GetRootCam(&rootCam);
-        auto CCam = CCam::GetCamPool()->GetAt(rootCam);
-
-        if (CCam)
-        {
-            auto ptr = *(uintptr_t*)((uintptr_t)CCam + 0x110);
-
-            if (ptr)
-            {
-                if (*(uint8_t*)(ptr + 0x27C) == 1)
-                    return;
-            }
-        }
-
-        return hbBeginMotionBlurMask.fun();
-    }
+    // Whether the player is left out of motion blur. Each frame the camera update turns it on and the shake of explosions
+    // and drunkenness turns it back off, while the render thread draws the frame before: it saw either value and the
+    // player's deferred material flickered between them, and the lights with it. The renderer reads the update's final value.
+    uint8_t bPlayerMotionBlurMask = 1;
+    GameRef<uint8_t> bCameraPlayerMotionBlurMask;
 }
 
 uint32_t nRadarZoomDelay = 0;
@@ -544,64 +529,6 @@ namespace CameraAutoCenter
 class Fixes
 {
 public:
-    /*static inline char(__cdecl* GET_NTH_CLOSEST_WATER_NODE_WITH_HEADING)(float x, float y, float z, int flag0, int flag1, Vector4* node, float* heading) = nullptr;
-
-    static inline bool bAnyVisibleNearbyLightOnScreen = false;
-    static inline injector::hook_back<int32_t(__fastcall*)(rage::grcViewport*, void*, float, float, float, float, float*)> hbIsSphereVisible;
-    static int32_t __fastcall AddLightIsSphereVisible(rage::grcViewport* pViewport, void* edx, float X, float Y, float Z, float radius, float* a6)
-    {
-        auto ret = hbIsSphereVisible.fun(pViewport, edx, X, Y, Z, radius, a6);
-
-        if (!bAnyVisibleNearbyLightOnScreen)
-        {
-            constexpr float selectedDistance = 3.5f;
-            constexpr float selectedDistSqr = selectedDistance * selectedDistance;
-            float dx = pViewport->mCameraMatrix[3][0] - X;
-            float dy = pViewport->mCameraMatrix[3][1] - Y;
-            float dz = pViewport->mCameraMatrix[3][2] - Z;
-            float distSqr = dx * dx + dy * dy + dz * dz;
-
-            if (ret && distSqr <= selectedDistSqr)
-            {
-                bAnyVisibleNearbyLightOnScreen = true;
-            }
-        }
-
-        return ret;
-    }
-
-    static inline bool bAnyVisibleNearbyWaterOnScreen = false;
-    static inline int32_t WaterQuadsCount = 0;
-    static int32_t __fastcall DrawWaterIsSphereVisible(rage::grcViewport* pViewport, void* edx, float X, float Y, float Z, float radius, float* a6)
-    {
-        auto ret = hbIsSphereVisible.fun(pViewport, edx, X, Y, Z, radius, a6);
-
-        if (ret)
-        {
-            constexpr float selectedDistance = 1100.0f;
-            constexpr float selectedDistSqr = selectedDistance * selectedDistance;
-
-            Vector4 out = {};
-            float heading = 0.0f;
-            float camX = pViewport->mCameraMatrix[3][0];
-            float camY = pViewport->mCameraMatrix[3][1];
-            float camZ = pViewport->mCameraMatrix[3][2];
-            if (GET_NTH_CLOSEST_WATER_NODE_WITH_HEADING(camX, camY, camZ, 1, 0, &out, &heading))
-            {
-                float dx = camX - out.fX;
-                float dy = camY - out.fY;
-                float distSqr = dx * dx + dy * dy;
-
-                if (WaterQuadsCount >= 90 && distSqr <= selectedDistSqr)
-                    bAnyVisibleNearbyWaterOnScreen = true;
-            }
-            else if (WaterQuadsCount >= 90)
-                bAnyVisibleNearbyWaterOnScreen = true;
-        }
-
-        return ret;
-    }*/
-
     Fixes()
     {
         FusionFix::onInitEventAsync() += []()
@@ -1259,10 +1186,31 @@ public:
                 CRadarNY::hbsub_5DCA80.fun = injector::MakeCALL(pattern.get_first(0), CRadarNY::sub_5DCA80, true).get();
             }
 
-            // Workaround for drunk camera motion blur stencil madness (Many other types of camera shake trigger this)
+            // Lights flickering while the camera shakes: the player's motion blur mask is drawn with the camera's final value
             {
-                auto pattern = find_pattern("E8 ? ? ? ? 6A ? FF 74 24 ? FF 74 24 ? 6A", "E8 ? ? ? ? 83 FF ? 6A");
-                CDeferredLightingHelper::hbBeginMotionBlurMask.fun = injector::MakeCALL(pattern.get_first(0), CDeferredLightingHelper::BeginMotionBlurMask, true).get();
+                auto pattern = hook::pattern("0F 45 C1 5E A2 ? ? ? ? C6 05");
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+                {
+                    CCamSys::bCameraPlayerMotionBlurMask.SetAddress(*pattern.get_first<uint8_t*>(5));
+                    static auto LatchHook = safetyhook::create_mid(pattern.get_first(9), [](SafetyHookContext& regs)
+                    {
+                        CCamSys::bPlayerMotionBlurMask = CCamSys::bCameraPlayerMotionBlurMask;
+                    });
+                }
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
+                {
+                    pattern = hook::pattern("C6 05 ? ? ? ? 01 5F 5E 88 1D");
+                    CCamSys::bCameraPlayerMotionBlurMask.SetAddress(*pattern.get_first<uint8_t*>(2));
+                    static auto LatchHook = safetyhook::create_mid(pattern.get_first(7), [](SafetyHookContext& regs)
+                    {
+                        CCamSys::bPlayerMotionBlurMask = CCamSys::bCameraPlayerMotionBlurMask;
+                    });
+                }
+
+                // The two places the renderer reads it, when the player's material is set
+                pattern = hook::pattern("80 3D ? ? ? ? 00 74 20 E8 ? ? ? ? 3B 05");
+                for (size_t i = 0; i < 2; i++)
+                    injector::WriteMemory(pattern.count(2).get(i).get<void>(2), &CCamSys::bPlayerMotionBlurMask, true);
             }
 
             // Fix helicopter searchlights fighting each other when two police helicopters are active on the scene
@@ -1384,82 +1332,6 @@ public:
 
             // Keep the water render buffer stable until the render thread finishes.
             CWater::FixBufferFlip();
-
-            // Water flicker mitigation experiment
-            {
-                /*auto pattern = find_pattern("83 EC ? F3 0F 10 4D ? F3 0F 10 05 ? ? ? ? 0F 2F C1 F3 0F 10 55 ? F3 0F 10 5D ? F3 0F 11 54 24 ? F3 0F 11 5C 24 ? F3 0F 11 4C 24 ? 72 ? 6A ? 83 EC ? F3 0F 11 5C 24 ? F3 0F 11 14 24 E8 ? ? ? ? D9 5C 24 ? 83 C4 ? 8B 45", "83 EC ? F3 0F 10 45 ? F3 0F 10 0D ? ? ? ? F3 0F 11 44 24 ? F3 0F 10 45 ? F3 0F 11 44 24 ? F3 0F 10 45 ? 0F 2F C8 F3 0F 11 44 24 ? 72 ? D9 45 ? 6A ? 83 EC ? D9 5C 24 ? D9 45 ? D9 1C 24 E8 ? ? ? ? D9 5C 24 ? 83 C4 ? D9 EE");
-                GET_NTH_CLOSEST_WATER_NODE_WITH_HEADING = (decltype(GET_NTH_CLOSEST_WATER_NODE_WITH_HEADING))pattern.get_first(-6);
-
-                pattern = find_pattern("E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 80 7D ? ? C6 44 24 ? ? 74 ? FF 77", "E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 80 7D ? ? C6 44 24 ? ? 74 ? 8B 4E");
-                hbIsSphereVisible.fun = injector::MakeCALL(pattern.get_first(0), AddLightIsSphereVisible, true).get();
-
-                pattern = find_pattern("E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 8B 4C 24 ? 3B F9", "E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 3B F7");
-                hbIsSphereVisible.fun = injector::MakeCALL(pattern.get_first(0), DrawWaterIsSphereVisible, true).get();
-
-                pattern = find_pattern("E8 ? ? ? ? 8B D0 8B B4 BA", "E8 ? ? ? ? 8B BC B0 ? ? ? ? 8B 94 B0");
-                static auto RenderWaterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                {
-                    bAnyVisibleNearbyWaterOnScreen = false;
-                    WaterQuadsCount = 0;
-                });
-
-                pattern = find_pattern("0F B7 0C 72 C1 E1 ? 0F BF 81", "0F B7 04 78 C1 E0 04 0F BF 88 ? ? ? ? 8B 14 CD ? ? ? ? 0F BF 88 ? ? ? ? 03 C9");
-                static auto RenderWaterCounterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                {
-                    WaterQuadsCount++;
-                });
-
-                //pattern = find_pattern("F3 0F 11 44 24 ? FF 74 24 ? F3 0F 11 44 24", "F3 0F 11 44 24 ? 8B 54 24 ? 52 F3 0F 11 44 24");
-                //static auto RenderWaterCounterHook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                //{
-                //    WaterQuadsCount++;
-                //});
-
-                pattern = find_pattern("8B 35 ? ? ? ? F3 0F 11 44 24 ? F3 0F 10 80", "8B 1D ? ? ? ? F3 0F 10 83");
-                static auto RenderLightsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                {
-                    bAnyVisibleNearbyLightOnScreen = false;
-                });*/
-
-                // TODO: Remove? It barely affects water flicker and messes with another workaround for light related stuff (guh)
-                auto pattern = hook::pattern("A8 ? 0F 84 ? ? ? ? 8B C8");
-                static auto loc_927DE0 = resolve_next_displacement(pattern.get_first(0)).value();
-                injector::MakeNOP(pattern.get_first(2), 6);
-                static auto LightCounterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                {
-                    static auto ExtraNightShadows = FusionFixSettings.GetRef("PREF_EXTRANIGHTSHADOWS");
-                    if (ExtraNightShadows->get())
-                    {
-                        if ((regs.eax & 6) != 0)
-                        {
-                            return;
-
-                            /*if (Natives::IsInteriorScene())
-                            {
-                                return; // Flicker - Always in interiors
-                            }
-
-                            if (!bAnyVisibleNearbyWaterOnScreen)
-                            {
-                                return; // Flicker - No water on screen
-                            }
-                            else if (bAnyVisibleNearbyLightOnScreen)
-                            {
-                                return; // Flicker - Water and lights
-                            }*/
-                        }
-                    }
-                    else
-                    {
-                        if ((regs.eax & 6) != 0 && Natives::IsInteriorScene())
-                        {
-                            return; // Flicker
-                        }
-                    }
-
-                    return_to(loc_927DE0);
-                });
-            }
 
             // Restore console/pre-1.0.6.0 pause menu info spacing
             {

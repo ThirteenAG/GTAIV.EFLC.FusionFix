@@ -139,12 +139,11 @@ public:
         {
             SettingsReader reader;
 
-            // Increasing all pools is not safe, leads to crashing
-            static std::vector<std::string> poolNames = { "Task" };
+            // Increasing all pools is not safe, leads to crashing. VehicleStruct: one per car model in memory; the car budget grows
+            // with bigger models and with room in the address space (memory.ixx), and a full pool crashes the game.
+            static std::vector<std::string> poolNames = { "Task", "VehicleStruct" };
 
             // [BudgetedIV]
-            uint32_t nVehicleBudget = reader.ReadInteger("BudgetedIV", "VehicleBudget", 0);
-            uint32_t nPedBudget = reader.ReadInteger("BudgetedIV", "PedBudget", 0);
             auto bExtendedLimits = reader.ReadInteger("BudgetedIV", "ExtendedLimits", 0);
             auto nLiveriesLimit = std::clamp(reader.ReadInteger("BudgetedIV", "LiveriesLimit", CHAR_MAX), 0, CHAR_MAX);
 
@@ -165,21 +164,6 @@ public:
                 poolNames.push_back("PtrNode Double");
             }
 
-            if (nVehicleBudget)
-            {
-                auto pattern = find_pattern("F7 2D ? ? ? ? 8B CA C1 E9 1F 03 CA B8 ? ? ? ? F7 2D ? ? ? ? 8B C2 C1 E8 1F 03 C2 89 0D ? ? ? ? A3 ? ? ? ? 83 C4 10 C3", "8B 0D ? ? ? ? B8 ? ? ? ? F7 E9 8B 0D");
-                injector::WriteMemory(*pattern.get_first<void*>(2), nVehicleBudget, true);
-
-                // Needed to avoid a predictable crash with high vehicle budgets (It usually happens in very specific places in the game world)
-                poolNames.push_back("VehicleStruct");
-            }
-
-            if (nPedBudget)
-            {
-                auto pattern = find_pattern("F7 2D ? ? ? ? 8B C2 C1 E8 1F 03 C2 89 0D ? ? ? ? A3 ? ? ? ? 83 C4 10 C3", "8B 0D ? ? ? ? 8B C2 C1 E8 1F");
-                injector::WriteMemory(*pattern.get_first<void*>(2), nPedBudget, true);
-            }
-
             auto pattern = hook::pattern("8B C7 0F AF C2 8B F1");
             if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
             {
@@ -189,7 +173,7 @@ public:
                     {
                         auto name = std::string_view(*(const char**)(regs.esp + 16));
 
-                        if (std::any_of(poolNames.begin(), poolNames.end(), [&name](auto& i) { return i == name; }) || (name == "VehicleStruct" && CText::hasViceCityStrings()))
+                        if (std::any_of(poolNames.begin(), poolNames.end(), [&name](auto& i) { return i == name; }))
                             regs.edi *= 2;
 
                         regs.eax = regs.edi * regs.edx;
@@ -205,7 +189,7 @@ public:
                     {
                         auto name = std::string_view(*(const char**)(regs.esp + 16));
 
-                        if (std::any_of(poolNames.begin(), poolNames.end(), [&name](auto& i) { return i == name; }) || (name == "VehicleStruct" && CText::hasViceCityStrings()))
+                        if (std::any_of(poolNames.begin(), poolNames.end(), [&name](auto& i) { return i == name; }))
                             regs.edi *= 2;
 
                         regs.ecx = regs.edi * regs.eax;
@@ -393,11 +377,134 @@ int __cdecl getWeaponInfoIdByHash(int hash, int defaultId)
     return newWeaponId;
 }
 
+// Engine wave slots: the game looks up STREAM_ENGINE_1 to STREAM_ENGINE_25 in waveslots.xml, the file has 15. The missing
+// ones are added to the parsed file and the audio heap grows by their size.
+namespace EngineWaveSlots
+{
+    constexpr uint32_t MaxEngineSlots = 25;
+    constexpr uint32_t StockEngineSlots = 15;
+    constexpr uint32_t EngineSlotSize = 794624; // The size of every STREAM_ENGINE slot in the file
+    constexpr uint32_t EngineSlotHeaderSize = 2048;
+
+    void* (__fastcall* LoadTree_path)(void* parManager, void* edx, const char* path, const char* ext) = nullptr;
+    void* (__fastcall* LoadTree)(void* parManager, void* edx, void* stream) = nullptr;
+    void* (__cdecl* OpenMemoryStream)(const void* data, int32_t size, const char* name, bool owner) = nullptr;
+    void (__fastcall* CloseStream)(void* stream) = nullptr;
+    void (__fastcall* DestroyTree)(void* tree) = nullptr;
+    void (__cdecl* Delete)(void* ptr) = nullptr;
+
+    // parTreeNode
+    const char* GetName(uintptr_t node)
+    {
+        return *(const char**)node;
+    }
+    uintptr_t GetNext(uintptr_t node)
+    {
+        return *(uintptr_t*)(node + 0x18);
+    }
+    uintptr_t GetFirstChild(uintptr_t node)
+    {
+        return *(uintptr_t*)(node + 0x1C);
+    }
+    const char* GetData(uintptr_t node)
+    {
+        return *(uint32_t*)(node + 0x24) ? *(const char**)(node + 0x20) : nullptr;
+    }
+
+    void* __fastcall LoadWaveSlots(void* parManager, void* edx, const char* path, const char* ext)
+    {
+        auto tree = LoadTree_path(parManager, edx, path, ext);
+        if (!tree)
+            return tree;
+
+        auto root = *(uintptr_t*)tree;
+        std::array<bool, MaxEngineSlots + 1> present{};
+        for (auto slot = GetFirstChild(root); slot; slot = GetNext(slot))
+        {
+            for (auto child = GetFirstChild(slot); child; child = GetNext(child))
+            {
+                if (std::string_view(GetName(child)) != "Name")
+                    continue;
+                int32_t n = 0;
+                if (auto name = GetData(child); name && sscanf_s(name, "STREAM_ENGINE_%d", &n) == 1 && n >= 1 && n <= (int32_t)MaxEngineSlots)
+                    present[n] = true;
+            }
+        }
+
+        std::string xml = "<WaveSlots>";
+        for (uint32_t n = 1; n <= MaxEngineSlots; n++)
+        {
+            if (!present[n])
+                xml += std::format("<Slot><Name content=\"ascii\">STREAM_ENGINE_{}</Name><MaxHeaderSize value=\"{}\" />"
+                    "<LoadType content=\"ascii\">BANK</LoadType><Size value=\"{}\" /></Slot>", n, EngineSlotHeaderSize, EngineSlotSize);
+        }
+        xml += "</WaveSlots>";
+
+        auto stream = OpenMemoryStream(xml.data(), (int32_t)xml.size(), "waveslots", false);
+        auto extra = LoadTree(parManager, edx, stream);
+        CloseStream(stream);
+        if (!extra)
+            return tree;
+
+        // Move the new slots to the end of the file's slots (parTreeNode: parent, next sibling, first child)
+        auto extraRoot = *(uintptr_t*)extra;
+        auto last = (uintptr_t*)(root + 0x1C);
+        while (*last)
+            last = (uintptr_t*)(*last + 0x18);
+        *last = GetFirstChild(extraRoot);
+        *(uintptr_t*)(extraRoot + 0x1C) = 0;
+        for (auto slot = *last; slot; slot = GetNext(slot))
+            *(uintptr_t*)(slot + 0x14) = root;
+
+        DestroyTree(extra);
+        Delete(extra);
+        return tree;
+    }
+}
+
 class ExtendedLimits
 {
 public:
     ExtendedLimits()
     {
+        FusionFix::onInitEvent() += []()
+        {
+            SettingsReader reader;
+
+            // [BudgetedIV]
+            if (!reader.ReadInteger("BudgetedIV", "ExtendedLimits", 0))
+                return;
+
+            using namespace EngineWaveSlots;
+
+            // audGtaAudioEngine::InitClass, the audio heap: room for the added slots
+            auto pattern = hook::pattern("BE 00 00 E0 07 E8");
+            injector::WriteMemory<uint32_t>(pattern.get_first(1), 0x7E00000 + (MaxEngineSlots - StockEngineSlots) * EngineSlotSize, true);
+            pattern = hook::pattern("BE 00 00 30 07");
+            injector::WriteMemory<uint32_t>(pattern.get_first(1), 0x7300000 + (MaxEngineSlots - StockEngineSlots) * EngineSlotSize, true);
+
+            // audWaveSlot::InitClass, reading waveslots.xml
+            pattern = hook::pattern("FF 35 ? ? ? ? E8 ? ? ? ? 8B F8 89 7C 24 24 85 FF");
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+            {
+                LoadTree_path = (decltype(LoadTree_path))injector::MakeCALL(pattern.get_first(6), LoadWaveSlots, true).get();
+                LoadTree = (decltype(LoadTree))injector::GetBranchDestination(hook::pattern("51 56 57 6A 01 6A 00 FF 74 24 1C 8B F9 FF 74 24 1C B9 ? ? ? ? E8 ? ? ? ? 8B F0 85 F6 74 3C 56 8B CF E8").get_first(36)).as_int();
+                OpenMemoryStream = (decltype(OpenMemoryStream))hook::pattern("8B 4C 24 04 81 EC 00 02 00 00 85 C9 74 ? 8B 94 24 08 02 00 00 85 D2 74").get_first(0);
+                pattern = hook::pattern("8B CF E8 ? ? ? ? 57 E8 ? ? ? ? 8B 0D ? ? ? ? 83 C4 04 85 C9");
+            }
+            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
+            {
+                pattern = hook::pattern("8B 15 ? ? ? ? 8B 0D ? ? ? ? 68 ? ? ? ? 52 E8 ? ? ? ? 8B F0");
+                LoadTree_path = (decltype(LoadTree_path))injector::MakeCALL(pattern.get_first(18), LoadWaveSlots, true).get();
+                LoadTree = (decltype(LoadTree))injector::GetBranchDestination(hook::pattern("51 8B 44 24 0C 56 57 6A 01 6A 00 8B F9 8B 4C 24 18 50 51 B9 ? ? ? ? E8 ? ? ? ? 8B F0 85 F6 74 3F 56 8B CF E8").get_first(38)).as_int();
+                OpenMemoryStream = (decltype(OpenMemoryStream))hook::pattern("8B 4C 24 04 81 EC 00 02 00 00 85 C9 74 ? 8B 84 24 08 02 00 00 85 C0 74").get_first(0);
+                pattern = hook::pattern("8B CE E8 ? ? ? ? 56 E8 ? ? ? ? 8B 0D ? ? ? ? 83 C4 04 3B CF");
+            }
+            DestroyTree = (decltype(DestroyTree))injector::GetBranchDestination(pattern.get_first(2)).as_int();
+            Delete = (decltype(Delete))injector::GetBranchDestination(pattern.get_first(8)).as_int();
+            CloseStream = (decltype(CloseStream))hook::pattern("56 8B F1 83 7E 14 00 75 0B 83 7E 10 00 74 05 E8").get_first(0);
+        };
+
         FusionFix::onInitEventAsync() += []()
         {
             SettingsReader reader;
