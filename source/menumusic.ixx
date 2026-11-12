@@ -1,6 +1,7 @@
 module;
 
 #include <common.hxx>
+#include <xmmintrin.h>
 
 export module menumusic;
 
@@ -131,6 +132,31 @@ namespace MenuMusic
     };
     static_assert(offsetof(audDelayEffect, settings) == 0x78);
 
+    struct ReverbSettings
+    {
+        float feedback, wet, dry, damping;
+        bool mono, bypass;
+        uint16_t pad12;
+    };
+
+    struct alignas(16) PhysicalReverb
+    {
+        void** vtable;
+        uint8_t pad04[12];
+        float coefficients[5][4];
+        void* combBuffers;
+        void* combHistory;
+        void* combPositions;
+        float feedback;
+        void* allPassBuffers;
+        void* allPassPositions;
+        ReverbSettings settings[3];
+        uint32_t readIndex, writeIndex;
+        uint8_t channelCount, activeChannels, mask, padBF;
+    };
+    static_assert(sizeof(PhysicalReverb) == 0xC0);
+    static_assert(offsetof(PhysicalReverb, settings) == 0x78);
+
     void(__thiscall* rage__audEntity__CreateSound_PersistentReference)(void* entity, const char* name, audSound** sound, const audSoundInitParams* params, int, int, int);
     void(__thiscall* rage__audEntity__CreateSound_LocalReference)(void* entity, const char* name, audSound** sound, const audSoundInitParams* params, int, int, int);
     audSound*(__thiscall* rage__audController__GetChildSoundReference)(void* controller, audSound* parent, const char* path, void* entity, audSound** sound);
@@ -167,12 +193,14 @@ namespace MenuMusic
     bool* pPhoneMusicAllowed;
     void** pAudioDriver;
     uint32_t* pMixBlockSamples;
+    const char** pMinSpecAudio;
     int* pHeadphones;
     void** pProfileSettings;
     void* pNetworkPeerMgr;
     uintptr_t updateMusicEnd;
 
     SafetyHookInline shNotifyFrontendInput, shShutdownClass, shRefillAdpcmBuffer, shAddAdpcmSampleData, shRefillPcmBuffer, shAddPcmSampleData;
+    SafetyHookInline shReverbProcess;
 
     constexpr size_t VoiceCount = 13; // stem 0, shadow 0, stem 1, ... shadow 5, stem 6
     constexpr float Silence = -100.0f; // dB
@@ -242,6 +270,8 @@ namespace MenuMusic
     std::atomic<const MixProfile*> reverbProfile = nullptr;
     std::atomic<audEffect*> largeReverbDelay = nullptr;
     std::atomic<bool> delayReset = false;
+    std::array<std::atomic<PhysicalReverb*>, 3> sourceReverbs{};
+    std::atomic<uint32_t> reverbGeneration = 1;
 
     float categoryBaseVolume = 0.0f;
     float categoryAppliedVolume = 0.0f;
@@ -447,6 +477,141 @@ namespace MenuMusic
             audStreamSlot__Free(stream);
     }
 
+    // Separate histories keep the 48 kHz delay-time correction out of gameplay's reverb buffers and tables.
+    struct MenuReverb
+    {
+        struct alignas(16) History
+        {
+            float comb[8][1616]{};
+            float allPass[4][556]{};
+            float filtered[8]{};
+            uint32_t combPosition[8]{}, allPassPosition[4]{};
+        };
+        std::array<History, 6> history{};
+        std::array<uint32_t, 8> combLength{};
+        std::array<uint32_t, 4> allPassLength{};
+        PhysicalReverb* owner = nullptr;
+        uint32_t generation = 0;
+        uint8_t channelCount = 0, mask = 0;
+
+        void Reset(PhysicalReverb* effect, uint32_t session)
+        {
+            constexpr uint32_t comb[]{ 1116, 1188, 1276, 1356, 1424, 1492, 1556, 1616 };
+            constexpr uint32_t allPass[]{ 556, 440, 340, 224 };
+            // The native SIMD recurrence advances four samples at a time. Round 44.1/48 kHz to whole vectors.
+            for (size_t i = 0; i < combLength.size(); i++)
+                combLength[i] = (comb[i] * 147 + 320) / 640 * 4;
+            for (size_t i = 0; i < allPassLength.size(); i++)
+                allPassLength[i] = (allPass[i] * 147 + 320) / 640 * 4;
+            std::memset(history.data(), 0, sizeof(history));
+            owner = effect;
+            generation = session;
+            channelCount = effect->channelCount;
+            mask = effect->mask;
+        }
+
+        static __m128 Dot(__m128 samples, const float* coefficients)
+        {
+            auto product = _mm_mul_ps(samples, _mm_loadu_ps(coefficients));
+            auto first = _mm_add_ss(product, _mm_shuffle_ps(product, product, 0x55));
+            auto last = _mm_add_ss(_mm_shuffle_ps(product, product, 0xAA), _mm_shuffle_ps(product, product, 0xFF));
+            return _mm_add_ss(first, last);
+        }
+
+        void Process(const PhysicalReverb* effect, float* buffer, uint32_t frames)
+        {
+            constexpr uint8_t speakerMask[]{ 128, 64, 32, 16, 8, 4 };
+            const auto& settings = effect->settings[effect->readIndex];
+            auto wet = _mm_set1_ps(settings.wet);
+            auto dry = _mm_set1_ps(settings.dry);
+            auto feedback = _mm_set1_ps(effect->feedback);
+            auto previous = _mm_loadu_ps(effect->coefficients[0]);
+            auto bias = _mm_set1_ps(1.0e-20f);
+            for (size_t channel = 0; channel < effect->channelCount; channel++)
+            {
+                if (!(effect->mask & speakerMask[channel]))
+                    continue;
+                auto samples = buffer + channel * frames;
+                if (settings.mono && channel)
+                {
+                    std::memcpy(samples, buffer, frames * sizeof(float));
+                    continue;
+                }
+                auto& state = history[channel];
+                for (uint32_t sample = 0; sample < frames; sample += 4)
+                {
+                    auto input = _mm_loadu_ps(samples + sample);
+                    auto gain = _mm_mul_ps(input, _mm_set1_ps(0.015f));
+                    auto sum = _mm_setzero_ps();
+                    for (size_t i = 0; i < combLength.size(); i++)
+                    {
+                        auto& position = state.combPosition[i];
+                        auto delayed = _mm_load_ps(state.comb[i] + position);
+                        sum = _mm_add_ps(sum, delayed);
+                        auto a = Dot(delayed, effect->coefficients[1]);
+                        auto b = Dot(delayed, effect->coefficients[2]);
+                        auto c = Dot(delayed, effect->coefficients[3]);
+                        auto d = Dot(delayed, effect->coefficients[4]);
+                        auto filtered = _mm_movelh_ps(_mm_unpacklo_ps(a, b), _mm_unpacklo_ps(c, d));
+                        auto value = _mm_add_ps(_mm_mul_ps(filtered, feedback), _mm_mul_ps(_mm_set1_ps(state.filtered[i]), previous));
+                        _mm_store_ps(state.comb[i] + position, _mm_add_ps(_mm_add_ps(value, gain), bias));
+                        state.filtered[i] = _mm_cvtss_f32(d);
+                        position += 4;
+                        if (position == combLength[i])
+                            position = 0;
+                    }
+                    sum = _mm_add_ps(sum, bias);
+                    for (size_t i = 0; i < allPassLength.size(); i++)
+                    {
+                        auto& position = state.allPassPosition[i];
+                        auto delayed = _mm_load_ps(state.allPass[i] + position);
+                        auto value = _mm_add_ps(_mm_mul_ps(delayed, _mm_set1_ps(0.5f)), sum);
+                        _mm_store_ps(state.allPass[i] + position, _mm_add_ps(value, bias));
+                        sum = _mm_sub_ps(delayed, sum);
+                        position += 4;
+                        if (position == allPassLength[i])
+                            position = 0;
+                    }
+                    _mm_storeu_ps(samples + sample, _mm_add_ps(_mm_add_ps(_mm_mul_ps(sum, wet), _mm_mul_ps(input, dry)), bias));
+                }
+            }
+        }
+    };
+
+    void __fastcall ProcessMenuReverb(PhysicalReverb* effect, void* edx, float* buffer, uint32_t frames)
+    {
+        // rage::audReverbEffectPc::Process remains native outside the menu-owned source effects.
+        static std::array<MenuReverb, 3> reverbs;
+        if (reverbProfile.load() && !*pMinSpecAudio && *pAudioDriver &&
+            Field<uint32_t>(*pAudioDriver, 0x80) == 44100 && buffer && frames && frames <= 512 && !(frames % 4) &&
+            effect->channelCount && effect->channelCount <= 6 && effect->readIndex < 3)
+        {
+            for (size_t i = 0; i < reverbs.size(); i++)
+            {
+                if (sourceReverbs[i].load() != effect)
+                    continue;
+                auto& reverb = reverbs[i];
+                if (effect->settings[effect->readIndex].bypass)
+                {
+                    reverb.owner = nullptr;
+                    break;
+                }
+                auto generation = reverbGeneration.load();
+                if (reverb.owner != effect || reverb.generation != generation ||
+                    reverb.channelCount != effect->channelCount || reverb.mask != effect->mask)
+                    reverb.Reset(effect, generation);
+                reverb.Process(effect, buffer, frames);
+                return;
+            }
+        }
+        else
+        {
+            for (auto& reverb : reverbs)
+                reverb.owner = nullptr;
+        }
+        shReverbProcess.unsafe_fastcall<void>(effect, edx, buffer, frames);
+    }
+
     // The reverb settings of the console mix. The game sets up the filters of the three source reverbs (small, medium,
     // large) before it commits them every frame, also the values changed here.
     void SetSourceReverb(uint32_t reverb, audEffect* chain)
@@ -464,6 +629,10 @@ namespace MenuMusic
         auto delay = reverb == 2 && delayEffect ? delayEffect->Settings<DelaySettings>(7) : nullptr;
         if (reverb == 2 && !delay)
             return;
+
+        auto reverbEffect = delay ? delayEffect->next : delayEffect;
+        if (reverb < sourceReverbs.size())
+            sourceReverbs[reverb] = reverbEffect && *reverbEffect->metadata == 2 ? Field<PhysicalReverb*>(reverbEffect, 200) : nullptr;
 
         lowPass->cutoff = 20000.0f;
         lowPass->bypass = false;
@@ -505,8 +674,13 @@ namespace MenuMusic
     void ReleaseReverb()
     {
         if (reverbProfile.exchange(nullptr))
+        {
             delayReset = true;
+            reverbGeneration.fetch_add(1);
+        }
         largeReverbDelay = nullptr;
+        for (auto& reverb : sourceReverbs)
+            reverb = nullptr;
     }
 
     // The phone silences the menu music category and on 1.0.7.0-1.1.3.0 voice chat through the speakers lowers it,
@@ -617,8 +791,9 @@ namespace MenuMusic
         float dt = std::clamp(elapsed, 0.0f, 0.1f);
 
         reverbProfile = &profile;
+        // Only TBoGT unmutes the parent; IV and TLAD use the independent shadow sounds.
         if (auto settings = GetRequestedSettings(parent))
-            rage__audRequestedSettings__SetVolume(settings, 0.0f);
+            rage__audRequestedSettings__SetVolume(settings, episode == 2 ? 0.0f : Silence);
 
         // The intensity goes up and down between 0 and 1 over 100 seconds
         intensity += (intensityTarget <= intensity ? -1.0f : 1.0f) * (dt * 0.01f);
@@ -1175,6 +1350,26 @@ public:
 
             pattern = find_pattern("83 EC 08 53 8B D9 56 8B 83 18", "53 8B D9 8B 83 18 01 00 00 56 8B 73 14 C1");
             shAddPcmSampleData = safetyhook::create_inline(pattern.get_first(0), AddPcmSampleData);
+
+            // The game's parsed -minspecaudio flag, from launch arguments or commandline.txt.
+            pattern = find_pattern("83 3D ? ? ? ? 00 A2 ? ? ? ? 74 ? C6 05 ? ? ? ? 00 C6 05 ? ? ? ? 00 88 0D",
+                "39 1D ? ? ? ? 74 ? 88 1D ? ? ? ? 88 1D ? ? ? ? C6 05 ? ? ? ? 01 F3 0F 11 0D");
+            pMinSpecAudio = *pattern.get_first<const char**>(2);
+
+            // rage::audReverbEffectPc::Process, the PC counterpart of audReverbEffectXenon::Process.
+            pattern = find_pattern("55 8B EC 83 E4 F0 81 EC 48 09 00 00 56 8B F1 57 8B 86 B4 00 00 00",
+                "55 8B EC 83 E4 F0 81 EC A4 09 00 00 53 56 8B F1 8B 86 B4 00 00 00");
+            shReverbProcess = safetyhook::create_inline(pattern.get_first(0), ProcessMenuReverb);
+
+            // audGtaEnvironment::Update: low-spec audio bypasses two reverbs and collapses their spatial sends.
+            // The engine refreshes this mode each update, so its normal setting resumes when the music releases it.
+            pattern = find_pattern("83 EC 4C 53 55 8B D9 E8 ? ? ? ? 8B CB E8 ? ? ? ? 8B CB E8 ? ? ? ? 8B CB E8",
+                "83 EC 50 53 55 8B E9 E8 ? ? ? ? 8B CD E8 ? ? ? ? 8B CD E8 ? ? ? ? 8B CD E8");
+            static auto GtaEnvironmentUpdateHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+            {
+                if (reverbProfile.load() && !*pMinSpecAudio)
+                    Field<bool>(reinterpret_cast<void*>(regs.ecx), 0x3210) = false;
+            });
 
             // audGtaEnvironment::SetUpSourceReverbFilters, before a reverb's filters are committed
             pattern = hook::pattern("8B 07 8B CF FF 50 14 8B 6C 24 14 46");
