@@ -2,6 +2,8 @@ module;
 
 #include <common.hxx>
 #include <array>
+#include <fstream>
+#include <regex>
 
 export module limits;
 
@@ -377,14 +379,41 @@ int __cdecl getWeaponInfoIdByHash(int hash, int defaultId)
     return newWeaponId;
 }
 
-// Engine wave slots: the game looks up STREAM_ENGINE_1 to STREAM_ENGINE_25 in waveslots.xml, the file has 15. The missing
-// ones are added to the parsed file and the audio heap grows by their size.
+// Wave slots: the slots of waveslots.xml are made in the audio heap, which only has room for the game's own file. The heap
+// grows by what the file needs beyond that (mods with more slots), and with Extended Limits by the engine slots added: the
+// game looks up STREAM_ENGINE_1 to STREAM_ENGINE_25, the file has 15, the missing ones are added to the parsed file.
 namespace EngineWaveSlots
 {
     constexpr uint32_t MaxEngineSlots = 25;
-    constexpr uint32_t StockEngineSlots = 15;
     constexpr uint32_t EngineSlotSize = 794624; // The size of every STREAM_ENGINE slot in the file
     constexpr uint32_t EngineSlotHeaderSize = 2048;
+    constexpr uint32_t StockWaveSlotBytes = 120633344; // The slots of the game's waveslots.xml
+
+    constexpr uint32_t SlotBytes(uint32_t size)
+    {
+        return (size + 127) & ~127u;
+    }
+
+    // The memory the slots of waveslots.xml take, as the game counts it, and which engine slots the file has
+    uint32_t ReadWaveSlots(std::array<bool, MaxEngineSlots + 1>& present)
+    {
+        std::ifstream file(GetExeModulePath() / "pc" / "audio" / "config" / "waveslots.xml", std::ios::binary);
+        std::string text((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+        uint32_t bytes = 0;
+        static const std::regex slotPattern(R"re(<Slot>[\s\S]*?<Name[^>]*>([^<]*)</Name>[\s\S]*?<Size value="(\d+)")re");
+        for (auto it = std::sregex_iterator(text.begin(), text.end(), slotPattern); it != std::sregex_iterator(); ++it)
+        {
+            auto name = (*it)[1].str();
+            if (name == "TEST")
+                continue;
+            bytes += SlotBytes(static_cast<uint32_t>(std::stoul((*it)[2].str())));
+            int32_t n = 0;
+            if (sscanf_s(name.c_str(), "STREAM_ENGINE_%d", &n) == 1 && n >= 1 && n <= (int32_t)MaxEngineSlots)
+                present[n] = true;
+        }
+        return bytes;
+    }
 
     void* (__fastcall* LoadTree_path)(void* parManager, void* edx, const char* path, const char* ext) = nullptr;
     void* (__fastcall* LoadTree)(void* parManager, void* edx, void* stream) = nullptr;
@@ -471,17 +500,32 @@ public:
         {
             SettingsReader reader;
 
-            // [BudgetedIV]
-            if (!reader.ReadInteger("BudgetedIV", "ExtendedLimits", 0))
-                return;
-
             using namespace EngineWaveSlots;
 
-            // audGtaAudioEngine::InitClass, the audio heap: room for the added slots
+            // [BudgetedIV]
+            auto bExtendedLimits = reader.ReadInteger("BudgetedIV", "ExtendedLimits", 0) != 0;
+
+            std::array<bool, MaxEngineSlots + 1> present{};
+            auto bytes = ReadWaveSlots(present);
+            if (bExtendedLimits)
+            {
+                for (uint32_t n = 1; n <= MaxEngineSlots; n++)
+                {
+                    if (!present[n])
+                        bytes += SlotBytes(EngineSlotSize);
+                }
+            }
+
+            // audGtaAudioEngine::InitClass, the audio heap (smaller on PCs with less than 1.5 GB of RAM): room for the slots,
+            // and some for their headers
+            uint32_t grow = bytes > StockWaveSlotBytes ? ((bytes - StockWaveSlotBytes) + 0x1FFFF) & ~0xFFFFu : 0;
             auto pattern = hook::pattern("BE 00 00 E0 07 E8");
-            injector::WriteMemory<uint32_t>(pattern.get_first(1), 0x7E00000 + (MaxEngineSlots - StockEngineSlots) * EngineSlotSize, true);
+            injector::WriteMemory<uint32_t>(pattern.get_first(1), 0x7E00000 + grow, true);
             pattern = hook::pattern("BE 00 00 30 07");
-            injector::WriteMemory<uint32_t>(pattern.get_first(1), 0x7300000 + (MaxEngineSlots - StockEngineSlots) * EngineSlotSize, true);
+            injector::WriteMemory<uint32_t>(pattern.get_first(1), 0x7300000 + grow, true);
+
+            if (!bExtendedLimits)
+                return;
 
             // audWaveSlot::InitClass, reading waveslots.xml
             pattern = hook::pattern("FF 35 ? ? ? ? E8 ? ? ? ? 8B F8 89 7C 24 24 85 FF");
