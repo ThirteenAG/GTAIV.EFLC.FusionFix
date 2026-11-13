@@ -1,6 +1,7 @@
 module;
 
 #include <common.hxx>
+#include <intrin.h>
 
 export module shadows;
 
@@ -94,6 +95,40 @@ public:
             bExtraDynamicShadows    = reader.ReadInteger("SHADOWS", "ExtraDynamicShadows",    2);
             bDynamicShadowsForTrees = reader.ReadInteger("SHADOWS", "DynamicShadowsForTrees", 1) != 0;
             bHighResolutionShadows  = reader.ReadInteger("SHADOWS", "HighResolutionShadows",  0) != 0;
+
+            // Restore interior casters to directional cascades in Complete Edition.
+            {
+                auto pattern = hook::pattern("8B 74 24 14 3C 02 75 64 83 7E 3C 00 75 39 8B CE E8 ? ? ? ? 85 C0 75 19 8B CE E8 ? ? ? ? 56 50 FF 74 24 18 8B CF E8 ? ? ? ? 5F B0 01 5E C3 56 83 C8 FF 50 FF 74 24 18 8B CF E8 ? ? ? ? 5F B0 01 5E C3");
+                if (pattern.size() == 1)
+                {
+                    static auto CInteriorInst__AddInteriorToRenderListForShadow = reinterpret_cast<void(__thiscall*)(uint8_t*, int, int, uint8_t*)>(injector::GetBranchDestination(pattern.get_first(0x3D)).as_int());
+                    static auto interiorHandled = reinterpret_cast<uintptr_t>(pattern.get_first(0x42));
+                    static auto CRenderer__HandleMLOObjectsInScan_Hook = safetyhook::create_mid(pattern.get_first(8), [](SafetyHookContext& regs)
+                    {
+                        // Model type 2 was established; EDI is the interior, ESI the phase.
+                        auto phase = reinterpret_cast<uint8_t*>(regs.esi);
+                        if (*reinterpret_cast<int32_t*>(phase + 0x3C) != 1)
+                            return;
+
+                        // Mid hooks save XMM registers, but the native call can also change x87/MXCSR.
+                        alignas(16) uint8_t floatingPointState[512];
+                        _fxsave(floatingPointState);
+
+                        // Cascades do not initialize the helper's static/dynamic submission bytes.
+                        const auto previousStatic = phase[0x15];
+                        const auto previousDynamic = phase[0x16];
+                        phase[0x15] = phase[0x16] = 1;
+                        const auto renderList = *reinterpret_cast<int*>(regs.esp + 0x10);
+                        CInteriorInst__AddInteriorToRenderListForShadow(reinterpret_cast<uint8_t*>(regs.edi), renderList, -1, phase);
+                        phase[0x15] = previousStatic;
+                        phase[0x16] = previousDynamic;
+
+                        _fxrstor(floatingPointState);
+                        // Bypass GetWarpShadowType: +0x940 is a matrix in a cascade, not a light slot.
+                        regs.eip = interiorHandled;
+                    });
+                }
+            }
 
             // Dynamic shadows for trees
             if (bDynamicShadowsForTrees)
