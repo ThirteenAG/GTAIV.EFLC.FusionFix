@@ -69,9 +69,6 @@ namespace NightShadows
     uintptr_t* pViewports = nullptr;
     uint32_t nVehicleOccupantsOffset = 0;
 
-    // Fusion Fix's lamppost models mark the lights the PC version gave shadows
-    constexpr uint32_t LightAttrStreetlight = 0x8000000;
-
     enum eStreetlightShadows { Off, Scenery, SceneryAndPeople, SceneryPeopleAndVehicles };
 
     int32_t StreetlightShadows()
@@ -191,6 +188,7 @@ namespace NightShadows
         float coneCos[LightTableSize];
         float tangents[LightTableSize][3];
         bool spot[LightTableSize];
+        bool dynamic[LightTableSize];
     };
     ShadowPriorities priorities = {};
 
@@ -231,10 +229,26 @@ namespace NightShadows
             cacheFade[i] = fade;
         }
 
+        // The per-frame shadows likewise against the most important light waiting for one
+        auto waitingDynamic = FLT_MAX;
+        for (uint32_t i = 0; i < LightTableSize; i++)
+        {
+            if (it.trackingIDs[i] && it.dynamic[i] && it.values[i] < waitingDynamic && !HadShadowLastFrame(it.trackingIDs[i]))
+                waitingDynamic = it.values[i];
+        }
+
         for (int32_t slot = 1; slot < SlotCount; slot++)
         {
             auto i = FindLight(SlotTrackingID(slot));
-            slotFade[slot] = i >= 0 && it.trackingIDs[i] ? DistanceFade(it.values[i]) : 0.0f;
+            if (i < 0 || !it.trackingIDs[i])
+            {
+                slotFade[slot] = 0.0f;
+                continue;
+            }
+            auto fade = DistanceFade(it.values[i]);
+            if (waitingDynamic < FLT_MAX && it.values[i] > 0.0f)
+                fade = std::max(fade, SmoothStep(waitingDynamic * 0.8f, waitingDynamic, it.values[i]));
+            slotFade[slot] = fade;
         }
     }
 
@@ -266,6 +280,7 @@ namespace NightShadows
             it.trackingIDs[i] = light.mShadowTrackingID;
             it.values[i] = value;
             it.spot[i] = light.mType == rage::LT_SPOT;
+            it.dynamic[i] = (light.mFlags & rage::LIGHTFLAG_CAST_DYNAMIC_GEOM_SHADOWS) != 0;
             it.coneCos[i] = light.mOuterConeAngle;
             it.tangents[i][0] = light.mTangent.x;
             it.tangents[i][1] = light.mTangent.y;
@@ -289,24 +304,29 @@ namespace NightShadows
     float slotConeCos[SlotCount] = {};
     float slotTangents[SlotCount][3] = {};
 
-    void ChooseSlotProjection(uint32_t slotOffset)
+    // The render phase flags that draw the map (buildings, trees) and the objects that don't move (lampposts, traffic
+    // lights), set for shadows rendered without a cache like the game's cached shadows have them
+    constexpr uint32_t RenderMapFlags = 0x280;
+
+    bool ChooseSlotProjection(uint32_t slotOffset)
     {
         auto slot = slotOffset / SlotStride;
         auto base = pSlots + slotOffset;
         auto& type = *(int32_t*)(base + 0x00);
         type = 0;
         if (slot == 0 || slot >= SlotCount || *(int32_t*)(base + 0xFC) != DynamicRenderType || *(int32_t*)(base + 0xF0) != -1)
-            return;
+            return false;
 
         auto& it = priorities;
         auto trackingID = *(uint32_t*)(base + 0xF8);
         auto i = FindLight(trackingID);
         if (i < 0 || !trackingID || it.trackingIDs[i] != trackingID || !it.spot[i] || it.coneCos[i] < MinPerspectiveConeCos)
-            return;
+            return false;
 
         slotConeCos[slot] = it.coneCos[i];
         std::copy(std::begin(it.tangents[i]), std::end(it.tangents[i]), slotTangents[slot]);
         type = PerspectiveSlotType;
+        return true;
     }
 
     // The camera of a perspective slot, and the matrix that takes a world position to the shadow map: the view along
@@ -357,7 +377,9 @@ namespace NightShadows
         // A little wider than the cone, so its soft edge is covered too
         auto halfAngle = std::min(std::acos(std::clamp(slotConeCos[slot], -1.0f, 1.0f)) * 1.05f, 1.25f);
         auto tanHalf = std::tan(halfAngle);
-        auto scale = 1.0f / tanHalf;
+        // The map holds the view turned half around the beam (both its right and up reversed), so the lookup turns
+        // positions the same way: without it, a shadow off the beam's centre lands on the other side of it
+        auto scale = -1.0f / tanHalf;
 
         // Camera: right, up, back, position
         auto camera = (float*)(base + 0x40);
@@ -560,6 +582,22 @@ namespace NightShadows
     // The lamp of a light: its tracking ID is the address of the entity it belongs to plus the light's index
     constexpr uint32_t MaxLightsPerEntity = 64;
 
+    // The entity a light belongs to, in the given pools
+    uintptr_t FindOwner(uint32_t trackingID, std::initializer_list<rage::fwPool<void*>*> pools)
+    {
+        uintptr_t owner = 0;
+        for (auto pool : pools)
+        {
+            for (int32_t i = 0; pool && i < pool->GetSize(); i++)
+            {
+                auto entity = (uintptr_t)pool->GetSlot(i);
+                if (entity && entity <= trackingID && trackingID - entity < MaxLightsPerEntity && entity > owner)
+                    owner = entity;
+            }
+        }
+        return owner;
+    }
+
     uintptr_t FindLamp(uint32_t trackingID)
     {
         auto frame = *CTimer::m_frameCount;
@@ -569,18 +607,64 @@ namespace NightShadows
         if (lamps.size() > 4096)
             lamps.clear();
 
-        uintptr_t lamp = 0;
-        for (auto pool : { CObject::GetObjectsPool(), *pDummyObjectPool, *pBuildingPool })
-        {
-            for (int32_t i = 0; pool && i < pool->GetSize(); i++)
-            {
-                auto entity = (uintptr_t)pool->GetSlot(i);
-                if (entity && entity <= trackingID && trackingID - entity < MaxLightsPerEntity && entity > lamp)
-                    lamp = entity;
-            }
-        }
+        auto lamp = FindOwner(trackingID, { CObject::GetObjectsPool(), *pDummyObjectPool, *pBuildingPool });
         lamps[trackingID] = { lamp, frame };
         return lamp;
+    }
+
+    // Streetlights: the lights of the lamppost models (objects, or dummy objects far away), by model name
+    constexpr uint32_t HashLowercase(std::string_view name)
+    {
+        uint32_t hash = 0;
+        for (auto c : name)
+        {
+            hash += uint8_t(c >= 'A' && c <= 'Z' ? c - 'A' + 'a' : c);
+            hash += hash << 10;
+            hash ^= hash >> 6;
+        }
+        hash += hash << 3;
+        hash ^= hash >> 11;
+        hash += hash << 15;
+        return hash;
+    }
+
+    constexpr std::array LamppostModels =
+    {
+        HashLowercase("bm_fount_lamp"), HashLowercase("bm_nylamp1"), HashLowercase("bm_nylamp10"), HashLowercase("bm_nylamp110b"),
+        HashLowercase("bm_nylamp12"), HashLowercase("bm_nylamp1_italy"), HashLowercase("bm_nylamp1a"), HashLowercase("bm_nylamp1b"),
+        HashLowercase("bm_nylamp1c"), HashLowercase("bm_nylamp2a"), HashLowercase("bm_nylamp2b"), HashLowercase("bm_nylamp3"),
+        HashLowercase("bm_nylamp4"), HashLowercase("bm_nylamp5"), HashLowercase("bm_nylamp6"), HashLowercase("bm_nylamp6a"),
+        HashLowercase("bm_nylamp6c"), HashLowercase("bm_nylamp7"), HashLowercase("bm_nylamp7_b"), HashLowercase("bm_nylamp7_c"),
+        HashLowercase("bm_nylamp8a"), HashLowercase("bm_nylamp9"), HashLowercase("cj_nylamp1"), HashLowercase("cj_nylamp2"),
+        HashLowercase("cj_nylamp2b"),
+    };
+
+    uintptr_t* pModelInfos = nullptr;
+
+    struct StreetlightOfLight
+    {
+        bool streetlight;
+        uint32_t frame;
+    };
+    std::unordered_map<uint32_t, StreetlightOfLight> streetlights;
+
+    bool IsStreetlight(uint32_t trackingID)
+    {
+        auto frame = *CTimer::m_frameCount;
+        if (auto it = streetlights.find(trackingID); it != streetlights.end() && frame - it->second.frame < LampFrames)
+            return it->second.streetlight;
+
+        if (streetlights.size() > 4096)
+            streetlights.clear();
+
+        bool streetlight = false;
+        if (auto lamp = FindOwner(trackingID, { CObject::GetObjectsPool(), *pDummyObjectPool }))
+        {
+            auto modelInfo = pModelInfos[*(int16_t*)(lamp + 0x2E)];
+            streetlight = modelInfo && std::find(LamppostModels.begin(), LamppostModels.end(), *(uint32_t*)(modelInfo + 0x3C)) != LamppostModels.end();
+        }
+        streetlights[trackingID] = { streetlight, frame };
+        return streetlight;
     }
 
     void SetUpExclusions(int32_t renderList, int32_t slot)
@@ -655,6 +739,7 @@ namespace NightShadows
         }
         return false;
     }
+
 }
 
 namespace CLights
@@ -716,6 +801,7 @@ public:
         {
             NightShadows::pDummyObjectPool = *hook::pattern("68 B0 36 00 00 8B C8 E8 ? ? ? ? A3").get_first<rage::fwPool<void*>**>(13);
             NightShadows::pBuildingPool = *hook::pattern("68 00 7D 00 00 8B C8 E8 ? ? ? ? A3").get_first<rage::fwPool<void*>**>(13);
+            NightShadows::pModelInfos = *hook::get_pattern<uintptr_t*>("0F BF 46 2E 8B 04 85", 7);
 
             // Make the night shadow options adjust the night shadow resolution (Half the cascaded shadow resolution otherwise)
             {
@@ -812,7 +898,10 @@ public:
                     NightShadows::pSlots = *pattern.get_first<uintptr_t>(2);
                     static auto SlotProjectionHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        NightShadows::ChooseSlotProjection(regs.esi);
+                        // A perspective slot is a moving light without a cached shadow: the map (buildings, trees, lampposts)
+                        // only goes into cached shadows, so it's drawn into this one every frame too, which keeps up with the light
+                        if (NightShadows::ChooseSlotProjection(regs.esi))
+                            *(uint32_t*)(regs.edi + 0x8D0) |= NightShadows::RenderMapFlags;
                     });
                     injector::MakeCALL(pattern.get_first(18), NightShadows::SetUpPerspectiveSlot, true);
 
@@ -977,7 +1066,7 @@ public:
             // Shadows of local lights draw people in vehicles too (the game left them out), except what the light's
             // exclusions leave out
             {
-                auto pattern = hook::pattern("83 F8 03 75 14 F6 86");
+                auto pattern = hook::pattern("83 F8 03 75 14 F6 86 6C 02 00 00 04 74 0B 80 7C 24 0B 00 0F 84 ? ? ? ? C6 44 24 0C 00 83 F8 04 75 12 8B 86 10 02 00 00 C1 E8 0B 25 01 FF FF FF 89 44 24 0C 85 D2 75 4C 0F B6 46 62 50 FF 75 18 E8 ? ? ? ? 83 C4 08 3C 01 0F 85 ? ? ? ? 8B 46 28 25 C0 03 00 00 3D 80 00 00 00 74 17");
                 if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     static auto loc_AE3867 = resolve_next_displacement(pattern.get_first(14)).value();
@@ -1020,7 +1109,7 @@ public:
                 {
                     static auto StreetlightFlagsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        if (*(uint32_t*)(regs.edi + 0x4C) & NightShadows::LightAttrStreetlight)
+                        if (NightShadows::IsStreetlight(*(uint32_t*)(regs.ebp + 0x20)))
                         {
                             regs.ecx = NightShadows::StreetlightFlags(regs.ecx);
                             *(uint32_t*)(regs.esp + 0x18) = regs.ecx;
@@ -1033,7 +1122,7 @@ public:
                     pattern = hook::pattern("F6 C3 06 75 02 33 FF F7 C1 00 00 01 00");
                     static auto StreetlightFlagsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        if (regs.ecx & NightShadows::LightAttrStreetlight)
+                        if (NightShadows::IsStreetlight(*(uint32_t*)(regs.ebp + 0x20)))
                             regs.ebx = NightShadows::StreetlightFlags(regs.ebx);
                     });
                 }
