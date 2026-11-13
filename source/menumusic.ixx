@@ -188,7 +188,9 @@ namespace MenuMusic
     uint32_t* pSoundStride;
     uint32_t* pRequestedSettingsStride;
     uint8_t* pStreamingBucket;
-    float* pListenerPosition;
+    float* pListenerPositions;
+    uint32_t* pTlsIndex;
+    uint32_t listenerIndexOffset;
     bool* pPhoneActive;
     bool* pPhoneMusicAllowed;
     void** pAudioDriver;
@@ -291,7 +293,10 @@ namespace MenuMusic
 
     Position ListenerPosition()
     {
-        return { pListenerPosition[0], pListenerPosition[1], pListenerPosition[2], 0.0f };
+        // Use the TLS-selected listener buffer (four 0x40-byte slots), as on Xenon.
+        auto tls = Field<void**>(NtCurrentTeb(), 0x2C)[*pTlsIndex];
+        auto index = Field<uint32_t>(tls, listenerIndexOffset);
+        return index < 4 ? Field<Position>(pListenerPositions, 0x40 * index) : Position{};
     }
 
     // A sound pool bucket is 0x6F40 bytes, with its sounds at +0x6F10 and their requested settings at +0x6F14. A sound
@@ -493,6 +498,7 @@ namespace MenuMusic
         PhysicalReverb* owner = nullptr;
         uint32_t generation = 0;
         uint8_t channelCount = 0, mask = 0;
+        uint32_t quietFrames = 0;
 
         void Reset(PhysicalReverb* effect, uint32_t session)
         {
@@ -508,6 +514,7 @@ namespace MenuMusic
             generation = session;
             channelCount = effect->channelCount;
             mask = effect->mask;
+            quietFrames = 0;
         }
 
         static __m128 Dot(__m128 samples, const float* coefficients)
@@ -580,26 +587,56 @@ namespace MenuMusic
 
     void __fastcall ProcessMenuReverb(PhysicalReverb* effect, void* edx, float* buffer, uint32_t frames)
     {
-        // rage::audReverbEffectPc::Process remains native outside the menu-owned source effects.
+        // Replace rage::audReverbEffectPc::Process for menu input; drain its tail alongside native gameplay.
         static std::array<MenuReverb, 3> reverbs;
-        if (reverbProfile.load() && !*pMinSpecAudio && *pAudioDriver &&
+        if (!*pMinSpecAudio && *pAudioDriver &&
             Field<uint32_t>(*pAudioDriver, 0x80) == 44100 && buffer && frames && frames <= 512 && !(frames % 4) &&
             effect->channelCount && effect->channelCount <= 6 && effect->readIndex < 3)
         {
             for (size_t i = 0; i < reverbs.size(); i++)
             {
-                if (sourceReverbs[i].load() != effect)
-                    continue;
                 auto& reverb = reverbs[i];
+                auto playing = reverbProfile.load() && sourceReverbs[i].load() == effect;
+                if (!playing && reverb.owner != effect)
+                    continue;
                 if (effect->settings[effect->readIndex].bypass)
                 {
                     reverb.owner = nullptr;
                     break;
                 }
                 auto generation = reverbGeneration.load();
+                if (!playing)
+                {
+                    shReverbProcess.unsafe_fastcall<void>(effect, edx, buffer, frames);
+                    if (reverb.channelCount != effect->channelCount || reverb.mask != effect->mask ||
+                        (reverb.generation != generation && reverb.generation + 1 != generation))
+                    {
+                        reverb.owner = nullptr;
+                        return;
+                    }
+                    reverb.generation = generation;
+                    // Drain only the menu history; gameplay keeps the native processor and input.
+                    std::array<float, 6 * 512> tail{};
+                    reverb.Process(effect, tail.data(), frames);
+                    float peak = 0.0f;
+                    for (size_t sample = 0; sample < frames * effect->channelCount; sample++)
+                    {
+                        peak = std::max(peak, std::abs(tail[sample]));
+                        buffer[sample] += tail[sample];
+                    }
+                    reverb.quietFrames = peak < 1.0e-6f ? reverb.quietFrames + frames : 0;
+                    auto historyLength = reverb.combLength.back();
+                    for (auto length : reverb.allPassLength)
+                        historyLength += length;
+                    // Retire after output stays below -120 dB for the longest comb plus all four allpasses.
+                    if (reverb.quietFrames >= historyLength)
+                        reverb.owner = nullptr;
+                    return;
+                }
                 if (reverb.owner != effect || reverb.generation != generation ||
                     reverb.channelCount != effect->channelCount || reverb.mask != effect->mask)
                     reverb.Reset(effect, generation);
+                reverb.quietFrames = 0;
                 reverb.Process(effect, buffer, frames);
                 return;
             }
@@ -617,7 +654,7 @@ namespace MenuMusic
     void SetSourceReverb(uint32_t reverb, audEffect* chain)
     {
         auto profile = reverbProfile.load();
-        if (!profile)
+        if (!profile && (!delayReset || reverb != 2))
             return;
 
         // Low-pass and high-pass biquads (type 3), then on the large reverb a delay (type 7)
@@ -631,16 +668,22 @@ namespace MenuMusic
             return;
 
         auto reverbEffect = delay ? delayEffect->next : delayEffect;
-        if (reverb < sourceReverbs.size())
+        if (profile && reverb < sourceReverbs.size())
             sourceReverbs[reverb] = reverbEffect && *reverbEffect->metadata == 2 ? Field<PhysicalReverb*>(reverbEffect, 200) : nullptr;
 
-        lowPass->cutoff = 20000.0f;
-        lowPass->bypass = false;
+        if (profile)
+        {
+            lowPass->cutoff = 20000.0f;
+            lowPass->bypass = false;
+        }
         if (delay)
         {
-            highPass->cutoff = profile->largeReverbHighPass;
-            highPass->bypass = false;
-            delay->feedback.fill(profile->largeDelayFeedback);
+            if (profile)
+            {
+                highPass->cutoff = profile->largeReverbHighPass;
+                highPass->bypass = false;
+                delay->feedback.fill(profile->largeDelayFeedback);
+            }
             // Consoles leave the delay at 60 ms from the first time the menu music stops
             if (delayReset)
                 delay->time.fill(60);
@@ -652,12 +695,14 @@ namespace MenuMusic
     // music's delay they are set from the sample rate, rounded up to whole blocks.
     void SetDelayTimes(audDelayEffect* effect)
     {
-        if (!reverbProfile.load() || largeReverbDelay.load() != &effect->effect)
+        if (largeReverbDelay.load() != &effect->effect || !*pAudioDriver)
             return;
 
         auto& settings = effect->settings[effect->readIndex];
         auto sampleRate = Field<uint32_t>(*pAudioDriver, 0x80);
         auto block = *pMixBlockSamples;
+        if (!sampleRate || !block)
+            return;
         std::array<uint32_t, 6> samples;
         for (size_t i = 0; i < samples.size(); i++)
         {
@@ -1074,6 +1119,9 @@ namespace MenuMusic
         }
         auto result = shShutdownClass.unsafe_ccall<int>();
 
+        // A menu stop advances by one to drain its tail; advancing by two rejects histories from the old engine.
+        reverbGeneration.fetch_add(2);
+
         // The engine is gone with its sounds, stream slots and categories. It starts again when the episode changes.
         engineStopped = true;
         loopingWaveSlot = nullptr;
@@ -1258,6 +1306,7 @@ public:
             updateMusicEnd = uintptr_t(pattern.get_first(15)) + *pattern.get_first<int32_t>(11);
             audFrontendAudioEntity__ShouldFEMusicBePlaying = (decltype(audFrontendAudioEntity__ShouldFEMusicBePlaying))injector::GetBranchDestination(pattern.get_first(24)).as_int();
 
+            // audFrontendAudioEntity::NotifyFrontendInput, called after CNetwork::IsOnLobbyScreen
             pattern = hook::pattern("C7 86 00 02 00 00 04 00 00 00 E8 ? ? ? ? 84 C0 74 07 8B CE E8");
             CNetwork__IsOnLobbyScreen = (decltype(CNetwork__IsOnLobbyScreen))injector::GetBranchDestination(pattern.get_first(10)).as_int();
             shNotifyFrontendInput = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first(21)).as_int(), NotifyFrontendInput);
@@ -1329,16 +1378,18 @@ public:
             pattern = hook::pattern("8B 0D ? ? ? ? 8B F8 E8 ? ? ? ? 3B F8 73 04 33 FF");
             pAudioDriver = *pattern.get_first<void**>(2);
 
-            // In the delay's SetParameters
+            // PC delay parameter setter: mix-block size used for time conversion.
             pattern = find_pattern("8B 35 ? ? ? ? B8 D3 4D 62 10 F7 E6 C1 EA 06", "8B 0D ? ? ? ? B8 D3 4D 62 10 F7 E1 C1 EA 06");
             pMixBlockSamples = *pattern.get_first<uint32_t*>(2);
 
+            // audGtaAudioEngine::ShutdownClass
             pattern = find_pattern("80 3D ? ? ? ? 00 0F 84 ? ? ? ? A1 ? ? ? ? C6", "53 33 DB 38 1D ? ? ? ? 0F 84 ? ? ? ? A1");
             shShutdownClass = safetyhook::create_inline(pattern.get_first(0), ShutdownClass);
 
             pattern = find_pattern("83 EC 08 80 7C 24 0C 00 53 55 56 57 8B", "51 80 7C 24 08 00 53 55 56 57 8B F1 74 15 BB 00 80");
             shRefillAdpcmBuffer = safetyhook::create_inline(pattern.get_first(0), RefillAdpcmBuffer);
 
+            // rage::audVoicePcAdpcm::AddSampleData
             pattern = find_pattern("53 8B D9 56 8B 83 18 01 00 00 8B 73 14 57 C1 E0 06 8D BB 90 00 00 00 03 F8 B9 0E 00 00 00 F3 A5 8B 83", "53 8B D9 8B 83 18 01 00 00 56 8B 73 14 57");
             shAddAdpcmSampleData = safetyhook::create_inline(pattern.get_first(0), AddAdpcmSampleData);
 
@@ -1348,6 +1399,7 @@ public:
             pattern = find_pattern("51 80 7C 24 08 00 53 55 56 57 8B F1 74 11 C7 86 10 01 00 00", "51 80 7C 24 08 00 53 55 56 57 8B F1 74 15 BB 00 00");
             shRefillPcmBuffer = safetyhook::create_inline(pattern.get_first(0), RefillPcmBuffer);
 
+            // rage::audVoiceSoft::AddSampleData
             pattern = find_pattern("83 EC 08 53 8B D9 56 8B 83 18", "53 8B D9 8B 83 18 01 00 00 56 8B 73 14 C1");
             shAddPcmSampleData = safetyhook::create_inline(pattern.get_first(0), AddPcmSampleData);
 
@@ -1356,7 +1408,7 @@ public:
                 "39 1D ? ? ? ? 74 ? 88 1D ? ? ? ? 88 1D ? ? ? ? C6 05 ? ? ? ? 01 F3 0F 11 0D");
             pMinSpecAudio = *pattern.get_first<const char**>(2);
 
-            // rage::audReverbEffectPc::Process, the PC counterpart of audReverbEffectXenon::Process.
+            // rage::audReverbEffectPc::Process, the PC counterpart of rage::audReverbEffectXenon::Process.
             pattern = find_pattern("55 8B EC 83 E4 F0 81 EC 48 09 00 00 56 8B F1 57 8B 86 B4 00 00 00",
                 "55 8B EC 83 E4 F0 81 EC A4 09 00 00 53 56 8B F1 8B 86 B4 00 00 00");
             shReverbProcess = safetyhook::create_inline(pattern.get_first(0), ProcessMenuReverb);
@@ -1397,8 +1449,11 @@ public:
                 pStreamingBucket = *pattern.get_first<uint8_t*>(2);
                 rage__audEntity__CreateSound_PersistentReference = (decltype(rage__audEntity__CreateSound_PersistentReference))injector::GetBranchDestination(pattern.get_first(38)).as_int();
 
-                pattern = hook::pattern("F3 0F 10 0D ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 58 0D");
-                pListenerPosition = *pattern.get_first<float*>(4);
+                // audGtaAudioEngine::RegisterLoudSound
+                pattern = hook::pattern("8B 0D ? ? ? ? 64 A1 2C 00 00 00 8B 04 88 8B 88 ? ? ? ? 8B 44 24 04 C1 E1 06 F3 0F 10 40 04 F3 0F 10 10 F3 0F 10 48 08 81 C1");
+                pTlsIndex = *pattern.get_first<uint32_t*>(2);
+                listenerIndexOffset = *pattern.get_first<uint32_t>(17);
+                pListenerPositions = *pattern.get_first<float*>(44);
 
                 pattern = hook::pattern("0F B6 56 40 8B 3D ? ? ? ? 69 D2 40 6F 00 00 0F AF F8 A1");
                 pSoundStride = *pattern.get_first<uint32_t*>(6);
@@ -1428,8 +1483,11 @@ public:
                 pStreamingBucket = *pattern.get_first<uint8_t*>(1);
                 rage__audEntity__CreateSound_PersistentReference = (decltype(rage__audEntity__CreateSound_PersistentReference))injector::GetBranchDestination(pattern.get_first(39)).as_int();
 
-                pattern = hook::pattern("F3 0F 10 0D ? ? ? ? A1 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 58 05");
-                pListenerPosition = *pattern.get_first<float*>(17);
+                // audGtaAudioEngine::RegisterLoudSound
+                pattern = hook::pattern("A1 ? ? ? ? 64 8B 0D 2C 00 00 00 8B 14 81 8B 82 ? ? ? ? 8B 4D 08 F3 0F 10 51 08 F3 0F 10 01 F3 0F 10 49 04 C1 E0 06 05");
+                pTlsIndex = *pattern.get_first<uint32_t*>(1);
+                listenerIndexOffset = *pattern.get_first<uint32_t>(17);
+                pListenerPositions = *pattern.get_first<float*>(42);
 
                 pattern = hook::pattern("51 A1 ? ? ? ? 53 55 8B 6C 24 10 56 57 8B F9 8D 5F 48");
                 pSoundStride = *pattern.get_first<uint32_t*>(2);
