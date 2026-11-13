@@ -64,7 +64,7 @@
     def c8, 17.0666666, 1.3333333, 0, 0
     // ------------------------------------------------------ Improved Shadow Filter Constants ------------------------------------------------------
     def c110, -0.25, 1, -1, 0
-    def c202, 5, -4, 0, 0 // Perspective spotlight shadows fade over the last fifth of their range
+    def c202, 5, -4, 1, 0 // Perspective spotlight shadows fade over the last fifth of their range
     def c111, 0.159154937, 0.5, 6.28318548, -3.14159274
     def c112, 3, 4.27199984, 0, 0
     def c113, 0.75, -0.5, 0.5, 0
@@ -180,12 +180,19 @@
     if_lt c110.w, r27.y
       rcp r27.x, -r26.z
       mul r2.xy, r26.xy, r27.x
+      // Outside the map (beyond its frame or behind the light) is lit: the map's edge would smear what is drawn there
+      max r28.x, r2_abs.x, r2_abs.y
+      add r28.x, r28.x, -c202.z
+      cmp r28.y, r28.x, c202.z, c202.w
+      cmp r28.z, r26.z, c202.z, c202.w
+      max r28.y, r28.y, r28.z
       mad r2.xy, r2, c3, c3.x
       mov r4.xy, c1.xz
       mov r1.y, -r26.z
       mul r27.z, r26.z, c66.w
       mul r27.z, r27.z, c202.x
       add_sat r27.z, r27.z, c202.y
+      max r27.z, r27.z, r28.y
     endif
     // ----------------------------------------------------------- Improved Shadow Filter -----------------------------------------------------------
     if_eq -c221_abs.x, c221_abs.x
