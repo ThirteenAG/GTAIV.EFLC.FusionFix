@@ -1,6 +1,7 @@
 module;
 
 #include <common.hxx>
+#include <unordered_map>
 
 export module nightshadows;
 
@@ -154,6 +155,21 @@ namespace NightShadows
                 return false;
         }
         return true;
+    }
+
+    // Traffic headlights cast shadows this close to the camera
+    constexpr float TrafficHeadlightRange = 25.0f;
+
+    bool IsNearCamera(const rage::Vector3& position, float range)
+    {
+        auto viewport = pViewports ? pViewports[pViewports[0]] : 0;
+        if (!viewport)
+            return false;
+
+        // rage::grcViewport::mCameraMatrix, its position row
+        auto camera = (const float*)(viewport + 0x10 + 0x40 + 0x30);
+        auto dx = position.x - camera[0], dy = position.y - camera[1], dz = position.z - camera[2];
+        return dx * dx + dy * dy + dz * dz < range * range;
     }
 
     // Shadows fade out before a light loses them: with distance, and as a cached light nears the importance of the
@@ -516,47 +532,6 @@ namespace NightShadows
         uintptr_t entities[MaxOwnEntities];
     };
     ShadowExclusions exclusions[RenderListCount] = {};
-    uintptr_t* pModelInfos = nullptr;
-
-    // The squared distance from the point to the centre of the entity's bounding sphere, if the sphere contains it
-    std::optional<float> DistanceInBounds(uintptr_t entity, const rage::Vector3& point)
-    {
-        auto modelIndex = *(int16_t*)(entity + 0x2E);
-        if (modelIndex < 0)
-            return std::nullopt;
-
-        auto modelInfo = pModelInfos[modelIndex];
-        if (!modelInfo)
-            return std::nullopt;
-
-        auto& centre = *(rage::Vector3*)(modelInfo + 0x10);
-        auto radius = *(float*)(modelInfo + 0x1C);
-        if (radius <= 0.0f || radius > 15.0f)
-            return std::nullopt;
-
-        // Entity matrix: right, forward, up, position; or only a position
-        auto matrix = *(float**)(entity + 0x20);
-        rage::Vector3 world;
-        if (matrix)
-        {
-            world.x = matrix[12] + centre.x * matrix[0] + centre.y * matrix[4] + centre.z * matrix[8];
-            world.y = matrix[13] + centre.x * matrix[1] + centre.y * matrix[5] + centre.z * matrix[9];
-            world.z = matrix[14] + centre.x * matrix[2] + centre.y * matrix[6] + centre.z * matrix[10];
-        }
-        else
-        {
-            auto& position = *(rage::Vector3*)(entity + 0x10);
-            world.x = position.x + centre.x;
-            world.y = position.y + centre.y;
-            world.z = position.z + centre.z;
-        }
-
-        auto dx = world.x - point.x, dy = world.y - point.y, dz = world.z - point.z;
-        auto distance = dx * dx + dy * dy + dz * dz;
-        if (distance >= radius * radius)
-            return std::nullopt;
-        return distance;
-    }
 
     uintptr_t FindVehicle(uintptr_t address)
     {
@@ -567,6 +542,45 @@ namespace NightShadows
                 return vehicle;
         }
         return 0;
+    }
+
+    // Lampposts far away are dummy objects, near ones objects, some are part of the map (buildings). The building pool is
+    // large, so the lamp found for a light is kept a while.
+    rage::fwPool<void*>** pDummyObjectPool = nullptr;
+    rage::fwPool<void*>** pBuildingPool = nullptr;
+
+    struct LampOfLight
+    {
+        uintptr_t lamp;
+        uint32_t frame;
+    };
+    std::unordered_map<uint32_t, LampOfLight> lamps;
+    constexpr uint32_t LampFrames = 600;
+
+    // The lamp of a light: its tracking ID is the address of the entity it belongs to plus the light's index
+    constexpr uint32_t MaxLightsPerEntity = 64;
+
+    uintptr_t FindLamp(uint32_t trackingID)
+    {
+        auto frame = *CTimer::m_frameCount;
+        if (auto it = lamps.find(trackingID); it != lamps.end() && frame - it->second.frame < LampFrames)
+            return it->second.lamp;
+
+        if (lamps.size() > 4096)
+            lamps.clear();
+
+        uintptr_t lamp = 0;
+        for (auto pool : { CObject::GetObjectsPool(), *pDummyObjectPool, *pBuildingPool })
+        {
+            for (int32_t i = 0; pool && i < pool->GetSize(); i++)
+            {
+                auto entity = (uintptr_t)pool->GetSlot(i);
+                if (entity && entity <= trackingID && trackingID - entity < MaxLightsPerEntity && entity > lamp)
+                    lamp = entity;
+            }
+        }
+        lamps[trackingID] = { lamp, frame };
+        return lamp;
     }
 
     void SetUpExclusions(int32_t renderList, int32_t slot)
@@ -611,22 +625,8 @@ namespace NightShadows
             it.noVehicles = casters < SceneryPeopleAndVehicles;
         }
 
-        // The lamp: the object whose bounds hold the light, the one centred closest to it
-        auto& lightPosition = *(rage::Vector3*)(pSlotTrackingIDs + slot * SlotStride + SlotTrackingToPosition);
-        auto pool = CObject::GetObjectsPool();
-        uintptr_t lamp = 0;
-        float closest = 0.0f;
-        for (int32_t i = 0; i < pool->GetSize(); i++)
-        {
-            auto object = (uintptr_t)pool->GetSlot(i);
-            if (!object)
-                continue;
-            if (auto distance = DistanceInBounds(object, lightPosition); distance && (!lamp || *distance < closest))
-            {
-                lamp = object;
-                closest = *distance;
-            }
-        }
+        // The lamp the light belongs to doesn't shadow its own light
+        auto lamp = FindLamp(SlotTrackingID(slot));
         add(lamp);
     }
 
@@ -672,8 +672,11 @@ namespace CLights
 
     void __cdecl AddVehicleLightNPC(void* LightAttr, rage::eLightType Type, uint32_t Flags, rage::Vector3* Direction, rage::Vector3* Tangent, rage::Vector3* Position, rage::Vector3* Color, float Intensity, uint32_t TextureHash, uint32_t TxdSlot, float Radius, float InnerConeAngle, float OuterConeAngle, int32_t InteriorID, int32_t RoomID, int32_t ShadowTrackingID)
     {
-        // Only the player's headlights cast shadows; the lights of the traffic would take all of them
-        Flags &= ~rage::LIGHTFLAG_CAST_DYNAMIC_GEOM_SHADOWS;
+        // The traffic's headlights near the camera cast shadows too (people in front of a car, the player next to the
+        // car they left); farther ones would only take places the streetlights need, so they light without
+        static auto HeadlightShadows = FusionFixSettings.GetRef("PREF_HEADLIGHTSHADOWS");
+        if (!HeadlightShadows->get() || !NightShadows::IsNearCamera(*Position, NightShadows::TrafficHeadlightRange))
+            Flags &= ~rage::LIGHTFLAG_CAST_DYNAMIC_GEOM_SHADOWS;
 
         return hbAddSceneLight.fun(LightAttr, Type, Flags, Direction, Tangent, Position, Color, Intensity, TextureHash, TxdSlot, Radius, InnerConeAngle, OuterConeAngle, InteriorID, RoomID, ShadowTrackingID);
     }
@@ -711,6 +714,9 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
+            NightShadows::pDummyObjectPool = *hook::pattern("68 B0 36 00 00 8B C8 E8 ? ? ? ? A3").get_first<rage::fwPool<void*>**>(13);
+            NightShadows::pBuildingPool = *hook::pattern("68 00 7D 00 00 8B C8 E8 ? ? ? ? A3").get_first<rage::fwPool<void*>**>(13);
+
             // Make the night shadow options adjust the night shadow resolution (Half the cascaded shadow resolution otherwise)
             {
                 auto pattern = find_pattern("8B 0D ? ? ? ? 85 C9 7E 1B", "8B 0D ? ? ? ? 33 C0 85 C9 7E 1B");
@@ -834,6 +840,22 @@ public:
                     injector::WriteMemory<uint8_t>(pattern.get_first(12), uint8_t(-NightShadows::CacheCount), true);
 
                     NightShadows::bStreetlightsCached = true;
+
+                    // The headlights of the traffic: the game adds them without a shadow and without the vehicle's
+                    // tracking ID. Near the camera they ask for one like the player's, so a person in front of a car
+                    // or the player next to the car they left casts a shadow; the priorities decide which get one.
+                    pattern = hook::pattern("68 00 01 00 00 6A 02 6A 00 E8");
+                    static auto TrafficHeadlightHook = safetyhook::create_mid(pattern.get_first(9), [](SafetyHookContext& regs)
+                    {
+                        static auto HeadlightShadows = FusionFixSettings.GetRef("PREF_HEADLIGHTSHADOWS");
+                        auto trackingID = *(uint32_t*)(regs.ebp + 0x30);
+                        auto position = *(rage::Vector3**)(regs.esp + 0x14);
+                        if (HeadlightShadows->get() && trackingID && NightShadows::IsNearCamera(*position, NightShadows::TrafficHeadlightRange))
+                        {
+                            *(uint32_t*)(regs.esp + 0x08) |= rage::LIGHTFLAG_CAST_DYNAMIC_GEOM_SHADOWS;
+                            *(uint32_t*)(regs.esp + 0x3C) = trackingID;
+                        }
+                    });
                 }
             }
 
@@ -905,8 +927,6 @@ public:
 
             // Leave what a light belongs to out of its shadow: set up with each shadow's render list
             {
-                NightShadows::pModelInfos = *hook::get_pattern<uintptr_t*>("0F BF 46 2E 8B 04 85", 7);
-
                 // Each shadow sets up its render list
                 auto pattern = hook::pattern("FF B6 40 09 00 00 89 86 ? ? 00 00 50 E8 ? ? ? ? 83 C4 08 5E E9");
                 int32_t callOffset = 13;
