@@ -98,34 +98,28 @@ public:
 
             // Restore interior casters to directional cascades
             {
-                static void(__thiscall* CInteriorInst__AddInteriorToRenderListForShadow)(uint8_t*, int, int, uint8_t*) = nullptr;
-                static uintptr_t interiorHandled = 0;
-                static bool legacyLayout = false;
-                void* hookAddress = nullptr;
                 auto pattern = hook::pattern("8B 74 24 14 3C 02 75 64 83 7E 3C 00 75 39 8B CE E8 ? ? ? ? 85 C0 75 19 8B CE E8 ? ? ? ? 56 50 FF 74 24 18 8B CF E8 ? ? ? ? 5F B0 01 5E C3 56 83 C8 FF 50 FF 74 24 18 8B CF E8 ? ? ? ? 5F B0 01 5E C3");
+                static const bool legacyLayout = pattern.empty();
+                int hookOffset;
+                int callOffset;
                 if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
-                    if (pattern.size() == 1)
-                    {
-                        CInteriorInst__AddInteriorToRenderListForShadow = reinterpret_cast<decltype(CInteriorInst__AddInteriorToRenderListForShadow)>(injector::GetBranchDestination(pattern.get_first(0x3D)).as_int());
-                        interiorHandled = reinterpret_cast<uintptr_t>(pattern.get_first(0x42));
-                        hookAddress = pattern.get_first(8);
-                    }
+                    hookOffset = 8;
+                    callOffset = 0x3D;
                 }
                 else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 {
                     pattern = hook::pattern("3C 02 8B 75 10 B9 00 00 80 00 75 54 83 7E 3C 00 75 2D 8B CE 83 CB FF E8 ? ? ? ? 85 C0 75 09 8B CE E8 ? ? ? ? 8B D8 8B 4D 0C 56 53 51 8B CF E8 ? ? ? ? B0 01 5F 5E 5B 8B E5 5D C3");
-                    if (pattern.size() == 1)
-                    {
-                        CInteriorInst__AddInteriorToRenderListForShadow = reinterpret_cast<decltype(CInteriorInst__AddInteriorToRenderListForShadow)>(injector::GetBranchDestination(pattern.get_first(0x31)).as_int());
-                        interiorHandled = reinterpret_cast<uintptr_t>(pattern.get_first(0x36));
-                        hookAddress = pattern.get_first(12);
-                        legacyLayout = true;
-                    }
+                    hookOffset = 12;
+                    callOffset = 0x31;
                 }
-                if (hookAddress)
+                if (pattern.size() == 1)
                 {
-                    static auto CRenderer__HandleMLOObjectsInScan_Hook = safetyhook::create_mid(hookAddress, [](SafetyHookContext& regs)
+                    auto interiorCall = pattern.get_first(callOffset);
+                    static const auto CInteriorInst__AddInteriorToRenderListForShadow = reinterpret_cast<void(__thiscall*)(uint8_t*, int, int, uint8_t*)>(injector::GetBranchDestination(interiorCall).as_int());
+                    // The native handled epilogue immediately follows this call.
+                    static const auto interiorHandled = reinterpret_cast<uintptr_t>(interiorCall) + 5;
+                    static auto CRenderer__HandleMLOObjectsInScan_Hook = safetyhook::create_mid(pattern.get_first(hookOffset), [](SafetyHookContext& regs)
                     {
                         // Model type 2 was established; EDI is the interior, ESI the phase.
                         auto phase = reinterpret_cast<uint8_t*>(regs.esi);
