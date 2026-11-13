@@ -8,6 +8,7 @@ import common;
 import comvars;
 import settings;
 import natives;
+import centeredhud;
 
 #define SCREEN_WIDTH ((float)*rage::grcDevice::ms_nActiveWidth)
 #define SCREEN_HEIGHT ((float)*rage::grcDevice::ms_nActiveHeight)
@@ -56,7 +57,7 @@ public:
 
     static void Update()
     {
-        f075 = 0.75f * DEFAULT_ASPECT_RATIO / SCREEN_ASPECT_RATIO;
+        f075 = 0.75f * DEFAULT_ASPECT_RATIO / CenteredHud::PhoneAspect(SCREEN_ASPECT_RATIO);
         f01152 = 1152.0f * DEFAULT_ASPECT_RATIO / SCREEN_ASPECT_RATIO;
 
         if (bordersTimer < (*CTimer::m_snTimeInMilliseconds))
@@ -202,7 +203,7 @@ public:
     static inline injector::hook_back<void(__fastcall*)(int32_t*, void*, int32_t, const char*, int32_t*, int32_t)> hbUITexture__Load;
     static void __fastcall UITexture__Load(int32_t* ui, void*, int32_t txdSlot, const char* texName, int32_t* arg4, int32_t arg5) 
     {
-        float aspectRatio = SCREEN_ASPECT_RATIO;
+        float aspectRatio = CenteredHud::MenuLayoutAspect(SCREEN_ASPECT_RATIO);
         const char* name = texName;
         if (aspectRatio >= (21.0f / 9.0f))
             name = "offline_21by9";

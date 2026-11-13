@@ -226,6 +226,8 @@
   "MISC.TimedEvents.description": "Snow in winter and pumpkins at Halloween, at their time of the year.",
   "MISC.ToneMapping.description": "Filmic tone mapping of bright colors.",
   "MISC.TransparentMapMenu.description": "Shows the game behind the map of the pause menu.",
+  "MISC.CenteredHUD": "Centered HUD",
+  "MISC.CenteredHUD.description": "On screens wider than 16:9, keeps the HUD, menus and loading screens in a centered 16:9 area.",
   "MISC.TreeAlpha.description": "How the leaves of trees are cut out.",
   "MISC.TreeLighting.description": "How trees are lit.",
   "MISC.TurnIndicators.description": "Vehicles of the player use their turn indicators.",

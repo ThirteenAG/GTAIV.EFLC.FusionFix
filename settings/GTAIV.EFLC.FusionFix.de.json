@@ -226,6 +226,8 @@
   "MISC.TimedEvents.description": "Schnee im Winter und Kürbisse zu Halloween, zur passenden Jahreszeit.",
   "MISC.ToneMapping.description": "Filmisches Tone Mapping heller Farben.",
   "MISC.TransparentMapMenu.description": "Zeigt das Spiel hinter der Karte im Pausenmenü.",
+  "MISC.CenteredHUD": "Zentriertes HUD",
+  "MISC.CenteredHUD.description": "Hält auf Bildschirmen breiter als 16:9 HUD, Menüs und Ladebildschirme in einem zentrierten 16:9-Bereich.",
   "MISC.TreeAlpha.description": "Wie die Blätter von Bäumen ausgeschnitten werden.",
   "MISC.TreeLighting.description": "Wie Bäume beleuchtet werden.",
   "MISC.TurnIndicators.description": "Fahrzeuge des Spielers verwenden ihre Blinker.",

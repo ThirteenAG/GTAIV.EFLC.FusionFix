@@ -226,6 +226,8 @@
   "MISC.TimedEvents.description": "Neve in inverno e zucche ad Halloween, nel loro periodo dell'anno.",
   "MISC.ToneMapping.description": "Mappatura dei toni cinematografica dei colori luminosi.",
   "MISC.TransparentMapMenu.description": "Mostra il gioco dietro la mappa del menu di pausa.",
+  "MISC.CenteredHUD": "HUD centrato",
+  "MISC.CenteredHUD.description": "Sugli schermi più larghi di 16:9, mantiene HUD, menu e schermate di caricamento in un'area 16:9 centrata.",
   "MISC.TreeAlpha.description": "Come vengono ritagliate le foglie degli alberi.",
   "MISC.TreeLighting.description": "Come vengono illuminati gli alberi.",
   "MISC.TurnIndicators.description": "I veicoli del giocatore usano gli indicatori di direzione.",

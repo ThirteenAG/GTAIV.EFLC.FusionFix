@@ -43,6 +43,11 @@
       "page": "game", "group": "@group.interface", "control": [ "switch", "cycler" ]
     },
     {
+      "id": "MISC.CenteredHUD", "type": "bool", "default": 1,
+      "label": "@MISC.CenteredHUD", "description": "@MISC.CenteredHUD.description",
+      "page": "game", "group": "@group.interface", "control": [ "switch", "cycler" ], "apply": "restart"
+    },
+    {
       "id": "FRAMELIMIT.DisplayFpsCounter", "type": "bool", "default": 0,
       "label": "@FPS Counter", "description": "@FRAMELIMIT.DisplayFpsCounter.description",
       "page": "game", "group": "@group.interface", "control": [ "switch", "cycler" ]
