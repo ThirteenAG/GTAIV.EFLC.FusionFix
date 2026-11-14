@@ -13,8 +13,8 @@ import settings;
 // Night shadows: the shadows of local lights (streetlights, headlights, interior lights).
 // The game renders seven of them per frame and keeps a small cache of static ones. Which lights get them is decided by
 // the light's size on screen, visible lights first; a light that has a shadow keeps it unless another one is clearly
-// more important, the player's headlights always get one and traffic headlights near the camera come before the
-// streetlights. A vehicle keeps its own shadow while its headlights cast theirs, and what is right around a light's
+// more important, the player's headlights always get one and traffic headlights near the camera compete with the
+// streetlights like any other light. A vehicle keeps its own shadow while its headlights cast theirs, and what is right around a light's
 // bulb (its fixture) casts no shadow from it, so a lamppost shadows the street with its pole but not with its lamp head.
 
 namespace NightShadows
@@ -616,11 +616,6 @@ namespace NightShadows
         if (!IsSphereVisible(light.mPosition, light.mRadius))
             value *= 2.0f;
 
-        // Traffic headlights ask for a shadow only near the camera; there they come before the streetlights, which
-        // are bigger and would otherwise always win, so the people in front of a car cast a shadow in a lit street
-        if ((light.mFlags & rage::LIGHTFLAG_VEHICLE) && !(light.mFlags & rage::LIGHTFLAG_USE_VEHICLE_TWIN) && light.mShadowTrackingID)
-            value *= 0.1f;
-
         if (HadShadowLastFrame(light.mShadowTrackingID))
             value *= 0.75f;
         else if (light.mShadowCacheIndex != -1)
@@ -698,10 +693,8 @@ namespace NightShadows
         return 0;
     }
 
-    // Lampposts far away are dummy objects, near ones objects; other fixtures can be part of the map (buildings). What
-    // is found for a light is kept a while.
+    // Lampposts far away are dummy objects, near ones objects. What is found for a light is kept a while.
     rage::fwPool<void*>** pDummyObjectPool = nullptr;
-    rage::fwPool<void*>** pBuildingPool = nullptr;
 
     constexpr uint32_t StreetlightFrames = 600;
 
@@ -761,17 +754,24 @@ namespace NightShadows
         return modelInfo && std::find(LamppostModels.begin(), LamppostModels.end(), *(uint32_t*)(modelInfo + 0x3C)) != LamppostModels.end();
     }
 
-    // The entity a light belongs to, kept a while: the pools are large. Objects and dummy objects are searched for every
-    // light (lampposts), the much larger building pool only for lights that cast shadows.
+    // Traffic light poles: the model type the game draws traffic lights for
+    bool IsTrafficLight(uintptr_t entity)
+    {
+        if (!entity)
+            return false;
+        auto modelInfo = pModelInfos[*(int16_t*)(entity + 0x2E)];
+        return modelInfo && (*(uint32_t*)(modelInfo + 0x40) & 0xFF000000) == 0x3000000;
+    }
+
+    // The object or dummy object a light belongs to (lampposts, traffic light poles), kept a while: the pools are large
     struct OwnerOfLight
     {
         uintptr_t owner;
         uint32_t frame;
-        bool buildingsSearched;
     };
     std::unordered_map<uint32_t, OwnerOfLight> owners;
 
-    uintptr_t FindLightOwner(uint32_t trackingID, bool buildings)
+    uintptr_t FindLightOwner(uint32_t trackingID)
     {
         auto frame = *CTimer::m_frameCount;
         auto it = owners.find(trackingID);
@@ -779,26 +779,20 @@ namespace NightShadows
         {
             if (owners.size() > 4096)
                 owners.clear();
-            it = owners.insert_or_assign(trackingID, OwnerOfLight{ FindOwner(trackingID, { CObject::GetObjectsPool(), *pDummyObjectPool }), frame, false }).first;
+            it = owners.insert_or_assign(trackingID, OwnerOfLight{ FindOwner(trackingID, { CObject::GetObjectsPool(), *pDummyObjectPool }), frame }).first;
         }
-
-        auto& light = it->second;
-        if (!light.owner && buildings && !light.buildingsSearched)
-        {
-            light.owner = FindOwner(trackingID, { *pBuildingPool });
-            light.buildingsSearched = true;
-        }
-        return light.owner;
+        return it->second.owner;
     }
 
     bool IsStreetlight(uint32_t trackingID)
     {
-        return IsLamppost(FindLightOwner(trackingID, false));
+        return IsLamppost(FindLightOwner(trackingID));
     }
 
     // One shadow per fixture: of the lamps of one fixture (traffic light poles, double lampposts) only the first one that
     // casts a shadow keeps it, the others still light. Each lamp would shadow the fixture from its own place, drawing
-    // its pole twice, and spend the cache on one fixture.
+    // its pole twice, and spend the cache on one fixture. Other models keep the shadows of all their lights: one model
+    // of an interior holds the lamps of a whole room.
     struct FirstLampOfFixture
     {
         uint32_t index;
@@ -812,8 +806,8 @@ namespace NightShadows
         if (!(flags & ShadowFlags) || !trackingID)
             return flags;
 
-        auto owner = FindLightOwner(trackingID, true);
-        if (!owner)
+        auto owner = FindLightOwner(trackingID);
+        if (!IsLamppost(owner) && !IsTrafficLight(owner))
             return flags;
 
         if (firstLamps.size() > 4096)
@@ -968,7 +962,6 @@ public:
         FusionFix::onInitEventAsync() += []()
         {
             NightShadows::pDummyObjectPool = *hook::pattern("68 B0 36 00 00 8B C8 E8 ? ? ? ? A3").get_first<rage::fwPool<void*>**>(13);
-            NightShadows::pBuildingPool = *hook::pattern("68 00 7D 00 00 8B C8 E8 ? ? ? ? A3").get_first<rage::fwPool<void*>**>(13);
             NightShadows::pModelInfos = *hook::get_pattern<uintptr_t*>("0F BF 46 2E 8B 04 85", 7);
 
             // Make the night shadow options adjust the night shadow resolution (Half the cascaded shadow resolution otherwise)

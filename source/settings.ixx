@@ -4254,12 +4254,18 @@ private:
         return options.data[row].preference;
     }
 
-    // Del on the keyboard, X on the gamepad: the selected row of Fusion Fix or another plugin goes back to its default
+    // Del on the keyboard, X on the gamepad: the selected row of Fusion Fix or another plugin goes back to its default.
+    // The menu's input for the gamepad's X is also Space on the keyboard, Graphics' Apply: Space doesn't reset.
     static void ResetSelectedRow()
     {
         static bool deleteDown = false;
         auto down = IsKeyboardKeyPressed(VK_DELETE);
-        auto pressed = (down && !deleteDown) || queryInput.ccall<uint8_t>(9, uint8_t(0), uint8_t(0), uint8_t(0), uint8_t(0), uint8_t(0), uint8_t(0)) != 0;
+        static ULONGLONG spaceTime = 0;
+        if (GetAsyncKeyState(VK_SPACE) & 0x8000)
+            spaceTime = GetTickCount64();
+        auto padX = queryInput.ccall<uint8_t>(9, uint8_t(0), uint8_t(0), uint8_t(0), uint8_t(0), uint8_t(0), uint8_t(0)) != 0 &&
+            GetTickCount64() - spaceTime > 500;
+        auto pressed = (down && !deleteDown) || padX;
         deleteDown = down;
         auto preference = SelectedSettingPreference();
         if (!pressed || preference < firstCustomID)
