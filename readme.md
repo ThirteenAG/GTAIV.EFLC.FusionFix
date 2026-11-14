@@ -211,6 +211,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Vehicles and the people in them keep their night shadows while the player's headlights cast theirs; lampposts no longer shadow their own light
 - The player's headlights cast shadows: the game never passed their shadow to the lighting, so nothing ever showed it. Their shadows are aimed along the beam, much sharper, and fade out 35 metres ahead
 - Interiors seen through doorways and windows now block the sun, so their shadows no longer go missing
+- Streetlights and other lamps just behind the camera keep lighting the ground in view, instead of switching off when the camera turns slightly
 - Added several cheat code to enable seasonal events, restore some unused player assets for Niko and Johnny, speed up game physics, and spawn some vehicles in TLAD and TBoGT, they can be found hidden in relevant locations, or finding them [here](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/blob/master/source/cheats.ixx)
 
 ### Scripts
