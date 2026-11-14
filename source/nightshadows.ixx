@@ -13,9 +13,9 @@ import settings;
 // Night shadows: the shadows of local lights (streetlights, headlights, interior lights).
 // The game renders seven of them per frame and keeps a small cache of static ones. Which lights get them is decided by
 // the light's size on screen, visible lights first; a light that has a shadow keeps it unless another one is clearly
-// more important, and the player's headlights always get one. A vehicle keeps its own shadow while its headlights
-// cast theirs, and what is right around a light's bulb (its fixture) casts no shadow from it, so a lamppost shadows the
-// street with its pole but not with its lamp head.
+// more important, the player's headlights always get one and traffic headlights near the camera come before the
+// streetlights. A vehicle keeps its own shadow while its headlights cast theirs, and what is right around a light's
+// bulb (its fixture) casts no shadow from it, so a lamppost shadows the street with its pole but not with its lamp head.
 
 namespace NightShadows
 {
@@ -159,15 +159,22 @@ namespace NightShadows
     // Traffic headlights cast shadows this close to the camera
     constexpr float TrafficHeadlightRange = 25.0f;
 
+    // The camera position, noted while the shadows are picked: the viewport list is empty when the vehicles add
+    // their lights
+    float cameraPosition[3] = {};
+
+    void NoteCameraPosition()
+    {
+        if (auto viewport = pViewports[0] ? pViewports[pViewports[0]] : 0)
+        {
+            // rage::grcViewport::mCameraMatrix, its position row
+            std::copy_n((const float*)(viewport + 0x10 + 0x40 + 0x30), 3, cameraPosition);
+        }
+    }
+
     bool IsNearCamera(const rage::Vector3& position, float range)
     {
-        auto viewport = pViewports ? pViewports[pViewports[0]] : 0;
-        if (!viewport)
-            return false;
-
-        // rage::grcViewport::mCameraMatrix, its position row
-        auto camera = (const float*)(viewport + 0x10 + 0x40 + 0x30);
-        auto dx = position.x - camera[0], dy = position.y - camera[1], dz = position.z - camera[2];
+        auto dx = position.x - cameraPosition[0], dy = position.y - cameraPosition[1], dz = position.z - cameraPosition[2];
         return dx * dx + dy * dy + dz * dz < range * range;
     }
 
@@ -208,7 +215,7 @@ namespace NightShadows
         float values[LightTableSize];
         float coneCos[LightTableSize];
         float tangents[LightTableSize][3];
-        bool headlight[LightTableSize];
+        bool spot[LightTableSize];
         bool dynamic[LightTableSize];
         int32_t cacheIndex[LightTableSize];
     };
@@ -360,7 +367,7 @@ namespace NightShadows
         {
             it.trackingIDs[i] = light.mShadowTrackingID;
             it.values[i] = value;
-            it.headlight[i] = light.mType == rage::LT_SPOT && (light.mFlags & rage::LIGHTFLAG_VEHICLE);
+            it.spot[i] = light.mType == rage::LT_SPOT;
             it.dynamic[i] = (light.mFlags & rage::LIGHTFLAG_CAST_DYNAMIC_GEOM_SHADOWS) != 0;
             it.coneCos[i] = light.mOuterConeAngle;
             it.cacheIndex[i] = index >= 0 && index < CacheCount ? index : -1;
@@ -389,26 +396,50 @@ namespace NightShadows
     // The render phase flags that draw the map (buildings, trees) and the objects that don't move (lampposts, traffic
     // lights), set for shadows rendered without a cache like the game's cached shadows have them
     constexpr uint32_t RenderMapFlags = 0x280;
+    constexpr int32_t CachedRenderType = 3; // Slot 0 rendering a cached shadow
 
+    // Whether each cached shadow was rendered with the perspective projection. A per-frame shadow drawn on top of a
+    // cached one takes the same projection, so the two always match.
+    bool cachePerspective[CacheCount] = {};
+
+    // Spotlights (streetlights, headlights) are rendered from the bulb along the beam. The game's projection for every
+    // light looks at the light's sphere from a point behind it, which draws whatever is close to the bulb (a lamppost's
+    // own pole) from the wrong side: its shadow came out as a hollow outline, depending on which way the lamp faces.
+    // Returns whether the shadow has to draw the map itself, having no cached shadow under it.
     bool ChooseSlotProjection(uint32_t slotOffset)
     {
         auto slot = slotOffset / SlotStride;
         auto base = pSlots + slotOffset;
         auto& type = *(int32_t*)(base + 0x00);
         type = 0;
-        if (slot == 0 || slot >= SlotCount || *(int32_t*)(base + 0xFC) != DynamicRenderType || *(int32_t*)(base + 0xF0) != -1)
+        if (slot >= SlotCount)
             return false;
+
+        auto renderType = *(int32_t*)(base + 0xFC);
+        auto cacheIndex = *(int32_t*)(base + 0xF0);
+        auto cached = cacheIndex >= 0 && cacheIndex < CacheCount;
 
         auto& it = priorities;
         auto trackingID = *(uint32_t*)(base + 0xF8);
         auto i = FindLight(trackingID);
-        if (i < 0 || !trackingID || it.trackingIDs[i] != trackingID || !it.headlight[i] || it.coneCos[i] < MinPerspectiveConeCos)
+        auto perspective = i >= 0 && trackingID && it.trackingIDs[i] == trackingID && it.spot[i] && it.coneCos[i] >= MinPerspectiveConeCos;
+
+        if (slot == 0)
+        {
+            if (renderType != CachedRenderType || !cached)
+                return false;
+            cachePerspective[cacheIndex] = perspective;
+        }
+        else if (renderType != DynamicRenderType || (cached && !cachePerspective[cacheIndex]))
+            return false;
+
+        if (!perspective)
             return false;
 
         slotConeCos[slot] = it.coneCos[i];
         std::copy(std::begin(it.tangents[i]), std::end(it.tangents[i]), slotTangents[slot]);
         type = PerspectiveSlotType;
-        return true;
+        return slot != 0 && cacheIndex == -1;
     }
 
     // The camera of a perspective slot, and the matrix that takes a world position to the shadow map: the view along
@@ -550,6 +581,8 @@ namespace NightShadows
 
     bool IsPerspectiveShadow(int32_t shadow)
     {
+        if (shadow >= SlotCount && shadow < SlotCount + CacheCount)
+            return cachePerspective[shadow - SlotCount];
         if (shadow < 1 || shadow >= SlotCount)
             return false;
         return *(int32_t*)(pSlotCopies + (shadow + SlotCount * *pSlotCopyIndex) * SlotStride) == PerspectiveSlotType;
@@ -574,6 +607,7 @@ namespace NightShadows
     // have a shadow already, so two lights of about the same importance don't keep trading it.
     float ShadowPriorityDistance(const rage::CLightSource& light, float distance)
     {
+        NoteCameraPosition();
         SetOutdoorLight(light.mShadowTrackingID, light.mInteriorIndex == -1 && !(light.mFlags & rage::LIGHTFLAG_VEHICLE));
 
         constexpr float ReferenceRadius = 10.0f;
@@ -581,6 +615,11 @@ namespace NightShadows
 
         if (!IsSphereVisible(light.mPosition, light.mRadius))
             value *= 2.0f;
+
+        // Traffic headlights ask for a shadow only near the camera; there they come before the streetlights, which
+        // are bigger and would otherwise always win, so the people in front of a car cast a shadow in a lit street
+        if ((light.mFlags & rage::LIGHTFLAG_VEHICLE) && !(light.mFlags & rage::LIGHTFLAG_USE_VEHICLE_TWIN) && light.mShadowTrackingID)
+            value *= 0.1f;
 
         if (HadShadowLastFrame(light.mShadowTrackingID))
             value *= 0.75f;
@@ -1027,8 +1066,8 @@ public:
                     NightShadows::pSlots = *pattern.get_first<uintptr_t>(2);
                     static auto SlotProjectionHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        // A perspective slot is a moving light without a cached shadow: the map (buildings, trees, lampposts)
-                        // only goes into cached shadows, so it's drawn into this one every frame too, which keeps up with the light
+                        // A perspective shadow of a light without a cached shadow (a moving one): the map (buildings, trees,
+                        // lampposts) only goes into cached shadows, so it's drawn into this one every frame too
                         if (NightShadows::ChooseSlotProjection(regs.esi))
                             *(uint32_t*)(regs.edi + 0x8D0) |= NightShadows::RenderMapFlags;
                     });
