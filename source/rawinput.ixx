@@ -11,6 +11,7 @@ import common;
 import comvars;
 import natives;
 import settings;
+import centeredhud;
 
 uint32_t pCamPointers;
 int32_t* diMouseAxisX;
@@ -161,6 +162,11 @@ public:
             return;
         MapWindowPoints(gWnd, nullptr, (LPPOINT)&rect, 2);
 
+        // Centered HUD squeezes the menu into the middle of the screen, keep the cursor there
+        auto band = LONG((rect.right - rect.left) * (1.0f - CenteredHud::MenuCursorShare()) / 2.0f);
+        rect.left += band;
+        rect.right -= band;
+
         // Set again when the window moved or was resized, or something else changed the clip
         RECT current;
         GetClipCursor(&current);
@@ -232,6 +238,14 @@ public:
                             POINT pt;
                             GetCursorPos(&pt);
                             ScreenToClient(gWnd, &pt);
+
+                            // Centered HUD squeezes the menu into the middle of the screen, spread that part over its width
+                            if (auto share = CenteredHud::MenuCursorShare(); share < 1.0f)
+                            {
+                                RECT rect;
+                                GetClientRect(gWnd, &rect);
+                                pt.x = std::clamp(LONG((pt.x - rect.right * (1.0f - share) / 2.0f) / share), 0L, rect.right);
+                            }
 
                             *ioMouse__msDeltaX = pt.x;
                             *ioMouse__msDeltaY = pt.y;

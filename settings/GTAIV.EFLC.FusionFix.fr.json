@@ -217,6 +217,8 @@
   "MISC.TimedEvents.description": "Neige en hiver et citrouilles à Halloween, à leur période de l'année.",
   "MISC.ToneMapping.description": "Mappage tonal cinématographique des couleurs vives. En HDR, les hautes lumières gardent leur couleur et s'adoucissent ; désactivé, elles virent au blanc comme dans le jeu d'origine, en plus lumineux.",
   "MISC.TransparentMapMenu.description": "Affiche le jeu derrière la carte du menu pause.",
+  "MISC.CenteredHUD": "HUD centré",
+  "MISC.CenteredHUD.description": "Sur les écrans plus larges que 16:9, garde le HUD, les menus et les écrans de chargement dans une zone 16:9 centrée.",
   "MISC.TreeAlpha.description": "Comment les feuilles des arbres sont découpées.",
   "MISC.TreeLighting.description": "Comment les arbres sont éclairés.",
   "MISC.TurnIndicators.description": "Les véhicules du joueur utilisent leurs clignotants.",

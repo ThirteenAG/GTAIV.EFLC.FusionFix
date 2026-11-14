@@ -217,6 +217,8 @@
   "MISC.TimedEvents.description": "Снег зимой и тыквы на Хэллоуин, в свое время года.",
   "MISC.ToneMapping.description": "Кинематографичное тональное отображение ярких цветов. В HDR блики сохраняют свой цвет и плавно сглаживаются; если выключено, они уходят в белый, как в оригинальной игре, только ярче.",
   "MISC.TransparentMapMenu.description": "Показывает игру за картой в меню паузы.",
+  "MISC.CenteredHUD": "HUD по центру",
+  "MISC.CenteredHUD.description": "На экранах шире 16:9 держит HUD, меню и экраны загрузки в центральной области 16:9.",
   "MISC.TreeAlpha.description": "Как вырезаются листья деревьев.",
   "MISC.TreeLighting.description": "Как освещаются деревья.",
   "MISC.TurnIndicators.description": "Транспорт игрока использует указатели поворота.",

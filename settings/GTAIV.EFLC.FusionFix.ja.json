@@ -217,6 +217,8 @@
   "MISC.TimedEvents.description": "年末年始には雪、ハロウィーンにはカボチャが、その時期に登場します。",
   "MISC.ToneMapping.description": "明るい色のフィルミックなトーンマッピングです。HDRでは、ハイライトが色を保ったまま滑らかに収まります。オフでは、元のゲームと同じように白く飛び、より明るく表示されます。",
   "MISC.TransparentMapMenu.description": "ポーズメニューのマップの背後にゲーム画面を表示します。",
+  "MISC.CenteredHUD": "HUDを中央に配置",
+  "MISC.CenteredHUD.description": "16:9より横長の画面で、HUD、メニュー、ロード画面を中央の16:9の範囲に収めます。",
   "MISC.TreeAlpha.description": "木の葉の切り抜き方です。",
   "MISC.TreeLighting.description": "木の照らされ方です。",
   "MISC.TurnIndicators.description": "プレイヤーの乗り物がウィンカーを使います。",

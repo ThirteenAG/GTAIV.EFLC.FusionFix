@@ -9,6 +9,7 @@ import comvars;
 import natives;
 import settings;
 import shaders;
+import centeredhud;
 
 namespace CTaskComplexGangDriveby
 {
@@ -975,7 +976,7 @@ public:
                     static auto CCustomMenu__RenderMapCrosshairHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
                         CFrontEnd__GetWidgetValue(&mapCursorThickness, 166); // 0xA6 (166); FE_MAP_CURSOR_THICKNESS
-                        *(float*)(regs.esp + 0x64 - 0x50) = mapCursorThickness.x / (((float)*rage::grcDevice::ms_nActiveWidth / (float)*rage::grcDevice::ms_nActiveHeight) * 0.75f);
+                        *(float*)(regs.esp + 0x64 - 0x50) = mapCursorThickness.x / (CenteredHud::MenuLayoutAspect((float)*rage::grcDevice::ms_nActiveWidth / (float)*rage::grcDevice::ms_nActiveHeight) * 0.75f);
                     });
 
                     pattern = hook::pattern("F3 0F 11 4C 24 ? E8 ? ? ? ? F3 0F 10 44 24 ? 8B 08");
@@ -988,7 +989,7 @@ public:
                     pattern = hook::pattern("F3 0F 10 15 ? ? ? ? F3 0F 10 5C 24 ? 0F B6 C0");
                     static auto CCustomMenu__RenderMapCrosshairHook3 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        *(float*)(regs.esp + 0x64 - 0x30) /= ((float)*rage::grcDevice::ms_nActiveWidth / (float)*rage::grcDevice::ms_nActiveHeight) * 0.75f; // 0x4C (76); MAP_CURSOR_FADE
+                        *(float*)(regs.esp + 0x64 - 0x30) /= CenteredHud::MenuLayoutAspect((float)*rage::grcDevice::ms_nActiveWidth / (float)*rage::grcDevice::ms_nActiveHeight) * 0.75f; // 0x4C (76); MAP_CURSOR_FADE
                     });
                 }
                 else if (auto pattern = hook::pattern("F3 0F 10 1D ? ? ? ? F3 0F 10 54 24 28 0F B6 D0"); !pattern.empty()) // 1.0.7.0, 1.1.2.0
