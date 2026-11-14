@@ -587,7 +587,7 @@ namespace MenuMusic
 
     void __fastcall ProcessMenuReverb(PhysicalReverb* effect, void* edx, float* buffer, uint32_t frames)
     {
-        // Replace rage::audReverbEffectPc::Process for menu input; drain its tail alongside native gameplay.
+        // Replace rage::audReverbEffectPc::Process for menu input; preserve both histories across transitions.
         static std::array<MenuReverb, 3> reverbs;
         if (!*pMinSpecAudio && *pAudioDriver &&
             Field<uint32_t>(*pAudioDriver, 0x80) == 44100 && buffer && frames && frames <= 512 && !(frames % 4) &&
@@ -638,6 +638,11 @@ namespace MenuMusic
                     reverb.Reset(effect, generation);
                 reverb.quietFrames = 0;
                 reverb.Process(effect, buffer, frames);
+                // Finish the gameplay tail without feeding menu input into the native history.
+                alignas(16) std::array<float, 6 * 512> tail{};
+                shReverbProcess.unsafe_fastcall<void>(effect, edx, tail.data(), frames);
+                for (size_t sample = 0; sample < frames * effect->channelCount; sample++)
+                    buffer[sample] += tail[sample];
                 return;
             }
         }
