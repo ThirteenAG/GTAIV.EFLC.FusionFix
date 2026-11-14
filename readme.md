@@ -179,9 +179,12 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Added GXT Overloading, allow game to load additional gxt files to overwrite vanilla lines or add new lines, without editing vanilla gxt files
 - Added a solution to add entries to shader preload list dynamically
 - Increased corona limit to avoid heavy flickering of game's lights
+- Power lines and cables are drawn opaque, so they stay visible along their whole length and cast shadows
 - Improved ultrawide support
 - Fixed improper VRAM detection on some setups
 - About 500 MB more memory for streaming: the game's system-memory copies of its textures are kept outside its address space until needed
+- Fewer stutters while driving: the game no longer pins its main thread to the first CPU core
+- Shorter hitches when the game has to load the area at once (after a teleport, mission start or fast travel): it continues as soon as the data is read instead of sleeping between checks
 - The streaming memory follows the game's free address space: more detail and more varied traffic when there is room, less before the game would run out of memory
 - Fixed a freeze when the game ran out of room for the models of objects around the player, and a crash when very many textures were unloaded at once (big texture mods)
 - Fixed draw distance sliders not being applied on startup
@@ -208,6 +211,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Vehicles and the people in them keep their night shadows while the player's headlights cast theirs; lampposts no longer shadow their own light
 - The player's headlights cast shadows: the game never passed their shadow to the lighting, so nothing ever showed it. Their shadows are aimed along the beam, much sharper, and fade out 35 metres ahead
 - Interiors seen through doorways and windows now block the sun, so their shadows no longer go missing
+- Streetlights and other lamps just behind the camera keep lighting the ground in view, instead of switching off when the camera turns slightly
 - Added several cheat code to enable seasonal events, restore some unused player assets for Niko and Johnny, speed up game physics, and spawn some vehicles in TLAD and TBoGT, they can be found hidden in relevant locations, or finding them [here](https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix/blob/master/source/cheats.ixx)
 
 ### Scripts

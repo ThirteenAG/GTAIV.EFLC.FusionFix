@@ -419,6 +419,17 @@ namespace StreamingBudget
     }
 }
 
+namespace StreamingReadWait
+{
+    bool __cdecl WaitForRead(HANDLE semaphore)
+    {
+        auto result = semaphore ? WaitForSingleObject(semaphore, 10) : WAIT_FAILED;
+        if (result != WAIT_OBJECT_0 && result != WAIT_TIMEOUT)
+            Sleep(10);
+        return result == WAIT_OBJECT_0;
+    }
+}
+
 namespace grcResourceCache
 {
     SafetyHookInline shGetAvailableFreeMemory = {};
@@ -863,6 +874,25 @@ public:
         FusionFix::onInitEvent() += []()
         {
             SettingsReader reader;
+
+            // Let Windows schedule the main thread across the process's allowed CPUs.
+            auto mainAffinity = hook::pattern("6A 01 8B F1 FF 15 ? ? ? ? 50 FF 15 ? ? ? ? E8");
+            injector::MakeNOP(mainAffinity.get_first(0), 2, true);
+            injector::MakeNOP(mainAffinity.get_first(4), 13, true);
+
+            // Wake as soon as the next streaming read completes instead of sleeping between semaphore polls.
+            auto readWait = hook::pattern("56 57 8B F9 33 F6 39 B7 ? ? ? ? 74 ? 8B FF 8B 87 ? ? ? ? 40 33 C9 83 F8 08 0F 44 C1 8B 84 87 ? ? ? ? FF 70 0C E8 ? ? ? ?");
+            if (!readWait.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+            {
+                injector::MakeCALL(readWait.get_first(0x29), StreamingReadWait::WaitForRead, true);
+                injector::WriteMemory<uint8_t>(hook::pattern("6A 0A E8 ? ? ? ? 83 C6 0A 33 C0 83 C4 04 81 FE E8 03 00 00 0F 44 F0").get_first(1), 0, true);
+            }
+            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
+            {
+                readWait = hook::pattern("56 57 8B F1 33 FF 39 BE ? ? ? ? 0F 84 ? ? ? ? 8B 86 ? ? ? ? 83 C0 01 83 F8 08 75 ? 33 C0 8B 84 86 ? ? ? ? 8B 48 0C 51 E8 ? ? ? ?");
+                injector::MakeCALL(readWait.get_first(0x2D), StreamingReadWait::WaitForRead, true);
+                injector::WriteMemory<uint8_t>(hook::pattern("6A 0A E8 ? ? ? ? 83 C7 0A 83 C4 04 81 FF E8 03 00 00 75 ? 33 FF").get_first(1), 0, true);
+            }
 
             auto pattern = hook::pattern("8B 0D ? ? ? ? 83 EC ? 33 C0");
             if (!pattern.empty()) // 1.0.8.0, 1.1.3.0, 1.2.0.32, 1.2.0.43, 1.2.0.59

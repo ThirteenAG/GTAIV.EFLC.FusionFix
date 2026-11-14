@@ -2,6 +2,7 @@ module;
 
 #include <common.hxx>
 #include <unordered_map>
+#include <chrono>
 
 export module nightshadows;
 
@@ -12,9 +13,9 @@ import settings;
 // Night shadows: the shadows of local lights (streetlights, headlights, interior lights).
 // The game renders seven of them per frame and keeps a small cache of static ones. Which lights get them is decided by
 // the light's size on screen, visible lights first; a light that has a shadow keeps it unless another one is clearly
-// more important, and the player's headlights always get one. A vehicle keeps its own shadow while its headlights
-// cast theirs, and what is right around a light's bulb (its fixture) casts no shadow from it, so a lamppost shadows the
-// street with its pole but not with its lamp head.
+// more important, the player's headlights always get one and traffic headlights near the camera come before the
+// streetlights. A vehicle keeps its own shadow while its headlights cast theirs, and what is right around a light's
+// bulb (its fixture) casts no shadow from it, so a lamppost shadows the street with its pole but not with its lamp head.
 
 namespace NightShadows
 {
@@ -158,23 +159,49 @@ namespace NightShadows
     // Traffic headlights cast shadows this close to the camera
     constexpr float TrafficHeadlightRange = 25.0f;
 
+    // The camera position, noted while the shadows are picked: the viewport list is empty when the vehicles add
+    // their lights
+    float cameraPosition[3] = {};
+
+    void NoteCameraPosition()
+    {
+        if (auto viewport = pViewports[0] ? pViewports[pViewports[0]] : 0)
+        {
+            // rage::grcViewport::mCameraMatrix, its position row
+            std::copy_n((const float*)(viewport + 0x10 + 0x40 + 0x30), 3, cameraPosition);
+        }
+    }
+
     bool IsNearCamera(const rage::Vector3& position, float range)
     {
-        auto viewport = pViewports ? pViewports[pViewports[0]] : 0;
-        if (!viewport)
-            return false;
-
-        // rage::grcViewport::mCameraMatrix, its position row
-        auto camera = (const float*)(viewport + 0x10 + 0x40 + 0x30);
-        auto dx = position.x - camera[0], dy = position.y - camera[1], dz = position.z - camera[2];
+        auto dx = position.x - cameraPosition[0], dy = position.y - cameraPosition[1], dz = position.z - cameraPosition[2];
         return dx * dx + dy * dy + dz * dz < range * range;
     }
 
-    // Shadows fade out before a light loses them: with distance, and as a cached light nears the importance of the
-    // most important light that's waiting for a place in the cache, so the one that gives its place up has no shadow
-    // left to lose and the one that takes it fades in. 0 is the full shadow, 1 none.
+    // Shadows fade with distance, and over time when a light gains or loses its shadow: a light that a more important
+    // one is about to replace keeps its place until its shadow has faded out, and the one that takes the place fades
+    // in, so streetlights trading shadows as the camera moves never pop. 0 is the full shadow, 1 none.
     float cacheFade[CacheCount] = {};
     float slotFade[SlotCount] = {};
+
+    constexpr float ShadowFadeSeconds = 0.4f;
+
+    struct ShadowFadeState
+    {
+        float fade = 1.0f;
+        bool releasing = false;
+        uint32_t frame = 0;
+    };
+    std::unordered_map<uint32_t, ShadowFadeState> fadeStates;
+    uint32_t cacheOwners[CacheCount] = {};
+
+    // One light hands its place over at a time: lights keep their shadow while the one that a waiting light beats
+    // fades out; once that fade is complete it drops back to its own value and the waiting one takes exactly its place
+    bool HasReleasedShadow(uint32_t trackingID)
+    {
+        auto it = fadeStates.find(trackingID);
+        return it != fadeStates.end() && it->second.releasing && it->second.fade >= 1.0f;
+    }
 
     // The lights of the frame by tracking ID, open addressing
     constexpr uint32_t LightTableSize = 1024;
@@ -188,8 +215,9 @@ namespace NightShadows
         float values[LightTableSize];
         float coneCos[LightTableSize];
         float tangents[LightTableSize][3];
-        bool headlight[LightTableSize];
+        bool spot[LightTableSize];
         bool dynamic[LightTableSize];
+        int32_t cacheIndex[LightTableSize];
     };
     ShadowPriorities priorities = {};
 
@@ -222,21 +250,80 @@ namespace NightShadows
     void PublishShadowFades()
     {
         auto& it = priorities;
-        for (int32_t i = 0; i < CacheCount; i++)
-        {
-            auto fade = it.cached[i] < FLT_MAX ? DistanceFade(it.cached[i]) : 0.0f;
-            if (it.waiting < FLT_MAX)
-                fade = std::max(fade, SmoothStep(it.waiting * 0.8f, it.waiting, it.cached[i]));
-            cacheFade[i] = fade;
-        }
 
-        // The per-frame shadows likewise against the most important light waiting for one
+        // The time since the last frame, for fades that take the same time at any frame rate
+        static auto last = std::chrono::steady_clock::now();
+        auto now = std::chrono::steady_clock::now();
+        auto step = std::clamp(std::chrono::duration<float>(now - last).count(), 0.0f, 0.1f) / ShadowFadeSeconds;
+        last = now;
+
+        // The most important light waiting for a per-frame shadow
         auto waitingDynamic = FLT_MAX;
         for (uint32_t i = 0; i < LightTableSize; i++)
         {
             if (it.trackingIDs[i] && it.dynamic[i] && it.values[i] < waitingDynamic && !HadShadowLastFrame(it.trackingIDs[i]))
                 waitingDynamic = it.values[i];
         }
+
+        // The light that gives its place up: the least important one with a per-frame shadow when a more important
+        // one waits for a per-frame shadow, likewise in the cache. A handover in progress continues while the waiting
+        // light is still more important.
+        auto frame = *CTimer::m_frameCount;
+        auto releasing = [](uint32_t trackingID)
+        {
+            auto state = fadeStates.find(trackingID);
+            return state != fadeStates.end() && state->second.releasing;
+        };
+        // Pick per kind: a light already handing over, otherwise the least important one a waiting light beats
+        auto pick = [&](auto holds, float waiting)
+        {
+            int32_t current = -1, worst = -1;
+            for (uint32_t i = 0; i < LightTableSize; i++)
+            {
+                if (!it.trackingIDs[i] || it.values[i] <= 0.0f || !holds(i) || waiting >= it.values[i])
+                    continue;
+                if (releasing(it.trackingIDs[i]))
+                    current = int32_t(i);
+                if (worst < 0 || it.values[i] > it.values[worst])
+                    worst = int32_t(i);
+            }
+            return current >= 0 ? current : worst;
+        };
+        auto releaseSlot = pick([&](uint32_t i) { return it.dynamic[i] && HadShadowLastFrame(it.trackingIDs[i]); }, waitingDynamic);
+        auto releaseCache = pick([&](uint32_t i) { return it.cacheIndex[i] >= 0; }, it.waiting);
+
+        // That light fades its shadow out, the others in; a light without a shadow starts from none
+        for (uint32_t i = 0; i < LightTableSize; i++)
+        {
+            auto trackingID = it.trackingIDs[i];
+            if (!trackingID)
+                continue;
+
+            auto& state = fadeStates[trackingID];
+            state.frame = frame;
+            if (!HadShadowLastFrame(trackingID) && it.cacheIndex[i] < 0)
+            {
+                state.fade = 1.0f;
+                state.releasing = false;
+                continue;
+            }
+            state.releasing = int32_t(i) == releaseSlot || int32_t(i) == releaseCache;
+            state.fade = std::clamp(state.fade + (state.releasing ? step : -step), 0.0f, 1.0f);
+        }
+
+
+        // Lights not seen for a while are forgotten
+        if (fadeStates.size() > 2048)
+            std::erase_if(fadeStates, [frame](const auto& entry) { return frame - entry.second.frame > 300; });
+
+        auto fadeOf = [](uint32_t trackingID)
+        {
+            auto state = fadeStates.find(trackingID);
+            return state != fadeStates.end() ? state->second.fade : 0.0f;
+        };
+
+        for (int32_t i = 0; i < CacheCount; i++)
+            cacheFade[i] = it.cached[i] < FLT_MAX ? std::max(DistanceFade(it.cached[i]), fadeOf(cacheOwners[i])) : 0.0f;
 
         for (int32_t slot = 1; slot < SlotCount; slot++)
         {
@@ -246,10 +333,7 @@ namespace NightShadows
                 slotFade[slot] = 0.0f;
                 continue;
             }
-            auto fade = DistanceFade(it.values[i]);
-            if (waitingDynamic < FLT_MAX && it.values[i] > 0.0f)
-                fade = std::max(fade, SmoothStep(waitingDynamic * 0.8f, waitingDynamic, it.values[i]));
-            slotFade[slot] = fade;
+            slotFade[slot] = std::max(DistanceFade(it.values[i]), fadeOf(it.trackingIDs[i]));
         }
     }
 
@@ -271,8 +355,11 @@ namespace NightShadows
             value = 0.0f;
 
         auto index = light.mShadowCacheIndex;
-        if (index >= 0 && index < CacheCount)
-            it.cached[index] = std::min(it.cached[index], value);
+        if (index >= 0 && index < CacheCount && value <= it.cached[index])
+        {
+            it.cached[index] = value;
+            cacheOwners[index] = light.mShadowTrackingID;
+        }
         else if (light.mFlags & rage::LIGHTFLAG_CAST_STATIC_GEOM_SHADOWS)
             it.waiting = std::min(it.waiting, value);
 
@@ -280,9 +367,10 @@ namespace NightShadows
         {
             it.trackingIDs[i] = light.mShadowTrackingID;
             it.values[i] = value;
-            it.headlight[i] = light.mType == rage::LT_SPOT && (light.mFlags & rage::LIGHTFLAG_VEHICLE);
+            it.spot[i] = light.mType == rage::LT_SPOT;
             it.dynamic[i] = (light.mFlags & rage::LIGHTFLAG_CAST_DYNAMIC_GEOM_SHADOWS) != 0;
             it.coneCos[i] = light.mOuterConeAngle;
+            it.cacheIndex[i] = index >= 0 && index < CacheCount ? index : -1;
             it.tangents[i][0] = light.mTangent.x;
             it.tangents[i][1] = light.mTangent.y;
             it.tangents[i][2] = light.mTangent.z;
@@ -308,26 +396,50 @@ namespace NightShadows
     // The render phase flags that draw the map (buildings, trees) and the objects that don't move (lampposts, traffic
     // lights), set for shadows rendered without a cache like the game's cached shadows have them
     constexpr uint32_t RenderMapFlags = 0x280;
+    constexpr int32_t CachedRenderType = 3; // Slot 0 rendering a cached shadow
 
+    // Whether each cached shadow was rendered with the perspective projection. A per-frame shadow drawn on top of a
+    // cached one takes the same projection, so the two always match.
+    bool cachePerspective[CacheCount] = {};
+
+    // Spotlights (streetlights, headlights) are rendered from the bulb along the beam. The game's projection for every
+    // light looks at the light's sphere from a point behind it, which draws whatever is close to the bulb (a lamppost's
+    // own pole) from the wrong side: its shadow came out as a hollow outline, depending on which way the lamp faces.
+    // Returns whether the shadow has to draw the map itself, having no cached shadow under it.
     bool ChooseSlotProjection(uint32_t slotOffset)
     {
         auto slot = slotOffset / SlotStride;
         auto base = pSlots + slotOffset;
         auto& type = *(int32_t*)(base + 0x00);
         type = 0;
-        if (slot == 0 || slot >= SlotCount || *(int32_t*)(base + 0xFC) != DynamicRenderType || *(int32_t*)(base + 0xF0) != -1)
+        if (slot >= SlotCount)
             return false;
+
+        auto renderType = *(int32_t*)(base + 0xFC);
+        auto cacheIndex = *(int32_t*)(base + 0xF0);
+        auto cached = cacheIndex >= 0 && cacheIndex < CacheCount;
 
         auto& it = priorities;
         auto trackingID = *(uint32_t*)(base + 0xF8);
         auto i = FindLight(trackingID);
-        if (i < 0 || !trackingID || it.trackingIDs[i] != trackingID || !it.headlight[i] || it.coneCos[i] < MinPerspectiveConeCos)
+        auto perspective = i >= 0 && trackingID && it.trackingIDs[i] == trackingID && it.spot[i] && it.coneCos[i] >= MinPerspectiveConeCos;
+
+        if (slot == 0)
+        {
+            if (renderType != CachedRenderType || !cached)
+                return false;
+            cachePerspective[cacheIndex] = perspective;
+        }
+        else if (renderType != DynamicRenderType || (cached && !cachePerspective[cacheIndex]))
+            return false;
+
+        if (!perspective)
             return false;
 
         slotConeCos[slot] = it.coneCos[i];
         std::copy(std::begin(it.tangents[i]), std::end(it.tangents[i]), slotTangents[slot]);
         type = PerspectiveSlotType;
-        return true;
+        return slot != 0 && cacheIndex == -1;
     }
 
     // The camera of a perspective slot, and the matrix that takes a world position to the shadow map: the view along
@@ -469,6 +581,8 @@ namespace NightShadows
 
     bool IsPerspectiveShadow(int32_t shadow)
     {
+        if (shadow >= SlotCount && shadow < SlotCount + CacheCount)
+            return cachePerspective[shadow - SlotCount];
         if (shadow < 1 || shadow >= SlotCount)
             return false;
         return *(int32_t*)(pSlotCopies + (shadow + SlotCount * *pSlotCopyIndex) * SlotStride) == PerspectiveSlotType;
@@ -493,6 +607,7 @@ namespace NightShadows
     // have a shadow already, so two lights of about the same importance don't keep trading it.
     float ShadowPriorityDistance(const rage::CLightSource& light, float distance)
     {
+        NoteCameraPosition();
         SetOutdoorLight(light.mShadowTrackingID, light.mInteriorIndex == -1 && !(light.mFlags & rage::LIGHTFLAG_VEHICLE));
 
         constexpr float ReferenceRadius = 10.0f;
@@ -501,12 +616,27 @@ namespace NightShadows
         if (!IsSphereVisible(light.mPosition, light.mRadius))
             value *= 2.0f;
 
+        // Traffic headlights ask for a shadow only near the camera; there they come before the streetlights, which
+        // are bigger and would otherwise always win, so the people in front of a car cast a shadow in a lit street
+        if ((light.mFlags & rage::LIGHTFLAG_VEHICLE) && !(light.mFlags & rage::LIGHTFLAG_USE_VEHICLE_TWIN) && light.mShadowTrackingID)
+            value *= 0.1f;
+
         if (HadShadowLastFrame(light.mShadowTrackingID))
             value *= 0.75f;
         else if (light.mShadowCacheIndex != -1)
             value *= 0.85f;
 
         NoteShadowPriority(light, value);
+
+        // A light keeps its shadow until it has faded out: per-frame shadows above everything else, cached ones above
+        // the lights without a shadow, so neither pushes the other out
+        if (!HasReleasedShadow(light.mShadowTrackingID))
+        {
+            if (HadShadowLastFrame(light.mShadowTrackingID))
+                value *= 0.001f;
+            else if (light.mShadowCacheIndex != -1)
+                value *= 0.1f;
+        }
         return value;
     }
 
@@ -936,8 +1066,8 @@ public:
                     NightShadows::pSlots = *pattern.get_first<uintptr_t>(2);
                     static auto SlotProjectionHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
-                        // A perspective slot is a moving light without a cached shadow: the map (buildings, trees, lampposts)
-                        // only goes into cached shadows, so it's drawn into this one every frame too, which keeps up with the light
+                        // A perspective shadow of a light without a cached shadow (a moving one): the map (buildings, trees,
+                        // lampposts) only goes into cached shadows, so it's drawn into this one every frame too
                         if (NightShadows::ChooseSlotProjection(regs.esi))
                             *(uint32_t*)(regs.edi + 0x8D0) |= NightShadows::RenderMapFlags;
                     });

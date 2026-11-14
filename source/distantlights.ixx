@@ -162,12 +162,14 @@ namespace DistantLights
         return 0xFF000000 | channel(16) | channel(8) | channel(0);
     }
 
-    // Each road switches all its streetlights on at its own point of dusk, picked by where it starts
+    // Each road switches all its streetlights on at its own point of dusk, picked by where it starts, from the game's
+    // table of 16 (other plugins may raise it to keep them off)
+    float* streetlightThresholds = nullptr;
+
     float StreetlightThreshold(const PathPoint& first)
     {
-        static constexpr std::array<float, 16> thresholds{ 0.1f, 0.7f, 0.5f, 0.96f, 0.34f, 0.75f, 0.2f, 0.4f, 0.65f, 0.05f, 0.76f, 0.83f, 0.59f, 0.34f, 0.66f, 0.43f };
         int index = (first.x / 300 + first.y / 500) % 16;
-        return thresholds[index < 0 ? index + 16 : index];
+        return streetlightThresholds[index < 0 ? index + 16 : index];
     }
 
     void(__cdecl* CDistantLights__Render)(float);
@@ -384,6 +386,7 @@ public:
             // before the table: and eax, 8000000Fh -> and eax, 0Fh
             pattern = hook::pattern("25 0F 00 00 80 79 05 48 83 C8 F0 40 F3 0F 10 45 08 0F 2F 04 85");
             injector::WriteMemory<uint32_t>(pattern.get_first(1), 0x0F, true);
+            streetlightThresholds = *pattern.get_first<float*>(21);
         };
     }
 } DistantLightsModule;
