@@ -1242,7 +1242,6 @@ private:
             std::memcpy(instance + 0x3448, highlights.data(), highlights.size());
         if (auto categories = GetActiveCategories(); categories && handle == menuHandles[0] && layoutMenu && layoutMenu == GetMenu())
             DrawCategories(*categories);
-        DrawBreadcrumb(handle);
         DrawDescription(handle);
         NoteHdrPage(handle);
     }
@@ -1918,10 +1917,7 @@ private:
             {
                 if (auto page = FindPage(dynamicOptions[button].submenu))
                 {
-                    // The row's text has room for 59 characters, the mark of rows that open a page included
-                    std::wstring name = GetPageName(*page);
-                    name = name.substr(0, 59 - std::wcslen(SubmenuMark)) + SubmenuMark;
-                    wcsncpy_s(text, 60, name.c_str(), _TRUNCATE);
+                    wcsncpy_s(text, 60, GetPageName(*page), _TRUNCATE);
                     return nullptr;
                 }
             }
@@ -2062,6 +2058,11 @@ private:
             setFontDropShadow = reinterpret_cast<decltype(setFontDropShadow)>(branch(info.get_first<uint8_t>(0x7E)));
             getInfoLabelWidth = reinterpret_cast<decltype(getInfoLabelWidth)>(branch(infoWidth.get_first<uint8_t>(1)));
             infoTextRow = safetyhook::create_mid(infoRow.get_first(), InfoTextRow);
+            infoTextTop = safetyhook::create_mid(info.get_first(0x34), [](SafetyHookContext& regs)
+            {
+                if (IsGraphicsList() && rowHeight)
+                    regs.xmm0.f32[0] += *rowHeight;
+            });
             categoriesEnabled = true;
 
             // The language: FillMenu hides its row of Display (9, 10 in TLAD) and of the title menu's Display (6)
@@ -2527,20 +2528,20 @@ public:
         for (auto [screen, before] : { std::pair{ MenuScreen::Game, "MO_EXITGAM" }, std::pair{ MenuScreen::TitleGame, "" } })
         {
             AddSetting(screen, "MAIN.WindowMode", before);
-            auto advanced = AddPage(screen, "@ff.page.advanced", before, true);
-            for (auto id : { "MAIN.SkipIntro", "MAIN.SkipMenu", "MAIN.BlockOnLostFocus", "MISC.TimedEvents", "UPDATE.CheckForUpdates" })
+            auto advanced = AddPage(screen, "@ff.page.advanced", before);
+            for (auto id : { "MAIN.SkipIntro", "MAIN.SkipMenu", "MAIN.BlockOnLostFocus", "MISC.TimedEvents", "UPDATE.CheckForUpdates",
+                             "FRAMELIMIT.DisplayFpsCounter", "MISC.ExtraInfo" })
                 AddSetting(advanced, id);
-            auto tweaks = AddPage(screen, "@ff.page.tweaks", before, true);
-            AddSetting(tweaks, "FRAMELIMIT.DisplayFpsCounter");
-            AddSetting(tweaks, "MISC.ExtraInfo");
             pluginsBefore[static_cast<int32_t>(screen)] = before;
             if (auto own = AddCategory(PluginsPage(screen), MenuKey(ownPlugin, ownPlugin.file.description.name)); own != MenuScreen::Invalid)
                 AddPresetRow(own, ownPlugin);
+            if (*before)
+                AddEmptyLine(screen, before);
         }
 
         for (auto screen : { MenuScreen::Controls, MenuScreen::TitleControls })
         {
-            auto advanced = AddPage(screen, "@ff.page.advanced", {}, true);
+            auto advanced = AddPage(screen, "@ff.page.advanced");
             for (auto id : { "MISC.AlwaysRun", "MISC.ZoomedMovement", "MISC.ExtendedSniperControls" }) AddSetting(advanced, id);
             AddEmptyLine(advanced);
             for (auto id : { "MISC.TurnIndicators", "MISC.AutoClimbLadders", "MISC.PlayerJumpRagdollControl", "MISC.AlwaysShowBulletTraces" }) AddSetting(advanced, id);
@@ -4064,6 +4065,12 @@ private:
     }
 
     // Video Mode's one-line resolution text occupies part of the normal graphics-help area.
+    // Graphics itself, not one of its pages: its info text starts a row lower, below the Video Mode value
+    static bool IsGraphicsList()
+    {
+        return currentScreen && (*currentScreen == 49 || *currentScreen == 62) && activePage == -1;
+    }
+
     static bool IsVideoModeSelected()
     {
         if (!currentScreen || (*currentScreen != 49 && *currentScreen != 62) || activePage != -1)
@@ -4114,8 +4121,6 @@ private:
         return lines;
     }
 
-    static constexpr const wchar_t* SubmenuMark = L" >";
-
     // Render thread, before the menu draws its rows: rows that open a page show the page's value. Rows keep the
     // menu's own colours (idle, hovered, selected); their labels are never changed, so they don't flicker.
     static void StyleRows(int32_t handle)
@@ -4139,45 +4144,13 @@ private:
         }
     }
 
-    // The way to the page shown above its rows: "GAME > STARTUP AND WINDOW"
-    static void DrawBreadcrumb(int32_t handle)
-    {
-        auto instance = handle >= 0 ? menuInstances[handle] : nullptr;
-        auto page = ShownPage();
-        if (!instance || handle != menuHandles[0] || !page || activeHost != *currentScreen || !tabState || hasTabModal() != 0 || confirming)
-            return;
-        auto root = GetRootScreen(activePage);
-        if (root < 0 || root >= 73)
-            return;
-        auto text = ToGameText(Upper(FromGameText(CText::getText(screens[root].header)) + " > " + FromGameText(GetPageName(*page))));
-        auto position = reinterpret_cast<float*>(instance + 0x35D0);
-        auto scaleX = *reinterpret_cast<float*>(instance + 0x35DC) * *reinterpret_cast<float*>(instance + 0x35E4);
-        auto scaleY = *reinterpret_cast<float*>(instance + 0x35E0) * *reinterpret_cast<float*>(instance + 0x35E8);
-        auto font = fontStates + getFontContext() * 0x48;
-        std::array<uint8_t, 0x48> saved;
-        std::memcpy(saved.data(), font, saved.size());
-        font[0x14] = 0;
-        font[0x15] = 0;
-        font[0x16] = 1;
-        font[0x1A] = 255;
-        setFontOrientation(1);
-        setFontStyle(*reinterpret_cast<int32_t*>(instance + 0x35D8));
-        setTabScale(scaleX * 0.6f, scaleY * 0.6f);
-        setFontEdge(*reinterpret_cast<float*>(instance + 0x3608));
-        setFontEdgeColor(uint32_t(instance[0x363C]) << 24);
-        auto x = GetActiveCategories() ? bodyPosition[0] : position[0];
-        setFontWrap(x - 0.02f, x + 1.0f);
-        setTabColor(*reinterpret_cast<uint32_t*>(instance + 0x3630));
-        printTab.ccall<void>(x, position[1] + 0.019f, (L"~m~" + text).c_str(), -1, -1);
-        std::memcpy(font, saved.data(), saved.size());
-    }
-
     // The menu's info text at the top right (Graphics: the video memory and what the selected row affects), for rows
     // of Fusion Fix and other plugins on every tab: at the place, in the font and the colour of the game's
     static inline float* (__cdecl* getInfoPosition)(float*) = nullptr;
     static inline float* (__cdecl* getInfoLabelWidth)(float*) = nullptr;
     static inline void(__cdecl* setFontDropShadow)(float) = nullptr;
     static inline SafetyHookMid infoTextRow;
+    static inline SafetyHookMid infoTextTop;
     static inline std::array<std::vector<std::string>, 2> graphicsLabels;  // rows of the XML of Graphics, title Graphics
 
     static void DrawDescription(int32_t handle)
@@ -4216,7 +4189,7 @@ private:
         setFontWrap(left, right[0]);
         uint32_t colour = 0;
         setTabColor(*getHudColour(&colour, 59));
-        printTab.ccall<void>(left, position[1] + 0.04f + (IsVideoModeSelected() && rowHeight ? *rowHeight : 0.0f), text.c_str(), -1, -1);
+        printTab.ccall<void>(left, position[1] + 0.04f + (IsGraphicsList() && rowHeight ? *rowHeight : 0.0f), text.c_str(), -1, -1);
         std::memcpy(font, saved.data(), saved.size());
     }
 
