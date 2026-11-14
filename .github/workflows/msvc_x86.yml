@@ -155,6 +155,15 @@ jobs:
         CODE_SIGNING_PFX: ${{ github.ref_name == 'master' && (github.event_name == 'push' || github.event.inputs.release == 'true') && secrets.CODE_SIGNING_PFX || '' }}
         CODE_SIGNING_PASSWORD: ${{ github.ref_name == 'master' && (github.event_name == 'push' || github.event.inputs.release == 'true') && secrets.CODE_SIGNING_PASSWORD || '' }}
 
+    # Developer builds: an empty CrashDumps folder at the game's root makes the ASI loader write crash dumps there
+    - name: Add the CrashDumps folder (developer builds)
+      if: github.event.inputs.release != 'true'
+      shell: cmd
+      run: |
+        mkdir CrashDumps
+        7z a GTAIV.EFLC.FusionFix.zip CrashDumps
+        rmdir CrashDumps
+
     - name: Pack Legacy
       shell: cmd
       run: |

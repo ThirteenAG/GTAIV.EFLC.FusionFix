@@ -28,9 +28,6 @@ Police Buffalo
 [FF_WARN1]
 ; ~r~WARNING: 255 IMG limit exceeded, will cause streaming issues.
 
-[FF_WARN2]
-~r~WARNING: Extra Night Shadows is an original PC option by Rockstar. Extremely broken, not recommended.
-
 [FF_WARN6]
 ~r~WARNING: CHSS only takes effect with Shadow Quality set to Very High.
 

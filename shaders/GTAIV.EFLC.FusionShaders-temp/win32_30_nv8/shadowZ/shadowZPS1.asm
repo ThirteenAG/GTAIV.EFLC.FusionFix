@@ -16,11 +16,16 @@
     ps_3_0
     def c219, 1.8395173895e+25, 3.9938258725e+24, 4.5435787456e+30, 1.1925049931e-42 // 851
     def c0, 0.00999999978, 0, 0, 0
+    def c1, -0.119999997, 1, 0, 0 // A light's own fixture: what is within this share of its range around the bulb casts no shadow
     dcl_texcoord1 v0.zw
     add r0.x, c0.x, -v0.z
     abs r0.y, c56.x
     cmp r0, -r0.y, r0.x, c0.y
     texkill r0
+    abs r2.x, c56.x
+    add r1.x, v0.w, c1.x
+    cmp r1, -r2.x, r1.x, c1.y
+    texkill r1
     mov oC0, v0.w
 
 // approximately 5 instruction slots used

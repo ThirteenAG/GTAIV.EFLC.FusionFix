@@ -28,9 +28,6 @@ Polizei-Buffalo
 [FF_WARN1]
 ; ~r~ACHTUNG: Obergrenze von 255 IMG-Dateien überschritten, was zu Streaming-Problemen führt.
 
-[FF_WARN2]
-~r~ACHTUNG: "Zusätzliche Nachtschatten" ist eine extrem fehlerbehaftete PC-Option von Rockstar. Aktivieren nicht empfohlen.
-
 [FF_WARN6]
 ~r~ACHTUNG: CHSS bewirkt nur etwas, wenn die Schattenqualität auf "Sehr hoch" eingestellt ist.
 

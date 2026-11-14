@@ -1792,7 +1792,7 @@ export namespace rage
         float mRadius;
         float mInnerConeAngle;
         float mOuterConeAngle;
-        int32_t mCastShadows;
+        int32_t mShadowTrackingID;
         int32_t mShadowCacheIndex;
         int32_t mInteriorIndex;
         int32_t mRoomIndex;
@@ -2454,9 +2454,6 @@ export bool bLoadingShown = false;
 export int nTimecycleUnpauseTimer = 0;
 export int nCameraUnpauseTimer1 = 0;
 export int nCameraUnpauseTimer2 = 0;
-export bool bExtraNightShadows = false;
-export bool bHeadlightShadows = false;
-export bool bVehicleNightShadows = true;
 export bool bHighResolutionShadows = false;
 export bool bIsQUB3D = false;
 export float fMenuBlur = 0.0f;

@@ -2460,7 +2460,9 @@ public:
             { "PREF_CENTEREDCAMERAFOOT",     "MISC.CenteredFootCam" },
             { "PREF_CAMERASHAKE",            "MAIN.CameraShake" },
             { "PREF_TURNINDICATORS",         "MISC.TurnIndicators" },
-            { "PREF_EXTRANIGHTSHADOWS",      "SHADOWS.ExtraNightShadows" },
+            { "PREF_STREETLIGHTSHADOWS",     "SHADOWS.StreetlightShadows" },
+            { "PREF_HEADLIGHTSHADOWS",       "SHADOWS.HeadlightShadows" },
+            { "PREF_VEHICLENIGHTSHADOWS",    "SHADOWS.VehicleNightShadows" },
             { "PREF_DISTANTLIGHTS",          "MISC.DistantLights" },
             { "PREF_GRAPHICSAPI",            "MAIN.GraphicsAPI" },
             { "PREF_BULLETTRACES",           "MISC.AlwaysShowBulletTraces" },
@@ -2609,7 +2611,7 @@ public:
             AddSetting(advanced, "MISC.Antialiasing");
             for (auto id : { "MAIN.Bloom", "MAIN.MotionBlur", "MISC.DepthOfField" }) AddSetting(advanced, id);
             AddEmptyLine(advanced);
-            for (auto id : { "FOG.VolumetricFog", "MISC.SunShafts", "MISC.UnclampLighting", "MISC.ConsoleCarReflectionsAndDirt", "EXPERIMENTAL.ReflectionMSAAQuality", "MISC.AmbientOcclusion", "SHADOWS.ShadowFilter", "SHADOWS.ExtraNightShadows", "MISC.DistantLights" }) AddSetting(advanced, id);
+            for (auto id : { "FOG.VolumetricFog", "MISC.SunShafts", "MISC.UnclampLighting", "MISC.ConsoleCarReflectionsAndDirt", "EXPERIMENTAL.ReflectionMSAAQuality", "MISC.AmbientOcclusion", "SHADOWS.ShadowFilter", "SHADOWS.StreetlightShadows", "SHADOWS.HeadlightShadows", "SHADOWS.VehicleNightShadows", "MISC.DistantLights" }) AddSetting(advanced, id);
         }
     }
 
@@ -4009,8 +4011,6 @@ private:
         if (row.plugin == &ownPlugin)
         {
             auto gameText = [](const char* key) { return FromGameText(CText::getText(key)); };
-            if (setting.id == "SHADOWS.ExtraNightShadows" && SettingsPlugin().Int(setting.id) != 0)
-                return gameText("FF_WARN2");
             if (setting.id == "SHADOWS.ShadowFilter" && SettingsPlugin().Int(setting.id) == 2 && GetPrefIDByName("PREF_SHADOW_QUALITY") &&
                 mPrefs[*GetPrefIDByName("PREF_SHADOW_QUALITY")] < 4)
                 return gameText("FF_WARN6");
@@ -4713,12 +4713,6 @@ public:
         const std::vector<const char*> data = { "MO_OFF", "FXAA", "SMAA", "TAA", "DLAA", "FSR" };
     } AntialiasingText;
 
-    struct
-    {
-        enum eExtraNightShadowsText { eOff, eLampposts, eLampostsHeadl, eLampHeadlVNS };
-        const std::vector<const char*> data = { "MO_OFF", "Lampposts", "LampostsHeadl", "LampHeadlVNS" };
-    } ExtraNightShadowsText;
-
 } FusionFixSettings;
 
 export bool shouldModifyMapMenuBackground(int curMenuTab = *pMenuTab)
@@ -5191,32 +5185,6 @@ public:
                     "83 EC 74 A1 ? ? ? ? 33 C4 89 44 24 70 A1 ? ? ? ? 53 55 56 57 33 FF 33 ED 85 C0",                        // 1.2.0.32
                     "56 33 F6 FF 15 ? ? ? ? 25 FF 03 00 00 83 C0 F9 83 F8 12 77");                                           // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 shGetUserLanguage = safetyhook::create_inline(pattern.get_first(0), static_cast<int(*)()>(GetUserLanguage));
-            }
-
-            // Shadows setting
-            {
-                FusionFixSettings.SetCallback("PREF_EXTRANIGHTSHADOWS", [](int32_t value)
-                {
-                    if (value)
-                    {
-                        bExtraNightShadows = true;
-                        bHeadlightShadows = value >= FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
-                        bVehicleNightShadows = value != FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
-                    }
-                    else
-                    {
-                        bExtraNightShadows = false;
-                        bHeadlightShadows = false;
-                        bVehicleNightShadows = true;
-                    }
-                });
-
-                if (FusionFixSettings("PREF_EXTRANIGHTSHADOWS"))
-                {
-                    bExtraNightShadows = true;
-                    bHeadlightShadows = FusionFixSettings("PREF_EXTRANIGHTSHADOWS") >= FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
-                    bVehicleNightShadows = FusionFixSettings("PREF_EXTRANIGHTSHADOWS") != FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
-                }
             }
         };
 

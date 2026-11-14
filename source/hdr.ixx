@@ -754,19 +754,19 @@ public:
         // DirectX 12, HDR off with float buffers until the next Reset: SDR white at scRGB 1.0, no highlights above
         if (OnDriver() && !DriverWanted())
             paperWhite = peak = 80.0f;
-        float constants[4] =
+        // The Tone Mapping setting chooses how highlights look: the game's (off) or rolled off (on)
+        static auto toneMapping = FusionFixSettings.GetRef("PREF_TONEMAPPING");
+        float constants[2][4] =
         {
-            paperWhite / 80.0f,
-            peak / paperWhite,
-            fRollOffStart,
-            1.0f,
+            { paperWhite / 80.0f, peak / paperWhite, fRollOffStart, 1.0f },
+            { toneMapping->get() ? 1.0f : 0.0f, 0.0f, 0.0f, 0.0f },
         };
 
         D3DVIEWPORT9 viewport = { 0, 0, desc.Width, desc.Height, 0.0f, 1.0f };
         device->SetViewport(&viewport);
         device->SetTexture(0, CompositeRT->mD3DTexture);
         device->SetPixelShader(OutputPS);
-        device->SetPixelShaderConstantF(0, constants, 1);
+        device->SetPixelShaderConstantF(0, &constants[0][0], 2);
         device->SetVertexShader(nullptr);
         device->SetFVF(D3DFVF_XYZRHW | D3DFVF_TEX1);
 
