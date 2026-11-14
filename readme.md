@@ -179,9 +179,12 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Added GXT Overloading, allow game to load additional gxt files to overwrite vanilla lines or add new lines, without editing vanilla gxt files
 - Added a solution to add entries to shader preload list dynamically
 - Increased corona limit to avoid heavy flickering of game's lights
+- Power lines and cables are drawn opaque, so they stay visible along their whole length and cast shadows
 - Improved ultrawide support
 - Fixed improper VRAM detection on some setups
 - About 500 MB more memory for streaming: the game's system-memory copies of its textures are kept outside its address space until needed
+- Fewer stutters while driving: the game no longer pins its main thread to the first CPU core
+- Shorter hitches when the game has to load the area at once (after a teleport, mission start or fast travel): it continues as soon as the data is read instead of sleeping between checks
 - The streaming memory follows the game's free address space: more detail and more varied traffic when there is room, less before the game would run out of memory
 - Fixed a freeze when the game ran out of room for the models of objects around the player, and a crash when very many textures were unloaded at once (big texture mods)
 - Fixed draw distance sliders not being applied on startup

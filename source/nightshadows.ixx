@@ -2,6 +2,7 @@ module;
 
 #include <common.hxx>
 #include <unordered_map>
+#include <chrono>
 
 export module nightshadows;
 
@@ -170,11 +171,30 @@ namespace NightShadows
         return dx * dx + dy * dy + dz * dz < range * range;
     }
 
-    // Shadows fade out before a light loses them: with distance, and as a cached light nears the importance of the
-    // most important light that's waiting for a place in the cache, so the one that gives its place up has no shadow
-    // left to lose and the one that takes it fades in. 0 is the full shadow, 1 none.
+    // Shadows fade with distance, and over time when a light gains or loses its shadow: a light that a more important
+    // one is about to replace keeps its place until its shadow has faded out, and the one that takes the place fades
+    // in, so streetlights trading shadows as the camera moves never pop. 0 is the full shadow, 1 none.
     float cacheFade[CacheCount] = {};
     float slotFade[SlotCount] = {};
+
+    constexpr float ShadowFadeSeconds = 0.4f;
+
+    struct ShadowFadeState
+    {
+        float fade = 1.0f;
+        bool releasing = false;
+        uint32_t frame = 0;
+    };
+    std::unordered_map<uint32_t, ShadowFadeState> fadeStates;
+    uint32_t cacheOwners[CacheCount] = {};
+
+    // One light hands its place over at a time: lights keep their shadow while the one that a waiting light beats
+    // fades out; once that fade is complete it drops back to its own value and the waiting one takes exactly its place
+    bool HasReleasedShadow(uint32_t trackingID)
+    {
+        auto it = fadeStates.find(trackingID);
+        return it != fadeStates.end() && it->second.releasing && it->second.fade >= 1.0f;
+    }
 
     // The lights of the frame by tracking ID, open addressing
     constexpr uint32_t LightTableSize = 1024;
@@ -190,6 +210,7 @@ namespace NightShadows
         float tangents[LightTableSize][3];
         bool headlight[LightTableSize];
         bool dynamic[LightTableSize];
+        int32_t cacheIndex[LightTableSize];
     };
     ShadowPriorities priorities = {};
 
@@ -222,21 +243,80 @@ namespace NightShadows
     void PublishShadowFades()
     {
         auto& it = priorities;
-        for (int32_t i = 0; i < CacheCount; i++)
-        {
-            auto fade = it.cached[i] < FLT_MAX ? DistanceFade(it.cached[i]) : 0.0f;
-            if (it.waiting < FLT_MAX)
-                fade = std::max(fade, SmoothStep(it.waiting * 0.8f, it.waiting, it.cached[i]));
-            cacheFade[i] = fade;
-        }
 
-        // The per-frame shadows likewise against the most important light waiting for one
+        // The time since the last frame, for fades that take the same time at any frame rate
+        static auto last = std::chrono::steady_clock::now();
+        auto now = std::chrono::steady_clock::now();
+        auto step = std::clamp(std::chrono::duration<float>(now - last).count(), 0.0f, 0.1f) / ShadowFadeSeconds;
+        last = now;
+
+        // The most important light waiting for a per-frame shadow
         auto waitingDynamic = FLT_MAX;
         for (uint32_t i = 0; i < LightTableSize; i++)
         {
             if (it.trackingIDs[i] && it.dynamic[i] && it.values[i] < waitingDynamic && !HadShadowLastFrame(it.trackingIDs[i]))
                 waitingDynamic = it.values[i];
         }
+
+        // The light that gives its place up: the least important one with a per-frame shadow when a more important
+        // one waits for a per-frame shadow, likewise in the cache. A handover in progress continues while the waiting
+        // light is still more important.
+        auto frame = *CTimer::m_frameCount;
+        auto releasing = [](uint32_t trackingID)
+        {
+            auto state = fadeStates.find(trackingID);
+            return state != fadeStates.end() && state->second.releasing;
+        };
+        // Pick per kind: a light already handing over, otherwise the least important one a waiting light beats
+        auto pick = [&](auto holds, float waiting)
+        {
+            int32_t current = -1, worst = -1;
+            for (uint32_t i = 0; i < LightTableSize; i++)
+            {
+                if (!it.trackingIDs[i] || it.values[i] <= 0.0f || !holds(i) || waiting >= it.values[i])
+                    continue;
+                if (releasing(it.trackingIDs[i]))
+                    current = int32_t(i);
+                if (worst < 0 || it.values[i] > it.values[worst])
+                    worst = int32_t(i);
+            }
+            return current >= 0 ? current : worst;
+        };
+        auto releaseSlot = pick([&](uint32_t i) { return it.dynamic[i] && HadShadowLastFrame(it.trackingIDs[i]); }, waitingDynamic);
+        auto releaseCache = pick([&](uint32_t i) { return it.cacheIndex[i] >= 0; }, it.waiting);
+
+        // That light fades its shadow out, the others in; a light without a shadow starts from none
+        for (uint32_t i = 0; i < LightTableSize; i++)
+        {
+            auto trackingID = it.trackingIDs[i];
+            if (!trackingID)
+                continue;
+
+            auto& state = fadeStates[trackingID];
+            state.frame = frame;
+            if (!HadShadowLastFrame(trackingID) && it.cacheIndex[i] < 0)
+            {
+                state.fade = 1.0f;
+                state.releasing = false;
+                continue;
+            }
+            state.releasing = int32_t(i) == releaseSlot || int32_t(i) == releaseCache;
+            state.fade = std::clamp(state.fade + (state.releasing ? step : -step), 0.0f, 1.0f);
+        }
+
+
+        // Lights not seen for a while are forgotten
+        if (fadeStates.size() > 2048)
+            std::erase_if(fadeStates, [frame](const auto& entry) { return frame - entry.second.frame > 300; });
+
+        auto fadeOf = [](uint32_t trackingID)
+        {
+            auto state = fadeStates.find(trackingID);
+            return state != fadeStates.end() ? state->second.fade : 0.0f;
+        };
+
+        for (int32_t i = 0; i < CacheCount; i++)
+            cacheFade[i] = it.cached[i] < FLT_MAX ? std::max(DistanceFade(it.cached[i]), fadeOf(cacheOwners[i])) : 0.0f;
 
         for (int32_t slot = 1; slot < SlotCount; slot++)
         {
@@ -246,10 +326,7 @@ namespace NightShadows
                 slotFade[slot] = 0.0f;
                 continue;
             }
-            auto fade = DistanceFade(it.values[i]);
-            if (waitingDynamic < FLT_MAX && it.values[i] > 0.0f)
-                fade = std::max(fade, SmoothStep(waitingDynamic * 0.8f, waitingDynamic, it.values[i]));
-            slotFade[slot] = fade;
+            slotFade[slot] = std::max(DistanceFade(it.values[i]), fadeOf(it.trackingIDs[i]));
         }
     }
 
@@ -271,8 +348,11 @@ namespace NightShadows
             value = 0.0f;
 
         auto index = light.mShadowCacheIndex;
-        if (index >= 0 && index < CacheCount)
-            it.cached[index] = std::min(it.cached[index], value);
+        if (index >= 0 && index < CacheCount && value <= it.cached[index])
+        {
+            it.cached[index] = value;
+            cacheOwners[index] = light.mShadowTrackingID;
+        }
         else if (light.mFlags & rage::LIGHTFLAG_CAST_STATIC_GEOM_SHADOWS)
             it.waiting = std::min(it.waiting, value);
 
@@ -283,6 +363,7 @@ namespace NightShadows
             it.headlight[i] = light.mType == rage::LT_SPOT && (light.mFlags & rage::LIGHTFLAG_VEHICLE);
             it.dynamic[i] = (light.mFlags & rage::LIGHTFLAG_CAST_DYNAMIC_GEOM_SHADOWS) != 0;
             it.coneCos[i] = light.mOuterConeAngle;
+            it.cacheIndex[i] = index >= 0 && index < CacheCount ? index : -1;
             it.tangents[i][0] = light.mTangent.x;
             it.tangents[i][1] = light.mTangent.y;
             it.tangents[i][2] = light.mTangent.z;
@@ -507,6 +588,16 @@ namespace NightShadows
             value *= 0.85f;
 
         NoteShadowPriority(light, value);
+
+        // A light keeps its shadow until it has faded out: per-frame shadows above everything else, cached ones above
+        // the lights without a shadow, so neither pushes the other out
+        if (!HasReleasedShadow(light.mShadowTrackingID))
+        {
+            if (HadShadowLastFrame(light.mShadowTrackingID))
+                value *= 0.001f;
+            else if (light.mShadowCacheIndex != -1)
+                value *= 0.1f;
+        }
         return value;
     }
 
