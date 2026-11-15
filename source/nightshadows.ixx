@@ -1103,9 +1103,15 @@ public:
                     // The headlights of the traffic: the game adds them without a shadow and without the vehicle's
                     // tracking ID. Near the camera they ask for one like the player's, so a person in front of a car
                     // or the player next to the car they left casts a shadow; the priorities decide which get one.
+                    static auto DoHeadLightsEffectReturn = hook::get_pattern("83 C0 30 50 FF 75 24 E8 ? ? ? ? 83 C4 34 5F 5E 8B E5 5D C2 24 00", 12);
                     pattern = hook::pattern("68 00 01 00 00 6A 02 6A 00 E8");
                     static auto TrafficHeadlightHook = safetyhook::create_mid(pattern.get_first(9), [](SafetyHookContext& regs)
                     {
+                        // AddVehicleLight also handles rear lights, which reuse the single-headlight ID.
+                        // EBP+4 is its caller's return address, preserved across this mid-hook.
+                        if (*(void**)(regs.ebp + 0x04) != DoHeadLightsEffectReturn)
+                            return;
+
                         static auto HeadlightShadows = FusionFixSettings.GetRef("PREF_HEADLIGHTSHADOWS");
                         auto trackingID = *(uint32_t*)(regs.ebp + 0x30);
                         auto position = *(rage::Vector3**)(regs.esp + 0x14);
