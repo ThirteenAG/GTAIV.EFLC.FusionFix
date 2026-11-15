@@ -402,11 +402,14 @@ namespace NightShadows
     bool ChooseSlotProjection(uint32_t slotOffset)
     {
         auto slot = slotOffset / SlotStride;
+        if (slot >= SlotCount)
+            return false;
+
         auto base = pSlots + slotOffset;
         auto& type = *(int32_t*)(base + 0x00);
         type = 0;
-        if (slot >= SlotCount)
-            return false;
+        // CalcPointLightMatrix restores the matrix and range, but not the native tan(half-FOV) of a reused slot.
+        *(float*)(base + 0x0C) = 1.0f;
 
         auto renderType = *(int32_t*)(base + 0xFC);
         auto cacheIndex = *(int32_t*)(base + 0xF0);
