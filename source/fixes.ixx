@@ -610,7 +610,7 @@ namespace FixtureLights
         // Match CEntity::PreRender's conditional fade to the linked LOD's lights.
         if (lod && (*(uint32_t*)(lod + 0x24) & 0x800000) &&
             ((*(uint32_t*)(lod + 0x28) & 0x80000) || (*(uint16_t*)(lod + 0x5C) & 0x2000)) &&
-            pLodLightFade && *pLodLightFade == 1)
+            *pLodLightFade == 1)
             fade = std::min(fade, (255 - *(uint8_t*)(lod + 0x63)) * (1.0f / 255.0f));
 
         fade = std::min(fade, float(*(uint32_t*)(ModelInfo(entity) + 0x5C)) * 999.99994f);
@@ -1623,9 +1623,7 @@ public:
                     FixtureLights::pBuildingPool = *hook::pattern("68 00 7D 00 00 8B C8 E8 ? ? ? ? A3").get_first<rage::fwPool<void*>**>(13);
                     FixtureLights::pModelInfos = *hook::get_pattern<uintptr_t*>("0F BF 46 2E 8B 04 85", 7);
 
-                    auto lodLightFade = hook::pattern("80 3D ? ? ? ? 01 75 ? 0F B6 41 63 B9 FF 00 00 00 2B C8");
-                    if (lodLightFade.size() == 1)
-                        FixtureLights::pLodLightFade = *lodLightFade.get_first<uint8_t*>(2);
+                    FixtureLights::pLodLightFade = *hook::get_pattern<uint8_t*>("80 3D ? ? ? ? 01 75 ? 0F B6 41 63 B9 FF 00 00 00 2B C8", 2);
 
                     static auto ProcessLightsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
