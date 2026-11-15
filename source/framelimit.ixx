@@ -18,7 +18,7 @@ std::vector<std::string> minigamesNames;
 
 // Sleeps on a high resolution timer until shortly before each frame's time slot, then spins the rest, so the wait is
 // exact without keeping a CPU core busy. Each slot follows the one before, so the pace doesn't drift; a frame that comes
-// later than a whole slot starts the count anew instead of rushing the next ones.
+// late starts the count anew, so the frames after it keep their length instead of being rushed to catch up.
 class FrameLimiter
 {
     std::atomic<LONGLONG> period{ 0 };
@@ -75,7 +75,7 @@ public:
             return;
 
         const LONGLONG now = Now();
-        if (restart.exchange(false) || now > next + slot)
+        if (restart.exchange(false) || now >= next)
         {
             next = now + slot;
             return;
@@ -108,7 +108,7 @@ FrameLimiter CutsceneFpsLimiter;
 FrameLimiter MinigamesFpsLimiter;
 bool bUnlockFramerateDuringLoadscreens = true;
 bool bNeedsToLimitFpsForThisMinigame = false;
-void __cdecl sub_855640()
+void LimitFrame()
 {
     static auto preset = FusionFixSettings.GetRef("PREF_FPS_LIMIT_PRESET");
 
@@ -133,6 +133,18 @@ void __cdecl sub_855640()
     // The flag is only set once a script started a minigame, so the native table is ready when the native is called
     if (fMinigamesFpsLimit && bNeedsToLimitFpsForThisMinigame && Natives::IsMinigameInProgress())
         MinigamesFpsLimiter.Sync();
+}
+
+// The game limits the frame rate at the end of the frame's draw list, before it ends the scene and presents. What the
+// graphics driver still has to do for the frame once the scene has ended takes a different time every frame, so the
+// frames were shown a varying few milliseconds after their time although the wait itself was exact. The wait is right
+// before the present instead: the driver works through the frame meanwhile, and the frame is shown when the wait is
+// over.
+bool bLimitBeforePresent = false;
+void __cdecl sub_855640()
+{
+    if (!bLimitBeforePresent)
+        LimitFrame();
 }
 
 class Framelimit
@@ -224,6 +236,17 @@ public:
                 pattern = find_pattern("8B 35 ? ? ? ? 8B 0D ? ? ? ? 8B 15 ? ? ? ? A1", "A1 ? ? ? ? 83 F8 01 8B 0D");
                 injector::WriteMemory(pattern.get_first(0), 0x901CC483, true); //nop + add esp,1C
                 injector::MakeJMP(pattern.get_first(4), sub_855640, true); // + jmp
+
+                // The swap chain's present, after the scene has ended
+                pattern = hook::pattern("A1 ? ? ? ? 6A 01 8B 08 6A 00 6A 00 6A 00 6A 00 50 FF 51 0C 3D 1C 02 76 88");
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+                {
+                    bLimitBeforePresent = true;
+                    static auto BeforePresentHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        LimitFrame();
+                    });
+                }
 
                 FusionFixSettings.SetCallback("PREF_FPS_LIMIT_PRESET", [](int32_t value)
                 {

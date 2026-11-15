@@ -634,11 +634,51 @@ namespace FixtureLights
     }
 }
 
+// The audio engine's submixes each have a lock. The mixing thread takes a submix's lock and then those of its inputs;
+// connecting an input takes the input's lock and then the lock of the submix it goes into. When an effect chain is
+// made while the mixing thread is at the same two submixes, each thread holds the lock the other waits for: the game
+// stays on its loading screen forever (seen at start, in the audio engine's init). Both paths take one common lock
+// first, so one of them finishes before the other starts.
+namespace AudioSubmixLocks
+{
+    CRITICAL_SECTION Lock;
+
+    SafetyHookInline shConnect = {};
+    int __fastcall Connect(void* submix, void* edx, void* input)
+    {
+        EnterCriticalSection(&Lock);
+        auto ret = shConnect.unsafe_fastcall<int>(submix, edx, input);
+        LeaveCriticalSection(&Lock);
+        return ret;
+    }
+
+    SafetyHookInline shMix = {};
+    int __fastcall Mix(void* submix, void* edx, void* out, int32_t samples, void* buffer)
+    {
+        EnterCriticalSection(&Lock);
+        auto ret = shMix.unsafe_fastcall<int>(submix, edx, out, samples, buffer);
+        LeaveCriticalSection(&Lock);
+        return ret;
+    }
+}
+
 class Fixes
 {
 public:
     Fixes()
     {
+        FusionFix::onInitEvent() += []()
+        {
+            auto pattern = hook::pattern("83 EC 08 53 55 8B D9 56 57 8D 83 5C 04 00 00 50 8D 4C 24 14 E8 ? ? ? ? 83 BB 48 04 00 00 08");
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+            {
+                InitializeCriticalSection(&AudioSubmixLocks::Lock);
+                AudioSubmixLocks::shConnect = safetyhook::create_inline(pattern.get_first(0), AudioSubmixLocks::Connect);
+                pattern = hook::pattern("83 EC 08 53 8B 5C 24 14 55 56 8B F1 57 80 BE 59 04 00 00 00");
+                AudioSubmixLocks::shMix = safetyhook::create_inline(pattern.get_first(0), AudioSubmixLocks::Mix);
+            }
+        };
+
         FusionFix::onInitEventAsync() += []()
         {
             SettingsReader reader;

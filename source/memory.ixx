@@ -4,6 +4,7 @@ module;
 #include <dxgi1_4.h>
 #include <span>
 #include <unordered_map>
+#include <deque>
 #include <intrin.h>
 #include <upscaler/graphics_api.h>
 
@@ -214,9 +215,6 @@ namespace grcDevice
         return TotalVRAM;
     }
 
-    // The video memory the game sizes its texture budget against, in MB
-    std::atomic<uint32_t> nVideoMemoryMB{ 2048 };
-
     SafetyHookInline shGetAvailableVideoMemory = {};
     uint64_t GetAvailableVideoMemory()
     {
@@ -225,7 +223,6 @@ namespace grcDevice
         if (ret < _2048mb)
             ret = GetTotalVideoMemory();
 
-        nVideoMemoryMB = static_cast<uint32_t>(ret >> 20);
         return ret;
     }
 
@@ -234,7 +231,6 @@ namespace grcDevice
     {
         auto ret = std::max<uint64_t>(shGetAvailableVideoMemory.call<uint32_t>(), GetTotalVideoMemory());
         ret = std::min<uint64_t>(ret, INT32_MAX);
-        nVideoMemoryMB = static_cast<uint32_t>(ret >> 20);
         return static_cast<uint32_t>(ret);
     }
 }
@@ -246,9 +242,9 @@ namespace grcDevice
 // or a big texture mod uses the address space up until an allocation fails. The budget follows the room in the address
 // space instead, measured on a thread of its own: what is free plus what is reserved but unused (memory the game has
 // given back stays reserved by its heap and is used again), and the largest free block (a big texture needs one
-// piece). It is cut quickly when room gets short and raised slowly after a while of plenty, and only a little: address
-// space taken once is rarely given back to the system. Cars and people get more variety only when the world budget is
-// at its maximum and there is still room, and they give it back first.
+// piece). It is cut quickly when room gets short and raised back to the game's own after a while of plenty. It never
+// goes above the game's own: more streamed in means more streaming work while moving through the city, and the hitches
+// it caused were worse than the pop-in it saved.
 namespace StreamingBudget
 {
     struct Limits
@@ -256,21 +252,17 @@ namespace StreamingBudget
         uint32_t nCriticalRoom, nCriticalLargest;   // MB: cut hard below either
         uint32_t nTightRoom, nTightLargest;         // cut below either
         uint32_t nRaiseRoom, nRaiseLargest;         // raise above both
-        uint32_t nCrowdRoom, nCrowdLargest;         // more car and ped variety above both
-        float fMaxScale;
     };
 
     // Direct3D 9 keeps a wider margin: a device reset allocates again. DirectX 12 and Vulkan start with less room (their
     // drivers map more into the process), so their limits are lower and the same steps apply.
-    constexpr Limits Direct3D9Limits = { 500, 96, 800, 160, 1300, 384, 1600, 448, 1.15f };
-    constexpr Limits OtherLimits = { 400, 80, 700, 128, 1200, 320, 1500, 384, 1.15f };
+    constexpr Limits Direct3D9Limits = { 500, 96, 800, 160, 1300, 384 };
+    constexpr Limits OtherLimits = { 400, 80, 700, 128, 1200, 320 };
 
     constexpr float fMinScale = 0.6f;
     constexpr float fRaiseStep = 0.025f;
     constexpr float fCutStep = 0.05f;
     constexpr float fCriticalCutStep = 0.15f;
-    constexpr float fCrowdStep = 0.05f;
-    constexpr float fCrowdCutStep = 0.25f;
 
     // Of the game's free memory multiplier
     std::atomic<float> fScale{ 1.0f };
@@ -278,9 +270,6 @@ namespace StreamingBudget
     // 1.0.7.0, 1.1.2.0: the multiplier is a constant in memory; the code reads this one instead
     float fBaseMultiplier = 0.0f;
     float fMultiplier = 0.0f;
-
-    // More car and ped variety, 0 to 1 (PopulationBudget)
-    std::atomic<float> fCrowd{ 0.0f };
 
     struct AddressSpace
     {
@@ -324,7 +313,6 @@ namespace StreamingBudget
         const auto& limits = FusionFixGraphicsApi::Running() == FusionFixGraphicsApi::Api::Direct3D9 ? Direct3D9Limits : OtherLimits;
 
         float scale = 1.0f;
-        float crowd = 0.0f;
         uint64_t lastChange = 0;
         uint64_t lastCut = GetTickCount64();
         uint64_t roomSince = 0;
@@ -352,16 +340,12 @@ namespace StreamingBudget
             }
             AddressSpace space = { walked.nRoom - std::min(walked.nRoom, walkFree > free ? walkFree - free : 0), walked.nLargest };
 
-            // Within about three quarters of the video memory
-            auto maxScale = std::clamp(grcDevice::nVideoMemoryMB * 0.00075f, 1.0f, limits.fMaxScale);
-
             auto critical = space.nRoom < limits.nCriticalRoom || space.nLargest < limits.nCriticalLargest;
             auto tight = critical || space.nRoom < limits.nTightRoom || space.nLargest < limits.nTightLargest;
             auto raise = space.nRoom > limits.nRaiseRoom && space.nLargest > limits.nRaiseLargest;
             watch = !raise;
 
-            auto newScale = std::min(scale, maxScale);
-            auto newCrowd = crowd;
+            auto newScale = scale;
 
             if (tight)
             {
@@ -370,15 +354,7 @@ namespace StreamingBudget
                 // A cut takes a moment to show in the address space
                 if (now - lastChange >= 1000)
                 {
-                    if (critical)
-                    {
-                        newCrowd = 0.0f;
-                        newScale = std::max(fMinScale, newScale - fCriticalCutStep);
-                    }
-                    else if (crowd > 0.0f)
-                        newCrowd = std::max(0.0f, crowd - fCrowdCutStep);
-                    else
-                        newScale = std::max(fMinScale, newScale - fCutStep);
+                    newScale = std::max(fMinScale, newScale - (critical ? fCriticalCutStep : fCutStep));
                     lastCut = now;
                 }
             }
@@ -387,15 +363,9 @@ namespace StreamingBudget
                 if (!roomSince)
                     roomSince = now;
 
-                // Back up to the game's own budget soon after a cut, above it only after a long while of room
-                auto wait = newScale < 1.0f ? 5000 : 30000;
-                if (now - roomSince >= 5000 && now - lastCut >= wait && now - lastChange >= 2000)
-                {
-                    if (newScale < maxScale)
-                        newScale = std::min(maxScale, newScale + fRaiseStep);
-                    else if (space.nRoom > limits.nCrowdRoom && space.nLargest > limits.nCrowdLargest)
-                        newCrowd = std::min(1.0f, crowd + fCrowdStep);
-                }
+                // Back up to the game's own budget soon after a cut
+                if (newScale < 1.0f && now - roomSince >= 5000 && now - lastCut >= 5000 && now - lastChange >= 2000)
+                    newScale = std::min(1.0f, newScale + fRaiseStep);
             }
             else
                 roomSince = 0;
@@ -409,12 +379,6 @@ namespace StreamingBudget
                 lastChange = now;
             }
 
-            if (newCrowd != crowd)
-            {
-                crowd = newCrowd;
-                fCrowd = crowd;
-                lastChange = now;
-            }
         }
     }
 }
@@ -518,6 +482,310 @@ namespace EntityLinkPool
         auto ret = shReleaseLink.unsafe_fastcall<void*>(pool, edx, link);
         LeaveCriticalSection(&Lock);
         return ret;
+    }
+}
+
+// How much the streaming has loaded, for work that belongs behind the loading screen of a game being loaded and not
+// behind the one the game starts with
+export namespace LoadingScreenWork
+{
+    constexpr uint32_t nGameResources = 300;    // This much loaded behind a loading screen: a game is being loaded
+    std::atomic<uint32_t> nResourcesLoaded{ 0 };
+}
+
+// The game makes a model's Direct3D vertex and index buffers when the model is first drawn and a texture's Direct3D
+// texture when it is first bound, on the render thread in the middle of the frame, as many as the frame happens to
+// need. Whatever comes into view for the first time, after a load, when the camera turns or on leaving an interior,
+// brings several hundred at once, and that frame takes 50 to 150 ms and more. They are made ahead instead, in the
+// order the streaming loads them: a limited number per frame while playing, all of them behind the loading screen of
+// the first game loaded, and as many as fit into a limited time behind the loading screens after it (what is left
+// goes on with the frames after it). What is drawn before its turn is still made on the spot, as the game does, so
+// nothing is ever missing.
+namespace EarlyUploads
+{
+    constexpr uint32_t nFrameUploads = 16;      // Per frame while little is waiting
+    constexpr uint32_t nCatchUpFrames = 10;     // What waits is made within about this many frames
+    constexpr double fUploadMs = 0.125;         // The copies of a frame's uploads take no longer than this each
+    constexpr double fLoadingScreenMs = 1500.0; // The time one loading screen spends on them at most
+    constexpr double fLoadingFrameMs = 30.0;    // In one of its frames
+
+    enum class Kind { VertexBuffer, IndexBuffer, Texture };
+
+    struct Upload
+    {
+        uintptr_t nResource;
+        Kind kind;
+    };
+
+    // What the streaming has loaded and nothing has drawn or changed yet. A buffer or texture leaves when it is
+    // destroyed or locked for writing, under the lock an upload holds: it stays alive and unchanged while it is made.
+    SRWLOCK Lock = SRWLOCK_INIT;
+    std::deque<Upload> Queue;
+    std::unordered_map<uintptr_t, Kind> Waiting;    // By address, with its kind: a freed one's address can come back as another kind
+
+    void Add(uintptr_t resource, Kind kind)
+    {
+        AcquireSRWLockExclusive(&Lock);
+        if (auto waiting = Waiting.find(resource); waiting == Waiting.end() || waiting->second != kind)
+        {
+            Waiting[resource] = kind;
+            Queue.push_back({ resource, kind });
+        }
+        ReleaseSRWLockExclusive(&Lock);
+        LoadingScreenWork::nResourcesLoaded++;
+    }
+
+    void Forget(uintptr_t resource)
+    {
+        AcquireSRWLockExclusive(&Lock);
+        Waiting.erase(resource);
+        ReleaseSRWLockExclusive(&Lock);
+    }
+
+    // grcVertexBufferD3D and grcIndexBufferD3D made from a resource: the call that keeps the buffer's contents for
+    // the Direct3D buffer made later
+    void(__thiscall* KeepVertices)(uintptr_t) = nullptr;
+    void __fastcall LoadedVertexBuffer(uintptr_t buffer, void* edx)
+    {
+        KeepVertices(buffer);
+        Add(buffer, Kind::VertexBuffer);
+    }
+
+    void(__thiscall* KeepIndices)(uintptr_t) = nullptr;
+    void __fastcall LoadedIndexBuffer(uintptr_t buffer, void* edx)
+    {
+        KeepIndices(buffer);
+        Add(buffer, Kind::IndexBuffer);
+    }
+
+    SafetyHookInline shDestroyVertexBuffer = {};
+    void __fastcall DestroyVertexBuffer(uintptr_t buffer, void* edx)
+    {
+        Forget(buffer);
+        shDestroyVertexBuffer.unsafe_fastcall(buffer, edx);
+    }
+
+    SafetyHookInline shDestroyIndexBuffer = {};
+    void __fastcall DestroyIndexBuffer(uintptr_t buffer, void* edx)
+    {
+        Forget(buffer);
+        shDestroyIndexBuffer.unsafe_fastcall(buffer, edx);
+    }
+
+    int(__thiscall* MakeVertexBuffer)(uintptr_t) = nullptr;
+    int(__thiscall* MakeIndexBuffer)(uintptr_t) = nullptr;
+    void MakeTexture(uintptr_t texture);
+
+    // Render thread
+    int64_t nUploadTicks = 0;
+    size_t nReady = 0;      // In the queue since the frame before: loaded completely by now
+    std::atomic<uint32_t> nUnlimitedFrames{ 0 };
+
+    int64_t Now()
+    {
+        LARGE_INTEGER now{};
+        QueryPerformanceCounter(&now);
+        return now.QuadPart;
+    }
+
+    // The system brings a new buffer or texture into video memory only when something is drawn with it, which is
+    // most of what the first draw of many new ones waits for. Each is drawn with once right away, with a triangle
+    // that writes nothing.
+    struct MadeResource
+    {
+        IUnknown* pResource;
+        Kind kind;
+    };
+    std::vector<MadeResource> Made;
+
+    void Use()
+    {
+        if (Made.empty())
+            return;
+
+        constexpr UINT nVertices = 0x10000;
+        constexpr UINT nStride = sizeof(float) * 3;
+        auto device = rage::grcDevice::GetD3DDevice();
+        static IDirect3DVertexBuffer9* vertices = nullptr;      // Managed: outlives a device reset
+        if (vertices || SUCCEEDED(device->CreateVertexBuffer(nVertices * nStride, D3DUSAGE_WRITEONLY, D3DFVF_XYZ, D3DPOOL_MANAGED, &vertices, nullptr)))
+        {
+            // Everything changed here is read first and set back through the same device, so what the game remembers of
+            // the device's state stays true
+            static constexpr std::pair<D3DRENDERSTATETYPE, DWORD> states[] =
+            {
+                { D3DRS_COLORWRITEENABLE, 0 }, { D3DRS_COLORWRITEENABLE1, 0 }, { D3DRS_COLORWRITEENABLE2, 0 }, { D3DRS_COLORWRITEENABLE3, 0 },
+                { D3DRS_ZENABLE, D3DZB_FALSE }, { D3DRS_ZWRITEENABLE, FALSE }, { D3DRS_STENCILENABLE, FALSE }, { D3DRS_ALPHABLENDENABLE, FALSE },
+                { D3DRS_ALPHATESTENABLE, FALSE }, { D3DRS_FOGENABLE, FALSE }, { D3DRS_LIGHTING, FALSE }, { D3DRS_CULLMODE, D3DCULL_NONE },
+            };
+            DWORD oldStates[std::size(states)] = {};
+            for (size_t i = 0; i < std::size(states); i++)
+            {
+                device->GetRenderState(states[i].first, &oldStates[i]);
+                device->SetRenderState(states[i].first, states[i].second);
+            }
+
+            IDirect3DVertexShader9* vertexShader = nullptr;
+            IDirect3DPixelShader9* pixelShader = nullptr;
+            IDirect3DVertexDeclaration9* declaration = nullptr;
+            IDirect3DVertexBuffer9* stream = nullptr;
+            IDirect3DIndexBuffer9* indices = nullptr;
+            IDirect3DBaseTexture9* texture = nullptr;
+            UINT offset = 0, stride = 0;
+            DWORD colorOp = 0, colorArg = 0;
+            device->GetVertexShader(&vertexShader);
+            device->GetPixelShader(&pixelShader);
+            device->GetVertexDeclaration(&declaration);
+            device->GetStreamSource(0, &stream, &offset, &stride);
+            device->GetIndices(&indices);
+            device->GetTexture(0, &texture);
+            device->GetTextureStageState(0, D3DTSS_COLOROP, &colorOp);
+            device->GetTextureStageState(0, D3DTSS_COLORARG1, &colorArg);
+
+            device->SetVertexShader(nullptr);
+            device->SetPixelShader(nullptr);
+            device->SetFVF(D3DFVF_XYZ);
+            device->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG1);
+            device->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
+            for (auto& made : Made)
+            {
+                device->SetTexture(0, nullptr);
+                device->SetStreamSource(0, vertices, 0, nStride);
+                switch (made.kind)
+                {
+                    case Kind::VertexBuffer:
+                    {
+                        auto buffer = static_cast<IDirect3DVertexBuffer9*>(made.pResource);
+                        D3DVERTEXBUFFER_DESC desc{};
+                        if (FAILED(buffer->GetDesc(&desc)) || desc.Size < nStride * 3)
+                            continue;
+                        device->SetStreamSource(0, buffer, 0, nStride);
+                        device->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 1);
+                        break;
+                    }
+                    case Kind::IndexBuffer:
+                    {
+                        auto buffer = static_cast<IDirect3DIndexBuffer9*>(made.pResource);
+                        D3DINDEXBUFFER_DESC desc{};
+                        if (FAILED(buffer->GetDesc(&desc)) || desc.Format != D3DFMT_INDEX16 || desc.Size < sizeof(uint16_t) * 3)
+                            continue;
+                        device->SetIndices(buffer);
+                        device->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, nVertices, 0, 1);
+                        break;
+                    }
+                    case Kind::Texture:
+                        device->SetTexture(0, static_cast<IDirect3DBaseTexture9*>(made.pResource));
+                        device->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 1);
+                        break;
+                }
+            }
+
+            device->SetTextureStageState(0, D3DTSS_COLOROP, colorOp);
+            device->SetTextureStageState(0, D3DTSS_COLORARG1, colorArg);
+            device->SetTexture(0, texture);
+            device->SetIndices(indices);
+            device->SetVertexDeclaration(declaration);
+            device->SetStreamSource(0, stream, offset, stride);
+            device->SetVertexShader(vertexShader);
+            device->SetPixelShader(pixelShader);
+            for (size_t i = 0; i < std::size(states); i++)
+                device->SetRenderState(states[i].first, oldStates[i]);
+            for (IUnknown* held : { static_cast<IUnknown*>(vertexShader), static_cast<IUnknown*>(pixelShader), static_cast<IUnknown*>(declaration),
+                static_cast<IUnknown*>(stream), static_cast<IUnknown*>(indices), static_cast<IUnknown*>(texture) })
+            {
+                if (held)
+                    held->Release();
+            }
+        }
+        for (auto& made : Made)
+            made.pResource->Release();
+        Made.clear();
+    }
+
+    int64_t nTicksPerMs = 0;
+    int64_t nLoadingTicksLeft = 0;
+    uint32_t nLoadedBefore = 0;
+    bool bLoading = false;
+    bool bFirstGame = true;
+
+    void EndFrame()
+    {
+        if (!nUploadTicks)
+        {
+            LARGE_INTEGER frequency{};
+            QueryPerformanceFrequency(&frequency);
+            nTicksPerMs = frequency.QuadPart / 1000;
+            nUploadTicks = static_cast<int64_t>(frequency.QuadPart * fUploadMs / 1000.0);
+        }
+
+        auto start = Now();
+        auto loading = (CMenuManager::bLoadscreenShown && *CMenuManager::bLoadscreenShown) || bLoadingShown;
+        if (loading && !bLoading)
+        {
+            nLoadingTicksLeft = static_cast<int64_t>(fLoadingScreenMs * nTicksPerMs);
+            nLoadedBefore = LoadingScreenWork::nResourcesLoaded;
+        }
+        else if (!loading && bLoading && LoadingScreenWork::nResourcesLoaded - nLoadedBefore >= LoadingScreenWork::nGameResources)
+            bFirstGame = false;
+        bLoading = loading;
+
+        // As much as the time allows behind a loading screen, and after a device reset, when all of it has to be made
+        // again
+        auto all = loading && nLoadingTicksLeft > 0;
+        auto everything = loading && bFirstGame;
+        if (nUnlimitedFrames)
+        {
+            nUnlimitedFrames--;
+            all = true;
+        }
+
+        auto uploads = all || everything ? nReady : std::min(nReady, std::max<size_t>(nFrameUploads, nReady / nCatchUpFrames));
+        auto limit = everything ? INT64_MAX : all ? static_cast<int64_t>(fLoadingFrameMs * nTicksPerMs) : static_cast<int64_t>(uploads * nUploadTicks);
+        for (size_t made = 0; made < uploads; made++)
+        {
+            if (made && Now() - start >= limit)
+                break;
+
+            AcquireSRWLockExclusive(&Lock);
+            if (!Queue.empty())
+            {
+                auto upload = Queue.front();
+                Queue.pop_front();
+                if (auto waiting = Waiting.find(upload.nResource); waiting != Waiting.end() && waiting->second == upload.kind)
+                {
+                    Waiting.erase(waiting);
+                    IUnknown* made = nullptr;
+                    switch (upload.kind)
+                    {
+                        case Kind::VertexBuffer:
+                            MakeVertexBuffer(upload.nResource);
+                            made = *reinterpret_cast<IUnknown**>(upload.nResource + 0x1C);
+                            break;
+                        case Kind::IndexBuffer:
+                            MakeIndexBuffer(upload.nResource);
+                            made = *reinterpret_cast<IUnknown**>(upload.nResource + 0x0C);
+                            break;
+                        case Kind::Texture:
+                            MakeTexture(upload.nResource);
+                            made = *reinterpret_cast<IUnknown**>(upload.nResource + 0x18);
+                            break;
+                    }
+                    if (made)
+                    {
+                        made->AddRef();
+                        Made.push_back({ made, upload.kind });
+                    }
+                }
+            }
+            ReleaseSRWLockExclusive(&Lock);
+        }
+
+        Use();
+        if (loading)
+            nLoadingTicksLeft -= Now() - start;
+
+        AcquireSRWLockShared(&Lock);
+        nReady = Queue.size();
+        ReleaseSRWLockShared(&Lock);
     }
 }
 
@@ -703,6 +971,8 @@ namespace TextureCopies
         ReleaseSRWLockExclusive(&Lock);
         if (released)
             CountSystemMemory(-CacheBlock(released));
+        else
+            EarlyUploads::Add(texture, EarlyUploads::Kind::Texture);
     }
 
     // Whether the texture functions write the copy themselves: without a device, or while a resource is being built
@@ -740,12 +1010,14 @@ namespace TextureCopies
         auto flags = *reinterpret_cast<volatile uint8_t*>(texture + FlagsOffset);
         if (!(flags & 0x80))
             return flags;
+
         return Mapped(texture, true, [&]() { return shMake.unsafe_fastcall<int>(texture, edx); });
     }
 
     SafetyHookInline shLock = {};
     int __fastcall LockTexture(uintptr_t texture, void* edx, int32_t a, int32_t b, void* c, int32_t d)
     {
+        EarlyUploads::Forget(texture);
         // Mapped until the unlock (the lock hands out a pointer into the copy)
         AcquireSRWLockExclusive(&Lock);
         Map(texture);
@@ -766,18 +1038,21 @@ namespace TextureCopies
     SafetyHookInline shUpdate = {};
     int __fastcall Update(uintptr_t texture, void* edx, void* src, int32_t width, int32_t height, int32_t bpp)
     {
+        EarlyUploads::Forget(texture);
         return Mapped(texture, NoDevice(), [&]() { return shUpdate.unsafe_fastcall<int>(texture, edx, src, width, height, bpp); });
     }
 
     SafetyHookInline shRebuild = {};
     int __fastcall Rebuild(uintptr_t texture, void* edx, void* image)
     {
+        EarlyUploads::Forget(texture);
         return Mapped(texture, NoDevice(), [&]() { return shRebuild.unsafe_fastcall<int>(texture, edx, image); });
     }
 
     SafetyHookInline shDestroy = {};
     void __fastcall Destroy(uintptr_t texture, void* edx)
     {
+        EarlyUploads::Forget(texture);
         auto& copy = CopyOf(texture);
         uint32_t released = 0;
         AcquireSRWLockExclusive(&Lock);
@@ -805,12 +1080,19 @@ namespace TextureCopies
     }
 }
 
+namespace EarlyUploads
+{
+    void MakeTexture(uintptr_t texture)
+    {
+        TextureCopies::Make(texture, nullptr);
+    }
+}
+
 // The population streaming loads another car or ped model while the memory of the ones it has is under a budget (40 and
 // 50 MB). Every model counts, also the taxis, police and emergency models it keeps loaded whatever the budget says, so
 // with bigger models (car mods) those alone fill it: no other car model is loaded, models are dropped, and taxis are
 // soon the only cars on the streets. The budgets follow the size of the models in memory instead, so they hold about
-// as many models as the game's own budgets hold of its own models; with room in the address space a few more
-// (StreamingBudget's crowd).
+// as many models as the game's own budgets hold of its own models.
 namespace PopulationBudget
 {
     // MB per model in memory: the game's own models average about 3.2 (cars) and 4.4 (peds), so with these its own
@@ -818,8 +1100,6 @@ namespace PopulationBudget
     constexpr float fStockVehicleModelMB = 3.6f;
     constexpr float fStockPedModelMB = 4.9f;
     constexpr float fMaxModelScale = 4.0f;
-    constexpr float fMaxVehicleCrowd = 1.5f;
-    constexpr float fMaxPedCrowd = 1.3f;
 
     GameRef<int32_t> nVehicleBudget;
     GameRef<int32_t> nPedBudget;
@@ -858,9 +1138,8 @@ namespace PopulationBudget
         static int32_t nStockVehicleBudget = nVehicleBudget;
         static int32_t nStockPedBudget = nPedBudget;
 
-        auto crowd = StreamingBudget::fCrowd.load(std::memory_order_relaxed);
-        auto vehicles = ModelScale(population, VehicleGroups, VehicleMemory, fStockVehicleModelMB) * (1.0f + crowd * (fMaxVehicleCrowd - 1.0f));
-        auto peds = ModelScale(population, PedGroups, PedMemory, fStockPedModelMB) * (1.0f + crowd * (fMaxPedCrowd - 1.0f));
+        auto vehicles = ModelScale(population, VehicleGroups, VehicleMemory, fStockVehicleModelMB);
+        auto peds = ModelScale(population, PedGroups, PedMemory, fStockPedModelMB);
         nVehicleBudget = static_cast<int32_t>(nStockVehicleBudget * vehicles);
         nPedBudget = static_cast<int32_t>(nStockPedBudget * peds);
     }
@@ -1098,6 +1377,51 @@ public:
                     });
                 }
                 // 1.0.7.0, 1.1.2.0: textures are made managed (Direct3D keeps the copy), the game keeps none of its own
+
+                // Vertex buffers, index buffers and textures made ahead of their first draw
+                pattern = hook::pattern("8B CE C6 46 07 00 E8 ? ? ? ? C7 46 18 00 00 00 00");
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+                {
+                    // Where the buffers of a loaded resource keep their contents
+                    EarlyUploads::KeepVertices = reinterpret_cast<decltype(EarlyUploads::KeepVertices)>(injector::MakeCALL(pattern.get_first(6), EarlyUploads::LoadedVertexBuffer, true).get<void>());
+                    pattern = hook::pattern("83 3F 00 74 0D 8B CE E8");
+                    EarlyUploads::KeepIndices = reinterpret_cast<decltype(EarlyUploads::KeepIndices)>(injector::MakeCALL(pattern.get_first(7), EarlyUploads::LoadedIndexBuffer, true).get<void>());
+
+                    // The functions that make the Direct3D buffers
+                    pattern = hook::pattern("56 8B F1 8B 06 8B 40 24 FF D0 84 C0 0F 84 ? ? ? ? 33 C0 38 46 07 57 B9 00 02 00 00");
+                    EarlyUploads::MakeVertexBuffer = reinterpret_cast<decltype(EarlyUploads::MakeVertexBuffer)>(pattern.get_first(0));
+                    pattern = hook::pattern("51 56 8B F1 8B 06 8B 40 20 FF D0 84 C0 0F 84 ? ? ? ? 53 8B 5E 14");
+                    EarlyUploads::MakeIndexBuffer = reinterpret_cast<decltype(EarlyUploads::MakeIndexBuffer)>(pattern.get_first(0));
+
+                    // Their destructors, and their locks from the vtables the destructors set: the vertex buffer's
+                    // three, and the one function behind both of the index buffer's
+                    pattern = hook::pattern("56 8B F1 57 80 7E 06 00 C7 06 ? ? ? ? 74 05 E8");
+                    auto vertexBuffer = *pattern.get_first<void**>(10);
+                    EarlyUploads::shDestroyVertexBuffer = safetyhook::create_inline(pattern.get_first(0), EarlyUploads::DestroyVertexBuffer);
+                    pattern = hook::pattern("56 8B F1 57 8B 7E 10 C7 06 ? ? ? ? 85 FF 74");
+                    auto indexBuffer = *pattern.get_first<void**>(9);
+                    EarlyUploads::shDestroyIndexBuffer = safetyhook::create_inline(pattern.get_first(0), EarlyUploads::DestroyIndexBuffer);
+
+                    static std::vector<SafetyHookMid> lockHooks;
+                    auto indexLock = injector::GetBranchDestination(reinterpret_cast<uintptr_t>(indexBuffer[1]) + 5).as_int();
+                    for (auto lock : { reinterpret_cast<uintptr_t>(vertexBuffer[1]), reinterpret_cast<uintptr_t>(vertexBuffer[2]), reinterpret_cast<uintptr_t>(vertexBuffer[3]), indexLock })
+                    {
+                        lockHooks.emplace_back(safetyhook::create_mid(lock, [](SafetyHookContext& regs)
+                        {
+                            EarlyUploads::Forget(regs.ecx);
+                        }));
+                    }
+
+                    FusionFix::onEndScene() += []()
+                    {
+                        EarlyUploads::EndFrame();
+                    };
+
+                    FusionFix::onBeforeReset() += []()
+                    {
+                        EarlyUploads::nUnlimitedFrames = 30;
+                    };
+                }
 
                 if (destroy)
                 {

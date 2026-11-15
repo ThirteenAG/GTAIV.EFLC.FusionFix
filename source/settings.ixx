@@ -2058,7 +2058,8 @@ private:
             setFontDropShadow = reinterpret_cast<decltype(setFontDropShadow)>(branch(info.get_first<uint8_t>(0x7E)));
             getInfoLabelWidth = reinterpret_cast<decltype(getInfoLabelWidth)>(branch(infoWidth.get_first<uint8_t>(1)));
             infoTextRow = safetyhook::create_mid(infoRow.get_first(), InfoTextRow);
-            infoTextTop = safetyhook::create_mid(info.get_first(0x34), [](SafetyHookContext& regs)
+            // The row's info text: its height (the info position plus a margin) is in xmm0
+            infoTextTop = safetyhook::create_mid(hook::pattern("F3 0F 10 40 04 F3 0F 58 05 ? ? ? ? 83 C4 0C 8D 44 24 ? 6A 3B 50").get_first(13), [](SafetyHookContext& regs)
             {
                 if (IsGraphicsList() && rowHeight)
                     regs.xmm0.f32[0] += *rowHeight;
