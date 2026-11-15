@@ -2,6 +2,10 @@ module;
 
 #include <common.hxx>
 #include <concepts>
+#include <mutex>
+#include <set>
+#include <unordered_set>
+#include <unordered_map>
 
 export module shaders;
 
@@ -9,6 +13,7 @@ import common;
 import comvars;
 import d3dx9_43;
 import hdr;
+import memory;
 import natives;
 import seasonal;
 import settings;
@@ -43,6 +48,210 @@ int GetFusionShaderID(T pShader)
         }
     }
     return -1;
+}
+
+// The graphics driver compiles a pair of vertex and pixel shader the first time something is drawn with it, on its
+// own thread, and the frame waits for it: 20 to 90 ms whenever a material comes into view for the first time since
+// the game was started. The passes of the effects are drawn once with a triangle of no size behind the loading screen
+// of a game being loaded: all of them for the first game loaded, so nothing is left to compile while playing, and for
+// effects loaded later a few per frame and for a limited time (what is left waits for the next loading screen). The
+// effects of the models the streaming has loaded go first, in the order they were loaded.
+namespace ShaderWarmUp
+{
+    constexpr uint32_t nFramePairs = 24;            // Per frame of the loading screen
+    constexpr uint32_t nLoadingScreenPairs = 600;   // Per loading screen
+    constexpr double fLoadingScreenMs = 1500.0;     // What one loading screen is held up by at most
+
+    struct Pair
+    {
+        IDirect3DVertexShader9* pVertexShader;
+        IDirect3DPixelShader9* pPixelShader;
+    };
+
+    std::mutex Lock;
+    std::vector<uintptr_t> Effects;         // Loaded, their pairs not collected yet
+    std::vector<uintptr_t> UsedEffects;     // A loaded model has a shader of it, its pairs not moved to the front yet
+    std::unordered_set<uintptr_t> Used;
+
+    // Render thread
+    std::set<std::pair<IDirect3DVertexShader9*, IDirect3DPixelShader9*>> Known;
+    std::unordered_map<uintptr_t, std::vector<Pair>> Pairs;     // By effect
+    std::vector<Pair> First;
+
+    SafetyHookInline shInitEffect = {};
+    bool __fastcall InitEffect(uintptr_t effect, void* edx, const char* name, int32_t path)
+    {
+        auto ret = shInitEffect.unsafe_fastcall<bool>(effect, edx, name, path);
+        if (ret)
+        {
+            std::lock_guard lock(Lock);
+            Effects.push_back(effect);
+        }
+        return ret;
+    }
+
+    // grmShaderFx made from a resource: the shader of a loaded model, with its effect at 0x18
+    SafetyHookInline shLoadShader = {};
+    uintptr_t __fastcall LoadShader(uintptr_t shader, void* edx, void* resource)
+    {
+        auto ret = shLoadShader.unsafe_fastcall<uintptr_t>(shader, edx, resource);
+        if (auto effect = *reinterpret_cast<uintptr_t*>(shader + 0x18))
+        {
+            std::lock_guard lock(Lock);
+            if (Used.insert(effect).second)
+                UsedEffects.push_back(effect);
+        }
+        return ret;
+    }
+
+    // grcEffect: techniques (16 bytes each, with their passes of 32 bytes), vertex and fragment programs (12 bytes
+    // each, the Direct3D shader last); a pass starts with its vertex program's index, its fragment program's is at 12
+    template<typename T>
+    T* Shader(uintptr_t programs, uint32_t index)
+    {
+        if (index >= *reinterpret_cast<uint16_t*>(programs + 4))
+            return nullptr;
+        return *reinterpret_cast<T**>(*reinterpret_cast<uintptr_t*>(programs) + index * 12 + 8);
+    }
+
+    // The pairs of the effects loaded since the last time, held until they are drawn, and those of the effects found
+    // in use to the front
+    void Collect()
+    {
+        std::vector<uintptr_t> effects, used;
+        {
+            std::lock_guard lock(Lock);
+            effects.swap(Effects);
+            used.swap(UsedEffects);
+        }
+        for (auto effect : effects)
+        {
+            auto& pairs = Pairs[effect];
+            auto techniques = *reinterpret_cast<uintptr_t*>(effect);
+            auto techniqueCount = *reinterpret_cast<uint16_t*>(effect + 4);
+            for (uint32_t t = 0; t < techniqueCount; t++)
+            {
+                auto passes = *reinterpret_cast<uintptr_t*>(techniques + t * 16 + 8);
+                auto passCount = *reinterpret_cast<uint16_t*>(techniques + t * 16 + 12);
+                for (uint32_t p = 0; p < passCount; p++)
+                {
+                    auto pass = reinterpret_cast<uint32_t*>(passes + p * 32);
+                    auto vs = Shader<IDirect3DVertexShader9>(effect + 16, pass[0]);
+                    auto ps = Shader<IDirect3DPixelShader9>(effect + 24, pass[3]);
+                    if (!vs || !ps || !Known.emplace(vs, ps).second)
+                        continue;
+                    vs->AddRef();
+                    ps->AddRef();
+                    pairs.push_back({ vs, ps });
+                }
+            }
+        }
+        for (auto effect : used)
+        {
+            if (auto it = Pairs.find(effect); it != Pairs.end())
+            {
+                First.insert(First.end(), it->second.begin(), it->second.end());
+                Pairs.erase(it);
+            }
+        }
+    }
+
+    bool Next(Pair& pair)
+    {
+        if (First.empty())
+        {
+            while (!Pairs.empty() && Pairs.begin()->second.empty())
+                Pairs.erase(Pairs.begin());
+            if (Pairs.empty())
+                return false;
+            First.swap(Pairs.begin()->second);
+            Pairs.erase(Pairs.begin());
+        }
+        pair = First.back();
+        First.pop_back();
+        return true;
+    }
+
+    // A loading screen's time is the whole of its frames in which pairs were drawn: the compiling shows in the frame,
+    // not in the draws
+    int64_t nTicksLeft = 0;
+    uint32_t nPairsLeft = 0;
+    int64_t nLastFrame = 0;
+    uint32_t nLoadedBefore = 0;
+    bool bLoading = false;
+    bool bDrewLastFrame = false;
+    bool bFirstGame = true;
+
+    void Draw()
+    {
+        LARGE_INTEGER now{}, frequency{};
+        QueryPerformanceCounter(&now);
+        QueryPerformanceFrequency(&frequency);
+        auto loading = (CMenuManager::bLoadscreenShown && *CMenuManager::bLoadscreenShown) || bLoadingShown;
+        if (loading && !bLoading)
+        {
+            nTicksLeft = static_cast<int64_t>(fLoadingScreenMs * frequency.QuadPart / 1000.0);
+            nPairsLeft = nLoadingScreenPairs;
+            nLoadedBefore = LoadingScreenWork::nResourcesLoaded;
+        }
+        else if (loading && bDrewLastFrame)
+            nTicksLeft -= now.QuadPart - nLastFrame;
+        else if (!loading && bLoading && LoadingScreenWork::nResourcesLoaded - nLoadedBefore >= LoadingScreenWork::nGameResources)
+            bFirstGame = false;
+        bLoading = loading;
+        nLastFrame = now.QuadPart;
+        bDrewLastFrame = false;
+
+        Collect();
+        if (!loading || LoadingScreenWork::nResourcesLoaded - nLoadedBefore < LoadingScreenWork::nGameResources)
+            return;
+        if (!bFirstGame && (nTicksLeft <= 0 || !nPairsLeft))
+            return;
+
+        Pair pair{};
+        if (!Next(pair))
+            return;
+
+        auto device = rage::grcDevice::GetD3DDevice();
+        IDirect3DVertexShader9* vertexShader = nullptr;
+        IDirect3DPixelShader9* pixelShader = nullptr;
+        IDirect3DVertexDeclaration9* declaration = nullptr;
+        IDirect3DVertexBuffer9* stream = nullptr;
+        UINT offset = 0, stride = 0;
+        device->GetVertexShader(&vertexShader);
+        device->GetPixelShader(&pixelShader);
+        device->GetVertexDeclaration(&declaration);
+        device->GetStreamSource(0, &stream, &offset, &stride);
+
+        static const float triangle[9] = {};
+        device->SetFVF(D3DFVF_XYZ);
+        for (uint32_t i = 0;;)
+        {
+            device->SetVertexShader(pair.pVertexShader);
+            device->SetPixelShader(pair.pPixelShader);
+            device->DrawPrimitiveUP(D3DPT_TRIANGLELIST, 1, triangle, sizeof(float) * 3);
+            pair.pVertexShader->Release();
+            pair.pPixelShader->Release();
+            if (nPairsLeft)
+                nPairsLeft--;
+            if ((!bFirstGame && (++i >= nFramePairs || !nPairsLeft)) || !Next(pair))
+                break;
+        }
+        bDrewLastFrame = true;
+
+        device->SetVertexDeclaration(declaration);
+        device->SetStreamSource(0, stream, offset, stride);
+        device->SetVertexShader(vertexShader);
+        device->SetPixelShader(pixelShader);
+        if (declaration)
+            declaration->Release();
+        if (stream)
+            stream->Release();
+        if (vertexShader)
+            vertexShader->Release();
+        if (pixelShader)
+            pixelShader->Release();
+    }
 }
 
 class Shaders
@@ -133,6 +342,22 @@ class Shaders
 public:
     Shaders()
     {
+        FusionFix::onInitEvent() += []()
+        {
+            auto pattern = hook::pattern("81 EC 04 01 00 00 53 55 56 57 8B F9 E8 ? ? ? ? 8B 9C 24 18 01 00 00 85 DB 0F 84");
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+            {
+                ShaderWarmUp::shInitEffect = safetyhook::create_inline(pattern.get_first(0), ShaderWarmUp::InitEffect);
+                pattern = hook::pattern("81 EC 04 04 00 00 53 56 57 8B F1 E8 ? ? ? ? 8B 9C 24 14 04 00 00 53 8D 4E 14 C7 06");
+                ShaderWarmUp::shLoadShader = safetyhook::create_inline(pattern.get_first(0), ShaderWarmUp::LoadShader);
+
+                FusionFix::onEndScene() += []()
+                {
+                    ShaderWarmUp::Draw();
+                };
+            }
+        };
+
         static rage::grcRenderTargetPC* pHDRTexQuarter = nullptr;
         static float fOverrideTreeAlpha = 0.0f;
 

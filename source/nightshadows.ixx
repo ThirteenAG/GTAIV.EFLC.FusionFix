@@ -677,6 +677,7 @@ namespace NightShadows
         uint32_t frame;
         bool noPeople;
         bool noVehicles;
+        bool overDrawn;     // a per-frame shadow on top of its cached one: only what moves
         int32_t count;
         uintptr_t entities[MaxOwnEntities];
     };
@@ -835,6 +836,7 @@ namespace NightShadows
         if (slot < 0 || slot >= SlotCount || !SlotEnabled(slot))
             return;
         it.frame = *CTimer::m_frameCount;
+        it.overDrawn = slot != 0 && *(int32_t*)(pSlots + slot * SlotStride + 0xF0) != -1;
 
         auto add = [&it](uintptr_t entity)
         {
@@ -879,6 +881,12 @@ namespace NightShadows
         auto& it = exclusions[renderList];
         if (it.frame != *CTimer::m_frameCount)
             return false;
+
+        // A per-frame shadow drawn on top of a cached one adds people and vehicles: buildings and objects are in the cached
+        // shadow already (it is rendered again every few frames, so an object that moves still updates), and drawing
+        // them every frame was most of the night shadows' cost
+        if (it.overDrawn && type != EntityPed && type != EntityVehicle)
+            return true;
 
         // People in a vehicle go with the vehicle
         constexpr uint32_t PedInVehicle = 4;
