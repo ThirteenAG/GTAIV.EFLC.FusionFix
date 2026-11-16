@@ -727,7 +727,6 @@ namespace CObject
 // Native entity-light sources shared by normal fixture submission and shadow-only cut recovery.
 export namespace EntityLights
 {
-    bool ready = false;
     bool legacy = false;
     thread_local bool gatheringShadows = false;
     uintptr_t* pModelInfos = nullptr;
@@ -795,17 +794,12 @@ export namespace EntityLights
         auto building = hook::pattern("6A 70 68 ? ? ? ? 68 00 7D 00 00 8B C8 E8 ? ? ? ? A3");
         auto animatedBuilding = hook::pattern("68 10 01 00 00 68 ? ? ? ? 68 F4 01 00 00 8B C8 E8 ? ? ? ? A3");
         auto dummy = hook::pattern("68 B0 36 00 00 8B C8 E8 ? ? ? ? A3");
-        if (preRender.size() != 1 || building.size() != 1 || animatedBuilding.size() != 1 || dummy.size() != 1)
-            return;
         auto pre = preRender.get_first<uint8_t>();
         auto effectsCall = legacy ? 0x5B : 0x56;
         auto poolCall = legacy ? 0xA6 : 0xA4;
         auto lightsCall = legacy ? 0x1EE : 0x1E0;
         auto portalCall = legacy ? 0x1A3 : 0x19E;
         auto fadeLod = legacy ? 0x165 : 0x168;
-        if (pre[effectsCall] != 0xE8 || pre[poolCall] != 0xE8 || pre[lightsCall] != 0xE8
-            || pre[portalCall] != 0xE8 || memcmp(pre + fadeLod, "\x80\x3D", 2) != 0)
-            return;
         pModelInfos = *(uintptr_t**)(pre + (legacy ? 14 : 16));
         pBuildingPool = *building.get_first<CPool<void*>**>(20);
         pAnimatedBuildingPool = *animatedBuilding.get_first<CPool<void*>**>(23);
@@ -816,7 +810,6 @@ export namespace EntityLights
         pInteriorPool = *(void***)(pre + (legacy ? 0xA1 : 0x9F));
         pFadeLodLights = *(uint8_t**)(pre + fadeLod + 2);
         CPortal__GetNoExteriorLights = (decltype(CPortal__GetNoExteriorLights))injector::GetBranchDestination(pre + portalCall).as_int();
-        ready = true;
     }
 }
 

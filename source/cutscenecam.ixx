@@ -39,7 +39,6 @@ namespace CutsceneCuts
     int32_t* pCutsceneSection = nullptr;
     bool* pCutsceneFullyStreamed = nullptr;
     void (__cdecl* CCutsceneManager__UpdateLights)(float) = nullptr;
-    SafetyHookMid jumpCutHook;
 
     void ObserveJumpCut(uintptr_t camera, float phase, uint32_t result)
     {
@@ -152,14 +151,8 @@ namespace CutsceneCuts
         return CCamInterface__IsLookingBehind();
     }
 
-    export void RemoveHook()
-    {
-        jumpCutHook = {};
-        Reset();
-    }
-
     // Independent of the optional jitter/timing patches: also supports vanilla camera evaluation.
-    export bool Init(bool legacy)
+    export void Init(bool legacy)
     {
         auto jumpCut = hook::pattern("E8 ? ? ? ? F3 0F 10 4D 08 8B F8 F3 0F 11 8E 44 01 00 00 85 FF 75");
         auto cutsceneState = hook::pattern("A1 ? ? ? ? 85 C0 75 0C 39 05 ? ? ? ? 0F 84 ? ? ? ? 80 3D ? ? ? ? 00 0F 84 ? ? ? ? 83 F8 08 74 13 83 F8 09");
@@ -174,26 +167,12 @@ namespace CutsceneCuts
             cutsceneLights = hook::pattern("55 8B EC 83 E4 F0 A1 ? ? ? ? 8B 04 85 ? ? ? ? 83 EC 74 85 C0 53 56 57 0F 84 ? ? ? ? 83 B8 F4 03 01 00 00");
             finalLeaf = hook::pattern("8B 49 04 81 EC F0 00 00 00 56 8D 44 24 04 50 E8 ? ? ? ? 8B F0 83 EE 01");
         }
-        for (auto pattern : { &jumpCut, &cutsceneState, &cutsceneSequence, &cutsceneLights, &finalLeaf, &lookingBehind })
-            if (pattern->size() != 1)
-                return false;
-
         auto sequence = cutsceneSequence.get_first<uint8_t>();
         auto nativeJumpCut = injector::GetBranchDestination(jumpCut.get_first()).get<uint8_t>();
         auto cameraPhase = injector::GetBranchDestination(sequence + 0x28).get<uint8_t>();
-        auto updateLightsCall = legacy ? 0x3E : 0x4E;
         auto animationCall = legacy ? 0x3C : 0x48;
         auto trackCall = legacy ? 0x127 : 0x148;
         auto compositeCall = legacy ? 0x169 : 0x181;
-        if (sequence[0x28] != 0xE8 || sequence[updateLightsCall] != 0xE8
-            || injector::GetBranchDestination(sequence + updateLightsCall).as_int() != uintptr_t(cutsceneLights.get_first())
-            || *cutsceneState.get_first<uint32_t*>(1) != CCutsceneManager::ms_State
-            || nativeJumpCut[animationCall] != 0xE8 || nativeJumpCut[trackCall] != 0xE8 || nativeJumpCut[compositeCall] != 0xE8
-            || (!legacy && memcmp(nativeJumpCut + 0x16C, "\xC7\x44\x24\x30\x12\x90\x00\x00\xC7\x44\x24\x2C", 12) != 0)
-            || (legacy && (memcmp(nativeJumpCut + 0x14B, "\xC6\x44\x24\x2C\x12\xC7\x44\x24\x28", 9) != 0
-                || memcmp(nativeJumpCut + 0x158, "\xC6\x44\x24\x2D\x90\x66\xC7\x44\x24\x2E\x00\x00", 12) != 0))
-            || memcmp(cameraPhase, "\x8B\x44\x24\x04\x8B\x84\x81\x40\x01\x00\x00", 11) != 0)
-            return false;
         cameraManager = *(void**)(sequence + 3);
         CCameraManager__GetFinalEffectiveLeafNode = (decltype(CCameraManager__GetFinalEffectiveLeafNode))finalLeaf.get_first();
         CCamInterface__IsLookingBehind = (decltype(CCamInterface__IsLookingBehind))lookingBehind.get_first();
@@ -206,12 +185,11 @@ namespace CutsceneCuts
         rage__crAnimation__CompositeDof = (decltype(rage__crAnimation__CompositeDof))injector::GetBranchDestination(nativeJumpCut + compositeCall).as_int();
         crFrameDofFloatVtable = *(uintptr_t*)(nativeJumpCut + (legacy ? 0x154 : 0x178));
         CCutsceneManager__UpdateLights = (decltype(CCutsceneManager__UpdateLights))cutsceneLights.get_first();
-        jumpCutHook = safetyhook::create_mid(jumpCut.get_first(5), [](SafetyHookContext& regs)
+        static auto JumpCutHook = safetyhook::create_mid(jumpCut.get_first(5), [](SafetyHookContext& regs)
         {
             // IsJumpCut may replace its phase argument; ESI is the camera, EBP the caller's frame pointer.
             ObserveJumpCut(regs.esi, *(float*)(regs.ebp + 8), regs.eax);
         });
-        return bool(jumpCutHook);
     }
 }
 

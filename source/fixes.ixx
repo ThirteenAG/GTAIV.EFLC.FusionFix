@@ -1589,7 +1589,7 @@ public:
             // Keep the lights of fixtures just out of view
             {
                 auto pattern = hook::pattern("55 8B EC 83 E4 F0 81 EC 08 01 00 00 56 8B F1 57 8B 4E 24 F7 C1 00 01 00 00 0F 85");
-                if (!pattern.empty() && EntityLights::ready) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     FixtureLights::pCameraPosition = *pattern.get_first<float*>(0x75);
 

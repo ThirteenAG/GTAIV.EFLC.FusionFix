@@ -23,7 +23,6 @@ import cutscenecam;
 namespace ShadowCuts
 {
     constexpr int32_t MaxLights = 640;
-    bool installed = false;
     bool haveCamera = false;
     uint32_t cutFrame = 0;
     bool haveCut = false;
@@ -77,20 +76,20 @@ namespace ShadowCuts
     bool IsPreparedCut()
     {
         // Keep normal selection if the cut's current-view preparation failed.
-        return installed && haveCut && occlusionReady && *CTimer::m_frameCount == cutFrame;
+        return haveCut && occlusionReady && *CTimer::m_frameCount == cutFrame;
     }
 
     bool IsRecovering()
     {
         // Even if early preparation failed, the ordinary list catches up on the next update.
         // Suppress temporal admission fading without extending the original cut's deadline.
-        return installed && haveCut && uint32_t(*CTimer::m_frameCount - cutFrame) <= 1;
+        return haveCut && uint32_t(*CTimer::m_frameCount - cutFrame) <= 1;
     }
 
     void __fastcall UpdateMainViewport(void* phase, void*, void* viewport)
     {
         // The portal tracker is stateful. Consume the early update once, only if its accepted view still matches.
-        auto reused = installed && preparedMainPhase == uintptr_t(phase) && preparedViewport == uintptr_t(viewport)
+        auto reused = preparedMainPhase == uintptr_t(phase) && preparedViewport == uintptr_t(viewport)
             && preparedViewFrame == *CTimer::m_frameCount
             && memcmp(preparedView.data(), (uint8_t*)viewport + 16, preparedView.size()) == 0;
         if (!reused)
@@ -251,9 +250,6 @@ namespace ShadowCuts
 
     bool BeginFrame()
     {
-        if (!installed)
-            return false;
-
         auto viewport = pViewports[0] ? pViewports[pViewports[0]] : 0;
         if (!viewport)
         {
@@ -364,8 +360,7 @@ namespace ShadowCuts
         return true;
     }
 
-    // Validate the complete CE or legacy layout before installing any recovery hooks.
-    bool Install(uintptr_t* viewports)
+    void Install(uintptr_t* viewports)
     {
         auto lightVisibility = hook::pattern("8B 56 08 8B 3D ? ? ? ? 85 D7 75 ? 8B 46 20");
         auto lightLoop = hook::pattern("32 C0 88 44 24 17 0F BF 46 2E 33 FF 8B 04 85");
@@ -389,8 +384,6 @@ namespace ShadowCuts
         auto lightRandom1 = hook::pattern("E8 ? ? ? ? 66 0F 6E D0 0F 5B D2 F3 0F 59 15 ? ? ? ?");
         auto lightRandom2 = hook::pattern("E8 ? ? ? ? F3 0F 10 25 ? ? ? ? F3 0F 10 54 24 14 83 E0 1F");
         static bool legacy = EntityLights::legacy;
-        if (!EntityLights::ready)
-            return false;
         if (legacy) // 1.0.7.0, 1.0.8.0
         {
             lightVisibility = hook::pattern("8B 4F 08 8B 15 ? ? ? ? 85 CA 75 ? 8B 47 20");
@@ -416,12 +409,6 @@ namespace ShadowCuts
             lightRandom2 = hook::pattern("E8 ? ? ? ? F3 0F 10 2D ? ? ? ? 0F 57 DB 83 E0 1F F3 0F 2A C0");
         }
 
-        for (auto pattern : { &lightVisibility, &lightLoop, &lightType, &lightEnd, &corona1, &corona2, &lightOcclusion,
-            &ordered, &reset, &occlusionInit, &mainView, &occlusionUpdate, &beforeRender, &nearbyOccluders, &mapOccluders,
-            &occluderBudget, &occluderSort, &effectLight, &lightRandom1, &lightRandom2 })
-            if (pattern->size() != 1)
-                return false;
-
         auto resetAddress = reset.get_first<uint8_t>();
         auto pvsCall = legacy ? 0x9D : 0xED;
         auto renderViewCall = legacy ? 0xBD : 0x10F;
@@ -432,24 +419,7 @@ namespace ShadowCuts
         // Legacy keeps the first rand call inside CRandom::GetRandomNumberInRange. Hook that call so its
         // native x87 return and rounding remain intact; CE inlines the range arithmetic in the effect.
         if (legacy)
-        {
-            auto range = injector::GetBranchDestination(random1).get<uint8_t>();
-            if (range[0] != 0x51 || range[1] != 0xE8
-                || memcmp(range + 6, "\x89\x04\x24\xDB\x04\x24\xD8\x0D", 8) != 0)
-                return false;
-            random1 = range + 1;
-        }
-        if (resetAddress[legacy ? 0x81 : 0x7D] != 0xA3
-            || memcmp(occlusionInit.get_first(0x1D), "\x6A\x0C\x8B\xC8\xA3", 5) != 0
-            || *occlusionInit.get_first<uint8_t>(0x26) != 0xE8 || *occlusionInit.get_first<uint8_t>(0x36) != 0xE8
-            || memcmp(occlusionInit.get_first(0x48), "\x6A\x70", 2) != 0
-            || *beforeRender.get_first<uint8_t>(pvsCall) != 0xE8 || *beforeRender.get_first<uint8_t>(renderViewCall) != 0xE8
-            || *beforeRender.get_first<uint8_t>(orthogonalCall) != 0xE8 || *lightOcclusion.get_first<uint8_t>(sphereCall) != 0xE8
-            || memcmp(lightOcclusion.get_first(occludedBranch), "\x0F\x84", 2) != 0
-            || injector::GetBranchDestination(random1) != injector::GetBranchDestination(lightRandom2.get_first())
-            || injector::GetBranchDestination(random1).as_int() != uintptr_t(game_rand)
-            || uintptr_t(*nearbyOccluders.get_first<uintptr_t*>(legacy ? 0x27 : 0x29)) != uintptr_t(CRenderPhase::sm_pCurrent))
-            return false;
+            random1 = injector::GetBranchDestination(random1).get<uint8_t>() + 1;
 
         pViewports = viewports;
         pPreviousLights = *(rage::CLightSource***)(resetAddress + (legacy ? 0x29 : 21));
@@ -466,18 +436,16 @@ namespace ShadowCuts
         rmOccluderSystem__SetRenderView = (decltype(rmOccluderSystem__SetRenderView))injector::GetBranchDestination(beforeRender.get_first(renderViewCall)).as_int();
         rmOccluderSystem__SetOrthogonal = (decltype(rmOccluderSystem__SetOrthogonal))injector::GetBranchDestination(beforeRender.get_first(orthogonalCall)).as_int();
         rmOccluderSystem__IsSphereOccluded = (decltype(rmOccluderSystem__IsSphereOccluded))injector::GetBranchDestination(lightOcclusion.get_first(sphereCall)).as_int();
-        if (!CutsceneCuts::Init(legacy))
-            return false;
+        CutsceneCuts::Init(legacy);
 
         // A separate occlusion work view, not a shadow-map slot. Keep the twelve native phase IDs unchanged.
         hooks.emplace_back(safetyhook::create_mid(occlusionInit.get_first(0x26), [](SafetyHookContext& regs)
         {
-            if (installed)
-                *(int32_t*)regs.esp = 13;
+            *(int32_t*)regs.esp = 13;
         }));
         hooks.emplace_back(safetyhook::create_mid(occlusionInit.get_first(0x48), [](SafetyHookContext&)
         {
-            cutViewer = installed ? rmOccluderSystem__CreateViewer(*pOccludeSystem) : -1;
+            cutViewer = rmOccluderSystem__CreateViewer(*pOccludeSystem);
         }));
         static uintptr_t continueOccluderWalk = uintptr_t(occluderBudget.get_first(legacy ? 11 : 5));
         hooks.emplace_back(safetyhook::create_mid(occluderBudget.get_first(legacy ? 9 : 0), [](SafetyHookContext& regs)
@@ -567,17 +535,6 @@ namespace ShadowCuts
         shMainUpdateViewport = safetyhook::create_inline(mainView.get_first(), UpdateMainViewport);
         shProcessOne2dEffectLight = safetyhook::create_inline(effectLight.get_first(), ProcessOne2dEffectLight);
         shAddSceneLightOrdered = safetyhook::create_inline(ordered.get_first(), AddSceneLightOrdered);
-        installed = shMainUpdateViewport && shProcessOne2dEffectLight && shAddSceneLightOrdered
-            && std::all_of(hooks.begin(), hooks.end(), [](const auto& hook) { return bool(hook); });
-        if (!installed)
-        {
-            hooks.clear();
-            shMainUpdateViewport = {};
-            shProcessOne2dEffectLight = {};
-            shAddSceneLightOrdered = {};
-            CutsceneCuts::RemoveHook();
-        }
-        return installed;
     }
 }
 
@@ -992,8 +949,9 @@ namespace NightShadows
         auto trackingID = *(uint32_t*)(base + 0xF8);
         auto i = FindLight(trackingID);
         auto perspective = i >= 0 && trackingID && it.trackingIDs[i] == trackingID && it.spot[i] && it.coneCos[i] >= MinPerspectiveConeCos;
+        // A light admitted on a camera cut before its cache is ready draws the map into its live slot
         if (!perspective)
-            return slot != 0 && (cacheIndex < 0 || cacheIndex >= CacheCount) && trackingID && i >= 0 && it.trackingIDs[i] == trackingID && it.staticGeometry[i];
+            return i >= 0 && trackingID && it.trackingIDs[i] == trackingID && it.staticGeometry[i];
 
         slotConeCos[slot] = it.coneCos[i];
         std::copy(std::begin(it.tangents[i]), std::end(it.tangents[i]), slotTangents[slot]);
@@ -1197,7 +1155,7 @@ namespace NightShadows
     void IncludeUncachedStaticGeometry(uintptr_t phase)
     {
         auto slot = *(int32_t*)(phase + 0x940);
-        if (!ShadowCuts::installed || slot <= 0 || slot >= SlotCount
+        if (slot <= 0 || slot >= SlotCount
             || *(int32_t*)(pSlotTrackingIDs + slot * SlotStride - 8) != -1)
             return;
         auto trackingID = SlotTrackingID(slot);
@@ -1353,7 +1311,7 @@ namespace NightShadows
 
     bool IsLamppost(uintptr_t entity)
     {
-        if (!entity || !EntityLights::ready)
+        if (!entity)
             return false;
         auto modelInfo = EntityLights::ModelInfo(entity);
         return modelInfo && std::find(LamppostModels.begin(), LamppostModels.end(), *(uint32_t*)(modelInfo + 0x3C)) != LamppostModels.end();
@@ -1362,7 +1320,7 @@ namespace NightShadows
     // Traffic light poles: the model type the game draws traffic lights for
     bool IsTrafficLight(uintptr_t entity)
     {
-        if (!entity || !EntityLights::ready)
+        if (!entity)
             return false;
         auto modelInfo = EntityLights::ModelInfo(entity);
         return modelInfo && (*(uint32_t*)(modelInfo + 0x40) & 0xFF000000) == 0x3000000;
@@ -1378,8 +1336,6 @@ namespace NightShadows
 
     uintptr_t FindLightOwner(uint32_t trackingID)
     {
-        if (!EntityLights::ready)
-            return 0;
         auto frame = *CTimer::m_frameCount;
         auto it = owners.find(trackingID);
         if (it == owners.end() || frame - it->second.frame >= StreetlightFrames)
@@ -1810,71 +1766,55 @@ public:
                     pattern = hook::pattern("55 8B EC 83 E4 F0 81 EC 94 00 00 00 53 33 DB 38 1D ? ? ? ? 56 57 0F 84 ? ? ? ? E8 ? ? ? ?");
                     admission = hook::pattern("3A CB 0F 85 ? ? ? ? 39 7C 24 20 74 ? F3 0F 10 4C 24 18 0F 2F C8 76 ? F3 0F 11 44 24 18");
                 }
-                auto updateMatches = pattern.size();
-                auto admissionMatches = admission.size();
+                ShadowCuts::Install(NightShadows::pViewports);
 
-                auto legacyCache = hook::pattern("8B 4C 24 04 8B 51 60 33 C0 B9 ? ? ? ? 8B FF 3B 11 74 14 81 C1 00 01 00 00 83 C0 01 81 F9");
-                auto legacyScan = hook::pattern("0F B6 15 ? ? ? ? 6A 00 52 56 8D 86 FC 08 00 00 50 8D 8E F8 08 00 00 51 8D 96 00 09 00 00 52 E8 ? ? ? ? 83 C4 18 B9 ? ? ? ?");
-                auto legacyDraw = hook::pattern("88 46 15 C6 46 16 01 75 0C 81 8E E8 08 00 00 00 02 00 00");
-                auto legacyValid = !legacy || (legacyCache.size() == 1 && legacyScan.size() == 1 && legacyDraw.size() == 1);
-
-                if (updateMatches == 1 && admissionMatches == 1 && legacyValid && ShadowCuts::Install(NightShadows::pViewports))
+                // CWarpShadow::Update normally queues an uncached static+dynamic light for cache generation and
+                // skips live-slot selection. On a cut it may use a live slot immediately, rendering both kinds of
+                // geometry there. Keep that path while it owns the slot, until its ordinary static cache is ready.
+                static auto selectLiveSlot = uintptr_t(admission.get_first(legacy ? 0x25 : 0x2D));
+                static auto CutAdmissionHook = safetyhook::create_mid(admission.get_first(), [](SafetyHookContext& regs)
                 {
-                    // CWarpShadow::Update normally queues an uncached static+dynamic light for cache generation and
-                    // skips live-slot selection. On a cut it may use a live slot immediately, rendering both kinds of
-                    // geometry there. Keep that path while it owns the slot, until its ordinary static cache is ready.
-                    static auto selectLiveSlot = uintptr_t(admission.get_first(legacy ? 0x25 : 0x2D));
-                    static auto CutAdmissionHook = safetyhook::create_mid(admission.get_first(), [](SafetyHookContext& regs)
-                    {
-                        auto& light = *(rage::CLightSource*)(regs.esi + (legacy ? regs.eax : regs.edi));
-                        if (!ShadowCuts::installed || light.mShadowCacheIndex != -1
-                            || !(light.mFlags & rage::LIGHTFLAG_CAST_DYNAMIC_GEOM_SHADOWS)
-                            || (!ShadowCuts::IsPreparedCut() && !NightShadows::HadShadowLastFrame(light.mShadowTrackingID)))
-                            return;
+                    auto& light = *(rage::CLightSource*)(regs.esi + (legacy ? regs.eax : regs.edi));
+                    if (light.mShadowCacheIndex != -1 || !(light.mFlags & rage::LIGHTFLAG_CAST_DYNAMIC_GEOM_SHADOWS)
+                        || (!ShadowCuts::IsPreparedCut() && !NightShadows::HadShadowLastFrame(light.mShadowTrackingID)))
+                        return;
 
-                        // Preserve the native choice of one light to build a static cache for this update. At this
-                        // branch EDX is the current index; the candidate index/priority are esp+0x28/+0x2C in CE,
-                        // esp+0x20/+0x18 in Patch 7/8. ESI is the light offset, EDI (CE) or EAX (legacy) its list.
-                        auto& cacheCandidate = *(int32_t*)(regs.esp + (legacy ? 0x20 : 0x28));
-                        auto& cachePriority = *(float*)(regs.esp + (legacy ? 0x18 : 0x2C));
-                        if (cacheCandidate == -1 || cachePriority > regs.xmm0.f32[0])
-                        {
-                            cacheCandidate = int32_t(regs.edx);
-                            cachePriority = regs.xmm0.f32[0];
-                        }
-                        regs.eip = selectLiveSlot;
+                    // Keep the game's choice of one light to build a static cache for this update. At this branch
+                    // EDX is the current index; the candidate index/priority are esp+0x28/+0x2C (esp+0x20/+0x18 in
+                    // 1.0.7.0/1.0.8.0). ESI is the light offset, EDI (EAX in 1.0.7.0/1.0.8.0) its list.
+                    auto& cacheCandidate = *(int32_t*)(regs.esp + (legacy ? 0x20 : 0x28));
+                    auto& cachePriority = *(float*)(regs.esp + (legacy ? 0x18 : 0x2C));
+                    if (cacheCandidate == -1 || cachePriority > regs.xmm0.f32[0])
+                    {
+                        cacheCandidate = int32_t(regs.edx);
+                        cachePriority = regs.xmm0.f32[0];
+                    }
+                    regs.eip = selectLiveSlot;
+                });
+
+                if (legacy)
+                {
+                    // CWarpShadow::UpdateLight searches eight cache owners at entry+0xE0
+                    auto legacyCache = hook::pattern("8B 4C 24 04 8B 51 60 33 C0 B9 ? ? ? ? 8B FF 3B 11 74 14 81 C1 00 01 00 00 83 C0 01 81 F9");
+                    NightShadows::pCache = *legacyCache.get_first<uintptr_t>(10) - 0xE0;
+
+                    // BuildRenderList has set the per-frame caster flags; an uncached light admitted on a cut also
+                    // scans the static map
+                    auto legacyScan = hook::pattern("0F B6 15 ? ? ? ? 6A 00 52 56 8D 86 FC 08 00 00 50 8D 8E F8 08 00 00 51 8D 96 00 09 00 00 52 E8 ? ? ? ? 83 C4 18 B9 ? ? ? ?");
+                    static auto LegacyScanHook = safetyhook::create_mid(legacyScan.get_first(), [](SafetyHookContext& regs)
+                    {
+                        NightShadows::IncludeUncachedStaticGeometry(regs.esi);
                     });
-                    if (legacy)
+
+                    // AddToDrawList resets the static caster flag by shadow quality; such a light needs it at every quality
+                    auto legacyDraw = hook::pattern("88 46 15 C6 46 16 01 75 0C 81 8E E8 08 00 00 00 02 00 00");
+                    static auto LegacyDrawHook = safetyhook::create_mid(legacyDraw.get_first(3), [](SafetyHookContext& regs)
                     {
-                        // CWarpShadow::UpdateLight searches eight native cache owners at entry+0xE0.
-                        NightShadows::pCache = *legacyCache.get_first<uintptr_t>(10) - 0xE0;
-                        ShadowCuts::hooks.emplace_back(safetyhook::create_mid(legacyScan.get_first(), [](SafetyHookContext& regs)
-                        {
-                            // BuildRenderList has set the normal per-frame caster flags. An uncached cut-frame
-                            // admission must also scan the static baseline; keep the native projection and slot type.
-                            NightShadows::IncludeUncachedStaticGeometry(regs.esi);
-                        }));
-                        ShadowCuts::hooks.emplace_back(safetyhook::create_mid(legacyDraw.get_first(3), [](SafetyHookContext& regs)
-                        {
-                            // AddToDrawList resets the static-caster flag according to shadow quality. An uncached
-                            // combined map still needs that baseline at every quality, not just during scanning.
-                            NightShadows::IncludeUncachedStaticGeometry(regs.esi);
-                        }));
-                    }
-                    NightShadows::shCWarpShadowUpdate = safetyhook::create_inline(pattern.get_first(), NightShadows::CWarpShadowUpdate);
-                    if (!CutAdmissionHook || !NightShadows::shCWarpShadowUpdate
-                        || !std::all_of(ShadowCuts::hooks.begin(), ShadowCuts::hooks.end(), [](const auto& hook) { return bool(hook); }))
-                    {
-                        ShadowCuts::installed = false;
-                        CutAdmissionHook = {};
-                        NightShadows::shCWarpShadowUpdate = {};
-                        ShadowCuts::hooks.clear();
-                        ShadowCuts::shMainUpdateViewport = {};
-                        ShadowCuts::shProcessOne2dEffectLight = {};
-                        ShadowCuts::shAddSceneLightOrdered = {};
-                        CutsceneCuts::RemoveHook();
-                    }
+                        NightShadows::IncludeUncachedStaticGeometry(regs.esi);
+                    });
                 }
+
+                NightShadows::shCWarpShadowUpdate = safetyhook::create_inline(pattern.get_first(), NightShadows::CWarpShadowUpdate);
             }
 
             // Leave what a light belongs to out of its shadow: set up with each shadow's render list
