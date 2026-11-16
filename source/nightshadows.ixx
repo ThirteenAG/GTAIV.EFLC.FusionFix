@@ -379,7 +379,7 @@ namespace NightShadows
 
     // Uncached spotlights, including headlights, use a perspective projection aimed along the beam, so the whole tile
     // covers the cone. Cached shadows and their per-frame overlays keep the native warped projection, as do wider beams.
-    constexpr int32_t PerspectiveSlotType = 2;   // The game's own type for it, which it never set
+    constexpr int32_t PerspectiveSlotType = 2; // The game's own type for it, which it never set
     constexpr int32_t DynamicRenderType = 4; // Rendered every frame, on top of its cached shadow if it has one
     constexpr float MinPerspectiveConeCos = 0.42f; // 65 degrees from the beam's centre
     // How far the shadow of such a light reaches: the beam itself lights further (the player's high beams light 75
@@ -398,7 +398,7 @@ namespace NightShadows
 
     // CWarpShadow::ReWarpCubeToCache stores warped maps regardless of the slot's projection type. Cache generation
     // and overlays using those maps must stay warped; only an uncached per-frame shadow can use perspective.
-    // Returns whether the shadow has to draw the map itself, having no cached shadow under it.
+    // Returns true for perspective shadows, which also need the static map geometry rendered each frame.
     bool ChooseSlotProjection(uint32_t slotOffset)
     {
         auto slot = slotOffset / SlotStride;
@@ -408,7 +408,8 @@ namespace NightShadows
         auto base = pSlots + slotOffset;
         auto& type = *(int32_t*)(base + 0x00);
         type = 0;
-        // CalcPointLightMatrix restores the matrix and range, but not the native tan(half-FOV) of a reused slot.
+
+        // CWarpShadow::CalcPointLightMatrix restores the matrix and range, but not a reused slot's tan(half-FOV).
         *(float*)(base + 0x0C) = 1.0f;
 
         auto renderType = *(int32_t*)(base + 0xFC);
@@ -420,7 +421,6 @@ namespace NightShadows
         auto trackingID = *(uint32_t*)(base + 0xF8);
         auto i = FindLight(trackingID);
         auto perspective = i >= 0 && trackingID && it.trackingIDs[i] == trackingID && it.spot[i] && it.coneCos[i] >= MinPerspectiveConeCos;
-
         if (!perspective)
             return false;
 
