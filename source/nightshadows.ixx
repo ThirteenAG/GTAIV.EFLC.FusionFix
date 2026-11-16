@@ -377,10 +377,9 @@ namespace NightShadows
         }
     }
 
-    // Headlights use a perspective projection aimed along the beam, so the whole tile covers the cone; the pair of
-    // hemispheres the other lights use spends most of it outside the beam. Other spotlights (wall and ceiling lamps
-    // shining down, often right over a car or a person) keep the hemispheres, and so do wider beams.
-    constexpr int32_t PerspectiveSlotType = 2;   // The game's own type for it, which it never set
+    // Uncached spotlights, including headlights, use a perspective projection aimed along the beam, so the whole tile
+    // covers the cone. Cached shadows and their per-frame overlays keep the native warped projection, as do wider beams.
+    constexpr int32_t PerspectiveSlotType = 2; // The game's own type for it, which it never set
     constexpr int32_t DynamicRenderType = 4; // Rendered every frame, on top of its cached shadow if it has one
     constexpr float MinPerspectiveConeCos = 0.42f; // 65 degrees from the beam's centre
     // How far the shadow of such a light reaches: the beam itself lights further (the player's high beams light 75
@@ -396,50 +395,39 @@ namespace NightShadows
     // The render phase flags that draw the map (buildings, trees) and the objects that don't move (lampposts, traffic
     // lights), set for shadows rendered without a cache like the game's cached shadows have them
     constexpr uint32_t RenderMapFlags = 0x280;
-    constexpr int32_t CachedRenderType = 3; // Slot 0 rendering a cached shadow
 
-    // Whether each cached shadow was rendered with the perspective projection. A per-frame shadow drawn on top of a
-    // cached one takes the same projection, so the two always match.
-    bool cachePerspective[CacheCount] = {};
-
-    // Spotlights (streetlights, headlights) are rendered from the bulb along the beam. The game's projection for every
-    // light looks at the light's sphere from a point behind it, which draws whatever is close to the bulb (a lamppost's
-    // own pole) from the wrong side: its shadow came out as a hollow outline, depending on which way the lamp faces.
-    // Returns whether the shadow has to draw the map itself, having no cached shadow under it.
+    // CWarpShadow::ReWarpCubeToCache stores warped maps regardless of the slot's projection type. Cache generation
+    // and overlays using those maps must stay warped; only an uncached per-frame shadow can use perspective.
+    // Returns true for perspective shadows, which also need the static map geometry rendered each frame.
     bool ChooseSlotProjection(uint32_t slotOffset)
     {
         auto slot = slotOffset / SlotStride;
-        auto base = pSlots + slotOffset;
-        auto& type = *(int32_t*)(base + 0x00);
-        type = 0;
         if (slot >= SlotCount)
             return false;
 
+        auto base = pSlots + slotOffset;
+        auto& type = *(int32_t*)(base + 0x00);
+        type = 0;
+
+        // CWarpShadow::CalcPointLightMatrix restores the matrix and range, but not a reused slot's tan(half-FOV).
+        *(float*)(base + 0x0C) = 1.0f;
+
         auto renderType = *(int32_t*)(base + 0xFC);
         auto cacheIndex = *(int32_t*)(base + 0xF0);
-        auto cached = cacheIndex >= 0 && cacheIndex < CacheCount;
+        if (slot == 0 || renderType != DynamicRenderType || cacheIndex != -1)
+            return false;
 
         auto& it = priorities;
         auto trackingID = *(uint32_t*)(base + 0xF8);
         auto i = FindLight(trackingID);
         auto perspective = i >= 0 && trackingID && it.trackingIDs[i] == trackingID && it.spot[i] && it.coneCos[i] >= MinPerspectiveConeCos;
-
-        if (slot == 0)
-        {
-            if (renderType != CachedRenderType || !cached)
-                return false;
-            cachePerspective[cacheIndex] = perspective;
-        }
-        else if (renderType != DynamicRenderType || (cached && !cachePerspective[cacheIndex]))
-            return false;
-
         if (!perspective)
             return false;
 
         slotConeCos[slot] = it.coneCos[i];
         std::copy(std::begin(it.tangents[i]), std::end(it.tangents[i]), slotTangents[slot]);
         type = PerspectiveSlotType;
-        return slot != 0 && cacheIndex == -1;
+        return true;
     }
 
     // The camera of a perspective slot, and the matrix that takes a world position to the shadow map: the view along
@@ -581,8 +569,6 @@ namespace NightShadows
 
     bool IsPerspectiveShadow(int32_t shadow)
     {
-        if (shadow >= SlotCount && shadow < SlotCount + CacheCount)
-            return cachePerspective[shadow - SlotCount];
         if (shadow < 1 || shadow >= SlotCount)
             return false;
         return *(int32_t*)(pSlotCopies + (shadow + SlotCount * *pSlotCopyIndex) * SlotStride) == PerspectiveSlotType;
