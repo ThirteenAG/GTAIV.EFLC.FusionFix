@@ -17,11 +17,10 @@ namespace CascadeBounds
     std::atomic<uintptr_t> PreparedPhase = 0;
     std::atomic<uintptr_t> PreparedBounds = 0;
     std::atomic<uint32_t> PreparedFrame = 0;
-    bool bInstalled = false;
 
     bool IsPrepared(uintptr_t phase)
     {
-        return bInstalled && PreparedFrame.load(std::memory_order_acquire) == *CTimer::m_frameCount
+        return PreparedFrame.load(std::memory_order_acquire) == *CTimer::m_frameCount
             && PreparedPhase.load(std::memory_order_relaxed) == phase && *pUpdateBufferIndex < 2
             && PreparedBounds.load(std::memory_order_relaxed) == pCascadeState + 0x270 * *pUpdateBufferIndex + 0x1A0;
     }
@@ -38,10 +37,6 @@ namespace CascadeBounds
             clip = hook::pattern("55 8B EC 83 E4 F0 83 EC 44 53 56 8B 75 0C 83 7E 3C 01 57 0F 85 ? ? ? ? E8 ? ? ? ? 80 3D");
             clipOffset = 0x1E;
         }
-        if (scan.size() != 1 || draw.size() != 1 || clip.size() != 1)
-            return;
-        if (memcmp(clip.get_first(clipOffset + 7), "\x8B\x75\x08\x8B\xF8", 5) != 0)
-            return;
 
         PrepareNativeBounds = reinterpret_cast<decltype(PrepareNativeBounds)>(injector::GetBranchDestination(draw.get_first()).as_int());
         pUpdateBufferIndex = *draw.get_first<uint32_t*>(6);
@@ -58,9 +53,6 @@ namespace CascadeBounds
         // CRenderPhaseCascadeShadows::BuildRenderList, after the shadow/sun enablement checks, before caster scanning.
         static auto ScanHook = safetyhook::create_mid(scan.get_first(), [](SafetyHookContext& regs)
         {
-            if (!bInstalled)
-                return;
-
             PrepareNativeBounds();
             // Publish before caster work starts. FinishBuildRenderList waits before the next update reuses the bank.
             // Each 0x270-byte bank holds its cascade clipping data at +0x1A0.
@@ -76,14 +68,6 @@ namespace CascadeBounds
             if (IsPrepared(regs.edi))
                 regs.eip = afterPrepare;
         });
-
-        bInstalled = ClipHook && ScanHook && DrawHook;
-        if (!bInstalled)
-        {
-            ClipHook = {};
-            ScanHook = {};
-            DrawHook = {};
-        }
     }
 }
 
