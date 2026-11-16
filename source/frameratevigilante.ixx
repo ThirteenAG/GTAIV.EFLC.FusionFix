@@ -1010,30 +1010,21 @@ public:
             {
                 // Preserve the original 30 fps crouch camera timing.
                 {
-                    // Look for a second match so the uniqueness check can reject ambiguous signatures.
-                    auto followPed = find_pattern<2>(
+                    auto followPed = find_pattern(
                         "F3 0F 10 87 C8 02 00 00 F3 0F 5C C8 F3 0F 59 CA F3 0F 58 C8 F3 0F 11 8F C8 02 00 00",
                         "F3 0F 10 8E C8 02 00 00 F3 0F 5C C1 F3 0F 59 C2 F3 0F 58 C1 F3 0F 11 44 24 ? D9 44 24 ? 5F F3 0F 11 86 C8 02 00 00");
-                    auto aimWeapon = find_pattern<2>(
+                    auto aimWeapon = find_pattern(
                         "F3 0F 10 80 F4 01 00 00 F3 0F 5C C8 F3 0F 59 CA F3 0F 58 C8 F3 0F 11 4C 24 ? D9 44 24 ? F3 0F 11 88 F4 01 00 00",
                         "F3 0F 10 88 F4 01 00 00 F3 0F 5C C1 F3 0F 59 C2 F3 0F 58 C1 F3 0F 11 44 24 ? D9 44 24 ? F3 0F 11 80 F4 01 00 00");
-                    if (followPed.size() == 1 && aimWeapon.size() == 1)
+                    // xmm2 holds the per-frame rate tuned for 30 fps; a rate of 1 snaps and stays as it is
+                    auto scaleCrouchZRate = [](SafetyHookContext& regs)
                     {
-                        // xmm2 holds the native rate; rate=1 resets must stay immediate at zero timestep.
-                        auto scaleCrouchZRate = [](SafetyHookContext& regs)
-                        {
-                            float& rate = regs.xmm2.f32[0];
-                            if (rate > 0.0f && rate < 1.0f)
-                                rate = 1.0f - powf(1.0f - rate, *CTimer::fCamTimeStep * 30.0f);
-                        };
-                        static auto CCamFollowPed__GetCrouchZOffset_Hook = safetyhook::create_mid(followPed.get_first(0), scaleCrouchZRate);
-                        static auto CCamAimWeapon__GetCrouchZOffset_Hook = safetyhook::create_mid(aimWeapon.get_first(0), scaleCrouchZRate);
-                        if (!CCamFollowPed__GetCrouchZOffset_Hook || !CCamAimWeapon__GetCrouchZOffset_Hook)
-                        {
-                            CCamFollowPed__GetCrouchZOffset_Hook.reset();
-                            CCamAimWeapon__GetCrouchZOffset_Hook.reset();
-                        }
-                    }
+                        float& rate = regs.xmm2.f32[0];
+                        if (rate > 0.0f && rate < 1.0f)
+                            rate = 1.0f - powf(1.0f - rate, *CTimer::fCamTimeStep * 30.0f);
+                    };
+                    static auto CCamFollowPed__GetCrouchZOffset_Hook = safetyhook::create_mid(followPed.get_first(0), scaleCrouchZRate);
+                    static auto CCamAimWeapon__GetCrouchZOffset_Hook = safetyhook::create_mid(aimWeapon.get_first(0), scaleCrouchZRate);
                 }
 
                 // Camera shake
