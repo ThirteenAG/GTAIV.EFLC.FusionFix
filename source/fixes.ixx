@@ -1633,17 +1633,10 @@ public:
                     // CVisualEffects::UpdateAfterPreRender: submit skipped fixtures before Coronas::Push publishes
                     // and clears the list, so their coronas do not carry into the next frame.
                     pattern = hook::pattern("84 C0 74 0D F3 0F 10 05 ? ? ? ? F3 0F 11 04 24 E8 ? ? ? ? 83 3D");
-                    if (pattern.size() == 1)
+                    static auto BeforeCoronaPushHook = safetyhook::create_mid(pattern.get_first(17), [](SafetyHookContext&)
                     {
-                        auto coronasPush = injector::GetBranchDestination(pattern.get_first(17)).get<uint8_t>();
-                        if (memcmp(coronasPush, "\x55\x8B\xEC\x83\xE4\xF0\x83\xEC\x44", 9) == 0)
-                        {
-                            static auto BeforeCoronaPushHook = safetyhook::create_mid(pattern.get_first(17), [](SafetyHookContext&)
-                            {
-                                FixtureLights::ProcessSkipped();
-                            });
-                        }
-                    }
+                        FixtureLights::ProcessSkipped();
+                    });
                 }
             }
         };
