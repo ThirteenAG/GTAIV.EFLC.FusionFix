@@ -204,6 +204,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Added an option to apply MSAA for various reflection maps
 - Restored higher shadow render distance from old versions of the game
 - Improved cascaded shadows performance, and added an option to double their resolution
+- Fixed sun shadows appearing a frame late when turning the camera
 - Added dynamic shadows for trees
 - Restored night shadow for vehicles
 - Made night shadows resolution be adjusted by night shadows option
