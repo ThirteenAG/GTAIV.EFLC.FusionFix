@@ -1005,7 +1005,7 @@ namespace NightShadows
             return false;
 
         if (!perspective)
-            return slot != 0 && !cached && trackingID && i >= 0 && it.trackingIDs[i] == trackingID && it.staticGeometry[i];
+            return slot != 0 && (cacheIndex < 0 || cacheIndex >= CacheCount) && trackingID && i >= 0 && it.trackingIDs[i] == trackingID && it.staticGeometry[i];
 
         slotConeCos[slot] = it.coneCos[i];
         std::copy(std::begin(it.tangents[i]), std::end(it.tangents[i]), slotTangents[slot]);
