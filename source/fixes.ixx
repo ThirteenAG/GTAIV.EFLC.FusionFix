@@ -1630,9 +1630,10 @@ public:
                         FixtureLights::NoteProcessed(regs.ecx);
                     });
 
-                    // The end of the render list's pre-render pass
-                    pattern = hook::pattern("8B 15 ? ? ? ? 53 8B 0C 95 ? ? ? ? 39 0D ? ? ? ? 56 0F 4F 0D");
-                    static auto PreRenderEndHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext&)
+                    // CVisualEffects::UpdateAfterPreRender: submit skipped fixtures before Coronas::Push publishes
+                    // and clears the list, so their coronas do not carry into the next frame.
+                    pattern = hook::pattern("84 C0 74 0D F3 0F 10 05 ? ? ? ? F3 0F 11 04 24 E8 ? ? ? ? 83 3D");
+                    static auto BeforeCoronaPushHook = safetyhook::create_mid(pattern.get_first(17), [](SafetyHookContext&)
                     {
                         FixtureLights::ProcessSkipped();
                     });
