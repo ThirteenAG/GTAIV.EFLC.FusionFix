@@ -2496,7 +2496,7 @@ public:
         // build FusionFixHub installs or the player's own), DirectX 12 Fusion Fix's own D3D9On12 driver next to the exe (FusionFixHub
         // installs it), never Windows' slow one. When the API didn't start, the next start falls back to DirectX 9 and
         // sets this back (the crash guard of graphics_api.h).
-        FusionFixSettings.SetAvailability("PREF_GRAPHICSAPI", [](int32_t value) -> bool
+        SetAvailability("PREF_GRAPHICSAPI", [](int32_t value) -> bool
         {
             return FusionFixGraphicsApi::Available(static_cast<FusionFixGraphicsApi::Api>(std::clamp(value, 0, 2)));
         });

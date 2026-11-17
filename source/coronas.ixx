@@ -218,7 +218,11 @@ class Coronas
 public:
     Coronas()
     {
-        FusionFix::onInitEventAsync() += []()
+        // Other plugins raise the limit the same way (LOD lights), moving the same arrays: the one that comes second moves
+        // them again, or leaves them when the limit is already raised. That only holds when one is done before the
+        // other starts, so not on a thread of its own: with both at once half of the game's code ends up on one
+        // plugin's arrays and half on the other's, and the coronas are drawn from garbage.
+        FusionFix::onInitEvent() += []()
         {
             auto pattern = hook::pattern("81 FE ? ? ? ? 0F 8D ? ? ? ? 8B 44 24 08 8B 4C 24 1C F3 0F 10 44 24 ? C1 E2 06");
             if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59

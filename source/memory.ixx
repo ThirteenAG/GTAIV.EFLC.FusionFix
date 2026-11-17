@@ -215,6 +215,9 @@ namespace grcDevice
         return TotalVRAM;
     }
 
+    // What the game was told, for the streaming budget
+    std::atomic<uint64_t> nVideoMemory{ 0 };
+
     SafetyHookInline shGetAvailableVideoMemory = {};
     uint64_t GetAvailableVideoMemory()
     {
@@ -223,6 +226,7 @@ namespace grcDevice
         if (ret < _2048mb)
             ret = GetTotalVideoMemory();
 
+        nVideoMemory.store(ret, std::memory_order_relaxed);
         return ret;
     }
 
@@ -231,6 +235,7 @@ namespace grcDevice
     {
         auto ret = std::max<uint64_t>(shGetAvailableVideoMemory.call<uint32_t>(), GetTotalVideoMemory());
         ret = std::min<uint64_t>(ret, INT32_MAX);
+        nVideoMemory.store(ret, std::memory_order_relaxed);
         return static_cast<uint32_t>(ret);
     }
 }
@@ -242,9 +247,16 @@ namespace grcDevice
 // or a big texture mod uses the address space up until an allocation fails. The budget follows the room in the address
 // space instead, measured on a thread of its own: what is free plus what is reserved but unused (memory the game has
 // given back stays reserved by its heap and is used again), and the largest free block (a big texture needs one
-// piece). It is cut quickly when room gets short and raised back to the game's own after a while of plenty. It never
-// goes above the game's own: more streamed in means more streaming work while moving through the city, and the hitches
-// it caused were worse than the pop-in it saved.
+// piece). It is cut quickly when room gets short and raised back after a while of plenty.
+//
+// The game's own budget is a table of 2008: 800 MB with high texture quality, whatever the card has. When it is used
+// up, the streaming makes room for the next model by deleting loaded ones in stages: those out of range first, then
+// those in range that are not in view, at last those being drawn. From the second stage on what it deletes is needed
+// again the moment the camera turns: models and textures pop in, and with bigger textures (texture packs) or longer
+// view distances the same things are loaded and deleted hundreds of times a second while buildings and roads in view
+// disappear. The budget grows while the streaming deletes models that are in range, up to a share of the video
+// memory, and comes back down when much of it has been unused for a while. Bigger car and ped models (car mods) raise
+// it by what they hold beyond the game's own budgets for them.
 namespace StreamingBudget
 {
     struct Limits
@@ -259,6 +271,10 @@ namespace StreamingBudget
     constexpr Limits Direct3D9Limits = { 500, 96, 800, 160, 1300, 384 };
     constexpr Limits OtherLimits = { 400, 80, 700, 128, 1200, 320 };
 
+    // MB above the limits a cut starts at: the budget only grows with this much to spare, so it stops short of them
+    constexpr uint32_t nGrowRoom = 250;
+    constexpr uint32_t nGrowLargest = 128;
+
     constexpr float fMinScale = 0.6f;
     constexpr float fRaiseStep = 0.025f;
     constexpr float fCutStep = 0.05f;
@@ -266,6 +282,40 @@ namespace StreamingBudget
 
     // Of the game's free memory multiplier
     std::atomic<float> fScale{ 1.0f };
+
+    // Bytes: what the car and ped models hold beyond the game's own budgets for them (PopulationBudget). They are paid
+    // from the same budget as the world, so it grows by as much: the world keeps the room it has with the game's own
+    // models instead of streaming out around bigger ones.
+    std::atomic<int32_t> nPopulationExtra{ 0 };
+
+    // The stage the streaming's make-room pass is at when it deletes the next model: 0 out of range, 1 to 4 in range
+    // and not in view, 5 and up also what is drawn. The highest since the budget was last looked at.
+    constexpr ptrdiff_t nMakeRoomStageOffset = 0x48;
+    constexpr int32_t nStageInRange = 1;
+    constexpr int32_t nStageDrawn = 5;
+    std::atomic<int32_t> nMakeRoomStage{ 0 };
+
+    SafetyHookInline shDeleteNext = {};
+    bool __fastcall DeleteNext(uintptr_t pass, void* edx, int32_t flags)
+    {
+        auto ret = shDeleteNext.unsafe_fastcall<bool>(pass, edx, flags);
+        auto stage = *reinterpret_cast<int32_t*>(pass + nMakeRoomStageOffset);
+        if (stage > nMakeRoomStage.load(std::memory_order_relaxed))
+            nMakeRoomStage.store(stage, std::memory_order_relaxed);
+        return ret;
+    }
+
+    constexpr float fMaxDemandScale = 4.0f;
+    constexpr float fVideoShare = 0.75f;            // Of the video memory, for the budget at most
+    constexpr float fGrowStep = 0.05f;              // Per second while models in range are deleted
+    constexpr float fDrawnGrowStep = 0.2f;          // Per second while drawn ones are
+    constexpr float fAmpleCredit = 0.35f;           // More left than this for a while: a step back,
+    constexpr float fKeptCredit = 0.25f;            // as long as this much stays
+    constexpr uint32_t nAmpleSeconds = 60;
+
+    // The game's own budget at its multiplier and what is left of the budget, bytes
+    std::atomic<int64_t> nGameBudget{ 0 };
+    std::atomic<int64_t> nCredit{ 0 };
 
     // 1.0.7.0, 1.1.2.0: the multiplier is a constant in memory; the code reads this one instead
     float fBaseMultiplier = 0.0f;
@@ -312,7 +362,10 @@ namespace StreamingBudget
         SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
         const auto& limits = FusionFixGraphicsApi::Running() == FusionFixGraphicsApi::Api::Direct3D9 ? Direct3D9Limits : OtherLimits;
 
-        float scale = 1.0f;
+        float scale = 1.0f;         // Of the budget the streaming needs: cut and raised by the room in the address space
+        float content = 1.0f;       // That budget, of the game's own
+        uint64_t lastContent = 0;
+        uint32_t ample = 0;         // Seconds
         uint64_t lastChange = 0;
         uint64_t lastCut = GetTickCount64();
         uint64_t roomSince = 0;
@@ -345,17 +398,46 @@ namespace StreamingBudget
             auto raise = space.nRoom > limits.nRaiseRoom && space.nLargest > limits.nRaiseLargest;
             watch = !raise;
 
+            auto budget = nGameBudget.load(std::memory_order_relaxed);
+            auto credit = nCredit.load(std::memory_order_relaxed);
+
+            // Once a second: up while the streaming deletes what is in range, within what the video memory holds; down
+            // when much has been unused for a while
+            auto newContent = content;
+            if (now - lastContent >= 1000 && budget > 0)
+            {
+                lastContent = now;
+                auto stage = nMakeRoomStage.exchange(0, std::memory_order_relaxed);
+                auto most = fMaxDemandScale;
+                if (auto video = grcDevice::nVideoMemory.load(std::memory_order_relaxed))
+                    most = std::clamp(video * fVideoShare / budget, 1.0f, fMaxDemandScale);
+
+                auto roomy = space.nRoom > limits.nTightRoom + nGrowRoom && space.nLargest > limits.nTightLargest + nGrowLargest;
+                ample = credit > static_cast<int64_t>(budget * fAmpleCredit) ? ample + 1 : 0;
+                if (stage >= nStageInRange && roomy && scale == 1.0f)
+                    newContent = std::min(most, content + (stage >= nStageDrawn ? fDrawnGrowStep : fGrowStep));
+                else if (ample >= nAmpleSeconds && credit - static_cast<int64_t>(budget * fGrowStep) > static_cast<int64_t>(budget * fKeptCredit))
+                    newContent = std::max(1.0f, content - fGrowStep);
+                newContent = std::min(newContent, most);
+            }
+
             auto newScale = scale;
 
             if (tight)
             {
                 roomSince = 0;
 
-                // A cut takes a moment to show in the address space
+                // A cut takes a moment to show in the address space. What the budget grew by goes first, and stays off
+                // until there is room to spare again.
                 if (now - lastChange >= 1000)
                 {
-                    newScale = std::max(fMinScale, newScale - (critical ? fCriticalCutStep : fCutStep));
+                    auto cut = critical ? fCriticalCutStep : fCutStep;
+                    if (newContent > 1.0f)
+                        newContent = std::max(1.0f, newContent * (1.0f - cut));
+                    else
+                        newScale = std::max(fMinScale, newScale - cut);
                     lastCut = now;
+                    lastChange = now;
                 }
             }
             else if (raise)
@@ -370,13 +452,15 @@ namespace StreamingBudget
             else
                 roomSince = 0;
 
-            if (newScale != scale)
+            if (newScale != scale || newContent != content)
             {
+                if (newScale != scale)
+                    lastChange = now;
                 scale = newScale;
-                fScale = scale;
+                content = newContent;
+                fScale = scale * content;
                 if (fBaseMultiplier)
-                    fMultiplier = fBaseMultiplier * scale;
-                lastChange = now;
+                    fMultiplier = fBaseMultiplier * scale * content;
             }
 
         }
@@ -396,10 +480,25 @@ namespace StreamingReadWait
 
 namespace grcResourceCache
 {
+    constexpr ptrdiff_t nVideoUsedOffset = 0x40268;
+    constexpr ptrdiff_t nSystemUsedOffset = 0x402C8;
+
     SafetyHookInline shGetAvailableFreeMemory = {};
     int64_t __fastcall GetAvailableFreeMemory(void* _this, void* edx, float Multiplier)
     {
-        return shGetAvailableFreeMemory.unsafe_fastcall<int64_t>(_this, edx, Multiplier * StreamingBudget::fScale.load(std::memory_order_relaxed));
+        auto scale = StreamingBudget::fScale.load(std::memory_order_relaxed);
+        auto extra = static_cast<int64_t>(StreamingBudget::nPopulationExtra.load(std::memory_order_relaxed) * std::min(scale, 1.0f));
+        auto credit = shGetAvailableFreeMemory.unsafe_fastcall<int64_t>(_this, edx, Multiplier * scale);
+
+        // What is used is the larger of the video and the system memory of the resources
+        auto cache = reinterpret_cast<uintptr_t>(_this);
+        auto used = std::max(*reinterpret_cast<int64_t*>(cache + nVideoUsedOffset), *reinterpret_cast<int64_t*>(cache + nSystemUsedOffset));
+        StreamingBudget::nGameBudget.store(static_cast<int64_t>((credit + used) / scale), std::memory_order_relaxed);
+
+        // The streaming keeps it in 32 bits
+        credit = std::min<int64_t>(credit + extra, INT32_MAX);
+        StreamingBudget::nCredit.store(credit, std::memory_order_relaxed);
+        return credit;
     }
 
     // The cache keeps the resources it has to forget in an array of 65536 entries: a texture, a vertex or an index buffer
@@ -1092,7 +1191,9 @@ namespace EarlyUploads
 // 50 MB). Every model counts, also the taxis, police and emergency models it keeps loaded whatever the budget says, so
 // with bigger models (car mods) those alone fill it: no other car model is loaded, models are dropped, and taxis are
 // soon the only cars on the streets. The budgets follow the size of the models in memory instead, so they hold about
-// as many models as the game's own budgets hold of its own models.
+// as many models as the game's own budgets hold of its own models. The models are paid from the streaming budget of
+// the world, which grows by what they hold beyond the game's own budgets (StreamingBudget): otherwise a car mod's
+// traffic takes its room from the city around it.
 namespace PopulationBudget
 {
     // MB per model in memory: the game's own models average about 3.2 (cars) and 4.4 (peds), so with these its own
@@ -1142,6 +1243,14 @@ namespace PopulationBudget
         auto peds = ModelScale(population, PedGroups, PedMemory, fStockPedModelMB);
         nVehicleBudget = static_cast<int32_t>(nStockVehicleBudget * vehicles);
         nPedBudget = static_cast<int32_t>(nStockPedBudget * peds);
+
+        // What the models hold beyond the game's own budgets, as far as the bigger budgets allow it
+        auto Extra = [](int32_t bytes, int32_t budget, int32_t stock)
+        {
+            return std::max(0, std::min(bytes, budget) - stock);
+        };
+        StreamingBudget::nPopulationExtra = Extra(*reinterpret_cast<const int32_t*>(population + VehicleMemory), nVehicleBudget, nStockVehicleBudget) +
+            Extra(*reinterpret_cast<const int32_t*>(population + PedMemory), nPedBudget, nStockPedBudget);
     }
 }
 
@@ -1218,6 +1327,19 @@ public:
                     PopulationBudget::Update(regs.ebp);
                 });
             }
+
+            // The streaming arena: the buddy allocator of 160 MB that holds the system memory part of every streamed
+            // resource, built once at startup. Its blocks are powers of two, so with the big resources of texture packs
+            // and car mods, or a bigger streaming budget, it ends up in pieces too small for the next one long before it
+            // is full. The game then deletes what it has loaded, least used first, until a block of that size is free:
+            // buildings and roads around the player disappear and are loaded again. 400 MB instead: room for the 200 MB
+            // the streaming may use of it (stream.ini) at any rounding (the game's own smaller arena below 1.4 GB of
+            // RAM stays).
+            injector::WriteMemory<uint32_t>(hook::pattern("BF 00 80 02 00").get_first(1), 400 * 1024, true);
+
+            // The streaming's make-room pass deleting its next model
+            pattern = find_pattern("8D 41 48 50 FF 74 24 08 E8 ? ? ? ? C2 04 00", "8B 54 24 04 8D 41 48 50 52 E8 ? ? ? ? C2 04 00");
+            StreamingBudget::shDeleteNext = safetyhook::create_inline(pattern.get_first(0), StreamingBudget::DeleteNext);
 
             // Force the -nomemrestrict commandline arg. Fixes delayed streaming in some circumstances although not when Texture Quality is either Medium or Low.
             pattern = hook::pattern("83 3D ? ? ? ? ? 0F 85 ? ? ? ? A1 ? ? ? ? 85 C0 74");
