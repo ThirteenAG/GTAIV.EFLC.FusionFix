@@ -71,7 +71,8 @@ namespace ShadowCuts
     SafetyHookInline shAddSceneLightOrdered;
     std::vector<SafetyHookMid> hooks;
     SafetyHookInline shMainUpdateViewport;
-    SafetyHookInline shProcessOne2dEffectLight;
+    void(__cdecl* ProcessOne2dEffectLightOriginal)(void*, void*, float, float, float, uint16_t, uintptr_t, int32_t, int32_t,
+        int32_t, bool, bool, bool) = nullptr;
 
     bool IsPreparedCut()
     {
@@ -207,7 +208,7 @@ namespace ShadowCuts
                 }
             }
         }
-        shProcessOne2dEffectLight.ccall<void>(effect, matrix, fade, volumeFade, coronaFade, seed, source,
+        ProcessOne2dEffectLightOriginal(effect, matrix, fade, volumeFade, coronaFade, seed, source,
             interior, room, texture, force, statics, dynamics);
         randomSample = previousSample;
     }
@@ -380,7 +381,9 @@ namespace ShadowCuts
         auto mapOccluders = hook::pattern("C7 05 ? ? ? ? 00 00 00 00 C7 05 ? ? ? ? 00 00 00 00 C7 05 ? ? ? ? FF FF FF FF C7 05 ? ? ? ? FF FF FF FF C7 05 ? ? ? ? FF FF FF FF C7 05 ? ? ? ? FF FF FF FF C3");
         auto occluderBudget = hook::pattern("83 F8 64 7D 11 F3 0F 10 05 ? ? ? ? 83 FE FF");
         auto occluderSort = hook::pattern("A1 ? ? ? ? 24 07 C1 F9 03 3C 02 0F 85 75 00 00 00 83 F9 40");
-        auto effectLight = hook::pattern("55 8B EC 83 E4 F0 81 EC 88 00 00 00 56 8B 75 08 32 C0 57 88 44 24 12 8D 44 24 18 50 FF 75 30 C7 44 24 20 00 00 80 3F");
+        // The only call of ProcessOne2dEffectLight: its start is left to other plugins (LOD lights hook it)
+        auto effectLight = hook::pattern("50 57 E8 ? ? ? ? 83 C4 34 C6 44 24 17");
+        auto effectLightCall = 2;
         auto lightRandom1 = hook::pattern("E8 ? ? ? ? 66 0F 6E D0 0F 5B D2 F3 0F 59 15 ? ? ? ?");
         auto lightRandom2 = hook::pattern("E8 ? ? ? ? F3 0F 10 25 ? ? ? ? F3 0F 10 54 24 14 83 E0 1F");
         static bool legacy = EntityLights::legacy;
@@ -404,7 +407,8 @@ namespace ShadowCuts
             mapOccluders = hook::pattern("33 C0 A3 ? ? ? ? A3 ? ? ? ? 83 C8 FF A3 ? ? ? ? A3 ? ? ? ? A3 ? ? ? ? A3 ? ? ? ? C3");
             occluderBudget = hook::pattern("83 F8 64 8B F1 89 44 24 0C 7D ? 83 F9 FF 0F 85 ? ? ? ?");
             occluderSort = hook::pattern("80 E2 07 C1 F8 03 80 FA 02 75 ? 83 F8 40 7E ? 83 F8 64 7C ?");
-            effectLight = hook::pattern("55 8B EC 83 E4 F0 83 EC 54 8B 4D 30 F3 0F 10 05 ? ? ? ? 53 56 8B 75 08 57 8D 44 24 14 50 51");
+            effectLight = hook::pattern("D9 1C 24 52 56 E8 ? ? ? ? 83 C4 34 C6 44 24 1B");
+            effectLightCall = 5;
             lightRandom1 = hook::pattern("E8 ? ? ? ? D9 5C 24 1C 0F 57 DB 83 C4 08 EB ?");
             lightRandom2 = hook::pattern("E8 ? ? ? ? F3 0F 10 2D ? ? ? ? 0F 57 DB 83 E0 1F F3 0F 2A C0");
         }
@@ -533,7 +537,8 @@ namespace ShadowCuts
             }
         }));
         shMainUpdateViewport = safetyhook::create_inline(mainView.get_first(), UpdateMainViewport);
-        shProcessOne2dEffectLight = safetyhook::create_inline(effectLight.get_first(), ProcessOne2dEffectLight);
+        ProcessOne2dEffectLightOriginal = (decltype(ProcessOne2dEffectLightOriginal))injector::GetBranchDestination(effectLight.get_first(effectLightCall)).as_int();
+        injector::MakeCALL(effectLight.get_first(effectLightCall), ProcessOne2dEffectLight, true);
         shAddSceneLightOrdered = safetyhook::create_inline(ordered.get_first(), AddSceneLightOrdered);
     }
 }
