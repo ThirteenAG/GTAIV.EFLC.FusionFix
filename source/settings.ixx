@@ -2599,6 +2599,7 @@ public:
             for (auto id : { "MISC.ConsoleGamma", "MISC.ToneMapping", "MISC.ScreenFilter", "MISC.ConsoleAutoExposure", "MISC.TreeLighting", "MISC.TreeAlpha" }) AddSetting(advanced, id);
             AddEmptyLine(advanced);
             AddSetting(advanced, "MISC.CutsceneBorders");
+            AddSetting(advanced, "MAIN.HudAspectRatioConstraint");
             AddSetting(advanced, "MISC.TransparentMapMenu");
             hdrScreens.push_back(AddPage(screen, "@ff.page.hdr", "MO_DEF", true, [] { return SettingValueText(ownPlugin, "HDR.HDR"); }));
         }
@@ -4701,17 +4702,6 @@ export bool shouldModifyMapMenuBackground(int curMenuTab = *pMenuTab)
     return bTransparentMapMenu->get() && fMenuBlur && curMenuTab == 3;
 }
 
-// Same but for the camera options of the Controls tab. The Graphics tab shows the game anyway (Extra Night
-// Shadows).
-export bool shouldModifyMenuBackground(int curMenuTab = *pMenuTab)
-{
-    static auto centeredCamera = CSettings::GetPreferenceID("PREF_CENTEREDCAMERA");
-    static auto centeredCameraFoot = CSettings::GetPreferenceID("PREF_CENTEREDCAMERAFOOT");
-    auto selected = CSettings::GetSelectedPreference();
-    return (curMenuTab == 8) ||  // Everything in Display Tab
-        (curMenuTab == 5 && (selected == centeredCamera || selected == centeredCameraFoot));    // Controls Tab
-}
-
 injector::hook_back<decltype(&Natives::GetNumberOfInstancesOfStreamedScript)> hbGET_NUMBER_OF_INSTANCES_OF_STREAMED_SCRIPT;
 int32_t __cdecl NATIVE_GET_NUMBER_OF_INSTANCES_OF_STREAMED_SCRIPT(char* name)
 {
@@ -4913,6 +4903,17 @@ public:
                 pattern = hook::pattern("83 F8 03 7F 06");
                 injector::MakeNOP(pattern.get_first(3), 2);
             }
+
+            // Same but for the camera options of the Controls tab. The Graphics tab shows the game anyway (Extra Night
+            // Shadows).
+            static auto shouldModifyMenuBackground = [](int curMenuTab = *pMenuTab) -> bool
+            {
+                static auto centeredCamera = CSettings::GetPreferenceID("PREF_CENTEREDCAMERA");
+                static auto centeredCameraFoot = CSettings::GetPreferenceID("PREF_CENTEREDCAMERAFOOT");
+                auto selected = CSettings::GetSelectedPreference();
+                return (curMenuTab == 8) ||  // Everything in Display Tab
+                    (curMenuTab == 5 && (selected == centeredCamera || selected == centeredCameraFoot));    // Controls Tab
+            };
 
             pattern = hook::pattern("83 FE ? 75 ? FF 35 ? ? ? ? E8 ? ? ? ? 83 C4 ? 85 C0 79");
             if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
