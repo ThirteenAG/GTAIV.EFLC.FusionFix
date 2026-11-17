@@ -724,6 +724,95 @@ namespace CObject
     }
 }
 
+// Native entity-light sources shared by normal fixture submission and shadow-only cut recovery.
+export namespace EntityLights
+{
+    bool legacy = false;
+    thread_local bool gatheringShadows = false;
+    uintptr_t* pModelInfos = nullptr;
+    CPool<void*>** pBuildingPool = nullptr;
+    CPool<void*>** pAnimatedBuildingPool = nullptr;
+    CPool<void*>** pDummyPool = nullptr;
+    void (__thiscall* CEntity__ProcessLightsForEntity)(void*, float) = nullptr;
+    uint32_t (__thiscall* CBaseModelInfo__GetNum2dEffects)(void*) = nullptr;
+    void* (__thiscall* CPool__GetAt)(void*, int32_t) = nullptr;
+    void** pInteriorPool = nullptr;
+    uint8_t* pFadeLodLights = nullptr;
+    bool (__cdecl* CPortal__GetNoExteriorLights)() = nullptr;
+
+    uintptr_t ModelInfo(uintptr_t entity)
+    {
+        auto index = *(int16_t*)(entity + 0x2E);
+        return index >= 0 ? pModelInfos[index] : 0;
+    }
+
+    // CEntity::PreRender's light eligibility and alpha. The fixture fallback is exterior-only;
+    // shadow recovery also needs the native interior-parent and linked-LOD handoffs.
+    bool GetLightFade(uint8_t* entity, bool interiors, float& fade)
+    {
+        auto flags = *(uint32_t*)(entity + 0x24);
+        if (!(*(uint32_t*)(entity + 0x28) & 0x10) || !(flags & 0x800000)
+            || (!interiors && (flags & 0x8000000))
+            || (!(flags & 0x8000000) && CPortal__GetNoExteriorLights()))
+            return false;
+        auto model = ModelInfo(uintptr_t(entity));
+        if (!model)
+            return false;
+        fade = float(entity[0x63]) / 255.0f;
+        auto interiorHandle = *(int32_t*)(entity + 0x48);
+        if ((flags & 0x8000000) && interiorHandle != -1)
+        {
+            auto interior = (uint8_t*)CPool__GetAt(*pInteriorPool, interiorHandle);
+            auto parent = interior ? *(uint8_t**)(interior + 0xF4) : nullptr;
+            if (parent)
+            {
+                fade = float(parent[0x63]) / 255.0f;
+                if (entity == parent)
+                    fade *= *(float*)(interior + 0x10C);
+                else if (entity == *(uint8_t**)(interior + 0xF8))
+                    fade = float(entity[0x63]) / 255.0f;
+                else
+                    fade = 1.0f - *(float*)(interior + 0x10C) * fade;
+            }
+        }
+        else if (auto lod = *(uint8_t**)(entity + 0x4C))
+        {
+            if ((*(uint32_t*)(lod + 0x24) & 0x800000) && *pFadeLodLights == 1
+                && ((*(uint32_t*)(lod + 0x28) & 0x80000) || (*(uint16_t*)(lod + 0x5C) & 0x2000)))
+                fade = std::min(fade, float(255 - lod[0x63]) / 255.0f);
+        }
+        fade = std::min(fade, float(*(uint32_t*)(model + 0x5C)) * 999.99994f);
+        return true;
+    }
+
+    void Init()
+    {
+        auto preRender = hook::pattern("51 53 55 56 8B F1 0F BF 46 2E 8B 5E 28 8B 2C 85 ? ? ? ? F6 C3 10");
+        legacy = preRender.empty();
+        if (legacy)
+            preRender = hook::pattern("83 EC 08 55 56 8B F1 0F BF 46 2E 8B 2C 85 ? ? ? ? 8B 46 28 A8 10");
+        auto building = hook::pattern("6A 70 68 ? ? ? ? 68 00 7D 00 00 8B C8 E8 ? ? ? ? A3");
+        auto animatedBuilding = hook::pattern("68 10 01 00 00 68 ? ? ? ? 68 F4 01 00 00 8B C8 E8 ? ? ? ? A3");
+        auto dummy = hook::pattern("68 B0 36 00 00 8B C8 E8 ? ? ? ? A3");
+        auto pre = preRender.get_first<uint8_t>();
+        auto effectsCall = legacy ? 0x5B : 0x56;
+        auto poolCall = legacy ? 0xA6 : 0xA4;
+        auto lightsCall = legacy ? 0x1EE : 0x1E0;
+        auto portalCall = legacy ? 0x1A3 : 0x19E;
+        auto fadeLod = legacy ? 0x165 : 0x168;
+        pModelInfos = *(uintptr_t**)(pre + (legacy ? 14 : 16));
+        pBuildingPool = *building.get_first<CPool<void*>**>(20);
+        pAnimatedBuildingPool = *animatedBuilding.get_first<CPool<void*>**>(23);
+        pDummyPool = *dummy.get_first<CPool<void*>**>(13);
+        CEntity__ProcessLightsForEntity = (decltype(CEntity__ProcessLightsForEntity))injector::GetBranchDestination(pre + lightsCall).as_int();
+        CBaseModelInfo__GetNum2dEffects = (decltype(CBaseModelInfo__GetNum2dEffects))injector::GetBranchDestination(pre + effectsCall).as_int();
+        CPool__GetAt = (decltype(CPool__GetAt))injector::GetBranchDestination(pre + poolCall).as_int();
+        pInteriorPool = *(void***)(pre + (legacy ? 0xA1 : 0x9F));
+        pFadeLodLights = *(uint8_t**)(pre + fadeLod + 2);
+        CPortal__GetNoExteriorLights = (decltype(CPortal__GetNoExteriorLights))injector::GetBranchDestination(pre + portalCall).as_int();
+    }
+}
+
 namespace CTask
 {
     export CPool<void*>* GetTaskPool()
@@ -3415,6 +3504,8 @@ public:
 
         pattern = hook::pattern("E8 ? ? ? ? 8B 48 ? 69 C9");
         game_rand = *pattern.get_first<int(__cdecl)()>(0);
+
+        EntityLights::Init();
 
         pattern = find_pattern("83 3D ? ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 C1", "83 3D ? ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 59 05");
         CReplayMgr::dword_11F7060 = *pattern.get_first<uint32_t*>(2);

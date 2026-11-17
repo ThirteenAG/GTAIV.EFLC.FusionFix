@@ -1,6 +1,7 @@
 module;
 
 #include <common.hxx>
+#include <cmath>
 
 export module cutscenecam;
 
@@ -8,6 +9,189 @@ import common;
 import comvars;
 import natives;
 import settings;
+
+// Observe cuts only after the final camera evaluation has been accepted.
+namespace CutsceneCuts
+{
+    struct CameraEvaluation
+    {
+        uintptr_t camera;
+        float phase;
+    };
+
+    std::vector<CameraEvaluation> cameraEvaluations;
+    uint32_t cameraEvaluationFrame = 0;
+    uintptr_t acceptedCamera = 0;
+    void* acceptedAnimation = nullptr;
+    int32_t acceptedSection = -1;
+    float acceptedPhase = 0.0f;
+    int32_t acceptedMarkerFrame = 0;
+    void* (__thiscall* CCamAnimated__GetAnimation)(void*) = nullptr;
+    void* (__thiscall* rage__crAnimation__FindTrack)(void*, uint8_t, uint16_t) = nullptr;
+    bool (__thiscall* rage__crAnimation__CompositeDof)(void*, float, void*, bool, bool) = nullptr;
+    uintptr_t crFrameDofFloatVtable = 0;
+    void* cameraManager = nullptr;
+    uintptr_t (__thiscall* CCameraManager__GetFinalEffectiveLeafNode)(void*) = nullptr;
+    // The PC implementations do not use the CCamInterface receiver.
+    bool (__cdecl* CCamInterface__IsLookingBehind)() = nullptr;
+    void* (__thiscall* CCameraManager__GetCutsceneCam)(void*) = nullptr;
+    float (__thiscall* CCamCutscene__GetCurrentCameraPhaseInUse)(void*, int32_t) = nullptr;
+    int32_t* pCutsceneSection = nullptr;
+    bool* pCutsceneFullyStreamed = nullptr;
+    void (__cdecl* CCutsceneManager__UpdateLights)(float) = nullptr;
+
+    void ObserveJumpCut(uintptr_t camera, float phase, uint32_t result)
+    {
+        auto frame = *CTimer::m_frameCount;
+        if (cameraEvaluationFrame != frame)
+        {
+            cameraEvaluations.clear();
+            cameraEvaluationFrame = frame;
+        }
+        if (result == 3)
+            cameraEvaluations.push_back({ camera, phase });
+    }
+
+    bool SampleCutMarker(void* animation, int32_t frame)
+    {
+        // Same crFrameDofFloat layout, track and nearest-frame sampling as CCamAnimated::IsJumpCut.
+        struct
+        {
+            uintptr_t vtable;
+            uint32_t track;
+            uint32_t pad[2];
+            float value[4];
+        } dof = { crFrameDofFloatVtable, 0x9012, {}, {} };
+        return rage__crAnimation__CompositeDof(animation, float(frame) / 30.0f, &dof, true, true)
+            && dof.value[0] == 1.0f;
+    }
+
+    export bool DetectCut()
+    {
+        auto frame = *CTimer::m_frameCount;
+        auto state = *CCutsceneManager::ms_State;
+        auto section = *pCutsceneSection;
+        auto cutscene = state >= 8 && state <= 11 ? CCameraManager__GetCutsceneCam(cameraManager) : nullptr;
+        // CCamCutscene owns 15 section cameras. GetCurrentCameraPhaseInUse reads this child and its phase at +0x144.
+        auto camera = cutscene && section >= 0 && section < 15 ? ((uintptr_t*)cutscene)[80 + section] : 0;
+        auto animation = camera ? CCamAnimated__GetAnimation((void*)camera) : nullptr;
+        auto phase = camera ? *(float*)(camera + 0x144) : -1.0f;
+        auto duration = animation ? *(float*)((uintptr_t)animation + 0xC) : 0.0f;
+        if (!animation || !std::isfinite(phase) || phase < 0.0f || phase > 1.0f
+            || !std::isfinite(duration) || duration <= 0.0f || duration * 30.0f >= float(INT32_MAX))
+        {
+            acceptedCamera = 0;
+            acceptedAnimation = nullptr;
+            cameraEvaluations.clear();
+            return false;
+        }
+
+        bool animatedCut = false;
+        for (const auto& evaluation : cameraEvaluations)
+        {
+            if (evaluation.camera != camera || cameraEvaluationFrame != frame)
+                continue;
+            // A jitter wrapper may roll a candidate back. Only retain the native release for the accepted phase.
+            animatedCut |= evaluation.phase == phase;
+        }
+
+        auto markerFrame = int32_t(std::floor((duration * phase) * 30.0f));
+        auto entry = camera != acceptedCamera || animation != acceptedAnimation || section != acceptedSection;
+        auto rewind = !entry && phase < acceptedPhase;
+        // A seek/hitch spanning over a second already invalidates the previous view; avoid scanning an entire scene.
+        auto seek = !entry && markerFrame - acceptedMarkerFrame > 30;
+        auto hasTrack = rage__crAnimation__FindTrack(animation, 0x90, 0) != nullptr;
+        bool crossedMarker = false;
+        if (hasTrack && !entry && !rewind && !seek && markerFrame > acceptedMarkerFrame)
+        {
+            auto previous = SampleCutMarker(animation, acceptedMarkerFrame);
+            for (auto sample = acceptedMarkerFrame + 1; sample <= markerFrame; sample++)
+            {
+                auto marker = SampleCutMarker(animation, sample);
+                if (marker && !previous)
+                    crossedMarker = true;
+                previous = marker;
+            }
+        }
+        auto authored = entry || rewind || seek || crossedMarker;
+        acceptedCamera = camera;
+        acceptedAnimation = animation;
+        acceptedSection = section;
+        acceptedPhase = phase;
+        acceptedMarkerFrame = markerFrame;
+        cameraEvaluations.clear();
+        return animatedCut || authored;
+    }
+
+    export void SubmitLights()
+    {
+        // Match CCutsceneManager::PostSceneUpdate's active/fully-streamed gate,
+        // without running its unrelated scene updates twice.
+        auto state = *CCutsceneManager::ms_State;
+        if (state < 8 || state > 11 || !*pCutsceneFullyStreamed)
+            return;
+        auto camera = CCameraManager__GetCutsceneCam(cameraManager);
+        auto phase = camera ? CCamCutscene__GetCurrentCameraPhaseInUse(camera, *pCutsceneSection) : -1.0f;
+        CCutsceneManager__UpdateLights(phase);
+    }
+
+    export void Reset()
+    {
+        acceptedCamera = 0;
+        cameraEvaluations.clear();
+    }
+
+    export uintptr_t FinalLeaf()
+    {
+        return CCameraManager__GetFinalEffectiveLeafNode(cameraManager);
+    }
+
+    export bool IsLookingBehind()
+    {
+        return CCamInterface__IsLookingBehind();
+    }
+
+    // Independent of the optional jitter/timing patches: also supports vanilla camera evaluation.
+    export void Init(bool legacy)
+    {
+        auto jumpCut = hook::pattern("E8 ? ? ? ? F3 0F 10 4D 08 8B F8 F3 0F 11 8E 44 01 00 00 85 FF 75");
+        auto cutsceneState = hook::pattern("A1 ? ? ? ? 85 C0 75 0C 39 05 ? ? ? ? 0F 84 ? ? ? ? 80 3D ? ? ? ? 00 0F 84 ? ? ? ? 83 F8 08 74 13 83 F8 09");
+        auto cutsceneSequence = hook::pattern("51 56 B9 ? ? ? ? E8 ? ? ? ? F3 0F 10 05 ? ? ? ? 8B F0 F3 0F 11 44 24 04 85 F6 74 1D FF 35");
+        auto cutsceneLights = hook::pattern("55 8B EC 83 E4 F0 A1 ? ? ? ? 83 EC 78 8B 04 85 ? ? ? ? 56 57 85 C0 0F 84 ? ? ? ? 83 B8 F4 03 01 00 00");
+        auto finalLeaf = hook::pattern("8B 49 04 81 EC F0 00 00 00 8D 04 24 56 50 E8 ? ? ? ? 8B F0 4E 78 18");
+        auto lookingBehind = hook::pattern("6A 01 6A 01 6A 03 E8 ? ? ? ? 84 C0 0F 95 C0 C3");
+        if (legacy)
+        {
+            jumpCut = hook::pattern("E8 ? ? ? ? F3 0F 10 45 08 8B C8 85 C9 89 4C 24 2C F3 0F 11 86 44 01 00 00");
+            cutsceneSequence = hook::pattern("51 56 B9 ? ? ? ? E8 ? ? ? ? F3 0F 10 05 ? ? ? ? 8B F0 85 F6 F3 0F 11 44 24 04 74 ?");
+            cutsceneLights = hook::pattern("55 8B EC 83 E4 F0 A1 ? ? ? ? 8B 04 85 ? ? ? ? 83 EC 74 85 C0 53 56 57 0F 84 ? ? ? ? 83 B8 F4 03 01 00 00");
+            finalLeaf = hook::pattern("8B 49 04 81 EC F0 00 00 00 56 8D 44 24 04 50 E8 ? ? ? ? 8B F0 83 EE 01");
+        }
+        auto sequence = cutsceneSequence.get_first<uint8_t>();
+        auto nativeJumpCut = injector::GetBranchDestination(jumpCut.get_first()).get<uint8_t>();
+        auto cameraPhase = injector::GetBranchDestination(sequence + 0x28).get<uint8_t>();
+        auto animationCall = legacy ? 0x3C : 0x48;
+        auto trackCall = legacy ? 0x127 : 0x148;
+        auto compositeCall = legacy ? 0x169 : 0x181;
+        cameraManager = *(void**)(sequence + 3);
+        CCameraManager__GetFinalEffectiveLeafNode = (decltype(CCameraManager__GetFinalEffectiveLeafNode))finalLeaf.get_first();
+        CCamInterface__IsLookingBehind = (decltype(CCamInterface__IsLookingBehind))lookingBehind.get_first();
+        CCameraManager__GetCutsceneCam = (decltype(CCameraManager__GetCutsceneCam))injector::GetBranchDestination(sequence + 7).as_int();
+        CCamCutscene__GetCurrentCameraPhaseInUse = (decltype(CCamCutscene__GetCurrentCameraPhaseInUse))cameraPhase;
+        pCutsceneSection = *(int32_t**)(sequence + (legacy ? 0x21 : 0x22));
+        pCutsceneFullyStreamed = *cutsceneState.get_first<bool*>(0x17);
+        CCamAnimated__GetAnimation = (decltype(CCamAnimated__GetAnimation))injector::GetBranchDestination(nativeJumpCut + animationCall).as_int();
+        rage__crAnimation__FindTrack = (decltype(rage__crAnimation__FindTrack))injector::GetBranchDestination(nativeJumpCut + trackCall).as_int();
+        rage__crAnimation__CompositeDof = (decltype(rage__crAnimation__CompositeDof))injector::GetBranchDestination(nativeJumpCut + compositeCall).as_int();
+        crFrameDofFloatVtable = *(uintptr_t*)(nativeJumpCut + (legacy ? 0x154 : 0x178));
+        CCutsceneManager__UpdateLights = (decltype(CCutsceneManager__UpdateLights))cutsceneLights.get_first();
+        static auto JumpCutHook = safetyhook::create_mid(jumpCut.get_first(5), [](SafetyHookContext& regs)
+        {
+            // IsJumpCut may replace its phase argument; ESI is the camera, EBP the caller's frame pointer.
+            ObserveJumpCut(regs.esi, *(float*)(regs.ebp + 8), regs.eax);
+        });
+    }
+}
 
 uint8_t* g_CutsceneAudioEntity = nullptr;
 int* pGetTimeStepStaticsInitGuard = nullptr;

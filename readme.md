@@ -209,6 +209,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Restored night shadow for vehicles
 - Made night shadows resolution be adjusted by night shadows option
 - Reworked night shadows: sharper, the most visible lights get them first and keep them, and they fade with distance instead of popping in and out
+- Camera cuts and look-behind refresh world and cutscene night shadows immediately
 - Streetlights keep the shadows of buildings, trees and props from frame to frame, so every nearby streetlight casts them at almost no cost; people and vehicles are added for the nearest ones
 - Vehicles and the people in them keep their night shadows while the player's headlights cast theirs; lampposts no longer shadow their own light
 - The player's headlights cast shadows: the game never passed their shadow to the lighting, so nothing ever showed it. Their shadows are aimed along the beam, much sharper, and fade out 35 metres ahead
