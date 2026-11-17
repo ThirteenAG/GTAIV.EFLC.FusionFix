@@ -283,6 +283,10 @@ namespace StreamingBudget
     // Of the game's free memory multiplier
     std::atomic<float> fScale{ 1.0f };
 
+    // How much of the population budgets' growth is left: 1 until the budget is cut below the game's own, 0 at the
+    // lowest cut
+    std::atomic<float> fRoom{ 1.0f };
+
     // Bytes: what the car and ped models hold beyond the game's own budgets for them (PopulationBudget). They are paid
     // from the same budget as the world, so it grows by as much: the world keeps the room it has with the game's own
     // models instead of streaming out around bigger ones.
@@ -459,6 +463,7 @@ namespace StreamingBudget
                 scale = newScale;
                 content = newContent;
                 fScale = scale * content;
+                fRoom = (scale - fMinScale) / (1.0f - fMinScale);
                 if (fBaseMultiplier)
                     fMultiplier = fBaseMultiplier * scale * content;
             }
@@ -1188,22 +1193,27 @@ namespace EarlyUploads
 }
 
 // The population streaming loads another car or ped model while the memory of the ones it has is under a budget (40 and
-// 50 MB). Every model counts, also the taxis, police and emergency models it keeps loaded whatever the budget says, so
-// with bigger models (car mods) those alone fill it: no other car model is loaded, models are dropped, and taxis are
-// soon the only cars on the streets. The budgets follow the size of the models in memory instead, so they hold about
-// as many models as the game's own budgets hold of its own models. The models are paid from the streaming budget of
-// the world, which grows by what they hold beyond the game's own budgets (StreamingBudget): otherwise a car mod's
-// traffic takes its room from the city around it.
+// 50 MB). Everything counts: the shared car textures (vehshare) and the taxi, police, emergency, train, helicopter and
+// boat models it keeps loaded whatever the budget says. With bigger models and textures (car mods, HD packs) those
+// alone fill it: no other car model is loaded, and taxis are soon most of the cars on the streets. The budgets follow
+// the size of the models in memory instead, so they hold as many models as the game's own budgets hold of its own
+// models, and the car budget also holds the shared textures whatever their size. The models are paid from the
+// streaming budget of the world, which grows by what they hold beyond the game's own budgets (StreamingBudget):
+// otherwise a car mod's traffic takes its room from the city around it. When the address space gets short, that
+// growth goes back with the world's.
 namespace PopulationBudget
 {
-    // MB per model in memory: the game's own models average about 3.2 (cars) and 4.4 (peds), so with these its own
-    // budgets are kept
-    constexpr float fStockVehicleModelMB = 3.6f;
+    // MB per model in memory: the game's own models average about 3.2 (cars) and 4.4 (peds), and its shared car
+    // textures take 1.6, so with these its own budgets are kept
+    constexpr float fStockVehicleModelMB = 3.3f;
     constexpr float fStockPedModelMB = 4.9f;
-    constexpr float fMaxModelScale = 4.0f;
+    constexpr float fStockVehicleSharedMB = 1.6f;
 
     GameRef<int32_t> nVehicleBudget;
     GameRef<int32_t> nPedBudget;
+
+    // Bytes of the shared car textures, the car memory the population streaming starts a session with
+    int32_t nVehicleShared = 0;
 
     // Loaded model groups of the population streaming: 64 model indices each, -1 after the last
     constexpr ptrdiff_t VehicleGroups[] = { 0x000, 0x100, 0x200, 0x300 };
@@ -1211,26 +1221,30 @@ namespace PopulationBudget
     constexpr ptrdiff_t VehicleMemory = 0x70C;
     constexpr ptrdiff_t PedMemory = 0x708;
 
+    // A model can be in two groups (the police models of the zone are in its car group too) but is in memory once
     int32_t CountModels(uintptr_t population, std::span<const ptrdiff_t> groups)
     {
+        std::array<int32_t, 4 * 64> seen;
         int32_t count = 0;
         for (auto group : groups)
         {
             auto models = reinterpret_cast<const int32_t*>(population + group);
             for (int32_t i = 0; i < 64 && models[i] >= 0; i++)
-                count++;
+            {
+                if (std::find(seen.begin(), seen.begin() + count, models[i]) == seen.begin() + count)
+                    seen[count++] = models[i];
+            }
         }
         return count;
     }
 
     // How much bigger than the game's own the models in memory are, from at least a few of them
-    float ModelScale(uintptr_t population, std::span<const ptrdiff_t> groups, ptrdiff_t memory, float stockMB)
+    float ModelScale(uintptr_t population, std::span<const ptrdiff_t> groups, int32_t bytes, float stockMB)
     {
         auto count = CountModels(population, groups);
-        auto bytes = *reinterpret_cast<const int32_t*>(population + memory);
         if (count < 3 || bytes <= 0)
             return 1.0f;
-        return std::clamp(bytes / (count * stockMB * 1048576.0f), 1.0f, fMaxModelScale);
+        return std::max(1.0f, bytes / (count * stockMB * 1048576.0f));
     }
 
     void Update(uintptr_t population)
@@ -1239,18 +1253,31 @@ namespace PopulationBudget
         static int32_t nStockVehicleBudget = nVehicleBudget;
         static int32_t nStockPedBudget = nPedBudget;
 
-        auto vehicles = ModelScale(population, VehicleGroups, VehicleMemory, fStockVehicleModelMB);
-        auto peds = ModelScale(population, PedGroups, PedMemory, fStockPedModelMB);
-        nVehicleBudget = static_cast<int32_t>(nStockVehicleBudget * vehicles);
-        nPedBudget = static_cast<int32_t>(nStockPedBudget * peds);
+        auto vehicleBytes = *reinterpret_cast<const int32_t*>(population + VehicleMemory);
+        auto pedBytes = *reinterpret_cast<const int32_t*>(population + PedMemory);
+        auto vehicles = ModelScale(population, VehicleGroups, vehicleBytes - nVehicleShared, fStockVehicleModelMB);
+        auto peds = ModelScale(population, PedGroups, pedBytes, fStockPedModelMB);
+
+        // The game's room for car models beyond its shared textures, scaled, and the shared textures
+        constexpr auto nStockVehicleShared = static_cast<int64_t>(fStockVehicleSharedMB * 1048576.0f);
+        auto vehicleBudget = std::max<int64_t>(nStockVehicleBudget, nVehicleShared + static_cast<int64_t>((nStockVehicleBudget - nStockVehicleShared) * vehicles));
+        auto pedBudget = static_cast<int64_t>(nStockPedBudget * peds);
+
+        // The growth goes back with the world's while the address space is short
+        auto room = StreamingBudget::fRoom.load(std::memory_order_relaxed);
+        auto Budget = [room](int64_t budget, int32_t stock)
+        {
+            return static_cast<int32_t>(std::min<int64_t>(stock + static_cast<int64_t>((budget - stock) * room), INT32_MAX));
+        };
+        nVehicleBudget = Budget(vehicleBudget, nStockVehicleBudget);
+        nPedBudget = Budget(pedBudget, nStockPedBudget);
 
         // What the models hold beyond the game's own budgets, as far as the bigger budgets allow it
         auto Extra = [](int32_t bytes, int32_t budget, int32_t stock)
         {
             return std::max(0, std::min(bytes, budget) - stock);
         };
-        StreamingBudget::nPopulationExtra = Extra(*reinterpret_cast<const int32_t*>(population + VehicleMemory), nVehicleBudget, nStockVehicleBudget) +
-            Extra(*reinterpret_cast<const int32_t*>(population + PedMemory), nPedBudget, nStockPedBudget);
+        StreamingBudget::nPopulationExtra = Extra(vehicleBytes, nVehicleBudget, nStockVehicleBudget) + Extra(pedBytes, nPedBudget, nStockPedBudget);
     }
 }
 
@@ -1325,6 +1352,24 @@ public:
                 static auto PopulationBudgetHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                 {
                     PopulationBudget::Update(regs.ebp);
+                });
+            }
+
+            // The population streaming's session start, its car memory set to the shared car textures
+            pattern = hook::pattern("03 44 24 ? 83 C4 18 89 86 0C 07 00 00");
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59: in eax
+            {
+                static auto VehicleSharedHook = safetyhook::create_mid(pattern.get_first(7), [](SafetyHookContext& regs)
+                {
+                    PopulationBudget::nVehicleShared = regs.eax;
+                });
+            }
+            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0: in edx
+            {
+                pattern = hook::pattern("03 D1 89 96 0C 07 00 00");
+                static auto VehicleSharedHook = safetyhook::create_mid(pattern.get_first(2), [](SafetyHookContext& regs)
+                {
+                    PopulationBudget::nVehicleShared = regs.edx;
                 });
             }
 
