@@ -1242,7 +1242,6 @@ private:
             std::memcpy(instance + 0x3448, highlights.data(), highlights.size());
         if (auto categories = GetActiveCategories(); categories && handle == menuHandles[0] && layoutMenu && layoutMenu == GetMenu())
             DrawCategories(*categories);
-        DrawBreadcrumb(handle);
         DrawDescription(handle);
         NoteHdrPage(handle);
     }
@@ -1918,10 +1917,7 @@ private:
             {
                 if (auto page = FindPage(dynamicOptions[button].submenu))
                 {
-                    // The row's text has room for 59 characters, the mark of rows that open a page included
-                    std::wstring name = GetPageName(*page);
-                    name = name.substr(0, 59 - std::wcslen(SubmenuMark)) + SubmenuMark;
-                    wcsncpy_s(text, 60, name.c_str(), _TRUNCATE);
+                    wcsncpy_s(text, 60, GetPageName(*page), _TRUNCATE);
                     return nullptr;
                 }
             }
@@ -2062,6 +2058,12 @@ private:
             setFontDropShadow = reinterpret_cast<decltype(setFontDropShadow)>(branch(info.get_first<uint8_t>(0x7E)));
             getInfoLabelWidth = reinterpret_cast<decltype(getInfoLabelWidth)>(branch(infoWidth.get_first<uint8_t>(1)));
             infoTextRow = safetyhook::create_mid(infoRow.get_first(), InfoTextRow);
+            // The row's info text: its height (the info position plus a margin) is in xmm0
+            infoTextTop = safetyhook::create_mid(hook::pattern("F3 0F 10 40 04 F3 0F 58 05 ? ? ? ? 83 C4 0C 8D 44 24 ? 6A 3B 50").get_first(13), [](SafetyHookContext& regs)
+            {
+                if (IsGraphicsList() && rowHeight)
+                    regs.xmm0.f32[0] += *rowHeight;
+            });
             categoriesEnabled = true;
 
             // The language: FillMenu hides its row of Display (9, 10 in TLAD) and of the title menu's Display (6)
@@ -2460,7 +2462,9 @@ public:
             { "PREF_CENTEREDCAMERAFOOT",     "MISC.CenteredFootCam" },
             { "PREF_CAMERASHAKE",            "MAIN.CameraShake" },
             { "PREF_TURNINDICATORS",         "MISC.TurnIndicators" },
-            { "PREF_EXTRANIGHTSHADOWS",      "SHADOWS.ExtraNightShadows" },
+            { "PREF_STREETLIGHTSHADOWS",     "SHADOWS.StreetlightShadows" },
+            { "PREF_HEADLIGHTSHADOWS",       "SHADOWS.HeadlightShadows" },
+            { "PREF_VEHICLENIGHTSHADOWS",    "SHADOWS.VehicleNightShadows" },
             { "PREF_DISTANTLIGHTS",          "MISC.DistantLights" },
             { "PREF_GRAPHICSAPI",            "MAIN.GraphicsAPI" },
             { "PREF_BULLETTRACES",           "MISC.AlwaysShowBulletTraces" },
@@ -2492,7 +2496,7 @@ public:
         // build FusionFixHub installs or the player's own), DirectX 12 Fusion Fix's own D3D9On12 driver next to the exe (FusionFixHub
         // installs it), never Windows' slow one. When the API didn't start, the next start falls back to DirectX 9 and
         // sets this back (the crash guard of graphics_api.h).
-        FusionFixSettings.SetAvailability("PREF_GRAPHICSAPI", [](int32_t value) -> bool
+        SetAvailability("PREF_GRAPHICSAPI", [](int32_t value) -> bool
         {
             return FusionFixGraphicsApi::Available(static_cast<FusionFixGraphicsApi::Api>(std::clamp(value, 0, 2)));
         });
@@ -2525,20 +2529,20 @@ public:
         for (auto [screen, before] : { std::pair{ MenuScreen::Game, "MO_EXITGAM" }, std::pair{ MenuScreen::TitleGame, "" } })
         {
             AddSetting(screen, "MAIN.WindowMode", before);
-            auto advanced = AddPage(screen, "@ff.page.advanced", before, true);
-            for (auto id : { "MAIN.SkipIntro", "MAIN.SkipMenu", "MAIN.BlockOnLostFocus", "MISC.TimedEvents", "UPDATE.CheckForUpdates" })
+            auto advanced = AddPage(screen, "@ff.page.advanced", before);
+            for (auto id : { "MAIN.SkipIntro", "MAIN.SkipMenu", "MAIN.BlockOnLostFocus", "MISC.TimedEvents", "UPDATE.CheckForUpdates",
+                             "FRAMELIMIT.DisplayFpsCounter", "MISC.ExtraInfo" })
                 AddSetting(advanced, id);
-            auto tweaks = AddPage(screen, "@ff.page.tweaks", before, true);
-            AddSetting(tweaks, "FRAMELIMIT.DisplayFpsCounter");
-            AddSetting(tweaks, "MISC.ExtraInfo");
             pluginsBefore[static_cast<int32_t>(screen)] = before;
             if (auto own = AddCategory(PluginsPage(screen), MenuKey(ownPlugin, ownPlugin.file.description.name)); own != MenuScreen::Invalid)
                 AddPresetRow(own, ownPlugin);
+            if (*before)
+                AddEmptyLine(screen, before);
         }
 
         for (auto screen : { MenuScreen::Controls, MenuScreen::TitleControls })
         {
-            auto advanced = AddPage(screen, "@ff.page.advanced", {}, true);
+            auto advanced = AddPage(screen, "@ff.page.advanced");
             for (auto id : { "MISC.AlwaysRun", "MISC.ZoomedMovement", "MISC.ExtendedSniperControls" }) AddSetting(advanced, id);
             AddEmptyLine(advanced);
             for (auto id : { "MISC.TurnIndicators", "MISC.AutoClimbLadders", "MISC.PlayerJumpRagdollControl", "MISC.AlwaysShowBulletTraces" }) AddSetting(advanced, id);
@@ -2609,7 +2613,7 @@ public:
             AddSetting(advanced, "MISC.Antialiasing");
             for (auto id : { "MAIN.Bloom", "MAIN.MotionBlur", "MISC.DepthOfField" }) AddSetting(advanced, id);
             AddEmptyLine(advanced);
-            for (auto id : { "FOG.VolumetricFog", "MISC.SunShafts", "MISC.UnclampLighting", "MISC.ConsoleCarReflectionsAndDirt", "EXPERIMENTAL.ReflectionMSAAQuality", "MISC.AmbientOcclusion", "SHADOWS.ShadowFilter", "SHADOWS.ExtraNightShadows", "MISC.DistantLights" }) AddSetting(advanced, id);
+            for (auto id : { "FOG.VolumetricFog", "MISC.SunShafts", "MISC.UnclampLighting", "MISC.ConsoleCarReflectionsAndDirt", "EXPERIMENTAL.ReflectionMSAAQuality", "MISC.AmbientOcclusion", "SHADOWS.ShadowFilter", "SHADOWS.StreetlightShadows", "SHADOWS.HeadlightShadows", "SHADOWS.VehicleNightShadows", "MISC.DistantLights" }) AddSetting(advanced, id);
         }
     }
 
@@ -4009,8 +4013,6 @@ private:
         if (row.plugin == &ownPlugin)
         {
             auto gameText = [](const char* key) { return FromGameText(CText::getText(key)); };
-            if (setting.id == "SHADOWS.ExtraNightShadows" && SettingsPlugin().Int(setting.id) != 0)
-                return gameText("FF_WARN2");
             if (setting.id == "SHADOWS.ShadowFilter" && SettingsPlugin().Int(setting.id) == 2 && GetPrefIDByName("PREF_SHADOW_QUALITY") &&
                 mPrefs[*GetPrefIDByName("PREF_SHADOW_QUALITY")] < 4)
                 return gameText("FF_WARN6");
@@ -4064,6 +4066,12 @@ private:
     }
 
     // Video Mode's one-line resolution text occupies part of the normal graphics-help area.
+    // Graphics itself, not one of its pages: its info text starts a row lower, below the Video Mode value
+    static bool IsGraphicsList()
+    {
+        return currentScreen && (*currentScreen == 49 || *currentScreen == 62) && activePage == -1;
+    }
+
     static bool IsVideoModeSelected()
     {
         if (!currentScreen || (*currentScreen != 49 && *currentScreen != 62) || activePage != -1)
@@ -4114,8 +4122,6 @@ private:
         return lines;
     }
 
-    static constexpr const wchar_t* SubmenuMark = L" >";
-
     // Render thread, before the menu draws its rows: rows that open a page show the page's value. Rows keep the
     // menu's own colours (idle, hovered, selected); their labels are never changed, so they don't flicker.
     static void StyleRows(int32_t handle)
@@ -4139,45 +4145,13 @@ private:
         }
     }
 
-    // The way to the page shown above its rows: "GAME > STARTUP AND WINDOW"
-    static void DrawBreadcrumb(int32_t handle)
-    {
-        auto instance = handle >= 0 ? menuInstances[handle] : nullptr;
-        auto page = ShownPage();
-        if (!instance || handle != menuHandles[0] || !page || activeHost != *currentScreen || !tabState || hasTabModal() != 0 || confirming)
-            return;
-        auto root = GetRootScreen(activePage);
-        if (root < 0 || root >= 73)
-            return;
-        auto text = ToGameText(Upper(FromGameText(CText::getText(screens[root].header)) + " > " + FromGameText(GetPageName(*page))));
-        auto position = reinterpret_cast<float*>(instance + 0x35D0);
-        auto scaleX = *reinterpret_cast<float*>(instance + 0x35DC) * *reinterpret_cast<float*>(instance + 0x35E4);
-        auto scaleY = *reinterpret_cast<float*>(instance + 0x35E0) * *reinterpret_cast<float*>(instance + 0x35E8);
-        auto font = fontStates + getFontContext() * 0x48;
-        std::array<uint8_t, 0x48> saved;
-        std::memcpy(saved.data(), font, saved.size());
-        font[0x14] = 0;
-        font[0x15] = 0;
-        font[0x16] = 1;
-        font[0x1A] = 255;
-        setFontOrientation(1);
-        setFontStyle(*reinterpret_cast<int32_t*>(instance + 0x35D8));
-        setTabScale(scaleX * 0.6f, scaleY * 0.6f);
-        setFontEdge(*reinterpret_cast<float*>(instance + 0x3608));
-        setFontEdgeColor(uint32_t(instance[0x363C]) << 24);
-        auto x = GetActiveCategories() ? bodyPosition[0] : position[0];
-        setFontWrap(x - 0.02f, x + 1.0f);
-        setTabColor(*reinterpret_cast<uint32_t*>(instance + 0x3630));
-        printTab.ccall<void>(x, position[1] + 0.019f, (L"~m~" + text).c_str(), -1, -1);
-        std::memcpy(font, saved.data(), saved.size());
-    }
-
     // The menu's info text at the top right (Graphics: the video memory and what the selected row affects), for rows
     // of Fusion Fix and other plugins on every tab: at the place, in the font and the colour of the game's
     static inline float* (__cdecl* getInfoPosition)(float*) = nullptr;
     static inline float* (__cdecl* getInfoLabelWidth)(float*) = nullptr;
     static inline void(__cdecl* setFontDropShadow)(float) = nullptr;
     static inline SafetyHookMid infoTextRow;
+    static inline SafetyHookMid infoTextTop;
     static inline std::array<std::vector<std::string>, 2> graphicsLabels;  // rows of the XML of Graphics, title Graphics
 
     static void DrawDescription(int32_t handle)
@@ -4216,7 +4190,7 @@ private:
         setFontWrap(left, right[0]);
         uint32_t colour = 0;
         setTabColor(*getHudColour(&colour, 59));
-        printTab.ccall<void>(left, position[1] + 0.04f + (IsVideoModeSelected() && rowHeight ? *rowHeight : 0.0f), text.c_str(), -1, -1);
+        printTab.ccall<void>(left, position[1] + 0.04f + (IsGraphicsList() && rowHeight ? *rowHeight : 0.0f), text.c_str(), -1, -1);
         std::memcpy(font, saved.data(), saved.size());
     }
 
@@ -4281,12 +4255,18 @@ private:
         return options.data[row].preference;
     }
 
-    // Del on the keyboard, X on the gamepad: the selected row of Fusion Fix or another plugin goes back to its default
+    // Del on the keyboard, X on the gamepad: the selected row of Fusion Fix or another plugin goes back to its default.
+    // The menu's input for the gamepad's X is also Space on the keyboard, Graphics' Apply: Space doesn't reset.
     static void ResetSelectedRow()
     {
         static bool deleteDown = false;
         auto down = IsKeyboardKeyPressed(VK_DELETE);
-        auto pressed = (down && !deleteDown) || queryInput.ccall<uint8_t>(9, uint8_t(0), uint8_t(0), uint8_t(0), uint8_t(0), uint8_t(0), uint8_t(0)) != 0;
+        static ULONGLONG spaceTime = 0;
+        if (GetAsyncKeyState(VK_SPACE) & 0x8000)
+            spaceTime = GetTickCount64();
+        auto padX = queryInput.ccall<uint8_t>(9, uint8_t(0), uint8_t(0), uint8_t(0), uint8_t(0), uint8_t(0), uint8_t(0)) != 0 &&
+            GetTickCount64() - spaceTime > 500;
+        auto pressed = (down && !deleteDown) || padX;
         deleteDown = down;
         auto preference = SelectedSettingPreference();
         if (!pressed || preference < firstCustomID)
@@ -4712,12 +4692,6 @@ public:
         enum eAntialiasingText { eMO_OFF, eFXAA, eSMAA, eTAA, eDLAA, eFSR };
         const std::vector<const char*> data = { "MO_OFF", "FXAA", "SMAA", "TAA", "DLAA", "FSR" };
     } AntialiasingText;
-
-    struct
-    {
-        enum eExtraNightShadowsText { eOff, eLampposts, eLampostsHeadl, eLampHeadlVNS };
-        const std::vector<const char*> data = { "MO_OFF", "Lampposts", "LampostsHeadl", "LampHeadlVNS" };
-    } ExtraNightShadowsText;
 
 } FusionFixSettings;
 
@@ -5191,32 +5165,6 @@ public:
                     "83 EC 74 A1 ? ? ? ? 33 C4 89 44 24 70 A1 ? ? ? ? 53 55 56 57 33 FF 33 ED 85 C0",                        // 1.2.0.32
                     "56 33 F6 FF 15 ? ? ? ? 25 FF 03 00 00 83 C0 F9 83 F8 12 77");                                           // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
                 shGetUserLanguage = safetyhook::create_inline(pattern.get_first(0), static_cast<int(*)()>(GetUserLanguage));
-            }
-
-            // Shadows setting
-            {
-                FusionFixSettings.SetCallback("PREF_EXTRANIGHTSHADOWS", [](int32_t value)
-                {
-                    if (value)
-                    {
-                        bExtraNightShadows = true;
-                        bHeadlightShadows = value >= FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
-                        bVehicleNightShadows = value != FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
-                    }
-                    else
-                    {
-                        bExtraNightShadows = false;
-                        bHeadlightShadows = false;
-                        bVehicleNightShadows = true;
-                    }
-                });
-
-                if (FusionFixSettings("PREF_EXTRANIGHTSHADOWS"))
-                {
-                    bExtraNightShadows = true;
-                    bHeadlightShadows = FusionFixSettings("PREF_EXTRANIGHTSHADOWS") >= FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
-                    bVehicleNightShadows = FusionFixSettings("PREF_EXTRANIGHTSHADOWS") != FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
-                }
             }
         };
 

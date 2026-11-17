@@ -28,9 +28,6 @@ Buffalo polizia
 [FF_WARN1]
 ; ~r~ATTENZIONE: È stato superato il limite di 255 archivi IMG, potrebbero verificarsi problemi di streaming.
 
-[FF_WARN2]
-~r~ATTENZIONE: Ombre notturne extra è un'impostazione PC originale di Rockstar. Molto difettosa, non raccomandata.
-
 [FF_WARN6]
 ~r~ATTENZIONE: CHSS ha effetto solo se la qualità delle ombre è impostata su Molto Alta.
 

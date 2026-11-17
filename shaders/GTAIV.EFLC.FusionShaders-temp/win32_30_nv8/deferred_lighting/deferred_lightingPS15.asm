@@ -56,6 +56,7 @@
     def c8, 17.0666666, 1.3333333, 0, 0
     // ------------------------------------------------------ Improved Shadow Filter Constants ------------------------------------------------------
     def c110, -0.25, 1, -1, 0
+    def c202, 5, -4, 1, 0 // Perspective spotlight shadows fade over the last fifth of their range
     def c111, 0.159154937, 0.5, 6.28318548, -3.14159274
     def c112, 3, 4.27199984, 0, 0
     def c113, 0.75, -0.5, 0.5, 0
@@ -101,6 +102,7 @@
     mad r2.xyw, r2.x, c72.xyzz, r4.xyzz
     mad r2.xyz, r2.z, c74, r2.xyww
     add r2.xyz, r2, c75
+    mov r26.xyz, r2.xyz // Shadow space position, for perspective spotlight shadows
     add r0.w, r2.z, c76.z
     mov r2.w, -r0_abs.w
     dp3 r1.w, r2.xyww, r2.xyww
@@ -111,6 +113,26 @@
     rcp r0.w, r2.z
     mul r2.xy, r2, r0.w
     mad r2.xy, r2, c2.zwzw, c2.z
+    // Spotlight shadows rendered with a perspective projection (c205.y): the position projected onto the map, its depth along the beam
+    mov r27.z, c110.w
+    mov r27.y, c205.y
+    if_lt c110.w, r27.y
+      rcp r27.x, -r26.z
+      mul r2.xy, r26.xy, r27.x
+      // Outside the map (beyond its frame or behind the light) is lit: the map's edge would smear what is drawn there
+      max r28.x, r2_abs.x, r2_abs.y
+      add r28.x, r28.x, -c202.z
+      cmp r28.y, r28.x, c202.z, c202.w
+      cmp r28.z, r26.z, c202.z, c202.w
+      max r28.y, r28.y, r28.z
+      mad r2.xy, r2, c2.zwzw, c2.z
+      mov r4.xy, c2.xy
+      mov r1.w, -r26.z
+      mul r27.z, r26.z, c66.w
+      mul r27.z, r27.z, c202.x
+      add_sat r27.z, r27.z, c202.y
+      max r27.z, r27.z, r28.y
+    endif
     // ----------------------------------------------------------- Improved Shadow Filter -----------------------------------------------------------
     if_eq -c221_abs.x, c221_abs.x
       dp2add r0.w, vPos, c3, c3.z
@@ -249,6 +271,10 @@
       dp4 r0.w, r25, -c110.x
     endif
     // ----------------------------------------------------------------------------------------------------------------------------------------------
+    // Night shadow fade: c205.x and the end of a perspective shadow's range move the shadow towards fully lit
+    add r19.w, c110.y, -r0.w
+    max r27.w, r27.z, c205.x
+    mad r0.w, r19.w, r27.w, r0.w
     add r2.xyz, r1, c0.w
     dp3 r1.x, r1, r1
     mov r4.x, c1.x

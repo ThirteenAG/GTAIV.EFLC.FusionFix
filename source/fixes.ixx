@@ -50,28 +50,13 @@ namespace CPedWeaponMgr
     }
 }
 
-namespace CDeferredLightingHelper
+namespace CCamSys
 {
-    injector::hook_back<void(*)()> hbBeginMotionBlurMask;
-    void BeginMotionBlurMask()
-    {
-        Cam rootCam = 0;
-        Natives::GetRootCam(&rootCam);
-        auto CCam = CCam::GetCamPool()->GetAt(rootCam);
-
-        if (CCam)
-        {
-            auto ptr = *(uintptr_t*)((uintptr_t)CCam + 0x110);
-
-            if (ptr)
-            {
-                if (*(uint8_t*)(ptr + 0x27C) == 1)
-                    return;
-            }
-        }
-
-        return hbBeginMotionBlurMask.fun();
-    }
+    // Whether the player is left out of motion blur. Each frame the camera update turns it on and the shake of explosions
+    // and drunkenness turns it back off, while the render thread draws the frame before: it saw either value and the
+    // player's deferred material flickered between them, and the lights with it. The renderer reads the update's final value.
+    uint8_t bPlayerMotionBlurMask = 1;
+    GameRef<uint8_t> bCameraPlayerMotionBlurMask;
 }
 
 uint32_t nRadarZoomDelay = 0;
@@ -542,69 +527,135 @@ namespace CameraAutoCenter
     }
 }
 
-class Fixes
+// The lights of fixtures out of view. The game processes an entity's lights (lampposts, wall lamps) only when a render
+// phase's scan returned the entity, although its light code also takes entities out of view within 35 units of the
+// camera. A lamppost just behind the camera still lights the ground in view, but with Night Shadows off no phase returns
+// it, so its light pool comes and goes as the camera turns. Fixtures near the camera that the game skipped in a frame
+// get their lights processed after the game's own pass.
+namespace FixtureLights
 {
-public:
-    /*static inline char(__cdecl* GET_NTH_CLOSEST_WATER_NODE_WITH_HEADING)(float x, float y, float z, int flag0, int flag1, Vector4* node, float* heading) = nullptr;
+    // The game's 35 units, plus how far the camera may move between two searches
+    constexpr float SearchRange = 60.0f;
+    constexpr uint32_t SearchFrames = 15;
 
-    static inline bool bAnyVisibleNearbyLightOnScreen = false;
-    static inline injector::hook_back<int32_t(__fastcall*)(rage::grcViewport*, void*, float, float, float, float, float*)> hbIsSphereVisible;
-    static int32_t __fastcall AddLightIsSphereVisible(rage::grcViewport* pViewport, void* edx, float X, float Y, float Z, float radius, float* a6)
+    struct Fixture
     {
-        auto ret = hbIsSphereVisible.fun(pViewport, edx, X, Y, Z, radius, a6);
+        rage::fwPool<void*>* pool;
+        int32_t index;
+        uintptr_t entity;
+        bool processed;
+    };
+    std::vector<Fixture> fixtures; // Sorted by entity
+    uint32_t lastSearch = 0;
 
-        if (!bAnyVisibleNearbyLightOnScreen)
+    float* pCameraPosition = nullptr;
+
+    bool IsNear(uintptr_t entity)
+    {
+        auto matrix = *(uintptr_t*)(entity + 0x20);
+        auto position = (const float*)(matrix ? matrix + 0x30 : entity + 0x10);
+        auto dx = position[0] - pCameraPosition[0], dy = position[1] - pCameraPosition[1], dz = position[2] - pCameraPosition[2];
+        return dx * dx + dy * dy + dz * dz < SearchRange * SearchRange;
+    }
+
+    // Lampposts are objects, or dummy objects before they become objects; other fixtures are part of the map
+    void Search()
+    {
+        fixtures.clear();
+        for (auto pool : { CObject::GetObjectsPool(), *EntityLights::pDummyPool, *EntityLights::pBuildingPool })
         {
-            constexpr float selectedDistance = 3.5f;
-            constexpr float selectedDistSqr = selectedDistance * selectedDistance;
-            float dx = pViewport->mCameraMatrix[3][0] - X;
-            float dy = pViewport->mCameraMatrix[3][1] - Y;
-            float dz = pViewport->mCameraMatrix[3][2] - Z;
-            float distSqr = dx * dx + dy * dy + dz * dz;
-
-            if (ret && distSqr <= selectedDistSqr)
+            for (int32_t i = 0; pool && i < pool->GetSize(); i++)
             {
-                bAnyVisibleNearbyLightOnScreen = true;
+                auto entity = (uintptr_t)pool->GetSlot(i);
+                if (entity && IsNear(entity))
+                {
+                    auto modelInfo = EntityLights::ModelInfo(entity);
+                    if (modelInfo && EntityLights::CBaseModelInfo__GetNum2dEffects((void*)modelInfo) > 0)
+                        fixtures.push_back({ pool, i, entity, false });
+                }
             }
         }
+        std::sort(fixtures.begin(), fixtures.end(), [](const Fixture& a, const Fixture& b) { return a.entity < b.entity; });
+    }
 
+    void NoteProcessed(uintptr_t entity)
+    {
+        auto it = std::lower_bound(fixtures.begin(), fixtures.end(), entity, [](const Fixture& f, uintptr_t e) { return f.entity < e; });
+        if (it != fixtures.end() && it->entity == entity)
+            it->processed = true;
+    }
+
+    // As the game's pre-render of the entity does it: shown, its lights on, not inside an interior (those are drawn
+    // through their rooms), and the camera's room shows exterior lights
+    void Process(uintptr_t entity)
+    {
+        float fade;
+        if (EntityLights::GetLightFade((uint8_t*)entity, false, fade))
+            EntityLights::CEntity__ProcessLightsForEntity((void*)entity, fade);
+    }
+
+    void ProcessSkipped()
+    {
+        for (auto& fixture : fixtures)
+        {
+            if (!fixture.processed && fixture.pool->GetSlot(fixture.index) == (void*)fixture.entity)
+                Process(fixture.entity);
+            fixture.processed = false;
+        }
+
+        if (*CTimer::m_frameCount - lastSearch >= SearchFrames)
+        {
+            lastSearch = *CTimer::m_frameCount;
+            Search();
+        }
+    }
+}
+
+// The audio engine's submixes each have a lock. The mixing thread takes a submix's lock and then those of its inputs;
+// connecting an input takes the input's lock and then the lock of the submix it goes into. When an effect chain is
+// made while the mixing thread is at the same two submixes, each thread holds the lock the other waits for: the game
+// stays on its loading screen forever (seen at start, in the audio engine's init). Both paths take one common lock
+// first, so one of them finishes before the other starts.
+namespace AudioSubmixLocks
+{
+    CRITICAL_SECTION Lock;
+
+    SafetyHookInline shConnect = {};
+    int __fastcall Connect(void* submix, void* edx, void* input)
+    {
+        EnterCriticalSection(&Lock);
+        auto ret = shConnect.unsafe_fastcall<int>(submix, edx, input);
+        LeaveCriticalSection(&Lock);
         return ret;
     }
 
-    static inline bool bAnyVisibleNearbyWaterOnScreen = false;
-    static inline int32_t WaterQuadsCount = 0;
-    static int32_t __fastcall DrawWaterIsSphereVisible(rage::grcViewport* pViewport, void* edx, float X, float Y, float Z, float radius, float* a6)
+    SafetyHookInline shMix = {};
+    int __fastcall Mix(void* submix, void* edx, void* out, int32_t samples, void* buffer)
     {
-        auto ret = hbIsSphereVisible.fun(pViewport, edx, X, Y, Z, radius, a6);
-
-        if (ret)
-        {
-            constexpr float selectedDistance = 1100.0f;
-            constexpr float selectedDistSqr = selectedDistance * selectedDistance;
-
-            Vector4 out = {};
-            float heading = 0.0f;
-            float camX = pViewport->mCameraMatrix[3][0];
-            float camY = pViewport->mCameraMatrix[3][1];
-            float camZ = pViewport->mCameraMatrix[3][2];
-            if (GET_NTH_CLOSEST_WATER_NODE_WITH_HEADING(camX, camY, camZ, 1, 0, &out, &heading))
-            {
-                float dx = camX - out.fX;
-                float dy = camY - out.fY;
-                float distSqr = dx * dx + dy * dy;
-
-                if (WaterQuadsCount >= 90 && distSqr <= selectedDistSqr)
-                    bAnyVisibleNearbyWaterOnScreen = true;
-            }
-            else if (WaterQuadsCount >= 90)
-                bAnyVisibleNearbyWaterOnScreen = true;
-        }
-
+        EnterCriticalSection(&Lock);
+        auto ret = shMix.unsafe_fastcall<int>(submix, edx, out, samples, buffer);
+        LeaveCriticalSection(&Lock);
         return ret;
-    }*/
+    }
+}
 
+class Fixes
+{
+public:
     Fixes()
     {
+        FusionFix::onInitEvent() += []()
+        {
+            auto pattern = hook::pattern("83 EC 08 53 55 8B D9 56 57 8D 83 5C 04 00 00 50 8D 4C 24 14 E8 ? ? ? ? 83 BB 48 04 00 00 08");
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+            {
+                InitializeCriticalSection(&AudioSubmixLocks::Lock);
+                AudioSubmixLocks::shConnect = safetyhook::create_inline(pattern.get_first(0), AudioSubmixLocks::Connect);
+                pattern = hook::pattern("83 EC 08 53 8B 5C 24 14 55 56 8B F1 57 80 BE 59 04 00 00 00");
+                AudioSubmixLocks::shMix = safetyhook::create_inline(pattern.get_first(0), AudioSubmixLocks::Mix);
+            }
+        };
+
         FusionFix::onInitEventAsync() += []()
         {
             SettingsReader reader;
@@ -1260,10 +1311,31 @@ public:
                 CRadarNY::hbsub_5DCA80.fun = injector::MakeCALL(pattern.get_first(0), CRadarNY::sub_5DCA80, true).get();
             }
 
-            // Workaround for drunk camera motion blur stencil madness (Many other types of camera shake trigger this)
+            // Lights flickering while the camera shakes: the player's motion blur mask is drawn with the camera's final value
             {
-                auto pattern = find_pattern("E8 ? ? ? ? 6A ? FF 74 24 ? FF 74 24 ? 6A", "E8 ? ? ? ? 83 FF ? 6A");
-                CDeferredLightingHelper::hbBeginMotionBlurMask.fun = injector::MakeCALL(pattern.get_first(0), CDeferredLightingHelper::BeginMotionBlurMask, true).get();
+                auto pattern = hook::pattern("0F 45 C1 5E A2 ? ? ? ? C6 05");
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+                {
+                    CCamSys::bCameraPlayerMotionBlurMask.SetAddress(*pattern.get_first<uint8_t*>(5));
+                    static auto LatchHook = safetyhook::create_mid(pattern.get_first(9), [](SafetyHookContext& regs)
+                    {
+                        CCamSys::bPlayerMotionBlurMask = CCamSys::bCameraPlayerMotionBlurMask;
+                    });
+                }
+                else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
+                {
+                    pattern = hook::pattern("C6 05 ? ? ? ? 01 5F 5E 88 1D");
+                    CCamSys::bCameraPlayerMotionBlurMask.SetAddress(*pattern.get_first<uint8_t*>(2));
+                    static auto LatchHook = safetyhook::create_mid(pattern.get_first(7), [](SafetyHookContext& regs)
+                    {
+                        CCamSys::bPlayerMotionBlurMask = CCamSys::bCameraPlayerMotionBlurMask;
+                    });
+                }
+
+                // The two places the renderer reads it, when the player's material is set
+                pattern = hook::pattern("80 3D ? ? ? ? 00 74 20 E8 ? ? ? ? 3B 05");
+                for (size_t i = 0; i < 2; i++)
+                    injector::WriteMemory(pattern.count(2).get(i).get<void>(2), &CCamSys::bPlayerMotionBlurMask, true);
             }
 
             // Fix helicopter searchlights fighting each other when two police helicopters are active on the scene
@@ -1385,82 +1457,6 @@ public:
 
             // Keep the water render buffer stable until the render thread finishes.
             CWater::FixBufferFlip();
-
-            // Water flicker mitigation experiment
-            {
-                /*auto pattern = find_pattern("83 EC ? F3 0F 10 4D ? F3 0F 10 05 ? ? ? ? 0F 2F C1 F3 0F 10 55 ? F3 0F 10 5D ? F3 0F 11 54 24 ? F3 0F 11 5C 24 ? F3 0F 11 4C 24 ? 72 ? 6A ? 83 EC ? F3 0F 11 5C 24 ? F3 0F 11 14 24 E8 ? ? ? ? D9 5C 24 ? 83 C4 ? 8B 45", "83 EC ? F3 0F 10 45 ? F3 0F 10 0D ? ? ? ? F3 0F 11 44 24 ? F3 0F 10 45 ? F3 0F 11 44 24 ? F3 0F 10 45 ? 0F 2F C8 F3 0F 11 44 24 ? 72 ? D9 45 ? 6A ? 83 EC ? D9 5C 24 ? D9 45 ? D9 1C 24 E8 ? ? ? ? D9 5C 24 ? 83 C4 ? D9 EE");
-                GET_NTH_CLOSEST_WATER_NODE_WITH_HEADING = (decltype(GET_NTH_CLOSEST_WATER_NODE_WITH_HEADING))pattern.get_first(-6);
-
-                pattern = find_pattern("E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 80 7D ? ? C6 44 24 ? ? 74 ? FF 77", "E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 80 7D ? ? C6 44 24 ? ? 74 ? 8B 4E");
-                hbIsSphereVisible.fun = injector::MakeCALL(pattern.get_first(0), AddLightIsSphereVisible, true).get();
-
-                pattern = find_pattern("E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 8B 4C 24 ? 3B F9", "E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? 3B F7");
-                hbIsSphereVisible.fun = injector::MakeCALL(pattern.get_first(0), DrawWaterIsSphereVisible, true).get();
-
-                pattern = find_pattern("E8 ? ? ? ? 8B D0 8B B4 BA", "E8 ? ? ? ? 8B BC B0 ? ? ? ? 8B 94 B0");
-                static auto RenderWaterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                {
-                    bAnyVisibleNearbyWaterOnScreen = false;
-                    WaterQuadsCount = 0;
-                });
-
-                pattern = find_pattern("0F B7 0C 72 C1 E1 ? 0F BF 81", "0F B7 04 78 C1 E0 04 0F BF 88 ? ? ? ? 8B 14 CD ? ? ? ? 0F BF 88 ? ? ? ? 03 C9");
-                static auto RenderWaterCounterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                {
-                    WaterQuadsCount++;
-                });
-
-                //pattern = find_pattern("F3 0F 11 44 24 ? FF 74 24 ? F3 0F 11 44 24", "F3 0F 11 44 24 ? 8B 54 24 ? 52 F3 0F 11 44 24");
-                //static auto RenderWaterCounterHook2 = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                //{
-                //    WaterQuadsCount++;
-                //});
-
-                pattern = find_pattern("8B 35 ? ? ? ? F3 0F 11 44 24 ? F3 0F 10 80", "8B 1D ? ? ? ? F3 0F 10 83");
-                static auto RenderLightsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                {
-                    bAnyVisibleNearbyLightOnScreen = false;
-                });*/
-
-                // TODO: Remove? It barely affects water flicker and messes with another workaround for light related stuff (guh)
-                auto pattern = hook::pattern("A8 ? 0F 84 ? ? ? ? 8B C8");
-                static auto loc_927DE0 = resolve_next_displacement(pattern.get_first(0)).value();
-                injector::MakeNOP(pattern.get_first(2), 6);
-                static auto LightCounterHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                {
-                    static auto ExtraNightShadows = FusionFixSettings.GetRef("PREF_EXTRANIGHTSHADOWS");
-                    if (ExtraNightShadows->get())
-                    {
-                        if ((regs.eax & 6) != 0)
-                        {
-                            return;
-
-                            /*if (Natives::IsInteriorScene())
-                            {
-                                return; // Flicker - Always in interiors
-                            }
-
-                            if (!bAnyVisibleNearbyWaterOnScreen)
-                            {
-                                return; // Flicker - No water on screen
-                            }
-                            else if (bAnyVisibleNearbyLightOnScreen)
-                            {
-                                return; // Flicker - Water and lights
-                            }*/
-                        }
-                    }
-                    else
-                    {
-                        if ((regs.eax & 6) != 0 && Natives::IsInteriorScene())
-                        {
-                            return; // Flicker
-                        }
-                    }
-
-                    return_to(loc_927DE0);
-                });
-            }
 
             // Restore console/pre-1.0.6.0 pause menu info spacing
             {
@@ -1588,6 +1584,29 @@ public:
                 {
                     auto pattern = find_pattern("F6 80 ? ? ? ? ? 75 ? 8D 04 24", "F6 80 ? ? ? ? ? 75 ? 0F 57 C0 8D 04 24");
                     injector::MakeNOP(pattern.get_first(7), 2, true);
+                }
+            }
+
+            // Keep the lights of fixtures just out of view
+            {
+                auto pattern = hook::pattern("55 8B EC 83 E4 F0 81 EC 08 01 00 00 56 8B F1 57 8B 4E 24 F7 C1 00 01 00 00 0F 85");
+                if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+                {
+                    FixtureLights::pCameraPosition = *pattern.get_first<float*>(0x75);
+
+                    static auto ProcessLightsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        if (!EntityLights::gatheringShadows)
+                            FixtureLights::NoteProcessed(regs.ecx);
+                    });
+
+                    // CVisualEffects::UpdateAfterPreRender: submit skipped fixtures before Coronas::Push publishes
+                    // and clears the list, so their coronas do not carry into the next frame.
+                    pattern = hook::pattern("84 C0 74 0D F3 0F 10 05 ? ? ? ? F3 0F 11 04 24 E8 ? ? ? ? 83 3D");
+                    static auto BeforeCoronaPushHook = safetyhook::create_mid(pattern.get_first(17), [](SafetyHookContext&)
+                    {
+                        FixtureLights::ProcessSkipped();
+                    });
                 }
             }
         };

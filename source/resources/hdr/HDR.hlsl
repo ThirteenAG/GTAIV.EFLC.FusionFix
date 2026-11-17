@@ -3,11 +3,28 @@
 // The back buffer is 16-bit float. Everything is composited into it exactly like in SDR: the game's
 // post processing writes gamma encoded color, which is no longer clipped at 1.0, and the interface is
 // drawn on top of it. This pass runs last and turns that into scRGB for the display: 1.0 in gamma space
-// becomes paper white, highlights above it roll off towards the peak brightness of the display.
+// becomes paper white, highlights above it reach towards the peak brightness of the display.
+// How highlights look follows the Tone Mapping setting:
+// - Off, like the game: in SDR every channel clips at white on its own, so bright colors wash out to white.
+//   Highlights keep that color, the one SDR shows, and get the brightness the game gave them.
+// - On: highlights keep their own color and roll off smoothly towards the peak.
+// Below white both are the SDR image.
 
 sampler2D Composite : register(s0);
 
 float4 gOutput : register(c0); // x: paper white / 80 nits, y: peak / paper white, z: roll-off start (fraction of the peak), w: HDR enabled
+float4 gStyle : register(c1);  // x: 1 for tone mapped highlights, 0 for the game's
+
+static const float3 Luma = float3(0.2126, 0.7152, 0.0722);
+
+// Smooth approach of the peak above the start of the roll-off
+float RollOff(float value, float start, float peak)
+{
+    if (value <= start)
+        return value;
+    float range = max(peak - start, 0.0001);
+    return start + range * (1.0 - exp(-(value - start) / range));
+}
 
 float4 PS_HDROutput(float2 uv : TEXCOORD0) : COLOR0
 {
@@ -22,11 +39,22 @@ float4 PS_HDROutput(float2 uv : TEXCOORD0) : COLOR0
     float peak = gOutput.y;
     float start = min(peak * gOutput.z, 1.0);
     float brightest = max(linearColor.r, max(linearColor.g, linearColor.b));
-    if (brightest > start)
+
+    if (gStyle.x > 0.5)
     {
-        float range = max(peak - start, 0.0001);
-        float mapped = start + range * (1.0 - exp(-(brightest - start) / range));
-        linearColor *= mapped / brightest;
+        if (brightest > start)
+            linearColor *= RollOff(brightest, start, peak) / brightest;
+    }
+    else if (brightest > 1.0)
+    {
+        // The color SDR shows, at the brightness of the game's color, then kept below the peak. The roll-off starts
+        // at white at the earliest, so what SDR shows below it stays as it is.
+        float3 clipped = min(linearColor, 1.0);
+        float brightness = RollOff(dot(linearColor, Luma), max(start, 1.0), peak);
+        linearColor = clipped * (brightness / max(dot(clipped, Luma), 0.0001));
+        float top = max(linearColor.r, max(linearColor.g, linearColor.b));
+        if (top > peak)
+            linearColor *= peak / top;
     }
 
     return float4(linearColor * gOutput.x, 1.0);

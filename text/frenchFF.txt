@@ -28,9 +28,6 @@ Police Buffalo
 [FF_WARN1]
 ; ~r~AVERTISSEMENT : la limite de 255 IMG est dépassée, des problèmes de streaming vont survenir.
 
-[FF_WARN2]
-~r~AVERTISSEMENT : Ombres nocturnes supplémentaires est une option PC originale de Rockstar. Très défectueuse et donc déconseillée.
-
 [FF_WARN6]
 ~r~AVERTISSEMENT : CHSS ne fonctionne qu'avec la qualité des ombres réglée sur très élevée.
 

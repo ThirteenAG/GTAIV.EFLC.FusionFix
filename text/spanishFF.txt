@@ -28,9 +28,6 @@ Buffalo policía
 [FF_WARN1]
 ; ~r~NOTA: Se ha superado el límite de 255 IMG, lo que provocará problemas de «streaming».
 
-[FF_WARN2]
-~r~NOTA: «Sombras nocturnas adicionales» es una opción original de PC de Rockstar. No se recomienda su uso debido a que presenta numerosos errores.
-
 [FF_WARN6]
 ~r~NOTA: «CHSS» solo tiene efecto cuando la calidad de las sombras está establecida en «Muy alta».
 
