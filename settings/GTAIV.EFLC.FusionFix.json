@@ -268,6 +268,11 @@
       "page": "controls", "group": "@group.camera", "control": [ "switch", "cycler" ]
     },
     {
+      "id": "MISC.GuidedLadderCamera", "type": "bool", "default": 0,
+      "label": "@MISC.GuidedLadderCamera", "description": "@MISC.GuidedLadderCamera.description",
+      "page": "controls", "group": "@group.camera", "control": [ "switch", "cycler" ]
+    },
+    {
       "id": "MISC.StuntJumpCamera", "type": "bool", "default": 1,
       "label": "@Stunt Jump Cam", "description": "@MISC.StuntJumpCamera.description",
       "page": "controls", "group": "@group.camera", "control": [ "switch", "cycler" ]

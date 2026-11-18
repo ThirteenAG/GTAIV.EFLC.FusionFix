@@ -151,6 +151,8 @@
   "MISC.Antialiasing.description": "Suavizado de líneas a resolución nativa. TAA necesita d3dx9_43.dll; DLAA y FSR necesitan Vulkan (DXVK) y sus archivos de la página de mejoras gráficas de FusionFixHub. El menú solo ofrece lo que se puede usar.",
   "MISC.AutoClimbLadders.description": "Sube las escaleras al caminar hacia ellas.",
   "MISC.AutoCenterCamera.description": "Con mando, la cámara se nivela a pie y se centra detrás del vehículo. No mantiene el ángulo elegido.",
+  "MISC.GuidedLadderCamera": "Cámara guiada en escaleras de mano",
+  "MISC.GuidedLadderCamera.description": "Sigue la altura del jugador en las escaleras de mano, limita el giro horizontal y ajusta el encuadre. Funciona al subir manual o automáticamente.",
   "MISC.AutoClimbLaddersRange": "Alcance de búsqueda de escalada automática",
   "MISC.AutoClimbLaddersRange.description": "Distancia máxima de búsqueda de escaleras para la entrada automática, en metros. Se siguen comprobando el movimiento y la entrada. La entrada manual usa 4.0.",
   "MISC.BrakeLightsWhenStopped": "Luces de freno al detenerse",

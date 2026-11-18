@@ -2480,6 +2480,7 @@ public:
             { "PREF_STOPTAXI",               "MISC.InstantStopTaxi" },
             { "PREF_SAO",                    "MISC.AmbientOcclusion" },
             { "PREF_AUTOCLIMBLADDERS",       "MISC.AutoClimbLadders" },
+            { "PREF_GUIDEDLADDERCAMERA",   "MISC.GuidedLadderCamera" },
             { "PREF_STUNTJUMPCAM",           "MISC.StuntJumpCamera" },
             { "PREF_ACTIONCAM",              "MISC.ActionCamera" },
             { "PREF_CONFINECURSOR",          "MAIN.ConfineCursor" },
@@ -2594,7 +2595,7 @@ public:
         {
             AddSetting(screen, "MISC.FieldOfView", "MO_SUB");
             auto camera = AddPage(screen, "@ff.page.camera", "MO_DEF", true);
-            for (auto id : { "MAIN.CameraShake", "MISC.CenteredVehCam", "MISC.CenteredFootCam", "MISC.StuntJumpCamera", "MISC.ActionCamera", "MISC.LadderCameraTilt" }) AddSetting(camera, id);
+            for (auto id : { "MAIN.CameraShake", "MISC.CenteredVehCam", "MISC.CenteredFootCam", "MISC.StuntJumpCamera", "MISC.ActionCamera", "MISC.LadderCameraTilt", "MISC.GuidedLadderCamera" }) AddSetting(camera, id);
             auto advanced = AddPage(screen, "@ff.page.advanced", "MO_DEF", true);
             for (auto id : { "MISC.ConsoleGamma", "MISC.ToneMapping", "MISC.ScreenFilter", "MISC.ConsoleAutoExposure", "MISC.TreeLighting", "MISC.TreeAlpha" }) AddSetting(advanced, id);
             AddEmptyLine(advanced);

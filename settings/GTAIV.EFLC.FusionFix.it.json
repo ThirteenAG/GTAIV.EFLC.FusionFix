@@ -151,6 +151,8 @@
   "MISC.Antialiasing.description": "Antialiasing alla risoluzione nativa. TAA richiede d3dx9_43.dll; DLAA e FSR richiedono Vulkan (DXVK) e i rispettivi file dalla pagina Miglioramenti grafici di FusionFixHub. Il menu offre solo ciò che si può usare.",
   "MISC.AutoClimbLadders.description": "Sale sulle scale quando ci si cammina contro.",
   "MISC.AutoCenterCamera.description": "Con il controller la telecamera si livella a piedi e si centra dietro il veicolo. No mantiene l'angolo scelto.",
+  "MISC.GuidedLadderCamera": "Visuale guidata sulle scale a pioli",
+  "MISC.GuidedLadderCamera.description": "Segue l’altezza del giocatore sulle scale a pioli, limita la rotazione orizzontale e regola l’inquadratura. Funziona con l’accesso manuale e automatico.",
   "MISC.AutoClimbLaddersRange": "Raggio di ricerca per l'arrampicata automatica",
   "MISC.AutoClimbLaddersRange.description": "Distanza massima di ricerca delle scale per l'accesso automatico, in metri. Restano attivi i controlli sul movimento e sull'accesso. L'accesso manuale usa 4.0.",
   "MISC.BrakeLightsWhenStopped": "Luci dei freni da fermo",

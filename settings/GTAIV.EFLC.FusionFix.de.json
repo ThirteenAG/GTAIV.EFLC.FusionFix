@@ -151,6 +151,8 @@
   "MISC.Antialiasing.description": "Kantenglättung in nativer Auflösung. TAA benötigt d3dx9_43.dll; DLAA und FSR benötigen Vulkan (DXVK) und ihre Dateien von der Seite Grafikverbesserungen in FusionFixHub. Das Menü bietet nur an, was verwendet werden kann.",
   "MISC.AutoClimbLadders.description": "Klettert Leitern hoch, wenn man auf sie zuläuft.",
   "MISC.AutoCenterCamera.description": "Mit Controller richtet sich die Kamera zu Fuß waagerecht und im Fahrzeug nach hinten aus. Aus behält den eingestellten Winkel.",
+  "MISC.GuidedLadderCamera": "Geführte Leiterkamera",
+  "MISC.GuidedLadderCamera.description": "Folgt auf Leitern der Höhe des Spielers, begrenzt die horizontale Drehung und passt den Bildausschnitt an. Gilt für manuelles und automatisches Besteigen.",
   "MISC.AutoClimbLaddersRange": "Suchradius für automatisches Leiterklettern",
   "MISC.AutoClimbLaddersRange.description": "Maximale Suchentfernung für den automatischen Leitereinstieg in Metern. Bewegungs- und Einstiegsprüfungen gelten weiterhin. Manueller Einstieg verwendet 4.0.",
   "MISC.BrakeLightsWhenStopped": "Bremslichter im Stand",
