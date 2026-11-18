@@ -26,6 +26,14 @@ namespace CCamFollowPed
 
     void ProcessTurn(uintptr_t camera, const float* lookLeftRight)
     {
+        static auto GuidedCamera = FusionFixSettings.GetRef("PREF_GUIDEDLADDERCAMERA");
+        if (GuidedCamera->get())
+        {
+            // Guided Ladder Camera owns yaw. Discard the turn so it cannot resume when the option is switched off.
+            bTurnRequested = bTurning = bTurnHeld = false;
+            return;
+        }
+
         const uint32_t now = *CTimer::m_snTimeInMilliseconds;
         auto& heading = *reinterpret_cast<float*>(camera + nHeading);
         if (std::exchange(bTurnRequested, false) && now - nTurnRequestTime <= nTurnRequestTimeoutMs)
