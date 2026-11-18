@@ -2486,6 +2486,7 @@ public:
             { "PREF_JUMPRAGDOLL",            "MISC.PlayerJumpRagdollControl" },
             { "PREF_LADDERCAMTILT",          "MISC.LadderCameraTilt" },
             { "PREF_AUTOCENTERCAMERA",       "MISC.AutoCenterCamera" },
+            { "PREF_POPULATIONVARIETY",      "MISC.PopulationVariety" },
         };
 
         for (auto& [name, id] : arr)
@@ -2530,7 +2531,7 @@ public:
         {
             AddSetting(screen, "MAIN.WindowMode", before);
             auto advanced = AddPage(screen, "@ff.page.advanced", before);
-            for (auto id : { "MAIN.SkipIntro", "MAIN.SkipMenu", "MAIN.BlockOnLostFocus", "MISC.TimedEvents", "UPDATE.CheckForUpdates",
+            for (auto id : { "MAIN.SkipIntro", "MAIN.SkipMenu", "MAIN.BlockOnLostFocus", "MISC.TimedEvents", "MISC.PopulationVariety", "UPDATE.CheckForUpdates",
                              "FRAMELIMIT.DisplayFpsCounter", "MISC.ExtraInfo" })
                 AddSetting(advanced, id);
             pluginsBefore[static_cast<int32_t>(screen)] = before;

@@ -287,6 +287,16 @@ namespace StreamingBudget
     // lowest cut
     std::atomic<float> fRoom{ 1.0f };
 
+    // How much of the growth from Traffic and Pedestrian Variety is left, and the bytes the models hold beyond what
+    // Original allows (PopulationBudget). That growth is the first to go when the address space gets short, before the
+    // world's budget is touched, and comes back slowly once there is room to spare.
+    std::atomic<float> fVariety{ 1.0f };
+    std::atomic<int32_t> nVarietyBytes{ 0 };
+    constexpr int32_t nVarietyInUse = 8 * 1024 * 1024;
+    constexpr float fVarietyCutStep = 0.25f;
+    constexpr float fVarietyRaiseStep = 0.05f;      // Per second
+    constexpr uint32_t nVarietyRaiseDelay = 10000;  // After the last cut
+
     // Bytes: what the car and ped models hold beyond the game's own budgets for them (PopulationBudget). They are paid
     // from the same budget as the world, so it grows by as much: the world keeps the room it has with the game's own
     // models instead of streaming out around bigger ones.
@@ -368,6 +378,8 @@ namespace StreamingBudget
 
         float scale = 1.0f;         // Of the budget the streaming needs: cut and raised by the room in the address space
         float content = 1.0f;       // That budget, of the game's own
+        float variety = 1.0f;
+        uint64_t lastVariety = 0;
         uint64_t lastContent = 0;
         uint32_t ample = 0;         // Seconds
         uint64_t lastChange = 0;
@@ -431,12 +443,14 @@ namespace StreamingBudget
             {
                 roomSince = 0;
 
-                // A cut takes a moment to show in the address space. What the budget grew by goes first, and stays off
-                // until there is room to spare again.
+                // A cut takes a moment to show in the address space. The variety's growth goes first, then what the
+                // budget grew by, and they stay off until there is room to spare again.
                 if (now - lastChange >= 1000)
                 {
                     auto cut = critical ? fCriticalCutStep : fCutStep;
-                    if (newContent > 1.0f)
+                    if (variety > 0.0f && nVarietyBytes.load(std::memory_order_relaxed) > nVarietyInUse)
+                        variety = critical ? 0.0f : std::max(0.0f, variety - fVarietyCutStep);
+                    else if (newContent > 1.0f)
                         newContent = std::max(1.0f, newContent * (1.0f - cut));
                     else
                         newScale = std::max(fMinScale, newScale - cut);
@@ -455,6 +469,15 @@ namespace StreamingBudget
             }
             else
                 roomSince = 0;
+
+            // The variety's growth back once a second, with room to spare and the world's budget whole
+            if (!tight && variety < 1.0f && scale == 1.0f && now - lastCut >= nVarietyRaiseDelay && now - lastVariety >= 1000 &&
+                space.nRoom > limits.nTightRoom + nGrowRoom && space.nLargest > limits.nTightLargest + nGrowLargest)
+            {
+                variety = std::min(1.0f, variety + fVarietyRaiseStep);
+                lastVariety = now;
+            }
+            fVariety.store(variety, std::memory_order_relaxed);
 
             if (newScale != scale || newContent != content)
             {
@@ -1201,6 +1224,8 @@ namespace EarlyUploads
 // streaming budget of the world, which grows by what they hold beyond the game's own budgets (StreamingBudget):
 // otherwise a car mod's traffic takes its room from the city around it. When the address space gets short, that
 // growth goes back with the world's.
+// Traffic and Pedestrian Variety (High, Very High) gives the budgets room for two or four times as many models, so more
+// different cars and people are on the streets at once (the game picks each new car or ped from the models in memory).
 namespace PopulationBudget
 {
     // MB per model in memory: the game's own models average about 3.2 (cars) and 4.4 (peds), and its shared car
@@ -1247,6 +1272,12 @@ namespace PopulationBudget
         return std::max(1.0f, bytes / (count * stockMB * 1048576.0f));
     }
 
+    // Traffic and Pedestrian Variety: Original, High, Very High, as many models at once as Original holds
+    constexpr float aVarietyModels[] = { 1.0f, 2.0f, 4.0f };
+
+    // Of the 100 VehicleStructs (limits.ixx); Very High loads up to about 45
+    constexpr int32_t nMaxPopulationCarModels = 64;
+
     void Update(uintptr_t population)
     {
         // The game's own, once it has set them up for the session
@@ -1258,26 +1289,44 @@ namespace PopulationBudget
         auto vehicles = ModelScale(population, VehicleGroups, vehicleBytes - nVehicleShared, fStockVehicleModelMB);
         auto peds = ModelScale(population, PedGroups, pedBytes, fStockPedModelMB);
 
+        // Traffic and Pedestrian Variety: room for more models at once, as far as the address space allows it
+        static auto variety = FusionFixSettings.GetRef("PREF_POPULATIONVARIETY");
+        auto models = aVarietyModels[std::clamp(variety->get(), 0, static_cast<int32_t>(std::size(aVarietyModels)) - 1)];
+        auto more = 1.0f + (models - 1.0f) * StreamingBudget::fVariety.load(std::memory_order_relaxed);
+
         // The game's room for car models beyond its shared textures, scaled, and the shared textures
         constexpr auto nStockVehicleShared = static_cast<int64_t>(fStockVehicleSharedMB * 1048576.0f);
-        auto vehicleBudget = std::max<int64_t>(nStockVehicleBudget, nVehicleShared + static_cast<int64_t>((nStockVehicleBudget - nStockVehicleShared) * vehicles));
-        auto pedBudget = static_cast<int64_t>(nStockPedBudget * peds);
+        auto VehicleBudget = [vehicles](float more)
+        {
+            return std::max<int64_t>(nStockVehicleBudget, nVehicleShared + static_cast<int64_t>((nStockVehicleBudget - nStockVehicleShared) * vehicles * more));
+        };
+        auto originalVehicleBudget = VehicleBudget(1.0f);
+        auto originalPedBudget = static_cast<int64_t>(nStockPedBudget * peds);
+        auto vehicleBudget = VehicleBudget(models);
+        auto pedBudget = static_cast<int64_t>(originalPedBudget * models);
 
-        // The growth goes back with the world's while the address space is short
+        // The growth goes back with the world's while the address space is short, the variety's first
         auto room = StreamingBudget::fRoom.load(std::memory_order_relaxed);
         auto Budget = [room](int64_t budget, int32_t stock)
         {
             return static_cast<int32_t>(std::min<int64_t>(stock + static_cast<int64_t>((budget - stock) * room), INT32_MAX));
         };
-        nVehicleBudget = Budget(vehicleBudget, nStockVehicleBudget);
-        nPedBudget = Budget(pedBudget, nStockPedBudget);
+        nVehicleBudget = Budget(VehicleBudget(more), nStockVehicleBudget);
+        nPedBudget = Budget(static_cast<int64_t>(originalPedBudget * more), nStockPedBudget);
 
-        // What the models hold beyond the game's own budgets, as far as the bigger budgets allow it
-        auto Extra = [](int32_t bytes, int32_t budget, int32_t stock)
+        // Each car model in memory takes a VehicleStruct, and a full pool crashes the game: past this many in the
+        // population's groups no more are loaded, so parked, mission and the player's cars keep theirs
+        if (CountModels(population, VehicleGroups) >= nMaxPopulationCarModels)
+            nVehicleBudget = std::min<int32_t>(nVehicleBudget, std::max(vehicleBytes, nStockVehicleBudget));
+
+        // What the models hold beyond the game's own budgets. A cut budget doesn't free the models at once: the game
+        // deletes them one by one, so the world keeps paying for them until then.
+        auto Extra = [](int32_t bytes, int64_t budget, int32_t stock)
         {
-            return std::max(0, std::min(bytes, budget) - stock);
+            return static_cast<int32_t>(std::max<int64_t>(0, std::min<int64_t>(bytes, budget) - stock));
         };
-        StreamingBudget::nPopulationExtra = Extra(vehicleBytes, nVehicleBudget, nStockVehicleBudget) + Extra(pedBytes, nPedBudget, nStockPedBudget);
+        StreamingBudget::nPopulationExtra = Extra(vehicleBytes, vehicleBudget, nStockVehicleBudget) + Extra(pedBytes, pedBudget, nStockPedBudget);
+        StreamingBudget::nVarietyBytes = Extra(vehicleBytes, vehicleBudget, static_cast<int32_t>(originalVehicleBudget)) + Extra(pedBytes, pedBudget, static_cast<int32_t>(originalPedBudget));
     }
 }
 
