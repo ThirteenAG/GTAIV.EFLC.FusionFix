@@ -1,10 +1,11 @@
 module;
 
 #include <common.hxx>
-#include <cmath>
-#include <utility>
 #include <algorithm>
 #include <array>
+#include <cmath>
+#include <numbers>
+#include <utility>
 
 export module guidedladdercam;
 
@@ -14,41 +15,38 @@ import natives;
 import settings;
 import cutscenecam;
 
-namespace LadderCamera
+namespace GuidedLadderCamera
 {
-    constexpr int nIdleAction = 0;
+    enum LadderAction
+    {
+        Idle = 0,
+        ClimbUp = 1,
+        ClimbDown = 2,
+        TopDismount = 3,
+        FirstMountAction = 4,
+        LastMountAction = 6,
+        SlideDown = 7,
+    };
     constexpr ptrdiff_t nActionOffset = 24;
 
     // Native camera bindings
     static bool legacyLayout = false;
     static SafetyHookInline shTargetBetaCalc;
-    static SafetyHookMid shBeginUpdate;
-    static SafetyHookMid shOrbitDistance;
-    static SafetyHookMid shDistanceHistory;
     static const float* viewDistanceOffsets = nullptr;
-    static SafetyHookMid shOrbitHeading;
-    static SafetyHookMid shVerticalFollow;
-    static SafetyHookMid shMountPitch;
-    static SafetyHookMid shPitchLevel;
-    static SafetyHookMid shBeforeCollision;
-    static SafetyHookMid shAfterCollision;
     static SafetyHookInline shPostSmoothVecTargetCoords;
     static rage::Vector4* (__cdecl* GetMoverTrackDisplacement)(rage::Vector4*, float, int, int);
-    static uintptr_t (__thiscall* FindActiveTaskByType)(uintptr_t, int);
-    static uintptr_t (__thiscall* GetControlFromPlayer)(uintptr_t);
     static uintptr_t (__thiscall* GetPedAimWeaponLeftRight)(uintptr_t);
     static uintptr_t (__thiscall* GetPedLookUpDown)(uintptr_t);
     static int (__cdecl* GetAxisValue)(uintptr_t);
     static void (__stdcall* GetRootBone)(uintptr_t, rage::Vector4*);
-    static uintptr_t cameraPed = 0;
     static bool IsGuidedEnabled()
     {
-        static auto guided = FusionFixSettings.GetRef("PREF_GUIDEDLADDERCAMERA");
-        return guided->get() != 0;
+        static auto GuidedCamera = FusionFixSettings.GetRef("PREF_GUIDEDLADDERCAMERA");
+        return GuidedCamera->get();
     }
 
     // Camera tuning
-    static constexpr float pi = 3.14159265358979323846f;
+    static constexpr float pi = std::numbers::pi_v<float>;
     static constexpr float fMinOrbitHeading = -90.0f * pi / 180.0f; // Lower ladder-relative yaw limit
     static constexpr float fMaxOrbitHeading = 80.0f * pi / 180.0f; // Upper ladder-relative yaw limit
     static constexpr float fDesiredPullAroundHeadingOffset = 75.0f * pi / 180.0f; // Side-view yaw target
@@ -269,7 +267,6 @@ namespace LadderCamera
     };
     static thread_local MountPitchState mountPitchState;
 
-
     static float WrapHeading(float heading)
     {
         return std::remainder(heading, 2.0f * pi);
@@ -366,7 +363,7 @@ namespace LadderCamera
                 return;
             const auto collider = *reinterpret_cast<const uintptr_t*>(camera + 300);
             const auto matrix = *reinterpret_cast<const rage::Matrix44**>(alignment.ped + 0x20);
-            if (!TestLine || !FilterIntersections || !physicsLevel || !*physicsLevel || !collider || !matrix
+            if (!*physicsLevel || !collider || !matrix
                 || !(*reinterpret_cast<const uint8_t*>(camera + 316) & 0x10))
                 return;
             const auto pivot = *reinterpret_cast<const rage::Vector4*>(camera + 80);
@@ -415,16 +412,15 @@ namespace LadderCamera
     {
         update.lookX = GetAxisValue(GetPedAimWeaponLeftRight(control));
         update.lookY = GetAxisValue(GetPedLookUpDown(control));
-        if (IsGuidedEnabled())
+        update.controller = Natives::IsUsingController();
+        if (!update.controller)
         {
-            update.controller = Natives::IsUsingController();
-            if (!update.controller)
-            {
-                int32_t x = 0, y = 0;
-                Natives::GetMouseInput(&x, &y);
-                if (x) update.lookX = x;
-                if (y) update.lookY = y;
-            }
+            int32_t x = 0, y = 0;
+            Natives::GetMouseInput(&x, &y);
+            if (x)
+                update.lookX = x;
+            if (y)
+                update.lookY = y;
         }
     }
 
@@ -451,10 +447,8 @@ namespace LadderCamera
             update.collisionSampleValid = alignment.collisionSampleValid;
             update.collisionConstrained = alignment.collisionSampleValid
                 && alignment.orbitDistanceRatio < fMinOrbitDistanceRatioForCustomPullAround;
-            if (IsGuidedEnabled() && update.phase == Phase::Dismount)
-            {
+            if (update.phase == Phase::Dismount)
                 ClearObstructionHold();
-            }
             else if (update.collisionConstrained)
             {
                 alignment.inhibitCustomPullAround = true;
@@ -510,7 +504,7 @@ namespace LadderCamera
     // Ladder phase detection
     static bool IsFinalStep(uintptr_t task, int action)
     {
-        if (!task || (action != 1 && action != 2 && action != 7))
+        if (!task || (action != ClimbUp && action != ClimbDown && action != SlideDown))
             return false;
         const float step = *reinterpret_cast<const float*>(task + 168);
         const float startZ = *reinterpret_cast<const float*>(task + 164);
@@ -519,9 +513,9 @@ namespace LadderCamera
         if (!std::isfinite(step) || step <= 0.0f || !std::isfinite(startZ)
             || !std::isfinite(bottomZ) || !std::isfinite(topExitZ))
             return false;
-        if (action == 1)
+        if (action == ClimbUp)
             return *reinterpret_cast<const uint8_t*>(task + 203) && startZ + step >= topExitZ - 0.75f;
-        if (action == 2)
+        if (action == ClimbDown)
             return startZ - step <= bottomZ + 1.5f;
         const auto* matrix = *reinterpret_cast<const rage::Matrix44**>(alignment.ped + 0x20);
         return matrix && matrix->pos.z <= bottomZ + 1.5f + step;
@@ -543,18 +537,12 @@ namespace LadderCamera
         return getMovementType(child);
     }
 
-    // Begin camera update
+    // Ladder state for this CCamFollowPed::Process update
     static void BeginUpdate(SafetyHookContext& regs)
     {
         update = {};
-        cameraPed = regs.edi;
-        if (!cameraPed)
-        {
-            alignment = {};
-            mountPitchState = {};
-            return;
-        }
-        if (!IsGuidedEnabled())
+        const auto ped = regs.edi;
+        if (!ped || !IsGuidedEnabled())
         {
             alignment = {};
             mountPitchState = {};
@@ -575,17 +563,17 @@ namespace LadderCamera
             return;
         }
 
-        const auto intelligence = *reinterpret_cast<const uintptr_t*>(cameraPed + 0x224);
+        const auto intelligence = *reinterpret_cast<const uintptr_t*>(ped + 0x224);
         const auto task = intelligence
-            ? FindActiveTaskByType(intelligence + 68, std::to_underlying(TaskID::TaskComplexClimbLadder)) : 0;
+            ? CTaskManager::FindActiveTaskByType(intelligence + 68, std::to_underlying(TaskID::TaskComplexClimbLadder)) : 0;
         const bool canFinishPitch = alignment.camera == regs.esi
-            && alignment.ped == cameraPed && alignment.pitchLevelActive;
+            && alignment.ped == ped && alignment.pitchLevelActive;
         if (!task && !canFinishPitch)
         {
             alignment = {};
             return;
         }
-        const auto control = GetControlFromPlayer ? GetControlFromPlayer(cameraPed) : 0;
+        const auto control = CPlayerPed::GetControlFromPlayer(ped);
         if (!control)
         {
             alignment = {};
@@ -603,7 +591,7 @@ namespace LadderCamera
             if (alignment.exitAtTop)
             {
                 if (update.lookX || update.lookY || movementSample.camera != regs.esi
-                    || movementSample.ped != cameraPed || movementSample.moving)
+                    || movementSample.ped != ped || movementSample.moving)
                 {
                     alignment = {};
                     update.camera = 0;
@@ -619,13 +607,13 @@ namespace LadderCamera
             alignment = {};
             return;
         }
-        const auto simple = FindActiveTaskByType(intelligence + 68, std::to_underlying(TaskID::TaskSimpleClimbLadder));
+        const auto simple = CTaskManager::FindActiveTaskByType(intelligence + 68, std::to_underlying(TaskID::TaskSimpleClimbLadder));
         const int action = simple ? *reinterpret_cast<const int*>(simple + nActionOffset) : -1;
         bool approaching = false;
         if (!simple && (alignment.task != task || !alignment.seenClimbTask)
-            && !FindActiveTaskByType(intelligence + 68, std::to_underlying(TaskID::TaskSimpleRunNamedAnim)))
+            && !CTaskManager::FindActiveTaskByType(intelligence + 68, std::to_underlying(TaskID::TaskSimpleRunNamedAnim)))
         {
-            const bool continuing = alignment.task == task && alignment.ped == cameraPed
+            const bool continuing = alignment.task == task && alignment.ped == ped
                 && alignment.camera == regs.esi && alignment.approaching;
             // Observe the native route/alignment tasks for manual and automatic entry alike.
             const int entryTaskType = GetEntryAlignmentTaskType(task);
@@ -641,11 +629,11 @@ namespace LadderCamera
                 return;
             }
         }
-        if (alignment.task != task || alignment.ped != cameraPed || alignment.camera != regs.esi)
+        if (alignment.task != task || alignment.ped != ped || alignment.camera != regs.esi)
         {
             alignment = {};
             alignment.camera = regs.esi;
-            alignment.ped = cameraPed;
+            alignment.ped = ped;
             alignment.task = task;
         }
         alignment.heading = heading;
@@ -656,14 +644,21 @@ namespace LadderCamera
         update.onLadder = !approaching;
         update.approaching = approaching;
         update.action = action;
-        update.phase = approaching ? Phase::Approach : simple ? (action == 3 ? Phase::Dismount
-            : (action == 4 || action == 5 || action == 6) ? Phase::Mount : Phase::Climb)
-            : alignment.seenClimbTask ? Phase::Dismount : Phase::Mount;
+        if (approaching)
+            update.phase = Phase::Approach;
+        else if (!simple)
+            update.phase = alignment.seenClimbTask ? Phase::Dismount : Phase::Mount;
+        else if (action == TopDismount)
+            update.phase = Phase::Dismount;
+        else if (action >= FirstMountAction && action <= LastMountAction)
+            update.phase = Phase::Mount;
+        else
+            update.phase = Phase::Climb;
         alignment.seenClimbTask |= simple != 0;
         if (update.phase == Phase::Climb && IsFinalStep(simple, action))
             update.phase = Phase::Dismount;
         if (update.phase == Phase::Dismount && simple)
-            alignment.exitAtTop = action == 1 || action == 3;
+            alignment.exitAtTop = action == ClimbUp || action == TopDismount;
         update.topDismount = update.phase == Phase::Dismount && alignment.exitAtTop;
         ReadLookInput(control);
         OrbitProbe::SelectRearArc(regs.esi);
@@ -779,31 +774,29 @@ namespace LadderCamera
         const float inputRootZ = root->z, inputTargetZ = target->z;
         float destinationZ = inputRootZ, blend = 0.0f;
         bool applied = false, afterExit = false;
-        const bool local = IsGuidedEnabled() && ped && intelligence && GetMoverTrackDisplacement && CPlayer::getLocalPlayerPed
-            && ped == CPlayer::getLocalPlayerPed();
+        const bool local = IsGuidedEnabled() && ped && intelligence && ped == CPlayer::getLocalPlayerPed();
         const bool reset = (*reinterpret_cast<const uint8_t*>(camera + 908) & 0x88) != 0
             || (*reinterpret_cast<const uint8_t*>(camera + 909) & 0x1C) != 0;
-        const auto task = local && intelligence
-            ? FindActiveTaskByType(intelligence + 68, std::to_underlying(TaskID::TaskSimpleClimbLadder)) : 0;
+        const auto task = local
+            ? CTaskManager::FindActiveTaskByType(intelligence + 68, std::to_underlying(TaskID::TaskSimpleClimbLadder)) : 0;
         const int action = task ? *reinterpret_cast<const int*>(task + nActionOffset) : -1;
-        const auto complex = local ? FindActiveTaskByType(intelligence + 68,
+        const auto complex = local ? CTaskManager::FindActiveTaskByType(intelligence + 68,
             std::to_underlying(TaskID::TaskComplexClimbLadder)) : 0;
         float referenceRootZ = inputRootZ;
-        float animatedRootZ = inputRootZ, animatedWeight = 0.0f;
         bool trackingRoot = false;
         if (complex && !reset && std::isfinite(inputRootZ) && std::isfinite(inputTargetZ)
-            && GetRootBone && (task || FindActiveTaskByType(intelligence + 68,
+            && (task || CTaskManager::FindActiveTaskByType(intelligence + 68,
             std::to_underlying(TaskID::TaskSimpleRunNamedAnim))))
         {
             alignas(16) rage::Vector4 animatedRoot{};
             GetRootBone(ped, &animatedRoot);
             if (std::isfinite(animatedRoot.z) && std::abs(animatedRoot.z - inputRootZ) <= 3.0f)
             {
-                const bool useNativeHeight = action == nIdleAction
-                    || action == 1 || action == 2 || action == 4 || action == 5 || action == 6 || action == 7;
-                animatedWeight = ladderHeightReference.Update(camera, ped, complex, now, useNativeHeight);
-                animatedRootZ = animatedRoot.z;
-                referenceRootZ += (animatedRootZ - inputRootZ) * animatedWeight;
+                const bool useNativeHeight = action == Idle
+                    || action == ClimbUp || action == ClimbDown || action == SlideDown
+                    || (action >= FirstMountAction && action <= LastMountAction);
+                const float animatedWeight = ladderHeightReference.Update(camera, ped, complex, now, useNativeHeight);
+                referenceRootZ += (animatedRoot.z - inputRootZ) * animatedWeight;
                 trackingRoot = true;
             }
         }
@@ -813,7 +806,7 @@ namespace LadderCamera
             && now - topExitTarget.lastSample < 500;
         if (!local || reset || !std::isfinite(inputRootZ) || !std::isfinite(inputTargetZ))
             topExitTarget = {};
-        else if (action == 3)
+        else if (action == TopDismount)
         {
             if (!continuing || topExitTarget.task != task)
                 topExitTarget = { camera, ped, task };
@@ -853,7 +846,7 @@ namespace LadderCamera
                 topExitTarget.exitTime = now;
             const bool interrupted = movementSample.camera != camera || movementSample.ped != ped
                 || movementSample.moving || update.lookX || update.lookY
-                || FindActiveTaskByType(intelligence + 68, std::to_underlying(TaskID::TaskComplexClimbLadder));
+                || CTaskManager::FindActiveTaskByType(intelligence + 68, std::to_underlying(TaskID::TaskComplexClimbLadder));
             if (!interrupted && matrix && std::isfinite(matrix->pos.z) && now - topExitTarget.exitTime < 1500
                 && std::abs(matrix->pos.z - inputRootZ) <= 0.5f)
             {
@@ -1043,7 +1036,7 @@ namespace LadderCamera
         const float sine = std::sin(pitch), cosine = std::cos(pitch);
         const float baseDistance = radius * cosine + height * sine;
         const float projectedHeight = height * cosine - radius * sine;
-        const float angle = std::min(fov * (3.141592654f / 180.0f) * (0.5f - fLadderScreenRatioForFootRoom), pi * 0.5f);
+        const float angle = std::min(fov * (pi / 180.0f) * (0.5f - fLadderScreenRatioForFootRoom), pi * 0.5f);
         return baseDistance + projectedHeight / std::tan(angle);
     }
 
@@ -1077,12 +1070,12 @@ namespace LadderCamera
     {
         footRoomUpdate = {};
         const auto camera = regs.esi, ped = regs.edi;
-        movementSample = { camera, ped, *reinterpret_cast<const uint8_t*>(regs.esp + (legacyLayout ? 0x50 : 0x60)) != 0 };
+        const bool moving = *reinterpret_cast<const uint8_t*>(regs.esp + (legacyLayout ? 0x50 : 0x60)) != 0;
+        movementSample = { camera, ped, moving };
         const float timestep = *reinterpret_cast<const float*>(regs.esp + (legacyLayout ? 0x20 : 0x2C));
         const auto flags = *reinterpret_cast<const uint8_t*>(camera + 908);
         const auto forceFlags = *reinterpret_cast<const uint8_t*>(camera + 909);
-        if (!IsGuidedEnabled() || !ped || !regs.ebx || !viewDistanceOffsets
-            || !CPlayer::getLocalPlayerPed || CPlayer::getLocalPlayerPed() != ped
+        if (!IsGuidedEnabled() || !ped || !regs.ebx || CPlayer::getLocalPlayerPed() != ped
             || (flags & 0x80) || (forceFlags & 4)
             || (*reinterpret_cast<const uint8_t*>(camera + 910) & 0x80)
             || !std::isfinite(timestep) || timestep < 0.0f || timestep > 12.5f)
@@ -1093,10 +1086,10 @@ namespace LadderCamera
         const auto now = GetTickCount64();
         const auto intelligence = *reinterpret_cast<const uintptr_t*>(ped + 0x224);
         const auto task = intelligence
-            ? FindActiveTaskByType(intelligence + 68, std::to_underlying(TaskID::TaskComplexClimbLadder)) : 0;
+            ? CTaskManager::FindActiveTaskByType(intelligence + 68, std::to_underlying(TaskID::TaskComplexClimbLadder)) : 0;
         const bool continuous = footRoom.camera == camera && footRoom.ped == ped && now - footRoom.sampleTime <= 500;
-        const bool onLadder = task && (FindActiveTaskByType(intelligence + 68, std::to_underlying(TaskID::TaskSimpleClimbLadder))
-            || FindActiveTaskByType(intelligence + 68, std::to_underlying(TaskID::TaskSimpleRunNamedAnim))
+        const bool onLadder = task && (CTaskManager::FindActiveTaskByType(intelligence + 68, std::to_underlying(TaskID::TaskSimpleClimbLadder))
+            || CTaskManager::FindActiveTaskByType(intelligence + 68, std::to_underlying(TaskID::TaskSimpleRunNamedAnim))
             || (continuous && footRoom.task == task));
         if (!continuous || (onLadder && footRoom.task != task) || (flags & 8) || (forceFlags & 0x18))
         {
@@ -1124,7 +1117,6 @@ namespace LadderCamera
                 && hi.fX > lo.fX && hi.fY > lo.fY && hi.fZ - lo.fZ > 0.5f && hi.fZ - lo.fZ < 3.0f;
         }
         footRoom.sampleTime = now;
-        const bool moving = *reinterpret_cast<const uint8_t*>(regs.esp + (legacyLayout ? 0x50 : 0x60)) != 0;
         footRoom.level = AdvanceFootRoomLevel(footRoom.level, onLadder, moving, timestep * 0.02f);
         if (!footRoom.boundsValid || footRoom.level == 0.0f)
             return;
@@ -1165,10 +1157,11 @@ namespace LadderCamera
         minimum = ComputeFootRoomMinimum(minimum * footRoomUpdate.scale, distance, footRoom.level);
     }
 
-    // Native collision handoff
+    // Around CCamCol::CameraColDetAndReact, before the final camera matrix is built
     static void BeforeCollision(SafetyHookContext& regs)
     {
-        if (IsGuidedEnabled() && update.camera == regs.esi && update.canAlign && alignment.rearEntryCut
+        const bool guided = IsGuidedEnabled() && update.camera == regs.esi;
+        if (guided && update.canAlign && alignment.rearEntryCut
             && (update.approaching || update.phase == Phase::Mount) && regs.ebx == regs.esi + 64 && regs.eax)
         {
             auto* collisionPivot = reinterpret_cast<float*>(regs.eax);
@@ -1188,18 +1181,15 @@ namespace LadderCamera
             }
         }
         verticalFollow = {};
-        if (IsGuidedEnabled() && update.camera == regs.esi && (update.onLadder || update.approaching))
+        if (guided && (update.onLadder || update.approaching))
             update.desiredDistance = OrbitDistance(regs.esi);
-        if (IsGuidedEnabled() && update.camera == regs.esi)
+        if (guided && update.verticalSample && (update.onLadder || alignment.topPitchHandoff))
         {
-            if ((update.onLadder || alignment.topPitchHandoff) && update.verticalSample)
-            {
-                const float baseZ = *reinterpret_cast<const float*>(regs.esi + 568);
-                const float distanceBaseZ = *reinterpret_cast<const float*>(regs.esi + 584);
-                if (std::isfinite(baseZ) && std::isfinite(distanceBaseZ))
-                    verticalFollow = { regs.esi, alignment.ped, alignment.task, update.targetZ,
-                        baseZ, distanceBaseZ, GetTickCount64() };
-            }
+            const float baseZ = *reinterpret_cast<const float*>(regs.esi + 568);
+            const float distanceBaseZ = *reinterpret_cast<const float*>(regs.esi + 584);
+            if (std::isfinite(baseZ) && std::isfinite(distanceBaseZ))
+                verticalFollow = { regs.esi, alignment.ped, alignment.task, update.targetZ,
+                    baseZ, distanceBaseZ, GetTickCount64() };
         }
     }
 
@@ -1215,10 +1205,10 @@ namespace LadderCamera
             return;
         if (update.cameraCut)
             CutsceneCuts::NotifyCameraCut(regs.esi);
-        const float distance = OrbitDistance(regs.esi);
-        const bool valid = std::isfinite(distance) && std::isfinite(update.desiredDistance) && update.desiredDistance > 0.01f;
         if (update.onLadder || update.approaching)
         {
+            const float distance = OrbitDistance(regs.esi);
+            const bool valid = std::isfinite(distance) && std::isfinite(update.desiredDistance) && update.desiredDistance > 0.01f;
             alignment.orbitDistanceRatio = valid ? std::clamp(distance / update.desiredDistance, 0.0f, 1.0f) : 1.0f;
             alignment.collisionSampleValid = valid;
         }
@@ -1228,7 +1218,7 @@ namespace LadderCamera
     static void UpdateMovementSpeed(uintptr_t ped)
     {
         const auto* matrix = *reinterpret_cast<const rage::Matrix44**>(ped + 0x20);
-        if ((update.onLadder || update.approaching) && matrix && GetRootBone)
+        if ((update.onLadder || update.approaching) && matrix)
         {
             alignas(16) rage::Vector4 root = matrix->pos;
             if (update.onLadder)
@@ -1257,7 +1247,6 @@ namespace LadderCamera
         float force, float rate, float cap, uintptr_t ped, uintptr_t support, float motion,
         uint32_t mode, float timestep)
     {
-        cameraPed = ped;
         const bool enabled = IsGuidedEnabled();
         const auto flags = *reinterpret_cast<const uint8_t*>(camera + 910);
         const auto forceFlags = *reinterpret_cast<const uint8_t*>(camera + 909);
@@ -1265,7 +1254,7 @@ namespace LadderCamera
         const float nativeHeading = *reinterpret_cast<const float*>(camera + 776);
         if (update.camera == camera && enabled)
         {
-            const auto control = ped && GetControlFromPlayer ? GetControlFromPlayer(ped) : 0;
+            const auto control = ped ? CPlayerPed::GetControlFromPlayer(ped) : 0;
             update.canAlign = control || update.phase == Phase::Mount || update.phase == Phase::Dismount;
             update.canAlign = update.canAlign && !(flags & 0x80) && !(forceFlags & 4) && force == 0.0f
                 && std::isfinite(before) && std::isfinite(nativeHeading) && std::isfinite(timestep) && timestep > 0.0f;
@@ -1276,7 +1265,7 @@ namespace LadderCamera
                 UpdateAlignment();
                 update.collisionRecovery = update.collisionConstrained
                     && (update.onLadder || update.approaching)
-                    && update.action != nIdleAction
+                    && update.action != Idle
                     && update.moveSpeed > 0.0f && update.pullWeight > 0.0f
                     && !update.lookX && !update.lookY;
             }
@@ -1299,102 +1288,84 @@ namespace LadderCamera
             *beta = nativeHeading;
     }
 
-}
-
-// CCamFollowPed hooks
-static void InstallLadderCameraHooks()
-{
-    auto cameraGate = hook::pattern("55 8B EC 83 E4 F0 83 EC 28 F6 81 8E 03 00 00 80 56 57 8B 7D 08 89 4C 24 0C 0F 57 D2");
-    LadderCamera::legacyLayout = cameraGate.empty();
-    const bool legacy = LadderCamera::legacyLayout;
-    if (legacy)
-        cameraGate = hook::pattern("55 8B EC 83 E4 F0 0F 57 E4 83 EC 34 53 8B 5D 08 56 57 8B F9 F6 87 8E 03 00 00 80");
-    auto activeTask = hook::pattern(legacy
-        ? "55 56 57 33 FF 8B E9 33 C0 8D A4 24 00 00 00 00 39 7C 85 00"
-        : "68 19 04 00 00 83 C1 44 E8 ? ? ? ? 80");
-    auto lookX = hook::pattern(legacy
-        ? "83 3D ? ? ? ? 00 57 8B F9 74 08 8D 87 28 2C 00 00 5F C3 56 8D B7 98 27 00 00"
-        : "83 3D ? ? ? ? 00 56 8B F1 74 08 8D 86 28 2C 00 00 5E C3 57 8D BE 98 27 00 00 57 E8");
-    auto lookY = hook::pattern(legacy
-        ? "83 3D ? ? ? ? 00 57 8B F9 74 08 8D 87 18 2C 00 00 5F C3 56 8D B7 B8 27 00 00"
-        : "83 3D ? ? ? ? 00 56 8B F1 74 08 8D 86 18 2C 00 00 5E C3 57 8D BE B8 27 00 00 57 E8");
-    auto beginUpdate = hook::pattern(legacy
-        ? "74 19 8B 4C 24 5C 57 8D 44 24 64 50 51 8B CE E8"
-        : "74 ? 57 8D 84 24 84 00 00 00 50 FF 74 24 6C 8B CE E8");
-    auto orbitDistance = hook::pattern(legacy
-        ? "D9 86 2C 03 00 00 57 D8 8E 20 03 00 00 D8 44 24 50"
-        : "F3 0F 11 44 24 20 F3 0F 11 44 24 44 57 8B CE E8");
-    auto distanceHistory = hook::pattern(legacy
-        ? "E8 ? ? ? ? 8D 54 24 30 52 E8 ? ? ? ? D9 5C 24 2C F3 0F 10 4C 24 4C"
-        : "E8 ? ? ? ? 8D 44 24 30 50 E8 ? ? ? ? F3 0F 10 8C 24 AC 00 00 00");
-    auto viewDistances = hook::pattern(legacy
-        ? "8B 8E 60 03 00 00 03 C9 D9 84 09 ? ? ? ? 03 C9 D9 9E 1C 03 00 00"
-        : "8B 91 60 03 00 00 8B 04 95 ? ? ? ? 89 81 1C 03 00 00");
-    auto orbitHeading = hook::pattern(legacy
-        ? "83 C4 04 85 DB 74 ? 80 BB 89 32 00 00 00 74 ? F3 0F 10 44 24 20 0F 2E C4"
-        : "83 C4 04 85 DB 74 ? 80 BB 89 32 00 00 00");
-    auto beforeCollision = hook::pattern(legacy
-        ? "E8 ? ? ? ? 8D 4C 24 30 51 8D 4E 10 E8 ? ? ? ? 8B 8E 2C 01 00 00"
-        : "E8 ? ? ? ? 8D 44 24 30 50 8D 4E 10 E8 ? ? ? ? 8B 8E 2C 01 00 00");
-    auto afterCollision = hook::pattern(legacy
-        ? "8D 4C 24 30 51 8D 4E 10 E8 ? ? ? ? 8B 8E 2C 01 00 00"
-        : "8D 44 24 30 50 8D 4E 10 E8 ? ? ? ? 8B 8E 2C 01 00 00 56");
-    auto postSmoothVecTargetCoords = hook::pattern(legacy
-        ? "E8 ? ? ? ? 8B 4C 24 44 8D 44 24 60 50 51 8B CE E8"
-        : "E8 ? ? ? ? 8D 84 24 80 00 00 00 50 FF 74 24 58");
-    auto topExitDisplacement = hook::pattern(legacy
-        ? "C6 86 CC 00 00 00 01 E8 ? ? ? ? 83 C4 10 8D 4C 24 30 51"
-        : "C6 86 CC 00 00 00 01 E8 ? ? ? ? 8B 45 08");
-    auto cameraRoot = hook::pattern(legacy
-        ? "E8 ? ? ? ? 85 FF F3 0F 10 9E 80 02 00 00"
-        : "E8 ? ? ? ? F3 0F 10 B6 80 02 00 00 F3 0F 10 BE");
-    auto verticalFollow = hook::pattern(legacy
-        ? "D9 44 24 2C F3 0F 10 44 24 60 F3 0F 5C 86 30 02 00 00"
-        : "F3 0F 5C 86 38 02 00 00 F3 0F 10 94 24");
-    auto mountPitch = hook::pattern(legacy
-        ? "F3 0F 10 4C 24 10 F3 0F 5C 4C 24 2C"
-        : "F3 0F 10 44 24 24 F3 0F 5C 44 24 50");
-    auto pitchLevel = hook::pattern(legacy
-        ? "E8 ? ? ? ? E8 ? ? ? ? D9 86 08 03 00 00 83 EC 08"
-        : "F3 0F 10 44 24 6C 83 EC 08 8B CE");
-
-    LadderCamera::GetControlFromPlayer = CPlayerPed::GetControlFromPlayer;
-    if (legacy)
+    // CCamFollowPed hooks
+    static void Init()
     {
-        auto playerControl = hook::pattern("80 B9 18 02 00 00 00 75 0E 80 B9 19 02 00 00 00 74 05 E9 ? ? ? ? 33 C0 C3");
-        LadderCamera::GetControlFromPlayer = (decltype(LadderCamera::GetControlFromPlayer))playerControl.get_first(0);
+        auto cameraGate = hook::pattern("55 8B EC 83 E4 F0 83 EC 28 F6 81 8E 03 00 00 80 56 57 8B 7D 08 89 4C 24 0C 0F 57 D2");
+        legacyLayout = cameraGate.empty();
+        const bool legacy = legacyLayout;
+        if (legacy)
+            cameraGate = hook::pattern("55 8B EC 83 E4 F0 0F 57 E4 83 EC 34 53 8B 5D 08 56 57 8B F9 F6 87 8E 03 00 00 80");
+        auto lookX = hook::pattern(legacy
+            ? "83 3D ? ? ? ? 00 57 8B F9 74 08 8D 87 28 2C 00 00 5F C3 56 8D B7 98 27 00 00"
+            : "83 3D ? ? ? ? 00 56 8B F1 74 08 8D 86 28 2C 00 00 5E C3 57 8D BE 98 27 00 00 57 E8");
+        auto lookY = hook::pattern(legacy
+            ? "83 3D ? ? ? ? 00 57 8B F9 74 08 8D 87 18 2C 00 00 5F C3 56 8D B7 B8 27 00 00"
+            : "83 3D ? ? ? ? 00 56 8B F1 74 08 8D 86 18 2C 00 00 5E C3 57 8D BE B8 27 00 00 57 E8");
+        auto beginUpdate = hook::pattern(legacy
+            ? "74 19 8B 4C 24 5C 57 8D 44 24 64 50 51 8B CE E8"
+            : "74 ? 57 8D 84 24 84 00 00 00 50 FF 74 24 6C 8B CE E8");
+        auto orbitDistance = hook::pattern(legacy
+            ? "D9 86 2C 03 00 00 57 D8 8E 20 03 00 00 D8 44 24 50"
+            : "F3 0F 11 44 24 20 F3 0F 11 44 24 44 57 8B CE E8");
+        auto distanceHistory = hook::pattern(legacy
+            ? "E8 ? ? ? ? 8D 54 24 30 52 E8 ? ? ? ? D9 5C 24 2C F3 0F 10 4C 24 4C"
+            : "E8 ? ? ? ? 8D 44 24 30 50 E8 ? ? ? ? F3 0F 10 8C 24 AC 00 00 00");
+        auto viewDistances = hook::pattern(legacy
+            ? "8B 8E 60 03 00 00 03 C9 D9 84 09 ? ? ? ? 03 C9 D9 9E 1C 03 00 00"
+            : "8B 91 60 03 00 00 8B 04 95 ? ? ? ? 89 81 1C 03 00 00");
+        auto orbitHeading = hook::pattern(legacy
+            ? "83 C4 04 85 DB 74 ? 80 BB 89 32 00 00 00 74 ? F3 0F 10 44 24 20 0F 2E C4"
+            : "83 C4 04 85 DB 74 ? 80 BB 89 32 00 00 00");
+        auto beforeCollision = hook::pattern(legacy
+            ? "E8 ? ? ? ? 8D 4C 24 30 51 8D 4E 10 E8 ? ? ? ? 8B 8E 2C 01 00 00"
+            : "E8 ? ? ? ? 8D 44 24 30 50 8D 4E 10 E8 ? ? ? ? 8B 8E 2C 01 00 00");
+        auto afterCollision = hook::pattern(legacy
+            ? "8D 4C 24 30 51 8D 4E 10 E8 ? ? ? ? 8B 8E 2C 01 00 00"
+            : "8D 44 24 30 50 8D 4E 10 E8 ? ? ? ? 8B 8E 2C 01 00 00 56");
+        auto postSmoothVecTargetCoords = hook::pattern(legacy
+            ? "E8 ? ? ? ? 8B 4C 24 44 8D 44 24 60 50 51 8B CE E8"
+            : "E8 ? ? ? ? 8D 84 24 80 00 00 00 50 FF 74 24 58");
+        auto topExitDisplacement = hook::pattern(legacy
+            ? "C6 86 CC 00 00 00 01 E8 ? ? ? ? 83 C4 10 8D 4C 24 30 51"
+            : "C6 86 CC 00 00 00 01 E8 ? ? ? ? 8B 45 08");
+        auto cameraRoot = hook::pattern(legacy
+            ? "E8 ? ? ? ? 85 FF F3 0F 10 9E 80 02 00 00"
+            : "E8 ? ? ? ? F3 0F 10 B6 80 02 00 00 F3 0F 10 BE");
+        auto verticalFollow = hook::pattern(legacy
+            ? "D9 44 24 2C F3 0F 10 44 24 60 F3 0F 5C 86 30 02 00 00"
+            : "F3 0F 5C 86 38 02 00 00 F3 0F 10 94 24");
+        auto mountPitch = hook::pattern(legacy
+            ? "F3 0F 10 4C 24 10 F3 0F 5C 4C 24 2C"
+            : "F3 0F 10 44 24 24 F3 0F 5C 44 24 50");
+        auto pitchLevel = hook::pattern(legacy
+            ? "E8 ? ? ? ? E8 ? ? ? ? D9 86 08 03 00 00 83 EC 08"
+            : "F3 0F 10 44 24 6C 83 EC 08 8B CE");
+
+        GetPedAimWeaponLeftRight = (decltype(GetPedAimWeaponLeftRight))lookX.get_first();
+        GetPedLookUpDown = (decltype(GetPedLookUpDown))lookY.get_first();
+        GetAxisValue = (decltype(GetAxisValue))injector::GetBranchDestination(lookX.get_first(28)).as_int();
+        viewDistanceOffsets = *viewDistances.get_first<const float*>(legacy ? 11 : 9);
+        GetRootBone = (decltype(GetRootBone))injector::GetBranchDestination(cameraRoot.get_first()).as_int();
+
+        GetMoverTrackDisplacement = (decltype(GetMoverTrackDisplacement))injector::GetBranchDestination(topExitDisplacement.get_first(7)).as_int();
+
+        static auto BeginUpdateHook = safetyhook::create_mid(beginUpdate.get_first(), BeginUpdate);
+        static auto OrbitDistanceHook = safetyhook::create_mid(orbitDistance.get_first(), OrbitDistanceRequest);
+        static auto DistanceHistoryHook = safetyhook::create_mid(distanceHistory.get_first(), DistanceHistory);
+        static auto OrbitHeadingHook = safetyhook::create_mid(orbitHeading.get_first(), OrbitHeading);
+        static auto BeforeCollisionHook = safetyhook::create_mid(beforeCollision.get_first(), BeforeCollision);
+        static auto AfterCollisionHook = safetyhook::create_mid(afterCollision.get_first(), AfterCollision);
+        shPostSmoothVecTargetCoords = safetyhook::create_inline(
+            injector::GetBranchDestination(postSmoothVecTargetCoords.get_first()).as_int(), PostSmoothVecTargetCoords);
+
+        static auto VerticalFollowHook = safetyhook::create_mid(verticalFollow.get_first(), VerticalFollow);
+        static auto MountPitchHook = safetyhook::create_mid(mountPitch.get_first(), MountPitch);
+        static auto PitchLevelHook = safetyhook::create_mid(pitchLevel.get_first(), PitchLevel);
+        shTargetBetaCalc = safetyhook::create_inline(cameraGate.get_first(), TargetBetaCalc);
     }
-
-    const auto xEntry = lookX.get_first<uint8_t>(0);
-    const auto yEntry = lookY.get_first<uint8_t>(0);
-    const auto axis = injector::GetBranchDestination(lookX.get_first(28)).as_int();
-
-    LadderCamera::FindActiveTaskByType = (decltype(LadderCamera::FindActiveTaskByType))(legacy
-        ? reinterpret_cast<uintptr_t>(activeTask.get_first(0)) : injector::GetBranchDestination(activeTask.get_first(8)).as_int());
-    LadderCamera::GetPedAimWeaponLeftRight = (decltype(LadderCamera::GetPedAimWeaponLeftRight))xEntry;
-    LadderCamera::GetPedLookUpDown = (decltype(LadderCamera::GetPedLookUpDown))yEntry;
-    LadderCamera::GetAxisValue = (decltype(LadderCamera::GetAxisValue))axis;
-    LadderCamera::viewDistanceOffsets = *viewDistances.get_first<const float*>(legacy ? 11 : 9);
-    LadderCamera::GetRootBone = (decltype(LadderCamera::GetRootBone))injector::GetBranchDestination(cameraRoot.get_first(0)).as_int();
-
-    LadderCamera::GetMoverTrackDisplacement = (decltype(LadderCamera::GetMoverTrackDisplacement))injector::GetBranchDestination(topExitDisplacement.get_first(7)).as_int();
-
-    LadderCamera::shBeginUpdate = safetyhook::create_mid(beginUpdate.get_first(0), LadderCamera::BeginUpdate);
-    LadderCamera::shOrbitDistance = safetyhook::create_mid(orbitDistance.get_first(0), LadderCamera::OrbitDistanceRequest);
-    LadderCamera::shDistanceHistory = safetyhook::create_mid(distanceHistory.get_first(0), LadderCamera::DistanceHistory);
-    LadderCamera::shOrbitHeading = safetyhook::create_mid(orbitHeading.get_first(0), LadderCamera::OrbitHeading);
-    LadderCamera::shBeforeCollision = safetyhook::create_mid(beforeCollision.get_first(0), LadderCamera::BeforeCollision);
-    LadderCamera::shAfterCollision = safetyhook::create_mid(afterCollision.get_first(0), LadderCamera::AfterCollision);
-    LadderCamera::shPostSmoothVecTargetCoords = safetyhook::create_inline(
-        injector::GetBranchDestination(postSmoothVecTargetCoords.get_first(0)).as_int(), LadderCamera::PostSmoothVecTargetCoords);
-
-    LadderCamera::shVerticalFollow = safetyhook::create_mid(verticalFollow.get_first(0), LadderCamera::VerticalFollow);
-    LadderCamera::shMountPitch = safetyhook::create_mid(mountPitch.get_first(0), LadderCamera::MountPitch);
-    LadderCamera::shPitchLevel = safetyhook::create_mid(pitchLevel.get_first(0), LadderCamera::PitchLevel);
-    LadderCamera::shTargetBetaCalc = safetyhook::create_inline(cameraGate.get_first(0), LadderCamera::TargetBetaCalc);
 }
 
-// Module initialization
 class GuidedLadderCam
 {
 public:
@@ -1403,20 +1374,19 @@ public:
         FusionFix::onInitEventAsync() += []()
         {
             // Keep hooks installed so the preference can change without restarting.
-            LadderCamera::OrbitProbe::Resolve();
-            InstallLadderCameraHooks();
+            GuidedLadderCamera::OrbitProbe::Resolve();
+            GuidedLadderCamera::Init();
             FusionFixSettings.SetCallback("PREF_GUIDEDLADDERCAMERA", [](int32_t)
             {
-                LadderCamera::alignment = {};
-                LadderCamera::update = {};
-                LadderCamera::mountPitchState = {};
-                LadderCamera::verticalFollow = {};
-                LadderCamera::topExitTarget = {};
-                LadderCamera::ladderHeightReference = {};
-                LadderCamera::footRoom = {};
-                LadderCamera::footRoomUpdate = {};
-                LadderCamera::movementSample = {};
-                LadderCamera::cameraPed = 0;
+                GuidedLadderCamera::alignment = {};
+                GuidedLadderCamera::update = {};
+                GuidedLadderCamera::mountPitchState = {};
+                GuidedLadderCamera::verticalFollow = {};
+                GuidedLadderCamera::topExitTarget = {};
+                GuidedLadderCamera::ladderHeightReference = {};
+                GuidedLadderCamera::footRoom = {};
+                GuidedLadderCamera::footRoomUpdate = {};
+                GuidedLadderCamera::movementSample = {};
             });
         };
     }

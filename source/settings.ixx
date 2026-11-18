@@ -2480,12 +2480,12 @@ public:
             { "PREF_STOPTAXI",               "MISC.InstantStopTaxi" },
             { "PREF_SAO",                    "MISC.AmbientOcclusion" },
             { "PREF_AUTOCLIMBLADDERS",       "MISC.AutoClimbLadders" },
-            { "PREF_GUIDEDLADDERCAMERA",   "MISC.GuidedLadderCamera" },
             { "PREF_STUNTJUMPCAM",           "MISC.StuntJumpCamera" },
             { "PREF_ACTIONCAM",              "MISC.ActionCamera" },
             { "PREF_CONFINECURSOR",          "MAIN.ConfineCursor" },
             { "PREF_JUMPRAGDOLL",            "MISC.PlayerJumpRagdollControl" },
             { "PREF_LADDERCAMTILT",          "MISC.LadderCameraTilt" },
+            { "PREF_GUIDEDLADDERCAMERA",     "MISC.GuidedLadderCamera" },
             { "PREF_AUTOCENTERCAMERA",       "MISC.AutoCenterCamera" },
         };
 

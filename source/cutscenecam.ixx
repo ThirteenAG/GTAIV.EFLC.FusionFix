@@ -153,9 +153,7 @@ namespace CutsceneCuts
 
     export bool ConsumeCameraCut(uintptr_t leaf, bool changedView)
     {
-        if (!pendingCameraCut)
-            return false;
-        if (leaf != pendingCameraCut || uint32_t(*CTimer::m_frameCount - pendingCameraCutFrame) > 2)
+        if (!pendingCameraCut || leaf != pendingCameraCut || uint32_t(*CTimer::m_frameCount - pendingCameraCutFrame) > 2)
         {
             pendingCameraCut = 0;
             return false;
