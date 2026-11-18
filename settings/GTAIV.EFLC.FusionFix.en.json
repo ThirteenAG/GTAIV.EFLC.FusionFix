@@ -152,7 +152,7 @@
   "MISC.AutoClimbLadders.description": "Climbs ladders when walking into them.",
   "MISC.AutoCenterCamera.description": "With a controller, the camera levels itself on foot and turns behind the vehicle. Off keeps the angle you set.",
   "MISC.GuidedLadderCamera": "Guided Ladder Camera",
-  "MISC.GuidedLadderCamera.description": "Follows the player’s height on ladders, limits horizontal orbit and adjusts framing. Works with manual and automatic ladder entry.",
+  "MISC.GuidedLadderCamera.description": "Follows the player's height on ladders, limits horizontal orbit and adjusts framing. Works with manual and automatic ladder entry.",
   "MISC.AutoClimbLaddersRange": "Auto Climb Ladders Search Range",
   "MISC.AutoClimbLaddersRange.description": "Maximum ladder search distance for automatic entry, in metres. Movement and mounting checks still apply. Manual entry uses 4.0.",
   "MISC.BrakeLightsWhenStopped": "Brake Lights When Stopped",
