@@ -352,6 +352,11 @@
       "page": "gamepad", "control": [ "slider" ]
     },
     {
+      "id": "MAIN.ConsoleControllerAiming", "type": "bool", "default": 1,
+      "label": "@MAIN.ConsoleControllerAiming", "description": "@MAIN.ConsoleControllerAiming.description",
+      "page": "gamepad", "group": "@group.camera", "control": [ "switch", "cycler" ], "visibility": "editor", "apply": "restart"
+    },
+    {
       "id": "MISC.AutoCenterCamera", "type": "bool", "default": 1,
       "label": "@Auto Center Cam", "description": "@MISC.AutoCenterCamera.description",
       "page": "gamepad", "group": "@group.camera", "control": [ "switch", "cycler" ]

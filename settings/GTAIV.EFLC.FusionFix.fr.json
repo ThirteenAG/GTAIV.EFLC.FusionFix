@@ -134,6 +134,8 @@
   "MAIN.Bloom.description": "Halo autour des lumières vives.",
   "MAIN.CameraShake.description": "La caméra tremble à grande vitesse et lors des explosions.",
   "MAIN.ConfineCursor.description": "Garde le curseur de la souris dans la fenêtre du jeu tant que le jeu est actif, pour qu'il ne puisse pas passer sur un autre écran.",
+  "MAIN.ConsoleControllerAiming": "Visée à la manette des versions console",
+  "MAIN.ConsoleControllerAiming.description": "Contrôle plus fin près du centre du stick et changements plus fluides de la vitesse de visée, comme sur console. La souris conserve sa réactivité habituelle.",
   "MAIN.Definition.description": "Image plus nette, l'option Définition du jeu.",
   "MAIN.GraphicsAPI.description": "DirectX 9 est le moteur de rendu d'origine du jeu. Vulkan (DXVK) est généralement le plus rapide. DirectX 12 fait tourner le jeu sur D3D9On12 (une version personnalisée). FusionFixHub installe DXVK et D3D9On12 depuis sa page Améliorations graphiques. Si Vulkan ou DirectX 12 ne démarre pas, le prochain lancement utilise DirectX 9.",
   "MAIN.MotionBlur.description": "Intensité du flou de mouvement.",

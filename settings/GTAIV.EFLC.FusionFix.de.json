@@ -134,6 +134,8 @@
   "MAIN.Bloom.description": "Leuchten um helles Licht.",
   "MAIN.CameraShake.description": "Die Kamera wackelt bei hoher Geschwindigkeit und bei Explosionen.",
   "MAIN.ConfineCursor.description": "Hält den Mauszeiger im Spielfenster, solange das Spiel aktiv ist, damit er nicht auf einen anderen Bildschirm wechseln kann.",
+  "MAIN.ConsoleControllerAiming": "Konsolen-Zielverhalten mit Controller",
+  "MAIN.ConsoleControllerAiming.description": "Feinere Steuerung nahe der Stickmitte und sanftere Änderungen der Zielgeschwindigkeit wie in der Konsolenversion. Mausbewegungen behalten ihr ursprüngliches Verhalten.",
   "MAIN.Definition.description": "Schärferes Bild, die Definition-Option des Spiels.",
   "MAIN.GraphicsAPI.description": "DirectX 9 ist der eigene Renderer des Spiels. Vulkan (DXVK) ist meist am schnellsten. DirectX 12 führt das Spiel über D3D9On12 (eine angepasste Version) aus. FusionFixHub installiert DXVK und D3D9On12 auf seiner Seite Grafikverbesserungen. Wenn Vulkan oder DirectX 12 nicht startet, wird beim nächsten Start DirectX 9 verwendet.",
   "MAIN.MotionBlur.description": "Stärke der Bewegungsunschärfe.",

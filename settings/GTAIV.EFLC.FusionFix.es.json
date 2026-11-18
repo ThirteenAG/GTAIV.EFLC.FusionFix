@@ -134,6 +134,8 @@
   "MAIN.Bloom.description": "Brillo alrededor de las luces intensas.",
   "MAIN.CameraShake.description": "La cámara tiembla a alta velocidad y con las explosiones.",
   "MAIN.ConfineCursor.description": "Mantiene el cursor del ratón dentro de la ventana del juego mientras está activo, para que no pueda pasar a otro monitor.",
+  "MAIN.ConsoleControllerAiming": "Apuntado de consola con mando",
+  "MAIN.ConsoleControllerAiming.description": "Control más preciso cerca del centro del stick y cambios más suaves en la velocidad de apuntado, como en consola. El ratón conserva su respuesta original.",
   "MAIN.Definition.description": "Imagen más nítida; la opción Definición del juego.",
   "MAIN.GraphicsAPI.description": "DirectX 9 es el renderizador propio del juego. Vulkan (DXVK) suele ser el más rápido. DirectX 12 ejecuta el juego sobre D3D9On12 (una versión propia). FusionFixHub instala DXVK y D3D9On12 en su página de mejoras gráficas. Si Vulkan o DirectX 12 no logra iniciarse, el siguiente inicio usa DirectX 9.",
   "MAIN.MotionBlur.description": "Intensidad del desenfoque de movimiento.",
