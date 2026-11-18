@@ -134,8 +134,6 @@
   "MAIN.Bloom.description": "Свечение вокруг яркого света.",
   "MAIN.CameraShake.description": "Камера трясется на скорости и при взрывах.",
   "MAIN.ConfineCursor.description": "Удерживает курсор мыши в окне игры, пока игра активна, чтобы он не мог перейти на другой монитор.",
-  "MAIN.ConsoleControllerAiming": "Прицеливание с контроллером как на консолях",
-  "MAIN.ConsoleControllerAiming.description": "Более точное управление вблизи центра стика и плавное изменение скорости прицеливания, как в консольной версии. Реакция на движения мыши не меняется.",
   "MAIN.Definition.description": "Более четкое изображение, игровая настройка «Четкость».",
   "MAIN.GraphicsAPI.description": "DirectX 9 — собственный рендерер игры. Vulkan (DXVK) обычно самый быстрый. DirectX 12 запускает игру через D3D9On12 (специальная сборка). FusionFixHub устанавливает DXVK и D3D9On12 на странице «Graphics enhancements». Если Vulkan или DirectX 12 не запускается, при следующем запуске используется DirectX 9.",
   "MAIN.MotionBlur.description": "Сила размытия при движении.",

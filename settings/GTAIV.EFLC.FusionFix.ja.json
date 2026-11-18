@@ -134,8 +134,6 @@
   "MAIN.Bloom.description": "明るい光の周りの輝きです。",
   "MAIN.CameraShake.description": "高速移動時や爆発時にカメラが揺れます。",
   "MAIN.ConfineCursor.description": "ゲームがアクティブな間、マウスカーソルをゲームウィンドウ内に留め、別のモニターへ移動しないようにします。",
-  "MAIN.ConsoleControllerAiming": "コンソール版のコントローラー照準",
-  "MAIN.ConsoleControllerAiming.description": "スティックの中心付近での細かな操作と、照準速度の滑らかな変化をコンソール版に合わせます。マウス操作の反応は変更しません。",
   "MAIN.Definition.description": "より鮮明な画像になる、ゲームの「精細度」オプションです。",
   "MAIN.GraphicsAPI.description": "DirectX 9はゲーム本来のレンダラーです。Vulkan (DXVK)は通常最も高速です。DirectX 12はD3D9On12（カスタムビルド）でゲームを動かします。DXVKとD3D9On12はFusionFixHubの「グラフィック強化」ページでインストールできます。VulkanまたはDirectX 12が起動に失敗した場合、次回の起動ではDirectX 9を使います。",
   "MAIN.MotionBlur.description": "モーションブラーの強さです。",

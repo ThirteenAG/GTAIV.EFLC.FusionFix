@@ -134,8 +134,6 @@
   "MAIN.Bloom.description": "Glow around bright light.",
   "MAIN.CameraShake.description": "The camera shakes at speed and with explosions.",
   "MAIN.ConfineCursor.description": "Keeps the mouse cursor inside the game window while the game is active, so it can't move to another monitor.",
-  "MAIN.ConsoleControllerAiming": "Console Controller Aiming",
-  "MAIN.ConsoleControllerAiming.description": "Finer control near the stick's center and smoother changes in aiming speed, like the console version. Mouse movement keeps its native response.",
   "MAIN.Definition.description": "Sharper image, the game's Definition option.",
   "MAIN.GraphicsAPI.description": "DirectX 9 is the game's own renderer. Vulkan (DXVK) is usually the fastest. DirectX 12 runs the game on D3D9On12 (a custom build). FusionFixHub installs DXVK and D3D9On12 on its Graphics enhancements page. If Vulkan or DirectX 12 fails to start, the next start uses DirectX 9.",
   "MAIN.MotionBlur.description": "Strength of the motion blur.",
