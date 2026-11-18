@@ -12,6 +12,7 @@ import common;
 import comvars;
 import natives;
 import settings;
+import cutscenecam;
 
 namespace LadderCamera
 {
@@ -184,6 +185,7 @@ namespace LadderCamera
         float neutralPitch = 0.0f;
         bool pitchReferenceValid = false;
         bool finishPitchHandoff = false;
+        bool cameraCut = false;
     };
     static thread_local CameraUpdate update;
 
@@ -702,6 +704,7 @@ namespace LadderCamera
             {
                 alignment.rearEntryTarget = target;
                 alignment.rearEntryCut = true;
+                update.cameraCut = true;
                 alignment.rearOrbitActive = false;
                 beta = WrapHeading(alignment.heading);
                 velocity = 0.0f;
@@ -1210,6 +1213,8 @@ namespace LadderCamera
 
         if (!IsGuidedEnabled() || update.camera != regs.esi)
             return;
+        if (update.cameraCut)
+            CutsceneCuts::NotifyCameraCut(regs.esi);
         const float distance = OrbitDistance(regs.esi);
         const bool valid = std::isfinite(distance) && std::isfinite(update.desiredDistance) && update.desiredDistance > 0.01f;
         if (update.onLadder || update.approaching)

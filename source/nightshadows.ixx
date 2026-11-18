@@ -309,7 +309,8 @@ namespace ShadowCuts
         // Keep native and accepted authored cuts independent of geometric/state filtering. FusionFix may roll
         // back a provisional animated-camera evaluation; DetectCut only consumes the accepted phase.
         auto animationCut = CutsceneCuts::DetectCut();
-        auto cut = !haveCamera || animationCut || lookCut || ownerCut || teleport;
+        auto cameraCut = CutsceneCuts::ConsumeCameraCut(leaf, changedView);
+        auto cut = !haveCamera || animationCut || cameraCut || lookCut || ownerCut || teleport;
         std::copy_n(camera + 8, 3, previousDirection);
         std::copy_n(camera + 12, 3, previousPosition);
         previousLeaf = leaf;
