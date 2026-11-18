@@ -167,6 +167,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - [Fixed forced "definition off" setting in cutscenes, now cutscenes will respect the menu setting](https://github.com/GTAmodding/GTAIV-Issues-List/issues/5)
 - [Fixed DLC car lights in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/3)
 - [Fixed various issues related to frame rate](https://github.com/GTAmodding/GTAIV-Issues-List/issues/112)
+- Restored the console stick response and smoothing when free aiming with a controller
 - Fixed crouching and standing camera transitions speeding up at higher frame rates, including while aiming
 - Cutscene animations follow their audio smoothly at any frame rate, without trembling and without drifting out of sync
 - Fixed the game, script and screen fade timers running slow at high frame rates, which caused the infinite loading screen around some cutscenes (Off Route)
