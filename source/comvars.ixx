@@ -2295,6 +2295,11 @@ export namespace CPlayerPed
     uintptr_t (__thiscall* GetControlFromPlayer)(uintptr_t playerPed) = nullptr;
 }
 
+export namespace CTaskManager
+{
+    uintptr_t (__thiscall* FindActiveTaskByType)(uintptr_t taskManager, int type) = nullptr;
+}
+
 export enum class eRagdollTriggerTypes : uint32_t
 {
     RAGDOLL_TRIGGER_SCRIPT = 0x12,
@@ -3357,6 +3362,16 @@ public:
         {
             pattern = hook::pattern("80 B9 18 02 00 00 00 75 0E 80 B9 19 02 00 00 00 74 05 E9 ? ? ? ? 33 C0 C3");
             CPlayerPed::GetControlFromPlayer = reinterpret_cast<decltype(CPlayerPed::GetControlFromPlayer)>(pattern.get_first(0));
+        }
+
+        pattern = hook::pattern("68 19 04 00 00 83 C1 44 E8 ? ? ? ? 80");
+        if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+            CTaskManager::FindActiveTaskByType = reinterpret_cast<decltype(CTaskManager::FindActiveTaskByType)>(
+                injector::GetBranchDestination(pattern.get_first(8)).as_int());
+        else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
+        {
+            pattern = hook::pattern("55 56 57 33 FF 8B E9 33 C0 8D A4 24 00 00 00 00 39 7C 85 00");
+            CTaskManager::FindActiveTaskByType = reinterpret_cast<decltype(CTaskManager::FindActiveTaskByType)>(pattern.get_first());
         }
 
         pattern = find_pattern("55 8B EC 83 E4 F0 83 EC 48 56 57 E8 ? ? ? ? 84 C0 74 31 8B 7D 08 8B 75 0C", "55 8B EC 83 E4 F0 83 EC 34 53 56 57 E8 ? ? ? ? 84 C0 74 31");

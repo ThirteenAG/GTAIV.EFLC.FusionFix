@@ -290,23 +290,6 @@ namespace CWater
     }
 }
 
-namespace CTaskManager
-{
-    uintptr_t (__thiscall* FindActiveTaskByType)(uintptr_t taskManager, int type);
-
-    void Init()
-    {
-        auto pattern = hook::pattern("68 19 04 00 00 83 C1 44 E8 ? ? ? ? 80");
-        if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
-            FindActiveTaskByType = (decltype(FindActiveTaskByType))injector::GetBranchDestination(pattern.get_first(8)).as_int();
-        else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
-        {
-            pattern = hook::pattern("55 56 57 33 FF 8B E9 33 C0 8D A4 24 00 00 00 00 39 7C 85 00");
-            FindActiveTaskByType = (decltype(FindActiveTaskByType))pattern.get_first(0);
-        }
-    }
-}
-
 // Mounting a ladder from the top moves the player with the animation's mover. The physics instance and its bounds
 // stay at the old place until the next physics update, and the player isn't drawn for a moment: update them right away.
 namespace LadderTopMount
@@ -862,7 +845,6 @@ public:
                 }
             }
 
-            CTaskManager::Init();
             LadderTopMount::Init();
 
             // Camera centering delay/turn speed

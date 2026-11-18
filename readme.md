@@ -141,6 +141,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **Stunt Jump Camera**, can be disabled to skip the cinematic camera and slow motion during unique stunt jumps
 - **Fence Climb & Car Jack Camera**, can be disabled to skip the cinematic camera when climbing fences and stealing cars
 - **Ladder Camera Tilt**, can be disabled to keep the camera from tilting down while climbing ladders
+- **Guided Ladder Camera**, the camera follows the player's height on ladders, limits how far it orbits sideways and keeps the player framed around obstructions
 - **Automatic Camera Centering**, can be disabled to stop the controller camera from leveling itself on foot and turning behind vehicles
 - **Centered Vehicle Camera**, makes vehicle camera centered, for more options install the [original mod](https://github.com/gennariarmando/iv-centered-vehicle-cam) separately
 - **Centered On Foot Camera**, makes on foot camera centered, also for more options install the [original mod](https://github.com/gennariarmando/iv-centered-onfoot-cam)

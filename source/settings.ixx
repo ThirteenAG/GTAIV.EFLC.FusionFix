@@ -2485,6 +2485,7 @@ public:
             { "PREF_CONFINECURSOR",          "MAIN.ConfineCursor" },
             { "PREF_JUMPRAGDOLL",            "MISC.PlayerJumpRagdollControl" },
             { "PREF_LADDERCAMTILT",          "MISC.LadderCameraTilt" },
+            { "PREF_GUIDEDLADDERCAMERA",     "MISC.GuidedLadderCamera" },
             { "PREF_AUTOCENTERCAMERA",       "MISC.AutoCenterCamera" },
             { "PREF_POPULATIONVARIETY",      "MISC.PopulationVariety" },
         };
@@ -2595,7 +2596,7 @@ public:
         {
             AddSetting(screen, "MISC.FieldOfView", "MO_SUB");
             auto camera = AddPage(screen, "@ff.page.camera", "MO_DEF", true);
-            for (auto id : { "MAIN.CameraShake", "MISC.CenteredVehCam", "MISC.CenteredFootCam", "MISC.StuntJumpCamera", "MISC.ActionCamera", "MISC.LadderCameraTilt" }) AddSetting(camera, id);
+            for (auto id : { "MAIN.CameraShake", "MISC.CenteredVehCam", "MISC.CenteredFootCam", "MISC.StuntJumpCamera", "MISC.ActionCamera", "MISC.LadderCameraTilt", "MISC.GuidedLadderCamera" }) AddSetting(camera, id);
             auto advanced = AddPage(screen, "@ff.page.advanced", "MO_DEF", true);
             for (auto id : { "MISC.ConsoleGamma", "MISC.ToneMapping", "MISC.ScreenFilter", "MISC.ConsoleAutoExposure", "MISC.TreeLighting", "MISC.TreeAlpha" }) AddSetting(advanced, id);
             AddEmptyLine(advanced);

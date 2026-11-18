@@ -151,6 +151,8 @@
   "MISC.Antialiasing.description": "Anticrénelage en résolution native. Le TAA nécessite d3dx9_43.dll ; le DLAA et le FSR nécessitent Vulkan (DXVK) et leurs fichiers depuis la page Améliorations graphiques de FusionFixHub. Le menu ne propose que ce qui peut être utilisé.",
   "MISC.AutoClimbLadders.description": "Grimpe aux échelles en marchant vers elles.",
   "MISC.AutoCenterCamera.description": "À la manette, la caméra se remet à l'horizontale à pied et derrière le véhicule. Désactivé garde l'angle choisi.",
+  "MISC.GuidedLadderCamera": "Caméra guidée sur les échelles",
+  "MISC.GuidedLadderCamera.description": "Suit la hauteur du joueur sur les échelles, limite la rotation horizontale et ajuste le cadrage. Fonctionne avec la montée manuelle et automatique.",
   "MISC.AutoClimbLaddersRange": "Portée de recherche pour l'escalade automatique",
   "MISC.AutoClimbLaddersRange.description": "Distance maximale de recherche des échelles pour l'entrée automatique, en mètres. Les vérifications du mouvement et de la montée restent actives. L'entrée manuelle utilise 4.0.",
   "MISC.BrakeLightsWhenStopped": "Feux stop à l'arrêt",
