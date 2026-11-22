@@ -739,14 +739,18 @@ namespace VehicleHorn
     void Install()
     {
         // audVehicleAudioEntity::UpdateHornAndSiren calls GetHornState for fresh requests. Replay can use the cached state.
-        auto update = hook::pattern("8B CF E8 ? ? ? ? 8A C8 88 8F 41 0B 00 00 EB ? 8A 8F 41 0B 00 00");
-        if (update.size() != 1)
+        auto pattern = hook::pattern("8B CF E8 ? ? ? ? 8A C8 88 8F 41 0B 00 00 EB ? 8A 8F 41 0B 00 00");
+        bool legacy = pattern.empty();
+        if (legacy) // 1.0.7.0, 1.0.8.0
+            pattern = hook::pattern("8B CE E8 ? ? ? ? 88 86 41 0B 00 00 EB 06 8A 86 41 0B 00 00");
+        if (pattern.size() != 1)
             return;
 
-        auto call = update.get_first(2);
+        auto call = pattern.get_first(2);
         auto getHornState = injector::GetBranchDestination(call).as_int();
-        auto state = hook::range_pattern(getHornState, getHornState + 31,
-            "56 8B F1 8B 8E 20 08 00 00 F6 81 17 0F 00 00 08 0F 85 ? ? ? ? 8B 51 28 F7 C2 00 00 80 00");
+        auto state = hook::range_pattern(getHornState, getHornState + 32, legacy
+            ? "51 56 8B F1 8B 86 20 08 00 00 F6 80 67 0F 00 00 08 0F 85 ? ? ? ? 8B 50 28 F7 C2 00 00 80 00"
+            : "56 8B F1 8B 8E 20 08 00 00 F6 81 17 0F 00 00 08 0F 85 ? ? ? ? 8B 51 28 F7 C2 00 00 80 00");
         if (state.size() != 1 || state.get_first() != reinterpret_cast<void*>(getHornState))
             return;
 
