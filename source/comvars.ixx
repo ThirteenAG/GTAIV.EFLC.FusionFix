@@ -1281,6 +1281,7 @@ export namespace rage
         GRCFMT_A16B16G16R16,
         GRCFMT_L8,
         GRCFMT_D24S8 = 0xE,
+        GRCFMT_NULL = 0x11,
         GRCFMT_X8R8G8B8 = 0x10,
     };
 
