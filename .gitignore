@@ -372,6 +372,3 @@ data/plugins/GTAIV.EFLC.FusionFix.asi
 data/d3d9.dll
 GTAIV.EFLC.FusionFix.zip
 .env
-# Release outputs: the hub
-FusionFixHub.exe
-data/FusionFixHub.exe
