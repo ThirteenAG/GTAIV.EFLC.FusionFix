@@ -142,6 +142,7 @@
     dcl_2d s0
     dcl_2d s1
     dcl_2d s2
+    dcl_2d s13
     dcl_2d s15
     texld r0, v0, s0
     add r1.xyz, c0.x, v1
@@ -180,8 +181,11 @@
     mul r6.xyz, c18.w, c18
     dp3 r1.z, r2, -c17
     mul r22.xyz, r2.y, c61.xyww
+    mul r31.w, r2.y, c61.z
     mad r22.xyz, r2.x, c60.xyww, r22
+    mad r31.w, r2.x, c60.z, r31.w
     mad r22.xyz, r2.z, c62.xyww, r22
+    mad r31.w, r2.z, c62.z, r31.w
     // add r1.z, r1.z, c1.z
     // mul_sat r1.z, r1.z, c1.w
     mad_sat r1.z, r1.z, c220.z, c220.w
@@ -191,9 +195,13 @@
     mad r1.w, r1.w, c77.x, r7.x
     pow r5.w, r4.w, r1.w
     mul r8.xyz, c61.xyww, v4.y
+    mul r31.z, c61.z, v4.y
     mad r8.xyz, v4.x, c60.xyww, r8
+    mad r31.z, v4.x, c60.z, r31.z
     mad r8.xyz, v4.z, c62.xyww, r8
+    mad r31.z, v4.z, c62.z, r31.z
     add r8.xyz, r8, c63.xyww
+    add r31.z, r31.z, c63.z
     dp3 r1.w, c14, v4
     add r9.xyz, -r1.w, -c54
     cmp r9.yzw, r9.xxyz, c0.z, c0.y
@@ -229,8 +237,12 @@
     mul r20.x, r20.x, c218_abs.y
     mul r20.x, r20.x, c223.y // scale bias with FOV
     mad r8.xyz, r22, r20.x, r8 // normal offset bias
+    mad r31.z, r31.w, r20.x, r31.z
     
     mad r8.z, r8.z, -c139.x, c139.y
+    min r31.z, r31.z, c110.y
+    add r31.z, -r31.z, c110.y // hardware depth
+    mov r31.w, c110.w
     
     rcp r20.x, c58.x
     mul r20.x, r20.x, c57.x
@@ -273,8 +285,8 @@
       mad r21, r23, r25.zwzw, r7.xyxy
       max r21.xz, r21, r20.z
       min r21.xz, r21, r20.w
-      texldl r24.x, r21.xy, s15.x
-      texldl r24.y, r21.zw, s15.x
+      texldl r24.x, r21.xy, s13.x
+      texldl r24.y, r21.zw, s13.x
       mul r21, c131.xyxy, r22
       add r23.xy, r21.xzxz, r21.ywyw
       mul r21, c131.zwzw, r22
@@ -282,9 +294,10 @@
       mad r21, r23, r25.zwzw, r7.xyxy
       max r21.xz, r21, r20.z
       min r21.xz, r21, r20.w
-      texldl r24.z, r21.xy, s15.x
-      texldl r24.w, r21.zw, s15.x
+      texldl r24.z, r21.xy, s13.x
+      texldl r24.w, r21.zw, s13.x
       
+      mad r24, r24, -c139.x, c139.y
       add r23, r8.z, -r24
       cmp r23, r23, c110.y, c110.w
       dp4 r25.x, r23, r24 // blocker sum
@@ -297,8 +310,8 @@
       mad r21, r23, r25.zwzw, r7.xyxy
       max r21.xz, r21, r20.z
       min r21.xz, r21, r20.w
-      texldl r24.x, r21.xy, s15.x
-      texldl r24.y, r21.zw, s15.x
+      texldl r24.x, r21.xy, s13.x
+      texldl r24.y, r21.zw, s13.x
       mul r21, c133.xyxy, r22
       add r23.xy, r21.xzxz, r21.ywyw
       mul r21, c133.zwzw, r22
@@ -306,9 +319,10 @@
       mad r21, r23, r25.zwzw, r7.xyxy
       max r21.xz, r21, r20.z
       min r21.xz, r21, r20.w
-      texldl r24.z, r21.xy, s15.x
-      texldl r24.w, r21.zw, s15.x
+      texldl r24.z, r21.xy, s13.x
+      texldl r24.w, r21.zw, s13.x
       
+      mad r24, r24, -c139.x, c139.y
       add r23, r8.z, -r24
       cmp r23, r23, c110.y, c110.w
       dp4 r24.x, r23, r24
@@ -322,8 +336,8 @@
       mad r21, r23, r25.zwzw, r7.xyxy
       max r21.xz, r21, r20.z
       min r21.xz, r21, r20.w
-      texldl r24.x, r21.xy, s15.x
-      texldl r24.y, r21.zw, s15.x
+      texldl r24.x, r21.xy, s13.x
+      texldl r24.y, r21.zw, s13.x
       mul r21, c135.xyxy, r22
       add r23.xy, r21.xzxz, r21.ywyw
       mul r21, c135.zwzw, r22
@@ -331,9 +345,10 @@
       mad r21, r23, r25.zwzw, r7.xyxy
       max r21.xz, r21, r20.z
       min r21.xz, r21, r20.w
-      texldl r24.z, r21.xy, s15.x
-      texldl r24.w, r21.zw, s15.x
+      texldl r24.z, r21.xy, s13.x
+      texldl r24.w, r21.zw, s13.x
       
+      mad r24, r24, -c139.x, c139.y
       add r23, r8.z, -r24
       cmp r23, r23, c110.y, c110.w
       dp4 r24.x, r23, r24
@@ -347,8 +362,8 @@
       mad r21, r23, r25.zwzw, r7.xyxy
       max r21.xz, r21, r20.z
       min r21.xz, r21, r20.w
-      texldl r24.x, r21.xy, s15.x
-      texldl r24.y, r21.zw, s15.x
+      texldl r24.x, r21.xy, s13.x
+      texldl r24.y, r21.zw, s13.x
       mul r21, c137.xyxy, r22
       add r23.xy, r21.xzxz, r21.ywyw
       mul r21, c137.zwzw, r22
@@ -356,9 +371,10 @@
       mad r21, r23, r25.zwzw, r7.xyxy
       max r21.xz, r21, r20.z
       min r21.xz, r21, r20.w
-      texldl r24.z, r21.xy, s15.x
-      texldl r24.w, r21.zw, s15.x
+      texldl r24.z, r21.xy, s13.x
+      texldl r24.w, r21.zw, s13.x
       
+      mad r24, r24, -c139.x, c139.y
       add r23, r8.z, -r24
       cmp r23, r23, c110.y, c110.w
       dp4 r24.x, r23, r24
@@ -387,6 +403,13 @@
       mul r25.y, r25.y, -c113.w
       mul r25.y, r25.y, c223.y
       mad r8.z, r25.x, r25.y, r8.z
+      mul r31.x, c60.z, c60.w
+      mad r31.x, c61.z, c61.w, r31.x
+      mad r31.x, c62.z, c62.w, r31.x
+      rcp r31.y, c139.x
+      mul r31.x, r31.x, r31.y
+      mul r31.x, r31.x, r25.x
+      mad r31.z, r31.x, r25.y, r31.z
     endif
     
     if_eq -c221_abs.x, c221_abs.x
@@ -400,18 +423,20 @@
       mad r21, r21, r20.xyxy, r7.xyxy
       max r21.xz, r21, r20.z
       min r21.xz, r21, r20.w
-      texldl r23.x, r21.xy, s15.x
-      texldl r23.y, r21.zw, s15.x
+      mov r31.xy, r21.xy
+      texldl r23.x, r31, s15.x
+      mov r31.xy, r21.zw
+      texldl r23.y, r31, s15.x
       
       mul r21, r22.yxxy, c113.xxyz
       mad r21, r21, r20.xyxy, r7.xyxy
       max r21.xz, r21, r20.z
       min r21.xz, r21, r20.w
-      texldl r23.z, r21.xy, s15.x
-      texldl r23.w, r21.zw, s15.x
+      mov r31.xy, r21.xy
+      texldl r23.z, r31, s15.x
+      mov r31.xy, r21.zw
+      texldl r23.w, r31, s15.x
       
-      add r23, r23, -r8.z
-      cmp r23, r23, c110.y, c110.w
       dp4 r20.x, r23, -c110.x
     else
       mul r21, c130.xyxy, r22
@@ -421,8 +446,10 @@
       mad r21, r23, r20.xyxy, r7.xyxy
       max r21.xz, r21, r20.z
       min r21.xz, r21, r20.w
-      texldl r24.x, r21.xy, s15.x
-      texldl r24.y, r21.zw, s15.x
+      mov r31.xy, r21.xy
+      texldl r24.x, r31, s15.x
+      mov r31.xy, r21.zw
+      texldl r24.y, r31, s15.x
       mul r21, c131.xyxy, r22
       add r23.xy, r21.xzxz, r21.ywyw
       mul r21, c131.zwzw, r22
@@ -430,10 +457,10 @@
       mad r21, r23, r20.xyxy, r7.xyxy
       max r21.xz, r21, r20.z
       min r21.xz, r21, r20.w
-      texldl r24.z, r21.xy, s15.x
-      texldl r24.w, r21.zw, s15.x
-      add r24, r24, -r8.z
-      cmp r24, r24, c110.y, c110.w
+      mov r31.xy, r21.xy
+      texldl r24.z, r31, s15.x
+      mov r31.xy, r21.zw
+      texldl r24.w, r31, s15.x
       dp4 r25.x, r24, -c110.x
       
       mul r21, c132.xyxy, r22
@@ -443,8 +470,10 @@
       mad r21, r23, r20.xyxy, r7.xyxy
       max r21.xz, r21, r20.z
       min r21.xz, r21, r20.w
-      texldl r24.x, r21.xy, s15.x
-      texldl r24.y, r21.zw, s15.x
+      mov r31.xy, r21.xy
+      texldl r24.x, r31, s15.x
+      mov r31.xy, r21.zw
+      texldl r24.y, r31, s15.x
       mul r21, c133.xyxy, r22
       add r23.xy, r21.xzxz, r21.ywyw
       mul r21, c133.zwzw, r22
@@ -452,10 +481,10 @@
       mad r21, r23, r20.xyxy, r7.xyxy
       max r21.xz, r21, r20.z
       min r21.xz, r21, r20.w
-      texldl r24.z, r21.xy, s15.x
-      texldl r24.w, r21.zw, s15.x
-      add r24, r24, -r8.z
-      cmp r24, r24, c110.y, c110.w
+      mov r31.xy, r21.xy
+      texldl r24.z, r31, s15.x
+      mov r31.xy, r21.zw
+      texldl r24.w, r31, s15.x
       dp4 r25.y, r24, -c110.x
       
       mul r21, c134.xyxy, r22
@@ -465,8 +494,10 @@
       mad r21, r23, r20.xyxy, r7.xyxy
       max r21.xz, r21, r20.z
       min r21.xz, r21, r20.w
-      texldl r24.x, r21.xy, s15.x
-      texldl r24.y, r21.zw, s15.x
+      mov r31.xy, r21.xy
+      texldl r24.x, r31, s15.x
+      mov r31.xy, r21.zw
+      texldl r24.y, r31, s15.x
       mul r21, c135.xyxy, r22
       add r23.xy, r21.xzxz, r21.ywyw
       mul r21, c135.zwzw, r22
@@ -474,10 +505,10 @@
       mad r21, r23, r20.xyxy, r7.xyxy
       max r21.xz, r21, r20.z
       min r21.xz, r21, r20.w
-      texldl r24.z, r21.xy, s15.x
-      texldl r24.w, r21.zw, s15.x
-      add r24, r24, -r8.z
-      cmp r24, r24, c110.y, c110.w
+      mov r31.xy, r21.xy
+      texldl r24.z, r31, s15.x
+      mov r31.xy, r21.zw
+      texldl r24.w, r31, s15.x
       dp4 r25.z, r24, -c110.x
       
       mul r21, c136.xyxy, r22
@@ -487,8 +518,10 @@
       mad r21, r23, r20.xyxy, r7.xyxy
       max r21.xz, r21, r20.z
       min r21.xz, r21, r20.w
-      texldl r24.x, r21.xy, s15.x
-      texldl r24.y, r21.zw, s15.x
+      mov r31.xy, r21.xy
+      texldl r24.x, r31, s15.x
+      mov r31.xy, r21.zw
+      texldl r24.y, r31, s15.x
       mul r21, c137.xyxy, r22
       add r23.xy, r21.xzxz, r21.ywyw
       mul r21, c137.zwzw, r22
@@ -496,10 +529,10 @@
       mad r21, r23, r20.xyxy, r7.xyxy
       max r21.xz, r21, r20.z
       min r21.xz, r21, r20.w
-      texldl r24.z, r21.xy, s15.x
-      texldl r24.w, r21.zw, s15.x
-      add r24, r24, -r8.z
-      cmp r24, r24, c110.y, c110.w
+      mov r31.xy, r21.xy
+      texldl r24.z, r31, s15.x
+      mov r31.xy, r21.zw
+      texldl r24.w, r31, s15.x
       dp4 r25.w, r24, -c110.x
       
       dp4 r20.x, r25, -c110.x

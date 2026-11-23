@@ -362,7 +362,7 @@
 			<Item>
 				<DataType>asm</DataType>
 				<File>gta_spec_reflect\gta_spec_reflectPS1.asm</File>
-				<Variables value="51" >
+				<Variables value="52" >
 					<Item>
 						<Type>sampler</Type>
 						<Name>EnvironmentSampler</Name>
@@ -567,6 +567,11 @@
 						<Type>sampler</Type>
 						<Name>gShadowZSamplerDir</Name>
 						<Index value="15" />
+					</Item>
+					<Item>
+						<Type>sampler</Type>
+						<Name>gShadowZSamplerDirRaw</Name>
+						<Index value="13" />
 					</Item>
 					<Item>
 						<Type>float4x4</Type>
@@ -945,7 +950,7 @@
 			<Item>
 				<DataType>asm</DataType>
 				<File>gta_spec_reflect\gta_spec_reflectPS9.asm</File>
-				<Variables value="27" >
+				<Variables value="28" >
 					<Item>
 						<Type>sampler</Type>
 						<Name>EnvironmentSampler</Name>
@@ -1032,6 +1037,11 @@
 						<Index value="15" />
 					</Item>
 					<Item>
+						<Type>sampler</Type>
+						<Name>gShadowZSamplerDirRaw</Name>
+						<Index value="13" />
+					</Item>
+					<Item>
 						<Type>float4x4</Type>
 						<Name>gViewInverse</Name>
 						<Index value="12" />
@@ -1086,7 +1096,7 @@
 			<Item>
 				<DataType>asm</DataType>
 				<File>gta_spec_reflect\gta_spec_reflectPS10.asm</File>
-				<Variables value="39" >
+				<Variables value="40" >
 					<Item>
 						<Type>sampler</Type>
 						<Name>EnvironmentSampler</Name>
@@ -1233,6 +1243,11 @@
 						<Index value="15" />
 					</Item>
 					<Item>
+						<Type>sampler</Type>
+						<Name>gShadowZSamplerDirRaw</Name>
+						<Index value="13" />
+					</Item>
+					<Item>
 						<Type>float4x4</Type>
 						<Name>gViewInverse</Name>
 						<Index value="12" />
@@ -1287,7 +1302,7 @@
 			<Item>
 				<DataType>asm</DataType>
 				<File>gta_spec_reflect\gta_spec_reflectPS11.asm</File>
-				<Variables value="47" >
+				<Variables value="48" >
 					<Item>
 						<Type>sampler</Type>
 						<Name>EnvironmentSampler</Name>
@@ -1489,6 +1504,11 @@
 						<Index value="15" />
 					</Item>
 					<Item>
+						<Type>sampler</Type>
+						<Name>gShadowZSamplerDirRaw</Name>
+						<Index value="13" />
+					</Item>
+					<Item>
 						<Type>float4x4</Type>
 						<Name>gViewInverse</Name>
 						<Index value="12" />
@@ -1527,7 +1547,7 @@
 			</Item>
 		</PixelShaders>
 	</Shaders>
-	<GlobalVariables value="60" >
+	<GlobalVariables value="61" >
 		<Item>
 			<Type>float4</Type>
 			<ArrayCount value="64" />
@@ -2072,7 +2092,21 @@
 			<Values value="10" >
 			AddressU Clamp
 			AddressV Clamp
-			MipFilter Point
+			MipFilter None
+			MinFilter Linear
+			MagFilter Linear
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowZSamplerDirRaw</Name1>
+			<Name2>ShadowZTextureDirRaw</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Clamp
+			AddressV Clamp
+			MipFilter None
 			MinFilter Point
 			MagFilter Point
 		</Values>
