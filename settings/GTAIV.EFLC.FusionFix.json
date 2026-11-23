@@ -76,6 +76,13 @@
       "page": "game", "group": "@group.extras", "control": [ "switch", "cycler" ]
     },
     {
+      "id": "MISC.PopulationVariety", "type": "choice", "default": 1,
+      "choices": [ { "value": 0, "label": "@variety.original" }, { "value": 1, "label": "@MO_HIGH" }, { "value": 2, "label": "@MO_VHIGH" } ],
+      "label": "@MISC.PopulationVariety", "description": "@MISC.PopulationVariety.description",
+      "page": "game", "group": "@group.extras", "control": [ "cycler", "dropdown" ],
+      "presets": { "vanilla": 0, "recommended": 1, "enhanced": 2 }
+    },
+    {
       "id": "UPDATE.CheckForUpdates", "type": "bool", "default": 0,
       "label": "@Check Updates", "description": "@UPDATE.CheckForUpdates.description",
       "page": "game", "group": "@group.updates", "control": [ "switch", "cycler" ]
@@ -273,6 +280,12 @@
       "id": "MISC.LadderCameraTilt", "type": "bool", "default": 1,
       "label": "@Ladder Cam Tilt", "description": "@MISC.LadderCameraTilt.description",
       "page": "controls", "group": "@group.camera", "control": [ "switch", "cycler" ]
+    },
+    {
+      "id": "MISC.GuidedLadderCamera", "type": "bool", "default": 0,
+      "label": "@MISC.GuidedLadderCamera", "description": "@MISC.GuidedLadderCamera.description",
+      "page": "controls", "group": "@group.camera", "control": [ "switch", "cycler" ],
+      "presets": { "vanilla": 0, "recommended": 0, "enhanced": 1 }
     },
     {
       "id": "MISC.StuntJumpCamera", "type": "bool", "default": 1,

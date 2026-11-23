@@ -1276,10 +1276,11 @@ private:
                         }
                     }
 
-                    // Temporal reconstruction has already integrated stippled geometry. Applying the spatial
-                    // filter here would combine its resolved color with a jittered G-buffer mask and can
-                    // reintroduce flicker on thin detail. Keep it for frames without a temporal resolve.
-                    if (PostFxResources.useStippleFilter && PostFxResources.stipple_filter_ps && !TemporalAA::IsSceneResolved())
+                    // Definition On limits the filter to stippled pixels (G-buffer mask), which a temporal resolve has
+                    // already integrated; the jittered mask would only bring flicker back. Definition Off softens
+                    // the whole image without the mask, which stays on after the resolve.
+                    static auto definition = FusionFixSettings.GetRef("PREF_DEFINITION");
+                    if (PostFxResources.useStippleFilter && PostFxResources.stipple_filter_ps && (!TemporalAA::IsSceneResolved() || !definition->get()))
                     {
                         pDevice->SetPixelShader(PostFxResources.stipple_filter_ps);
                         pDevice->SetRenderTarget(0, PostFxResources.renderTargetSurf);

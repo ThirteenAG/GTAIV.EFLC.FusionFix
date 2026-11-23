@@ -15,8 +15,8 @@ build:
   project: build/GTAIV.EFLC.FusionFix.slnx
   parallel: true
   verbosity: minimal
-# The same package as the GitHub workflow (.github/workflows/msvc_x86.yml), without the hub and signing: those need
-# the repository's secrets, which only the GitHub workflow has
+# The same package as the GitHub workflow (.github/workflows/msvc_x86.yml), without signing: that needs the
+# repository's secrets, which only the GitHub workflow has
 after_build:
 - ps: Start-FileDownload https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/download/Win32-latest/dinput8-Win32.zip -FileName dinput8-Win32.zip
 - ps: Start-FileDownload https://github.com/GTAmodding/XLivelessAddon/releases/latest/download/XLivelessAddon.zip -FileName XLivelessAddon.zip

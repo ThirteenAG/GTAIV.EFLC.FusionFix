@@ -290,23 +290,6 @@ namespace CWater
     }
 }
 
-namespace CTaskManager
-{
-    uintptr_t (__thiscall* FindActiveTaskByType)(uintptr_t taskManager, int type);
-
-    void Init()
-    {
-        auto pattern = hook::pattern("68 19 04 00 00 83 C1 44 E8 ? ? ? ? 80");
-        if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
-            FindActiveTaskByType = (decltype(FindActiveTaskByType))injector::GetBranchDestination(pattern.get_first(8)).as_int();
-        else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
-        {
-            pattern = hook::pattern("55 56 57 33 FF 8B E9 33 C0 8D A4 24 00 00 00 00 39 7C 85 00");
-            FindActiveTaskByType = (decltype(FindActiveTaskByType))pattern.get_first(0);
-        }
-    }
-}
-
 // Mounting a ladder from the top moves the player with the animation's mover. The physics instance and its bounds
 // stay at the old place until the next physics update, and the player isn't drawn for a moment: update them right away.
 namespace LadderTopMount
@@ -610,6 +593,105 @@ namespace FixtureLights
     }
 }
 
+// TV videos are Bink movies that Bink decodes straight into the textures shown on the screen. The game gives Bink the
+// pointers from one lock of each texture when the movie opens; each frame it locks only the textures of the frame being
+// decoded and never hands Bink the new pointers. Bink also reads the previous frame, from textures that aren't locked.
+// That works only while a texture's pixels stay at one address: with -managed (Direct3D keeps the pixels) under DXVK
+// or wined3d, or with the texture copies of memory.ixx (mapped only while locked), Bink writes and reads memory that is
+// gone and the game crashes in binkw32 when a TV shows. Every frame's textures are locked while Bink decodes, and Bink
+// gets the pointers of these locks.
+namespace BinkFrameBuffers
+{
+    // BINKFRAMEBUFFERS: TotalFrames, YABufferWidth, YABufferHeight, cRcBBufferWidth, cRcBBufferHeight, FrameNum, then per
+    // frame the Y, cR, cB and A planes, each { Allocate, Buffer, BufferPitch }
+    constexpr ptrdiff_t TotalFramesOffset = 0x00;
+    constexpr ptrdiff_t FrameNumOffset = 0x14;
+    constexpr ptrdiff_t FramesOffset = 0x18;
+    constexpr ptrdiff_t FrameSize = 0x30;
+    constexpr ptrdiff_t PlaneSize = 0x0C;
+    constexpr int32_t nPlanes = 4;
+
+    // The movie: Bink handle, its frame buffers, the textures (4 per frame), their count, the lock of each texture
+    constexpr ptrdiff_t FrameBuffersOffset = 0x04;
+    constexpr ptrdiff_t TexturesOffset = 0x08;
+    constexpr ptrdiff_t LocksOffset = 0x10;
+    constexpr ptrdiff_t LockSize = 0x20;      // grcTextureLock: MipLevel, Base, Pitch, ...
+
+    ptrdiff_t LockSlot = 0;                   // grcTexture vtable: lock, unlock right after it
+    bool bLockTakesFlags = false;
+
+    std::vector<uint8_t> Locks;
+    std::vector<uintptr_t> Locked;
+
+    void* Texture(uintptr_t movie, int32_t index)
+    {
+        return reinterpret_cast<void**>(*reinterpret_cast<uintptr_t*>(movie + TexturesOffset))[index];
+    }
+
+    void Lock(void* texture, void* lock)
+    {
+        auto fn = (*reinterpret_cast<void***>(texture))[LockSlot];
+        if (bLockTakesFlags)
+            reinterpret_cast<bool(__thiscall*)(void*, int32_t, int32_t, void*, int32_t)>(fn)(texture, 0, 0, lock, 3);
+        else
+            reinterpret_cast<bool(__thiscall*)(void*, int32_t, int32_t, void*)>(fn)(texture, 0, 0, lock);
+    }
+
+    void Unlock(void* texture, void* lock)
+    {
+        auto fn = (*reinterpret_cast<void***>(texture))[LockSlot + 1];
+        reinterpret_cast<void(__thiscall*)(void*, void*)>(fn)(texture, lock);
+    }
+
+    // After the game locked the textures of the frame about to be decoded (into the movie's first 4 locks)
+    void LockAll(uintptr_t movie)
+    {
+        auto fb = *reinterpret_cast<uintptr_t*>(movie + FrameBuffersOffset);
+        auto nFrames = *reinterpret_cast<int32_t*>(fb + TotalFramesOffset);
+        auto next = *reinterpret_cast<int32_t*>(fb + FrameNumOffset) + 1;
+        if (next >= nFrames)
+            next = 0;
+
+        Locks.resize(size_t(nFrames) * nPlanes * LockSize);
+        Locked.clear();
+        for (int32_t frame = 0; frame < nFrames; frame++)
+        {
+            for (int32_t plane = 0; plane < nPlanes; plane++)
+            {
+                auto texture = Texture(movie, frame * nPlanes + plane);
+                if (!texture)
+                    continue;
+
+                uint8_t* lock = nullptr;
+                if (frame == next)
+                    lock = reinterpret_cast<uint8_t*>(*reinterpret_cast<uintptr_t*>(movie + LocksOffset) + plane * LockSize);
+                else
+                {
+                    lock = &Locks[(frame * nPlanes + plane) * LockSize];
+                    std::fill_n(lock, LockSize, 0);
+                    Lock(texture, lock);
+                    Locked.push_back(frame * nPlanes + plane);
+                }
+
+                auto bink = fb + FramesOffset + frame * FrameSize + plane * PlaneSize;
+                if (*reinterpret_cast<int32_t*>(bink))
+                {
+                    *reinterpret_cast<uintptr_t*>(bink + 4) = *reinterpret_cast<uintptr_t*>(lock + 4);
+                    *reinterpret_cast<uint32_t*>(bink + 8) = *reinterpret_cast<uint32_t*>(lock + 8);
+                }
+            }
+        }
+    }
+
+    // After the game unlocked its textures
+    void UnlockAll(uintptr_t movie)
+    {
+        for (auto index : Locked)
+            Unlock(Texture(movie, index), &Locks[index * LockSize]);
+        Locked.clear();
+    }
+}
+
 // The audio engine's submixes each have a lock. The mixing thread takes a submix's lock and then those of its inputs;
 // connecting an input takes the input's lock and then the lock of the submix it goes into. When an effect chain is
 // made while the mixing thread is at the same two submixes, each thread holds the lock the other waits for: the game
@@ -653,6 +735,42 @@ public:
                 pattern = hook::pattern("83 EC 08 53 8B 5C 24 14 55 56 8B F1 57 80 BE 59 04 00 00 00");
                 AudioSubmixLocks::shMix = safetyhook::create_inline(pattern.get_first(0), AudioSubmixLocks::Mix);
             }
+
+            // Bink frame buffers: the game's lock call in its per-frame loop gives the vtable slot and the arguments
+            pattern = hook::pattern("8B 11 6A 03 03 C7 50 6A 00 6A 00 FF 52 4C");
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+            {
+                BinkFrameBuffers::LockSlot = 0x4C / 4;
+                BinkFrameBuffers::bLockTakesFlags = true;
+            }
+            else
+            {
+                pattern = hook::pattern("8B 40 4C 6A 03 03 D7 52 6A 00 6A 00 FF D0");
+                if (!pattern.empty()) // 1.0.8.0, 1.1.3.0
+                {
+                    BinkFrameBuffers::LockSlot = 0x4C / 4;
+                    BinkFrameBuffers::bLockTakesFlags = true;
+                }
+                else // 1.0.7.0, 1.1.2.0
+                {
+                    pattern = hook::pattern("8B 40 48 03 D7 52 6A 00 6A 00 FF D0");
+                    pattern.get_first(0);
+                    BinkFrameBuffers::LockSlot = 0x48 / 4;
+                    BinkFrameBuffers::bLockTakesFlags = false;
+                }
+            }
+
+            // Movie in esi: after the lock loop, before BinkDoFrame; after the unlock loop
+            pattern = find_pattern("81 FF 80 00 00 00 7C ? FF 36 8B 3D", "81 FF 80 00 00 00 7C ? 8B 0E 8B 3D");
+            static auto BinkLockHook = safetyhook::create_mid(pattern.get_first(8), [](SafetyHookContext& regs)
+            {
+                BinkFrameBuffers::LockAll(regs.esi);
+            });
+            pattern = hook::pattern("81 FF 80 00 00 00 7C ? 5F 5D C6 46 60 01");
+            static auto BinkUnlockHook = safetyhook::create_mid(pattern.get_first(8), [](SafetyHookContext& regs)
+            {
+                BinkFrameBuffers::UnlockAll(regs.esi);
+            });
         };
 
         FusionFix::onInitEventAsync() += []()
@@ -862,7 +980,6 @@ public:
                 }
             }
 
-            CTaskManager::Init();
             LadderTopMount::Init();
 
             // Camera centering delay/turn speed

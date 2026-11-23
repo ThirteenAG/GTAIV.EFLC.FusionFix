@@ -3,7 +3,7 @@
 <p align="center">
   <a href="https://fusionfix.io/iv" target="_blank"><img width="600" src="https://raw.githubusercontent.com/ThirteenAG/GTAIV.EFLC.FusionFix/refs/heads/master/installer/ff_iv_outline2.svg"></a>
   <br />
-  <a href="https://patreon.fusionfix.io/" target="_blank"><picture><source media="(max-width: 768px) and (prefers-color-scheme: dark)" srcset="https://fusionlegacyinitiative.com/sponsors-progress/sponsors-progress-ffiv-mobile-dark.svg"><source media="(max-width: 768px)" srcset="https://fusionlegacyinitiative.com/sponsors-progress/sponsors-progress-ffiv-mobile.svg"><source media="(prefers-color-scheme: dark)" srcset="https://fusionlegacyinitiative.com/sponsors-progress/sponsors-progress-ffiv-dark.svg"><img width="100%" src="https://fusionlegacyinitiative.com/sponsors-progress/sponsors-progress-ffiv.svg"></picture></a>
+  <a href="https://patreon.fusionfix.io/" target="_blank"><picture><source media="(max-width: 768px) and (prefers-color-scheme: dark)" srcset="https://fusionfix.io/credits/supporters.svg?theme=dark&layout=mobile"><source media="(max-width: 768px)" srcset="https://fusionfix.io/credits/supporters.svg?layout=mobile"><source media="(prefers-color-scheme: dark)" srcset="https://fusionfix.io/credits/supporters.svg?theme=dark"><img width="100%" src="https://fusionfix.io/credits/supporters.svg"></picture></a>
   <br />
   <a href="https://github.com/sponsors/ThirteenAG"><picture><source media="(prefers-color-scheme: dark)" srcset="https://thirteenag.github.io/img/buttons/github-dark.svg"><img src="https://thirteenag.github.io/img/buttons/github.svg" width="250"></picture></a>
   <a href="https://ko-fi.com/thirteenag"><picture><source media="(prefers-color-scheme: dark)" srcset="https://thirteenag.github.io/img/buttons/kofi-dark.svg"><img src="https://thirteenag.github.io/img/buttons/kofi.svg" width="250"></picture></a>
@@ -141,6 +141,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - **Stunt Jump Camera**, can be disabled to skip the cinematic camera and slow motion during unique stunt jumps
 - **Fence Climb & Car Jack Camera**, can be disabled to skip the cinematic camera when climbing fences and stealing cars
 - **Ladder Camera Tilt**, can be disabled to keep the camera from tilting down while climbing ladders
+- **Guided Ladder Camera**, the camera follows the player's height on ladders, limits how far it orbits sideways and keeps the player framed around obstructions
 - **Automatic Camera Centering**, can be disabled to stop the controller camera from leveling itself on foot and turning behind vehicles
 - **Centered Vehicle Camera**, makes vehicle camera centered, for more options install the [original mod](https://github.com/gennariarmando/iv-centered-vehicle-cam) separately
 - **Centered On Foot Camera**, makes on foot camera centered, also for more options install the [original mod](https://github.com/gennariarmando/iv-centered-onfoot-cam)
@@ -167,6 +168,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - [Fixed forced "definition off" setting in cutscenes, now cutscenes will respect the menu setting](https://github.com/GTAmodding/GTAIV-Issues-List/issues/5)
 - [Fixed DLC car lights in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/3)
 - [Fixed various issues related to frame rate](https://github.com/GTAmodding/GTAIV-Issues-List/issues/112)
+- Restored the console stick response and smoothing when free aiming with a controller
 - Fixed crouching and standing camera transitions speeding up at higher frame rates, including while aiming
 - Cutscene animations follow their audio smoothly at any frame rate, without trembling and without drifting out of sync
 - Fixed the game, script and screen fade timers running slow at high frame rates, which caused the infinite loading screen around some cutscenes (Off Route)

@@ -22,6 +22,8 @@ namespace CutsceneCuts
     std::vector<CameraEvaluation> cameraEvaluations;
     uint32_t cameraEvaluationFrame = 0;
     uintptr_t acceptedCamera = 0;
+    uintptr_t pendingCameraCut = 0;
+    uint32_t pendingCameraCutFrame = 0;
     void* acceptedAnimation = nullptr;
     int32_t acceptedSection = -1;
     float acceptedPhase = 0.0f;
@@ -137,8 +139,29 @@ namespace CutsceneCuts
 
     export void Reset()
     {
+        pendingCameraCut = 0;
         acceptedCamera = 0;
         cameraEvaluations.clear();
+    }
+
+    // A gameplay camera can cut without changing leaf. Wait for its changed view to reach the final viewport.
+    export void NotifyCameraCut(uintptr_t camera)
+    {
+        pendingCameraCut = camera;
+        pendingCameraCutFrame = *CTimer::m_frameCount;
+    }
+
+    export bool ConsumeCameraCut(uintptr_t leaf, bool changedView)
+    {
+        if (!pendingCameraCut || leaf != pendingCameraCut || uint32_t(*CTimer::m_frameCount - pendingCameraCutFrame) > 2)
+        {
+            pendingCameraCut = 0;
+            return false;
+        }
+        if (!changedView)
+            return false;
+        pendingCameraCut = 0;
+        return true;
     }
 
     export uintptr_t FinalLeaf()
