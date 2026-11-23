@@ -247,7 +247,8 @@ namespace grcDevice
 // or a big texture mod uses the address space up until an allocation fails. The budget follows the room in the address
 // space instead, measured on a thread of its own: what is free plus what is reserved but unused (memory the game has
 // given back stays reserved by its heap and is used again), and the largest free block (a big texture needs one
-// piece). It is cut quickly when room gets short and raised back after a while of plenty.
+// piece). It is cut quickly when room gets short and raised back after a while of plenty. Cuts and growth are of what
+// the streaming loads; the share of the budget the game gives the render targets stays as it is.
 //
 // The game's own budget is a table of 2008: 800 MB with high texture quality, whatever the card has. When it is used
 // up, the streaming makes room for the next model by deleting loaded ones in stages: those out of range first, then
@@ -327,9 +328,11 @@ namespace StreamingBudget
     constexpr float fKeptCredit = 0.25f;            // as long as this much stays
     constexpr uint32_t nAmpleSeconds = 60;
 
-    // The game's own budget at its multiplier and what is left of the budget, bytes
+    // The game's own budget at its multiplier without the render targets' share, what is left of the budget, and the
+    // render targets' share, bytes
     std::atomic<int64_t> nGameBudget{ 0 };
     std::atomic<int64_t> nCredit{ 0 };
+    std::atomic<int64_t> nRenderTargets{ 0 };
 
     // 1.0.7.0, 1.1.2.0: the multiplier is a constant in memory; the code reads this one instead
     float fBaseMultiplier = 0.0f;
@@ -426,7 +429,7 @@ namespace StreamingBudget
                 auto stage = nMakeRoomStage.exchange(0, std::memory_order_relaxed);
                 auto most = fMaxDemandScale;
                 if (auto video = grcDevice::nVideoMemory.load(std::memory_order_relaxed))
-                    most = std::clamp(video * fVideoShare / budget, 1.0f, fMaxDemandScale);
+                    most = std::clamp((video * fVideoShare - nRenderTargets.load(std::memory_order_relaxed)) / budget, 1.0f, fMaxDemandScale);
 
                 auto roomy = space.nRoom > limits.nTightRoom + nGrowRoom && space.nLargest > limits.nTightLargest + nGrowLargest;
                 ample = credit > static_cast<int64_t>(budget * fAmpleCredit) ? ample + 1 : 0;
@@ -511,21 +514,36 @@ namespace grcResourceCache
     constexpr ptrdiff_t nVideoUsedOffset = 0x40268;
     constexpr ptrdiff_t nSystemUsedOffset = 0x402C8;
 
+    // The memory of the render targets. The game adds it to its budget, since the render targets are in what the cache
+    // counts as used, and both go through its multiplier.
+    int64_t (__cdecl* GetRenderTargetMemory)() = nullptr;
+
     SafetyHookInline shGetAvailableFreeMemory = {};
     int64_t __fastcall GetAvailableFreeMemory(void* _this, void* edx, float Multiplier)
     {
-        auto scale = StreamingBudget::fScale.load(std::memory_order_relaxed);
-        auto extra = static_cast<int64_t>(StreamingBudget::nPopulationExtra.load(std::memory_order_relaxed) * std::min(scale, 1.0f));
-        auto credit = shGetAvailableFreeMemory.unsafe_fastcall<int64_t>(_this, edx, Multiplier * scale);
+        using namespace StreamingBudget;
+
+        auto scale = fScale.load(std::memory_order_relaxed);
+        auto extra = static_cast<int64_t>(nPopulationExtra.load(std::memory_order_relaxed) * std::min(scale, 1.0f));
+
+        // The scale is for what the streaming loads: the render targets keep their share of the budget. With all of it
+        // cut, big render targets (high resolution, shadow and reflection quality) take more than the streaming's whole
+        // budget when the address space is short, and it deletes the city around the player.
+        auto targets = static_cast<int64_t>(GetRenderTargetMemory() * static_cast<double>(Multiplier));
+        auto budget = nGameBudget.load(std::memory_order_relaxed);
+        auto share = targets > 0 ? static_cast<double>(targets) / (budget + targets) : 0.0;
+        auto multiplier = static_cast<float>(Multiplier * (scale + (1.0 - scale) * share));
+        auto credit = shGetAvailableFreeMemory.unsafe_fastcall<int64_t>(_this, edx, multiplier);
 
         // What is used is the larger of the video and the system memory of the resources
         auto cache = reinterpret_cast<uintptr_t>(_this);
         auto used = std::max(*reinterpret_cast<int64_t*>(cache + nVideoUsedOffset), *reinterpret_cast<int64_t*>(cache + nSystemUsedOffset));
-        StreamingBudget::nGameBudget.store(static_cast<int64_t>((credit + used) / scale), std::memory_order_relaxed);
+        nGameBudget.store(std::max<int64_t>(0, static_cast<int64_t>((credit + used) * (static_cast<double>(Multiplier) / multiplier)) - targets), std::memory_order_relaxed);
+        nRenderTargets.store(targets, std::memory_order_relaxed);
 
         // The streaming keeps it in 32 bits
         credit = std::min<int64_t>(credit + extra, INT32_MAX);
-        StreamingBudget::nCredit.store(credit, std::memory_order_relaxed);
+        nCredit.store(credit, std::memory_order_relaxed);
         return credit;
     }
 
@@ -1340,21 +1358,26 @@ public:
             SettingsReader reader;
 
             // Let Windows schedule the main thread across the process's allowed CPUs.
+            // CPU affinity mods (Mjolnir IV) patch the same call before us; then there is nothing left to do.
             auto mainAffinity = hook::pattern("6A 01 8B F1 FF 15 ? ? ? ? 50 FF 15 ? ? ? ? E8");
-            injector::MakeNOP(mainAffinity.get_first(0), 2, true);
-            injector::MakeNOP(mainAffinity.get_first(4), 13, true);
+            if (!mainAffinity.empty())
+            {
+                injector::MakeNOP(mainAffinity.get_first(0), 2, true);
+                injector::MakeNOP(mainAffinity.get_first(4), 13, true);
+            }
 
             // Wake as soon as the next streaming read completes instead of sleeping between semaphore polls.
+            // Neither variant matches when another mod has already changed this loop; leave it to that mod.
             auto readWait = hook::pattern("56 57 8B F9 33 F6 39 B7 ? ? ? ? 74 ? 8B FF 8B 87 ? ? ? ? 40 33 C9 83 F8 08 0F 44 C1 8B 84 87 ? ? ? ? FF 70 0C E8 ? ? ? ?");
+            auto readWaitOld = hook::pattern("56 57 8B F1 33 FF 39 BE ? ? ? ? 0F 84 ? ? ? ? 8B 86 ? ? ? ? 83 C0 01 83 F8 08 75 ? 33 C0 8B 84 86 ? ? ? ? 8B 48 0C 51 E8 ? ? ? ?");
             if (!readWait.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
             {
                 injector::MakeCALL(readWait.get_first(0x29), StreamingReadWait::WaitForRead, true);
                 injector::WriteMemory<uint8_t>(hook::pattern("6A 0A E8 ? ? ? ? 83 C6 0A 33 C0 83 C4 04 81 FE E8 03 00 00 0F 44 F0").get_first(1), 0, true);
             }
-            else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
+            else if (!readWaitOld.empty()) // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
             {
-                readWait = hook::pattern("56 57 8B F1 33 FF 39 BE ? ? ? ? 0F 84 ? ? ? ? 8B 86 ? ? ? ? 83 C0 01 83 F8 08 75 ? 33 C0 8B 84 86 ? ? ? ? 8B 48 0C 51 E8 ? ? ? ?");
-                injector::MakeCALL(readWait.get_first(0x2D), StreamingReadWait::WaitForRead, true);
+                injector::MakeCALL(readWaitOld.get_first(0x2D), StreamingReadWait::WaitForRead, true);
                 injector::WriteMemory<uint8_t>(hook::pattern("6A 0A E8 ? ? ? ? 83 C7 0A 83 C4 04 81 FF E8 03 00 00 75 ? 33 FF").get_first(1), 0, true);
             }
 
@@ -1362,6 +1385,9 @@ public:
             if (!pattern.empty()) // 1.0.8.0, 1.1.3.0, 1.2.0.32, 1.2.0.43, 1.2.0.59
             {
                 grcDevice::shGetAvailableVideoMemory = safetyhook::create_inline(pattern.get_first(0), grcDevice::GetAvailableVideoMemory);
+
+                pattern = find_pattern("83 EC 0C E8 ? ? ? ? 84 C0 74 ? E8 ? ? ? ? 83 F8 01 77 ? A1", "51 E8 ? ? ? ? 84 C0 74 ? E8 ? ? ? ? 83 F8 01 77 ? A1");
+                grcResourceCache::GetRenderTargetMemory = pattern.get_first<int64_t (__cdecl)()>(0);
 
                 pattern = find_pattern("55 8B EC 83 E4 ? F3 0F 10 55 ? 83 EC", "55 8B EC 83 E4 ? D9 45 ? 83 EC ? 53 56 57 51 D9 1C 24 8B D9");
                 grcResourceCache::shGetAvailableFreeMemory = safetyhook::create_inline(pattern.get_first(0), grcResourceCache::GetAvailableFreeMemory);
