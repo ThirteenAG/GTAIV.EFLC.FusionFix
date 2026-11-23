@@ -2601,6 +2601,7 @@ public:
             for (auto id : { "MISC.ConsoleGamma", "MISC.ToneMapping", "MISC.ScreenFilter", "MISC.ConsoleAutoExposure", "MISC.TreeLighting", "MISC.TreeAlpha" }) AddSetting(advanced, id);
             AddEmptyLine(advanced);
             AddSetting(advanced, "MISC.CutsceneBorders");
+            AddSetting(advanced, "MAIN.HudAspectRatioConstraint");
             AddSetting(advanced, "MISC.TransparentMapMenu");
             hdrScreens.push_back(AddPage(screen, "@ff.page.hdr", "MO_DEF", true, [] { return SettingValueText(ownPlugin, "HDR.HDR"); }));
         }
