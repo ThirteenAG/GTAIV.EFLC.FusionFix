@@ -149,6 +149,13 @@ public:
     struct RadarStyle { int32_t a1, a2; int32_t pos[2], size[2], scale[2]; };
     static inline std::optional<RadarStyle> radarStyle;
     static inline std::atomic<bool> hudAspectRatioChanged = false;
+    static inline bool* bFrontEndActive = nullptr;
+
+    // The radar is drawn in its own viewport (ring, map, blips, health and armour), whose window the game sets from the
+    // radar's rectangle (position and size, in screen shares) right after setting the style when the menu closes
+    static inline void** pRadarViewport = nullptr;
+    static inline float* radarRect = nullptr;
+    static inline void(__fastcall* grcViewport__SetWindow)(void*, void*, int32_t, int32_t, int32_t, int32_t, float, float) = nullptr;
 
     static inline SafetyHookInline shSetRadarStyle{};
     static int32_t __cdecl SetRadarStyle(int32_t a1, int32_t a2, int32_t* pos, int32_t* size, int32_t* scale)
@@ -160,10 +167,19 @@ public:
 
     static void ResetRadarStyle()
     {
-        if (!hudAspectRatioChanged.exchange(false) || !radarStyle)
+        // The menu uses the radar viewport for its map and sets the style again when it closes
+        if (*bFrontEndActive || !hudAspectRatioChanged.exchange(false) || !radarStyle)
             return;
         auto style = *radarStyle;
         SetRadarStyle(style.a1, style.a2, style.pos, style.size, style.scale);
+        if (auto viewport = *pRadarViewport)
+        {
+            auto grcViewport = reinterpret_cast<uint8_t*>(viewport) + 0x10;
+            auto width = float(*reinterpret_cast<int32_t*>(grcViewport + 0x2B0));
+            auto height = float(*reinterpret_cast<int32_t*>(grcViewport + 0x2B4));
+            grcViewport__SetWindow(grcViewport, nullptr, int32_t(width * radarRect[0]), int32_t(height * radarRect[1]),
+                int32_t(width * radarRect[2]), int32_t(height * radarRect[3]), 0.0f, 1.0f);
+        }
     }
 
     static inline SafetyHookInline shDrawScriptText{};
@@ -559,7 +575,13 @@ public:
 
                 // CRadar::SetRadarStyle
                 pattern = find_pattern("80 3D ? ? ? ? 00 8B 44 24 04 8B 4C 24 0C A3", "80 3D ? ? ? ? 00 8B 44 24 04 8B 4C 24 08 A3 ? ? ? ? 8B 44 24 0C 89 0D");
+                bFrontEndActive = *pattern.get_first<bool*>(2);
+                radarRect = *pattern.get_first<float*>(16) + 2; // after the two style ints
                 shSetRadarStyle = safetyhook::create_inline(pattern.get_first(0), SetRadarStyle);
+
+                // The radar viewport, initialised after CRadar::SetRadarStyle when the menu closes
+                pattern = find_pattern("E8 ? ? ? ? 8B 0D ? ? ? ? 83 C4 14 8B 01 FF 50 04", "E8 ? ? ? ? 8B 0D ? ? ? ? 8B 11 8B 42 04 83 C4 14 FF D0");
+                pRadarViewport = *pattern.get_first<void**>(7);
 
                 // CTheScripts::DrawScriptText (also the button prompts of scripts) and DrawScriptSpritesAndRectangles
                 pattern = find_pattern("55 8B EC 83 E4 F8 81 EC D4 04 00 00 A1 ? ? ? ? 33 C4 89 84 24 D0 04 00 00 80 3D", "81 EC CC 04 00 00 A1 ? ? ? ? 33 C4 89 84 24 C8 04 00 00 80 3D");
@@ -587,6 +609,7 @@ public:
 
                 // The phone's window (x 0.6 and width 0.4 of the screen): into the box, its x scale is in Update
                 pattern = find_pattern("52 50 F3 0F 2C C1 52 50 E8 ? ? ? ? 5E C3", "50 F3 0F 2C D0 52 8B CE E8 ? ? ? ? 5E C3");
+                grcViewport__SetWindow = reinterpret_cast<decltype(grcViewport__SetWindow)>(injector::GetBranchDestination(pattern.get_first(8)).as_int());
                 static auto PhoneWindowHook = safetyhook::create_mid(pattern.get_first(8), [](SafetyHookContext& regs)
                 {
                     // grcViewport::SetWindow(x, y, width, height, ...) on the viewport's screen size

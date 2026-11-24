@@ -383,6 +383,7 @@
   "window.borderless": "Senza bordi",
   "MAIN.WindowMode.description": "Schermo intero, una finestra con bordi o una finestra senza bordi che copre lo schermo. Alt+Invio passa dallo schermo intero all'ultima modalità finestra.",
   "ff.note.d3d9on12": "Installa D3D9On12 dalla pagina Miglioramenti grafici di FusionFixHub per attivare DirectX 12.",
+  "ff.note.wine": "Su Linux (Proton), Vulkan usa il DXVK di Proton e DirectX 12 non è disponibile.",
   "Distant Lights": "Luci distanti",
   "MISC.DistantLights.description": "Lampioni e traffico visti da lontano. PC: i lampioni e i modelli del traffico della versione PC. Console: i lampioni più fitti e le luci del traffico in movimento della versione Xbox 360.",
   "ff.page.advanced": "Opzioni avanzate",

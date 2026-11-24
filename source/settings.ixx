@@ -2496,7 +2496,8 @@ public:
         // The graphics API is MAIN.GraphicsAPI, applied by the plugin at its init (graphicsapi.ixx,
         // source/upscaler/graphics_api.h; no d3d9.dll proxy, no d3d9.cfg). Vulkan needs DXVK as vulkan.dll next to the exe (the
         // build FusionFixHub installs or the player's own), DirectX 12 Fusion Fix's own D3D9On12 driver next to the exe (FusionFixHub
-        // installs it), never Windows' slow one. When the API didn't start, the next start falls back to DirectX 9 and
+        // installs it), never Windows' slow one. Under Wine (Proton) Vulkan is the system's DXVK and DirectX 12 isn't
+        // offered. When the API didn't start, the next start falls back to DirectX 9 and
         // sets this back (the crash guard of graphics_api.h).
         SetAvailability("PREF_GRAPHICSAPI", [](int32_t value) -> bool
         {
@@ -4033,7 +4034,9 @@ private:
                     auto note = FormatText("@ff.note.unavailable", missing);
                     if (row.plugin == &ownPlugin && setting.id == "MISC.Antialiasing")
                         note += " " + OwnText("@ff.note.upscaler");
-                    if (row.plugin == &ownPlugin && setting.id == "MAIN.GraphicsAPI" && !MenuPlugin::IsUsable(usable, "2"))
+                    if (row.plugin == &ownPlugin && setting.id == "MAIN.GraphicsAPI" && FusionFixGraphicsApi::OnWine())
+                        note += " " + OwnText("@ff.note.wine");
+                    else if (row.plugin == &ownPlugin && setting.id == "MAIN.GraphicsAPI" && !MenuPlugin::IsUsable(usable, "2"))
                         note += " " + OwnText("@ff.note.d3d9on12");
                     return note;
                 }

@@ -58,6 +58,78 @@ namespace CCamSys
     GameRef<uint8_t> bCameraPlayerMotionBlurMask;
 }
 
+namespace DrawListEnd
+{
+    // The render thread runs a draw list until a command with the 14-bit id of the list's end command. A list of more
+    // than 16383 commands repeats ids (the reflection list gets there in dense areas), so it stopped early and skipped
+    // the rest: the reflection's forced paraboloid technique stayed on and the next shadow draw crashed in
+    // grmShader::Bind. Only the end command itself ends a list.
+    uintptr_t pEndDrawListVTable = 0;
+    uintptr_t pNextCommand = 0;
+    uintptr_t pListEnd = 0;
+
+    // 1.2.0.x: the command in edi, the end id in ebx
+    __declspec(naked) void IsListEnd()
+    {
+        __asm
+        {
+            mov     eax, [edi]
+            cmp     eax, pEndDrawListVTable
+            jne     next
+            mov     eax, [edi + 4]
+            and     eax, 0x3FFF
+            cmp     ebx, eax
+            jne     next
+            jmp     dword ptr [pListEnd]
+        next:
+            jmp     dword ptr [pNextCommand]
+        }
+    }
+
+    // 1.0.7.0 - 1.1.3.0: the command in esi
+    __declspec(naked) void IsListEndLegacy()
+    {
+        __asm
+        {
+            mov     ecx, [esi]
+            cmp     ecx, pEndDrawListVTable
+            jne     next
+            mov     ecx, [esi + 4]
+            and     ecx, 0x3FFF
+            cmp     ebx, ecx
+            jne     next
+            jmp     dword ptr [pListEnd]
+        next:
+            jmp     dword ptr [pNextCommand]
+        }
+    }
+
+    void Install()
+    {
+        // CEndDrawListDC constructor
+        auto pattern = hook::pattern("C7 06 ? ? ? ? E8 ? ? ? ? 8B C6 C7 05 ? ? ? ? 01 00 00 00");
+        pEndDrawListVTable = *pattern.get_first<uintptr_t>(2);
+
+        // The draw list loop, after each command: id & 0x3FFF, compare with the end id, loop
+        pattern = hook::pattern("FF 50 04 8B 47 04 25 FF 3F 00 00 3B D8 75");
+        if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+        {
+            pNextCommand = resolve_next_displacement(pattern.get_first(13)).value();
+            pListEnd = uintptr_t(pattern.get_first(15));
+            injector::MakeNOP(pattern.get_first(3), 12, true);
+            injector::MakeJMP(pattern.get_first(3), IsListEnd, true);
+        }
+        else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
+        {
+            pattern = hook::pattern("FF D0 8B 4E 04 81 E1 FF 3F 00 00 3B D9 75");
+            pNextCommand = resolve_next_displacement(pattern.get_first(13)).value();
+            pListEnd = uintptr_t(pattern.get_first(15));
+            injector::MakeNOP(pattern.get_first(2), 13, true);
+            injector::MakeJMP(pattern.get_first(2), IsListEndLegacy, true);
+        }
+    }
+}
+
 uint32_t nRadarZoomDelay = 0;
 
 namespace CRadarNY
@@ -759,6 +831,8 @@ public:
     {
         FusionFix::onInitEvent() += []()
         {
+            DrawListEnd::Install();
+
             auto pattern = hook::pattern("83 EC 08 53 55 8B D9 56 57 8D 83 5C 04 00 00 50 8D 4C 24 14 E8 ? ? ? ? 83 BB 48 04 00 00 08");
             if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
             {

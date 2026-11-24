@@ -194,6 +194,8 @@ namespace GTAIVOverlay
                     ui.Value("Graphics API asked for", std::string(FusionFixGraphicsApi::Name(graphics.requested)) + ": " + graphics.why);
                 if (graphics.dxvk == FusionFixGraphicsApi::DxvkFile::Known || graphics.dxvk == FusionFixGraphicsApi::DxvkFile::Custom)
                     ui.Value("DXVK (vulkan.dll)", graphics.dxvk == FusionFixGraphicsApi::DxvkFile::Known ? "FusionFixHub's build" : "own build");
+                if (graphics.systemDxvk)
+                    ui.Value("DXVK", "the system's (Wine)");
                 if (graphics.driverLoaded)
                 {
                     char caps[16];
