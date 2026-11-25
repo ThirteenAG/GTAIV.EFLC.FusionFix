@@ -2644,6 +2644,8 @@ public:
     static bool IsCustomScreenActive() { return activePage != -1; }
     // The tab the shown custom screen belongs to, -1 for none
     static int32_t CustomScreenRoot() { return activePage != -1 ? GetRootScreen(activePage) : -1; }
+    // The tab a screen belongs to: a page shown on another screen (Graphics pages on Display) is its own tab's
+    static int32_t TabOfScreen(int32_t screen) { return screen == activeHost && activePage != -1 ? GetRootScreen(activePage) : screen; }
     // Before the game frees the screens' rows (frontend XML reload), and after the menu is closed
     static void ResetCustomScreens() { ResetPages(); }
     // Tab change, the tab state is in EBX (EBP in 1.1.2.0): a custom tab is shown on the Display screen
@@ -5003,9 +5005,12 @@ public:
             {
                 void operator()(injector::reg_pack& regs)
                 {
+                    // The screen being left: a page of Graphics shown on the Display screen leaves Graphics, so the
+                    // next tab gets its opaque backdrop back
+                    auto left = CSettings::TabOfScreen(regs.eax);
                     CSettings::OnTabTransition(regs.ebx, regs.ebp);
 
-                    if (regs.eax == 49 || shouldModifyMapMenuBackground(regs.eax))
+                    if (left == 49 || shouldModifyMapMenuBackground(left))
                     {
                         return_to(loc_5AC19A);
                     }
