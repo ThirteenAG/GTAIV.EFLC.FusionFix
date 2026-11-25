@@ -1,6 +1,8 @@
 module;
 
 #include <common.hxx>
+#include <atomic>
+#include <optional>
 
 export module widescreenfix;
 
@@ -54,9 +56,151 @@ public:
         return aspectRatio > DEFAULT_ASPECT_RATIO ? DEFAULT_ASPECT_RATIO / aspectRatio : 1.0f;
     }
 
+    // MAIN.HudAspectRatioConstraint: the HUD in a centred box of this aspect ratio, never wider than the screen; 0 is
+    // Auto, the whole screen. The game anchors HUD elements to the left or right edge of the screen in
+    // CHud::AdjustForWidescreen; while the HUD is drawn, the anchored positions move in to the edges of the box.
+    static inline std::atomic<float> hudAspectRatio = 0.0f;
+
+    // "Auto", "16:9", "2560x1080" or a ratio like "2.37"
+    static float ParseAspectRatio(std::string_view text)
+    {
+        float width = 0.0f, height = 0.0f;
+        auto value = std::string(text);
+        if (sscanf_s(value.c_str(), "%f:%f", &width, &height) == 2 || sscanf_s(value.c_str(), "%fx%f", &width, &height) == 2)
+            return (width > 0.0f && height > 0.0f) ? width / height : 0.0f;
+        if (sscanf_s(value.c_str(), "%f", &width) == 1 && width > 0.0f)
+            return width;
+        return 0.0f;
+    }
+
+    // The aspect ratio the game lays the HUD out for (16:9 while the video editor exports)
+    static inline void* gVpMan = nullptr;
+    static inline float(__fastcall* CViewportManager__GetAspectRatio)(void*, void*, int32_t) = nullptr;
+    static inline bool* bForce16by9 = nullptr;
+
+    static float HudLayoutAspectRatio()
+    {
+        return *bForce16by9 ? DEFAULT_ASPECT_RATIO : CViewportManager__GetAspectRatio(gVpMan, nullptr, 1);
+    }
+
+    // The share of the screen width the HUD box takes
+    static float HudShare(float aspectRatio)
+    {
+        auto constraint = hudAspectRatio.load();
+        return (constraint > 0.0f && aspectRatio > constraint) ? constraint / aspectRatio : 1.0f;
+    }
+
+    // Set while the game draws the HUD; script 2D only for the main viewport (not the phone screen or TVs)
+    enum class HudScope { None, Hud, Script };
+    static inline thread_local HudScope hudScope = HudScope::None;
+
+    struct ScopedHud
+    {
+        HudScope previous;
+        ScopedHud(HudScope scope) : previous(std::exchange(hudScope, scope)) {}
+        ~ScopedHud() { hudScope = previous; }
+    };
+
+    static inline uintptr_t* pMainViewport = nullptr;
+
+    static HudScope ScriptScope(int32_t renderId)
+    {
+        auto viewport = *pMainViewport;
+        return (viewport && *reinterpret_cast<int32_t*>(viewport + 0x540) == renderId) ? HudScope::Script : HudScope::None;
+    }
+
+    static inline SafetyHookInline shHudRender{};
+    static int32_t __cdecl HudRender(int32_t renderId, int32_t layer, int32_t inGame)
+    {
+        ScopedHud scope(HudScope::Hud);
+        return shHudRender.unsafe_ccall<int32_t>(renderId, layer, inGame);
+    }
+
+    static inline SafetyHookInline shHelpMessages{};
+    static int32_t __fastcall HelpMessages(void* help, void*, int32_t layer)
+    {
+        ScopedHud scope(HudScope::Hud);
+        return shHelpMessages.unsafe_thiscall<int32_t>(help, layer);
+    }
+
+    static inline SafetyHookInline shLoadingClock{};
+    static int32_t __cdecl LoadingClock(void* a1, void* a2, void* a3, void* a4, void* a5, int32_t a6, int32_t a7, int32_t a8)
+    {
+        ScopedHud scope(HudScope::Hud);
+        return shLoadingClock.unsafe_ccall<int32_t>(a1, a2, a3, a4, a5, a6, a7, a8);
+    }
+
+    static inline SafetyHookInline shLoadingPrompts{};
+    static int32_t __cdecl LoadingPrompts()
+    {
+        ScopedHud scope(HudScope::Hud);
+        return shLoadingPrompts.unsafe_ccall<int32_t>();
+    }
+
+    static inline SafetyHookInline shNetworkStatus{};
+    static int32_t __cdecl NetworkStatus(int32_t renderId, int32_t a2, int32_t a3, int32_t a4)
+    {
+        ScopedHud scope(HudScope::Hud);
+        return shNetworkStatus.unsafe_ccall<int32_t>(renderId, a2, a3, a4);
+    }
+
+    // The radar's rectangle, set when the menu closes; the blips and the GPS route follow it. Set again with the last
+    // values when the aspect ratio changes during play.
+    struct RadarStyle { int32_t a1, a2; int32_t pos[2], size[2], scale[2]; };
+    static inline std::optional<RadarStyle> radarStyle;
+    static inline std::atomic<bool> hudAspectRatioChanged = false;
+    static inline bool* bFrontEndActive = nullptr;
+
+    // The radar is drawn in its own viewport (ring, map, blips, health and armour), whose window the game sets from the
+    // radar's rectangle (position and size, in screen shares) right after setting the style when the menu closes
+    static inline void** pRadarViewport = nullptr;
+    static inline float* radarRect = nullptr;
+    static inline void(__fastcall* grcViewport__SetWindow)(void*, void*, int32_t, int32_t, int32_t, int32_t, float, float) = nullptr;
+
+    static inline SafetyHookInline shSetRadarStyle{};
+    static int32_t __cdecl SetRadarStyle(int32_t a1, int32_t a2, int32_t* pos, int32_t* size, int32_t* scale)
+    {
+        radarStyle = RadarStyle{ a1, a2, { pos[0], pos[1] }, { size[0], size[1] }, { scale[0], scale[1] } };
+        ScopedHud scope(HudScope::Hud);
+        return shSetRadarStyle.unsafe_ccall<int32_t>(a1, a2, pos, size, scale);
+    }
+
+    static void ResetRadarStyle()
+    {
+        // The menu uses the radar viewport for its map and sets the style again when it closes
+        if (*bFrontEndActive || !hudAspectRatioChanged.exchange(false) || !radarStyle)
+            return;
+        auto style = *radarStyle;
+        SetRadarStyle(style.a1, style.a2, style.pos, style.size, style.scale);
+        if (auto viewport = *pRadarViewport)
+        {
+            auto grcViewport = reinterpret_cast<uint8_t*>(viewport) + 0x10;
+            auto width = float(*reinterpret_cast<int32_t*>(grcViewport + 0x2B0));
+            auto height = float(*reinterpret_cast<int32_t*>(grcViewport + 0x2B4));
+            grcViewport__SetWindow(grcViewport, nullptr, int32_t(width * radarRect[0]), int32_t(height * radarRect[1]),
+                int32_t(width * radarRect[2]), int32_t(height * radarRect[3]), 0.0f, 1.0f);
+        }
+    }
+
+    static inline SafetyHookInline shDrawScriptText{};
+    static int32_t __cdecl DrawScriptText(int32_t renderId, int32_t layer)
+    {
+        ScopedHud scope(ScriptScope(renderId));
+        return shDrawScriptText.unsafe_ccall<int32_t>(renderId, layer);
+    }
+
+    static inline SafetyHookInline shDrawScriptSprites{};
+    static int32_t __cdecl DrawScriptSprites(int32_t renderId, int32_t layer)
+    {
+        ScopedHud scope(ScriptScope(renderId));
+        return shDrawScriptSprites.unsafe_ccall<int32_t>(renderId, layer);
+    }
+
     static void Update()
     {
-        f075 = 0.75f * DEFAULT_ASPECT_RATIO / SCREEN_ASPECT_RATIO;
+        // The phone's x scale, for the shape of its window in the HUD box
+        auto aspectRatio = SCREEN_ASPECT_RATIO;
+        f075 = 0.75f * DEFAULT_ASPECT_RATIO / (aspectRatio * HudShare(aspectRatio));
         f01152 = 1152.0f * DEFAULT_ASPECT_RATIO / SCREEN_ASPECT_RATIO;
 
         if (bordersTimer < (*CTimer::m_snTimeInMilliseconds))
@@ -84,7 +228,31 @@ public:
             }
             return true;
         }
-        return shApplyWidescreenFormat.ccall<bool>(format, pos, size, rangeX);
+
+        // 2 left, 3 right, 4 by the side of the centre x is on
+        auto x = pos ? pos[0] : 0.5f;
+        auto edge = format == 2 ? 1 : format == 3 ? -1 : (format == 4 && pos) ? (x < 0.5f ? 1 : x > 0.5f ? -1 : 0) : 0;
+        auto result = shApplyWidescreenFormat.ccall<bool>(format, pos, size, rangeX);
+        if (!edge || hudScope == HudScope::None)
+            return result;
+
+        // Script rectangles and sprites come as their two corners: a corner on the screen edge belongs to a full-screen
+        // overlay (fades, tints), which stays
+        if (hudScope == HudScope::Script && !size && !rangeX && (x < 0.0005f || x > 0.9995f))
+            return result;
+
+        if (auto share = HudShare(HudLayoutAspectRatio()); share < 1.0f)
+        {
+            auto offset = 0.5f * (1.0f - share) * float(edge);
+            if (pos)
+                pos[0] += offset;
+            if (rangeX)
+            {
+                rangeX[0] += offset;
+                rangeX[1] += offset;
+            }
+        }
+        return result;
     }
 
     // GET_MOUSE_POSITION: the cursor in the 16:9 frame (the game clamps it to 0..1 the same way)
@@ -362,15 +530,104 @@ public:
             {
                 auto pattern = find_pattern("53 8B 5C 24 08 85 DB 75 04 32 C0 5B C3 6A 01 B9", "56 8B 74 24 08 85 F6 75 04 32 C0 5E C3 6A 01 B9");
                 viewports = *pattern.get_first<ViewportList*>(16);
+                gVpMan = *pattern.get_first<void*>(16);
+                CViewportManager__GetAspectRatio = reinterpret_cast<decltype(CViewportManager__GetAspectRatio)>(injector::GetBranchDestination(pattern.get_first(20)).as_int());
+                bForce16by9 = *pattern.get_first<bool*>(31);
                 shApplyWidescreenFormat = safetyhook::create_inline(pattern.get_first(0), ApplyWidescreenFormat);
 
                 pattern = find_pattern("C7 06 ? ? ? ? C7 86 60 07 00 00", "C7 06 ? ? ? ? 89 9E 60 07 00 00");
                 CViewportHtml__vftable = *pattern.get_first<void*>(2);
             }
 
+            // HUD aspect ratio
+            {
+                static constexpr auto id = "MAIN.HudAspectRatioConstraint";
+                hudAspectRatio = ParseAspectRatio(SettingsPlugin().Get(id));
+                SettingsPlugin().OnChange(id, []
+                {
+                    hudAspectRatio = ParseAspectRatio(SettingsPlugin().Get(id));
+                    hudAspectRatioChanged = true;
+                });
+
+                // CPlayerSettingsMgr::RenderInMainViewport2D, the network status line; it compares the render id with the main
+                // viewport's
+                auto pattern = find_pattern("44 24 50 A1 ? ? ? ? 8B 4D 08 53 56 57 3B 88 40 05 00 00", "45 08 8B 0D ? ? ? ? 83 EC 54 3B 81 40 05 00 00");
+                pMainViewport = *pattern.get_first<uintptr_t*>(4);
+                pattern = find_pattern("55 8B EC 83 E4 F8 83 EC 54 A1 ? ? ? ? 33 C4 89 44 24 50 A1 ? ? ? ? 8B 4D 08", "55 8B EC 83 E4 F8 8B 45 08 8B 0D ? ? ? ? 83 EC 54 3B 81 40 05 00 00");
+                shNetworkStatus = safetyhook::create_inline(pattern.get_first(0), NetworkStatus);
+
+                // CHud::Render, the HUD items of hud.dat (radar frame, money, wanted stars, weapon, ammo, area and vehicle names,
+                // mission timers and counters, subtitles)
+                pattern = find_pattern("51 80 7C 24 10 00 0F 84 ? ? ? ? 80 3D ? ? ? ? 00 74 0D E8", "53 8B 5C 24 10 84 DB 0F 84 ? ? ? ? 80 3D ? ? ? ? 00 74 0D E8");
+                shHudRender = safetyhook::create_inline(pattern.get_first(0), HudRender);
+
+                // CHelpMessage::DrawTextMessages, the help box
+                pattern = find_pattern("55 8B EC 83 E4 F0 81 EC 28 01 00 00 A1 ? ? ? ? 33 C4 89 84 24 24 01 00 00 56 57 8B F1 E8", "55 8B EC 83 E4 F0 81 EC 04 01 00 00 53 56 57 8B F1 E8 ? ? ? ? 8B F8 57 89 7C 24 48 E8");
+                shHelpMessages = safetyhook::create_inline(pattern.get_first(0), HelpMessages);
+
+                // CFrontEndGfx::RenderPolyLoadingClock, the saving spinner and its text
+                pattern = find_pattern("83 EC 48 A1 ? ? ? ? 33 C4 89 44 24 44 8B 44 24 58 53 55 8B 6C 24 54", "83 EC 28 53 55 56 80 CB FF 80 3D ? ? ? ? 00 57 74 0C B9");
+                shLoadingClock = safetyhook::create_inline(pattern.get_first(0), LoadingClock);
+
+                // The button prompts of the loading screens
+                pattern = find_pattern("83 EC 18 80 3D ? ? ? ? 00 0F 84 ? ? ? ? 56 57 6A 00 E8 ? ? ? ? 8A 0D", "83 EC 18 80 3D ? ? ? ? 00 0F 84 ? ? ? ? 56 57 6A 00 E8 ? ? ? ? 83 C4 04 80 3D");
+                shLoadingPrompts = safetyhook::create_inline(pattern.get_first(0), LoadingPrompts);
+
+                // CRadar::SetRadarStyle
+                pattern = find_pattern("80 3D ? ? ? ? 00 8B 44 24 04 8B 4C 24 0C A3", "80 3D ? ? ? ? 00 8B 44 24 04 8B 4C 24 08 A3 ? ? ? ? 8B 44 24 0C 89 0D");
+                bFrontEndActive = *pattern.get_first<bool*>(2);
+                radarRect = *pattern.get_first<float*>(16) + 2; // after the two style ints
+                shSetRadarStyle = safetyhook::create_inline(pattern.get_first(0), SetRadarStyle);
+
+                // The radar viewport, initialised after CRadar::SetRadarStyle when the menu closes
+                pattern = find_pattern("E8 ? ? ? ? 8B 0D ? ? ? ? 83 C4 14 8B 01 FF 50 04", "E8 ? ? ? ? 8B 0D ? ? ? ? 8B 11 8B 42 04 83 C4 14 FF D0");
+                pRadarViewport = *pattern.get_first<void**>(7);
+
+                // CTheScripts::DrawScriptText (also the button prompts of scripts) and DrawScriptSpritesAndRectangles
+                pattern = find_pattern("55 8B EC 83 E4 F8 81 EC D4 04 00 00 A1 ? ? ? ? 33 C4 89 84 24 D0 04 00 00 80 3D", "81 EC CC 04 00 00 A1 ? ? ? ? 33 C4 89 84 24 C8 04 00 00 80 3D");
+                shDrawScriptText = safetyhook::create_inline(pattern.get_first(0), DrawScriptText);
+
+                pattern = find_pattern("81 EC B4 01 00 00 A1 ? ? ? ? 33 C4 89 84 24 B0 01 00 00 8B 0D ? ? ? ? 8B C1 69 C0 64 3B 00 00", "55 8B EC 83 E4 F8 A1 ? ? ? ? 69 C0 64 3B 00 00 81 EC DC 01 00 00");
+                shDrawScriptSprites = safetyhook::create_inline(pattern.get_first(0), DrawScriptSprites);
+
+                // Subtitles wrap at fixed fractions of the screen width (0.22 to 0.73, 0.1 to 0.9 in cutscenes):
+                // CHud::RenderAsText keeps the HUD item's index in ESI, the wrap pair is on the stack
+                static auto hudItems = *hook::get_pattern<uintptr_t*>("83 EC 20 56 8B 74 24 28 8B 04 B5 ? ? ? ? 66 83 78 6C 00", 11);
+                pattern = find_pattern("10 44 24 20 F3 0F 11 04 24 E8 ? ? ? ? F3 0F 10 44 24 1C F3 0F 11 44 24 04", "24 04 D9 44 24 20 D9 1C 24 E8 ? ? ? ? D9 44 24 1C D9 5C 24 04");
+                static auto SubtitleWrapHook = safetyhook::create_mid(pattern.get_first(9), [](SafetyHookContext& regs)
+                {
+                    constexpr uint32_t subtitles = 6;
+                    auto item = hudItems[regs.esi];
+                    if (item && *reinterpret_cast<uint32_t*>(item + 8) == subtitles)
+                    {
+                        auto share = HudShare(HudLayoutAspectRatio());
+                        auto wrap = reinterpret_cast<float*>(regs.esp);
+                        wrap[0] = 0.5f + (wrap[0] - 0.5f) * share;
+                        wrap[1] = 0.5f + (wrap[1] - 0.5f) * share;
+                    }
+                });
+
+                // The phone's window (x 0.6 and width 0.4 of the screen): into the box, its x scale is in Update
+                pattern = find_pattern("52 50 F3 0F 2C C1 52 50 E8 ? ? ? ? 5E C3", "50 F3 0F 2C D0 52 8B CE E8 ? ? ? ? 5E C3");
+                grcViewport__SetWindow = reinterpret_cast<decltype(grcViewport__SetWindow)>(injector::GetBranchDestination(pattern.get_first(8)).as_int());
+                static auto PhoneWindowHook = safetyhook::create_mid(pattern.get_first(8), [](SafetyHookContext& regs)
+                {
+                    // grcViewport::SetWindow(x, y, width, height, ...) on the viewport's screen size
+                    auto width = float(*reinterpret_cast<int32_t*>(regs.ecx + 0x2B0));
+                    auto height = float(*reinterpret_cast<int32_t*>(regs.ecx + 0x2B4));
+                    if (height <= 0.0f)
+                        return;
+                    auto share = HudShare(width / height);
+                    auto window = reinterpret_cast<int32_t*>(regs.esp);
+                    window[0] = int32_t(width / 2.0f + (float(window[0]) - width / 2.0f) * share);
+                    window[2] = int32_t(float(window[2]) * share);
+                });
+            }
+
             FusionFix::onGameProcessEvent() += []()
             {
                 Update();
+                ResetRadarStyle();
             };
         };
 

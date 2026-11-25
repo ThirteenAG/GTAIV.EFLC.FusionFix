@@ -172,6 +172,7 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Fixed crouching and standing camera transitions speeding up at higher frame rates, including while aiming
 - Cutscene animations follow their audio smoothly at any frame rate, without trembling and without drifting out of sync
 - Fixed the game, script and screen fade timers running slow at high frame rates, which caused the infinite loading screen around some cutscenes (Off Route)
+- Fixed an infinite loading screen before cutscenes after minimizing or alt-tabbing
 - Fixed cops and other peds staying in cover and doing nothing at frame rates above 30
 - [Fixed aiming zoom in TBoGT](https://github.com/GTAmodding/GTAIV-Issues-List/issues/19)
 - [Fixed possible crash when manually dialing a phone number using the keypad in TLAD](https://github.com/GTAmodding/GTAIV-Issues-List/issues/232)
@@ -348,7 +349,9 @@ Also available for [Max Payne 3](https://github.com/ThirteenAG/MaxPayne3.FusionF
 - Partially fixed P90 being selectable in vehicles on keyboard
 - Fixed lights and motion blur flickering around the player while the camera shakes (drunk, explosions, impacts)
 - Fixed the player's vehicle losing its engine sound in heavy traffic: it always gets an engine sound slot first
+- Fixed a held horn that kept sounding after the vehicle was wrecked
 - Fixed a crash at start with audio mods that add wave slots (more engine sound slots): the audio memory grows to fit them
+- Fixed a crash at start with mods that change the game's CPU core usage, such as Mjolnir IV
 - Made stunt jump camera speed be controlled by mouse wheel when using keyboard and mouse
 - Added an option to restore unused death music in IV
 - Fixed not being able to give money to beggars normally on PC

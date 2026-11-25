@@ -2496,7 +2496,8 @@ public:
         // The graphics API is MAIN.GraphicsAPI, applied by the plugin at its init (graphicsapi.ixx,
         // source/upscaler/graphics_api.h; no d3d9.dll proxy, no d3d9.cfg). Vulkan needs DXVK as vulkan.dll next to the exe (the
         // build FusionFixHub installs or the player's own), DirectX 12 Fusion Fix's own D3D9On12 driver next to the exe (FusionFixHub
-        // installs it), never Windows' slow one. When the API didn't start, the next start falls back to DirectX 9 and
+        // installs it), never Windows' slow one. Under Wine (Proton) Vulkan is the system's DXVK and DirectX 12 isn't
+        // offered. When the API didn't start, the next start falls back to DirectX 9 and
         // sets this back (the crash guard of graphics_api.h).
         SetAvailability("PREF_GRAPHICSAPI", [](int32_t value) -> bool
         {
@@ -2601,12 +2602,17 @@ public:
             for (auto id : { "MISC.ConsoleGamma", "MISC.ToneMapping", "MISC.ScreenFilter", "MISC.ConsoleAutoExposure", "MISC.TreeLighting", "MISC.TreeAlpha" }) AddSetting(advanced, id);
             AddEmptyLine(advanced);
             AddSetting(advanced, "MISC.CutsceneBorders");
+            AddSetting(advanced, "MAIN.HudAspectRatioConstraint");
             AddSetting(advanced, "MISC.TransparentMapMenu");
             hdrScreens.push_back(AddPage(screen, "@ff.page.hdr", "MO_DEF", true, [] { return SettingValueText(ownPlugin, "HDR.HDR"); }));
         }
 
+        // Night Shadows: Ultra above Very High (nightshadows.ixx), where the shadow atlas is Fusion Fix's
+        AddMenuText("MO_ULTRA", [] { return OwnText("@MO_ULTRA"); });
         for (auto screen : { MenuScreen::Graphics, MenuScreen::TitleGraphics })
         {
+            if (!legacyExecutable)
+                SetOptionScaler(screen, "MO_SHADOWDEN", 5);
             RemoveOption(screen, "MO_DOF", "PREF_DOF");
             AddSetting(screen, "FRAMELIMIT.FpsLimitPreset", "MO_ANALYZER");
             AddSetting(screen, "MAIN.GraphicsAPI", "MO_ANALYZER");
@@ -2642,6 +2648,8 @@ public:
     static bool IsCustomScreenActive() { return activePage != -1; }
     // The tab the shown custom screen belongs to, -1 for none
     static int32_t CustomScreenRoot() { return activePage != -1 ? GetRootScreen(activePage) : -1; }
+    // The tab a screen belongs to: a page shown on another screen (Graphics pages on Display) is its own tab's
+    static int32_t TabOfScreen(int32_t screen) { return screen == activeHost && activePage != -1 ? GetRootScreen(activePage) : screen; }
     // Before the game frees the screens' rows (frontend XML reload), and after the menu is closed
     static void ResetCustomScreens() { ResetPages(); }
     // Tab change, the tab state is in EBX (EBP in 1.1.2.0): a custom tab is shown on the Display screen
@@ -4032,7 +4040,9 @@ private:
                     auto note = FormatText("@ff.note.unavailable", missing);
                     if (row.plugin == &ownPlugin && setting.id == "MISC.Antialiasing")
                         note += " " + OwnText("@ff.note.upscaler");
-                    if (row.plugin == &ownPlugin && setting.id == "MAIN.GraphicsAPI" && !MenuPlugin::IsUsable(usable, "2"))
+                    if (row.plugin == &ownPlugin && setting.id == "MAIN.GraphicsAPI" && FusionFixGraphicsApi::OnWine())
+                        note += " " + OwnText("@ff.note.wine");
+                    else if (row.plugin == &ownPlugin && setting.id == "MAIN.GraphicsAPI" && !MenuPlugin::IsUsable(usable, "2"))
                         note += " " + OwnText("@ff.note.d3d9on12");
                     return note;
                 }
@@ -4999,9 +5009,12 @@ public:
             {
                 void operator()(injector::reg_pack& regs)
                 {
+                    // The screen being left: a page of Graphics shown on the Display screen leaves Graphics, so the
+                    // next tab gets its opaque backdrop back
+                    auto left = CSettings::TabOfScreen(regs.eax);
                     CSettings::OnTabTransition(regs.ebx, regs.ebp);
 
-                    if (regs.eax == 49 || shouldModifyMapMenuBackground(regs.eax))
+                    if (left == 49 || shouldModifyMapMenuBackground(left))
                     {
                         return_to(loc_5AC19A);
                     }

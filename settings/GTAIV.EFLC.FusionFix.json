@@ -38,6 +38,13 @@
       "page": "game", "group": "@group.interface", "control": [ "cycler", "dropdown" ]
     },
     {
+      "id": "MAIN.HudAspectRatioConstraint", "type": "string", "default": "Auto",
+      "special": [ { "value": "Auto", "label": "@hudaspect.auto" } ],
+      "suggestions": [ { "value": "4:3" }, { "value": "16:9" }, { "value": "21:9" }, { "value": "32:9" } ],
+      "label": "@hudaspect", "description": "@hudaspect.description",
+      "page": "game", "group": "@group.interface", "control": [ "cycler", "text" ]
+    },
+    {
       "id": "MISC.TransparentMapMenu", "type": "bool", "default": 0,
       "label": "@TranspMapMenu", "description": "@MISC.TransparentMapMenu.description",
       "page": "game", "group": "@group.interface", "control": [ "switch", "cycler" ]

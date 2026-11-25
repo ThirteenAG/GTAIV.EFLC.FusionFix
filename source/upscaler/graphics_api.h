@@ -9,6 +9,10 @@
 // (a marker file deleted on the second frame presented) falls back to Direct3D 9, sets the setting back and shows a
 // notice. Needs safetyhook on the include path.
 //
+// Under Wine (Proton on Linux and the Steam Deck) the system's d3d9.dll is already DXVK: Vulkan runs on it (no second
+// DXVK in the process, no vulkan.dll, no hooks in the Vulkan loader) when it has DXVK's interop, which DLAA and FSR
+// need; DirectX 12 isn't offered (the driver needs Windows' Direct3D 9 runtime).
+//
 //   Install(options)       apply the API; from the plugin's init (outside the loader lock, before the game creates its
 //                          Direct3D object), and again after loading modules that import d3d9.dll
 //   Available(api)         what menus offer
@@ -126,6 +130,7 @@ namespace FusionFixGraphicsApi
         bool oldProxy = false;                          // an old Fusion Fix d3d9.dll proxy is loaded (bypassed)
         std::wstring wrapper;                           // a third-party d3d9.dll kept on top of the API
         DxvkFile dxvk = DxvkFile::Missing;              // vulkan.dll as the start found it (when Vulkan was asked for)
+        bool systemDxvk = false;                        // Vulkan runs on the system's d3d9.dll (Wine's DXVK), not vulkan.dll
         uint32_t driverCaps = 0;                        // of the loaded driver (D3D9ON12_CAP_*), 0 before it's loaded
         bool driverLoaded = false;
     };
@@ -140,6 +145,19 @@ namespace FusionFixGraphicsApi
     inline std::filesystem::path DxvkPath()
     {
         return GameRoot() / DxvkFileName;
+    }
+
+    // Wine, Proton among them: ntdll's wine_get_version, or Steam's Proton environment (Proton can hide Wine's exports)
+    inline bool OnWine()
+    {
+        static const bool wine = []
+        {
+            auto ntdll = GetModuleHandleW(L"ntdll.dll");
+            if (ntdll && GetProcAddress(ntdll, "wine_get_version"))
+                return true;
+            return GetEnvironmentVariableW(L"STEAM_COMPAT_DATA_PATH", nullptr, 0) != 0;
+        }();
+        return wine;
     }
 
     namespace detail
@@ -448,6 +466,7 @@ namespace FusionFixGraphicsApi
             bool vulkan = false;            // vulkan.dll is DXVK (FusionFixHub's build or the player's own)
             bool driver = false;            // Fusion Fix's d3d9on12.dll and dxbcSigner.dll are next to the exe
             bool on12Runtime = false;       // the system's d3d9.dll has Direct3DCreate9On12 (Windows 10 and later)
+            bool wine = false;              // under Wine: Vulkan is the system's DXVK, no DirectX 12
             std::string vulkanWhy;          // why vulkan.dll can't be used, when it's there
         };
 
@@ -481,7 +500,15 @@ namespace FusionFixGraphicsApi
             if (requested == Api::Vulkan && !available.vulkan)
             {
                 d.effective = Api::Direct3D9;
-                d.why = available.vulkanWhy.empty() ? "vulkan.dll (DXVK) next to the game is missing" : available.vulkanWhy;
+                if (!available.vulkanWhy.empty())
+                    d.why = available.vulkanWhy;
+                else
+                    d.why = available.wine ? "the system's d3d9.dll isn't DXVK" : "vulkan.dll (DXVK) next to the game is missing";
+            }
+            else if (requested == Api::D3D9On12 && available.wine)
+            {
+                d.effective = Api::Direct3D9;
+                d.why = "DirectX 12 isn't available under Wine (Linux, Proton)";
             }
             else if (requested == Api::D3D9On12 && !available.on12Runtime)
             {
@@ -719,6 +746,33 @@ namespace FusionFixGraphicsApi
                 return nullptr;
             wcscat_s(path, L"\\d3d9.dll");
             return LoadLibraryExW(path, nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
+        }
+
+        // Whether the system's d3d9.dll is DXVK with the interop DLAA and FSR use: its IDirect3D9 answers
+        // ID3D9VkInteropInterface (dxvk_interop.hpp). Under Wine only, once.
+        inline bool SystemIsDxvk()
+        {
+            static const bool dxvk = []
+            {
+                if (!OnWine())
+                    return false;
+                bool interopFound = false;
+                auto system = SystemD3D9();
+                auto create = system ? reinterpret_cast<Create9>(GetProcAddress(system, "Direct3DCreate9")) : nullptr;
+                if (auto d3d = create ? create(D3D_SDK_VERSION) : nullptr)
+                {
+                    static const GUID InteropInterface = { 0x3461a81b, 0xce41, 0x485b, { 0xb6, 0xb5, 0xfc, 0xf0, 0x8b, 0xa6, 0xa6, 0xbd } };
+                    IUnknown* interop = nullptr;
+                    if (SUCCEEDED(d3d->QueryInterface(InteropInterface, reinterpret_cast<void**>(&interop))) && interop)
+                    {
+                        interop->Release();
+                        interopFound = true;
+                    }
+                    d3d->Release();
+                }
+                return interopFound;
+            }();
+            return dxvk;
         }
 
         inline void ShowNotice()
@@ -1246,7 +1300,8 @@ namespace FusionFixGraphicsApi
         inline IDirect3D9* CreateDxvk(UINT sdk)
         {
             auto& s = Get();
-            auto create = s.dxvk ? reinterpret_cast<Create9>(GetProcAddress(s.dxvk, "Direct3DCreate9")) : nullptr;
+            auto module = s.status.systemDxvk ? s.system : s.dxvk;
+            auto create = module ? reinterpret_cast<Create9>(GetProcAddress(module, "Direct3DCreate9")) : nullptr;
             auto d3d = create ? create(sdk) : nullptr;
             if (d3d)
                 HookDxvkObject(d3d);
@@ -1256,7 +1311,8 @@ namespace FusionFixGraphicsApi
         inline HRESULT CreateDxvkEx(UINT sdk, IDirect3D9Ex** out)
         {
             auto& s = Get();
-            auto create = s.dxvk ? reinterpret_cast<Create9Ex>(GetProcAddress(s.dxvk, "Direct3DCreate9Ex")) : nullptr;
+            auto module = s.status.systemDxvk ? s.system : s.dxvk;
+            auto create = module ? reinterpret_cast<Create9Ex>(GetProcAddress(module, "Direct3DCreate9Ex")) : nullptr;
             HRESULT hr = create ? create(sdk, out) : E_NOTIMPL;
             if (SUCCEEDED(hr) && out && *out)
                 HookDxvkObject(*out);
@@ -1752,6 +1808,9 @@ namespace FusionFixGraphicsApi
     // has the interop DLAA and FSR need is known only on its device (the AA bridge).
     inline bool VulkanAvailable()
     {
+        // Under Wine: the system's d3d9.dll is DXVK
+        if (OnWine())
+            return detail::SystemIsDxvk();
         return Dxvk().Usable();
     }
 
@@ -1793,7 +1852,7 @@ namespace FusionFixGraphicsApi
         {
         case Api::Direct3D9: return true;
         case Api::Vulkan: return VulkanAvailable();
-        case Api::D3D9On12: return On12RuntimeAvailable() && DriverAvailable();
+        case Api::D3D9On12: return !OnWine() && On12RuntimeAvailable() && DriverAvailable();
         }
         return false;
     }
@@ -1817,7 +1876,16 @@ namespace FusionFixGraphicsApi
                 s.systemCreate9On12Ex = reinterpret_cast<detail::Create9On12Ex>(GetProcAddress(s.system, "Direct3DCreate9On12Ex"));
             }
             detail::Availability available;
-            if (options.api == Api::Vulkan)
+            available.wine = OnWine();
+            if (options.api == Api::Vulkan && available.wine)
+            {
+                // The system's DXVK; vulkan.dll stays unused (a second DXVK in the process hung Proton)
+                available.vulkan = detail::SystemIsDxvk();
+                s.status.systemDxvk = available.vulkan;
+                detail::Log("Wine: the system's d3d9.dll (%s) is %s", s.system ? detail::Narrow(detail::ModulePath(s.system)).c_str() : "not loaded",
+                    available.vulkan ? "DXVK with its interop, Vulkan runs on it" : "not DXVK with its interop, no Vulkan");
+            }
+            else if (options.api == Api::Vulkan)
             {
                 auto dxvk = Dxvk();
                 s.status.dxvk = dxvk.file;
@@ -1833,10 +1901,27 @@ namespace FusionFixGraphicsApi
             s.status.effective = d.effective;
             s.status.why = d.why;
             s.status.fellBack = d.setBack;
+            s.status.systemDxvk = s.status.systemDxvk && s.status.effective == Api::Vulkan;
             if (d.notice)
                 detail::QueueNotice(options.api, d.failure);
 
-            if (s.status.effective == Api::Vulkan)
+            if (s.status.systemDxvk)
+            {
+                // Its objects are DXVK's (constant vtables): CreateDevice hooked there for the guard
+                if (auto d3d = s.systemCreate9 ? s.systemCreate9(D3D_SDK_VERSION) : nullptr)
+                {
+                    detail::HookDxvkObject(d3d);
+                    d3d->Release();
+                }
+                IDirect3D9Ex* d3dEx = nullptr;
+                if (s.systemCreate9Ex && SUCCEEDED(s.systemCreate9Ex(D3D_SDK_VERSION, &d3dEx)) && d3dEx)
+                {
+                    detail::HookDxvkObject(d3dEx);
+                    d3dEx->Release();
+                }
+                detail::Log("Vulkan: the system's DXVK (Wine)");
+            }
+            else if (s.status.effective == Api::Vulkan)
             {
                 // By full path; DXVK's own imports (vulkan-1.dll) come from System32
                 s.dxvk = LoadLibraryExW(DxvkPath().c_str(), nullptr, LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_SYSTEM32);
@@ -1884,7 +1969,8 @@ namespace FusionFixGraphicsApi
                 s.status.why.empty() ? "" : ": ", s.status.why.c_str());
         }
         detail::PatchAll();
-        if (s.status.effective != Api::Direct3D9 || s.noticePending)
+        // The system's DXVK is the backend itself: its objects aren't sent elsewhere
+        if ((s.status.effective != Api::Direct3D9 || s.noticePending) && !s.status.systemDxvk)
             detail::PatchSystemObjects();
         // The notice names a wrapper found only now
         if (s.noticePending && !s.noticeShown)

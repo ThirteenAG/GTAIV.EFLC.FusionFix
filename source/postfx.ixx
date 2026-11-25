@@ -38,6 +38,7 @@ import temporal;
 #define IDR_Blit_PS                              129
 
 #define IDR_AO_FX                                133
+#define IDR_AO_FX_compiled                       2133
 
 #define IDR_SSDraw_PS_compiled                   2127
 #define IDR_SSPrepass_PS_compiled                2128
@@ -479,25 +480,41 @@ public:
 
         if (!AOEffect)
         {
-            ID3DXBuffer* errors = nullptr;
-            static std::string sampleCount = std::to_string(nAmbientOcclusionSamples);
-            static std::string logMaxOffset = std::to_string(nAmbientOcclusionLogMaxOffset);
-            static std::string maxMipLevel = std::to_string(nAmbientOcclusionMaxMipLevel);
-            static std::string farClip = std::to_string(fAmbientOcclusionFarClip);
-            D3DXMACRO defines[] = {
-                {"NUM_SAMPLES", sampleCount.c_str()},
-                {"LOG_MAX_OFFSET", logMaxOffset.c_str()},
-                {"MAX_MIP_LEVEL", maxMipLevel.c_str()},
-                {"FAR_CLIP", farClip.c_str()},
-                {} // last must be empty
-            };
-            if (D3DXCreateEffectFromResourceW(rage::grcDevice::GetD3DDevice(),
-                hm, MAKEINTRESOURCEW(IDR_AO_FX), defines, nullptr, 0, nullptr, &AOEffect, &errors) != S_OK)
+            // The effect is compiled with the default settings at build time. Other settings compile it from the source,
+            // which some Direct3D 9 runtimes can't do (fx_2_0 isn't implemented in Wine's d3dx9): the defaults are used then.
+            bool bDefaultSettings = nAmbientOcclusionSamples == 9 && nAmbientOcclusionLogMaxOffset == 3 && nAmbientOcclusionMaxMipLevel == 5 && fAmbientOcclusionFarClip == 150.0f;
+            if (!bDefaultSettings)
             {
-                if (errors)
-                    MessageBoxA(nullptr, (LPCSTR)errors->GetBufferPointer(), "Error building shader!", MB_OK);
+                ID3DXBuffer* errors = nullptr;
+                static std::string sampleCount = std::to_string(nAmbientOcclusionSamples);
+                static std::string logMaxOffset = std::to_string(nAmbientOcclusionLogMaxOffset);
+                static std::string maxMipLevel = std::to_string(nAmbientOcclusionMaxMipLevel);
+                static std::string farClip = std::to_string(fAmbientOcclusionFarClip);
+                D3DXMACRO defines[] = {
+                    {"NUM_SAMPLES", sampleCount.c_str()},
+                    {"LOG_MAX_OFFSET", logMaxOffset.c_str()},
+                    {"MAX_MIP_LEVEL", maxMipLevel.c_str()},
+                    {"FAR_CLIP", farClip.c_str()},
+                    {} // last must be empty
+                };
+                if (D3DXCreateEffectFromResourceW(rage::grcDevice::GetD3DDevice(), hm, MAKEINTRESOURCEW(IDR_AO_FX), defines, nullptr, 0, nullptr, &AOEffect, &errors) != S_OK)
+                    AOEffect = nullptr;
+                SAFE_RELEASE(errors);
             }
-            else
+
+            if (!AOEffect)
+            {
+                if (auto hRes = FindResourceW(hm, MAKEINTRESOURCEW(IDR_AO_FX_compiled), RT_RCDATA))
+                {
+                    if (auto hGlob = LoadResource(hm, hRes))
+                    {
+                        if (D3DXCreateEffect(rage::grcDevice::GetD3DDevice(), LockResource(hGlob), SizeofResource(hm, hRes), nullptr, nullptr, 0, nullptr, &AOEffect, nullptr) != S_OK)
+                            AOEffect = nullptr;
+                    }
+                }
+            }
+
+            if (AOEffect)
             {
                 AOEffectHandles.AOTexture2D = AOEffect->GetParameterByName(nullptr, "AOTexture2D");
                 AOEffectHandles.AOCamDepthTexture2D = AOEffect->GetParameterByName(nullptr, "AOCamDepthTexture2D");

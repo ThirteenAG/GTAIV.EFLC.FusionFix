@@ -58,6 +58,78 @@ namespace CCamSys
     GameRef<uint8_t> bCameraPlayerMotionBlurMask;
 }
 
+namespace DrawListEnd
+{
+    // The render thread runs a draw list until a command with the 14-bit id of the list's end command. A list of more
+    // than 16383 commands repeats ids (the reflection list gets there in dense areas), so it stopped early and skipped
+    // the rest: the reflection's forced paraboloid technique stayed on and the next shadow draw crashed in
+    // grmShader::Bind. Only the end command itself ends a list.
+    uintptr_t pEndDrawListVTable = 0;
+    uintptr_t pNextCommand = 0;
+    uintptr_t pListEnd = 0;
+
+    // 1.2.0.x: the command in edi, the end id in ebx
+    __declspec(naked) void IsListEnd()
+    {
+        __asm
+        {
+            mov     eax, [edi]
+            cmp     eax, pEndDrawListVTable
+            jne     next
+            mov     eax, [edi + 4]
+            and     eax, 0x3FFF
+            cmp     ebx, eax
+            jne     next
+            jmp     dword ptr [pListEnd]
+        next:
+            jmp     dword ptr [pNextCommand]
+        }
+    }
+
+    // 1.0.7.0 - 1.1.3.0: the command in esi
+    __declspec(naked) void IsListEndLegacy()
+    {
+        __asm
+        {
+            mov     ecx, [esi]
+            cmp     ecx, pEndDrawListVTable
+            jne     next
+            mov     ecx, [esi + 4]
+            and     ecx, 0x3FFF
+            cmp     ebx, ecx
+            jne     next
+            jmp     dword ptr [pListEnd]
+        next:
+            jmp     dword ptr [pNextCommand]
+        }
+    }
+
+    void Install()
+    {
+        // CEndDrawListDC constructor
+        auto pattern = hook::pattern("C7 06 ? ? ? ? E8 ? ? ? ? 8B C6 C7 05 ? ? ? ? 01 00 00 00");
+        pEndDrawListVTable = *pattern.get_first<uintptr_t>(2);
+
+        // The draw list loop, after each command: id & 0x3FFF, compare with the end id, loop
+        pattern = hook::pattern("FF 50 04 8B 47 04 25 FF 3F 00 00 3B D8 75");
+        if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+        {
+            pNextCommand = resolve_next_displacement(pattern.get_first(13)).value();
+            pListEnd = uintptr_t(pattern.get_first(15));
+            injector::MakeNOP(pattern.get_first(3), 12, true);
+            injector::MakeJMP(pattern.get_first(3), IsListEnd, true);
+        }
+        else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
+        {
+            pattern = hook::pattern("FF D0 8B 4E 04 81 E1 FF 3F 00 00 3B D9 75");
+            pNextCommand = resolve_next_displacement(pattern.get_first(13)).value();
+            pListEnd = uintptr_t(pattern.get_first(15));
+            injector::MakeNOP(pattern.get_first(2), 13, true);
+            injector::MakeJMP(pattern.get_first(2), IsListEndLegacy, true);
+        }
+    }
+}
+
 uint32_t nRadarZoomDelay = 0;
 
 namespace CRadarNY
@@ -528,7 +600,7 @@ namespace FixtureLights
         bool processed;
     };
     std::vector<Fixture> fixtures; // Sorted by entity
-    uint32_t lastSearch = 0;
+    int32_t searchPosition = 0;
 
     float* pCameraPosition = nullptr;
 
@@ -540,24 +612,54 @@ namespace FixtureLights
         return dx * dx + dy * dy + dz * dz < SearchRange * SearchRange;
     }
 
-    // Lampposts are objects, or dummy objects before they become objects; other fixtures are part of the map
+    // Lampposts are objects, or dummy objects before they become objects; other fixtures are part of the map. The pools
+    // hold tens of thousands of slots: each frame searches the next part of them, all of them every SearchFrames frames
     void Search()
     {
-        fixtures.clear();
-        for (auto pool : { CObject::GetObjectsPool(), *EntityLights::pDummyPool, *EntityLights::pBuildingPool })
+        rage::fwPool<void*>* pools[] = { CObject::GetObjectsPool(), *EntityLights::pDummyPool, *EntityLights::pBuildingPool };
+        int32_t total = 0;
+        for (auto pool : pools)
+            total += pool ? pool->GetSize() : 0;
+        if (searchPosition >= total)
+            searchPosition = 0;
+        auto end = std::min(total, searchPosition + (total + int32_t(SearchFrames) - 1) / int32_t(SearchFrames));
+
+        // The part's earlier results, and those of pools that are gone
+        std::erase_if(fixtures, [&](const Fixture& fixture)
         {
-            for (int32_t i = 0; pool && i < pool->GetSize(); i++)
+            int32_t start = 0;
+            for (auto pool : pools)
+            {
+                if (fixture.pool == pool)
+                    return start + fixture.index >= searchPosition && start + fixture.index < end;
+                start += pool ? pool->GetSize() : 0;
+            }
+            return true;
+        });
+
+        bool found = false;
+        int32_t start = 0;
+        for (auto pool : pools)
+        {
+            auto size = pool ? pool->GetSize() : 0;
+            for (auto i = std::max(searchPosition - start, 0); i < size && start + i < end; i++)
             {
                 auto entity = (uintptr_t)pool->GetSlot(i);
                 if (entity && IsNear(entity))
                 {
                     auto modelInfo = EntityLights::ModelInfo(entity);
                     if (modelInfo && EntityLights::CBaseModelInfo__GetNum2dEffects((void*)modelInfo) > 0)
+                    {
                         fixtures.push_back({ pool, i, entity, false });
+                        found = true;
+                    }
                 }
             }
+            start += size;
         }
-        std::sort(fixtures.begin(), fixtures.end(), [](const Fixture& a, const Fixture& b) { return a.entity < b.entity; });
+        searchPosition = end;
+        if (found)
+            std::sort(fixtures.begin(), fixtures.end(), [](const Fixture& a, const Fixture& b) { return a.entity < b.entity; });
     }
 
     void NoteProcessed(uintptr_t entity)
@@ -584,12 +686,7 @@ namespace FixtureLights
                 Process(fixture.entity);
             fixture.processed = false;
         }
-
-        if (*CTimer::m_frameCount - lastSearch >= SearchFrames)
-        {
-            lastSearch = *CTimer::m_frameCount;
-            Search();
-        }
+        Search();
     }
 }
 
@@ -720,6 +817,38 @@ namespace AudioSubmixLocks
     }
 }
 
+namespace VehicleHorn
+{
+    bool (__thiscall* GetHornState)(uintptr_t audioEntity) = nullptr;
+
+    bool __fastcall GetHornStateUnlessWrecked(uintptr_t audioEntity)
+    {
+        constexpr ptrdiff_t VehicleOffset = 0x820; // audVehicleAudioEntity
+        constexpr ptrdiff_t StatusOffset = 0x28;   // CEntity
+        constexpr uint32_t StatusMask = 0x7C00;    // status, bits 10-14
+        constexpr uint32_t Wrecked = 3 << 10;
+
+        auto vehicle = *reinterpret_cast<const uintptr_t*>(audioEntity + VehicleOffset);
+        auto status = *reinterpret_cast<const uint32_t*>(vehicle + StatusOffset) & StatusMask;
+        return status != Wrecked && GetHornState(audioEntity);
+    }
+
+    void Install()
+    {
+        // audVehicleAudioEntity::UpdateHornAndSiren calls GetHornState for fresh requests. Replay can use the cached state.
+        void* call = nullptr;
+        auto pattern = hook::pattern("8B CF E8 ? ? ? ? 8A C8 88 8F 41 0B 00 00 EB ? 8A 8F 41 0B 00 00");
+        if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+            call = pattern.get_first(2);
+        else // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
+            call = hook::get_pattern("8B CE E8 ? ? ? ? 88 86 41 0B 00 00 EB 06 8A 86 41 0B 00 00", 2);
+
+        // The native update calls rage::audSound::StopAndForget when a held horn's request goes false.
+        GetHornState = (decltype(GetHornState))injector::GetBranchDestination(call).as_int();
+        injector::MakeCALL(call, GetHornStateUnlessWrecked, true);
+    }
+}
+
 class Fixes
 {
 public:
@@ -727,6 +856,8 @@ public:
     {
         FusionFix::onInitEvent() += []()
         {
+            DrawListEnd::Install();
+
             auto pattern = hook::pattern("83 EC 08 53 55 8B D9 56 57 8D 83 5C 04 00 00 50 8D 4C 24 14 E8 ? ? ? ? 83 BB 48 04 00 00 08");
             if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
             {
@@ -775,6 +906,8 @@ public:
 
         FusionFix::onInitEventAsync() += []()
         {
+            VehicleHorn::Install();
+
             SettingsReader reader;
 
             // [MAIN]

@@ -70,6 +70,18 @@ namespace ShadowCuts
     int32_t lightCount = 0;
     SafetyHookInline shAddSceneLightOrdered;
     std::vector<SafetyHookMid> hooks;
+    // Hooks only a cut needs (its light gathering, its occluders, its flicker): enabled for the frame of a cut
+    std::vector<SafetyHookMid> cutHooks;
+    bool cutHooksEnabled = false;
+
+    void EnableCutHooks(bool enable)
+    {
+        if (cutHooksEnabled == enable)
+            return;
+        cutHooksEnabled = enable;
+        for (auto& hook : cutHooks)
+            (void)(enable ? hook.enable() : hook.disable());
+    }
     SafetyHookInline shMainUpdateViewport;
     void(__cdecl* ProcessOne2dEffectLightOriginal)(void*, void*, float, float, float, uint16_t, uintptr_t, int32_t, int32_t,
         int32_t, bool, bool, bool) = nullptr;
@@ -251,9 +263,12 @@ namespace ShadowCuts
 
     bool BeginFrame()
     {
+        // Night Shadows off: no cut is looked for, and the first frame with them is taken as one
+        static auto nightShadows = FusionFixSettings.GetRef("PREF_SHADOW_DENSITY");
         auto viewport = pViewports[0] ? pViewports[pViewports[0]] : 0;
-        if (!viewport)
+        if (!viewport || !nightShadows->get())
         {
+            EnableCutHooks(false);
             haveCamera = false;
             pendingLookCut = false;
             CutsceneCuts::Reset();
@@ -318,6 +333,7 @@ namespace ShadowCuts
         previousMode = mode;
         previousLookBehind = lookBehind;
         haveCamera = true;
+        EnableCutHooks(cut);
         if (!cut)
             return false;
 
@@ -327,9 +343,6 @@ namespace ShadowCuts
         occlusionReady = false;
         randomSampleCount = 0;
         lightCount = 0;
-        static auto nightShadows = FusionFixSettings.GetRef("PREF_SHADOW_DENSITY");
-        if (!nightShadows->get())
-            return false;
 
         // Retain headlights and other producers. The outgoing shot's cutscene lights must be replaced, not kept
         // alongside the current shot. Fresh world lights replace old entries by tracking ID.
@@ -453,15 +466,15 @@ namespace ShadowCuts
             cutViewer = rmOccluderSystem__CreateViewer(*pOccludeSystem);
         }));
         static uintptr_t continueOccluderWalk = uintptr_t(occluderBudget.get_first(legacy ? 11 : 5));
-        hooks.emplace_back(safetyhook::create_mid(occluderBudget.get_first(legacy ? 9 : 0), [](SafetyHookContext& regs)
+        cutHooks.emplace_back(safetyhook::create_mid(occluderBudget.get_first(legacy ? 9 : 0), [](SafetyHookContext& regs)
         {
             if (refreshingOccluders)
             {
                 if (regs.eax < uint32_t(std::clamp(*pOccluderCount, 0, 32767)))
                     regs.eip = continueOccluderWalk;
             }
-        }));
-        hooks.emplace_back(safetyhook::create_mid(occluderSort.get_first(legacy ? 6 : 10), [](SafetyHookContext& regs)
+        }, SafetyHookMid::StartDisabled));
+        cutHooks.emplace_back(safetyhook::create_mid(occluderSort.get_first(legacy ? 6 : 10), [](SafetyHookContext& regs)
         {
             if (refreshingOccluders)
             {
@@ -469,66 +482,66 @@ namespace ShadowCuts
                 auto& value = legacy ? regs.edx : regs.eax;
                 value = (value & ~0xFFu) | 2;
             }
-        }));
+        }, SafetyHookMid::StartDisabled));
         static uintptr_t afterRandom1 = uintptr_t(random1 + 5);
         static uintptr_t afterRandom2 = uintptr_t(lightRandom2.get_first(5));
-        hooks.emplace_back(safetyhook::create_mid(random1, [](SafetyHookContext& regs)
+        cutHooks.emplace_back(safetyhook::create_mid(random1, [](SafetyHookContext& regs)
         {
             if (randomSample >= 0)
             {
                 regs.eax = LightRandom(0);
                 regs.eip = afterRandom1;
             }
-        }));
-        hooks.emplace_back(safetyhook::create_mid(lightRandom2.get_first(), [](SafetyHookContext& regs)
+        }, SafetyHookMid::StartDisabled));
+        cutHooks.emplace_back(safetyhook::create_mid(lightRandom2.get_first(), [](SafetyHookContext& regs)
         {
             if (randomSample >= 0)
             {
                 regs.eax = LightRandom(1);
                 regs.eip = afterRandom2;
             }
-        }));
+        }, SafetyHookMid::StartDisabled));
 
         // CEntity::ProcessLightsForEntity: the previous view's pre-render/occlusion mask must not reject new-view
         // candidates. CLights::AddSceneLight still tests each light against the current frustum and room.
         static uintptr_t lightLoopAddress = uintptr_t(lightLoop.get_first());
-        hooks.emplace_back(safetyhook::create_mid(lightVisibility.get_first(), [](SafetyHookContext& regs)
+        cutHooks.emplace_back(safetyhook::create_mid(lightVisibility.get_first(), [](SafetyHookContext& regs)
         {
             if (EntityLights::gatheringShadows)
                 regs.eip = lightLoopAddress;
-        }));
+        }, SafetyHookMid::StartDisabled));
         static uintptr_t nextEffect = uintptr_t(lightType.get_first(8)) + *lightType.get_first<int32_t>(4);
-        hooks.emplace_back(safetyhook::create_mid(lightType.get_first(), [](SafetyHookContext& regs)
+        cutHooks.emplace_back(safetyhook::create_mid(lightType.get_first(), [](SafetyHookContext& regs)
         {
             if (EntityLights::gatheringShadows)
                 regs.eip = nextEffect; // Type 18 is a light shaft, not a scene light
-        }));
+        }, SafetyHookMid::StartDisabled));
         static uintptr_t afterDraw = uintptr_t(lightEnd.get_first(legacy ? 33 : 32));
-        hooks.emplace_back(safetyhook::create_mid(lightEnd.get_first(), [](SafetyHookContext& regs)
+        cutHooks.emplace_back(safetyhook::create_mid(lightEnd.get_first(), [](SafetyHookContext& regs)
         {
             if (EntityLights::gatheringShadows)
                 regs.eip = afterDraw; // Leave CGtaDrawable::AfterDraw to the real pre-render
-        }));
+        }, SafetyHookMid::StartDisabled));
 
         // ProcessOne2dEffectLight: leave both Coronas::RegisterCorona calls to the real pre-render.
         // Both calls use caller-cleaned arguments.
         static uintptr_t afterCorona1 = uintptr_t(corona1.get_first(5));
         static uintptr_t afterCorona2 = uintptr_t(corona2.get_first(5));
-        hooks.emplace_back(safetyhook::create_mid(corona1.get_first(), [](SafetyHookContext& regs)
+        cutHooks.emplace_back(safetyhook::create_mid(corona1.get_first(), [](SafetyHookContext& regs)
         {
             if (EntityLights::gatheringShadows)
                 regs.eip = afterCorona1;
-        }));
-        hooks.emplace_back(safetyhook::create_mid(corona2.get_first(), [](SafetyHookContext& regs)
+        }, SafetyHookMid::StartDisabled));
+        cutHooks.emplace_back(safetyhook::create_mid(corona2.get_first(), [](SafetyHookContext& regs)
         {
             if (EntityLights::gatheringShadows)
                 regs.eip = afterCorona2;
-        }));
+        }, SafetyHookMid::StartDisabled));
 
         // The light's native exception gates already ran. Query the fresh viewer without touching the old phase ID.
         static uintptr_t afterOcclusion = uintptr_t(lightOcclusion.get_first(8)) + *lightOcclusion.get_first<int8_t>(7);
         static uintptr_t occludedExit = uintptr_t(lightOcclusion.get_first(occludedBranch + 6)) + *lightOcclusion.get_first<int32_t>(occludedBranch + 2);
-        hooks.emplace_back(safetyhook::create_mid(lightOcclusion.get_first(8), [](SafetyHookContext& regs)
+        cutHooks.emplace_back(safetyhook::create_mid(lightOcclusion.get_first(8), [](SafetyHookContext& regs)
         {
             if (EntityLights::gatheringShadows)
             {
@@ -536,7 +549,7 @@ namespace ShadowCuts
                     (const void*)(legacy ? regs.esi : regs.edi), *(float*)(regs.esp + (legacy ? 0x0C : 0x10)), false, nullptr);
                 regs.eip = occluded ? occludedExit : afterOcclusion;
             }
-        }));
+        }, SafetyHookMid::StartDisabled));
         shMainUpdateViewport = safetyhook::create_inline(mainView.get_first(), UpdateMainViewport);
         ProcessOne2dEffectLightOriginal = (decltype(ProcessOne2dEffectLightOriginal))injector::GetBranchDestination(effectLight.get_first(effectLightCall)).as_int();
         injector::MakeCALL(effectLight.get_first(effectLightCall), ProcessOne2dEffectLight, true);
@@ -552,23 +565,39 @@ namespace NightShadows
     constexpr int32_t SlotTrackingToPosition = -0x38;
 
     // The shadow atlas, which the lighting reads every shadow from. The per-frame shadows fill its lower half, four by
-    // two tiles one and a half times the size of the cached ones; the cached shadows fill its upper half, six by three
-    // tiles, sixteen of them used (the game used eight). The game's own tile size is the cached shadows' size.
+    // two tiles; the cached shadows fill its upper half, six by three tiles, sixteen of them used (the game used eight).
+    // The game's own tile size is the cached shadows' size, and the per-frame tiles' too. At Ultra, a level above the
+    // game's Very High, the per-frame tiles are one and a half times that: sharper people and vehicles for under 1 ms
+    // of GPU time a frame.
     constexpr int32_t CacheCount = 16;
     constexpr int32_t CacheColumns = 6;
     constexpr int32_t CacheStride = 0x100;
+    constexpr int32_t UltraQuality = 4;
     int32_t* pCacheTileSize = nullptr;
     uintptr_t pCache = 0;
     uintptr_t pSlotTileSizes = 0;
+    uintptr_t pSlotRegions = 0; // Per slot: the atlas region the lighting reads its shadow from, x, y, 0, size
+    bool bUltraTiles = false; // the maps were made for Ultra
+
+    bool UltraSelected()
+    {
+        static auto quality = FusionFixSettings.GetRef("PREF_SHADOW_DENSITY");
+        return quality->get() == UltraQuality;
+    }
 
     int32_t CacheTileSize()
     {
         return *pCacheTileSize;
     }
 
+    int32_t SlotTileSize(int32_t tileSize, bool ultra)
+    {
+        return ultra ? tileSize * 3 / 2 : tileSize;
+    }
+
     int32_t SlotTileSize()
     {
-        return CacheTileSize() * 3 / 2;
+        return SlotTileSize(CacheTileSize(), bUltraTiles);
     }
 
     int32_t AtlasSize()
@@ -578,8 +607,13 @@ namespace NightShadows
 
     void SetUpAtlasLayout()
     {
+        // A per-frame shadow is copied to a quarter of the atlas' width (its column) in the lower half; the lighting
+        // reads it from the part of that quarter the tile fills, all of it at Ultra
         for (int32_t slot = 0; slot < SlotCount; slot++)
+        {
             *(int32_t*)(pSlotTileSizes + slot * SlotStride) = SlotTileSize();
+            *(float*)(pSlotRegions + slot * 0x10 + 0x0C) = float(SlotTileSize()) / AtlasSize();
+        }
 
         for (int32_t i = 0; i < CacheCount; i++)
         {
@@ -609,10 +643,10 @@ namespace NightShadows
     // Set where the game keeps sixteen cached shadows; with eight, streetlights keep their per-frame shadows only, as
     // there's no room in the cache for them
     bool bStreetlightsCached = false;
+    constexpr uint32_t ShadowFlags = rage::LIGHTFLAG_CAST_STATIC_GEOM_SHADOWS | rage::LIGHTFLAG_CAST_DYNAMIC_GEOM_SHADOWS;
 
     uint32_t StreetlightFlags(uint32_t flags)
     {
-        constexpr uint32_t ShadowFlags = rage::LIGHTFLAG_CAST_STATIC_GEOM_SHADOWS | rage::LIGHTFLAG_CAST_DYNAMIC_GEOM_SHADOWS;
         switch (StreetlightShadows())
         {
             case Off:
@@ -647,14 +681,20 @@ namespace NightShadows
         return trackingID && OutdoorLightEntry(trackingID) == trackingID;
     }
 
+    // Per-frame shadows left out this frame, as their cached shadow is the whole shadow (SkipStillShadows): the light
+    // they belong to by slot. They keep their slot, so for the choice of shadows they still have one.
+    uint32_t skippedSlots[SlotCount] = {};
+
     uint32_t SlotTrackingID(int32_t slot)
     {
+        if (skippedSlots[slot])
+            return skippedSlots[slot];
         return *(uint32_t*)(pSlotTrackingIDs + slot * SlotStride);
     }
 
     bool SlotEnabled(int32_t slot)
     {
-        return *(pSlotTrackingIDs + slot * SlotStride + SlotTrackingToEnabled) != 0;
+        return skippedSlots[slot] || *(pSlotTrackingIDs + slot * SlotStride + SlotTrackingToEnabled) != 0;
     }
 
     bool HadShadowLastFrame(uint32_t trackingID)
@@ -1173,8 +1213,119 @@ namespace NightShadows
         }
     }
 
+    // A per-frame shadow over a cached one adds the people and vehicles in the light's reach to it (IsExcluded). With
+    // none there it would be the cached shadow drawn again: the slot is left out for the frame, and the lighting uses
+    // the cached shadow, which it does for every light without a slot. The slot is set back before the game updates
+    // the shadows, which keeps a slot for several frames.
+    constexpr float PersonReach = 2.0f;
+    constexpr float VehicleReach = 8.0f; // half a bus, and its height
+
+    struct MovingCasters
+    {
+        int32_t people = 0;
+        int32_t vehicles = 0;
+        std::array<std::array<float, 3>, 256> positions;
+    };
+    MovingCasters movingCasters;
+
+    void FindMovingCasters()
+    {
+        auto& it = movingCasters;
+        it.people = it.vehicles = 0;
+        auto note = [&it](rage::fwPool<void*>* pool, int32_t& count, int32_t first, int32_t last)
+        {
+            for (int32_t i = 0; pool && i < pool->GetSize() && first + count < last; i++)
+            {
+                auto entity = (uintptr_t)pool->GetSlot(i);
+                if (!entity)
+                    continue;
+                // CEntity::GetPosition
+                auto matrix = *(float**)(entity + 0x20);
+                auto position = matrix ? matrix + 12 : (float*)(entity + 0x10);
+                std::copy_n(position, 3, it.positions[first + count++].data());
+            }
+        };
+        constexpr int32_t Half = int32_t(std::tuple_size_v<decltype(it.positions)>) / 2;
+        note(CPed::GetPedPool(), it.people, 0, Half);
+        note(CVehicle::GetVehiclePool(), it.vehicles, Half, Half * 2);
+    }
+
+    bool HasMovingCasters(uintptr_t base, uint32_t trackingID)
+    {
+        auto people = true, vehicles = true;
+        if (IsOutdoorLight(trackingID))
+        {
+            auto casters = StreetlightShadows();
+            people = casters >= SceneryAndPeople;
+            vehicles = casters >= SceneryPeopleAndVehicles;
+        }
+
+        auto& it = movingCasters;
+        auto center = (const float*)(base + 0xC0);
+        auto radius = *(float*)(base + 0xE0);
+        auto within = [&](int32_t first, int32_t count, float reach)
+        {
+            auto range = (radius + reach) * (radius + reach);
+            for (int32_t i = first; i < first + count; i++)
+            {
+                auto& p = it.positions[i];
+                auto dx = p[0] - center[0], dy = p[1] - center[1], dz = p[2] - center[2];
+                if (dx * dx + dy * dy + dz * dz < range)
+                    return true;
+            }
+            return false;
+        };
+        constexpr int32_t Half = int32_t(std::tuple_size_v<decltype(it.positions)>) / 2;
+        // A pool larger than the list counts as having someone in reach
+        return (people && (it.people >= Half || within(0, it.people, PersonReach)))
+            || (vehicles && (it.vehicles >= Half || within(Half, it.vehicles, VehicleReach)));
+    }
+
+    void RestoreSkippedSlots()
+    {
+        for (int32_t slot = 1; slot < SlotCount; slot++)
+        {
+            if (!skippedSlots[slot])
+                continue;
+            auto base = pSlots + slot * SlotStride;
+            *(uint8_t*)(base + 0xED) = 1;
+            *(uint32_t*)(base + 0xF8) = skippedSlots[slot];
+            skippedSlots[slot] = 0;
+        }
+    }
+
+    void SkipStillShadows()
+    {
+        auto found = false;
+        for (int32_t slot = 1; slot < SlotCount; slot++)
+        {
+            auto base = pSlots + slot * SlotStride;
+            auto trackingID = *(uint32_t*)(base + 0xF8);
+            auto cacheIndex = *(int32_t*)(base + 0xF0);
+            if (!*(uint8_t*)(base + 0xED) || !trackingID || *(int32_t*)(base + 0xFC) != DynamicRenderType
+                || cacheIndex < 0 || cacheIndex >= CacheCount || *(uint32_t*)(pCache + cacheIndex * CacheStride + 0xE0) != trackingID)
+                continue;
+
+            if (!found)
+            {
+                FindMovingCasters();
+                found = true;
+            }
+            if (HasMovingCasters(base, trackingID))
+                continue;
+
+            // As the game leaves a slot out
+            skippedSlots[slot] = trackingID;
+            *(uint8_t*)(base + 0xED) = 0;
+            *(uint32_t*)(base + 0xF8) = 0;
+        }
+    }
+
     void __cdecl CWarpShadowUpdate()
     {
+        if (pSlots)
+            RestoreSkippedSlots();
+
         auto cut = ShadowCuts::BeginFrame();
         auto previousLights = *ShadowCuts::pPreviousLights;
         auto previousCount = *ShadowCuts::pPreviousLightCount;
@@ -1204,6 +1355,9 @@ namespace NightShadows
                     ? DistanceFade(priorities.values[i]) : 0.0f;
             }
         }
+
+        if (pSlots)
+            SkipStillShadows();
     }
 
     // Whether a light may take the place of another one in the sorted list: 0 = yes, 1 = compare the values above,
@@ -1371,7 +1525,6 @@ namespace NightShadows
 
     uint32_t OneShadowPerFixture(uint32_t trackingID, uint32_t flags)
     {
-        constexpr uint32_t ShadowFlags = rage::LIGHTFLAG_CAST_STATIC_GEOM_SHADOWS | rage::LIGHTFLAG_CAST_DYNAMIC_GEOM_SHADOWS;
         if (!(flags & ShadowFlags) || !trackingID)
             return flags;
 
@@ -1508,11 +1661,12 @@ int GetNightShadowQuality()
     static auto NightShadows = FusionFixSettings.GetRef("PREF_SHADOW_DENSITY");
     switch (NightShadows->get())
     {
-        // MO_OFF / MO_MED / MO_HIGH / MO_VHIGH
+        // MO_OFF / MO_MED / MO_HIGH / MO_VHIGH / MO_ULTRA (larger per-frame tiles, SlotTileSize)
         case 0: return 0;
         case 1: return 256;
         case 2: return 512;
         case 3: return 1024;
+        case 4: return 1024;
         default: return 0;
     }
 }
@@ -1524,7 +1678,7 @@ int __cdecl GetNightShadowMemory(int32_t tileSize)
         return 0;
 
     auto atlas = tileSize * NightShadows::CacheColumns;
-    auto slot = tileSize * 3 / 2;
+    auto slot = NightShadows::SlotTileSize(tileSize, NightShadows::UltraSelected());
     return atlas * atlas * 4 + slot * 4 * slot * 4 + slot * slot * 8 + 24; // Atlas, hemicube, the two point maps
 }
 
@@ -1533,6 +1687,19 @@ class NightShadowsInit
 public:
     NightShadowsInit()
     {
+        FusionFix::onInitEvent() += []()
+        {
+            // The game sets Night Shadows above Very High to Off as it loads and saves its settings, which it loads
+            // before the asynchronous initialization is done
+            auto pattern = hook::pattern("A1 ? ? ? ? 33 C9 83 F8 03 0F 4F C1 53 A3");
+            if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
+            {
+                injector::WriteMemory<uint8_t>(pattern.get_first(9), NightShadows::UltraQuality, true);
+                pattern = hook::pattern("A1 ? ? ? ? 33 C9 68 34 01 00 00 83 F8 03 0F 4F C1");
+                injector::WriteMemory<uint8_t>(pattern.get_first(14), NightShadows::UltraQuality, true);
+            }
+        };
+
         FusionFix::onInitEventAsync() += []()
         {
             // Make the night shadow options adjust the night shadow resolution (Half the cascaded shadow resolution otherwise)
@@ -1547,6 +1714,18 @@ public:
                 if (!pattern.empty()) // 1.2.0.32, 1.2.0.43, 1.2.0.59
                 {
                     NightShadows::pCacheTileSize = *pattern.get_first<int32_t*>(2);
+
+                    // The maps are made again when the tile size changes; Very High and Ultra share it, but not the
+                    // per-frame tiles
+                    static auto MapsChangedHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
+                    {
+                        auto ultra = NightShadows::UltraSelected();
+                        if (ultra != NightShadows::bUltraTiles)
+                        {
+                            NightShadows::bUltraTiles = ultra;
+                            *NightShadows::pCacheTileSize = 0;
+                        }
+                    });
 
                     // The textures: the atlas, the hemicube the cached shadows are rendered through, the point maps
                     // each shadow is rendered to
@@ -1571,6 +1750,7 @@ public:
                     // Tile sizes and positions, after the textures are made
                     pattern = hook::pattern("89 0D ? ? ? ? 89 0D ? ? ? ? 89 0D ? ? ? ? 89 0D ? ? ? ? 89 0D ? ? ? ? 89 0D ? ? ? ? 89 0D ? ? ? ? 89 0D ? ? ? ? B8");
                     NightShadows::pSlotTileSizes = *pattern.get_first<uintptr_t>(2);
+                    NightShadows::pSlotRegions = *hook::get_pattern<uintptr_t>("A1 ? ? ? ? 83 C4 08 83 F9 08 7D ? 8D 34 C1 69 F6 10 01 00 00 81 C6 ? ? ? ? C1 E1 04 F3 0F 10 81", 35);
                     pattern = hook::pattern("89 0D ? ? ? ? B8 ? ? ? ? 89 08 05 00 01 00 00 3D ? ? ? ? 7C F2 5F 5E 5B 83 C4 30 C3");
                     NightShadows::pCache = *pattern.get_first<uintptr_t>(7) - 0x04;
                     static auto LayoutHook = safetyhook::create_mid(pattern.get_first(25), [](SafetyHookContext& regs)
@@ -1918,6 +2098,11 @@ public:
                 {
                     static auto StreetlightFlagsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
+                        // Nothing to change without night shadows, or for a light without a shadow while streetlights
+                        // have none
+                        static auto nightShadows = FusionFixSettings.GetRef("PREF_SHADOW_DENSITY");
+                        if (!nightShadows->get() || (!(regs.ecx & NightShadows::ShadowFlags) && NightShadows::StreetlightShadows() == NightShadows::Off))
+                            return;
                         auto trackingID = *(uint32_t*)(regs.ebp + 0x20);
                         if (NightShadows::IsStreetlight(trackingID))
                             regs.ecx = NightShadows::StreetlightFlags(regs.ecx);
@@ -1931,6 +2116,11 @@ public:
                     pattern = hook::pattern("F6 C3 06 75 02 33 FF F7 C1 00 00 01 00");
                     static auto StreetlightFlagsHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
                     {
+                        // Nothing to change without night shadows, or for a light without a shadow while streetlights
+                        // have none
+                        static auto nightShadows = FusionFixSettings.GetRef("PREF_SHADOW_DENSITY");
+                        if (!nightShadows->get() || (!(regs.ebx & NightShadows::ShadowFlags) && NightShadows::StreetlightShadows() == NightShadows::Off))
+                            return;
                         auto trackingID = *(uint32_t*)(regs.ebp + 0x20);
                         if (NightShadows::IsStreetlight(trackingID))
                             regs.ebx = NightShadows::StreetlightFlags(regs.ebx);

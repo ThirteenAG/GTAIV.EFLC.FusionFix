@@ -81,59 +81,6 @@ jobs:
         tag: "Win32-latest"
         fileName: "dinput8-Win32.zip"
 
-    # FusionFixHub.exe ships with the fix (game root): the latest signed release of the private repository
-    # ThirteenAG/FusionFixHub-App, read with the read-only secret HUB_RELEASE_TOKEN (readme, "Release packages and
-    # secrets"). The vendor runtimes and DXVK are never packaged: the hub downloads them. A release run fails without
-    # the hub; a push or pull request without the secret (forks) builds the package without it, with a warning.
-    - name: Download FusionFixHub
-      shell: pwsh
-      env:
-        GH_TOKEN: ${{ secrets.HUB_RELEASE_TOKEN }}
-        RELEASE: ${{ github.event.inputs.release }}
-        # SHA-256 of the signing certificate's SubjectPublicKeyInfo (CN=FusionFix): the key the hub pins for its own updates
-        HUB_SIGNER_SPKI_SHA256: 08498b939a9d0743268a74bd824d9cdae5d4557137eef693343e452156ecbfc4
-      run: |
-        $release = $env:RELEASE -eq 'true'
-        if (-not $env:GH_TOKEN) {
-          if ($release) { throw "HUB_RELEASE_TOKEN is not set: a release ships FusionFixHub.exe (readme, Release packages and secrets)" }
-          Write-Output "::warning::HUB_RELEASE_TOKEN is not set: the package is built without FusionFixHub.exe"
-          exit 0
-        }
-        gh release download --repo ThirteenAG/FusionFixHub-App --pattern FusionFixHub.exe --clobber
-        if ($LASTEXITCODE -ne 0) { throw "gh release download failed (an expired HUB_RELEASE_TOKEN, or no release with FusionFixHub.exe)" }
-        # The signature as the hub checks its own updates: the digest through WinVerifyTrust (the only chain error allowed
-        # is the self-signed root, CERT_E_UNTRUSTEDROOT; never unsigned, altered, revoked or expired), and the signer's
-        # public key must be the pinned one. Get-AuthenticodeSignature alone can't tell an untrusted root from other errors.
-        Add-Type -TypeDefinition @'
-        using System; using System.Runtime.InteropServices;
-        public static class HubTrust {
-            [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-            public struct FileInfo { public uint cbStruct; public string pcwszFilePath; public IntPtr hFile; public IntPtr pgKnownSubject; }
-            [StructLayout(LayoutKind.Sequential)]
-            public struct Data { public uint cbStruct; public IntPtr pPolicyCallbackData; public IntPtr pSIPClientData; public uint dwUIChoice; public uint fdwRevocationChecks; public uint dwUnionChoice; public IntPtr pFile; public uint dwStateAction; public IntPtr hWVTStateData; public IntPtr pwszURLReference; public uint dwProvFlags; public uint dwUIContext; public IntPtr pSignatureSettings; }
-            [DllImport("wintrust.dll")] static extern int WinVerifyTrust(IntPtr hwnd, ref Guid action, ref Data data);
-            public static int Verify(string path) {
-                var file = new FileInfo { cbStruct = (uint)Marshal.SizeOf(typeof(FileInfo)), pcwszFilePath = path };
-                var pFile = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(FileInfo)));
-                Marshal.StructureToPtr(file, pFile, false);
-                var data = new Data { cbStruct = (uint)Marshal.SizeOf(typeof(Data)), dwUIChoice = 2, fdwRevocationChecks = 0, dwUnionChoice = 1, pFile = pFile, dwProvFlags = 0x40 };
-                var action = new Guid("00AAC56B-CD44-11d0-8CC2-00C04FC295EE");
-                int result = WinVerifyTrust(IntPtr.Zero, ref action, ref data);
-                Marshal.FreeHGlobal(pFile);
-                return result;
-            }
-        }
-        '@
-        $result = [HubTrust]::Verify((Resolve-Path FusionFixHub.exe).Path)
-        $untrustedRoot = -2146762487   # CERT_E_UNTRUSTEDROOT 0x800B0109: the certificate is self-signed
-        if ($result -ne 0 -and $result -ne $untrustedRoot) { throw ("FusionFixHub.exe's signature doesn't verify: 0x{0:X8}" -f $result) }
-        $sig = Get-AuthenticodeSignature FusionFixHub.exe
-        if (-not $sig.SignerCertificate) { throw "FusionFixHub.exe has no signer certificate" }
-        $spki = $sig.SignerCertificate.PublicKey.ExportSubjectPublicKeyInfo()
-        $key = ([System.Security.Cryptography.SHA256]::HashData($spki) | ForEach-Object { $_.ToString('x2') }) -join ''
-        if ($key -ne $env:HUB_SIGNER_SPKI_SHA256) { throw "FusionFixHub.exe is signed with another key ($key, subject '$($sig.SignerCertificate.Subject)'); the pinned key is $env:HUB_SIGNER_SPKI_SHA256" }
-        Write-Output ("FusionFixHub.exe: signature verified (0x{0:X8}), signer '{1}', pinned key matches" -f $result, $sig.SignerCertificate.Subject)
-
     - name: Download Legacy Package
       uses: robinraju/release-downloader@v1.13
       with:
