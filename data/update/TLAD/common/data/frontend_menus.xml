@@ -82,6 +82,7 @@
       <options text="MO_MED" action="ACTION_NONE" value="1" />
       <options text="MO_HIGH" action="ACTION_NONE" value="2" />
       <options text="MO_VHIGH" action="ACTION_NONE" value="3" />
+      <options text="MO_ULTRA" action="ACTION_NONE" value="4" />
     </menupc>
     <menupc enum="MENU_DISPLAY_REFLECTION_QUALITY">
       <options text="MO_OFF" action="ACTION_NONE" value="0" />

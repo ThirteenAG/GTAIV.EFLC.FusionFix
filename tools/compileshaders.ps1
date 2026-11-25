@@ -22,6 +22,9 @@ $shaders = @(
     @{ Src = "source/resources/gamma/ConsoleGamma.fx";        T = "fx_2_0"; Fo = "source/resources/shaders/win32_30/ConsoleGamma.fxo"        }
     @{ Src = "source/resources/gamma/ConsoleGamma_Dither.fx"; T = "fx_2_0"; Fo = "source/resources/shaders/win32_30/ConsoleGamma_Dither.fxo" }
 
+    # Ambient occlusion, with the default settings
+    @{ Src = "source/resources/AO.fx"; T = "fx_2_0"; Fo = "source/resources/AO.fxo" }
+
     # Snow
     @{ Src = "source/resources/snow/*.ps"; T = "ps_3_0"; E = "main"; Fo = "source/resources/snow/{0}ps.pso" }
     @{ Src = "source/resources/snow/*.vs"; T = "vs_3_0"; E = "main"; Fo = "source/resources/snow/{0}vs.vso" }

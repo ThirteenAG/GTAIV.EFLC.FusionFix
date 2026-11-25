@@ -2607,8 +2607,12 @@ public:
             hdrScreens.push_back(AddPage(screen, "@ff.page.hdr", "MO_DEF", true, [] { return SettingValueText(ownPlugin, "HDR.HDR"); }));
         }
 
+        // Night Shadows: Ultra above Very High (nightshadows.ixx), where the shadow atlas is Fusion Fix's
+        AddMenuText("MO_ULTRA", [] { return OwnText("@MO_ULTRA"); });
         for (auto screen : { MenuScreen::Graphics, MenuScreen::TitleGraphics })
         {
+            if (!legacyExecutable)
+                SetOptionScaler(screen, "MO_SHADOWDEN", 5);
             RemoveOption(screen, "MO_DOF", "PREF_DOF");
             AddSetting(screen, "FRAMELIMIT.FpsLimitPreset", "MO_ANALYZER");
             AddSetting(screen, "MAIN.GraphicsAPI", "MO_ANALYZER");
