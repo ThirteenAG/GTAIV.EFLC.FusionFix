@@ -77,6 +77,10 @@ public:
     static inline HMODULE Module{};
     static inline uint32_t Width{};
     static inline uint32_t Height{};
+    // The size of the game's targets: the temporal targets are made for it once a temporal mode is chosen
+    static inline uint32_t TargetWidth{};
+    static inline uint32_t TargetHeight{};
+    static inline bool Pending{};
     static inline uint32_t HistoryIndex{};
     struct Target
     {
@@ -287,8 +291,24 @@ public:
         DepthFrame = ResolvedFrame = 0;
     }
 
+    static bool Chosen()
+    {
+        static auto aa = FusionFixSettings.GetRef("PREF_ANTIALIASING");
+        return aa && TemporalAA::IsTemporalAntialiasing(aa->get());
+    }
+
     static void CreateResources(uint32_t width, uint32_t height)
     {
+        TargetWidth = width;
+        TargetHeight = height;
+        // Without a temporal mode nothing is made and no draw is hooked: that waits for the first frame with one
+        Pending = !Chosen();
+        if (Pending)
+        {
+            if (DepthRT || StateBlock)
+                ReleaseResources();
+            return;
+        }
         if (DepthRT && Width == width && Height == height)
             return;
         ReleaseResources();
@@ -344,6 +364,7 @@ public:
     static inline std::vector<void*> EntityStack;
     static inline HRESULT(__stdcall* RealDraw)(IDirect3DDevice9*, D3DPRIMITIVETYPE, INT, UINT, UINT, UINT, UINT){};
     static inline void** HookedVTable{};
+    static inline bool Hooked{};
 
     static void InstallHooks()
     {
@@ -354,7 +375,30 @@ public:
             RealDraw = reinterpret_cast<decltype(RealDraw)>(vtable[82]);
             injector::WriteMemory(&vtable[82], &DrawIndexedPrimitive, true);
             HookedVTable = vtable;
+            Hooked = true;
         }
+    }
+
+    // End of a frame, render thread: the targets are made when a temporal mode gets chosen and released when it's
+    // switched off, and draws go straight to the device again (unless something hooked the draw after us)
+    static void UpdateResources()
+    {
+        if (Chosen())
+        {
+            if (Pending)
+                CreateResources(TargetWidth, TargetHeight);
+            return;
+        }
+        if (!DepthRT && !StateBlock && !Hooked)
+            return;
+        ReleaseResources();
+        Pending = true;
+        if (Hooked && HookedVTable[82] == reinterpret_cast<void*>(&DrawIndexedPrimitive))
+        {
+            injector::WriteMemory(&HookedVTable[82], RealDraw, true);
+            HookedVTable = nullptr;
+        }
+        Hooked = false;
     }
 
     static void UploadBones()
@@ -482,6 +526,13 @@ public:
 
     static void OnSceneBegin()
     {
+        if (!Ready)
+        {
+            // Starts the hub, so the menu can offer DLAA and FSR
+            Antialiasing::detail::TheUpscaler().Update(RealDevice());
+            LastMode = Mode::Off;
+            return;
+        }
         auto viewport = rage::GetCurrentViewport();
         StencilRT = rage::grcTextureFactoryPC::GetRTByName("_STENCIL_BUFFER_");
         if (!viewport || !Ready || !StencilRT || !StencilRT->mD3DTexture)
@@ -892,6 +943,7 @@ public:
             FusionFix::onGameProcessEvent() += refresh;
             FusionFix::onMenuDrawingEvent() += refresh;
             FusionFix::onShutdownEvent() += []() { Antialiasing::detail::TheUpscaler().Shutdown(); };
+            FusionFix::onEndScene() += UpdateResources;
             CRenderPhaseDeferredLighting_SceneToGBuffer::OnBuildRenderList() += []()
             {
                 bBuildingSceneList = IsCameraScene();

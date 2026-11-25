@@ -33,6 +33,7 @@ namespace GTAIVOverlay
         using GetPad = DWORD(WINAPI*)(DWORD, XINPUT_STATE*);
         std::atomic<GetPad> getPad = nullptr;
         std::atomic<DWORD> activePad = 0;
+        std::atomic<bool> padConnected = false;
         void FeedPad(const XINPUT_GAMEPAD& pad);
         decltype(&GetProcAddress) resolveProc = GetProcAddress;
         decltype(&GetKeyboardState) keyboardState = GetKeyboardState;
@@ -106,6 +107,11 @@ namespace GTAIVOverlay
         {
             auto original = getPad.load();
             auto result = original ? original(index, state) : ERROR_DEVICE_NOT_CONNECTED;
+            if (result == ERROR_SUCCESS && !padConnected)
+            {
+                activePad = index;
+                padConnected = true;
+            }
             if (result == ERROR_SUCCESS && state && index == activePad) FeedPad(state->Gamepad);
             if (result == ERROR_SUCCESS && state && BlocksInput()) state->Gamepad = {};
             return result;
@@ -162,8 +168,27 @@ namespace GTAIVOverlay
                 if (auto module = GetModuleHandleW(L"xinput1_3.dll"))
                     getPad = original = reinterpret_cast<GetPad>(GetProcAddress(module, "XInputGetState"));
             }
+            // Asking an empty slot searches for a device (about 0.15 ms): ask the pad in use each frame, and while none is
+            // connected one slot a second (the game's own reads of a connected pad find it sooner)
+            static DWORD nextSlot = 0, lastSearch = 0;
             XINPUT_STATE state{};
-            if (original) for (DWORD i = 0; i < 4; ++i) if (original(i, &state) == ERROR_SUCCESS) { activePad = i; break; }
+            if (original && padConnected && original(activePad, &state) != ERROR_SUCCESS)
+            {
+                padConnected = false;
+                state = {};
+            }
+            if (original && !padConnected && GetTickCount() - lastSearch >= 1000)
+            {
+                lastSearch = GetTickCount();
+                if (original(nextSlot, &state) == ERROR_SUCCESS)
+                {
+                    activePad = nextSlot;
+                    padConnected = true;
+                }
+                else
+                    state = {};
+                nextSlot = (nextSlot + 1) % 4;
+            }
             FeedPad(state.Gamepad);
         }
     }

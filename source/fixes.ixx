@@ -600,7 +600,7 @@ namespace FixtureLights
         bool processed;
     };
     std::vector<Fixture> fixtures; // Sorted by entity
-    uint32_t lastSearch = 0;
+    int32_t searchPosition = 0;
 
     float* pCameraPosition = nullptr;
 
@@ -612,24 +612,54 @@ namespace FixtureLights
         return dx * dx + dy * dy + dz * dz < SearchRange * SearchRange;
     }
 
-    // Lampposts are objects, or dummy objects before they become objects; other fixtures are part of the map
+    // Lampposts are objects, or dummy objects before they become objects; other fixtures are part of the map. The pools
+    // hold tens of thousands of slots: each frame searches the next part of them, all of them every SearchFrames frames
     void Search()
     {
-        fixtures.clear();
-        for (auto pool : { CObject::GetObjectsPool(), *EntityLights::pDummyPool, *EntityLights::pBuildingPool })
+        rage::fwPool<void*>* pools[] = { CObject::GetObjectsPool(), *EntityLights::pDummyPool, *EntityLights::pBuildingPool };
+        int32_t total = 0;
+        for (auto pool : pools)
+            total += pool ? pool->GetSize() : 0;
+        if (searchPosition >= total)
+            searchPosition = 0;
+        auto end = std::min(total, searchPosition + (total + int32_t(SearchFrames) - 1) / int32_t(SearchFrames));
+
+        // The part's earlier results, and those of pools that are gone
+        std::erase_if(fixtures, [&](const Fixture& fixture)
         {
-            for (int32_t i = 0; pool && i < pool->GetSize(); i++)
+            int32_t start = 0;
+            for (auto pool : pools)
+            {
+                if (fixture.pool == pool)
+                    return start + fixture.index >= searchPosition && start + fixture.index < end;
+                start += pool ? pool->GetSize() : 0;
+            }
+            return true;
+        });
+
+        bool found = false;
+        int32_t start = 0;
+        for (auto pool : pools)
+        {
+            auto size = pool ? pool->GetSize() : 0;
+            for (auto i = std::max(searchPosition - start, 0); i < size && start + i < end; i++)
             {
                 auto entity = (uintptr_t)pool->GetSlot(i);
                 if (entity && IsNear(entity))
                 {
                     auto modelInfo = EntityLights::ModelInfo(entity);
                     if (modelInfo && EntityLights::CBaseModelInfo__GetNum2dEffects((void*)modelInfo) > 0)
+                    {
                         fixtures.push_back({ pool, i, entity, false });
+                        found = true;
+                    }
                 }
             }
+            start += size;
         }
-        std::sort(fixtures.begin(), fixtures.end(), [](const Fixture& a, const Fixture& b) { return a.entity < b.entity; });
+        searchPosition = end;
+        if (found)
+            std::sort(fixtures.begin(), fixtures.end(), [](const Fixture& a, const Fixture& b) { return a.entity < b.entity; });
     }
 
     void NoteProcessed(uintptr_t entity)
@@ -656,12 +686,7 @@ namespace FixtureLights
                 Process(fixture.entity);
             fixture.processed = false;
         }
-
-        if (*CTimer::m_frameCount - lastSearch >= SearchFrames)
-        {
-            lastSearch = *CTimer::m_frameCount;
-            Search();
-        }
+        Search();
     }
 }
 
