@@ -12,43 +12,77 @@ namespace CascadeBounds
 {
     // Prepare the native cascade splits, matrices and clipping data before scanning; drawing reuses the same result.
     void (__cdecl* PrepareNativeBounds)() = nullptr;
+    uintptr_t (__cdecl* GetNativeBounds)() = nullptr;
     uint32_t* pUpdateBufferIndex = nullptr;
     uintptr_t pCascadeState = 0;
     std::atomic<uintptr_t> PreparedPhase = 0;
     std::atomic<uintptr_t> PreparedBounds = 0;
     std::atomic<uint32_t> PreparedFrame = 0;
 
-    bool IsPrepared(uintptr_t phase)
+    uintptr_t GetPreparedBounds(uintptr_t phase)
     {
-        return PreparedFrame.load(std::memory_order_acquire) == *CTimer::m_frameCount
-            && PreparedPhase.load(std::memory_order_relaxed) == phase && *pUpdateBufferIndex < 2
-            && PreparedBounds.load(std::memory_order_relaxed) == pCascadeState + 0x270 * *pUpdateBufferIndex + 0x1A0;
+        if (PreparedFrame.load(std::memory_order_acquire) != *CTimer::m_frameCount
+            || PreparedPhase.load(std::memory_order_relaxed) != phase)
+            return 0;
+
+        auto bank = *pUpdateBufferIndex;
+        auto bounds = PreparedBounds.load(std::memory_order_relaxed);
+        return bank < 2 && bounds == pCascadeState + 0x270 * bank + 0x1A0 ? bounds : 0;
+    }
+
+    uintptr_t __fastcall GetScanBounds(uintptr_t phase)
+    {
+        if (auto bounds = GetPreparedBounds(phase))
+            return bounds;
+        return GetNativeBounds();
+    }
+
+    // At the getter call in CRenderer::IsClipped, ESI holds the phase and EAX receives the bounds.
+    __declspec(naked) uintptr_t GetScanBoundsHook()
+    {
+        __asm
+        {
+            mov ecx, esi
+            jmp GetScanBounds
+        }
     }
 
     void Init()
     {
         auto scan = hook::pattern("6A 01 6A 01 56 8D 86 FC 08 00 00 50 8D 86 F8 08 00 00 50 8D 86 00 09 00 00 50 E8");
         auto draw = hook::pattern("E8 ? ? ? ? A1 ? ? ? ? 69 C0 70 02 00 00 05 ? ? ? ? 50 8D 4C 24 74 E8");
-        auto clip = hook::pattern("55 8B EC 83 E4 F0 83 EC 48 56 8B 75 0C 57 83 7E 3C 01 0F 85 ? ? ? ? E8 ? ? ? ? 80 3D");
-        auto clipOffset = 0x1D;
+        auto clip = hook::pattern("55 8B EC 83 E4 F0 83 EC 48 56 8B 75 0C 57 83 7E 3C 01 0F 85 ? ? ? ? E8 ? ? ? ? 80 3D ? ? ? ? 00 8B 75 08 8B F8");
+        auto callOffset = 0x18;
         if (scan.empty()) // 1.0.7.0, 1.0.8.0
         {
             scan = hook::pattern("6A 01 6A 01 56 8D 96 FC 08 00 00 52 8D 86 F8 08 00 00 50 8D 8E 00 09 00 00 51 E8");
-            clip = hook::pattern("55 8B EC 83 E4 F0 83 EC 44 53 56 8B 75 0C 83 7E 3C 01 57 0F 85 ? ? ? ? E8 ? ? ? ? 80 3D");
-            clipOffset = 0x1E;
+            clip = hook::pattern("55 8B EC 83 E4 F0 83 EC 44 53 56 8B 75 0C 83 7E 3C 01 57 0F 85 ? ? ? ? E8 ? ? ? ? 80 3D ? ? ? ? 00 8B 75 08 8B F8");
+            callOffset = 0x19;
         }
+        if (scan.size() != 1 || draw.size() != 1 || clip.size() != 1)
+            return;
 
+        auto getterCall = clip.get_first(callOffset);
+        injector::scoped_unprotect writable(getterCall, 5);
+        if (!writable.bUnprotected)
+            return;
+        GetNativeBounds = reinterpret_cast<decltype(GetNativeBounds)>(injector::GetBranchDestination(getterCall).as_int());
         PrepareNativeBounds = reinterpret_cast<decltype(PrepareNativeBounds)>(injector::GetBranchDestination(draw.get_first()).as_int());
         pUpdateBufferIndex = *draw.get_first<uint32_t*>(6);
         pCascadeState = *draw.get_first<uintptr_t>(17);
 
-        // CRenderer::IsClipped, after the cascade-bounds getter: ESI is the phase, EAX the TLS-selected bounds.
-        // Scan workers can select the render bank. Both sphere and box tests need the bank prepared for this scan.
-        static auto ClipHook = safetyhook::create_mid(clip.get_first(clipOffset), [](SafetyHookContext& regs)
+        // CRenderPhaseCascadeShadows::BuildDrawList: reuse the prepared state instead of advancing the splits twice.
+        static uintptr_t afterPrepare = uintptr_t(draw.get_first(5));
+        static auto DrawHook = safetyhook::create_mid(draw.get_first(), [](SafetyHookContext& regs)
         {
-            if (IsPrepared(regs.esi))
-                regs.eax = PreparedBounds.load(std::memory_order_relaxed);
+            if (GetPreparedBounds(regs.edi))
+                regs.eip = afterPrepare;
         });
+        if (!DrawHook)
+            return;
+
+        // Install both consumers before the scan can publish. Until then they use the native paths.
+        static injector::scoped_call GetterHook(getterCall, GetScanBoundsHook);
 
         // CRenderPhaseCascadeShadows::BuildRenderList, after the shadow/sun enablement checks, before caster scanning.
         static auto ScanHook = safetyhook::create_mid(scan.get_first(), [](SafetyHookContext& regs)
@@ -61,13 +95,11 @@ namespace CascadeBounds
             PreparedFrame.store(*CTimer::m_frameCount, std::memory_order_release);
         });
 
-        // CRenderPhaseCascadeShadows::BuildDrawList: reuse the prepared state instead of advancing the splits twice.
-        static uintptr_t afterPrepare = uintptr_t(draw.get_first(5));
-        static auto DrawHook = safetyhook::create_mid(draw.get_first(), [](SafetyHookContext& regs)
+        if (!ScanHook)
         {
-            if (IsPrepared(regs.edi))
-                regs.eip = afterPrepare;
-        });
+            GetterHook.restore();
+            DrawHook.reset();
+        }
     }
 }
 
