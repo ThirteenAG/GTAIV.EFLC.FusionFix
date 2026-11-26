@@ -667,6 +667,8 @@ public:
 
 
                         pDevice->SetPixelShaderConstantF(217, &arr9[0], 1);
+
+                        SetCascadeTileBounds(pDevice);
                     }
 
                     // Water reflection half-pixel offset

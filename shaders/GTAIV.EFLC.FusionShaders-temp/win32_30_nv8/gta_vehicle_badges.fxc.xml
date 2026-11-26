@@ -252,7 +252,7 @@
 			<Item>
 				<DataType>asm</DataType>
 				<File>gta_vehicle_badges\gta_vehicle_badgesPS2.asm</File>
-				<Variables value="52" >
+				<Variables value="53" >
 					<Item>
 						<Type>sampler</Type>
 						<Name>BumpSampler</Name>
@@ -469,6 +469,11 @@
 						<Index value="15" />
 					</Item>
 					<Item>
+						<Type>sampler</Type>
+						<Name>gShadowZSamplerDirRaw</Name>
+						<Index value="13" />
+					</Item>
+					<Item>
 						<Type>float4x4</Type>
 						<Name>gViewInverse</Name>
 						<Index value="12" />
@@ -518,7 +523,7 @@
 			<Item>
 				<DataType>asm</DataType>
 				<File>gta_vehicle_badges\gta_vehicle_badgesPS3.asm</File>
-				<Variables value="28" >
+				<Variables value="29" >
 					<Item>
 						<Type>sampler</Type>
 						<Name>BumpSampler</Name>
@@ -615,6 +620,11 @@
 						<Index value="15" />
 					</Item>
 					<Item>
+						<Type>sampler</Type>
+						<Name>gShadowZSamplerDirRaw</Name>
+						<Index value="13" />
+					</Item>
+					<Item>
 						<Type>float4x4</Type>
 						<Name>gViewInverse</Name>
 						<Index value="12" />
@@ -664,7 +674,7 @@
 			<Item>
 				<DataType>asm</DataType>
 				<File>gta_vehicle_badges\gta_vehicle_badgesPS4.asm</File>
-				<Variables value="40" >
+				<Variables value="41" >
 					<Item>
 						<Type>sampler</Type>
 						<Name>BumpSampler</Name>
@@ -821,6 +831,11 @@
 						<Index value="15" />
 					</Item>
 					<Item>
+						<Type>sampler</Type>
+						<Name>gShadowZSamplerDirRaw</Name>
+						<Index value="13" />
+					</Item>
+					<Item>
 						<Type>float4x4</Type>
 						<Name>gViewInverse</Name>
 						<Index value="12" />
@@ -961,7 +976,7 @@
 			</Item>
 		</PixelShaders>
 	</Shaders>
-	<GlobalVariables value="60" >
+	<GlobalVariables value="61" >
 		<Item>
 			<Type>float4</Type>
 			<ArrayCount value="64" />
@@ -1506,7 +1521,21 @@
 			<Values value="10" >
 			AddressU Clamp
 			AddressV Clamp
-			MipFilter Point
+			MipFilter None
+			MinFilter Linear
+			MagFilter Linear
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowZSamplerDirRaw</Name1>
+			<Name2>ShadowZTextureDirRaw</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Clamp
+			AddressV Clamp
+			MipFilter None
 			MinFilter Point
 			MagFilter Point
 		</Values>
