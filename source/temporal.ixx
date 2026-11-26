@@ -274,7 +274,7 @@ public:
             Antialiasing::detail::SafeRelease(target->Surface);
             if (target->Game)
             {
-                rage::grcTextureFactoryPC::RTCache.erase((*target)->mName);
+                rage::grcTextureFactoryPC::RemoveRTByName((*target)->mName);
                 (*target)->Destroy();
                 *target = {};
             }
