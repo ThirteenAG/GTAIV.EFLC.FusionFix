@@ -642,10 +642,10 @@ export namespace LoadingScreenWork
 // texture when it is first bound, on the render thread in the middle of the frame, as many as the frame happens to
 // need. Whatever comes into view for the first time, after a load, when the camera turns or on leaving an interior,
 // brings several hundred at once, and that frame takes 50 to 150 ms and more. They are made ahead instead, in the
-// order the streaming loads them: a limited number per frame while playing, all of them behind the loading screen of
-// the first game loaded, and as many as fit into a limited time behind the loading screens after it (what is left
-// goes on with the frames after it). What is drawn before its turn is still made on the spot, as the game does, so
-// nothing is ever missing.
+// order the streaming loads them: a limited number per frame while playing, and behind a loading screen as many as fit
+// into each of its frames, for the whole loading screen of the first game loaded and for a limited time of those after
+// it (what is left goes on with the frames after it). What is drawn before its turn is still made on the spot, as the
+// game does, so nothing is ever missing.
 namespace EarlyUploads
 {
     constexpr uint32_t nFrameUploads = 16;      // Per frame while little is waiting
@@ -664,26 +664,30 @@ namespace EarlyUploads
 
     // What the streaming has loaded and nothing has drawn or changed yet. A buffer or texture leaves when it is
     // destroyed or locked for writing, under the lock an upload holds: it stays alive and unchanged while it is made.
+    // The list has a lock of its own, so the streaming adds to it while an upload waits for the driver.
     SRWLOCK Lock = SRWLOCK_INIT;
+    SRWLOCK ListLock = SRWLOCK_INIT;    // Taken after Lock
     std::deque<Upload> Queue;
     std::unordered_map<uintptr_t, Kind> Waiting;    // By address, with its kind: a freed one's address can come back as another kind
 
     void Add(uintptr_t resource, Kind kind)
     {
-        AcquireSRWLockExclusive(&Lock);
+        AcquireSRWLockExclusive(&ListLock);
         if (auto waiting = Waiting.find(resource); waiting == Waiting.end() || waiting->second != kind)
         {
             Waiting[resource] = kind;
             Queue.push_back({ resource, kind });
         }
-        ReleaseSRWLockExclusive(&Lock);
+        ReleaseSRWLockExclusive(&ListLock);
         LoadingScreenWork::nResourcesLoaded++;
     }
 
     void Forget(uintptr_t resource)
     {
         AcquireSRWLockExclusive(&Lock);
+        AcquireSRWLockExclusive(&ListLock);
         Waiting.erase(resource);
+        ReleaseSRWLockExclusive(&ListLock);
         ReleaseSRWLockExclusive(&Lock);
     }
 
@@ -873,52 +877,60 @@ namespace EarlyUploads
             bFirstGame = false;
         bLoading = loading;
 
-        // As much as the time allows behind a loading screen, and after a device reset, when all of it has to be made
-        // again
-        auto all = loading && nLoadingTicksLeft > 0;
-        auto everything = loading && bFirstGame;
+        // As much as a frame's time allows behind a loading screen (for the whole of the first game's, for a limited
+        // time of the later ones), and after a device reset, when all of it has to be made again. Every frame stays
+        // short, so the loading screen keeps being shown
+        auto all = loading && (bFirstGame || nLoadingTicksLeft > 0);
         if (nUnlimitedFrames)
         {
             nUnlimitedFrames--;
             all = true;
         }
 
-        auto uploads = all || everything ? nReady : std::min(nReady, std::max<size_t>(nFrameUploads, nReady / nCatchUpFrames));
-        auto limit = everything ? INT64_MAX : all ? static_cast<int64_t>(fLoadingFrameMs * nTicksPerMs) : static_cast<int64_t>(uploads * nUploadTicks);
+        auto uploads = all ? nReady : std::min(nReady, std::max<size_t>(nFrameUploads, nReady / nCatchUpFrames));
+        auto limit = all ? static_cast<int64_t>(fLoadingFrameMs * nTicksPerMs) : static_cast<int64_t>(uploads * nUploadTicks);
         for (size_t made = 0; made < uploads; made++)
         {
             if (made && Now() - start >= limit)
                 break;
 
             AcquireSRWLockExclusive(&Lock);
+            AcquireSRWLockExclusive(&ListLock);
+            auto next = false;
+            Upload upload{};
             if (!Queue.empty())
             {
-                auto upload = Queue.front();
+                upload = Queue.front();
                 Queue.pop_front();
                 if (auto waiting = Waiting.find(upload.nResource); waiting != Waiting.end() && waiting->second == upload.kind)
                 {
                     Waiting.erase(waiting);
-                    IUnknown* made = nullptr;
-                    switch (upload.kind)
-                    {
-                        case Kind::VertexBuffer:
-                            MakeVertexBuffer(upload.nResource);
-                            made = *reinterpret_cast<IUnknown**>(upload.nResource + 0x1C);
-                            break;
-                        case Kind::IndexBuffer:
-                            MakeIndexBuffer(upload.nResource);
-                            made = *reinterpret_cast<IUnknown**>(upload.nResource + 0x0C);
-                            break;
-                        case Kind::Texture:
-                            MakeTexture(upload.nResource);
-                            made = *reinterpret_cast<IUnknown**>(upload.nResource + 0x18);
-                            break;
-                    }
-                    if (made)
-                    {
-                        made->AddRef();
-                        Made.push_back({ made, upload.kind });
-                    }
+                    next = true;
+                }
+            }
+            ReleaseSRWLockExclusive(&ListLock);
+            if (next)
+            {
+                IUnknown* made = nullptr;
+                switch (upload.kind)
+                {
+                    case Kind::VertexBuffer:
+                        MakeVertexBuffer(upload.nResource);
+                        made = *reinterpret_cast<IUnknown**>(upload.nResource + 0x1C);
+                        break;
+                    case Kind::IndexBuffer:
+                        MakeIndexBuffer(upload.nResource);
+                        made = *reinterpret_cast<IUnknown**>(upload.nResource + 0x0C);
+                        break;
+                    case Kind::Texture:
+                        MakeTexture(upload.nResource);
+                        made = *reinterpret_cast<IUnknown**>(upload.nResource + 0x18);
+                        break;
+                }
+                if (made)
+                {
+                    made->AddRef();
+                    Made.push_back({ made, upload.kind });
                 }
             }
             ReleaseSRWLockExclusive(&Lock);
@@ -928,9 +940,9 @@ namespace EarlyUploads
         if (loading)
             nLoadingTicksLeft -= Now() - start;
 
-        AcquireSRWLockShared(&Lock);
+        AcquireSRWLockShared(&ListLock);
         nReady = Queue.size();
-        ReleaseSRWLockShared(&Lock);
+        ReleaseSRWLockShared(&ListLock);
     }
 }
 

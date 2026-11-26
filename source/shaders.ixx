@@ -53,14 +53,21 @@ int GetFusionShaderID(T pShader)
 // The graphics driver compiles a pair of vertex and pixel shader the first time something is drawn with it, on its
 // own thread, and the frame waits for it: 20 to 90 ms whenever a material comes into view for the first time since
 // the game was started. The passes of the effects are drawn once with a triangle of no size behind the loading screen
-// of a game being loaded: all of them for the first game loaded, so nothing is left to compile while playing, and for
-// effects loaded later a few per frame and for a limited time (what is left waits for the next loading screen). The
-// effects of the models the streaming has loaded go first, in the order they were loaded.
+// of a game being loaded: for the first game loaded for as long as it is shown, so nothing is left to compile while
+// playing, and for effects loaded later a few at a time and for a limited time (what is left waits for the next loading
+// screen). The driver compiles them after the draws, and whatever waits for the driver next (a texture lock, the
+// present) waits for all of them: a batch of pairs is drawn only once the driver has finished the one before, so the
+// loading screen keeps being shown and the game keeps loading. The first game's batches grow while the driver keeps up
+// within a frame and shrink when it doesn't. The effects of the models the streaming has loaded go first, in the order
+// they were loaded.
 namespace ShaderWarmUp
 {
     constexpr uint32_t nFramePairs = 24;            // Per frame of the loading screen
     constexpr uint32_t nLoadingScreenPairs = 600;   // Per loading screen
     constexpr double fLoadingScreenMs = 1500.0;     // What one loading screen is held up by at most
+    constexpr double fLoadingFrameMs = 30.0;        // One frame of the loading screen at most
+    constexpr uint32_t nFirstBatchPairs = 8;        // The first game's batches start this big and adapt
+    constexpr uint32_t nMaxBatchPairs = 512;
 
     struct Pair
     {
@@ -182,6 +189,34 @@ namespace ShaderWarmUp
     bool bDrewLastFrame = false;
     bool bFirstGame = true;
 
+    // The end of the batch drawn last, while the driver works on it
+    IDirect3DQuery9* pBatchDone = nullptr;
+    bool bBatchPending = false;
+    int64_t nBatchStart = 0;
+    uint32_t nBatchPairs = nFirstBatchPairs;
+
+    void Release()
+    {
+        if (pBatchDone)
+            pBatchDone->Release();
+        pBatchDone = nullptr;
+        bBatchPending = false;
+    }
+
+    // The driver has finished the last batch: then the time it took sets the size of the next one, for about a frame's
+    // time of the loading screen (no more than twice as many as before)
+    bool BatchDone(int64_t now, int64_t frequency)
+    {
+        if (!bBatchPending)
+            return true;
+        if (pBatchDone->GetData(nullptr, 0, 0) == S_FALSE)
+            return false;
+        bBatchPending = false;
+        auto ms = std::max((now - nBatchStart) * 1000.0 / frequency, 1.0);
+        nBatchPairs = std::clamp(static_cast<uint32_t>(nBatchPairs * std::min(fLoadingFrameMs / ms, 2.0)), 1u, nMaxBatchPairs);
+        return true;
+    }
+
     void Draw()
     {
         LARGE_INTEGER now{}, frequency{};
@@ -194,7 +229,7 @@ namespace ShaderWarmUp
             nPairsLeft = nLoadingScreenPairs;
             nLoadedBefore = LoadingScreenWork::nResourcesLoaded;
         }
-        else if (loading && bDrewLastFrame)
+        else if (loading && (bDrewLastFrame || bBatchPending))
             nTicksLeft -= now.QuadPart - nLastFrame;
         else if (!loading && bLoading && LoadingScreenWork::nResourcesLoaded - nLoadedBefore >= LoadingScreenWork::nGameResources)
             bFirstGame = false;
@@ -207,12 +242,16 @@ namespace ShaderWarmUp
             return;
         if (!bFirstGame && (nTicksLeft <= 0 || !nPairsLeft))
             return;
+        if (!BatchDone(now.QuadPart, frequency.QuadPart))
+            return;
 
         Pair pair{};
         if (!Next(pair))
             return;
 
         auto device = rage::grcDevice::GetD3DDevice();
+        if (!pBatchDone)
+            device->CreateQuery(D3DQUERYTYPE_EVENT, &pBatchDone);
         IDirect3DVertexShader9* vertexShader = nullptr;
         IDirect3DPixelShader9* pixelShader = nullptr;
         IDirect3DVertexDeclaration9* declaration = nullptr;
@@ -234,10 +273,21 @@ namespace ShaderWarmUp
             pair.pPixelShader->Release();
             if (nPairsLeft)
                 nPairsLeft--;
-            if ((!bFirstGame && (++i >= nFramePairs || !nPairsLeft)) || !Next(pair))
+            if (++i >= (bFirstGame ? nBatchPairs : nFramePairs) || (!bFirstGame && !nPairsLeft))
+                break;
+            LARGE_INTEGER drawn{};
+            QueryPerformanceCounter(&drawn);
+            if (drawn.QuadPart - now.QuadPart >= static_cast<int64_t>(fLoadingFrameMs * frequency.QuadPart / 1000.0))
+                break;
+            if (!Next(pair))
                 break;
         }
         bDrewLastFrame = true;
+        if (pBatchDone && SUCCEEDED(pBatchDone->Issue(D3DISSUE_END)))
+        {
+            bBatchPending = true;
+            nBatchStart = now.QuadPart;
+        }
 
         device->SetVertexDeclaration(declaration);
         device->SetStreamSource(0, stream, offset, stride);
@@ -354,6 +404,11 @@ public:
                 FusionFix::onEndScene() += []()
                 {
                     ShaderWarmUp::Draw();
+                };
+
+                FusionFix::onBeforeReset() += []()
+                {
+                    ShaderWarmUp::Release();
                 };
             }
         };
