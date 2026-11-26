@@ -255,67 +255,22 @@ public:
                 pattern = find_pattern("BA ? ? ? ? 84 C0 0F 45 CA 8B 15", "40 05 00 00 00 8B 0D ? ? ? ? 8B 11 8B 52 38 8D 74 24 14 56 50 A1");
                 injector::WriteMemory(pattern.get_first(1), rage::getEngineTextureFormat(D3DFMT_A8R8G8B8), true);
 
-                // 1.2.0.32, 1.2.0.43, 1.2.0.59: the cascades render straight into the atlas (below)
-                auto createCascadeTargets = hook::pattern("83 EC ? 53 8B 5C 24 ? 56 8B 74 24 ? 57 8B 7C 24 ? 39 35");
-                bool bCascadesInAtlas = !createCascadeTargets.empty();
+                // 1.2.0.32, 1.2.0.43, 1.2.0.59 or 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0: the code that differs between them
+                bool bCE = !hook::pattern("83 EC ? 53 8B 5C 24 ? 56 8B 74 24 ? 57 8B 7C 24 ? 39 35").empty();
 
-                if (bCascadesInAtlas)
+                // The cascade targets were twice the tile size, to be downsampled into the atlas; the cascades render
+                // straight into the atlas now (below)
+                pattern = hook::pattern(bCE ? "03 F6 E8 ? ? ? ? 8B 0D ? ? ? ? 8D 54 24 0C" : "03 F6 E8 ? ? ? ? 8B 0D ? ? ? ? 8D 44 24 0C");
+                injector::MakeNOP(pattern.get_first(0), 2, true);
+
+                if (bHighResolutionShadows)
                 {
-                    // The cascade targets were twice the tile size, to be downsampled into the atlas
-                    pattern = find_pattern("03 F6 E8 ? ? ? ? 8B 0D ? ? ? ? 8D 54 24 0C");
-                    injector::MakeNOP(pattern.get_first(0), 2, true);
-
-                    if (bHighResolutionShadows)
+                    // Tile size argument of CWarpShadow::CreateRenderTargets
+                    pattern = hook::pattern(bCE ? "83 EC ? 53 8B 5C 24 ? 56 8B 74 24 ? 57 8B 7C 24 ? 39 35" : "83 EC 30 53 8B 5C 24 ? 56 8B 74 24 ? 39 35 ? ? ? ? 57 8B 7C 24 ? 75");
+                    static auto DoubleCascadeTileSize = safetyhook::create_mid(pattern.get_first(13), [](SafetyHookContext& regs)
                     {
-                        // Tile size argument of CWarpShadow::CreateRenderTargets
-                        static auto DoubleCascadeTileSize = safetyhook::create_mid(createCascadeTargets.get_first(13), [](SafetyHookContext& regs)
-                        {
-                            regs.esi *= 2;
-                        });
-                    }
-                }
-                else if (bHighResolutionShadows) // 1.0.7.0, 1.0.8.0, 1.1.2.0, 1.1.3.0
-                {
-                    pattern = hook::pattern("8D 4F 40 51 89 4C 24 24 8B 4F 10 51 8B 4F 24 51 8B 4F 0C 51 8B 4F 20 E9");
-                    if (!pattern.empty()) // 1.0.8.0, 1.1.3.0
-                    {
-                        static auto FixCascadedShadowMapResolution = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                        {
-                            auto& Width  = *(uint32_t*)(regs.edi + 0x14);
-                            auto& Height = *(uint32_t*)(regs.edi + 0x18);
-                            auto& Levels = *(uint32_t*)(regs.edi + 0x20);
-                            auto& Format = *(uint32_t*)(regs.edi + 0x24);
-
-                            if (D3DFORMAT(Format) == NewCascadeAtlasFormat && Height >= 256 && Width == Height * 4 && Levels == 1)
-                            {
-                                Width  *= 2;
-                                Height *= 2;
-                            }
-                        });
-                    }
-                    else // 1.0.7.0, 1.1.2.0: grcRenderTargetPC::initialize creates the texture itself
-                    {
-                        pattern = hook::pattern("8B 52 5C 6A 00 8D 5E 34 53 6A 00 57 51 8B 4E 48 51 0F B7 4E 3E 51 0F B7 4E 3C 51 50 FF D2");
-                        static auto FixCascadedShadowMapResolution = safetyhook::create_mid(pattern.get_first(3), [](SafetyHookContext& regs)
-                        {
-                            auto& Width  = *(uint16_t*)(regs.esi + 0x3C);
-                            auto& Height = *(uint16_t*)(regs.esi + 0x3E);
-                            auto Levels = *(uint32_t*)(regs.esi + 0x48);
-                            auto Format = regs.edi;
-
-                            if (D3DFORMAT(Format) == NewCascadeAtlasFormat && Height >= 256 && Width == Height * 4 && Levels == 1)
-                            {
-                                Width  *= 2;
-                                Height *= 2;
-                            }
-                        });
-                    }
-                }
-                else
-                {
-                    // Remove code that doubled shadow cascade resolution
-                    pattern = hook::pattern("03 F6 E8 ? ? ? ? 8B 0D ? ? ? ? 8D 44 24 0C");
-                    injector::MakeNOP(pattern.get_first(0), 2, true);
+                        regs.esi *= 2;
+                    });
                 }
 
                 // Override cascade ranges
@@ -377,27 +332,28 @@ public:
 
                 // Render each cascade straight into its atlas tile with a sampleable depth buffer: the shaders compare
                 // depth in hardware (bilinear PCF), the raw depth colour target is only kept for CHSS's blocker search
-                if (bCascadesInAtlas)
                 {
                     pattern = find_pattern("89 35 ? ? ? ? 6A ? 8D 4C 24");
                     static int& shadowRes = **pattern.get_first<int*>(2); // tile size, the atlas is 4 tiles wide
 
                     // Copy of the cascade target into the atlas, not needed anymore
-                    pattern = find_pattern("83 EC ? 56 8B 35 ? ? ? ? 57 89 74 24");
+                    pattern = hook::pattern(bCE ? "83 EC ? 56 8B 35 ? ? ? ? 57 89 74 24" : "83 EC 34 53 55 56 8B 35 ? ? ? ? 57 E8");
                     injector::MakeRET(pattern.get_first());
 
                     // Shadow texel size from the tile, not from the old cascade target
-                    pattern = find_pattern("FF D0 F3 0F 10 0D ? ? ? ? 8B 7C 24");
-                    injector::MakeNOP(pattern.get_first(), 2);
-                    static auto getShadowWidthHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                    pattern = hook::pattern(bCE ? "FF D0 F3 0F 10 0D ? ? ? ? 8B 7C 24" : "8B 42 ? 0F 28 C1 F3 0F 5E C2 F3 0F 2A 15 ? ? ? ? F3 0F 11 44 24 ? 0F 28 C1 F3 0F 5E C2 F3 0F 11 44 24 ? FF D0");
+                    auto getShadowWidth = pattern.get_first(bCE ? 0 : 0x25);
+                    injector::MakeNOP(getShadowWidth, 2);
+                    static auto getShadowWidthHook = safetyhook::create_mid(getShadowWidth, [](SafetyHookContext& regs)
                     {
                         regs.eax = shadowRes;
                     });
 
-                    pattern = find_pattern("68 ? ? ? ? FF 50 ? A3 ? ? ? ? 5F");
+                    pattern = hook::pattern(bCE ? "68 ? ? ? ? FF 50 ? A3 ? ? ? ? 5F" : "68 ? ? ? ? FF D2 A3 ? ? ? ? 5F 5E 5B");
                     static auto changeAtlasFormatHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                     {
-                        auto atlasTexDesc = (rage::grcRenderTargetDesc*)regs.edx;
+                        // CreateRenderTarget arguments: 3, width, height, 32, desc
+                        auto atlasTexDesc = *(rage::grcRenderTargetDesc**)(regs.esp + 0x10);
                         atlasTexDesc->mFormat = rage::GRCFMT_D24S8;
                     });
 
@@ -405,11 +361,11 @@ public:
                     pCascadeAtlas = *pattern.get_first<rage::grcRenderTargetPC**>(1);
 
                     // The atlas is the depth target of the cascade pass
-                    pattern = find_pattern("FF 35 ? ? ? ? 8B C8 FF 35 ? ? ? ? 6A ? E8 ? ? ? ? EB ? 33 C0 50 E8 ? ? ? ? 68");
+                    pattern = hook::pattern(bCE ? "FF 35 ? ? ? ? 8B C8 FF 35 ? ? ? ? 6A ? E8 ? ? ? ? EB ? 33 C0 50 E8 ? ? ? ? 68" : "8B 15 ? ? ? ? 8B 0D ? ? ? ? 53 52 51 53 8B C8 E8 ? ? ? ? EB ? 33 C0 8B C8 E8 ? ? ? ? 68 ? ? ? ? E8 ? ? ? ? 8B 97 38 09 00 00");
                     injector::WriteMemory(pattern.get_first(2), pCascadeAtlas, true);
 
                     // CASCADE_TARGET_R32, the colour target, is as large as the atlas
-                    pattern = find_pattern("56 A3 ? ? ? ? C6 44 24");
+                    pattern = hook::pattern(bCE ? "56 A3 ? ? ? ? C6 44 24" : "56 A3 ? ? ? ? 88 5C 24 ? C7 44 24");
                     static auto atlasWidthHook1 = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                     {
                         regs.esi *= 4;
@@ -419,23 +375,38 @@ public:
                         regs.esi /= 4;
                     });
 
-                    pattern = find_pattern("83 EC ? 8B 44 24 ? 8B 54 24 ? 56");
-                    static auto rage__grcViewport__SetNormWindow = pattern.get_first<void __thiscall(rage::grcViewport* _this, int x, int y, int width, int height, float minZ, float maxZ)>();
+                    pattern = hook::pattern(bCE ? "83 EC ? 8B 44 24 ? 8B 54 24 ? 56" : "83 EC 0C 8B 44 24 1C 53 8B 5C 24 14 85 DB 55");
+                    static auto rage__grcViewport__SetWindow = pattern.get_first<void __thiscall(rage::grcViewport* _this, int x, int y, int width, int height, float minZ, float maxZ)>();
 
-                    pattern = find_pattern("53 56 57 8B 7C 24 ? FF 74 24");
-                    static auto CBaseDC__operator_new = pattern.get_first<void*(int size, int unk)>();
+                    // The display list commands that set the viewport
+                    static void* (*CBaseDC__operator_new)(int size, int unk);
+                    static void* (__thiscall* CSetCurrentViewportDC__ctor)(void* _this, rage::grcViewport* viewport);
+                    static void (*CBaseDC__Execute)(void* dc);
+                    static void (__fastcall* CBaseDC__ExecuteLegacy)(void* dc);
+                    static DWORD (__thiscall* rage__grcViewport__SetCameraMatrix)(rage::grcViewport* _this, void* cameraMtx);
+                    static DWORD (__thiscall* rage__grcViewport__SetProjectionMatrix)(rage::grcViewport* _this, void* projMtx);
+                    static int viewportStackOffset;
 
-                    pattern = find_pattern("56 8B F1 57 8B 46 ? C7 06 ? ? ? ? 33 05");
-                    static auto CSetCurrentViewportDC__ctor = pattern.get_first<void* __thiscall(void* _this, rage::grcViewport* viewport)>();
-
-                    pattern = find_pattern("56 57 8B 7C 24 ? 8B CF 8B 07 FF 50");
-                    static auto CBaseDC__Execute = pattern.get_first<void(void*)>();
-
-                    pattern = find_pattern("55 8B EC 83 E4 ? 83 EC ? 56 8B 75 ? 57 8B 06 8B F9 56");
-                    static auto rage__grcViewport__SetCameraMatrix = pattern.get_first<DWORD __thiscall(rage::grcViewport* _this, void* cameraMtx)>();
-
-                    pattern = find_pattern("56 FF 74 24 ? 8B F1 8D 8E ? ? ? ? C6 86");
-                    static auto rage__grcViewport__SetProjectionMatrix = pattern.get_first<DWORD __thiscall(rage::grcViewport* _this, void* projMtx)>();
+                    if (bCE)
+                    {
+                        CBaseDC__operator_new = hook::pattern("53 56 57 8B 7C 24 ? FF 74 24").get_first<void*(int, int)>();
+                        CSetCurrentViewportDC__ctor = hook::pattern("56 8B F1 57 8B 46 ? C7 06 ? ? ? ? 33 05").get_first<void* __thiscall(void*, rage::grcViewport*)>();
+                        CBaseDC__Execute = hook::pattern("56 57 8B 7C 24 ? 8B CF 8B 07 FF 50").get_first<void(void*)>();
+                        rage__grcViewport__SetCameraMatrix = hook::pattern("55 8B EC 83 E4 ? 83 EC ? 56 8B 75 ? 57 8B 06 8B F9 56").get_first<DWORD __thiscall(rage::grcViewport*, void*)>();
+                        rage__grcViewport__SetProjectionMatrix = hook::pattern("56 FF 74 24 ? 8B F1 8D 8E ? ? ? ? C6 86").get_first<DWORD __thiscall(rage::grcViewport*, void*)>();
+                        viewportStackOffset = 8; // the hook is after two pushes
+                    }
+                    else
+                    {
+                        // CRenderer::ScanWorldShadowMap: viewport camera and projection, then a CSetCurrentViewportDC
+                        pattern = hook::pattern("8D 44 24 ? 50 8D 8C 24 ? ? ? ? E8 ? ? ? ? 8B CE C1 E1 06 8D 94 0C ? ? ? ? 52 8D 8C 24 ? ? ? ? E8 ? ? ? ? 53 68 10 04 00 00 E8 ? ? ? ? 83 C4 08 3B C3 74 ? 8D 8C 24 ? ? ? ? 51 8B C8 E8 ? ? ? ? EB ? 33 C0 8B C8 E8");
+                        rage__grcViewport__SetCameraMatrix = injector::GetBranchDestination(pattern.get_first(0x0C)).get<DWORD __thiscall(rage::grcViewport*, void*)>();
+                        rage__grcViewport__SetProjectionMatrix = injector::GetBranchDestination(pattern.get_first(0x25)).get<DWORD __thiscall(rage::grcViewport*, void*)>();
+                        CBaseDC__operator_new = injector::GetBranchDestination(pattern.get_first(0x30)).get<void*(int, int)>();
+                        CSetCurrentViewportDC__ctor = injector::GetBranchDestination(pattern.get_first(0x46)).get<void* __thiscall(void*, rage::grcViewport*)>();
+                        CBaseDC__ExecuteLegacy = injector::GetBranchDestination(pattern.get_first(0x51)).get<void __fastcall(void*)>();
+                        viewportStackOffset = 0;
+                    }
 
                     struct CCascadedShadow_obj1
                     {
@@ -453,44 +424,59 @@ public:
                     };
 
                     // CRenderer::ScanWorldShadowMap, after the cascade's render targets are set: viewport on its tile
-                    pattern = find_pattern("E8 ? ? ? ? 6A ? 6A ? FF B7 ? ? ? ? E8 ? ? ? ? 6A ? 6A ? C7 44 24");
+                    pattern = hook::pattern(bCE ? "E8 ? ? ? ? 6A ? 6A ? FF B7 ? ? ? ? E8 ? ? ? ? 6A ? 6A ? C7 44 24" : "68 ? ? ? ? E8 ? ? ? ? 8B 97 38 09 00 00");
                     static auto viewportHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                     {
-                        // Locals of the function, one argument pushed
-                        auto* vp = (rage::grcViewport*)(regs.esp + 0x6E0 - 0x400 + 0x8);
-                        auto* cascadedShadowObj = (CCascadedShadow_obj1*)(regs.esp + 0x70 + 0x8);
+                        // Locals of the function: its viewport and the cascades' matrices
+                        auto* vp = (rage::grcViewport*)(regs.esp + viewportStackOffset + 0x2E0);
+                        auto* cascadedShadowObj = (CCascadedShadow_obj1*)(regs.esp + viewportStackOffset + 0x70);
                         int cascadeIndex = (int)regs.esi;
 
                         vp->mWidth = shadowRes * 4;
                         vp->mHeight = shadowRes;
                         vp->mIsPerspective = false;
 
-                        rage__grcViewport__SetNormWindow(vp, cascadeIndex * shadowRes, 0, shadowRes, shadowRes, 0.0f, 1.0f);
+                        rage__grcViewport__SetWindow(vp, cascadeIndex * shadowRes, 0, shadowRes, shadowRes, 0.0f, 1.0f);
                         rage__grcViewport__SetCameraMatrix(vp, &cascadedShadowObj->mCameraMatrix);
                         rage__grcViewport__SetProjectionMatrix(vp, &cascadedShadowObj->mProjectionMatrices[cascadeIndex]);
 
                         void* dc = CBaseDC__operator_new(0x410, 0); // sizeof(CSetCurrentViewportDC)
                         dc = CSetCurrentViewportDC__ctor(dc, vp);
-                        CBaseDC__Execute(dc);
+                        if (CBaseDC__Execute)
+                            CBaseDC__Execute(dc);
+                        else
+                            CBaseDC__ExecuteLegacy(dc);
                     });
 
                     // Sampleable depth format for the atlas
-                    pattern = find_pattern("C6 44 24 ? ? 80 7E ? ? BF");
-                    static auto hwFilteringHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                    if (bCE)
                     {
-                        rage::grcRenderTargetPC* rt = (rage::grcRenderTargetPC*)regs.esi;
-                        if (std::string_view(rt->mName) == "CASCADE_ATLAS")
-                            regs.ebx = D3DFMT_D24X8;
-                    });
+                        static auto hwFilteringHook = safetyhook::create_mid(hook::pattern("C6 44 24 ? ? 80 7E ? ? BF").get_first(), [](SafetyHookContext& regs)
+                        {
+                            rage::grcRenderTargetPC* rt = (rage::grcRenderTargetPC*)regs.esi;
+                            if (std::string_view(rt->mName) == "CASCADE_ATLAS")
+                                regs.ebx = D3DFMT_D24X8;
+                        });
+                    }
+                    else
+                    {
+                        // grcRenderTargetPC::Create, at CreateTexture
+                        static auto hwFilteringHook = safetyhook::create_mid(hook::pattern("8B 52 5C 6A 00 8D 5E 34 53 6A 00 57").get_first(3), [](SafetyHookContext& regs)
+                        {
+                            rage::grcRenderTargetPC* rt = (rage::grcRenderTargetPC*)regs.esi;
+                            if (std::string_view(rt->mName) == "CASCADE_ATLAS")
+                                regs.edi = D3DFMT_D24X8;
+                        });
+                    }
 
                     // No colour writes in the cascade pass, unless CHSS needs the raw depth (below)
-                    pattern = find_pattern("C7 44 24 ? ? ? ? ? 8B 01 6A ? 68 ? ? ? ? FF 50 ? 8B 0D ? ? ? ? 8D 54 24");
+                    pattern = hook::pattern(bCE ? "C7 44 24 ? ? ? ? ? 8B 01 6A ? 68 ? ? ? ? FF 50 ? 8B 0D ? ? ? ? 8D 54 24" : "C7 44 24 ? 04 00 00 00 8B 01 8B 40 38 6A ? 68");
                     injector::WriteMemory<int>(pattern.get_first(4), rage::GRCFMT_NULL, true);
 
-                    pattern = find_pattern("C7 05 ? ? ? ? ? ? ? ? 8B 0D ? ? ? ? 85 C9 74 ? 0F B7 41 ? 66 85 C0 74 ? 48 66 89 41 ? 8A 41 ? 3C ? 74 ? 3C ? 74 ? 32 C0 EB ? B0 ? 66 83 79 ? ? 75 ? 84 C0 74 ? 8B 01 6A ? FF 10 C7 05 ? ? ? ? ? ? ? ? C3 CC CC CC CC CC CC CC C6 05");
-                    static auto& cascadeTargetR32 = **pattern.get_first<rage::grcRenderTargetPC**>(2);
+                    pattern = hook::pattern(bCE ? "C7 05 ? ? ? ? ? ? ? ? 8B 0D ? ? ? ? 85 C9 74 ? 0F B7 41 ? 66 85 C0 74 ? 48 66 89 41 ? 8A 41 ? 3C ? 74 ? 3C ? 74 ? 32 C0 EB ? B0 ? 66 83 79 ? ? 75 ? 84 C0 74 ? 8B 01 6A ? FF 10 C7 05 ? ? ? ? ? ? ? ? C3 CC CC CC CC CC CC CC C6 05" : "A3 ? ? ? ? 8D 44 24 ? 50 A1 ? ? ? ? 6A 20");
+                    static auto& cascadeTargetR32 = **pattern.get_first<rage::grcRenderTargetPC**>(bCE ? 2 : 1);
 
-                    pattern = find_pattern("89 3D ? ? ? ? E8 ? ? ? ? 8B F0 83 C4 ? 85 F6 74 ? 8B 17 8B CF 8B 52");
+                    pattern = hook::pattern(bCE ? "89 3D ? ? ? ? E8 ? ? ? ? 8B F0 83 C4 ? 85 F6 74 ? 8B 17 8B CF 8B 52" : "89 3D ? ? ? ? E8 ? ? ? ? 8B F0 83 C4 08 3B F3 74");
                     static auto hookRT = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                     {
                         static auto shadowFilter = FusionFixSettings.GetRef("PREF_SHADOWFILTER");
@@ -516,20 +502,20 @@ public:
                     // ShadowZTextureDirRaw: the raw depth for CHSS's blocker search
                     static int ShadowZTextureIndex;
 
-                    pattern = find_pattern("C6 05 ? ? ? ? ? 5E 85 C0");
-                    static auto getShadowZTextureIndexHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                    pattern = hook::pattern(bCE ? "C6 05 ? ? ? ? ? 5E 85 C0" : "85 C0 C6 05 ? ? ? ? 00 5E 74");
+                    static auto getShadowZTextureIndexHook = safetyhook::create_mid(pattern.get_first(bCE ? 0 : 2), [](SafetyHookContext& regs)
                     {
                         ShadowZTextureIndex = rage::grmShaderInfo::getGlobalParameterIndexByName("ShadowZTextureDirRaw");
                     });
 
-                    pattern = find_pattern("E8 ? ? ? ? 83 C4 ? 5E 8B E5 5D C3 8D 4C 24");
+                    pattern = hook::pattern(bCE ? "E8 ? ? ? ? 83 C4 ? 5E 8B E5 5D C3 8D 4C 24" : "E8 ? ? ? ? 83 C4 08 5E 8B E5 5D C3 0F 57 C0");
                     static auto CShaderLib__SetGlobalVarInContext = injector::GetBranchDestination(pattern.get_first()).get<void(int, void*)>();
                     static auto setShadowZTextureHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                     {
                         CShaderLib__SetGlobalVarInContext(ShadowZTextureIndex, &cascadeTargetR32);
                     });
 
-                    pattern = find_pattern("E8 ? ? ? ? 83 C4 ? 8D 44 24 ? 50 FF 35");
+                    pattern = hook::pattern(bCE ? "E8 ? ? ? ? 83 C4 ? 8D 44 24 ? 50 FF 35" : "E8 ? ? ? ? 8B 15 ? ? ? ? 83 C4 40 8D 4C 24");
                     static auto nullShadowZTexture = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                     {
                         void* null = nullptr;
