@@ -65,12 +65,17 @@
     add r4.z, -r4.z, -c0.z // hardware depth
     mov r4.w, -c0.w
     mov r0.x, -c0.z
+    mad r5, r0, -c0.zzzw, -r0.yzww // shadow cascade mask
+    dp4 r6.x, r5_abs, c204 // cascade tile bounds, half a texel inside
+    dp4 r6.y, r5_abs, c203
     dp4 r2.x, r0, c57
     dp4 r2.y, r0, c58
     dp4 r3.x, r0, c59
     dp4 r3.y, r0, c56
     mad r0.xy, r1, r2, r3
-    mov r4.xy, r0.xy
+    max r4.x, r0.x, r6.x
+    min r4.x, r4.x, r6.y
+    mov r4.y, r0.y
     texldl r0, r4, s15
     mov oC0.w, r0.x
     mov oC0.xyz, -c0.wwzw
