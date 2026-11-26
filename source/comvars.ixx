@@ -2,6 +2,7 @@ module;
 
 #include <common.hxx>
 #include <D3D9Types.h>
+#include <mutex>
 
 export module comvars;
 
@@ -1755,7 +1756,13 @@ export namespace rage
         }
 
         static inline std::unordered_map<std::string, grcTexturePC*> TextureCache;
+
+    private:
+        // The game and the render thread can register render targets concurrently during startup.
+        static inline std::mutex RTCacheMutex;
         static inline std::unordered_map<std::string, grcRenderTargetPC*> RTCache;
+
+    public:
         static inline SafetyHookInline shCreateTexture{};
         static grcTexturePC* __fastcall CreateTexture(grcTextureFactoryPC* _this, void* edx, const char* name, void* a3)
         {
@@ -1801,6 +1808,7 @@ export namespace rage
 
             auto ret = shCreateRT.stdcall<grcRenderTargetPC*>(name, a2, width, height, bitsPerPixel, desc);
 
+            std::lock_guard lock(RTCacheMutex);
             RTCache[name] = ret;
             return ret;
         }
@@ -1814,9 +1822,16 @@ export namespace rage
 
         static grcRenderTargetPC* GetRTByName(const char* name)
         {
-            if (RTCache.contains(name))
-                return RTCache[name];
+            std::lock_guard lock(RTCacheMutex);
+            if (auto it = RTCache.find(name); it != RTCache.end())
+                return it->second;
             return nullptr;
+        }
+
+        static void RemoveRTByName(const char* name)
+        {
+            std::lock_guard lock(RTCacheMutex);
+            RTCache.erase(name);
         }
 
         static grcTexturePC* FindTextureByRawPointer(IDirect3DTexture9* ptr)
@@ -1831,6 +1846,7 @@ export namespace rage
 
         static grcRenderTargetPC* FindRTByRawPointer(IDirect3DTexture9* ptr)
         {
+            std::lock_guard lock(RTCacheMutex);
             for (auto& [name, rt] : RTCache)
             {
                 if (rt->mD3DTexture == ptr)
