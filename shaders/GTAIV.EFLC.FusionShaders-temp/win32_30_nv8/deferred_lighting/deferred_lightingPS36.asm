@@ -51,21 +51,33 @@
     rcp r0.x, r0.x
     mad r0.xyz, r1, -r0.x, c15
     mul r1.xyz, r0.y, c61.xyww
+    mul r4.z, r0.y, c61.z
     mad r1.xyz, r0.x, c60.xyww, r1
+    mad r4.z, r0.x, c60.z, r4.z
     mad r1.xyz, r0.z, c62.xyww, r1
+    mad r4.z, r0.z, c62.z, r4.z
     dp3 r0.x, c14, r0
     add r0.xyz, -r0.x, -c54
     cmp r0.yzw, r0.xxyz, -c0.z, -c0.w
     add r1.xyz, r1, c63.xyww
+    add r4.z, r4.z, c63.z
+    min r4.z, r4.z, -c0.z
+    add r4.z, -r4.z, -c0.z // hardware depth
+    mov r4.w, -c0.w
     mov r0.x, -c0.z
+    mad r5, r0, -c0.zzzw, -r0.yzww // shadow cascade mask
+    dp4 r6.x, r5_abs, c204 // cascade tile bounds, half a texel inside
+    dp4 r6.y, r5_abs, c203
     dp4 r2.x, r0, c57
     dp4 r2.y, r0, c58
     dp4 r3.x, r0, c59
     dp4 r3.y, r0, c56
     mad r0.xy, r1, r2, r3
-    texld r0, r0, s15
-    add r0.x, r1.z, -r0.x
-    cmp oC0.w, r0.x, -c0.z, -c0.w
+    max r4.x, r0.x, r6.x
+    min r4.x, r4.x, r6.y
+    mov r4.y, r0.y
+    texldl r0, r4, s15
+    mov oC0.w, r0.x
     mov oC0.xyz, -c0.wwzw
 
 // approximately 28 instruction slots used (2 texture, 26 arithmetic)

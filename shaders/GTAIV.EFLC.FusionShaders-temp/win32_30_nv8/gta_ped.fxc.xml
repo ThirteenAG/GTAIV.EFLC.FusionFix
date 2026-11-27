@@ -222,7 +222,7 @@
 			<Item>
 				<DataType>asm</DataType>
 				<File>gta_ped\gta_pedPS2.asm</File>
-				<Variables value="54" >
+				<Variables value="55" >
 					<Item>
 						<Type>sampler</Type>
 						<Name>BumpSampler</Name>
@@ -444,6 +444,11 @@
 						<Index value="15" />
 					</Item>
 					<Item>
+						<Type>sampler</Type>
+						<Name>gShadowZSamplerDirRaw</Name>
+						<Index value="13" />
+					</Item>
+					<Item>
 						<Type>float4x4</Type>
 						<Name>gViewInverse</Name>
 						<Index value="12" />
@@ -498,7 +503,7 @@
 			<Item>
 				<DataType>asm</DataType>
 				<File>gta_ped\gta_pedPS3.asm</File>
-				<Variables value="30" >
+				<Variables value="31" >
 					<Item>
 						<Type>sampler</Type>
 						<Name>BumpSampler</Name>
@@ -600,6 +605,11 @@
 						<Index value="15" />
 					</Item>
 					<Item>
+						<Type>sampler</Type>
+						<Name>gShadowZSamplerDirRaw</Name>
+						<Index value="13" />
+					</Item>
+					<Item>
 						<Type>float4x4</Type>
 						<Name>gViewInverse</Name>
 						<Index value="12" />
@@ -654,7 +664,7 @@
 			<Item>
 				<DataType>asm</DataType>
 				<File>gta_ped\gta_pedPS4.asm</File>
-				<Variables value="42" >
+				<Variables value="43" >
 					<Item>
 						<Type>sampler</Type>
 						<Name>BumpSampler</Name>
@@ -816,6 +826,11 @@
 						<Index value="15" />
 					</Item>
 					<Item>
+						<Type>sampler</Type>
+						<Name>gShadowZSamplerDirRaw</Name>
+						<Index value="13" />
+					</Item>
+					<Item>
 						<Type>float4x4</Type>
 						<Name>gViewInverse</Name>
 						<Index value="12" />
@@ -950,7 +965,7 @@
 			</Item>
 		</PixelShaders>
 	</Shaders>
-	<GlobalVariables value="60" >
+	<GlobalVariables value="61" >
 		<Item>
 			<Type>float4</Type>
 			<ArrayCount value="64" />
@@ -1495,7 +1510,21 @@
 			<Values value="10" >
 			AddressU Clamp
 			AddressV Clamp
-			MipFilter Point
+			MipFilter None
+			MinFilter Linear
+			MagFilter Linear
+		</Values>
+		</Item>
+		<Item>
+			<Type>sampler</Type>
+			<ArrayCount value="0" />
+			<Name1>gShadowZSamplerDirRaw</Name1>
+			<Name2>ShadowZTextureDirRaw</Name2>
+			<Annotation />
+			<Values value="10" >
+			AddressU Clamp
+			AddressV Clamp
+			MipFilter None
 			MinFilter Point
 			MagFilter Point
 		</Values>
