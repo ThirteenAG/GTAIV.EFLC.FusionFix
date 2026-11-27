@@ -191,8 +191,8 @@ namespace ShaderWarmUp
 
     // The end of the batch drawn last, while the driver works on it
     IDirect3DQuery9* pBatchDone = nullptr;
-    bool bBatchPending = false;
-    int64_t nBatchStart = 0;
+    uint32_t nPendingPairs = 0;
+    int64_t nBatchStart = 0;        // Valid only on the loading screen that issued the query
     uint32_t nBatchPairs = nFirstBatchPairs;
 
     void Release()
@@ -200,20 +200,28 @@ namespace ShaderWarmUp
         if (pBatchDone)
             pBatchDone->Release();
         pBatchDone = nullptr;
-        bBatchPending = false;
+        nPendingPairs = 0;
+        nBatchStart = 0;
     }
 
     // The driver has finished the last batch: then the time it took sets the size of the next one, for about a frame's
     // time of the loading screen (no more than twice as many as before)
     bool BatchDone(int64_t now, int64_t frequency)
     {
-        if (!bBatchPending)
+        if (!nPendingPairs)
             return true;
-        if (pBatchDone->GetData(nullptr, 0, 0) == S_FALSE)
+        auto result = pBatchDone->GetData(nullptr, 0, 0);
+        if (result == S_FALSE)
             return false;
-        bBatchPending = false;
-        auto ms = std::max((now - nBatchStart) * 1000.0 / frequency, 1.0);
-        nBatchPairs = std::clamp(static_cast<uint32_t>(nBatchPairs * std::min(fLoadingFrameMs / ms, 2.0)), 1u, nMaxBatchPairs);
+        if (result == S_OK && nBatchStart)
+        {
+            auto ms = std::max((now - nBatchStart) * 1000.0 / frequency, 1.0);
+            auto next = static_cast<uint32_t>(nPendingPairs * std::min(fLoadingFrameMs / ms, 2.0));
+            if (ms < fLoadingFrameMs)
+                next = std::max(next, nPendingPairs + 1); // A small batch can round back down to its current size.
+            nBatchPairs = std::clamp(next, 1u, nMaxBatchPairs);
+        }
+        nPendingPairs = 0;
         return true;
     }
 
@@ -229,20 +237,23 @@ namespace ShaderWarmUp
             nPairsLeft = nLoadingScreenPairs;
             nLoadedBefore = LoadingScreenWork::nResourcesLoaded;
         }
-        else if (loading && (bDrewLastFrame || bBatchPending))
+        else if (loading && (bDrewLastFrame || (nPendingPairs && nBatchStart)))
             nTicksLeft -= now.QuadPart - nLastFrame;
-        else if (!loading && bLoading && LoadingScreenWork::nResourcesLoaded - nLoadedBefore >= LoadingScreenWork::nGameResources)
-            bFirstGame = false;
+        else if (!loading && bLoading)
+        {
+            nBatchStart = 0; // Keep an outstanding query, but stop timing it against this screen.
+            if (LoadingScreenWork::nResourcesLoaded - nLoadedBefore >= LoadingScreenWork::nGameResources)
+                bFirstGame = false;
+        }
         bLoading = loading;
         nLastFrame = now.QuadPart;
         bDrewLastFrame = false;
 
         Collect();
-        if (!loading || LoadingScreenWork::nResourcesLoaded - nLoadedBefore < LoadingScreenWork::nGameResources)
+        if (!BatchDone(now.QuadPart, frequency.QuadPart) || !loading ||
+            LoadingScreenWork::nResourcesLoaded - nLoadedBefore < LoadingScreenWork::nGameResources)
             return;
         if (!bFirstGame && (nTicksLeft <= 0 || !nPairsLeft))
-            return;
-        if (!BatchDone(now.QuadPart, frequency.QuadPart))
             return;
 
         Pair pair{};
@@ -264,7 +275,8 @@ namespace ShaderWarmUp
 
         static const float triangle[9] = {};
         device->SetFVF(D3DFVF_XYZ);
-        for (uint32_t i = 0;;)
+        uint32_t nDrawn = 0;
+        for (;;)
         {
             device->SetVertexShader(pair.pVertexShader);
             device->SetPixelShader(pair.pPixelShader);
@@ -273,7 +285,7 @@ namespace ShaderWarmUp
             pair.pPixelShader->Release();
             if (nPairsLeft)
                 nPairsLeft--;
-            if (++i >= (bFirstGame ? nBatchPairs : nFramePairs) || (!bFirstGame && !nPairsLeft))
+            if (++nDrawn >= (bFirstGame ? nBatchPairs : nFramePairs) || (!bFirstGame && !nPairsLeft))
                 break;
             LARGE_INTEGER drawn{};
             QueryPerformanceCounter(&drawn);
@@ -285,7 +297,7 @@ namespace ShaderWarmUp
         bDrewLastFrame = true;
         if (pBatchDone && SUCCEEDED(pBatchDone->Issue(D3DISSUE_END)))
         {
-            bBatchPending = true;
+            nPendingPairs = nDrawn;
             nBatchStart = now.QuadPart;
         }
 
