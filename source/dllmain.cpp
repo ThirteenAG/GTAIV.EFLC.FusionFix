@@ -13,6 +13,47 @@ import graphicsapi;
 
 std::vector<std::future<void>> initializationFutures;
 
+// The game recovers a lost device and changes the display mode on its update thread, also while the render thread
+// draws a loading screen. Fusion Fix's end-of-frame work makes Direct3D resources (the shader warm-up and its query,
+// textures and buffers made ahead of their first draw, its own targets and fonts): one made after the game released
+// its resources for the Reset makes the Reset fail ("D3D reset failed", DD3D80). That work is skipped from the game's
+// lost-device callbacks, once the frame's work in progress has finished, until its reset callbacks.
+namespace DeviceChange
+{
+    std::atomic<bool> bChanging = false;
+    std::atomic<int32_t> nFrameWork = 0;
+
+    // Update thread, the game's lost-device callbacks: before it releases its resources
+    void __fastcall OnLost()
+    {
+        bChanging = true;
+        while (nFrameWork.load())
+            SwitchToThread();
+    }
+
+    // After a successful Reset
+    void __fastcall OnReset()
+    {
+        bChanging = false;
+    }
+
+    // Render thread, at the game's last EndScene of a frame
+    void EndScene(LPDIRECT3DDEVICE9 device)
+    {
+        nFrameWork++;
+        if (!bChanging)
+        {
+            FusionFix::onEndScene().executeAll();
+            FusionFix::onAfterEndScene().executeAll();
+            // The final image, HUD and menus included, for the dev-only automation plugin
+            asi_automation_frames::Fire(ASI_AUTOMATION_STAGE_AFTER_UI, device);
+            // The in-game settings overlay on top of everything, after the automation grab (clean previews)
+            GTAIVOverlay::Present(device);
+        }
+        nFrameWork--;
+    }
+}
+
 injector::hook_back<void(*)()> hbCGameProcess;
 void CGameProcessHook()
 {
@@ -53,6 +94,9 @@ void Init()
     // The graphics API first: before the game creates its window and its Direct3D object (graphicsapi.ixx)
     InstallGraphicsApi();
 
+    // With the game's lost-device and reset callbacks
+    rage::grcDevice::RegisterDeviceCallbacks(rage::grcDevice::Functor0(NULL, DeviceChange::OnLost, NULL, 0), rage::grcDevice::Functor0(NULL, DeviceChange::OnReset, NULL, 0));
+
     auto pattern = hook::pattern("E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? B9");
     hbCGameProcess.fun = injector::MakeCALL(pattern.get_first(0), CGameProcessHook, true).get();
 
@@ -81,12 +125,7 @@ void Init()
             void operator()(injector::reg_pack& regs)
             {
                 *(LPDIRECT3DDEVICE9*)&regs.eax = *Direct3DDevice;
-                FusionFix::onEndScene().executeAll();
-                FusionFix::onAfterEndScene().executeAll();
-                // The final image, HUD and menus included, for the dev-only automation plugin
-                asi_automation_frames::Fire(ASI_AUTOMATION_STAGE_AFTER_UI, *Direct3DDevice);
-                // The in-game settings overlay on top of everything, after the automation grab (clean previews)
-                GTAIVOverlay::Present(*Direct3DDevice);
+                DeviceChange::EndScene(*Direct3DDevice);
             }
         }; injector::MakeInline<AuxEndSceneHook>(pattern.get_first(0));
     }
@@ -129,12 +168,7 @@ void Init()
             void operator()(injector::reg_pack& regs)
             {
                 *(LPDIRECT3DDEVICE9*)&regs.eax = *Direct3DDevice;
-                FusionFix::onEndScene().executeAll();
-                FusionFix::onAfterEndScene().executeAll();
-                // The final image, HUD and menus included, for the dev-only automation plugin
-                asi_automation_frames::Fire(ASI_AUTOMATION_STAGE_AFTER_UI, *Direct3DDevice);
-                // The in-game settings overlay on top of everything, after the automation grab (clean previews)
-                GTAIVOverlay::Present(*Direct3DDevice);
+                DeviceChange::EndScene(*Direct3DDevice);
             }
         }; injector::MakeInline<AuxEndSceneHook>(pattern.get_first(0));
     }
