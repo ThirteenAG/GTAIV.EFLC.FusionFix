@@ -1,4 +1,5 @@
 #include <common.hxx>
+#ifdef ASI_OVERLAY
 #include <Commctrl.h>
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
@@ -10,9 +11,10 @@
 import common;
 import settings;
 
-// In-game settings overlay (Ctrl+F10 / Back + Start), the hub-style editor of every loaded plugin's ASI Settings, including
-// Advanced settings. The game's own Fusion Fix menu stays the regular menu. Library: the overlay of FusionFixUtils
-// (external/FusionFixUtils/overlay); adapter structure as in Max Payne 3 Fusion Fix (same RAGE input paths).
+// In-game settings overlay (Ctrl+F10 / Back + Start), Debug builds only: the hub-style editor of every loaded plugin's
+// ASI Settings, including Advanced settings. The game's own Fusion Fix menu stays the regular menu. Library: the overlay
+// of FusionFixUtils (external/FusionFixUtils/overlay); adapter structure as in Max Payne 3 Fusion Fix (same RAGE input
+// paths).
 namespace GTAIVOverlay
 {
     namespace
@@ -249,7 +251,6 @@ namespace GTAIVOverlay
     {
         if (!device) return;
         lastDevice = device;
-        overlay.hotkey = SettingsPlugin().Int("MAIN.OverlayHotkey");
         auto language = FusionFixSettings.Get("PREF_CURRENT_LANGUAGE");
         overlay.fallbackLanguage = languages[language >= 0 && language < int32_t(std::size(languages)) ? language : 0];
         overlay.pretransformed = true; // GTA IV: fixed-function T&L outputs black, see OverlayD3D9.hpp
@@ -311,3 +312,4 @@ namespace GTAIVOverlay
         }
     } adapter;
 }
+#endif

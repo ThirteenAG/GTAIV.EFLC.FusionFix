@@ -113,11 +113,17 @@ workspace "GTAIV.EFLC.FusionFix"
    includedirs { "external/FusionFixUtils/include", "external/FusionFixUtils" }
    includedirs { "source/ledsdk" }
    includedirs { "source/dxsdk" }
-   -- In-game settings overlay: the overlay of FusionFixUtils; ImGui is the imgui submodule of FusionFixUtils.
+   -- In-game settings overlay (developer menu), Debug builds only: the overlay of FusionFixUtils; ImGui is the imgui
+   -- submodule of FusionFixUtils. Release builds compile the overlay headers to empty stubs and have no ImGui.
    includedirs { "external/FusionFixUtils/imgui" }
    files { "external/FusionFixUtils/overlay/*.hpp", "external/FusionFixUtils/imgui/*.h" }
-   files { "external/FusionFixUtils/imgui/imgui.cpp", "external/FusionFixUtils/imgui/imgui_draw.cpp", "external/FusionFixUtils/imgui/imgui_tables.cpp", "external/FusionFixUtils/imgui/imgui_widgets.cpp" }
-   files { "external/FusionFixUtils/imgui/backends/imgui_impl_win32.cpp", "external/FusionFixUtils/imgui/backends/imgui_impl_dx9.cpp" }
+   filter "configurations:Debug"
+      defines { "ASI_OVERLAY" }
+      files { "external/FusionFixUtils/imgui/imgui.cpp", "external/FusionFixUtils/imgui/imgui_draw.cpp", "external/FusionFixUtils/imgui/imgui_tables.cpp", "external/FusionFixUtils/imgui/imgui_widgets.cpp" }
+      files { "external/FusionFixUtils/imgui/backends/imgui_impl_win32.cpp", "external/FusionFixUtils/imgui/backends/imgui_impl_dx9.cpp" }
+   filter { "configurations:Release", "files:external/FusionFixUtils/imgui/**" }
+      excludefrombuild "On"
+   filter {}
    links { "comctl32", "dxguid" }
    libdirs { "source/ledsdk" }
    libdirs { "source/dxsdk" }
